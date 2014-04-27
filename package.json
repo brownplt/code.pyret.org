@@ -1,0 +1,16 @@
+{
+  "name": "patch-experiment",
+  "version": "0.0.0",
+  "description": "An experimental repl app for Pyret",
+  "main": "index.js",
+  "dependencies": {
+    "pyret-lang": "~0.0.0",
+    "node-static": "^0.7.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joe Politz",
+  "license": "ISC"
+}
