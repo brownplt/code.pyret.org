@@ -3,7 +3,7 @@ var static = require('node-static'),
   util = require('util');
 
 var webroot = './node_modules/pyret-lang/',
-  port = 8080;
+  port = Number(process.env.PORT || 8080);
 
 var file = new(static.Server)(webroot, { 
   cache: 600, 
