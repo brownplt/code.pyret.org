@@ -4,3 +4,7 @@ install:
 install-link:
 	npm link pyret-lang
 
+non-npm-install:
+	git submodule init
+	git submodule update
+
