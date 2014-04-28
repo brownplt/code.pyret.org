@@ -1,4 +1,4 @@
-define(["trove/image-lib", "./check-ui", "./error-ui", "./output-ui"], function(imageLib, checkUI, errorUI, outputUI) {
+define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js"], function(imageLib, checkUI, errorUI, outputUI) {
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {

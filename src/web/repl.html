@@ -4,17 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>Patch ┄ Bootstrap</title>
   <link rel="stylesheet" href="reset.css"></link>
-  <script src="/node_modules/requirejs/require.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-  <script src="/lib/CodeMirror/lib/codemirror.js"></script>
-  <script src="/lib/CodeMirror/addon/edit/matchbrackets.js"></script>
-  <script src="/lib/CodeMirror/mode/pyret/pyret.js"></script>
-  <script src="editor.js"></script>
-  <script src="draw.js"></script>
-<!--  <script type="text/javascript"
-          src="https://caja.appspot.com/caja.js"></script> -->
   <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
   <link rel="stylesheet" href="editor.css"></link>
 </head>
@@ -41,6 +31,30 @@
 <div id="footer"></div>
 </body>
 
+<script src="/node_modules/requirejs/require.js"></script>
+<script>
+requirejs.config({
+  paths: {
+//      "js": "js/",
+//      "compiler": "arr/compiler/",
+//      "arr": "arr/",
+//      "trove": "trove",
+    "q": "/node_modules/q/q",
+    "fs": "/src/web/fsstub"
+  },
+  waitSeconds: 0
+});
+</script>
+<script src="http://cs.brown.edu/~joe/private/pyret-dev/build/phase0/pyret.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/lib/CodeMirror/lib/codemirror.js"></script>
+<script src="/lib/CodeMirror/addon/edit/matchbrackets.js"></script>
+<script src="/lib/CodeMirror/mode/pyret/pyret.js"></script>
+<script src="editor.js"></script>
+<script src="draw.js"></script>
+<!--  <script type="text/javascript"
+        src="https://caja.appspot.com/caja.js"></script> -->
 <script>
 LOG = true;
 function ct_log(/* varargs */) {
@@ -70,18 +84,8 @@ $(function() {
   setInterval(function() {
     $("#loader p").text(texts[Math.floor(Math.random() * texts.length)]);
   }, 1300);
-  requirejs.config({
-    paths: {
-      "js": "/node_modules/pyret-lang/build/phase1/js",
-      "compiler": "/node_modules/pyret-lang/build/phase1/arr/compiler",
-      "arr": "/node_modules/pyret-lang/build/phase1/arr/",
-      "trove": "/node_modules/pyret-lang/build/phase1/trove",
-      "q": "/node_modules/q/q",
-      "fs": "fsstub"
-    },
-    waitSeconds: 0
-  });
-  require(["js/repl-lib", "./repl-ui", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
+  var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
+  define("repl-main", ["js/repl-lib", "/src/web/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
     $("#loader").hide();
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -132,6 +136,7 @@ $(function() {
     }
     editor.focus();
   });
+  require(["repl-main"]);
 });
 </script>
 </html>

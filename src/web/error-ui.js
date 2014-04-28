@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui"], function(ffiLib, srclocLib, errorLib, csLib, imageLib, outputUI) {
+define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js"], function(ffiLib, srclocLib, errorLib, csLib, imageLib, outputUI) {
 
   function drawError(container, editor, runtime, exception) {
     var ffi = ffiLib(runtime, runtime.namespace);
