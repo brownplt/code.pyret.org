@@ -7,7 +7,8 @@ var webroot = './',
 
 var file = new(static.Server)(webroot, { 
   cache: 600, 
-  headers: { 'X-Powered-By': 'node-static' } 
+  headers: { 'X-Powered-By': 'node-static' } ,
+  gzip: true
 });
 
 http.createServer(function(req, res) {

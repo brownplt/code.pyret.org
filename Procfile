@@ -1,1 +1,1 @@
-web:  node src/scripts/static-files.js
+web: node src/run.js
