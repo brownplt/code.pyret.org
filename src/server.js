@@ -26,12 +26,6 @@ function start(config, onServerReady) {
 
 }
 
-if(typeof process.env["NODE_ENV"] !== "string") {
-  process.env["NODE_ENV"] = "development";
-}
-
-config = require('./server-config.js')[process.env["NODE_ENV"]];
-
 module.exports = {
   start: start
 };
