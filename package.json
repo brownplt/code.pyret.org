@@ -11,8 +11,6 @@
     "node-static": "^0.7.3",
     "express": "^4.1.1",
     "pg": "^3.0.3",
-    "passport-http-bearer": "^1.0.1",
-    "passport": "^0.2.0",
     "request": "^2.34.0",
     "googleapis": "^0.7.0",
     "node-uuid": "^1.4.1",
