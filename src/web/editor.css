@@ -263,47 +263,6 @@ body {
     width: 50px;
 }
 
-#loader {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  background: url('/node_modules/pyret-lang/img/pyret-spin.gif') 50% 121px no-repeat rgb(249,249,249);
-  background-size: 250px 250px;
-}
-
-#loader p {
-  position: fixed;
-  top: 400px;
-  text-align: center;
-  width: 100%;
-}
-
-#header {
-  position: fixed;
-  z-index: 9000;
-  top: 0;
-  width: 100%;
-  height: 50px;
-  background: url("/node_modules/pyret-lang/img/pyret-logo.png") 10px 3px no-repeat #ddd;
-  background-size: 40px 40px;
-  padding-left: 60px;
-}
-
-#header div {
-  width: 100px;
-  margin-top: 15px;
-  float: left;
-  padding-right: 2em;
-}
-
-#header a {
-  color: #111;
-  font-family: sans-serif;
-}
-
 #main {
   width: 100%;
   z-index: 5000;
@@ -312,23 +271,6 @@ body {
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-}
-
-#toolbar {
-  position: fixed;
-  z-index: 8000;
-  top: 50px;
-  height: 25px;
-  width: 100%;
-  background-color: #111;
-}
-
-#footer {
-  height: 5px;
-  background-color: #111;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
 }
 
 #program-name-container {

@@ -26,7 +26,7 @@
     }
     var getAccess = $.ajax("/getAccessToken")
     getAccess.then(function(data) {
-      createProgramCollectionAPI("code.pyret.org", data.access_token, refresh, function(api) {
+      createProgramCollectionAPI("code.pyret.org3", data.access_token, refresh, function(api) {
         storageAPI = api;
       });
       $(".loginOnly").show();

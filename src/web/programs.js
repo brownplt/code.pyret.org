@@ -42,20 +42,23 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
           }
         });
       },
-      save: function(contents, afterSave) {
+      save: function(contents, newRevision, afterSave) {
+        var multipart;
         gapi.client.request({
-          'path': '/upload/drive/v2/files/' + googFileObject.id,
+          'path': '/upload/drive/v2/files/' + googFileObject.id + "?uploadType=multipart",
           'method': 'put',
           'params': { 'newRevision': true },
           'body': contents
         }).execute(function(r) {
           afterSave(this);
         });
-      }
+      },
+      _googObj: googFileObject
     }
   }
 
   function createAPI(files, baseCollection) {
+    console.log(baseCollection.id);
     var dirty = false;
     var apiFiles = {};
     function updateApiFiles(googFiles) {
@@ -81,10 +84,14 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
       createFile: function(name, onCreated) {
         dirty = true;
         withAuthCheck(function(then) {
-          drive.files.insert({resource: {
-              mimeType: "text/plain",
-              title: name,
-              parents: [{"id": baseCollection.id}]
+          gapi.client.request({
+            'path': '/drive/v2/files',
+            'method': 'POST',
+            'params': {},
+            'body': {
+              "parents": [{id: baseCollection.id}],
+              "mimeType": "text/plain",
+              "title": name
             }
           }).execute(then);
         }, function(googFileObj) {
@@ -131,8 +138,5 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
       }
     });
 
-    gapi.client.load('drive', 'v1', function(client) {
-      console.log(client);
-    });
   }
 }
