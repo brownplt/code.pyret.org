@@ -43,13 +43,40 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
         });
       },
       save: function(contents, newRevision, afterSave) {
-        var multipart;
-        gapi.client.request({
-          'path': '/upload/drive/v2/files/' + googFileObject.id + "?uploadType=multipart",
-          'method': 'put',
-          'params': { 'newRevision': true },
-          'body': contents
-        }).execute(function(r) {
+        // NOTE(joe): newRevision: false will cause badRequest errors as of
+        // April 30, 2014
+        if(newRevision) { 
+          var params = { 'newRevision': true };
+        }
+        else {
+          var params = {};
+        }
+        const boundary = '-------314159265358979323846';
+        const delimiter = "\r\n--" + boundary + "\r\n";
+        const close_delim = "\r\n--" + boundary + "--";
+        var metadata = {
+          'mimeType': "text/plain",
+          'fileExtension': "arr"
+        };
+        var multipartRequestBody =
+              delimiter +
+              'Content-Type: application/json\r\n\r\n' +
+              JSON.stringify(metadata) +
+              delimiter +
+              'Content-Type: text/plain\r\n' +
+              '\r\n' +
+              contents +
+              close_delim;
+
+        var request = gapi.client.request({
+            'path': '/upload/drive/v2/files/' + googFileObject.id,
+            'method': 'PUT',
+            'params': {'uploadType': 'multipart'},
+            'headers': {
+              'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+            },
+            'body': multipartRequestBody});
+        request.execute(function(r) {
           afterSave(this);
         });
       },
@@ -91,6 +118,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
             'body': {
               "parents": [{id: baseCollection.id}],
               "mimeType": "text/plain",
+              "fileExtension": "arr",
               "title": name
             }
           }).execute(then);

@@ -38,9 +38,6 @@
 <script src="/src/web/programs.js"></script>
 <script type="text/javascript">
   var storageAPI;
-  /**
-   * Called when the client library is loaded to start the auth flow.
-   */
   function handleClientLoad() {
     function refresh(then) {
       $.ajax("/getAccessToken").then(then);
@@ -160,13 +157,12 @@ $(function() {
         storageAPI.createFile(programName, function(file) { currentFile = file; save(); });
       }
       else {
-        currentFile.save(editor.cm.getValue(), function(afterSaveVal) {
+        currentFile.save(editor.cm.getValue(), false, function(afterSaveVal) {
           console.log("Program saved", afterSaveVal);
         });
       }
     }
     $("#saveButton").click(save);
-    setInterval(save, 3000);
     if(window.localStorage.hasOwnProperty(lskey)) {
       editor.cm.setValue(window.localStorage.getItem(lskey));
     }
