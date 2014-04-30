@@ -3,25 +3,26 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>code.pyret.org</title>
-  <link rel="stylesheet" href="reset.css"></link>
+  <link rel="stylesheet" href="/src/web/reset.css"></link>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
   <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
-  <link rel="stylesheet" href="shared.css"></link>
-  <link rel="stylesheet" href="editor.css"></link>
+  <link rel="stylesheet" href="/src/web/shared.css"></link>
+  <link rel="stylesheet" href="/src/web/editor.css"></link>
 </head>
 <body>
 <div id="header">
   <div id="docs"><a href="doc.txt" target="_blank">Documentation</a></div>
-  <div id="programs"><a>My Programs</a></div>
-  <div id="logout"><a>Logout</a></div>
+  <div id="programs" class="loginOnly"><a>My Programs</a></div>
+  <div id="logout" class="loginOnly"><a>Logout</a></div>
 </div>
 <div id="toolbar">
-  <div id="program-name-container">
+  <div id="program-name-container" class="loginOnly">
     <label for="program-name">Program Name:</label>
     <input id="program-name" type="text"></input>
   </div>
-  <button id="saveButton" class="blueButton">Save</button>
-  <button id="shareButton" class="blueButton">Share</button>
+  <button id="saveButton" class="loginOnly blueButton">Save</button>
+  <button id="shareButton" class="loginOnly blueButton">Share</button>
+  <span id="notification" class="notificationArea"></span>
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <button id="runButton" class="blueButton rhs">Run</button>
 </div>
@@ -31,6 +32,32 @@
 </div>
 <div id="footer"></div>
 </body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/src/web/programs.js"></script>
+<script type="text/javascript">
+  var storageAPI;
+  /**
+   * Called when the client library is loaded to start the auth flow.
+   */
+  function handleClientLoad() {
+    function refresh(then) {
+      $.ajax("/getAccessToken").then(then);
+    }
+    var getAccess = $.ajax("/getAccessToken")
+    getAccess.then(function(data) {
+      createProgramCollectionAPI("code.pyret.org", data.access_token, refresh, function(api) {
+        storageAPI = api;
+      });
+      $(".loginOnly").show();
+    });
+    getAccess.error(function(err) {
+      console.log("Not logged in; proceeding without login info");
+    });
+  }
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 
 <script src="/node_modules/requirejs/require.js"></script>
 <script>
@@ -47,12 +74,10 @@ requirejs.config({
 });
 </script>
 <script src="/node_modules/pyret-lang/build/phase0/pyret.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/lib/CodeMirror/lib/codemirror.js"></script>
 <script src="/lib/CodeMirror/addon/edit/matchbrackets.js"></script>
 <script src="/lib/CodeMirror/mode/pyret/pyret.js"></script>
-<script src="draw.js"></script>
+<script src="/src/web/draw.js"></script>
 <!--  <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 <script>
@@ -126,9 +151,19 @@ $(function() {
         }
       }
     });
+    
     var lskey = "patch_saved_program";
+    var currentFile;
     function save() {
-      window.localStorage.setItem(lskey, editor.cm.getValue());
+      if(!currentFile) {
+        var programName = $("#program-name").val() || "Untitled";
+        storageAPI.createFile(programName, function(file) { currentFile = file; save(); });
+      }
+      else {
+        currentFile.save(editor.cm.getValue(), function(afterSaveVal) {
+          console.log("Program saved", afterSaveVal);
+        });
+      }
     }
     $("#saveButton").click(save);
     setInterval(save, 3000);
@@ -140,15 +175,5 @@ $(function() {
   require(["repl-main"]);
 });
 </script>
-<script type="text/javascript">
-  /**
-   * Called when the client library is loaded to start the auth flow.
-   */
-  function handleClientLoad() {
-    var token = window.location.hash.slice(1);
-    gapi.auth.setToken({ access_token: token });
-  }
-</script>
-<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 </html>
 

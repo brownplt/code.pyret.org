@@ -10,17 +10,15 @@ h1 {
   font-family: monospace;
   font-size: 26pt;
   display: block;
-  padding-bottom: 2em;
+  height: 100px;
 }
 
 #login {
-  align-items: flex-start;
   vertical-align: middle;
   margin-right: 2em;
 }
 
 #start {
-  align-items: flex-start;
   vertical-align: middle;
   margin-left: 2em;;
 }
@@ -52,4 +50,15 @@ a.blueButton {
   padding-left: 5px;
   padding-right: 5px;
   text-decoration: none;
+}
+
+#loader {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: url('/node_modules/pyret-lang/img/pyret-spin.gif') 50% 200px no-repeat transparent;
+  background-size: 250px 250px;
 }

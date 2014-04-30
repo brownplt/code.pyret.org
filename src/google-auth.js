@@ -13,13 +13,28 @@ function makeAuth(config) {
         );
 
   return {
+    refreshAccess: function(refreshToken, callback) {
+      var oauth2Client =
+          new OAuth2(
+              config.google.clientId,
+              config.google.clientSecret,
+              config.baseUrl + config.google.redirect
+            );
+      oauth2Client.credentials = { refresh_token: refreshToken };
+      oauth2Client.refreshAccessToken(function(err, tokens) {
+        if(err !== null) { callback(err, null); return; }
+        callback(null, tokens.access_token);
+      });
+    },
     getAuthUrl: function() {
         return oauth2Client.generateAuthUrl({
-        access_type: 'online',
+        // Offline lets us handle refreshing access on our own (rather than
+        // popping up a dialog every half hour)
+        access_type: 'offline',
+        // Skip permission confirmation if the user has confirmed with us before
         approval_prompt: 'auto',
         // NOTE(joe): We do not use the drive scope on the server, but we ask
-        // for it so that the user won't get another popup when we do the
-        // authorization on the client.
+        // for it so that we don't have to do another popup on the client.
         // #notpola
         scope: 'email https://www.googleapis.com/auth/drive.file'
       });
@@ -70,8 +85,9 @@ function makeAuth(config) {
         // from elsewhere, we need to set up polling of Google's public key
         // servers to get the correct public key of the day to validate these
         // tokens cryptographically.
+        console.log("tokens: ", JSON.stringify(tokens));
         var decodedId = jwt.decode(tokens.id_token, {}, true);
-        callback(null, { googleId: decodedId["sub"], email: decodedId["email"], access: tokens.access_token });
+        callback(null, { googleId: decodedId["sub"], email: decodedId["email"], access: tokens.access_token, refresh: tokens.refresh_token });
       });
     }
   };
