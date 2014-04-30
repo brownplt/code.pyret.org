@@ -258,29 +258,6 @@ body {
     margin-right: -35%;
 }
 
-.blueButton {
-    font-family: sans-serif;
-/*  darker blue option #2a348b */
-    background-color: #469ad4;
-    border: 1px solid #469ad4;
-    border-radius: 3px;
-    color: #eee;
-    text-align: center;
-}
-
-.blueButton:hover {
-    background-color: #eee;
-    color: #469ad4;
-    cursor: pointer;
-}
-
-.blueButton:disabled {
-    background-color: #9cc;
-    border: 1px solid #9cc;
-    color: #ddd;
-    cursor: default;
-}
-
 
 .runButton {
     width: 50px;

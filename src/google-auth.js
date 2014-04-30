@@ -35,6 +35,12 @@ function makeAuth(config) {
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
         if(err !== null) { callback(err, null); return; }
+        if(!(typeof tokens.id_token === "string")) {
+          callback(new Error("No identity information provided"), null); return;
+        }
+        if(!(typeof tokens.access_token === "string")) {
+          callback(new Error("No access information provided"), null); return;
+        }
         // NOTE(joe): These few lines make security assumptions and you should
         // edit with care.  I wrote this when Google was deprecating one OAuth
         // library in favor of another (deprecation to occur in Sept 2014), so

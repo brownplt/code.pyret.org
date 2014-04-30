@@ -14,7 +14,9 @@
     "request": "^2.34.0",
     "googleapis": "^0.7.0",
     "node-uuid": "^1.4.1",
-    "jwt-simple": "^0.2.0"
+    "jwt-simple": "^0.2.0",
+    "csurf": "^1.1.0",
+    "cookie-session": "^1.0.1"
   },
   "devDependencies": {},
   "scripts": {
