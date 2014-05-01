@@ -13,7 +13,7 @@
 <div id="header">
   <div id="docs"><a href="/src/web/doc.txt" target="_blank">Documentation</a></div>
   <div id="programs" class="loginOnly"><a href="/my-programs">My Programs</a></div>
-  <div id="logout" class="loginOnly"><a href="/logout">Logout</a></div>
+  <div id="logout" class="loginOnly"><a>Logout</a></div>
 </div>
 <div id="toolbar">
   <div id="program-name-container" class="loginOnly">
@@ -38,24 +38,7 @@
 <script src="/node_modules/url.js/url.js"></script>
 <script src="/node_modules/q/q.js"></script>
 <script src="/src/web/programs.js"></script>
-<script type="text/javascript">
-  var storageAPI;
-  function handleClientLoad() {
-    function refresh(then) {
-      $.ajax("/getAccessToken").then(then);
-    }
-    var getAccess = $.ajax("/getAccessToken");
-    getAccess.then(function(data) {
-      createProgramCollectionAPI("code.pyret.org", data.access_token, refresh, function(api) {
-        storageAPI = api;
-      });
-      $(".loginOnly").show();
-    });
-    getAccess.error(function(err) {
-      console.log("Not logged in; proceeding without login info");
-    });
-  }
-</script>
+<script src="/src/web/authenticate-storage.js"></script>
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 
 <script src="/node_modules/requirejs/require.js"></script>
@@ -95,7 +78,6 @@ function ct_error(/* varargs */) {
 $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
   define("repl-main", ["js/repl-lib", "/src/web/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
-    $("#loader").hide();
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
@@ -107,7 +89,7 @@ $(function() {
     var repl = replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr || "Bootstrap"});
 
     // NOTE(joe): This forces the loading of all the built-in compiler libs
-    repl.restartInteractions("");
+    var interactionsReady = repl.restartInteractions("");
 
     var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
         breakButton: $("#breakButton")
@@ -138,28 +120,92 @@ $(function() {
     
     var lskey = "patch_saved_program";
     var currentFile;
-    
-    storageAPI.
 
-    function save() {
-      if(!currentFile) {
-        var programName = $("#program-name").val() || "Untitled";
-        storageAPI.createFile(programName, function(file) { currentFile = file; save(); });
+    var params = url.parse(document.location.href);
+    var initialProgramId = null;
+    if(params["get"] && params["get"]["program"]) {
+      initialProgramId = params["get"]["program"];
+    }
+
+    var initialProgram = storageAPI.then(function(api) {
+      if(initialProgramId) {
+        return api.getFileById(initialProgramId);
+      } else {
+        return null;
       }
-      else {
-        currentFile.save(editor.cm.getValue(), false, function(afterSaveVal) {
-          console.log("Program saved", afterSaveVal);
+    }).fail(function(err) {
+      console.error(err);
+      flashError("The program failed to load.");
+    });
+
+    var programLoaded = initialProgram.then(function(p) {
+      if(p !== null) {
+        $("#program-name").val(p.getName());
+        return p.getContents().then(function(c) {
+          editor.cm.setValue(c);
         });
       }
+    });
+
+    var programToSave = initialProgram;
+
+    function nameOrUntitled() {
+      return $("#program-name").val() || "Untitled";
+    }
+    function save() {
+      flashMessage("Saving...");
+      var savedProgram = programToSave.then(function(p) {
+        if(p !== null) {
+          if(p.getName() !== $("#program-name").val()) {
+            programToSave = p.rename(nameOrUntitled()).then(function(newP) {
+              return newP;
+            });
+          }
+          return programToSave
+          .then(function(p) {
+            return p.save(editor.cm.getValue(), false);
+          })
+          .then(function(p) {
+            $("#program-name").val(p.getName());
+            flashMessage("Program saved as " + p.getName());
+            return p;
+          })
+        }
+        else {
+          var programName = $("#program-name").val() || "Untitled";
+          $("#program-name").val(programName);
+          programToSave = storageAPI
+            .then(function(api) { return api.createFile(programName); });
+          return save();
+        }
+      });
+      savedProgram.fail(function(err) {
+        flashError("Program failed to save.");
+      });
     }
     $("#saveButton").click(save);
-    if(window.localStorage.hasOwnProperty(lskey)) {
-      editor.cm.setValue(window.localStorage.getItem(lskey));
-    }
+
+    Q.all([programLoaded, interactionsReady]).fin(function() { $("#loader").hide(); });
     editor.focus();
   });
   require(["repl-main"]);
 });
+function clearFlash() {
+  $(".notificationArea").empty();
+}
+function flashError(message) {
+  clearFlash();
+  var err = $("<span>").addClass("error").text(message);
+  $(".notificationArea").append(err);
+  err.fadeOut(7000);
+}
+function flashMessage(message) {
+  clearFlash();
+  var err = $("<span>").addClass("active").text(message);
+  $(".notificationArea").append(err);
+  err.fadeOut(7000);
+}
+    
 </script>
 </html>
 

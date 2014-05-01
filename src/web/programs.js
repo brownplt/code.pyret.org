@@ -38,7 +38,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
 
   function failCheck(p) {
     return p.then(function(result) {
-      if(result && result.code > 400) {
+      if(result && (typeof result.code === "number")) {
         throw new Error(result);
       }
       return result;
@@ -79,8 +79,16 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
           dataType: 'text',
           headers: {'Authorization': 'Bearer ' + gapi.auth.getToken().access_token },
         })).then(function(response) {
-          return response.responseText;
+          return response;
         });
+      },
+      rename: function(newName) {
+        return gQ(drive.files.update({
+          fileId: googFileObject.id,
+          resource: {
+            'title': newName
+          }
+        })).then(makeFile);
       },
       save: function(contents, newRevision) {
         // NOTE(joe): newRevision: false will cause badRequest errors as of
@@ -116,7 +124,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
               'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
             },
             'body': multipartRequestBody});
-        return gQ(request);
+        return gQ(request).then(makeFile);
       },
       _googObj: googFileObject
     }
@@ -139,7 +147,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
 
     return {
       getFileById: function(id) {
-        return gQ(drive.files.get({id: id}));
+        return gQ(drive.files.get({fileId: id})).then(makeFile);
       },
       getAllFiles: function() {
         if(!dirty) {

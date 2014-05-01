@@ -13,7 +13,7 @@
 <div id="loader" style="top: 80px;"><p></p></div>
 <div id="header"></div>
 <div id="toolbar">
-  <button id="newButton" class="loginOnly blueButton">New Program</button>
+  <a id="newButton" href="/editor"><button class="loginOnly blueButton">Start New Program</button></a>
 </div>
 <div id="main">
 
@@ -24,9 +24,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/node_modules/q/q.js"></script>
 <script src="/src/web/programs.js"></script>
+<script src="/src/web/authenticate-storage.js"></script>
 <script src="/src/web/loader.js"></script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 <script>
-function onStorageReady(storageAPI) {
+storageAPI
+.then(function(storageAPI) {
   storageAPI.getAllFiles()
   .then(function(files) {
     $("#loader").hide();
@@ -42,27 +45,7 @@ function onStorageReady(storageAPI) {
       files[k].forEach(makeEntry);
     });
   });
-}
+
+});
 </script>
-<script type="text/javascript">
-  var storageAPI;
-  function handleClientLoad() {
-    function refresh() {
-      return Q($.ajax("/getAccessToken"));
-    }
-    var getAccess = Q($.ajax("/getAccessToken"));
-    var api = getAccess.then(function(data) {
-      return createProgramCollectionAPI("code.pyret.org", data.access_token, refresh)
-    });
-    
-    api.then(function(api) {
-      $(".loginOnly").show();
-      onStorageReady(api);
-    });
-    api.fail(function(err) {
-      console.log("Not logged in; proceeding without login info", err);
-    });
-  }
-</script>
-<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 </html>

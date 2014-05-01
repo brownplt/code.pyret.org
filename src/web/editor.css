@@ -296,6 +296,13 @@ body {
   color: #111;
 }
 
+.notificationArea .error {
+  width: 200px;
+  background: red;
+  color: #eee;
+  font-weight: bold;
+}
+
 .loginOnly {
   display: none;
 }
