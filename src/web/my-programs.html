@@ -41,9 +41,16 @@ storageAPI
       elt.append($("<td>").append($("<a>").attr("href", "/editor?program=" + file.getUniqueId()).text("Open")));
       main.append(elt);
     }
-    files.forEach(makeEntry);
+    if(files.length > 0) {
+      files.forEach(makeEntry);
+    }
+    else {
+      $("#main").append($("<p>").text("It looks like you don't have any programs yet.  You can start one by clicking “Start New Program” above."));
+    }
   })
   .fail(function(err) {
+    $("#loader").hide();
+    $("#main").append($("<p>").text("There was an error loading your programs.").css({color: "red"}));
     console.error("Failed to load files: ", err);
   });
 

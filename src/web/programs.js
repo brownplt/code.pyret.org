@@ -39,6 +39,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
   function failCheck(p) {
     return p.then(function(result) {
       if(result && (typeof result.code === "number")) {
+        console.error("Failure: ", result);
         throw new Error(result);
       }
       return result;
@@ -152,10 +153,14 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
       getAllFiles: function() {
         var that = this;
         return gQ(drive.children.list({folderId: baseCollection.id})).then(function(filesResult) {
-          var items = filesResult.items.map(function(childRef) {
-            return that.getFileById(childRef.id);
-          });
-          return Q.all(items);
+          if(filesResult.items) {
+            var items = filesResult.items.map(function(childRef) {
+              return that.getFileById(childRef.id);
+            });
+            return Q.all(items);
+          } else {
+            return Q.all([]);
+          }
         });
       },
       createFile: function(name) {
