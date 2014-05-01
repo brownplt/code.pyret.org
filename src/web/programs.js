@@ -1,10 +1,49 @@
 // assumes gapi bound to Google API
 
-function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, onInit) {
+function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
 
   var drive;
-  gapi.auth.setToken({ access_token: initialAuthToken });
-  gapi.client.load('drive', 'v2', initialize);
+
+  function authCheck(f) {
+    function isAuthFailure(result) {
+      return (result.code && result.code === 401);
+    }
+    var retry = f().then(function(result) {
+      if(isAuthFailure(result)) {
+        return refresh().then(function(newToken) {
+          gapi.auth.setToken({ access_token: newToken });
+          return f();
+        });
+      } else {
+        return result;
+      }
+    });
+    return retry.then(function(result) {
+      if(isAuthFailure(result)) {
+        throw new Error("Authentication failure");
+      }
+      return result;
+    });
+  }
+
+  function gQ(request) {
+    return failCheck(authCheck(function() {
+      var d = Q.defer();
+      request.execute(function(result) {
+        d.resolve(result);
+      });
+      return d.promise;
+    }));
+  }
+
+  function failCheck(p) {
+    return p.then(function(result) {
+      if(result && result.code > 400) {
+        throw new Error(result);
+      }
+      return result;
+    });
+  }
 
   function withAuthCheck(f, then, hasBeenTried) {
     f(function(result) {
@@ -28,21 +67,22 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
       getName: function() {
         return googFileObject.title;
       },
-      getContents: function(withContents) {
-        $.ajax(googFileObject.downloadUrl, {
+      getModifiedTime: function() {
+        return googFileObject.modifiedDate;
+      },
+      getUniqueId: function() {
+        return googFileObject.id;
+      },
+      getContents: function() {
+        return Q($.ajax(googFileObject.downloadUrl, {
           method: "get",
           dataType: 'text',
           headers: {'Authorization': 'Bearer ' + gapi.auth.getToken().access_token },
-          success: function(r) {
-            console.log(r);
-            withContents(r.responseText);
-          },
-          error: function(e, err) {
-            console.error("Error fetching file contents: ", e, err);
-          }
+        })).then(function(response) {
+          return response.responseText;
         });
       },
-      save: function(contents, newRevision, afterSave) {
+      save: function(contents, newRevision) {
         // NOTE(joe): newRevision: false will cause badRequest errors as of
         // April 30, 2014
         if(newRevision) { 
@@ -76,16 +116,14 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
               'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
             },
             'body': multipartRequestBody});
-        request.execute(function(r) {
-          afterSave(this);
-        });
+        return gQ(request);
       },
       _googObj: googFileObject
     }
   }
 
   function createAPI(files, baseCollection) {
-    console.log(baseCollection.id);
+
     var dirty = false;
     var apiFiles = {};
     function updateApiFiles(googFiles) {
@@ -97,20 +135,25 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
         }
       });
     }
+    updateApiFiles(files);
+
     return {
-      getAllFiles: function(withFiles) {
-        if(!dirty) { withFiles(apiFiles); }
-        dirty = false;
-        withAuthCheck(function(then) {
-            drive.files.list({}).execute(then);
-          }, function(filesList) {
-            updateApiFiles(filesList.items);
-            withFiles(apiFiles);
-          });
+      getFileById: function(id) {
+        return gQ(drive.files.get({id: id}));
       },
-      createFile: function(name, onCreated) {
+      getAllFiles: function() {
+        if(!dirty) {
+          return Q.fcall(function() { return apiFiles; });
+        } else {
+          return gQ(drive.files.list({})).then(function(fileList) {
+            updateApiFiles(fileList.items);
+            return apiFiles;
+          });;
+        }
+      },
+      createFile: function(name) {
         dirty = true;
-        withAuthCheck(function(then) {
+        var request = 
           gapi.client.request({
             'path': '/drive/v2/files',
             'method': 'POST',
@@ -121,10 +164,8 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
               "fileExtension": "arr",
               "title": name
             }
-          }).execute(then);
-        }, function(googFileObj) {
-          onCreated(makeFile(googFileObj));
-        });
+          });
+        return gQ(request).then(makeFile);
       }
     };
   }
@@ -132,39 +173,40 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh, o
   function initialize() {
     drive = gapi.client.drive;
 
-    withAuthCheck(function(then) {
-        drive.files.list({}).execute(then);
-      },
-    function(filesResult) {
-      if(filesResult.kind !== "drive#fileList") {
-        console.error("Could not get file list: ", filesResult);
-        throw new Error("File list refused");
+    var list = gQ(drive.files.list({}));
+    var baseCollection = list.then(function(filesResult) {
+      var foundCollection = false;
+      filesResult.items.forEach(function(i) {
+        if(i.mimeType === "application/vnd.google-apps.folder" &&
+           i.title === collectionName) {
+          foundCollection = i;
+        }
+      });
+      var baseCollection;
+      if(!foundCollection) {
+        return gQ(
+            drive.files.insert({
+              resource: {
+                mimeType: "application/vnd.google-apps.folder",
+                title: collectionName
+              }
+            }));
       }
       else {
-        var foundCollection = false;
-        filesResult.items.forEach(function(i) {
-          if(i.mimeType === "application/vnd.google-apps.folder" &&
-             i.title === collectionName) {
-            foundCollection = i;
-          }
-        });
-        if(!foundCollection) {
-          withAuthCheck(function(then) {
-              drive.files.insert({
-                resource: {
-                  mimeType: "application/vnd.google-apps.folder",
-                  title: collectionName
-                }
-              }).execute(then);
-            }, function(inserted) {
-              onInit(createAPI(filesResult.items, inserted));
-            });
-        }
-        else {
-          onInit(createAPI(filesResult.items, foundCollection));
-        }
+        return foundCollection;
       }
     });
-
+    var fileList = list.then(function(fr) { return fr.items; });
+    return Q.all([fileList, baseCollection]).spread(function(files, collection) {
+      return createAPI(files, collection);
+    });
   }
+
+  gapi.auth.setToken({ access_token: initialAuthToken });
+  var d = Q.defer();
+  gapi.client.load('drive', 'v2', function() {
+    d.resolve(initialize())
+  });
+  return d.promise;
+  
 }

@@ -18,6 +18,7 @@ function start(config, onServerReady) {
   var auth = googleAuth.makeAuth(config);
 
   app.get("/", function(req, res) {
+    console.log("Index: ", JSON.stringify(req.session));
     res.sendfile("src/web/index.html");
   });
 
@@ -26,7 +27,7 @@ function start(config, onServerReady) {
       res.redirect(auth.getAuthUrl());
     }
     else {
-      res.redirect("/editor");
+      res.redirect("/my-programs");
     }
   });
 
@@ -36,19 +37,19 @@ function start(config, onServerReady) {
       else {
         req.session["access_token"] = data.access;
         req.session["refresh_token"] = data.refresh;
-        console.log("After google: ", JSON.stringify(req.session), data.access);
-        res.redirect("/programs");
+        res.redirect("/my-programs");
       }
     });
   });
 
   app.get("/getAccessToken", function(req, res) {
-    console.log(JSON.stringify(req.session));
+    console.log("getAccessToken: ", JSON.stringify(req.session));
     if(req.session && req.session["access_token"] && req.session["refresh_token"]) {
       auth.refreshAccess(req.session["refresh_token"], function(err, newToken) {
         if(err) { res.send(err); res.end(); }
         else {
           req.session["access_token"] = newToken;
+          req.session["refresh_token"] = req.session["refresh_token"];
           res.send({ access_token: newToken });
           res.end();
         }
@@ -63,8 +64,19 @@ function start(config, onServerReady) {
     res.sendfile("src/web/repl.html");
   });
 
+  app.get("/my-programs", function(req, res) {
+    console.log("My programs: ", JSON.stringify(req.session));
+    res.sendfile("src/web/my-programs.html");
+  });
+
   app.get("/api-test", function(req, res) {
     res.sendfile("src/web/api-play.html");
+  });
+
+  app.get("/logout", function(req, res) {
+    req.session = null;
+    delete req.session;
+    res.redirect("/");
   });
 
   app.listen(config["port"]);

@@ -1,0 +1,68 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/src/web/reset.css"></link>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
+  <link rel="stylesheet" href="/src/web/shared.css"></link>
+  <link rel="stylesheet" href="/src/web/my-programs.css"></link>
+</head>
+<body>
+<div id="loader" style="top: 80px;"><p></p></div>
+<div id="header"></div>
+<div id="toolbar">
+  <button id="newButton" class="loginOnly blueButton">New Program</button>
+</div>
+<div id="main">
+
+</div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/node_modules/q/q.js"></script>
+<script src="/src/web/programs.js"></script>
+<script src="/src/web/loader.js"></script>
+<script>
+function onStorageReady(storageAPI) {
+  storageAPI.getAllFiles()
+  .then(function(files) {
+    $("#loader").hide();
+    var main = $("#main");
+    function makeEntry(file) {
+      var elt = $("<tr>").addClass("fileRow");
+      elt.append($("<td>").text(file.getName()));
+      elt.append($("<td>").text(file.getModifiedTime()));
+      elt.append($("<td>").append($("<a>").attr("href", "/editor?program=" + file.getUniqueId()).text("Open")));
+      main.append(elt);
+    }
+    Object.keys(files).forEach(function(k) {
+      files[k].forEach(makeEntry);
+    });
+  });
+}
+</script>
+<script type="text/javascript">
+  var storageAPI;
+  function handleClientLoad() {
+    function refresh() {
+      return Q($.ajax("/getAccessToken"));
+    }
+    var getAccess = Q($.ajax("/getAccessToken"));
+    var api = getAccess.then(function(data) {
+      return createProgramCollectionAPI("code.pyret.org", data.access_token, refresh)
+    });
+    
+    api.then(function(api) {
+      $(".loginOnly").show();
+      onStorageReady(api);
+    });
+    api.fail(function(err) {
+      console.log("Not logged in; proceeding without login info", err);
+    });
+  }
+</script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+</html>

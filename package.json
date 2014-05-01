@@ -17,7 +17,8 @@
     "jwt-simple": "^0.2.0",
     "csurf": "^1.1.0",
     "cookie-session": "^1.0.1",
-    "cookie-parser": "^1.0.1"
+    "cookie-parser": "^1.0.1",
+    "url.js": "^1.0.2"
   },
   "devDependencies": {},
   "scripts": {
