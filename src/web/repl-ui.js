@@ -191,7 +191,11 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js"], 
     }
     promptContainer.append(promptArrow).append(prompt);
 
-    container.click(function() { CM.focus(); });
+    container.on("click", function(e) {
+      if($(CM.getTextArea()).parent().offset().top < e.offsetY) {
+        CM.focus();
+      }
+    });
 
     var output = jQuery("<div id='output' class='cm-s-default'>");
     runtime.setStdout(function(str) {
