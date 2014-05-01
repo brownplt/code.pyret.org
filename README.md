@@ -1,15 +1,26 @@
 An IDE for Pyret.  Use 
 
-    $ make install
+    $ npm install
 
-On servers and if you can't use symlinks.  Use
+You also need to take `.env.example` and make it into a real `.env` that has a
+Google client secret and client ID.  You can easily make a free one for
+development at https://console.developers.google.com/project, then make a
+project, then go
 
-    $ cd <your-path-to-pyret>
-    $ sudo npm link
-    $ cd <patch-checkout>
-    $ make install-link
+    APIs & Auth -> Credentials -> Create New Client Id
 
-if you want to use a symlink to your own development checkout of Pyret for
-faster language updates.
+Then get the Heroku toolbelt (https://toolbelt.heroku.com/), copy
+`.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
+
+You should now be able to run `foreman start`, and the app should be running at
+`http://localhost:5000`.
 
 
+TODO:
+
+1. Linking to a development copy of Pyret for quicker turnaround on the language
+   interface.
+2. Getting access to Heroku deployment (set the same env vars with `heroku
+   config:set GOOGLE_CLIENT_ID`, etc, and use `git push heroku master` after
+   doing the right git config.
