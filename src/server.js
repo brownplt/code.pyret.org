@@ -4,6 +4,7 @@ function start(config, onServerReady) {
   var cookieParser = require('cookie-parser');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
+  var fs = require('fs');
 
   app = express();
   app.use(express.static(__dirname + "/../"));
@@ -16,6 +17,12 @@ function start(config, onServerReady) {
   app.use(csrf());
 
   var auth = googleAuth.makeAuth(config);
+
+  app.get("/src/web/pyret.js", function(req, res) {
+    res.set("Content-Encoding", "gzip");
+    res.set("Content-Type", "application/javascript");
+    res.send(fs.readFileSync("src/web/pyret.js.gz"));
+  });
 
   app.get("/", function(req, res) {
     console.log("Index: ", JSON.stringify(req.session));

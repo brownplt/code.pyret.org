@@ -22,6 +22,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "postinstall": "compress-pyret",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Joe Politz",
