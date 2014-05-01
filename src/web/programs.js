@@ -211,7 +211,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
         return foundCollection;
       }
     });
-    var fileList = list.then(function(fr) { return fr.items; });
+    var fileList = list.then(function(fr) { return fr.items || []; });
     return Q.all([fileList, baseCollection]).spread(function(files, collection) {
       return createAPI(files, collection);
     });
