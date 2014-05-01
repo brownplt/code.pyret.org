@@ -7,13 +7,13 @@
   width: 100%;
   height: 100%;
   z-index: 9999;
-  background: url('/node_modules/pyret-lang/img/pyret-spin.gif') 50% 121px no-repeat rgb(249,249,249);
+  background: url('/node_modules/pyret-lang/img/pyret-spin.gif') 50% 40px no-repeat rgb(249,249,249);
   background-size: 250px 250px;
 }
 
 #loader p {
   position: relative;
-  top: 400px;
+  top: 320px;
   text-align: center;
   width: 100%;
 }

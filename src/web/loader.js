@@ -8,7 +8,15 @@ var texts = [
     "Assembling the crew...",
     "Inspecting the turnbuckles...",
     "Furling the rollers...",
-    "Lashing the jib-boom..."
+    "Lashing the jib-boom...",
+    "Tying the rigging...",
+    "Reinforcing the hull...",
+    "Bailing the bilge...",
+    "Feeding the parrot...",
+    "Consulting the map...",
+    "Calibrating the compass...",
+    "Polishing the spyglass...",
+    "Latching the portholes..."
   ];
 $("#loader p").text(texts[Math.floor(Math.random() * texts.length)]);
 setInterval(function() {

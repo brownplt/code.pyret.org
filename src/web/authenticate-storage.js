@@ -10,12 +10,12 @@ function handleClientLoad() {
     return createProgramCollectionAPI("code.pyret.org", data.access_token, refresh)
   });
   
-  storageAPI
   api.then(function(api) {
     $(".loginOnly").show();
     storageAPIDeferred.resolve(api);
   });
   api.fail(function(err) {
+    storageAPIDeferred.reject(api);
     console.log("Not logged in; proceeding without login info", err);
   });
 }

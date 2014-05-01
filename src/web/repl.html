@@ -129,14 +129,16 @@ $(function() {
 
     var initialProgram = storageAPI.then(function(api) {
       if(initialProgramId) {
-        return api.getFileById(initialProgramId);
+        var programLoad = api.getFileById(initialProgramId);
+        programLoad.fail(function(err) {
+          console.error(err);
+          flashError("The program failed to load.");
+        });
+        return programLoad;
       } else {
         return null;
       }
-    }).fail(function(err) {
-      console.error(err);
-      flashError("The program failed to load.");
-    });
+    })
 
     var programLoaded = initialProgram.then(function(p) {
       if(p !== null) {
