@@ -41,9 +41,10 @@ storageAPI
       elt.append($("<td>").append($("<a>").attr("href", "/editor?program=" + file.getUniqueId()).text("Open")));
       main.append(elt);
     }
-    Object.keys(files).forEach(function(k) {
-      files[k].forEach(makeEntry);
-    });
+    files.forEach(makeEntry);
+  })
+  .fail(function(err) {
+    console.error("Failed to load files: ", err);
   });
 
 });

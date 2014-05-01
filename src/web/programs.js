@@ -150,14 +150,13 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
         return gQ(drive.files.get({fileId: id})).then(makeFile);
       },
       getAllFiles: function() {
-        if(!dirty) {
-          return Q.fcall(function() { return apiFiles; });
-        } else {
-          return gQ(drive.files.list({})).then(function(fileList) {
-            updateApiFiles(fileList.items);
-            return apiFiles;
-          });;
-        }
+        var that = this;
+        return gQ(drive.children.list({folderId: baseCollection.id})).then(function(filesResult) {
+          var items = filesResult.items.map(function(childRef) {
+            return that.getFileById(childRef.id);
+          });
+          return Q.all(items);
+        });
       },
       createFile: function(name) {
         dirty = true;
@@ -186,7 +185,8 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
       var foundCollection = false;
       filesResult.items.forEach(function(i) {
         if(i.mimeType === "application/vnd.google-apps.folder" &&
-           i.title === collectionName) {
+           i.title === collectionName &&
+           !(i.explicitlyTrashed)) {
           foundCollection = i;
         }
       });
