@@ -188,13 +188,15 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
     var list = gQ(drive.files.list({}));
     var baseCollection = list.then(function(filesResult) {
       var foundCollection = false;
-      filesResult.items.forEach(function(i) {
-        if(i.mimeType === "application/vnd.google-apps.folder" &&
-           i.title === collectionName &&
-           !(i.explicitlyTrashed)) {
-          foundCollection = i;
-        }
-      });
+      if(filesResult.items) {
+        filesResult.items.forEach(function(i) {
+          if(i.mimeType === "application/vnd.google-apps.folder" &&
+             i.title === collectionName &&
+             !(i.explicitlyTrashed)) {
+            foundCollection = i;
+          }
+        });
+      }
       var baseCollection;
       if(!foundCollection) {
         return gQ(
