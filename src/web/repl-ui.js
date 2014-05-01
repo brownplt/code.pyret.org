@@ -118,22 +118,6 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js"], 
           var answer = runtime.getField(obj.result, "answer");
           outputUI.renderPyretValue(output, runtime, answer);
         }
-        var toCall = runtime.getField(runtime.getParam("current-checker"), "summary");
-        var R = runtime;
-        var gf = R.getField;
-        R.runThunk(function() {
-            return toCall.app();
-          },
-          function(result) {
-            if(R.isSuccessResult(result)) {
-              if (R.unwrap(gf(result.result, "total")) !== 0 || isMain) {
-                output.append($("<pre>").addClass("replOutput").text(R.unwrap(gf(result.result, "message"))));
-              }
-            }
-            else {
-              output.append($("<div>").addClass("replOutput").text(String(result.exn)));
-            }
-          });
 
         checkUI.drawCheckResults(output, uiOptions.cm, runtime, runtime.getField(obj.result, "checks"));
 

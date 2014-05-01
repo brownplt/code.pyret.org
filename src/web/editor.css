@@ -324,6 +324,13 @@ body {
   color: #1f1180;
 }
 
+.replOutputReason {
+ padding-top: 0;
+ padding-bottom: 0.5em;
+ padding-left: 3.0em;
+ color: #af1180;
+}
+
 .replImageThumbnail canvas {
   cursor: pointer;
   border: 1px solid #111;
@@ -339,6 +346,11 @@ body {
 .error-highlight {
   background-color: #FCC;
   border-bottom: 2px solid #F33;
+}
+
+.check-highlight {
+ background-color: #CCF;
+ border-bottom: 2px solid #33F;
 }
 
 .compile-error {
