@@ -4,8 +4,10 @@ provide {
 }
 end
 import error as E
+import teachpack-util as T
 
-rocket = image-url("http://www.wescheme.org/images/teachpacks/rocket.png")
+base-url = T.get-base-url()
+rocket = image-url(base-url + "/teachpacks/static/rocket.png")
 
 fun draw(height):
   place-image(rocket, 50, height, rectangle(100, 500, "solid", "white"))

@@ -8,6 +8,7 @@ function start(config, onServerReady) {
 
   app = express();
   app.use(express.static(__dirname + "/../"));
+  app.use("/teachpacks/", express.static(__dirname + "src/web/teachpacks/"))
 
   app.use(cookieSession({
     secret: config.sessionSecret,
