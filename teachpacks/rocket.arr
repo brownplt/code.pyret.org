@@ -16,8 +16,10 @@ fun start(student-ticker):
   when (not(is-function(student-ticker))):
     raise(E.generic-type-mismatch(student-ticker, "Function"))
   end
-  big-bang(0, [
-      on-tick(student-ticker),
-      to-draw(draw)
-    ])
+  big-bang(0, link(
+    on-tick(student-ticker),
+      link(
+        to-draw(draw),
+        empty
+    )))
 end
