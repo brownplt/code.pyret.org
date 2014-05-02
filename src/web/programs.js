@@ -46,23 +46,6 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
     });
   }
 
-  function withAuthCheck(f, then, hasBeenTried) {
-    f(function(result) {
-      if(result.code && result.code === 401) {
-        if(hasBeenTried) {
-          throw new Error("Authentication failure");
-        } else {
-          refresh(function(newToken) {
-            gapi.auth.setToken({ access_token: newToken });
-            withAuthCheck(f, then, true);
-          });
-        }
-      } else {
-        then(result);
-      }
-    });
-  }
-
   function makeFile(googFileObject) {
     return {
       getName: function() {
