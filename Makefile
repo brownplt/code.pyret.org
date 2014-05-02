@@ -21,9 +21,11 @@ teachpack-dir:
 	mkdir -p src/web/teachpacks
 	mkdir -p src/web/teachpacks/static
 
-
 .PHONY : teachpacks
 teachpacks: teachpack-dir $(TEACHPACK_ARR) $(TEACHPACK_JS) $(TEACHPACK_STATIC)
+
+.PHONY : post-install
+post-install: compress-pyret teachpacks
 
 install-link:
 	npm link pyret-lang
