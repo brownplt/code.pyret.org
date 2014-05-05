@@ -10,7 +10,7 @@ base-url = T.get-base-url()
 rocket = image-url(base-url + "/teachpacks/static/rocket.png")
 
 fun draw(height):
-  place-image(rocket, 50, height, rectangle(100, 500, "solid", "white"))
+  place-image(rocket, 50, 500 - height, rectangle(100, 500, "solid", "white"))
 end
 fun start(student-ticker):
   when (not(is-function(student-ticker))):
