@@ -9,15 +9,19 @@ import teachpack-util as T
 base-url = T.get-base-url()
 rocket = image-url(base-url + "/teachpacks/static/rocket.png")
 
-fun draw(height):
-  place-image(rocket, 50, 500 - height, rectangle(100, 500, "solid", "white"))
+fun our-on-tick(ticks):
+  ticks + 1
 end
-fun start(student-ticker):
-  when (not(is-function(student-ticker))):
-    raise(E.generic-type-mismatch(student-ticker, "Function"))
+fun start(rocket-height):
+  fun draw(ticks):
+    height = rocket-height(ticks)
+    place-image(rocket, 50, 500 - height, rectangle(100, 500, "solid", "white"))
+  end
+  when (not(is-function(rocket-height))):
+    raise(E.generic-type-mismatch(rocket-height, "Function"))
   end
   big-bang(0, link(
-    on-tick(student-ticker),
+    on-tick-n(our-on-tick, 1000),
       link(
         to-draw(draw),
         empty
