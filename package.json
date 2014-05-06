@@ -18,7 +18,11 @@
     "csurf": "^1.1.0",
     "cookie-session": "^1.0.1",
     "cookie-parser": "^1.0.1",
-    "url.js": "^1.0.2"
+    "url.js": "^1.0.2",
+    "sql": "^0.38.0",
+    "jasmine-node": "^1.14.3",
+    "db-migrate": "^0.6.4",
+    "sql-generate": "^0.3.0"
   },
   "devDependencies": {},
   "scripts": {
