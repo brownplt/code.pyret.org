@@ -6,7 +6,7 @@ exports.up = function(db, callback) {
     id: { type: 'int', primaryKey: true },
     email: { type: 'string' },
     refresh_token: { type: 'string' },
-    google_id: { type: 'string' }
+    google_id: { type: 'string', unique: true }
   }, callback);
 };
 

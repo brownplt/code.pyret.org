@@ -81,6 +81,7 @@ describe("Create a database for testing", function() {
 describe("Users", function() {
   var db;
   var conn;
+
   beforeEach(function() {
     conn = makeFreshDatabase();
     conn.fail(function(err) {
@@ -90,10 +91,40 @@ describe("Users", function() {
       return storage.makeStorage(c.client);
     });
   });
+
   afterEach(function() {
     conn.then(function(c) { c.client.end(); c.done(); });
   });
-  it("should be able to create a user", function(done) {
+
+  it("should complain if two users with the same google id are added", function(done) {
+    var email = "joe@cs.brown.edu",
+        google_id = "hf0493h7fasf",
+        refresh_token = "sjf981ff_fjwqjf809";
+    var user1 = db.then(function(db) {
+      return db.createUser({
+        email: email,
+        google_id: google_id,
+        refresh_token: refresh_token
+      });
+    });
+    var user2 = Q.all([db, user1]).spread(function(db, _) {
+      return db.createUser({
+        email: email + ".edu",
+        google_id: google_id,
+        refresh_token: refresh_token + "unique"
+      });
+    });
+    user2.then(function(result) {
+      console.error("user2 should not be created");
+      fail();
+    });
+    user2.fail(function(err) {
+      expect(String(err).substring("duplicate key")).not.toEqual(-1);
+      done();
+    });
+  });
+
+  it("should be able to create and fetch a user", function(done) {
     var email = "joe@cs.brown.edu",
         google_id = "hf0493h7fasf",
         refresh_token = "sjf981ff_fjwqjf809";
