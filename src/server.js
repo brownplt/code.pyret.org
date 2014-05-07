@@ -87,9 +87,9 @@ function start(config, onServerReady) {
     res.redirect("/");
   });
 
-  var server = app.listen(config["port"]);
+  app.listen(config["port"]);
 
-  onServerReady(app, server);
+  onServerReady(app);
 
 }
 
