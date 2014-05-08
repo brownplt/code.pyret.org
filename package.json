@@ -23,7 +23,6 @@
     "jasmine-node": "^1.14.3",
     "db-migrate": "^0.6.4",
     "sql-generate": "^0.3.0",
-    "node-selenium": "^0.1.0",
     "selenium-webdriver": "^2.41.0"
   },
   "devDependencies": {},
