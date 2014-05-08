@@ -1,3 +1,5 @@
+var Q = require("q");
+
 function start(config, onServerReady) {
   var express = require('express');
   var cookieSession = require('cookie-session');
@@ -18,6 +20,7 @@ function start(config, onServerReady) {
   app.use(csrf());
 
   var auth = googleAuth.makeAuth(config);
+  var db = config.db;
 
   app.get("/src/web/pyret.js", function(req, res) {
     res.set("Content-Encoding", "gzip");
@@ -26,7 +29,6 @@ function start(config, onServerReady) {
   });
 
   app.get("/", function(req, res) {
-    console.log("Index: ", JSON.stringify(req.session));
     res.sendfile("src/web/index.html");
   });
 
@@ -43,28 +45,86 @@ function start(config, onServerReady) {
     auth.serveRedirect(req, function(err, data) {
       if(err) { res.send(err); }
       else {
-        req.session["access_token"] = data.access;
-        req.session["refresh_token"] = data.refresh;
-        res.redirect("/my-programs");
+        var existingUser = db.getUserByGoogle(data.googleId);
+        var session = existingUser.then(function(result) {
+          if(result.rows.length === 0) {
+            var newUser = db.createUser({
+              google_id: data.googleId,
+              email: data.email,
+              refresh_token: data.refresh
+            });
+            var newUserSession = newUser.spread(function(_, id) {
+              var newSession = db.createSession({
+                user_id: id,
+                refresh_token: data.refresh,
+                auth_token: data.access
+              });
+              return newSession;
+            });
+            return newUserSession;
+          }
+          else {
+            var userId = result.rows[0].id;
+            var thisUser;
+            // The refresh token is present if the old one expired; we should
+            // always use the most up-to-date token we've received from Google
+            // TODO(joe): cache invalidation here
+            if(data.refresh) {
+              var updated = db.updateRefreshToken(userId, data.refresh);
+              thisUser = updated.then(function(_) {
+                return db.getUserById(userId).then(function(r) {
+                  return r.rows[0];
+                });
+              });
+            } else {
+              thisUser = Q.fcall(function() { return result.rows[0] });
+            }
+            return thisUser.then(function(u) {
+              return db.createSessionForUser(u, data.access);
+            });
+          }
+        });
+        session.spread(function(_, id) {
+          req.session["session_id"] = id;
+          res.redirect("/my-programs");
+        });
+        session.fail(function(err) {
+          console.error("Authentication failure", err, err.stack);
+          res.redirect("/authError");
+        });
       }
     });
   });
 
   app.get("/getAccessToken", function(req, res) {
-    console.log("getAccessToken: ", JSON.stringify(req.session));
-    if(req.session && req.session["access_token"] && req.session["refresh_token"]) {
-      auth.refreshAccess(req.session["refresh_token"], function(err, newToken) {
-        if(err) { res.send(err); res.end(); }
-        else {
-          req.session["access_token"] = newToken;
-          req.session["refresh_token"] = req.session["refresh_token"];
-          res.send({ access_token: newToken });
-          res.end();
-        }
-      });
-    }
-    else {
+    function noAuth() {
       res.status(404).send("No account information found.");
+    }
+    if(req.session && req.session["session_id"]) {
+      var maybeSession = db.getSession(req.session["session_id"]);
+      var session = maybeSession.then(function(s) {
+        if(s.rows.length === 0) {
+          noAuth();
+          return null;
+        }
+        var session = s.rows[0];
+        return auth.refreshAccess(session.refresh_token, function(err, newToken) {
+          if(err) { res.send(err); res.end(); return; }
+          else {
+            var newAccess = db.updateSessionAccessToken(session.id, newToken);
+            return newAccess.then(function(_) {
+              res.send({ access_token: newToken });
+              res.end();
+            });
+          }
+        });
+      });
+      session.fail(function(err) {
+        console.log("Failed to get an access token: ", err);
+        noAuth();
+      });
+    } else {
+      noAuth();
     }
   });
 
@@ -73,7 +133,6 @@ function start(config, onServerReady) {
   });
 
   app.get("/my-programs", function(req, res) {
-    console.log("My programs: ", JSON.stringify(req.session));
     res.sendfile("src/web/my-programs.html");
   });
 

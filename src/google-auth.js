@@ -14,6 +14,7 @@ function makeAuth(config) {
 
   return {
     refreshAccess: function(refreshToken, callback) {
+      console.log(refreshToken);
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -85,7 +86,6 @@ function makeAuth(config) {
         // from elsewhere, we need to set up polling of Google's public key
         // servers to get the correct public key of the day to validate these
         // tokens cryptographically.
-        console.log("tokens: ", JSON.stringify(tokens));
         var decodedId = jwt.decode(tokens.id_token, {}, true);
         callback(null, { googleId: decodedId["sub"], email: decodedId["email"], access: tokens.access_token, refresh: tokens.refresh_token });
       });
