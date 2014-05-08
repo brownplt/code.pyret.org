@@ -24,8 +24,11 @@ teachpack-dir:
 .PHONY : teachpacks
 teachpacks: teachpack-dir $(TEACHPACK_ARR) $(TEACHPACK_JS) $(TEACHPACK_STATIC)
 
+db:
+	foreman run migrate
+
 .PHONY : post-install
-post-install: compress-pyret teachpacks
+post-install: compress-pyret teachpacks db
 
 install-link:
 	npm link pyret-lang

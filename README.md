@@ -55,7 +55,10 @@ permission to run all the tests:
 You should make a separate environment for testing, which can use the same
 client secret from Google, but should be a separate databse from development.
 You also need a few extra entries in the test environment for the database,
-which are used to create fresh databases; see `.env.test.example`.
+which are used to create fresh databases; see `.env.test.example`.  It can be
+useful to create a new `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` pointing
+to a different port, as well, so you can run tests locally on a different port
+from the development server.
 
 To migrate the test database, use:
 

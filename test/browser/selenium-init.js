@@ -4,6 +4,7 @@ var webdriver = require('selenium-webdriver');
 
 function start(withDriver) {
   if (process.env["TEST_LOC"] === "local") {
+    console.log("Starting local server");
     server.start({
       baseUrl: process.env["BASE_URL"],
       port: process.env["PORT"],
@@ -14,6 +15,7 @@ function start(withDriver) {
         redirect: "/oauth2callback"
       }
     }, function(app, server) {
+      console.log("Server started, initializing selenium");
       var driver = new webdriver.Builder().
         withCapabilities({browserName: "chrome"}).
         build();
@@ -90,6 +92,7 @@ function waitForPyretLoad(driver, timeout) {
     });
   }, timeout || 3000);
 }
+
 
 module.exports = {
   webbit: webbit,
