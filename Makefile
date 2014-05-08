@@ -29,7 +29,7 @@ db:
 
 
 .PHONY : post-install
-post-install: compress-pyret teachpacks db
+post-install: compress-pyret teachpacks
 
 install-link:
 	npm link pyret-lang
