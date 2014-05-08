@@ -44,6 +44,10 @@ PgStorage.prototype = {
       return Q.all([Q.ninvoke(conn, "query", query), id]);
     });
   },
+  deleteSession: function(sessionId) {
+    var query = sessions.delete().where(sessions.id.equals(sessionId)).toQuery();
+    return Q.ninvoke(this.conn, "query", query);
+  },
   createSession: function(session) {
     var conn = this.conn;
     // NOTE(joe): Yes, time is hard.  But we'll expire things roughly one

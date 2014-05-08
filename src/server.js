@@ -133,7 +133,12 @@ function start(config, onServerReady) {
   });
 
   app.get("/my-programs", function(req, res) {
-    res.sendfile("src/web/my-programs.html");
+    if(req.session && req.session["session_id"]) {
+      res.sendfile("src/web/my-programs.html");
+    }
+    else {
+      res.redirect("/login"); 
+    }
   });
 
   app.get("/api-test", function(req, res) {
@@ -141,9 +146,16 @@ function start(config, onServerReady) {
   });
 
   app.get("/logout", function(req, res) {
+    if(req.session && req.session["session_id"]) {
+      db.deleteSession(req.session["session_id"]);
+    }
     req.session = null;
     delete req.session;
-    res.redirect("/");
+    // NOTE(joe): I stole this magical redirect sequence from WeScheme.
+    // The continue parameter of accounts.google.com won't let you go
+    // to an arbitrary site, but evidently appengine will, hence the double
+    // redirect to get back to the home page.
+    res.redirect("https://accounts.google.com/Logout?continue=https%3A%2F%2Fappengine.google.com%2F_ah%2Flogout%3Fcontinue%3D" + encodeURIComponent(config.baseUrl));
   });
 
   var server = app.listen(config["port"]);
