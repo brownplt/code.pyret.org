@@ -25,7 +25,8 @@ teachpack-dir:
 teachpacks: teachpack-dir $(TEACHPACK_ARR) $(TEACHPACK_JS) $(TEACHPACK_STATIC)
 
 db:
-	foreman run migrate
+	node node_modules/db-migrate/bin/db-migrate up
+
 
 .PHONY : post-install
 post-install: compress-pyret teachpacks db
