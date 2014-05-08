@@ -34,17 +34,23 @@ post-install: compress-pyret teachpacks db
 install-link:
 	npm link pyret-lang
 
+.PHONY : test
 test:
-	foreman run node node_modules/jasmine-node/lib/jasmine-node/cli.js --matchall test/db
+	node node_modules/jasmine-node/lib/jasmine-node/cli.js --matchall test/db
 
+.PHONY : selenium-test-local
 selenium-test-local:
-	TEST_LOC="local" foreman run node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
+	TEST_LOC="local" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
+
+.PHONY : selenium-test-sauce
 selenium-test-sauce:
 	TEST_LOC="sauce" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
 
+.PHONY : migrate
 migrate:
-	foreman run node node_modules/db-migrate/bin/db-migrate up
+	node node_modules/db-migrate/bin/db-migrate up
 
+.PHONY : sqlgen
 sqlgen:
 	node node_modules/sql-generate/bin/node-sql-generate --dsn $(DATABASE_URL) > src/schema.js 
 
