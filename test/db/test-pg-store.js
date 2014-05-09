@@ -32,36 +32,39 @@ function makeFreshDatabase() {
   pg.connect(buildConnString("pyret_test"), function(err, client, doneDb) {
     if(err !== null) { c.reject(err); }
     else {
-      var dbcreate = Q.ninvoke(client, "query", "create database " + name + " with template " + baseTestDatabase + " owner " + dbUser);
-      dbcreate.then(function(result) {
-        client.end();
-        console.log("Created test database " + name);
-        pg.connect(buildConnString(name), function(err, client2, doneDb2) {
-          c.resolve({client: client2, done: doneDb2, name: name});
+      clearDatabase(name, function() {
+        var dbcreate = Q.ninvoke(client, "query", "create database " + name + " with template " + baseTestDatabase + " owner " + dbUser);
+        dbcreate.then(function(result) {
+          client.end();
+          pg.connect(buildConnString(name), function(err, client2, doneDb2) {
+            c.resolve({client: client2, done: doneDb2, name: name});
+          });
         });
-      });
-      dbcreate.fail(function(err) {
-        client.end();
-        doneDb();
-        c.reject(err);
+        dbcreate.fail(function(err) {
+          client.end();
+          doneDb();
+          c.reject(err);
+        });
       });
     }
   });
   return c.promise;
 }
 
-function clearDatabase(name) {
+function clearDatabase(name, then) {
   pg.connect(buildConnString("pyret_test"), function(err, client, doneDb) {
     var dbdrop = Q.ninvoke(client, "query", "drop database " + name);
     dbdrop.then(function() {
       client.end();
+      then();
     });
     dbdrop.fail(function() {
       client.end();
-      console.log("Failed to clean up test database " + name);
+      then();
     });
   });
 }
+
 
 describe("Create a database for testing", function() {
   it("should be able to create test databases, and tear them down",
@@ -152,15 +155,15 @@ describe("Users", function() {
     var testResult = Q.all([user, db]).spread(function(_, db) {
       var getUser = db.getUserByGoogle(google_id);
       return getUser.then(function(result) {
-        expect(result.rows.length).toBe(1);
-        var row = result.rows[0];
-        expect(row.google_id).toEqual(google_id);
+        expect(result).not.toBe(null);
+        expect(result.google_id).toEqual(google_id);
         done();
       });
     });
+    var that = this;
     testResult.fail(function(err) {
       console.error("Failed with: ", err);
-      fail();
+      that.fail(new Error(String(err)));
     });
   });
 
@@ -183,9 +186,8 @@ describe("Users", function() {
         return db.getUserByGoogle(google_id);
       });
       return newUser.then(function(result) {
-        expect(result.rows.length).toBe(1);
-        var row = result.rows[0];
-        expect(row.refresh_token).toEqual(new_refresh_token);
+        expect(result).not.toBe(null);
+        expect(result.refresh_token).toEqual(new_refresh_token);
         done();
       });
     });
@@ -208,10 +210,10 @@ describe("sessions", function() {
       return storage.makeStorage(c.client);
     });
   });
-
   afterEach(function() {
     conn.then(function(c) { c.client.end(); c.done(); clearDatabase(c.name); });
   });
+
 
   it("Should create sessions", function(done) {
     var that = this;
@@ -224,8 +226,7 @@ describe("sessions", function() {
       var checked = newSession.spread(function(_, id) {
         var session = db.getSession(id);
         session.fail(function() { console.log("sessio nfail"); });
-        var checked = session.then(function(session) {
-          var s = session.rows[0];
+        var checked = session.then(function(s) {
           expect(s.user_id).toEqual(42);
           expect(s.refresh_token).toEqual("jf3984jf2943f2");
           expect(s.auth_token).toEqual("38fja98df01f34");
@@ -242,3 +243,93 @@ describe("sessions", function() {
   })
 
 });
+
+describe("Teacher info", function() {
+  beforeEach(function() {
+    conn = makeFreshDatabase();
+    conn.fail(function(err) {
+      console.log("Failed to connect: ", err);
+    });
+    db = conn.then(function(c) {
+      return storage.makeStorage(c.client);
+    });
+  });
+  afterEach(function() {
+    conn.then(function(c) { c.client.end(); c.done(); clearDatabase(c.name); });
+  });
+
+  it("Should create teacher infos", function(done) {
+    const name = "Harry Smith";
+    const id = 42;
+    const alternateEmail = "harry@school.edu";
+    const about = "Teaching kids";
+    const school = "School Edu Place";
+    db.then(function(db) {
+      var teacher = db.createTeacherInfo({
+        userId: id,
+        name: name,
+        alternateEmail: alternateEmail,
+        about: about,
+        school: school
+      });
+      var res = teacher.spread(function(_, id) {
+        return db.getTeacherInfo(id).then(function(t) {
+          expect(t.name).toEqual(name);
+          expect(typeof t.id).toBe("string", "Id is a string");
+          expect(t.alternate_email).toEqual("harry@school.edu");
+          expect(t.about).toEqual(about);
+          expect(t.school).toEqual(school);
+          expect(t.pending).toBe(true);
+          return true;
+        });
+      });
+      res.then(function() { done(); });
+      var that = this;
+      res.fail(function(err) {
+        console.error("Failed: ", err, err.stack);
+        this.fail(new Error(String(err)));
+      });
+    });
+  });
+
+  it("should validate teachers", function(done) {
+    const res = db.then(function(db) {
+      const user = db.createUser({
+        email: "joe@cs",
+        refresh_token: "aaa",
+        google_id: "1234"
+      });
+      const pendingTeacher = user.then(function(_, id) {
+        return db.createTeacherInfo({
+          userId: id,
+          name: "Joe",
+          alternateEmail: "foo@bar.edu",
+          about: "I like kids",
+          school: "Brown"
+        });
+      });
+      const newTeacher = pendingTeacher.spread(function(_, teacherInfoId) {
+        const validated = db.validateTeacher(teacherInfoId);
+        const newTeacher = validated.spread(function(_, id) {
+          return db.getTeacher(id);
+        });
+        return newTeacher.then(function(t) {
+          return db.getTeacherInfo(teacherInfoId).then(function(ti) {
+            expect(ti.pending).toBe(false);
+            expect(t.user_id).toBe(ti.user_id);
+            expect(ti.name).toBe("Joe");
+            expect(t.teacher_info_id).toBe(ti.id);
+            return true;
+          })
+        });
+      });
+      return newTeacher;
+    });
+    res.then(function(_) { done(); });
+    res.fail(function(err) {
+      console.error("Failed: ", err, err.stack);
+      this.fail(new Error(String(err)));
+    });
+  });
+});
+

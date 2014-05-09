@@ -1,0 +1,66 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/src/web/reset.css"></link>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/src/web/shared.css"></link>
+  <link rel="stylesheet" href="/src/web/teacher-signup.css"></link>
+</head>
+<body>
+<div id="header">
+</div>
+<div id="toolbar">
+</div>
+<div id="main">
+<h3>Teacher submission request</h3>
+<p>Fill out and submit the form below to request a teacher account.  Your
+request will be reviewed by our team and we'll get back to you via email with
+further instructions.</p>
+<form id="newteacher" action="/newteacher">
+  <label for="name">Name:</label><br/>
+  <input type="text" id="name" name="name"></input><br/>
+  <label for="alt-email">An email address to contact you at:</label><br/>
+  <input type="text" id="alt-email" name="alt-email"></input><br/>
+  <label for="school">Your school name:</label><br/>
+  <input type="text" id="school" name="school"></input><br/>
+  <label for="about" name="about">Anything else you think we should know:</label><br/>
+  <textarea id="about" name="about"></textarea><br/>
+  <input id="submit" type="submit" value="Submit Request"></input>
+</form>  
+<div id="response"></div>
+</div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/node_modules/q/q.js"></script>
+<script>
+$(function() {
+  $("#newteacher").on("submit", function(e) {
+    var post = Q($.get("/newteacher", {
+      name: $("#name").val(),
+      school: $("#school").val(),
+      'alt-email': $("#alt-email").val(),
+      'about': $("#about").val()
+    }));
+    post.fail(function(errors) {
+      console.error(errors.responseText); 
+      $("#response").empty();
+      $("#response").append($("<p>").text("There were problems with your request:"));
+      JSON.parse(errors.responseText).forEach(function(e) {
+        $("#response").append($("<p>").text(String(e.msg)));
+      });
+    });
+    post.then(function(p) {
+      $("#response").empty().append($("<p>").text("Your request was submitted and we will contact you via email"));
+    });
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
+});
+</script>
+
+</html>

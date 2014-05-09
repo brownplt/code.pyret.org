@@ -4,6 +4,8 @@ function start(config, onServerReady) {
   var express = require('express');
   var cookieSession = require('cookie-session');
   var cookieParser = require('cookie-parser');
+  var jsonParser = require('express-json');
+  var expressValidator = require('express-validator');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
   var fs = require('fs');
@@ -11,6 +13,9 @@ function start(config, onServerReady) {
   app = express();
   app.use(express.static(__dirname + "/../"));
   app.use("/teachpacks/", express.static(__dirname + "src/web/teachpacks/"))
+
+  app.use(jsonParser());
+  app.use(expressValidator([{}]));
 
   app.use(cookieSession({
     secret: config.sessionSecret,
@@ -33,11 +38,12 @@ function start(config, onServerReady) {
   });
 
   app.get("/login", function(req, res) {
+    var redirect = req.param("redirect") || "/my-programs";
     if(!(req.session && req.session["access_token"])) {
-      res.redirect(auth.getAuthUrl());
+      res.redirect(auth.getAuthUrl(redirect));
     }
     else {
-      res.redirect("/my-programs");
+      res.redirect(redirect);
     }
   });
 
@@ -46,8 +52,8 @@ function start(config, onServerReady) {
       if(err) { res.send(err); }
       else {
         var existingUser = db.getUserByGoogle(data.googleId);
-        var session = existingUser.then(function(result) {
-          if(result.rows.length === 0) {
+        var session = existingUser.then(function(user) {
+          if(user === null) {
             var newUser = db.createUser({
               google_id: data.googleId,
               email: data.email,
@@ -64,20 +70,17 @@ function start(config, onServerReady) {
             return newUserSession;
           }
           else {
-            var userId = result.rows[0].id;
-            var thisUser;
+            var thisUser = user;
             // The refresh token is present if the old one expired; we should
             // always use the most up-to-date token we've received from Google
             // TODO(joe): cache invalidation here
             if(data.refresh) {
               var updated = db.updateRefreshToken(userId, data.refresh);
               thisUser = updated.then(function(_) {
-                return db.getUserById(userId).then(function(r) {
-                  return r.rows[0];
-                });
+                return db.getUserById(userId);
               });
             } else {
-              thisUser = Q.fcall(function() { return result.rows[0] });
+              thisUser = Q.fcall(function() { return user; });
             }
             return thisUser.then(function(u) {
               return db.createSessionForUser(u, data.access);
@@ -85,8 +88,9 @@ function start(config, onServerReady) {
           }
         });
         session.spread(function(_, id) {
+          const redirect = req.param("state") || "/my-programs"; 
           req.session["session_id"] = id;
-          res.redirect("/my-programs");
+          res.redirect(redirect);
         });
         session.fail(function(err) {
           console.error("Authentication failure", err, err.stack);
@@ -103,11 +107,11 @@ function start(config, onServerReady) {
     if(req.session && req.session["session_id"]) {
       var maybeSession = db.getSession(req.session["session_id"]);
       var session = maybeSession.then(function(s) {
-        if(s.rows.length === 0) {
+        if(s === null) {
           noAuth();
           return null;
         }
-        var session = s.rows[0];
+        var session = s;
         return auth.refreshAccess(session.refresh_token, function(err, newToken) {
           if(err) { res.send(err); res.end(); return; }
           else {
@@ -125,6 +129,83 @@ function start(config, onServerReady) {
       });
     } else {
       noAuth();
+    }
+  });
+
+  const teacherSignupUrl = "/teacher-signup";
+  app.get(teacherSignupUrl, function(req, res) {
+    if(req.session && req.session["session_id"]) {
+      const info = db.getSession(req.session["session_id"]).then(function(s) {
+        if(s === null) {
+          res.redirect("/login?redirect=" + encodeURIComponent(teacherSignupUrl));
+          return null;
+        }
+        return db.getTeacherInfoByUser(s.user_id);
+      });
+      const result = info.then(function(ti) {
+        console.log("Teacher signed up before");
+        if(ti !== null) {
+          console.log("Teacher signed up before");
+          res.sendfile("src/web/teacher-signup-done-already.html");
+        }
+        else {
+          console.log("Teacher hasn't signed up before");
+          res.sendfile("src/web/teacher-signup.html");
+        }
+      });
+      result.fail(function(err) {
+        console.error("Failed to get file: ", err);
+      });
+    }
+    else {
+      res.redirect("/login?redirect=" + encodeURIComponent(teacherSignupUrl));
+    }
+  });
+
+  app.get("/newteacher", function(req, res) {
+    if(req.session && req.session["session_id"]) {
+      const info = db.getSession(req.session["session_id"]).then(function(s) {
+        if(s === null) {
+          throw [{msg: "Not logged in"}];
+        }
+        return [db.getTeacherInfoByUser(s.user_id), s.user_id];
+      });
+      const result = info.spread(function(ti, userId) {
+        if(ti !== null) { 
+          throw [{msg: "Already requested"}];
+        }
+        else {
+          console.log(req.param("altemail"));
+          req.checkQuery("name", "Name too long (max 100 chars)").len(0, 100);
+          req.checkQuery("name", "Name not present").notEmpty();
+          req.checkQuery("school", "School name too long (max 100 chars)").len(0, 100);
+          req.checkQuery("school", "School not present").notEmpty();
+          req.checkQuery("about", "About too long (max 5000 chars)").len(0, 5000);
+          req.checkQuery("alt-email", "Email not present").notEmpty();
+          req.checkQuery("alt-email", "Invalid email").isEmail();
+          const errors = req.validationErrors();
+          if(errors.length > 0) {
+            console.error(errors);
+            throw errors;
+          }
+          else {
+            return db.createTeacherInfo({
+              userId: userId,
+              name: req.param("name"),
+              alternateEmail: req.param("altemail"),
+              school: req.param("school"),
+              about: req.param("about")
+            });
+          }
+        }
+      })
+      result.fail(function(errors) {
+        console.error(errors);
+        res.status(401).send(errors);
+      });
+      result.then(function(r) {
+        res.send("OK");
+      });
     }
   });
 

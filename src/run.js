@@ -10,7 +10,7 @@ pg.connect(process.env["DATABASE_URL"], function(err, client, doneDb) {
   else { conn.resolve({client: client, done: doneDb}); }
 });
 
-conn.promise.then(function(db) {
+var res = conn.promise.then(function(db) {
   server.start({
     baseUrl: process.env["BASE_URL"],
     port: process.env["PORT"],
@@ -25,3 +25,6 @@ conn.promise.then(function(db) {
 
   });
 })
+res.fail(function(err) {
+  console.error("Server did not start: ", err);
+});

@@ -27,7 +27,7 @@ function makeAuth(config) {
         callback(null, tokens.access_token);
       });
     },
-    getAuthUrl: function() {
+    getAuthUrl: function(afterUrl) {
         return oauth2Client.generateAuthUrl({
         // Offline lets us handle refreshing access on our own (rather than
         // popping up a dialog every half hour)
@@ -37,12 +37,12 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: 'email https://www.googleapis.com/auth/drive.file'
+        scope: 'email https://www.googleapis.com/auth/drive.file',
+        state: afterUrl
       });
     },
     serveRedirect: function(req, callback) {
       var authCode = req.param("code");
-      console.log(JSON.stringify(req.param("code")));
       var oauth2Client =
           new OAuth2(
               config.google.clientId,

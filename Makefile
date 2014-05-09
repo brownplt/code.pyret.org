@@ -24,9 +24,6 @@ teachpack-dir:
 .PHONY : teachpacks
 teachpacks: teachpack-dir $(TEACHPACK_ARR) $(TEACHPACK_JS) $(TEACHPACK_STATIC)
 
-db:
-	node node_modules/db-migrate/bin/db-migrate up
-
 
 .PHONY : post-install
 post-install: compress-pyret teachpacks
@@ -53,4 +50,7 @@ migrate:
 .PHONY : sqlgen
 sqlgen:
 	node node_modules/sql-generate/bin/node-sql-generate --dsn $(DATABASE_URL) > src/schema.js 
+
+.PHONY : db
+db: migrate sqlgen
 
