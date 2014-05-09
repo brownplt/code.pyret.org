@@ -1,0 +1,99 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/src/web/reset.css"></link>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
+  <link rel="stylesheet" href="/src/web/shared.css"></link>
+  <link rel="stylesheet" href="/src/web/my-programs.css"></link>
+</head>
+<body>
+<div id="header">
+</div>
+<div id="toolbar">
+  <a id="newButton" href="/editor"><button class="loginOnly blueButton">Start New Program</button></a>
+  <button id="logout" class="loginOnly blueButton rhs">Logout ▾</button>
+  <div id="logoutOptions">
+    <div><a href="/logout">of code.pyret.org</a></div>
+    <div><a href="/logoutBoth">of code.pyret.org and Google</a></div>
+  </div>
+</div>
+<div id="main">
+
+<h3>Why do we ask for the permissions we do?</h3>
+
+<p>
+The login form asks for three permissions:
+</p>
+<ul>
+<li>
+<b>(1) Know who you are on Google, and (2) View your email address:</b>
+We use <code>code.pyret.org</code> in schools, and for managing courses and
+assignments, we need unique identifiers for students and teachers to coordinate.
+We store your Google email address and a unique identifier given to us by
+Google in our database as your account information.
+
+We actually only ask Google for the “email” permission, but along with it
+comes enough information to get data from your public Google+ profile, if you
+have one.  We don't use this information, but it may pass through our servers.
+</li>
+<li>
+
+<b>(3) View and manage Google Drive files that you have opened or created with this app:</b>
+This permission lets us create files in your Drive, and update those files
+later.  Also, if in the future we provide a way for you to directly upload
+Pyret files and load them into <code>code.pyret.org</code> from your Drive, you
+can explicitly grant permission for this application to view and edit certain
+files.
+</li>
+</ul>
+
+<p>
+We also ask for <em>offline access</em>, though it doesn’t always display in
+the permissions dialog.  This is so we can avoid popping up unnecessary
+permissions dialogs during long editing sessions.  Offline access gives us a
+special token that we store on our server that can give us the same access as
+if you'd logged in without using the Google login window again.
+</p>
+
+<p>
+You can always go to <a
+href="https://security.google.com/settings/security/permissions?pli=1">https://security.google.com/settings/security/permissions?pli=1</a>
+and remove all access that we have to your account.  Your programs and
+<code>code.pyret.org</code> folder will <em>not</em> be deleted if you do so,
+but you can always manually delete the folder and its contents yourself.
+</p>
+
+
+</p>
+
+<h3>Where are things stored in my Drive?</h3>
+
+<p>
+We make a single folder in your Google Drive, called
+<code>code.pyret.org</code>, and store all of your programs there, with the
+names you choose for them.
+</p>
+
+<p> We can only see files that we created, so simply moving another file into
+your <code>code.pyret.org</code> collection won’t cause it to show up in our
+interface: you need to create the file manually through our editor.  </p>
+
+<p> The listing of programs in this application only looks for the
+<code>code.pyret.org</code> folder and its contents, so if you rename or remove
+that folder, a new, empty one will be created for you on your next login.</p>
+
+<h3>Why is there an option to log out of Google, too?</h3>
+
+<p>The logout button lets you either delete your session with
+<code>code.pyret.org</code>, or log out of both this site and your Google
+Account.  We do this because <code>code.pyret.org</code> is used in school
+computer labs, and it's convenient to have a way to log out of both to leave
+the computer in a fresh state for students who use it later.</p>
+
+</p>
+</div>
+</body>
+
