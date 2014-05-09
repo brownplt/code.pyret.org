@@ -35,6 +35,7 @@
 <script>
 var ephemeralHandlers = [];
 function ephemeral(elt) {
+  if(elt.is(':visible')) { return; }
   elt.show();
   function unregisterHiders() {
     ephemeralHandlers.forEach(function(h) {
@@ -72,14 +73,27 @@ storageAPI
   .then(function(files) {
     $("#loader").hide();
     var main = $("#main");
+    var table = $("<table>");
     function makeEntry(file) {
       var elt = $("<tr>").addClass("fileRow");
-      elt.append($("<td>").text(file.getName()));
-      elt.append($("<td>").text(file.getModifiedTime()));
-      elt.append($("<td>").append($("<a>").attr("href", "/editor?program=" + file.getUniqueId()).text("Open")));
-      main.append(elt);
+      elt.append($("<td>").append($("<div>").text(file.getName())).attr( {
+        "title": file.getName()
+      }));
+      elt.append($("<td>").text(new Date(file.getModifiedTime())));
+      elt.append($("<td>").append($("<a>").attr({
+        "target": "_blank",
+        "href": "/editor?program=" + file.getUniqueId()
+      }).text("Open")));
+/*
+      elt.append($("<td>").append($("<a>").attr({
+        "target": "_blank",
+        "href": file.getExternalURL()
+      }).text("View on Google Drive")));
+*/
+      table.append(elt);
     }
     if(files.length > 0) {
+      main.append(table);
       files.forEach(makeEntry);
     }
     else {

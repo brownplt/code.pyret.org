@@ -1,10 +1,16 @@
+table {
+  table-layout: fixed;
+}
+
 .fileRow {
   padding: 5px;
-  
+  overflow: hidden;
 }
 
 .fileRow td {
   padding-right: 1em;
+  max-height: 2em;
+  max-width: 20em;
 }
 
 #main {
@@ -15,4 +21,12 @@
 
 .rightLink a {
   text-decoration: none;
+}
+
+.fileRow div {
+  max-width: 20em;
+  height: 2em;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

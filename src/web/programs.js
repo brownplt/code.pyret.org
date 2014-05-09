@@ -57,6 +57,9 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
       getUniqueId: function() {
         return googFileObject.id;
       },
+      getExternalURL: function() {
+        return googFileObject.alternateLink;
+      },
       getContents: function() {
         return Q($.ajax(googFileObject.downloadUrl, {
           method: "get",
