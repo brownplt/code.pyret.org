@@ -11,9 +11,15 @@
 </head>
 <body>
 <div id="loader" style="top: 80px;"><p></p></div>
-<div id="header"></div>
+<div id="header">
+</div>
 <div id="toolbar">
   <a id="newButton" href="/editor"><button class="loginOnly blueButton">Start New Program</button></a>
+  <button id="logout" class="loginOnly blueButton rhs">Logout ▾</button>
+  <div id="logoutOptions">
+    <div><a href="/logout">of code.pyret.org</a></div>
+    <div><a href="/logoutBoth">of code.pyret.org and Google</a></div>
+  </div>
 </div>
 <div id="main">
 
@@ -26,6 +32,38 @@
 <script src="/src/web/programs.js"></script>
 <script src="/src/web/authenticate-storage.js"></script>
 <script src="/src/web/loader.js"></script>
+<script>
+var ephemeralHandlers = [];
+function ephemeral(elt) {
+  elt.show();
+  function unregisterHiders() {
+    ephemeralHandlers.forEach(function(h) {
+      $(document).off("click", h);
+      $(document).off("keypress", h);
+    });
+    ephemeralHandlers = [];
+  }
+  setTimeout(function() {
+      var h = function() {
+        elt.hide();
+        unregisterHiders();
+      };
+      $(document).on("click", h);
+      ephemeralHandlers.push(h);
+    }, 0);
+  var h = function(e) {
+    if(e.keyCode === 27) {
+      elt.hide();
+      unregisterHiders();
+    }
+  };
+  $(document).on("keyup", h);
+  ephemeralHandlers.push(h);
+}
+$("#logout").on("click", function() {
+  ephemeral($("#logoutOptions"));
+});
+</script>
 <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
 <script>
 storageAPI

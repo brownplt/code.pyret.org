@@ -307,10 +307,6 @@ body {
   display: none;
 }
 
-.rhs {
-  float: right;
-}
-
 .replPrint {
   padding-top: 0;
   padding-bottom: 0.5em;

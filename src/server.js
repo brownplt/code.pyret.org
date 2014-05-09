@@ -151,6 +151,15 @@ function start(config, onServerReady) {
     }
     req.session = null;
     delete req.session;
+    res.redirect("/");
+  });
+
+  app.get("/logoutBoth", function(req, res) {
+    if(req.session && req.session["session_id"]) {
+      db.deleteSession(req.session["session_id"]);
+    }
+    req.session = null;
+    delete req.session;
     // NOTE(joe): I stole this magical redirect sequence from WeScheme.
     // The continue parameter of accounts.google.com won't let you go
     // to an arbitrary site, but evidently appengine will, hence the double

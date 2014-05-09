@@ -82,3 +82,35 @@
     cursor: default;
 }
 
+.rhs {
+  float: right;
+}
+
+#logoutOptions {
+  position: fixed;
+  right: 0;
+  top: 75px;
+  z-index: 10000;
+  text-align: right;
+  background-color: 
+  background-color: #eee;
+  color: #469ad4;
+  border: 1px solid #111;
+  font-family: sans-serif;
+  display: none;
+}
+
+
+#logoutOptions a {
+  display: block;
+  padding: 5px;
+  color: #469ad4;
+  text-decoration: none;
+}
+
+#logoutOptions a:hover {
+  background-color: #469ad4;
+  text-decoration: none;
+  color: #eee;
+}
+
