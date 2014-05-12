@@ -368,6 +368,34 @@ body {
   font-family: monospace; 
 }
 
+.parse-error {
+  font-family: sans-serif;
+  border: 1px solid #F33;
+  border-radius: 1em;
+  padding: 1em;
+}
+
+.parse-error .code {
+  font-family: monospace; 
+}
+
+.parse-error .srcloc {
+  font-family: monospace; 
+}
+
+.parse-error a {
+  color: #469ad4;
+  cursor: pointer;
+}
+
+.parse-error a:hover {
+  text-decoration: underline;
+}
+
+.parse-error ul {
+  list-style-type: disc;
+}
+
 .warning-upper {
    position: absolute;
    top: 0;

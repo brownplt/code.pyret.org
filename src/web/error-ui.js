@@ -366,11 +366,44 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             });
         }
 
+        function expandableMore(dom) {
+          var container = $("<div>");
+          container.append(dom);
+          var moreLink = $("<a>").text("(More...)");
+          var lessLink = $("<a>").text("(Less...)");
+          function toggle() {
+            dom.toggle();
+            lessLink.toggle();
+            moreLink.toggle();
+          }
+          moreLink.on("click", toggle);
+          lessLink.on("click", toggle);
+          container.append(moreLink).append(lessLink).append(dom);
+          dom.hide();
+          lessLink.hide();
+          return container;
+        }
+
         function drawParseErrorNextToken(loc, nextToken) {
-          var dom = $("<div>").addClass("compile-error");
-          dom.append($("<p>").text("Parse error near ").append(drawSrcloc(loc)))
-            .append($("<br>"))
-            .append($("<p>").text("The next token was " + nextToken));
+          var explanationMissing =
+            $("<div>")
+              .append($("<p>").text("The program is missing something"))
+              .append($("<p>").html("Look carefully before the <span class='error-highlight'>highlighted text</span>.  Is something missing just before it?  Common missing items are colons (<code>:</code>), commas (<code>,</code>), string markers (<code>\"</code>), and keywords."))
+              .append($("<p>").html("<em>Usually, inserting the missing item will fix this error.</em>"));
+          var explanationExtra =
+            $("<div>")
+              .append($("<p>").text("The program contains something extra"))
+              .append($("<p>").html("Look carefully at the <span class='error-highlight'>highlighted text</span>.  Does it contains something extra?  A common source of errors is typing too much text or in the wrong order."))
+              .append($("<p>").html("<em>Usually, removing the extra item will fix this error.</em>  However, you may have meant to keep this text, so think before you delete!"));
+          var explanation = 
+            $("<div>")
+              .append($("<p>").text("Typical reasons for getting this error are"))
+              .append($("<ul>")
+                .append($("<li>").append(explanationMissing))
+                .append($("<li>").append(explanationExtra)));
+          var dom = $("<div>").addClass("parse-error");
+          dom.append($("<p>").text("Pyret didn't understand your program around ").append(drawSrcloc(loc)));
+          dom.append(expandableMore(explanation));
           hoverLocs(dom, [loc]);
           container.append(dom);
         }
