@@ -105,9 +105,9 @@ cmLoc.end,
      }
 
      function addPreToDom(cssClass, txt, loc) {
-var dom = $("<pre>").addClass(cssClass).text(txt);
-hoverLocs(dom, [loc]);
-container.append(dom);
+       var dom = $("<pre>").addClass(cssClass).text(txt);
+       hoverLocs(dom, [loc]);
+       container.append(dom);
      }
 
      // These counters keep cumulative statistics for all the check blocks. 
@@ -118,58 +118,63 @@ container.append(dom);
      // Sort through all the check blocks.
      checkResultsArr.reverse().forEach(function(cr) {
 
-// Counters for cumulative stats within a check block.
-var checkTotal = 0;
-var checkPassed = 0;
+       // Counters for cumulative stats within a check block.
+       var checkTotal = 0;
+       var checkPassed = 0;
 
-var name = get(cr, "name");
-
-addPreToDom("replOutput", "Check block: " + name, get(cr, "loc"));
-
-var trArr = ffi.toArray(get(cr, "test-results"));
+       var name = get(cr, "name");
+       var trArr = ffi.toArray(get(cr, "test-results"));
      
-// Sort through the collection of test results within a check
-// block.
-trArr.reverse().forEach(function(tr) {
+       addPreToDom("replOutput", "Check block: " + name, get(cr, "loc"));
 
- checkTotal = checkTotal + 1;
- checkTotalAll = checkTotalAll + 1;
+       // Sort through the collection of test results within a check
+       // block.
+       trArr.reverse().forEach(function(tr) {
+
+	 checkTotal = checkTotal + 1;
+	 checkTotalAll = checkTotalAll + 1;
+
  
- // Success for a test is signaled by the *absence* of a "reason" field.
- if (runtime.hasField(tr, "reason")) {
+	 // Success for a test is signaled by the *absence* of a "reason" field.
+	 if (runtime.hasField(tr, "reason")) {
 
-   // The "reason" field is a function that returns a text
-   // string to be displayed to the user.  We pack it in its
-   // own <pre> object so it can be colored and indented for
-   // contrast.
-   runtime.runThunk(
-     function() { return get(tr, "reason").app(); },
-     function(returnVal) { 
+	   // The "reason" field is a function that returns a text
+	   // string to be displayed to the user.  We pack it in its
+	   // own <pre> object so it can be colored and indented for
+	   // contrast.
+	   runtime.runThunk(
+	     function() { return get(tr, "reason").app(); },
+	     function(returnVal) { 
 
-addPreToDom("replOutput", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
+	       addPreToDom("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+	       addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
 
-     });
- } else {
+	     });
+	 } else {
 
-   // If you're here, the test passed, all is well.
-   checkPassed = checkPassed + 1;
-   checkPassedAll = checkPassedAll + 1;
-   addPreToDom("replOutput", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
- }
-});
+	   // If you're here, the test passed, all is well.
+	   checkPassed = checkPassed + 1;
+	   checkPassedAll = checkPassedAll + 1;
+
+	   addPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
+	 }
+       });
 
 // Print a message about the total passed in this check block.
 
-if (checkTotal > 1) {
- addPreToDom("replOutput", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+       if (checkTotal > 1) {
+	 if (checkPassed == checkTotal) {
+	   addPreToDom("replOutputPassed", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+	 } else {
+	   addPreToDom("replOutput", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+	 }
 
-} else if (checkTotal == 1 && checkPassed == 1) {
- addPreToDom("replOutput", "Your test passed.", get(cr, "loc"));
-} else if (checkTotal == 1 && checkPassed == 0) {
- addPreToDom("replOutput", "Your test failed.", get(cr, "loc"));
-}
-
+       } else if (checkTotal == 1 && checkPassed == 1) {
+	 addPreToDom("replOutputPassed", "Your test passed.", get(cr, "loc"));
+       } else if (checkTotal == 1 && checkPassed == 0) {
+	 addPreToDom("replOutputFailed", "Your test failed.", get(cr, "loc"));
+       }
+       
      });
 
      // If there was more than one check block, print a message about
