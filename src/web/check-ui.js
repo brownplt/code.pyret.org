@@ -183,7 +183,15 @@ if (checkTotal > 1) {
      }
 
      if (checkPassedAll == checkTotalAll) {
-       var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+       if (checkTotalAll > 0) {
+	 if (checkTotalAll == 1) {
+	   var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, mate!");
+	 } else if (checkTotalAll == 2) {
+	   var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, both tests passed, mate!");
+	 } else {
+	   var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+	 }
+       }
        container.append(outerDom);
      }
 
