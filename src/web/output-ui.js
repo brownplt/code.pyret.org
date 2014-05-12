@@ -1,5 +1,98 @@
 define(["trove/image-lib"], function(imageLib) {
 
+  function mapK(inList, f, k, outList) {
+    if (inList.length === 0) { k(outList || []); }
+    else {
+      var newInList = inList.slice(1, inList.length);
+      f(inList[0], function(v) {
+        mapK(newInList, f, k, (outList || []).concat([v]))
+      });
+    }
+  }
+
+  function hoverLocs(editor, runtime, srcloc, elt, locs, cls) {
+     // Produces a Code Mirror position from a Pyret location.  Note
+     // that Code Mirror seems to use zero-based lines.
+     function cmPosFromSrcloc(s) {
+       return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
+         "builtin": function(_) { 
+   throw new Error("Cannot get CodeMirror loc from builtin location"); 
+ },
+
+         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+           var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
+           return {
+             start: { line: startL - 1, ch: startC },
+             end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
+           };
+         }
+       });
+     }
+    function highlightSrcloc(s, cls, withMarker) {
+       return runtime.safeCall(function() {
+         return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
+           "builtin": function(_) { /* no-op */ },
+           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+             var cmLoc = cmPosFromSrcloc(s);
+             var marker = editor.markText(
+               cmLoc.start,
+               cmLoc.end,
+               { className: cls });
+            return marker;
+          }
+        });
+      }, withMarker);
+    }
+    var cases = runtime.ffi.cases;
+    var get = runtime.getField;
+    // CLICK to *cycle* through locations
+    var marks = [];
+    elt.on("mouseenter", function() {
+      var curLoc = locs[locIndex];
+      var view = editor.getScrollInfo();
+      cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
+        "builtin": function(_) { },
+        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+          var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
+          if (view.top > charCh.top) {
+            jQuery(".warning-upper").fadeIn("fast");
+          } else if (view.top + view.clientHeight < charCh.bottom) {
+            jQuery(".warning-lower").fadeIn("fast");
+          }
+        }
+      });
+      mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
+        marks = marks.concat(ms);
+      });
+    });
+    elt.on("mouseleave", function() {
+      jQuery(".warning-upper").fadeOut("fast");
+      jQuery(".warning-lower").fadeOut("fast");
+      marks.forEach(function(m) { return m && m.clear(); })
+      marks = [];
+    });
+    var locIndex = 0;
+    if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
+      elt.on("click", function() {
+        jQuery(".warning-upper").fadeOut("fast");
+        jQuery(".warning-lower").fadeOut("fast");
+        function gotoNextLoc() {
+          var curLoc = locs[locIndex];
+          function rotateLoc() { locIndex = (locIndex + 1) % locs.length; }
+          
+          return cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
+            "builtin": function(_) { rotateLoc(); gotoNextLoc(); },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              editor.scrollIntoView(cmPosFromSrcloc(curLoc).start, 100);
+              rotateLoc();
+            }
+          });
+        }
+        gotoNextLoc();
+      });
+    }
+  }
+
   // Because some finicky functions (like images and CodeMirrors), require
   // extra events to happen for them to show up, we provide this as an
   // imperative API: the DOM node created will be appended to the output
@@ -60,6 +153,9 @@ define(["trove/image-lib"], function(imageLib) {
       }
     }
   }
-  return { renderPyretValue: renderPyretValue };
+  return {
+    renderPyretValue: renderPyretValue,
+    hoverLocs: hoverLocs
+  };
 
 })
