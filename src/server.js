@@ -8,7 +8,7 @@ function start(config, onServerReady) {
   var expressValidator = require('express-validator');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
-  var mail = require('./mail.js');
+//  var mail = require('./mail.js');
   var fs = require('fs');
 
   function requireLogin(req, res) {
