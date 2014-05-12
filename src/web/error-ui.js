@@ -384,6 +384,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           return container;
         }
 
+        function errorIcon() {
+          return $("<span>").addClass("error-icon").text("⚠");
+        }
+
         function drawParseErrorNextToken(loc, nextToken) {
           var explanationMissing =
             $("<div>")

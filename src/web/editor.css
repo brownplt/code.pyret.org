@@ -87,6 +87,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 .repl {
   padding-left: 0.5em;
+  padding-bottom: 5em;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
   background-color: #f8f8f8;
@@ -351,9 +354,9 @@ body {
 
 .compile-error {
   font-family: sans-serif;
-  border: 1px solid #F33;
-  border-radius: 1em;
-  padding: 1em;
+  border: 3px solid #fcc;
+  font-size: 10pt;
+  padding: 3px;
 }
 
 .compile-error:hover {
@@ -370,9 +373,14 @@ body {
 
 .parse-error {
   font-family: sans-serif;
-  border: 1px solid #F33;
-  border-radius: 1em;
-  padding: 1em;
+  border: 3px solid #fcc;
+  font-size: 10pt;
+  padding: 3px;
+}
+
+.error-icon {
+  size: 16pt;
+  color: #f33;
 }
 
 .parse-error .code {
@@ -394,6 +402,7 @@ body {
 
 .parse-error ul {
   list-style-type: disc;
+  padding-left: 1em;
 }
 
 .warning-upper {
