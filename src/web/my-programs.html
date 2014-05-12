@@ -69,7 +69,7 @@ $("#logout").on("click", function() {
 <script>
 storageAPI
 .then(function(storageAPI) {
-  storageAPI.getAllFiles()
+  return storageAPI.getAllFiles()
   .then(function(files) {
     $("#loader").hide();
     var main = $("#main");
@@ -99,13 +99,13 @@ storageAPI
     else {
       $("#main").append($("<p>").text("It looks like you don't have any programs yet.  You can start one by clicking “Start New Program” above."));
     }
-  })
+  });
+});
+storageAPI
   .fail(function(err) {
     $("#loader").hide();
     $("#main").append($("<p>").text("There was an error loading your programs.").css({color: "red"}));
     console.error("Failed to load files: ", err);
   });
-
-});
 </script>
 </html>

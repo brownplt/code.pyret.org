@@ -18,4 +18,5 @@ function handleClientLoad() {
     storageAPIDeferred.reject(api);
     console.log("Not logged in; proceeding without login info", err);
   });
+  return api;
 }

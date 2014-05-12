@@ -20,7 +20,7 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
     });
     return retry.then(function(result) {
       if(isAuthFailure(result)) {
-        throw new Error("Authentication failure");
+        throw new Error("Authentication failure", result);
       }
       return result;
     });

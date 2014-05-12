@@ -27,7 +27,8 @@
     "mailgun": "^0.4.2",
     "express-validator": "^2.1.2",
     "body-parser": "^1.0.2",
-    "express-json": "^0.1.0"
+    "express-json": "^0.1.0",
+    "mustache": "^0.8.1"
   },
   "devDependencies": {},
   "scripts": {

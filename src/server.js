@@ -8,7 +8,27 @@ function start(config, onServerReady) {
   var expressValidator = require('express-validator');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
+  var mail = require('./mail.js');
   var fs = require('fs');
+
+  function requireLogin(req, res) {
+    var login = Q.defer();
+    var session = req.session;
+    function redirect() {
+      res.redirect("/login?redirect=" + encodeURIComponent(req.originalUrl));
+    }
+    if(!session || !session["session_id"]) {
+      redirect();
+    }
+    else {
+      var maybeSession = db.getSession(req.session["session_id"]);
+      maybeSession.then(function(s) {
+        if(s === null) { redirect(); }
+        else { login.resolve(s); }
+      });
+    }
+    return login.promise;
+  }
 
   app = express();
   app.use(express.static(__dirname + "/../"));
@@ -39,7 +59,7 @@ function start(config, onServerReady) {
 
   app.get("/login", function(req, res) {
     var redirect = req.param("redirect") || "/my-programs";
-    if(!(req.session && req.session["access_token"])) {
+    if(!(req.session && req.session["session_id"])) {
       res.redirect(auth.getAuthUrl(redirect));
     }
     else {
@@ -101,12 +121,14 @@ function start(config, onServerReady) {
   });
 
   app.get("/getAccessToken", function(req, res) {
+    console.log(JSON.stringify(req.session));
     function noAuth() {
       res.status(404).send("No account information found.");
     }
     if(req.session && req.session["session_id"]) {
       var maybeSession = db.getSession(req.session["session_id"]);
       var session = maybeSession.then(function(s) {
+        console.log("Internal session: ", s);
         if(s === null) {
           noAuth();
           return null;
@@ -117,6 +139,7 @@ function start(config, onServerReady) {
           else {
             var newAccess = db.updateSessionAccessToken(session.id, newToken);
             return newAccess.then(function(_) {
+              console.log("Refreshed: ", newToken);
               res.send({ access_token: newToken });
               res.end();
             });
@@ -134,14 +157,9 @@ function start(config, onServerReady) {
 
   const teacherSignupUrl = "/teacher-signup";
   app.get(teacherSignupUrl, function(req, res) {
-    if(req.session && req.session["session_id"]) {
-      const info = db.getSession(req.session["session_id"]).then(function(s) {
-        if(s === null) {
-          res.redirect("/login?redirect=" + encodeURIComponent(teacherSignupUrl));
-          return null;
-        }
-        return db.getTeacherInfoByUser(s.user_id);
-      });
+    var session = requireLogin(req, res);
+    session.then(function(s) {
+      var info = db.getTeacherInfoByUser(s.user_id);
       const result = info.then(function(ti) {
         console.log("Teacher signed up before");
         if(ti !== null) {
@@ -156,10 +174,50 @@ function start(config, onServerReady) {
       result.fail(function(err) {
         console.error("Failed to get file: ", err);
       });
-    }
-    else {
-      res.redirect("/login?redirect=" + encodeURIComponent(teacherSignupUrl));
-    }
+
+    });
+  });
+
+  app.get("/teacher-requests", function(req, res) {
+    
+  });
+
+  app.get("/teacher-validate", function(req, res) {
+    var session = requireLogin(req, res);
+    var newTeacher = session.then(function(s) {
+      var info = db.getTeacherInfo(req.param("teacher_id"));
+      var validated = info.then(function(ti) {
+        if(ti !== null && ti.user_id === s.user_id) {
+          console.log("Validating teacher: ", ti);
+          return db.validateTeacher(ti.id);
+        }
+        else if(ti !== null) {
+          return "Teacher info/teacher user id mismatch";
+        } else {
+          throw "No such teacher info";
+        }
+      });
+      return validated;
+    });
+    newTeacher.then(function(_, id) {
+      res.sendfile("src/web/teacher-validated.html");
+    });
+    newTeacher.fail(function(err) {
+      console.error("A request to validate a teacher failed with: ", err);
+      res.status(400).sendfile("src/web/generic-problem");
+    });
+  });
+
+  app.get("/my-courses", function(req, res) {
+
+  });
+
+  app.get("/join-course", function(req, res) {
+
+  });
+
+  app.get("/share", function(req, res) {
+
   });
 
   app.get("/newteacher", function(req, res) {
@@ -184,8 +242,7 @@ function start(config, onServerReady) {
           req.checkQuery("alt-email", "Email not present").notEmpty();
           req.checkQuery("alt-email", "Invalid email").isEmail();
           const errors = req.validationErrors();
-          if(errors.length > 0) {
-            console.error(errors);
+          if(errors !== null) {
             throw errors;
           }
           else {
@@ -214,6 +271,7 @@ function start(config, onServerReady) {
   });
 
   app.get("/my-programs", function(req, res) {
+    console.log(req.session);
     if(req.session && req.session["session_id"]) {
       res.sendfile("src/web/my-programs.html");
     }
