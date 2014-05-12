@@ -26,94 +26,12 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
         drawUnknownException(exception);
       }
 
-      function cmPosFromSrcloc(s) {
-        return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-          "builtin": function(_) { throw new Error("Cannot get CodeMirror loc from builtin location"); },
-          "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-            var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
-            return {
-              start: { line: startL - 1, ch: startC },
-              end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
-            };
-          }
-        });
-      }
-
-      function highlightSrcloc(s, withMarker) {
-        return runtime.safeCall(function() {
-          return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-            "builtin": function(_) { /* no-op */ },
-            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-              var cmLoc = cmPosFromSrcloc(s);
-              var marker = editor.markText(
-                cmLoc.start,
-                cmLoc.end,
-                { className: "error-highlight" });
-              return marker;
-            }
-          })
-        }, withMarker);
-      }
-      function mapK(inList, f, k, outList) {
-        if (inList.length === 0) { k(outList || []); }
-        else {
-          var newInList = inList.slice(1, inList.length);
-          f(inList[0], function(v) {
-            mapK(newInList, f, k, (outList || []).concat([v]))
-          });
-        }
-      }
-      function hoverLocs(elt, locs) {
-        // CLICK to *cycle* through locations
-        var marks = [];
-        elt.on("mouseenter", function() {
-          var curLoc = locs[locIndex];
-          var view = editor.getScrollInfo();
-          cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
-            "builtin": function(_) { },
-            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-              var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
-              if (view.top > charCh.top) {
-                jQuery(".warning-upper").fadeIn("fast");
-              } else if (view.top + view.clientHeight < charCh.bottom) {
-                jQuery(".warning-lower").fadeIn("fast");
-              }
-            }
-          });
-          mapK(locs, highlightSrcloc, function(ms) {
-            marks = marks.concat(ms);
-          });
-        });
-        elt.on("mouseleave", function() {
-          jQuery(".warning-upper").fadeOut("fast");
-          jQuery(".warning-lower").fadeOut("fast");
-          marks.forEach(function(m) { return m && m.clear(); })
-          marks = [];
-        });
-        var locIndex = 0;
-        if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
-          elt.on("click", function() {
-            jQuery(".warning-upper").fadeOut("fast");
-            jQuery(".warning-lower").fadeOut("fast");
-            function gotoNextLoc() {
-              var curLoc = locs[locIndex];
-              function rotateLoc() { locIndex = (locIndex + 1) % locs.length; }
-              
-              return cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
-                "builtin": function(_) { rotateLoc(); gotoNextLoc(); },
-                "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-                  editor.scrollIntoView(cmPosFromSrcloc(curLoc).start, 100);
-                  rotateLoc();
-                }
-              });
-            }
-            gotoNextLoc();
-          });
-        }
-      }
-
       function drawSrcloc(s) {
         return s ? $("<span>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
+      }
+      
+      function errorHover(dom, locs) {
+        outputUI.hoverLocs(editor, runtime, srcloc, dom, locs, "error-highlight");
       }
 
       function drawCompileErrors(e) {
@@ -132,7 +50,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
               p.append(" is used but not defined at ");
               dom.append(p);
               dom.append(drawSrcloc(loc));
-              hoverLocs(dom, [loc]);
+              errorHover(dom, [loc]);
               container.append(dom);
             }
           });
@@ -149,7 +67,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
               p.append(" at ");
               p.append(drawSrcloc(newLoc));
               dom.append(p);
-              hoverLocs(dom, [newLoc]);
+              errorHover(dom, [newLoc]);
               container.append(dom);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
@@ -162,7 +80,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
               var p2 = $("<p>");
               p2.text("You need to pick a new name for one of them");
               dom.append(p).append("<br>").append(loc1).append("<br>").append(loc2).append("<br>").append(p2);
-              hoverLocs(dom, [oldLoc, newLoc]);
+              errorHover(dom, [oldLoc, newLoc]);
               container.append(dom);
             }
           });
@@ -173,7 +91,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           dom.append("<p>").text(msg);
           dom.append("<br>");
           dom.append(drawSrcloc(loc));
-          hoverLocs(dom, [loc]);
+          errorHover(dom, [loc]);
           container.append(dom);
         }
 
@@ -185,7 +103,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           locArray.forEach(function(l) {
             dom.append(drawSrcloc(l)).append("<br>");
           });
-          hoverLocs(dom, locArray);
+          errorHover(dom, locArray);
           container.append(dom);
         }
 
@@ -253,7 +171,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             $(valDom).trigger({type: 'afterAttach'});
             $('*', valDom).trigger({type : 'afterAttach'});
             container.append(dom);
-            hoverLocs(dom, [probablyErrorLocation]);
+            errorHover(dom, [probablyErrorLocation]);
           });
         }
         function drawArityMismatch(funLoc, arity, args) {
@@ -280,7 +198,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
                 .append($("<br>"))
                 .append(argDom)
               container.append(dom);
-              hoverLocs(dom, [funLoc, probablyErrorLocation]);
+              errorHover(dom, [funLoc, probablyErrorLocation]);
             },
             "builtin": function(name) {
               dom.append($("<p>").text("Expected to get " + arity + " arguments at"))
@@ -291,7 +209,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
                 .append($("<br>"))
                 .append(argDom);
               container.append(dom);
-              hoverLocs(dom, [probablyErrorLocation]);
+              errorHover(dom, [probablyErrorLocation]);
             }
           });
         }
@@ -302,7 +220,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             dom.append($("<p>").text(message + " At:"))
               .append($("<br>"))
               .append(drawSrcloc(probablyErrorLocation));
-            hoverLocs(dom, [probablyErrorLocation]);
+            errorHover(dom, [probablyErrorLocation]);
           } else {
             dom.append($("<p>").text(message));
           }
@@ -317,7 +235,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             $(v).trigger({type: 'afterAttach'});
             $('*', v).trigger({type : 'afterAttach'});
             dom.append(drawSrcloc(loc));
-            hoverLocs(dom, [loc]);
+            errorHover(dom, [loc]);
             container.append(dom);
           });
         }
@@ -331,7 +249,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             $('*', v).trigger({type : 'afterAttach'});
             dom.append($("<br>"));
             dom.append(drawSrcloc(loc));
-            hoverLocs(dom, [loc]);
+            errorHover(dom, [loc]);
             container.append(dom);
           });
         }
@@ -345,7 +263,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             $('*', v).trigger({type : 'afterAttach'});
             dom.append($("<br>"));
             dom.append(drawSrcloc(loc));
-            hoverLocs(dom, [loc]);
+            errorHover(dom, [loc]);
             container.append(dom);
           });
         }
@@ -408,7 +326,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           var dom = $("<div>").addClass("parse-error");
           dom.append($("<p>").text("Pyret didn't understand your program around ").append(drawSrcloc(loc)));
           dom.append(expandableMore(explanation));
-          hoverLocs(dom, [loc]);
+          errorHover(dom, [loc]);
           container.append(dom);
         }
 
