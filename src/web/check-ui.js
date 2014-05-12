@@ -10,11 +10,11 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
 
    runtime.loadModules(runtime.namespace, [srclocLib], function(srcloc) {
 
-
+     var checkContainer = $("<div>");
      function addPreToDom(cssClass, txt, loc) {
        var dom = $("<pre>").addClass(cssClass).text(txt);
        outputUI.hoverLocs(editor, runtime, srcloc, dom, [loc], "check-highlight");
-       container.append(dom);
+       checkContainer.append(dom);
      }
 
      // These counters keep cumulative statistics for all the check blocks. 
@@ -87,13 +87,6 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
      // If there was more than one check block, print a message about
      // the grand total of checks and passes.
 
-     if (checkBlockCount > 1) {
-
-       var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
-       container.append(outerDom);
-
-     }
-
      if (checkPassedAll == checkTotalAll) {
        if (checkTotalAll > 0) {
 	 if (checkTotalAll == 1) {
@@ -105,6 +98,14 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
 	 }
        }
        container.append(outerDom);
+     } else {
+       container.append(checkContainer); 
+       if (checkBlockCount > 1) {
+
+         var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
+         container.append(outerDom);
+
+       }
      }
 
    });
