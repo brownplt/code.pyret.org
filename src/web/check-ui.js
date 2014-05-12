@@ -177,10 +177,16 @@ if (checkTotal > 1) {
 
      if (checkBlockCount > 1) {
 
-var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
-container.append(outerDom);
+       var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
+       container.append(outerDom);
 
      }
+
+     if (checkPassedAll == checkTotalAll) {
+       var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+       container.append(outerDom);
+     }
+
    });
 
  }
