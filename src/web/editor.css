@@ -323,6 +323,18 @@ body {
   color: #1f1180;
 }
 
+.replOutputPassed {
+  padding-top: 0;
+  padding-bottom: 0.5em;
+  color: #1f9180;
+}
+
+.replOutputFailed {
+  padding-top: 0;
+  padding-bottom: 0.5em;
+  color: #af1180;
+}
+
 .replOutputReason {
  padding-top: 0;
  padding-bottom: 0.5em;
