@@ -203,10 +203,12 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
     });
   }
 
-  gapi.auth.setToken({ access_token: initialAuthToken });
   var d = Q.defer();
-  gapi.client.load('drive', 'v2', function() {
-    d.resolve(initialize())
+  gapi.auth.authorize({client_id: "2769265824-u82i4qqegaqufufs8hemeve58nusetnh.apps.googleusercontent.com", scope:  'https://www.googleapis.com/auth/drive.file', immediate: false}, function(authResult) {
+    console.log("Auth: ", authResult);
+    gapi.client.load('drive', 'v2', function() {
+      d.resolve(initialize())
+    });
   });
   return d.promise;
   

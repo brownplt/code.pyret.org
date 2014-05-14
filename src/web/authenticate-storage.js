@@ -2,13 +2,7 @@
 var storageAPIDeferred = Q.defer();
 var storageAPI = storageAPIDeferred.promise;
 function handleClientLoad() {
-  function refresh() {
-    return Q($.ajax("/getAccessToken"));
-  }
-  var getAccess = Q($.ajax("/getAccessToken"));
-  var api = getAccess.then(function(data) {
-    return createProgramCollectionAPI("code.pyret.org", data.access_token, refresh)
-  });
+  var api = createProgramCollectionAPI("code.pyret.org", null, null);
   
   api.then(function(api) {
     $(".loginOnly").show();
