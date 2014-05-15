@@ -1,9 +1,8 @@
 // assumes gapi bound to Google API
 
-function createProgramCollectionAPI(collectionName, immediate) {
+function createProgramCollectionAPI(clientId, collectionName, immediate) {
 
   var drive;
-  var CLIENTID = "2769265824-u82i4qqegaqufufs8hemeve58nusetnh.apps.googleusercontent.com";
   var SCOPE = "https://www.googleapis.com/auth/drive.file";
 
   function authCheck(f) {
@@ -207,7 +206,7 @@ function createProgramCollectionAPI(collectionName, immediate) {
 
   var reauth = function(immediate) {
     var d = Q.defer();
-    gapi.auth.authorize({client_id: CLIENTID, scope: SCOPE, immediate: immediate}, function(authResult) {
+    gapi.auth.authorize({client_id: clientId, scope: SCOPE, immediate: immediate}, function(authResult) {
       if(!authResult || authResult.error) {
         d.reject(authResult);
       }

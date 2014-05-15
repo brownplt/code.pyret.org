@@ -49,7 +49,8 @@
 <script src="/node_modules/q/q.js"></script>
 <script src="/src/web/programs.js"></script>
 <script src="/src/web/authenticate-storage.js"></script>
-<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+<script>var clientId = "{{ clientId }}";
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad(clientId)"></script>
 
 <script src="/node_modules/requirejs/require.js"></script>
 <script>
