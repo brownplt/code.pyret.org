@@ -15,11 +15,6 @@
 </div>
 <div id="toolbar">
   <a id="newButton" href="/editor"><button class="loginOnly blueButton">Start New Program</button></a>
-  <button id="logout" class="loginOnly blueButton rhs">Logout ▾</button>
-  <div id="logoutOptions">
-    <div><a href="/logout">of code.pyret.org</a></div>
-    <div><a href="/logoutBoth">of code.pyret.org and Google</a></div>
-  </div>
 </div>
 <div id="main">
 
@@ -100,12 +95,13 @@ storageAPI
       $("#main").append($("<p>").text("It looks like you don't have any programs yet.  You can start one by clicking “Start New Program” above."));
     }
   })
-  .fail(function(err) {
-    $("#loader").hide();
-    $("#main").append($("<p>").text("There was an error loading your programs.").css({color: "red"}));
-    console.error("Failed to load files: ", err);
-  });
 
+});
+storageAPI.fail(function(err) {
+  $("#loader").hide();
+  $("#main").append($("<p>").text("We couldn't load your programs."));
+  $("#main").append($("<p>").text("You can try "));
+  console.error("Failed to load files: ", err);
 });
 </script>
 </html>

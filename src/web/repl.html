@@ -13,7 +13,6 @@
 <div id="header">
   <div id="docs"><a href="/src/web/doc.txt" target="_blank">Documentation</a></div>
   <div id="programs" class="loginOnly"><a href="/my-programs">My Programs</a></div>
-  <div id="logout" class="loginOnly"><a href="/logout">Logout</a></div>
 </div>
 <div id="toolbar">
   <button id="connectButton" class="logoutOnly">Connect to Google Drive</button>
@@ -189,6 +188,7 @@ $(function() {
     var programLoaded = initialProgram.then(function(p) {
       if(p !== null) {
         $("#program-name").val(p.getName());
+        document.title = makeNewTitle(p.getName() + " - code.pyret.org");
         return p.getContents().then(function(c) {
           editor.cm.setValue(c);
         });
@@ -218,6 +218,7 @@ $(function() {
             history.pushState(null, null, "#program=" + p.getUniqueId());
             window.location.hash = "#program=" + p.getUniqueId();
             flashMessage("Program saved as " + p.getName());
+            document.title = makeNewTitle(p.getName() + " - code.pyret.org");
             return p;
           })
         }
