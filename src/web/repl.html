@@ -92,12 +92,17 @@ $(function() {
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
+
+    var initialParams = url.parse(document.location.href);
+    var params = url.parse("/?" + initialParams["hash"]);
+
     var dialects = dialectLib(runtime, runtime.namespace);
-    var dialectStr = window.location.hash.slice(1);
-    var dialect = dialects.dialects[dialectStr] || dialects.dialects["Bootstrap"]; // TODO: CHANGE THIS AS NEEDED
+    var dialectStr = params["get"] ? params["get"]["lang"] : "Pyret";
+    if (!dialects.dialects[dialectStr]) { dialectStr = "Pyret"; }
+    var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
     var replNS = dialect.makeNamespace(runtime);
     var replEnv = dialect.compileEnv;
-    var repl = replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr || "Bootstrap"});
+    var repl = replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr});
 
     // NOTE(joe): This forces the loading of all the built-in compiler libs
     var interactionsReady = repl.restartInteractions("");
@@ -141,12 +146,6 @@ $(function() {
     var lskey = "patch_saved_program";
     var currentFile;
 
-    var params = url.parse(document.location.href);
-    var initialProgramId = null;
-    if(params["get"] && params["get"]["program"]) {
-      initialProgramId = params["get"]["program"];
-    }
-
     storageAPI.then(function() {
       $(".loginOnly").show();
       $(".logoutOnly").hide();
@@ -168,6 +167,11 @@ $(function() {
         $("#connectButton").text("Connect to Google Drive");
       });
     });
+
+    var initialProgramId = null;
+    if(params["get"] && params["get"]["program"]) {
+      initialProgramId = params["get"]["program"];
+    }
 
     var initialProgram = storageAPI.then(function(api) {
       if(initialProgramId) {
@@ -211,6 +215,8 @@ $(function() {
           })
           .then(function(p) {
             $("#program-name").val(p.getName());
+            history.pushState(null, null, "#program=" + p.getUniqueId());
+            window.location.hash = "#program=" + p.getUniqueId();
             flashMessage("Program saved as " + p.getName());
             return p;
           })
