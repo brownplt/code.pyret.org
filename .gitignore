@@ -1,3 +1,5 @@
 node_modules
 .env
 src/web/teachpacks
+build/
+config.json
