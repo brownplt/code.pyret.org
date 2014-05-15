@@ -64,11 +64,11 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
 
     if (useLineNumbers) {
       var upperWarning = jQuery("<div>").addClass("warning-upper");
-      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/node_modules/pyret-lang/img/up-arrow.png");
+      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("/img/up-arrow.png");
       upperWarning.append(upperArrow);
       CM.display.wrapper.appendChild(upperWarning.get(0));
       var lowerWarning = jQuery("<div>").addClass("warning-lower");
-      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/node_modules/pyret-lang/img/down-arrow.png");
+      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("/img/down-arrow.png");
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }

@@ -3,16 +3,16 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>code.pyret.org</title>
-  <link rel="stylesheet" href="/src/web/reset.css"></link>
+  <link rel="stylesheet" href="/css/reset.css"></link>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-  <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
-  <link rel="stylesheet" href="/src/web/shared.css"></link>
-  <link rel="stylesheet" href="/src/web/editor.css"></link>
+  <link rel="stylesheet" href="/css/codemirror.css"></link>
+  <link rel="stylesheet" href="/css/shared.css"></link>
+  <link rel="stylesheet" href="/css/editor.css"></link>
 </head>
 <body>
 <div id="header">
-  <div id="docs"><a href="/src/web/doc.txt" target="_blank">Documentation</a></div>
-  <div id="programs" class="loginOnly"><a href="/my-programs">My Programs</a></div>
+  <div id="docs"><a target="_blank">Documentation</a></div>
+  <div id="programs" class="loginOnly"><a href="/my-programs.html">My Programs</a></div>
 </div>
 <div id="toolbar">
   <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
@@ -44,15 +44,19 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-<script src="/src/web/loader.js"></script>
-<script src="/node_modules/url.js/url.js"></script>
-<script src="/node_modules/q/q.js"></script>
-<script src="/src/web/programs.js"></script>
-<script src="/src/web/authenticate-storage.js"></script>
-<script>var clientId = "{{ clientId }}";
-<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad(clientId)"></script>
-
-<script src="/node_modules/requirejs/require.js"></script>
+<script src="/js/loader.js"></script>
+<script src="/js/url.js"></script>
+<script src="/js/q.js"></script>
+<script src="/js/programs.js"></script>
+<script src="/js/authenticate-storage.js"></script>
+<script>
+var clientId = "{{ google_client_id }}";
+function handleGoogLoad() {
+  handleClientLoad(clientId);
+}
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script src="/js/require.js"></script>
 <script>
 requirejs.config({
   paths: {
@@ -60,18 +64,17 @@ requirejs.config({
 //      "compiler": "arr/compiler/",
 //      "arr": "arr/",
 //      "trove": "trove",
-    "q": "/node_modules/q/q",
-    "fs": "/src/web/fsstub",
-    "trove": "/src/web/teachpacks/"
+    "q": "/js/q",
+    "fs": "/js/fsstub"
   },
   waitSeconds: 0
 });
 </script>
-<script src="/src/web/pyret.js"></script>
-<script src="/lib/CodeMirror/lib/codemirror.js"></script>
-<script src="/lib/CodeMirror/addon/edit/matchbrackets.js"></script>
-<script src="/src/web/draw.js"></script>
-<script src="/lib/CodeMirror/mode/pyret/pyret.js"></script>
+<script src="/js/pyret.js"></script>
+<script src="/js/codemirror.js"></script>
+<script src="/js/matchbrackets.js"></script>
+<script src="/js/draw.js"></script>
+<script src="/js/pyret-mode.js"></script>
 <!--  <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 <script>
@@ -88,7 +91,7 @@ function ct_error(/* varargs */) {
 }
 $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
-  define("repl-main", ["js/repl-lib", "/src/web/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
@@ -157,7 +160,7 @@ $(function() {
     $("#connectButton").click(function() {
       $("#connectButton").text("Connecting...");
       $("#connectButton").attr("disabled", "disabled");
-      storageAPI = createProgramCollectionAPI("code.pyret.org", false);
+      storageAPI = createProgramCollectionAPI(clientId, "code.pyret.org", false);
       storageAPI.then(function(api) {
         $(".loginOnly").show();
         $(".logoutOnly").hide();
