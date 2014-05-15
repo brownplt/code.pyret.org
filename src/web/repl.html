@@ -16,6 +16,7 @@
   <div id="logout" class="loginOnly"><a href="/logout">Logout</a></div>
 </div>
 <div id="toolbar">
+  <button id="connectButton" class="logoutOnly">Connect to Google Drive</button>
   <div id="program-name-container" class="loginOnly">
     <label for="program-name">Program Name:</label>
     <input id="program-name" type="text"></input>
@@ -29,6 +30,15 @@
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
 <div id="REPL" class="replContainer"></div>
+<div id="help-keys">
+  <p>Press ESC to close this help window</p>
+  <ul>
+    <li><b>Ctrl-?</b> - Show this help</li>
+    <li><b>Ctrl-d</b> - Goto definitions window</li>
+    <li><b>Ctrl-i</b> - Goto interactions window</li>
+    <li><b>Ctrl-Enter</b> - Run the definitions window</li>
+  </ul>
+</div>
 </div>
 <div id="footer"></div>
 </body>
@@ -107,6 +117,12 @@ $(function() {
         run: RUN_CODE,
         initialGas: 500
       });
+    $(document).on("keyup", function(e) {
+      if(e.keyCode === 27) { // "ESC"
+        $("#help-keys").fadeOut(500);
+        e.stopImmediatePropagation();
+      }
+    });
     $(document).on("keydown", function(e) {
       if(e.ctrlKey) {
         if(e.keyCode === 68) { // "Ctrl-d"
@@ -114,6 +130,9 @@ $(function() {
           e.stopImmediatePropagation();
         } else if(e.keyCode === 73) { // "Ctrl-i"
           replWidget.focus();
+          e.stopImmediatePropagation();
+        } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"
+          $("#help-keys").fadeIn(100);
           e.stopImmediatePropagation();
         }
       }
@@ -127,6 +146,28 @@ $(function() {
     if(params["get"] && params["get"]["program"]) {
       initialProgramId = params["get"]["program"];
     }
+
+    storageAPI.then(function() {
+      $(".loginOnly").show();
+      $(".logoutOnly").hide();
+    });
+    storageAPI.fail(function() {
+      $(".loginOnly").hide();
+      $(".logoutOnly").show();
+    });
+    $("#connectButton").click(function() {
+      $("#connectButton").text("Connecting...");
+      $("#connectButton").attr("disabled", "disabled");
+      storageAPI = createProgramCollectionAPI("code.pyret.org", false);
+      storageAPI.then(function(api) {
+        $(".loginOnly").show();
+        $(".logoutOnly").hide();
+        programToSave = Q.fcall(function() { return null; });
+      });
+      storageAPI.fail(function(err) {
+        $("#connectButton").text("Connect to Google Drive");
+      });
+    });
 
     var initialProgram = storageAPI.then(function(api) {
       if(initialProgramId) {

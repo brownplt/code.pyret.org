@@ -18,6 +18,23 @@ em {
   background-size: 250px 250px;
 }
 
+#help-keys {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background-color: #ddd;
+  border-radius: 5px;
+  border: 50px solid rgba(0, 0, 0, 0.7);
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip: padding-box;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  display: none;
+}
+
 #loader p {
   position: relative;
   top: 320px;

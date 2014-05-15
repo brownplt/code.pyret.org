@@ -306,6 +306,10 @@ body {
   font-weight: bold;
 }
 
+.logoutOnly {
+  display: none;
+}
+
 .loginOnly {
   display: none;
 }

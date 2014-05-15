@@ -1,8 +1,10 @@
 // assumes gapi bound to Google API
 
-function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
+function createProgramCollectionAPI(collectionName, immediate) {
 
   var drive;
+  var CLIENTID = "2769265824-u82i4qqegaqufufs8hemeve58nusetnh.apps.googleusercontent.com";
+  var SCOPE = "https://www.googleapis.com/auth/drive.file";
 
   function authCheck(f) {
     function isAuthFailure(result) {
@@ -203,13 +205,26 @@ function createProgramCollectionAPI(collectionName, initialAuthToken, refresh) {
     });
   }
 
-  var d = Q.defer();
-  gapi.auth.authorize({client_id: "2769265824-u82i4qqegaqufufs8hemeve58nusetnh.apps.googleusercontent.com", scope:  'https://www.googleapis.com/auth/drive.file', immediate: false}, function(authResult) {
-    console.log("Auth: ", authResult);
+  var reauth = function(immediate) {
+    var d = Q.defer();
+    gapi.auth.authorize({client_id: CLIENTID, scope: SCOPE, immediate: immediate}, function(authResult) {
+      if(!authResult || authResult.error) {
+        d.reject(authResult);
+      }
+      else {
+        d.resolve(authResult);
+      }
+    });
+    return d.promise;
+  };
+
+  var initialAuth = reauth(immediate);
+  return initialAuth.then(function(_) {
+    var d = Q.defer();
     gapi.client.load('drive', 'v2', function() {
       d.resolve(initialize())
     });
+    return d.promise;
   });
-  return d.promise;
-  
+  return initialAuth;
 }

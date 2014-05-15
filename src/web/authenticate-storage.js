@@ -2,10 +2,9 @@
 var storageAPIDeferred = Q.defer();
 var storageAPI = storageAPIDeferred.promise;
 function handleClientLoad() {
-  var api = createProgramCollectionAPI("code.pyret.org", null, null);
+  var api = createProgramCollectionAPI("code.pyret.org", true);
   
   api.then(function(api) {
-    $(".loginOnly").show();
     storageAPIDeferred.resolve(api);
   });
   api.fail(function(err) {
