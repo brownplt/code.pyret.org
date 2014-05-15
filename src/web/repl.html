@@ -15,7 +15,7 @@
   <div id="programs" class="loginOnly"><a href="/my-programs">My Programs</a></div>
 </div>
 <div id="toolbar">
-  <button id="connectButton" class="logoutOnly">Connect to Google Drive</button>
+  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
   <div id="program-name-container" class="loginOnly">
     <label for="program-name">Program Name:</label>
     <input id="program-name" type="text"></input>
@@ -164,6 +164,7 @@ $(function() {
       });
       storageAPI.fail(function(err) {
         $("#connectButton").text("Connect to Google Drive");
+        $("#connectButton").attr("disabled", false);
       });
     });
 
@@ -185,10 +186,14 @@ $(function() {
       }
     })
 
+    function setTitle(progName) {
+      document.title = progName + " - code.pyret.org";
+    }
+
     var programLoaded = initialProgram.then(function(p) {
       if(p !== null) {
         $("#program-name").val(p.getName());
-        document.title = makeNewTitle(p.getName() + " - code.pyret.org");
+        setTitle(p.getName());
         return p.getContents().then(function(c) {
           editor.cm.setValue(c);
         });
@@ -218,7 +223,7 @@ $(function() {
             history.pushState(null, null, "#program=" + p.getUniqueId());
             window.location.hash = "#program=" + p.getUniqueId();
             flashMessage("Program saved as " + p.getName());
-            document.title = makeNewTitle(p.getName() + " - code.pyret.org");
+            setTitle(p.getName());
             return p;
           })
         }
@@ -232,6 +237,7 @@ $(function() {
       });
       savedProgram.fail(function(err) {
         flashError("Program failed to save.");
+        console.error(err);
       });
     }
     $("#saveButton").click(save);

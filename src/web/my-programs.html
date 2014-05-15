@@ -77,7 +77,7 @@ storageAPI
       elt.append($("<td>").text(new Date(file.getModifiedTime())));
       elt.append($("<td>").append($("<a>").attr({
         "target": "_blank",
-        "href": "/editor?program=" + file.getUniqueId()
+        "href": "/editor#program=" + file.getUniqueId()
       }).text("Open")));
 /*
       elt.append($("<td>").append($("<a>").attr({
