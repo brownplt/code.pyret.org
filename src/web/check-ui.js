@@ -90,7 +90,7 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
      if (checkPassedAll == checkTotalAll) {
        if (checkTotalAll > 0) {
          if (checkTotalAll == 1) {
-           var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, mate!");
+           var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, your test passed, mate!");
          } else if (checkTotalAll == 2) {
            var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, both tests passed, mate!");
          } else {
