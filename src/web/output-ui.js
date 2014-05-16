@@ -99,7 +99,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
   // and also returned
   function renderPyretValue(output, runtime, answer) {
     var image = imageLib(runtime, runtime.namespace);
-    console.log("entering renderpyretvalue");
+
     if(runtime.isOpaque(answer) && image.isImage(answer.val)) {
       var container = $("<div>").addClass('replOutput');
       output.append(container);
@@ -145,32 +145,52 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
       var echoContainer = $("<div>").addClass("replTextOutput");
 
       if (!runtime.isNothing(answer)) {
-        // If we're looking at a rational number, arrange it so that a click will 
-        // toggle the decimal representation of that number.
-        if (runtime.isNumber(answer) && jsnums.isExact(answer)) {
 
-          outText = $("<span>").addClass("rationalNumber").text(answer.toString());
+        // If we're looking at a rational number, arrange it so that a
+        // click will toggle the decimal representation of that
+        // number.  Note that this feature abandons the convenience of
+        // publishing output via the CodeMirror textarea.
+        if (runtime.isNumber(answer) && jsnums.isRational(answer) && !jsnums.isInteger(answer)) {
+
+          outText = $("<span>").addClass("rationalNumber fraction").text(answer.toString());
           // On click, switch the representation from a fraction to
           // decimal, and back again.
           outText.click(function() { 
-            // A function to compare the current text in a container
-            // to one of two options and choose the different one.
-            $.fn.toggleText = function(t1, t2) {
-              var current = this.text();
-              this.text(!$.trim(current) ? t1 :
-                        (current == t1 ? t2 : t1));
+
+            // A function to use the class of a container to toggle
+            // between the two representations of a fraction.  The
+            // three arguments are a string to be the representation
+            // as a fraction, a string to represent the non-repeating
+            // part of the decimal number, and a string to be
+            // repeated. The 'rationalRepeat' class puts a bar over
+            // the string.
+            $.fn.toggleFrac = function(frac, dec, decRpt) {
+              if (this.hasClass("fraction")) {
+                this.text(dec);
+                // This is the stuff to be repeated.  If the digit to
+                // be repeated is just a zero, then ignore this
+                // feature, and leave off the zero.
+                if (decRpt != "0") {
+                  var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
+                  this.append(cont);
+                }
+                this.removeClass("fraction");
+              } else {
+                this.text(frac);
+                this.addClass("fraction");
+              }
               return this;
             }
 
+            // This function returns three string values, numerals to
+            // appear before the decimal point, numerals to appear
+            // after, and numerals to be repeated.
             var decimal = jsnums.toRepeatingDecimal(answer.numerator(), 
                                                     answer.denominator());
             var decimalString = decimal[0].toString() + "." +
-              decimal[1].toString() +
-              decimal[2].toString() +
-              decimal[2].toString() +
-              decimal[2].toString();
+              decimal[1].toString();
 
-            $(this).toggleText(answer.toString(), decimalString);
+            $(this).toggleFrac(answer.toString(), decimalString, decimal[2]);
 
           });
           echoContainer.append(outText);
@@ -179,10 +199,10 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         } else {
           
           // Either we're looking at a string or some number with only
-          // one representation. Just print it.
+          // one representation. Just print it, using the CodeMirror
+          // textarea for styling.
           var outText = runtime.toReprJS(answer, "_torepr");
 
-          console.log("text follows"); console.log(outText);
           var echo = $("<textarea class='CodeMirror'>");
           output.append(echoContainer);
           echoContainer.append(echo);
