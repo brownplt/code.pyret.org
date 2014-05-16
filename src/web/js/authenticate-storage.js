@@ -8,7 +8,7 @@ function handleClientLoad(clientId) {
     storageAPIDeferred.resolve(api);
   });
   api.fail(function(err) {
-    storageAPIDeferred.reject(api);
+    storageAPIDeferred.reject(err);
     console.log("Not logged in; proceeding without login info", err);
   });
 }

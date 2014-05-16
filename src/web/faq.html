@@ -19,19 +19,29 @@
 
 <h3>How do we use your Google account?</h3>
 
-<p> We ask for a single permission: <b>View and manage Google Drive files that
+<p> We ask for two permissions:</p>
+
+<p><b>(1) View and manage Google Drive files that
 you have opened or created with this app.</b> This permission lets us create
 files in your Drive, and update those files later.  Also, if in the future we
 provide a way for you to directly upload Pyret files and load them into
 <code>code.pyret.org</code> from your Drive, you can explicitly grant
 permission for this application to view and edit certain files.
+</p>
+
+<p><b>(2) Read access to your Google Drive.</b>
+Because of issues with Google Drive's interface that we haven't been able to
+figure out (<LINK>), we cannot view publicly shared files without asking for
+readonly permission to your Drive.  Permission 1, which is all we would like
+to require, causes authorization failures when trying to view public files.
+</p>
 
 <p> We use client-only authorization (if you're really interested, we use APIs
 similar to the ones described in
 https://developers.google.com/drive/web/quickstart/quickstart-js), so this
 application can only access your data from open pages on our site.  We don't
-save any access tokens to our server.
-</p>
+save any access tokens to our server (we don't even run a server that does
+more than serve static files).  </p>
 
 <p> You can always go to <a
 href="https://security.google.com/settings/security/permissions?pli=1">https://security.google.com/settings/security/permissions?pli=1</a>
@@ -46,9 +56,20 @@ so, but you can always manually delete the folder and its contents yourself.
 <h3>Where are things stored in my Drive?</h3>
 
 <p>
-We make a single folder in your Google Drive, called
+We initially make a single folder in your Google Drive, called
 <code>code.pyret.org</code>, and store all of your programs there, with the
-names you choose for them.
+names you choose for them.  They are all created with you as the owner, and
+private to your account.
+</p>
+
+<p>
+If you <em>share</em> programs, we create a new folder, called
+<code>code.pyret.org.shared</code>, and we make a <em>publicly-readable
+copy</em> of any programs you share in that directory.  If you delete this
+files in this folder, links for those programs you have shared with others
+will stop working, but any copies others have made will be theirs to keep.
+Each time you share a program, a new copy is created from its current
+contents.
 </p>
 
 <p> We can only see files that we created, so simply moving another file into

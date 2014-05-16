@@ -146,8 +146,6 @@ $(function() {
       }
     });
     
-    var lskey = "patch_saved_program";
-    var currentFile;
 
     storageAPI.then(function() {
       $(".loginOnly").show();
@@ -172,9 +170,16 @@ $(function() {
       });
     });
 
+    var copyOnSave = false;
     var initialProgramId = null;
     if(params["get"] && params["get"]["program"]) {
       initialProgramId = params["get"]["program"];
+    }
+
+    if(params["get"] && params["get"]["share"]) {
+      initialProgramId = params["get"]["share"];
+      $("#saveButton").text("Save a Copy");
+      copyOnSave = true;
     }
 
     var initialProgram = storageAPI.then(function(api) {
@@ -195,6 +200,7 @@ $(function() {
     }
 
     var programLoaded = initialProgram.then(function(p) {
+      console.log("Initial program: ", p);
       if(p !== null) {
         $("#program-name").val(p.getName());
         setTitle(p.getName());
@@ -212,7 +218,7 @@ $(function() {
     function save() {
       flashMessage("Saving...");
       var savedProgram = programToSave.then(function(p) {
-        if(p !== null) {
+        if(p !== null && !copyOnSave) {
           if(p.getName() !== $("#program-name").val()) {
             programToSave = p.rename(nameOrUntitled()).then(function(newP) {
               return newP;
@@ -224,6 +230,7 @@ $(function() {
           })
           .then(function(p) {
             $("#program-name").val(p.getName());
+            $("#saveButton").text("Save");
             history.pushState(null, null, "#program=" + p.getUniqueId());
             window.location.hash = "#program=" + p.getUniqueId();
             flashMessage("Program saved as " + p.getName());
@@ -236,6 +243,7 @@ $(function() {
           $("#program-name").val(programName);
           programToSave = storageAPI
             .then(function(api) { return api.createFile(programName); });
+          copyOnSave = false;
           return save();
         }
       });
@@ -246,6 +254,7 @@ $(function() {
     }
     $("#saveButton").click(save);
 
+    programLoaded.then(function() { $("#loader").hide(); });
     Q.all([programLoaded, interactionsReady]).fin(function() { $("#loader").hide(); });
     editor.focus();
   });
