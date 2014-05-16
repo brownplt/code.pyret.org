@@ -1,5 +1,23 @@
+# NOTE: Needs TWO blank lines here, dunno why
+define \n
+
+
+endef
+ifneq ($(findstring .exe,$(SHELL)),)
+	override SHELL:=$(COMSPEC)$(ComSpec)
+	MKDIR = $(foreach dir,$1,if not exist "$(dir)". (md "$(dir)".)$(\n))
+	RMDIR = $(foreach dir,$1,if exist "$(dir)". (rd /S /Q "$(dir)".)$(\n))
+	RM = if exist "$1". (del $1)
+else
+	MKDIR = mkdir -p $1
+	RMDIR = rm -rf $1
+	RM = rm -f $1
+endif
+
+
 build/web/js/pyret.js.gz: node_modules/pyret-lang/build/phase0/pyret.js
 	gzip -9 node_modules/pyret-lang/build/phase0/pyret.js -c > build/web/js/pyret.js.gz
+	touch build/web/js/pyret.js
 
 .PHONY : post-install
 post-install: compress-pyret
@@ -19,7 +37,7 @@ selenium-test-sauce:
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/%.html,$(wildcard src/web/*.template.html))
 
 build/web/%.html: src/web/%.template.html
-	node make.js $< > $@
+	node make-template.js $< > $@
 
 COPY_HTML := $(patsubst src/web/%.html,build/web/%.html,$(wildcard src/web/*.html))
 
@@ -29,7 +47,7 @@ build/web/%.html: src/web/%.html
 OUT_CSS := $(patsubst src/web/%.template.css,build/web/%.css,$(wildcard src/web/css/*.template.css))
 
 build/web/css/%.css: src/web/css/%.template.css
-	node make.js $< > $@
+	node make-template.js $< > $@
 
 COPY_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/*.css))
 
@@ -72,22 +90,22 @@ build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
 
-WEB = "build/web"
-WEBJS = "build/web/js"
-WEBCSS = "build/web/css"
-WEBIMG = "build/web/img"
+WEB = build/web
+WEBJS = build/web/js
+WEBCSS = build/web/css
+WEBIMG = build/web/img
 
 $(WEB):
-	mkdir -p $(WEB)
+	@$(call MKDIR,$(WEB))
 
 $(WEBJS):
-	mkdir -p $(WEBJS)
+	@$(call MKDIR,$(WEBJS))
 
 $(WEBCSS):
-	mkdir -p $(WEBCSS)
+	@$(call MKDIR,$(WEBCSS))
 
 $(WEBIMG):
-	mkdir -p $(WEBIMG)
+	@$(call MKDIR,$(WEBIMG))
 
 web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG)
 
