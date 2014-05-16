@@ -1,4 +1,4 @@
-define(["trove/image-lib"], function(imageLib) {
+define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
 
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
@@ -99,6 +99,7 @@ define(["trove/image-lib"], function(imageLib) {
   // and also returned
   function renderPyretValue(output, runtime, answer) {
     var image = imageLib(runtime, runtime.namespace);
+    console.log("entering renderpyretvalue");
     if(runtime.isOpaque(answer) && image.isImage(answer.val)) {
       var container = $("<div>").addClass('replOutput');
       output.append(container);
@@ -141,14 +142,54 @@ define(["trove/image-lib"], function(imageLib) {
         return imageDom;
       }
     } else {
+      var echoContainer = $("<div>").addClass("replTextOutput");
+
       if (!runtime.isNothing(answer)) {
-        var echoContainer = $("<div>").addClass("replTextOutput");
-        var text = runtime.toReprJS(answer, "_torepr");
-        var echo = $("<textarea class='CodeMirror'>");
-        output.append(echoContainer);
-        echoContainer.append(echo);
-        var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: 'nocursor' });
-        echoCM.setValue(text);
+        // If we're looking at a rational number, arrange it so that a click will 
+        // toggle the decimal representation of that number.
+        if (runtime.isNumber(answer) && jsnums.isExact(answer)) {
+
+          outText = $("<span>").addClass("rationalNumber").text(answer.toString());
+          // On click, switch the representation from a fraction to
+          // decimal, and back again.
+          outText.click(function() { 
+            // A function to compare the current text in a container
+            // to one of two options and choose the different one.
+            $.fn.toggleText = function(t1, t2) {
+              var current = this.text();
+              this.text(!$.trim(current) ? t1 :
+                        (current == t1 ? t2 : t1));
+              return this;
+            }
+
+            var decimal = jsnums.toRepeatingDecimal(answer.numerator(), 
+                                                    answer.denominator());
+            var decimalString = decimal[0].toString() + "." +
+              decimal[1].toString() +
+              decimal[2].toString() +
+              decimal[2].toString() +
+              decimal[2].toString();
+
+            $(this).toggleText(answer.toString(), decimalString);
+
+          });
+          echoContainer.append(outText);
+          output.append(echoContainer);
+
+        } else {
+          
+          // Either we're looking at a string or some number with only
+          // one representation. Just print it.
+          var outText = runtime.toReprJS(answer, "_torepr");
+
+          console.log("text follows"); console.log(outText);
+          var echo = $("<textarea class='CodeMirror'>");
+          output.append(echoContainer);
+          echoContainer.append(echo);
+          var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: 'nocursor' });
+          echoCM.setValue(outText);
+        }
+
         return echoContainer;
       }
     }
