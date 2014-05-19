@@ -13,13 +13,19 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
 
   function authCheck(f) {
     function isAuthFailure(result) {
-      return (result.code && result.code === 401);
+      return
+        (result.error && result.error.code && result.error.code === 401) ||
+        (result.code && result.code === 401);
     }
     var retry = f().then(function(result) {
       if(isAuthFailure(result)) {
-        return refresh().then(function(newToken) {
-          gapi.auth.setToken({ access_token: newToken });
-          return f();
+        return refresh().then(function(authResult) {
+          if(!authResult || authResult.error) {
+            return {error: { code: 401, message: "Couldn't re-authorize" }};
+          }
+          else {
+            return f();
+          }
         });
       } else {
         return result;
@@ -45,8 +51,7 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
 
   function failCheck(p) {
     return p.then(function(result) {
-      if(result && (typeof result.code === "number")) {
-        console.error("Failure: ", result);
+      if(result && (typeof result.code === "number") && (result.code >= 400)) {
         throw new Error(result);
       }
       return result;
