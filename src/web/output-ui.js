@@ -150,7 +150,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         // click will toggle the decimal representation of that
         // number.  Note that this feature abandons the convenience of
         // publishing output via the CodeMirror textarea.
-        if (runtime.isNumber(answer) && jsnums.isRational(answer) && !jsnums.isInteger(answer)) {
+        if (runtime.isNumber(answer) && jsnums.isExact(answer) && !jsnums.isInteger(answer)) {
 
           outText = $("<span>").addClass("rationalNumber fraction").text(answer.toString());
           // On click, switch the representation from a fraction to
