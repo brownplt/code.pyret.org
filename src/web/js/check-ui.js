@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "trove/srcloc"], function(ffiLib, srclocLib) {
+define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, srclocLib, outputUI) {
 
  function drawCheckResults(container, editor, runtime, checkResults) {
    var ffi = ffiLib(runtime, runtime.namespace);
