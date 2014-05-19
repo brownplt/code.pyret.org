@@ -16,7 +16,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "postinstall": "make post-install",
+    "postinstall": "make web",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Joe Politz",
