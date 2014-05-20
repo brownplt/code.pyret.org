@@ -1,5 +1,7 @@
 define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
 
+  var warnDesired = 0;
+
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
     else {
@@ -11,6 +13,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
   }
 
   function hoverLocs(editor, runtime, srcloc, elt, locs, cls) {
+
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
      function cmPosFromSrcloc(s) {
@@ -43,6 +46,34 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         });
       }, withMarker);
     }
+
+    // There are warnings to show indicating whether the check output
+    // is from a check that is currently off screen.  The problem is
+    // that the repl output is a bunch of little elements, so moving
+    // from one line to another of the check output is likely to
+    // trigger a mouseleave and then a mouseenter event. Showing the
+    // warnings in a sensible way (not having them flicker in and out)
+    // involves ignoring some of these transitions.
+    var transitionTime = 150;
+    var fadeAmt = 0.5;
+
+    function setWarningState(obj) {
+ 
+      var opacity = obj.css("opacity");
+
+      if (warnDesired != opacity) {
+        // Only act if the warning is all the way in or out.  The '1'
+        // in the following test is because the initial state is
+        // opacity = 1, though the element is not visible.
+        if ((opacity == 0) || (opacity == fadeAmt) || (opacity == 1)) {
+          if (warnDesired == fadeAmt) {
+            obj.fadeTo("fast", fadeAmt);
+          } else {
+            obj.fadeTo("fast", 0.0);
+          }
+        }
+      }
+    }
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
     // CLICK to *cycle* through locations
@@ -55,9 +86,15 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
           var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
           if (view.top > charCh.top) {
-            jQuery(".warning-upper").fadeIn("fast");
+            warnDesired = fadeAmt;
+            topWarn = true;
+            setTimeout(function() { setWarningState(jQuery(".warning-upper")); }, 
+                       transitionTime);
           } else if (view.top + view.clientHeight < charCh.bottom) {
-            jQuery(".warning-lower").fadeIn("fast");
+            warnDesired = fadeAmt;
+            topWarn = false;
+            setTimeout(function() { setWarningState(jQuery(".warning-lower")); }, 
+                       transitionTime);
           }
         }
       });
@@ -66,14 +103,22 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
       });
     });
     elt.on("mouseleave", function() {
-      jQuery(".warning-upper").fadeOut("fast");
-      jQuery(".warning-lower").fadeOut("fast");
+      warnDesired = 0;
+      if (topWarn) {
+        setTimeout(function() { setWarningState(jQuery(".warning-upper"));}, 
+                   transitionTime);
+      } else {
+        setTimeout(function() { setWarningState(jQuery(".warning-lower"));}, 
+                   transitionTime);
+      }
+
       marks.forEach(function(m) { return m && m.clear(); })
       marks = [];
     });
     var locIndex = 0;
     if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
       elt.on("click", function() {
+        warnDesired = 0;
         jQuery(".warning-upper").fadeOut("fast");
         jQuery(".warning-lower").fadeOut("fast");
         function gotoNextLoc() {
