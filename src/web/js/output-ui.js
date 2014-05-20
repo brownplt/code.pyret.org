@@ -11,6 +11,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
   }
 
   function hoverLocs(editor, runtime, srcloc, elt, locs, cls) {
+
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
      function cmPosFromSrcloc(s) {
@@ -43,6 +44,52 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         });
       }, withMarker);
     }
+
+    // There are warnings to show indicating whether the check output
+    // is from a check that is currently off screen.  The problem is
+    // that the repl output is a bunch of little elements, so moving
+    // from one line to another of the check output is likely to
+    // trigger a mouseleave and then a mouseenter event. Showing the
+    // warnings in a sensible way (not having them flicker in and out)
+    // involves ignoring some of these transitions.
+    //
+    // The other problem is that the mouse events are not 100%
+    // reliable. That is, a fast swipe through a bunch of small areas
+    // is probably not going to provide an even number of enter and
+    // leave events. More likely one or more enter and leave events
+    // will be skipped.  So we arrange for a fadeout of the warning
+    // after a few seconds.
+
+    // Set this to the opacity desired for the warning.  This should
+    // be either fadeAmt or zero.
+    var warnDesired = 0;
+    // These are just fixed parameters and can be eliminated if
+    // efficiency demands it.
+    var warnWait = 250;
+    var warnDuration = 5000;
+    var fadeAmt = 0.5;
+    
+    function setWarningState(obj) {
+ 
+      var opacity = obj.css("opacity");
+
+      if (warnDesired != opacity) {
+        // Only act if the warning is all the way in or out.  The '1'
+        // in the following test is because the initial state is
+        // opacity = 1, though the element is not visible.
+        if ((opacity == 0) || (opacity == fadeAmt) || (opacity == 1)) {
+          if (warnDesired == fadeAmt) {
+            obj.fadeTo("fast", fadeAmt, function() {
+              setTimeout(function() {
+                obj.fadeTo("slow", 0.0);
+                warnDesired = 0;
+              }, warnDuration) });                         
+          } else {
+            obj.fadeTo("fast", 0.0);
+          }
+        }
+      }
+    }
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
     // CLICK to *cycle* through locations
@@ -55,9 +102,15 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
           var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
           if (view.top > charCh.top) {
-            jQuery(".warning-upper").fadeIn("fast");
+            warnDesired = fadeAmt;
+            // We set a timeout so that a quick pass through the area
+            // won't bring up the warning.
+            setTimeout(function() { setWarningState(jQuery(".warning-upper")); }, 
+                       warnWait);
           } else if (view.top + view.clientHeight < charCh.bottom) {
-            jQuery(".warning-lower").fadeIn("fast");
+            warnDesired = fadeAmt;
+            setTimeout(function() { setWarningState(jQuery(".warning-lower")); }, 
+                       warnWait);
           }
         }
       });
@@ -66,14 +119,19 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
       });
     });
     elt.on("mouseleave", function() {
-      jQuery(".warning-upper").fadeOut("fast");
-      jQuery(".warning-lower").fadeOut("fast");
+      warnDesired = 0;
+      setTimeout(function() { setWarningState(jQuery(".warning-upper"));}, 
+                 warnWait);
+      setTimeout(function() { setWarningState(jQuery(".warning-lower"));}, 
+                 warnWait);
+
       marks.forEach(function(m) { return m && m.clear(); })
       marks = [];
     });
     var locIndex = 0;
     if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
       elt.on("click", function() {
+        warnDesired = 0;
         jQuery(".warning-upper").fadeOut("fast");
         jQuery(".warning-lower").fadeOut("fast");
         function gotoNextLoc() {
@@ -150,7 +208,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         // click will toggle the decimal representation of that
         // number.  Note that this feature abandons the convenience of
         // publishing output via the CodeMirror textarea.
-        if (runtime.isNumber(answer) && jsnums.isRational(answer) && !jsnums.isInteger(answer)) {
+        if (runtime.isNumber(answer) && jsnums.isExact(answer) && !jsnums.isInteger(answer)) {
 
           outText = $("<span>").addClass("rationalNumber fraction").text(answer.toString());
           // On click, switch the representation from a fraction to
