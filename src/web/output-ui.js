@@ -1,7 +1,5 @@
 define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
 
-  var warnDesired = 0;
-
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
     else {
@@ -54,9 +52,23 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     // trigger a mouseleave and then a mouseenter event. Showing the
     // warnings in a sensible way (not having them flicker in and out)
     // involves ignoring some of these transitions.
-    var transitionTime = 150;
-    var fadeAmt = 0.5;
+    //
+    // The other problem is that the mouse events are not 100%
+    // reliable. That is, a fast swipe through a bunch of small areas
+    // is probably not going to provide an even number of enter and
+    // leave events. More likely one or more enter and leave events
+    // will be skipped.  So we arrange for a fadeout of the warning
+    // after a few seconds.
 
+    // Set this to the opacity desired for the warning.  This should
+    // be either fadeAmt or zero.
+    var warnDesired = 0;
+    // These are just fixed parameters and can be eliminated if
+    // efficiency demands it.
+    var warnWait = 250;
+    var warnDuration = 5000;
+    var fadeAmt = 0.5;
+    
     function setWarningState(obj) {
  
       var opacity = obj.css("opacity");
@@ -67,7 +79,11 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         // opacity = 1, though the element is not visible.
         if ((opacity == 0) || (opacity == fadeAmt) || (opacity == 1)) {
           if (warnDesired == fadeAmt) {
-            obj.fadeTo("fast", fadeAmt);
+            obj.fadeTo("fast", fadeAmt, function() {
+              setTimeout(function() {
+                obj.fadeTo("slow", 0.0);
+                warnDesired = 0;
+              }, warnDuration) });                         
           } else {
             obj.fadeTo("fast", 0.0);
           }
@@ -87,14 +103,14 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
           var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
           if (view.top > charCh.top) {
             warnDesired = fadeAmt;
-            topWarn = true;
+            // We set a timeout so that a quick pass through the area
+            // won't bring up the warning.
             setTimeout(function() { setWarningState(jQuery(".warning-upper")); }, 
-                       transitionTime);
+                       warnWait);
           } else if (view.top + view.clientHeight < charCh.bottom) {
             warnDesired = fadeAmt;
-            topWarn = false;
             setTimeout(function() { setWarningState(jQuery(".warning-lower")); }, 
-                       transitionTime);
+                       warnWait);
           }
         }
       });
@@ -104,13 +120,10 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     });
     elt.on("mouseleave", function() {
       warnDesired = 0;
-      if (topWarn) {
-        setTimeout(function() { setWarningState(jQuery(".warning-upper"));}, 
-                   transitionTime);
-      } else {
-        setTimeout(function() { setWarningState(jQuery(".warning-lower"));}, 
-                   transitionTime);
-      }
+      setTimeout(function() { setWarningState(jQuery(".warning-upper"));}, 
+                 warnWait);
+      setTimeout(function() { setWarningState(jQuery(".warning-lower"));}, 
+                 warnWait);
 
       marks.forEach(function(m) { return m && m.clear(); })
       marks = [];
