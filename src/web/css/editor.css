@@ -441,6 +441,7 @@ span.rationalRepeat {
    background: -o-linear-gradient(top,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* Opera 11.10+ */
    background: -ms-linear-gradient(top,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* IE10+ */
    background: linear-gradient(to bottom,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* W3C */
+   height: 75px;
 }
 
 .warning-lower {
@@ -455,6 +456,7 @@ span.rationalRepeat {
    width: 100%;
    text-align: center;
    display:none;
+   height: 75px;
 }
 
 .topbar {

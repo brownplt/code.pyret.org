@@ -73,12 +73,12 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
  
       var opacity = obj.css("opacity");
 
-      if (warnDesired != opacity) {
+      if (warnDesired !== opacity) {
         // Only act if the warning is all the way in or out.  The '1'
         // in the following test is because the initial state is
         // opacity = 1, though the element is not visible.
-        if ((opacity == 0) || (opacity == fadeAmt) || (opacity == 1)) {
-          if (warnDesired == fadeAmt) {
+        if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
+          if (warnDesired === fadeAmt) {
             obj.fadeTo("fast", fadeAmt, function() {
               setTimeout(function() {
                 obj.fadeTo("slow", 0.0);
