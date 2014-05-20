@@ -12,7 +12,7 @@
 <body>
 <div id="header">
   <div id="docs"><a target="_blank">Documentation</a></div>
-  <div id="programs" class="loginOnly"><a href="/my-programs.html">My Programs</a></div>
+  <div id="programs" class="loginOnly"><a target="_blank" href="/my-programs.html">My Programs</a></div>
 </div>
 <div id="toolbar">
   <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
@@ -275,6 +275,10 @@ function flashMessage(message) {
   $(".notificationArea").append(err);
   err.fadeOut(7000);
 }
+
+$(window).bind("beforeunload", function(_) {
+  return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
+});
     
 </script>
 </html>
