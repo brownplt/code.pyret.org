@@ -71,7 +71,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     
     function setWarningState(obj) {
  
-      var opacity = obj.css("opacity");
+      var opacity = Number(obj.css("opacity"));
 
       if (warnDesired !== opacity) {
         // Only act if the warning is all the way in or out.  The '1'
