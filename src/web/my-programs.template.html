@@ -19,6 +19,9 @@
 <div id="main">
 
 </div>
+<div id="shareDialog">
+  <a target="_blank" href="http://www.reddit.com/submit" onclick="window.open('http://www.reddit.com/submit?url=' + encodeURIComponent(window.location)); return false"> <img src="http://www.reddit.com/static/spreddit1.gif" alt="submit to reddit" border="0" /> </a>
+</div>
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -28,15 +31,17 @@
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "{{ google_client_id }}";
+var apiKey = "{{ google_api_key }}";
 function handleGoogLoad() {
-  handleClientLoad(clientId);
+  handleClientLoad(clientId, apiKey);
 }
 </script>
 <script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
 <script src="/js/loader.js"></script>
 <script>
 
-function display(api) {
+function display(storageAPI) {
+  var api = storageAPI.api;
   api.getAllFiles()
   .then(function(files) {
     $("#main").empty();

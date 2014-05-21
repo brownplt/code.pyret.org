@@ -1,11 +1,13 @@
 // assumes gapi bound to Google API
 
-function createProgramCollectionAPI(clientId, collectionName, immediate) {
+function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate) {
 
+  gapi.client.setApiKey(apiKey);
   var drive;
-  var SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly";
+  var SCOPE = "https://www.googleapis.com/auth/drive.file";
   var FOLDER_MIME = "application/vnd.google-apps.folder";
   var BACKREF_KEY = "originalProgram";
+  var PUBLIC_LINK = "pubLink";
 
   var refresh = function(immediate) {
     return reauth(true);
@@ -40,6 +42,7 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
   }
 
   function gQ(request) {
+    console.log("Trying: ", request);
     return failCheck(authCheck(function() {
       var d = Q.defer();
       request.execute(function(result) {
@@ -52,15 +55,41 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
   function failCheck(p) {
     return p.then(function(result) {
       if(result && (typeof result.code === "number") && (result.code >= 400)) {
+        console.log("Error: ", result);
         throw new Error(result);
       }
       return result;
     });
   }
 
-  function createAPI(files, baseCollection) {
+  function createAPI(baseCollection) {
+    function makeSharedFile(googFileObject) {
+      return {
+        shared: true,
+        getContents: function() {
+          var proxyDownloadLink = "/download?" + encodeURIComponent(googFileObject.webContentLink);
+          return Q($.ajax(proxyDownloadLink, {
+            method: "get",
+            dataType: 'text'
+          })).then(function(response) {
+            return response;
+          });
+        },
+        getName: function() {
+          return googFileObject.title;
+        },
+        getModifiedTime: function() {
+          return googFileObject.modifiedDate;
+        },
+        getUniqueId: function() {
+          return googFileObject.id;
+        },
+      };
+
+    }
     function makeFile(googFileObject) {
       return {
+        shared: false,
         getName: function() {
           return googFileObject.title;
         },
@@ -102,15 +131,16 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
         makeShareCopy: function() {
           var shareCollection = findOrCreateShareDirectory();
           var newFile = shareCollection.then(function(c) {
+            var sharedTitle = googFileObject.title + "-" + Number(new Date());
             return gQ(drive.files.copy({
               fileId: googFileObject.id,
               resource: {
                 "parents": [{id: c.id}],
-                "title": googFileObject.title + " - shared",
+                "title": sharedTitle,
                 "properties": [{
                     "key": BACKREF_KEY,
                     "value": String(googFileObject.id),
-                    "visibility": "PRIVATE"
+                    "visibility": "PUBLIC"
                   }]
               }
             }));
@@ -173,27 +203,34 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
       getFileById: function(id) {
         return gQ(drive.files.get({fileId: id})).then(makeFile);
       },
+      getSharedFileById: function(id) {
+        return gQ(drive.files.get({fileId: id})).then(makeSharedFile);
+      },
       getAllFiles: function() {
-        return gQ(drive.files.list({ q: "trashed=false and '" + baseCollection.id + "' in parents" }))
-        .then(function(filesResult) {
-          if(!filesResult.items) { return []; }
-          return filesResult.items.map(makeFile);
+        return baseCollection.then(function(bc) {
+          return gQ(drive.files.list({ q: "trashed=false and '" + bc.id + "' in parents" }))
+          .then(function(filesResult) {
+            if(!filesResult.items) { return []; }
+            return filesResult.items.map(makeFile);
+          });
         });
       },
       createFile: function(name) {
-        var request = 
-          gapi.client.request({
-            'path': '/drive/v2/files',
-            'method': 'POST',
-            'params': {},
-            'body': {
-              "parents": [{id: baseCollection.id}],
-              "mimeType": "text/plain",
-              "fileExtension": "arr",
-              "title": name
-            }
-          });
-        return gQ(request).then(makeFile);
+        return baseCollection.then(function(bc) {
+          var request = 
+            gapi.client.request({
+              'path': '/drive/v2/files',
+              'method': 'POST',
+              'params': {},
+              'body': {
+                "parents": [{id: bc.id}],
+                "mimeType": "text/plain",
+                "fileExtension": "arr",
+                "title": name
+              }
+            });
+          return gQ(request).then(makeFile);
+        });
       }
     };
 
@@ -208,19 +245,35 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
           return files.items[0];
         }
         else {
-          return gQ(drive.files.insert({
+          var dir = gQ(drive.files.insert({
             resource: {
               mimeType: FOLDER_MIME,
               title: shareCollectionName
             }
           }));
+          var perm = dir.then(function(d) {
+            return gQ(drive.permissions.insert({
+              fileId: d.id,
+              resource: {
+                'role': 'reader',
+                'type': 'anyone',
+                'id': d.permissionId
+              }
+            }));
+          });
+          return perm.then(function(_) { return dir; });
         }
       });
       return collection;
     }
-    var shareCollection = findOrCreateShareDirectory();
 
-    return api;
+    return {
+      api: api,
+      collection: baseCollection,
+      reinitialize: function() {
+        return Q.fcall(function() { return initialize(); });
+      }
+    }
   }
 
   function initialize() {
@@ -253,16 +306,14 @@ function createProgramCollectionAPI(clientId, collectionName, immediate) {
       }
     });
     var fileList = list.then(function(fr) { return fr.items || []; });
-    return Q.all([fileList, baseCollection]).spread(function(files, collection) {
-      return createAPI(files, collection);
-    });
+    return createAPI(baseCollection);
   }
 
   var reauth = function(immediate) {
     var d = Q.defer();
     gapi.auth.authorize({client_id: clientId, scope: SCOPE, immediate: immediate}, function(authResult) {
       if(!authResult || authResult.error) {
-        d.reject(authResult);
+        d.resolve(null);
       }
       else {
         d.resolve(authResult);

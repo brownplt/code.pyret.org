@@ -51,8 +51,9 @@
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "{{ google_client_id }}";
+var apiKey = "{{ google_api_key }}";
 function handleGoogLoad() {
-  handleClientLoad(clientId);
+  handleClientLoad(clientId, apiKey);
 }
 </script>
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
@@ -147,44 +148,49 @@ $(function() {
     });
     
 
-    storageAPI.then(function() {
-      $(".loginOnly").show();
-      $(".logoutOnly").hide();
+    storageAPI.then(function(api) {
+      api.collection.then(function() {
+        $(".loginOnly").show();
+        $(".logoutOnly").hide();
+      });
+      api.collection.fail(function() {
+        $(".loginOnly").hide();
+        $(".logoutOnly").show();
+      });
     });
-    storageAPI.fail(function() {
-      $(".loginOnly").hide();
-      $(".logoutOnly").show();
-    });
+
+    storageAPI = storageAPI.then(function(api) { return api.api; });
     $("#connectButton").click(function() {
       $("#connectButton").text("Connecting...");
       $("#connectButton").attr("disabled", "disabled");
       storageAPI = createProgramCollectionAPI(clientId, "code.pyret.org", false);
       storageAPI.then(function(api) {
-        $(".loginOnly").show();
-        $(".logoutOnly").hide();
-        programToSave = Q.fcall(function() { return null; });
+        api.collection.then(function() {    
+          $(".loginOnly").show();
+          $(".logoutOnly").hide();
+          programToSave = Q.fcall(function() { return null; });
+        });
+        api.collection.fail(function(err) {
+          $("#connectButton").text("Connect to Google Drive");
+          $("#connectButton").attr("disabled", false);
+        });
       });
-      storageAPI.fail(function(err) {
-        $("#connectButton").text("Connect to Google Drive");
-        $("#connectButton").attr("disabled", false);
-      });
+      storageAPI = storageAPI.then(function(api) { return api.api; });
     });
 
     var copyOnSave = false;
-    var initialProgramId = null;
-    if(params["get"] && params["get"]["program"]) {
-      initialProgramId = params["get"]["program"];
-    }
-
-    if(params["get"] && params["get"]["share"]) {
-      initialProgramId = params["get"]["share"];
-      $("#saveButton").text("Save a Copy");
-      copyOnSave = true;
-    }
 
     var initialProgram = storageAPI.then(function(api) {
-      if(initialProgramId) {
-        var programLoad = api.getFileById(initialProgramId);
+      var programLoad = null;
+      if(params["get"] && params["get"]["program"]) {
+        programLoad = api.getFileById(params["get"]["program"]);
+      }
+      if(params["get"] && params["get"]["share"]) {
+        programLoad = api.getSharedFileById(params["get"]["share"]);
+        $("#saveButton").text("Save a Copy");
+        copyOnSave = true;
+      }
+      if(programLoad) {
         programLoad.fail(function(err) {
           console.error(err);
           flashError("The program failed to load.");
@@ -193,7 +199,7 @@ $(function() {
       } else {
         return null;
       }
-    })
+    });
 
     function setTitle(progName) {
       document.title = progName + " - code.pyret.org";

@@ -12,7 +12,8 @@
     "url.js": "^1.0.2",
     "jasmine-node": "^1.14.3",
     "selenium-webdriver": "^2.41.0",
-    "mustache": "^0.8.1"
+    "mustache": "^0.8.1",
+    "request": "^2.36.0"
   },
   "devDependencies": {},
   "scripts": {
