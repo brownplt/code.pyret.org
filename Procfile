@@ -1,2 +1,2 @@
-web: node src/run.js
+web: node serve.js
 

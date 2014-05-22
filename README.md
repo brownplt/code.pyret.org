@@ -7,19 +7,20 @@ First, get a Google API Developer account at
 https://console.developers.google.com/, and make a new project called whatever
 you want.  Enable the Drive API through "APIs and Auth -> APIs" tab on the
 left.  Then create a new client id through the "APIs and Auth -> Credentials
-tab".  Copy `config.json.example` to `config.json`, and copy the client id (not
-the client secret) into `config.json`.
+tab".  Also create an API Key (at the bottom).  Copy `.env.example` to `.env`,
+and copy the client id (not the client secret) and API Key into `.env`.
 
 Then run:
 
     $ git submodule init
     $ git submodule update
     $ npm install
+    $ foreman run make web
 
 This should populate a `build/web` directory with build html, css, and js
 files.  You can run:
 
-    $ node serve.js
+    $ heroku start
 
 And then visit the site at
 
