@@ -231,6 +231,9 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
             });
           return gQ(request).then(makeFile);
         });
+      },
+      checkLogin: function() {
+        return collection.then(function() { return true; });
       }
     };
 
@@ -251,17 +254,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
               title: shareCollectionName
             }
           }));
-          var perm = dir.then(function(d) {
-            return gQ(drive.permissions.insert({
-              fileId: d.id,
-              resource: {
-                'role': 'reader',
-                'type': 'anyone',
-                'id': d.permissionId
-              }
-            }));
-          });
-          return perm.then(function(_) { return dir; });
+          return dir;
         }
       });
       return collection;
