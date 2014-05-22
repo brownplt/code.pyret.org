@@ -131,7 +131,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         makeShareCopy: function() {
           var shareCollection = findOrCreateShareDirectory();
           var newFile = shareCollection.then(function(c) {
-            var sharedTitle = googFileObject.title + "-" + Number(new Date());
+            var sharedTitle = googFileObject.title;
             return gQ(drive.files.copy({
               fileId: googFileObject.id,
               resource: {
@@ -140,7 +140,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
                 "properties": [{
                     "key": BACKREF_KEY,
                     "value": String(googFileObject.id),
-                    "visibility": "PUBLIC"
+                    "visibility": "PRIVATE"
                   }]
               }
             }));
@@ -156,7 +156,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
             }));
           });
           return Q.all([newFile, updated]).spread(function(fileObj) {
-            return fileObj;
+            return makeFile(fileObj);
           });
         },
         save: function(contents, newRevision) {

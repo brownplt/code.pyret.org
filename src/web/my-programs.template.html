@@ -19,8 +19,6 @@
 <div id="main">
 
 </div>
-<div id="shareDialog">
-</div>
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -36,12 +34,13 @@ function handleGoogLoad() {
 }
 </script>
 <script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script src="/js/share.js"></script>
 <script src="/js/loader.js"></script>
 <script>
 
 function display(storageAPI) {
   var api = storageAPI.api;
-  api.getAllFiles()
+  var result = api.getAllFiles()
   .then(function(files) {
     $("#main").empty();
     $("#loader").hide();
@@ -67,9 +66,22 @@ function display(storageAPI) {
         copy.fail(function(err) {
           console.log("Couldn't make copy: ", err);
         });
-        copy.then(function(f) {
+        var copied = copy.then(function(f) {
           console.log("Successfully made copy ", f.getName());
+          var sd = $("#shareDialog");
+          sd.show();
+          sd.dialog({
+            title: f.getName(),
+            modal: true
+          });
+          var localShareUrl = "/share.html#share=" + f.getUniqueId();
+          var shareUrl = window.location.origin + localShareUrl;
+          sd.append($("<a>").attr("href", localShareUrl).text());
+          sd.append(redditWidget(shareUrl));
+          sd.append(googleWidget(shareUrl));
+          sd.append(facebookWidget(shareUrl));
         });
+        copied.fail(unexpectedError);
       });
       elt.append(shareLink);
       var shares = file.getShares();
@@ -98,6 +110,13 @@ function display(storageAPI) {
       $("#main").append($("<p>").text("It looks like you don't have any programs yet.  You can start one by clicking “Start New Program” above."));
     }
   })
+  result.fail(function(err) {
+    console.error("Error loading programs: ", err);
+  });
+}
+
+function unexpectedError(err) {
+  console.error("Error loading programs: ", err);
 }
 
 storageAPI.then(display);
