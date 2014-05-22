@@ -27,6 +27,8 @@
 <script src="/js/programs.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
+// NOTE TO THOSE VIEWING SOURCE
+// These keys only work when used from a web page with the domain of this app.
 var clientId = "{{ google_client_id }}";
 var apiKey = "{{ google_api_key }}";
 function handleGoogLoad() {
@@ -57,43 +59,8 @@ function display(storageAPI) {
         "target": "_blank",
         "href": "/repl.html#program=" + file.getUniqueId()
       }).text("Open")));
-      var shareLink = $("<td>").append($("<a>").attr({
-          "target": "_blank",
-          "href": "javascript:void(0)"
-        }).text("Share"));
-      shareLink.click(function() {
-        var copy = file.makeShareCopy();
-        copy.fail(function(err) {
-          console.log("Couldn't make copy: ", err);
-        });
-        var copied = copy.then(function(f) {
-          console.log("Successfully made copy ", f.getName());
-          var sd = $("#shareDialog");
-          sd.show();
-          sd.dialog({
-            title: f.getName(),
-            modal: true
-          });
-          var localShareUrl = "/share.html#share=" + f.getUniqueId();
-          var shareUrl = window.location.origin + localShareUrl;
-          sd.append($("<a>").attr("href", localShareUrl).text());
-          sd.append(redditWidget(shareUrl));
-          sd.append(googleWidget(shareUrl));
-          sd.append(facebookWidget(shareUrl));
-        });
-        copied.fail(unexpectedError);
-      });
+      var shareLink = $("<td>").append(makeShareLink(file));
       elt.append(shareLink);
-      var shares = file.getShares();
-      shares.then(function(shares) {
-        if(shares.length === 1) {
-          elt.append($("<em>").text("(shared once)"));
-        }
-        else if(shares.length > 1) {
-          elt.append($("<em>").text("(shared " + shares.length + " times)"));
-        }
-      });
-      shares.fail(function(err) { console.error("Shares err: ", err); })
 /*
       elt.append($("<td>").append($("<a>").attr({
         "target": "_blank",

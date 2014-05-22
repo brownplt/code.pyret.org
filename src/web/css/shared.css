@@ -167,3 +167,9 @@ code {
 #shareDialog {
   
 }
+
+.share {
+  display: inline-block;
+  border: 1px solid #111;
+  background-color: #fefefe;
+}

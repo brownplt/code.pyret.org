@@ -1,8 +1,10 @@
 function drawShareWidget(shareUrl) {
-  $("<div>").append([
+  var widget = $("<div>").append([
       redditWidget(shareUrl),
-      googleWidget(shareUrl)
+      googleWidget(shareUrl),
+      facebookWidget(shareUrl)
     ]);
+  return widget;
 }
 
 function redditWidget(shareUrl) {
@@ -43,3 +45,105 @@ function facebookWidget(shareUrl) {
             .attr("src", "http://www.wescheme.org/images/icon_facebook.gif"));
   return link;
 }
+
+function makeShareLink(originalFile) {
+  var link = $("<div>").append($("<button class=blueButton>").text("Share ▾"));
+  var shareDiv = $("<div>").addClass("share");
+  var divHover = false;
+  var linkHover = false;
+  function hovering() {
+    return divHover || linkHover;
+  }
+  function closeIfNotHovering() {
+    setTimeout(function() {
+      console.log(divHover, linkHover);
+      if(!hovering()) {
+        shareDiv.fadeOut(500);
+      }
+    }, 500);
+  }
+  function showIfStillHovering() {
+    setTimeout(function() {
+      if(linkHover) {
+        shareDiv.css({
+          position: "fixed",
+          top: link.offset().top + 20,
+          left: link.offset().left,
+          "z-index": 10000,
+          "min-height": "300px"
+        });
+        $(document.body).append(shareDiv);
+        shareDiv.empty();
+        shareDiv.fadeIn(250);
+        showShares(shareDiv, originalFile);
+      }
+    }, 100);
+  }
+  shareDiv.hover(function() {
+    divHover = true;
+  }, function() {
+    divHover = false;
+    closeIfNotHovering();
+  });
+  link.hover(function(e) {
+    if(!hovering()) { showIfStillHovering(); }
+    linkHover = true;
+  }, function() {
+    linkHover = false;
+    closeIfNotHovering();
+  });
+  return link;
+}
+
+function showShares(container, originalFile) {
+  var shares = originalFile.getShares();
+  container.text("Loading share info...");
+  var displayDone = shares.then(function(sharedInstances) {
+    container.empty();
+    console.log(sharedInstances);
+    var a = $("<a>").text("Share a new copy").attr("href", "javascript:void(0)");
+    a.click(function() {
+      var copy = originalFile.makeShareCopy();
+      a.text("Copying...").attr("href", null);
+      copy.fail(function(err) {
+        console.log("Couldn't make copy: ", err);
+        showShares(container, originalFile);
+      });
+      var copied = copy.then(function(f) {
+        container.empty();
+        showShares(container, originalFile);
+      });
+      copied.fail(unexpectedError);
+    });
+    container.append(a);
+    if(sharedInstances.length === 0) {
+      var p = $("<p>").text("This file hasn't been shared before.");
+      container.append(p);
+    }
+    else {
+      var p = $("<p>").text("This file has been shared before:");
+      container.append(p);
+      console.log("shared: ", sharedInstances);
+      sharedInstances.forEach(function(shareFile) {
+        container.append(drawShareRow(shareFile));
+      });
+    }
+  });
+  displayDone.fail(function(err) {
+    console.error("Failed to get shares: ", err);
+  });
+}
+
+function drawShareRow(f) {
+  var container = $("<div>");
+  var localShareUrl = "/share.html#share=" + f.getUniqueId();
+  var shareUrl = window.location.origin + localShareUrl;
+  container.append($("<span>").text(new Date(f.getModifiedTime())));
+  container.append($("<a>").attr({
+      "href": localShareUrl,
+      "target": "_blank"
+    }).text(f.getName()));
+  container.append(drawShareWidget(shareUrl));
+  return container;
+}
+

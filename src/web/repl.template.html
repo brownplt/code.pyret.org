@@ -21,7 +21,7 @@
     <input id="program-name" type="text"></input>
   </div>
   <button id="saveButton" class="loginOnly blueButton">Save</button>
-  <button id="shareButton" class="loginOnly blueButton">Share</button>
+  <div id="shareContainer" class="loginOnly"></div>
   <span id="notification" class="notificationArea"></span>
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <button id="runButton" class="blueButton rhs">Run</button>
@@ -47,6 +47,7 @@
 <script src="/js/loader.js"></script>
 <script src="/js/url.js"></script>
 <script src="/js/q.js"></script>
+<script src="/js/share.js"></script>
 <script src="/js/programs.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
@@ -184,6 +185,7 @@ $(function() {
       var programLoad = null;
       if(params["get"] && params["get"]["program"]) {
         programLoad = api.getFileById(params["get"]["program"]);
+        programLoad.then(function(p) { showShareContainer(p); });
       }
       if(params["get"] && params["get"]["share"]) {
         programLoad = api.getSharedFileById(params["get"]["share"]);
@@ -218,6 +220,11 @@ $(function() {
 
     var programToSave = initialProgram;
 
+    function showShareContainer(p) {
+      $("#shareContainer").empty();
+      $("#shareContainer").append(makeShareLink(p));
+    }
+
     function nameOrUntitled() {
       return $("#program-name").val() || "Untitled";
     }
@@ -232,6 +239,7 @@ $(function() {
           }
           return programToSave
           .then(function(p) {
+            showShareContainer(p);
             return p.save(editor.cm.getValue(), false);
           })
           .then(function(p) {

@@ -285,8 +285,8 @@ body {
 #saveButton {
   float: left;
 }
-#shareButton {
-  float: left;
+#shareContainer {
+  display: inline-block;
 }
 
 .notificationArea {
