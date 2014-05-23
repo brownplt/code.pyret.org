@@ -340,7 +340,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           container.append(dom);
         }
         function drawModuleLoadFailure(names) {
-
+          var dom = $("<div>").addClass("compile-error");
+          dom.append($("<p>").text("The module(s) " + names.join(", ") + " failed to load"));
+          container.append(dom);
         }
         
         function drawPyretRuntimeError() {
