@@ -157,9 +157,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           if(userLocs.length > 0) {
             container.append($("<p>").text("Stack trace:"));
             userLocs.forEach(function(ul) {
+              var slContainer = $("<div>");
               var srcloc = drawSrcloc(ul);
+              slContainer.append(srcloc);
               errorHover(srcloc, [ul]);
-              container.append(srcloc);
+              container.append(slContainer);
             });
             return expandableMore(container);
           } else {
@@ -169,7 +171,12 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
         function getLastUserLocation(e) {
           var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
           var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
-          var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
+          var userLocs = srclocStack.filter(function(l) {
+            if(!(l && isSrcloc(l))) { return false; }
+            var source = runtime.getField(l, "source");
+            return (source === "definitions" || source.indexOf("interactions") !== -1);
+          });
+
           var probablyErrorLocation = userLocs[0];
           return probablyErrorLocation;
         }
@@ -298,7 +305,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
         function drawFieldNotFound(loc, obj, field) {
           var dom = $("<div>").addClass("compile-error");
           var expression = $("<a>").text("this lookup expression");
-          dom.append($("<p>").append(["Field " + field + " not found in ", expression]));
+          dom.append($("<p>").append(["Field ", $("<code>").text(field), " not found in ", expression]));
           dom.append($("<p>").text("The object was:"));
           var valueContainer = $("<div>");
           dom.append(valueContainer);
@@ -310,10 +317,27 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           container.append(dom);
         }
         function drawLookupNonObject(loc, nonObj, field) {
-
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this lookup expression");
+          dom.append($("<p>").append(["Tried to look up field ", $("<code>").text(field), " on a non-object in ", expression]));
+          dom.append($("<p>").text("The non-object was:"));
+          var valueContainer = $("<div>");
+          dom.append(valueContainer);
+          setTimeout(function() {
+            outputUI.renderPyretValue(valueContainer, runtime, nonObj);
+          }, 0);
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
         }
         function drawInvalidArrayIndex(methodName, array, index, reason) {
-
+          var dom = $("<div>").addClass("compile-error");
+          var probablyErrorLocation = getLastUserLocation(e);
+          var expression = $("<a>").text(" this function call ");
+          dom.append($("<p>").append(["Invalid array index ", $("<code>").text(index), " around ", expression, "because: " + reason]));
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [probablyErrorLocation]);
+          container.append(dom);
         }
         function drawModuleLoadFailure(names) {
 
