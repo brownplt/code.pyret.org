@@ -27,7 +27,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
       }
 
       function drawSrcloc(s) {
-        return s ? $("<span>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
+        return s ? $("<a>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
       }
       
       function errorHover(dom, locs) {
@@ -149,6 +149,23 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             container.append($("<div>").text(String(e)));
           }
         }
+        function drawExpandableStackTrace(e) {
+          var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
+          var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+          var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
+          var container = $("<div>");
+          if(userLocs.length > 0) {
+            container.append($("<p>").text("Stack trace:"));
+            userLocs.forEach(function(ul) {
+              var srcloc = drawSrcloc(ul);
+              errorHover(srcloc, [ul]);
+              container.append(srcloc);
+            });
+            return expandableMore(container);
+          } else {
+            return container;
+          }
+        }
         function getLastUserLocation(e) {
           var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
           var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
@@ -226,6 +243,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           }
           container.append(dom);
         }
+        function drawNoBranchesMatched(loc, type) {
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this " + type + " expression");
+          dom.append($("<p>").append(["No case matched in ", expression]));
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
+        }
         function drawNonBooleanCondition(loc, type, value) {
           getDomValue(value, function(v) {
             var dom = $("<div>").addClass("compile-error");
@@ -270,15 +295,32 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
         function drawUserBreak() {
           container.append($("<div>").addClass("compile-error").text("Program stopped by user"));
         }
+        function drawFieldNotFound(loc, obj, field) {
+
+        }
+        function drawLookupNonObject(loc, nonObj, field) {
+
+        }
+        function drawInvalidArrayIndex(methodName, array, index, reason) {
+
+        }
+        function drawModuleLoadFailure(names) {
+
+        }
         
         function drawPyretRuntimeError() {
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
+              "message-exception": drawMessageException,
+              "no-branches-matched": drawNoBranchesMatched,
+              "field-not-found": drawFieldNotFound,
+              "lookup-non-object": drawLookupNonObject,
               "generic-type-mismatch": drawGenericTypeMismatch,
               "arity-mismatch": drawArityMismatch,
-              "message-exception": drawMessageException,
               "non-boolean-condition": drawNonBooleanCondition,
               "non-boolean-op": drawNonBooleanOp,
               "non-function-app": drawNonFunctionApp,
+              "module-load-failure": drawModuleLoadFailure,
+              "invalid-array-index": drawInvalidArrayIndex,
               "user-break": drawUserBreak,
               "else": drawRuntimeErrorToString(e)
             });

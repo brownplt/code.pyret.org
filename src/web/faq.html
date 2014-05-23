@@ -19,20 +19,20 @@
 
 <h3>How do we use your Google account?</h3>
 
-<p> We ask for a single permission: <b>(1) View and manage Google Drive files that
+<p> We ask for a single permission: <b>View and manage Google Drive files that
 you have opened or created with this app.</b> This permission lets us create
 files in your Drive, and update those files later.  Also, if in the future we
 provide a way for you to directly upload Pyret files and load them into
 <code>code.pyret.org</code> from your Drive, you can explicitly grant
-permission for this application to view and edit certain files.
-</p>
+permission for this application to view and edit certain files.  </p>
 
 <p> We use client-only authorization (if you're really interested, we use APIs
 similar to the ones described in
 https://developers.google.com/drive/web/quickstart/quickstart-js), so this
 application can only access your data from open pages on our site.  We don't
-save any access tokens to our server (we don't even run a server that does
-more than serve and proxy static files).  </p>
+save any access tokens to our server (for the technical audience: our server
+only serves static files and acts as a proxy to get around some
+Same Origin Policy issues).  </p>
 
 <p> You can always go to <a
 href="https://security.google.com/settings/security/permissions?pli=1">https://security.google.com/settings/security/permissions?pli=1</a>
