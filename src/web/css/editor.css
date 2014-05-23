@@ -17,7 +17,7 @@
 .repl .CodeMirror pre {
   padding: 0;
 }
-.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; z-index: 5000; }
 .cm-s-default.CodeMirror { color: #111; }
 .cm-s-default .cm-comment { color: #39f; }
 .cm-s-default .cm-builtin { color: #555; }
@@ -48,6 +48,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
     background-color: #fdc;
+    z-index: 4000;
 }
 
 .replTextOutput .CodeMirror {

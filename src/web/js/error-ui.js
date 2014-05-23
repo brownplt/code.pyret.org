@@ -296,7 +296,18 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           container.append($("<div>").addClass("compile-error").text("Program stopped by user"));
         }
         function drawFieldNotFound(loc, obj, field) {
-
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this lookup expression");
+          dom.append($("<p>").append(["Field " + field + " not found in ", expression]));
+          dom.append($("<p>").text("The object was:"));
+          var valueContainer = $("<div>");
+          dom.append(valueContainer);
+          setTimeout(function() {
+            outputUI.renderPyretValue(valueContainer, runtime, obj);
+          }, 0);
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
         }
         function drawLookupNonObject(loc, nonObj, field) {
 
