@@ -87,7 +87,9 @@ function unexpectedError(err) {
 }
 
 storageAPI.then(function(api) {
-  api.collection.then(display);
+  api.collection.then(function() {
+    display(api);
+  });
   api.collection.fail(function(err) {
     $("#loader").hide();
     $("#main").append($("<p>").text("We couldn't load your programs."));
