@@ -15,7 +15,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
 
   function authCheck(f) {
     function isAuthFailure(result) {
-      return
+      return result &&
         (result.error && result.error.code && result.error.code === 401) ||
         (result.code && result.code === 401);
     }
@@ -304,14 +304,28 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
 
   var reauth = function(immediate) {
     var d = Q.defer();
-    gapi.auth.authorize({client_id: clientId, scope: SCOPE, immediate: immediate}, function(authResult) {
-      if(!authResult || authResult.error) {
+    if(!immediate) {
+      // Need to do a login to get a cookie for this user; do it in a popup
+      var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
+      window.addEventListener('message', function(e) {
+        if (e.domain === document.location.origin) {
+          d.resolve(reauth(true));
+        } else {
+          d.resolve(null);
+        }
+      });
+    }
+    else {
+      // The user is logged in, but needs an access token from our server
+      var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
+      newToken.then(function(t) {
+        gapi.auth.setToken({access_token: t.access_token});
+        d.resolve({access_token: t.access_token});
+      });
+      newToken.fail(function(t) {
         d.resolve(null);
-      }
-      else {
-        d.resolve(authResult);
-      }
-    });
+      });
+    }
     return d.promise;
   };
 

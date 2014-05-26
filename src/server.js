@@ -4,10 +4,11 @@ function start(config, onServerReady) {
   var express = require('express');
   var cookieSession = require('cookie-session');
   var cookieParser = require('cookie-parser');
-  var jsonParser = require('express-json');
   var expressValidator = require('express-validator');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
+  var request = require('request');
+  var url = require('url');
 //  var mail = require('./mail.js');
   var fs = require('fs');
 
@@ -17,25 +18,29 @@ function start(config, onServerReady) {
     function redirect() {
       res.redirect("/login?redirect=" + encodeURIComponent(req.originalUrl));
     }
-    if(!session || !session["session_id"]) {
+    if(!session || !session["user_id"]) {
+      console.log("Redirecting, no user id in session", JSON.stringify(session));
       redirect();
     }
     else {
-      var maybeSession = db.getSession(req.session["session_id"]);
-      maybeSession.then(function(s) {
-        if(s === null) { redirect(); }
-        else { login.resolve(s); }
+      var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+      maybeUser.then(function(u) {
+        login.resolve(u);
       });
     }
     return login.promise;
   }
 
   app = express();
-  app.use(express.static(__dirname + "/../"));
-  app.use("/teachpacks/", express.static(__dirname + "src/web/teachpacks/"))
 
-  app.use(jsonParser());
-  app.use(expressValidator([{}]));
+  // This has to go first to override other options
+  app.get("/js/pyret.js", function(req, res) {
+    res.set("Content-Encoding", "gzip");
+    res.set("Content-Type", "application/javascript");
+    res.send(fs.readFileSync("build/web/js/pyret.js.gz"));
+  });
+
+  app.use(express.static(__dirname + "/../build/web/"));
 
   app.use(cookieSession({
     secret: config.sessionSecret,
@@ -47,19 +52,13 @@ function start(config, onServerReady) {
   var auth = googleAuth.makeAuth(config);
   var db = config.db;
 
-  app.get("/src/web/pyret.js", function(req, res) {
-    res.set("Content-Encoding", "gzip");
-    res.set("Content-Type", "application/javascript");
-    res.send(fs.readFileSync("src/web/pyret.js.gz"));
-  });
-
   app.get("/", function(req, res) {
-    res.sendfile("src/web/index.html");
+    res.sendfile("build/web/index.html");
   });
 
   app.get("/login", function(req, res) {
     var redirect = req.param("redirect") || "/my-programs";
-    if(!(req.session && req.session["session_id"])) {
+    if(!(req.session && req.session["user_id"])) {
       res.redirect(auth.getAuthUrl(redirect));
     }
     else {
@@ -67,27 +66,39 @@ function start(config, onServerReady) {
     }
   });
 
+  app.get("/download", function(req, response) {
+    var parsed = url.parse(req.url);
+    var googleLink = decodeURIComponent(parsed.query.slice(0));
+    var googleParsed = url.parse(googleLink);
+    console.log(googleParsed);
+    request(googleLink, function(error, resp, body) {
+      if(error) {
+        response.status(400).write("Error fetching file");
+      }
+      response.write(body);
+      response.end();
+    });
+  });
+
   app.get(config.google.redirect, function(req, res) {
     auth.serveRedirect(req, function(err, data) {
-      if(err) { res.send(err); }
+      console.log("Data was: ", data);
+      if(err) { res.send({type: "auth error", error: err}); }
       else {
-        var existingUser = db.getUserByGoogle(data.googleId);
-        var session = existingUser.then(function(user) {
+        console.log("Redirect returned data: ", data);
+        var existingUser = db.getUserByGoogleId(data.googleId);
+        existingUser.fail(function(err) {
+          console.log("Error on getting user: ", err);
+          res.send({type: "DB error", error: err});
+        });
+        var user = existingUser.then(function(user) {
+          console.log("Existing user: ", typeof user, JSON.stringify(user));
           if(user === null) {
             var newUser = db.createUser({
               google_id: data.googleId,
-              email: data.email,
               refresh_token: data.refresh
             });
-            var newUserSession = newUser.spread(function(_, id) {
-              var newSession = db.createSession({
-                user_id: id,
-                refresh_token: data.refresh,
-                auth_token: data.access
-              });
-              return newSession;
-            });
-            return newUserSession;
+            return newUser;
           }
           else {
             var thisUser = user;
@@ -95,24 +106,24 @@ function start(config, onServerReady) {
             // always use the most up-to-date token we've received from Google
             // TODO(joe): cache invalidation here
             if(data.refresh) {
-              var updated = db.updateRefreshToken(userId, data.refresh);
+              var updated = db.updateRefreshToken(user.google_id, data.refresh);
               thisUser = updated.then(function(_) {
-                return db.getUserById(userId);
+                return db.getUserByGoogleId(data.googleId);
               });
             } else {
               thisUser = Q.fcall(function() { return user; });
             }
-            return thisUser.then(function(u) {
-              return db.createSessionForUser(u, data.access);
-            });
+            return thisUser;
           }
         });
-        session.spread(function(_, id) {
+        user.then(function(u) {
           const redirect = req.param("state") || "/my-programs"; 
-          req.session["session_id"] = id;
+          console.log(JSON.stringify(u));
+          req.session["user_id"] = u.google_id;
+          console.log("Redirecting after successful login", JSON.stringify(req.session));
           res.redirect(redirect);
         });
-        session.fail(function(err) {
+        user.fail(function(err) {
           console.error("Authentication failure", err, err.stack);
           res.redirect("/authError");
         });
@@ -125,28 +136,22 @@ function start(config, onServerReady) {
     function noAuth() {
       res.status(404).send("No account information found.");
     }
-    if(req.session && req.session["session_id"]) {
-      var maybeSession = db.getSession(req.session["session_id"]);
-      var session = maybeSession.then(function(s) {
-        console.log("Internal session: ", s);
-        if(s === null) {
+    if(req.session && req.session["user_id"]) {
+      var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+      maybeUser.then(function(u) {
+        if(u === null) {
           noAuth();
           return null;
         }
-        var session = s;
-        return auth.refreshAccess(session.refresh_token, function(err, newToken) {
+        return auth.refreshAccess(u.refresh_token, function(err, newToken) {
           if(err) { res.send(err); res.end(); return; }
           else {
-            var newAccess = db.updateSessionAccessToken(session.id, newToken);
-            return newAccess.then(function(_) {
-              console.log("Refreshed: ", newToken);
-              res.send({ access_token: newToken });
-              res.end();
-            });
+            res.send({ access_token: newToken });
+            res.end();
           }
         });
       });
-      session.fail(function(err) {
+      maybeUser.fail(function(err) {
         console.log("Failed to get an access token: ", err);
         noAuth();
       });
@@ -155,155 +160,30 @@ function start(config, onServerReady) {
     }
   });
 
-  const teacherSignupUrl = "/teacher-signup";
-  app.get(teacherSignupUrl, function(req, res) {
-    var session = requireLogin(req, res);
-    session.then(function(s) {
-      var info = db.getTeacherInfoByUser(s.user_id);
-      const result = info.then(function(ti) {
-        console.log("Teacher signed up before");
-        if(ti !== null) {
-          console.log("Teacher signed up before");
-          res.sendfile("src/web/teacher-signup-done-already.html");
-        }
-        else {
-          console.log("Teacher hasn't signed up before");
-          res.sendfile("src/web/teacher-signup.html");
-        }
-      });
-      result.fail(function(err) {
-        console.error("Failed to get file: ", err);
-      });
-
-    });
-  });
-
-  app.get("/teacher-requests", function(req, res) {
-    
-  });
-
-  app.get("/teacher-validate", function(req, res) {
-    var session = requireLogin(req, res);
-    var newTeacher = session.then(function(s) {
-      var info = db.getTeacherInfo(req.param("teacher_id"));
-      var validated = info.then(function(ti) {
-        if(ti !== null && ti.user_id === s.user_id) {
-          console.log("Validating teacher: ", ti);
-          return db.validateTeacher(ti.id);
-        }
-        else if(ti !== null) {
-          return "Teacher info/teacher user id mismatch";
-        } else {
-          throw "No such teacher info";
-        }
-      });
-      return validated;
-    });
-    newTeacher.then(function(_, id) {
-      res.sendfile("src/web/teacher-validated.html");
-    });
-    newTeacher.fail(function(err) {
-      console.error("A request to validate a teacher failed with: ", err);
-      res.status(400).sendfile("src/web/generic-problem");
-    });
-  });
-
-  app.get("/my-courses", function(req, res) {
-
-  });
-
-  app.get("/join-course", function(req, res) {
-
-  });
-
   app.get("/share", function(req, res) {
 
   });
 
-  app.get("/newteacher", function(req, res) {
-    if(req.session && req.session["session_id"]) {
-      const info = db.getSession(req.session["session_id"]).then(function(s) {
-        if(s === null) {
-          throw [{msg: "Not logged in"}];
-        }
-        return [db.getTeacherInfoByUser(s.user_id), s.user_id];
-      });
-      const result = info.spread(function(ti, userId) {
-        if(ti !== null) { 
-          throw [{msg: "Already requested"}];
-        }
-        else {
-          console.log(req.param("altemail"));
-          req.checkQuery("name", "Name too long (max 100 chars)").len(0, 100);
-          req.checkQuery("name", "Name not present").notEmpty();
-          req.checkQuery("school", "School name too long (max 100 chars)").len(0, 100);
-          req.checkQuery("school", "School not present").notEmpty();
-          req.checkQuery("about", "About too long (max 5000 chars)").len(0, 5000);
-          req.checkQuery("alt-email", "Email not present").notEmpty();
-          req.checkQuery("alt-email", "Invalid email").isEmail();
-          const errors = req.validationErrors();
-          if(errors !== null) {
-            throw errors;
-          }
-          else {
-            return db.createTeacherInfo({
-              userId: userId,
-              name: req.param("name"),
-              alternateEmail: req.param("altemail"),
-              school: req.param("school"),
-              about: req.param("about")
-            });
-          }
-        }
-      })
-      result.fail(function(errors) {
-        console.error(errors);
-        res.status(401).send(errors);
-      });
-      result.then(function(r) {
-        res.send("OK");
-      });
-    }
-  });
-
   app.get("/editor", function(req, res) {
-    res.sendfile("src/web/repl.html");
+    res.sendfile("build/web/repl.html");
   });
 
   app.get("/my-programs", function(req, res) {
-    console.log(req.session);
-    if(req.session && req.session["session_id"]) {
-      res.sendfile("src/web/my-programs.html");
-    }
-    else {
-      res.redirect("/login"); 
-    }
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      console.log("Responding");
+      res.sendfile("build/web/my-programs.html");
+    });
   });
 
   app.get("/api-test", function(req, res) {
-    res.sendfile("src/web/api-play.html");
+    res.sendfile("build/web/api-play.html");
   });
 
   app.get("/logout", function(req, res) {
-    if(req.session && req.session["session_id"]) {
-      db.deleteSession(req.session["session_id"]);
-    }
     req.session = null;
     delete req.session;
     res.redirect("/");
-  });
-
-  app.get("/logoutBoth", function(req, res) {
-    if(req.session && req.session["session_id"]) {
-      db.deleteSession(req.session["session_id"]);
-    }
-    req.session = null;
-    delete req.session;
-    // NOTE(joe): I stole this magical redirect sequence from WeScheme.
-    // The continue parameter of accounts.google.com won't let you go
-    // to an arbitrary site, but evidently appengine will, hence the double
-    // redirect to get back to the home page.
-    res.redirect("https://accounts.google.com/Logout?continue=https%3A%2F%2Fappengine.google.com%2F_ah%2Flogout%3Fcontinue%3D" + encodeURIComponent(config.baseUrl));
   });
 
   var server = app.listen(config["port"]);

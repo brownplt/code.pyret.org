@@ -50,6 +50,7 @@ function makeAuth(config) {
               config.baseUrl + config.google.redirect
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
+        console.log("Got tokens: ", JSON.stringify(tokens));
         if(err !== null) { callback(err, null); return; }
         if(!(typeof tokens.id_token === "string")) {
           callback(new Error("No identity information provided"), null); return;
@@ -87,7 +88,7 @@ function makeAuth(config) {
         // servers to get the correct public key of the day to validate these
         // tokens cryptographically.
         var decodedId = jwt.decode(tokens.id_token, {}, true);
-        callback(null, { googleId: decodedId["sub"], email: decodedId["email"], access: tokens.access_token, refresh: tokens.refresh_token });
+        callback(null, { googleId: decodedId["sub"], access: tokens.access_token, refresh: tokens.refresh_token });
       });
     }
   };

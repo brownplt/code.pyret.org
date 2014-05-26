@@ -51,8 +51,8 @@
 <script src="/js/programs.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-var clientId = "{{ google_client_id }}";
-var apiKey = "{{ google_api_key }}";
+var clientId = "";
+var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
   handleClientLoad(clientId, apiKey);
 }
@@ -63,6 +63,7 @@ function handleGoogLoad() {
 <script src="/js/draw.js"></script>
 <script src="/js/pyret-mode.js"></script>
 <script src="/js/require.js"></script>
+<script src="/js/pyret.js"></script>
 <script>
 requirejs.config({
   paths: {
@@ -76,7 +77,6 @@ requirejs.config({
   waitSeconds: 0
 });
 </script>
-<script src="/js/pyret.js"></script>
 <!--  <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 <script>
