@@ -86,17 +86,19 @@ function unexpectedError(err) {
   console.error("Error loading programs: ", err);
 }
 
-storageAPI.then(display);
-storageAPI.fail(function(err) {
-  $("#loader").hide();
-  $("#main").append($("<p>").text("We couldn't load your programs."));
-  var connect = 
-    $("<button>").addClass("blueButton").text("Connect to Drive")
-  $("#main").append(connect);
-  connect.click(function() {
-    createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false).then(display);
+storageAPI.then(function(api) {
+  api.collection.then(display);
+  api.collection.fail(function(err) {
+    $("#loader").hide();
+    $("#main").append($("<p>").text("We couldn't load your programs."));
+    var connect = 
+      $("<button>").addClass("blueButton").text("Connect to Drive")
+    $("#main").append(connect);
+    connect.click(function() {
+      createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false).then(display);
+    });
+    console.error("Failed to load files: ", err);
   });
-  console.error("Failed to load files: ", err);
 });
 </script>
 </html>
