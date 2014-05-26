@@ -21,7 +21,7 @@
     "selenium-webdriver": "^2.41.0",
     "mustache": "^0.8.1",
     "url.js": "^1.0.2",
-    "node-redis": "^0.1.7"
+    "redis": "^0.10.3"
   },
   "devDependencies": {},
   "scripts": {
