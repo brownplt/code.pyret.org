@@ -17,7 +17,7 @@
 .repl .CodeMirror pre {
   padding: 0;
 }
-.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; z-index: 5000; }
 .cm-s-default.CodeMirror { color: #111; }
 .cm-s-default .cm-comment { color: #39f; }
 .cm-s-default .cm-builtin { color: #555; }
@@ -48,6 +48,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
     background-color: #fdc;
+    z-index: 4000;
 }
 
 .replTextOutput .CodeMirror {
@@ -87,6 +88,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 .repl {
   padding-left: 0.5em;
+  padding-bottom: 5em;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
   background-color: #f8f8f8;
@@ -105,7 +109,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .check-failure {
-  background-color: #fcc;
+  background-color: #d66;
 }
 
 .check-block {
@@ -117,7 +121,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .check-block-failed {
-  background-color: #fcc;
+  background-color: #d66;
 }
 
 .check-block-success {
@@ -282,8 +286,8 @@ body {
 #saveButton {
   float: left;
 }
-#shareButton {
-  float: left;
+#shareContainer {
+  display: inline-block;
 }
 
 .notificationArea {
@@ -301,6 +305,10 @@ body {
   background: red;
   color: #eee;
   font-weight: bold;
+}
+
+.logoutOnly {
+  display: none;
 }
 
 .loginOnly {
@@ -339,6 +347,14 @@ body {
  color: #af1180;
 }
 
+.rationalNumber {
+ color: #af1180;
+}
+
+span.rationalRepeat {
+  text-decoration: overline;
+}
+
 .replImageThumbnail canvas {
   cursor: pointer;
   border: 1px solid #111;
@@ -352,7 +368,7 @@ body {
 }
 
 .error-highlight {
-  background-color: #FCC;
+  background-color: #fcc;
   border-bottom: 2px solid #F33;
 }
 
@@ -363,13 +379,9 @@ body {
 
 .compile-error {
   font-family: sans-serif;
-  border: 1px solid #F33;
-  border-radius: 1em;
-  padding: 1em;
-}
-
-.compile-error:hover {
-  background-color: #FCC;
+  border: 3px solid #d66;
+  font-size: 10pt;
+  padding: 3px;
 }
 
 .compile-error .code {
@@ -378,6 +390,49 @@ body {
 
 .compile-error .srcloc {
   font-family: monospace; 
+}
+
+.compile-error a {
+  color: #469ad4;
+  cursor: pointer;
+}
+
+.compile-error a:hover {
+  background-color: #fcc;
+}
+
+.parse-error {
+  font-family: sans-serif;
+  border: 3px solid #d66;
+  font-size: 10pt;
+  padding: 3px;
+}
+
+.error-icon {
+  size: 16pt;
+  color: #f33;
+}
+
+.parse-error .code {
+  font-family: monospace; 
+}
+
+.parse-error .srcloc {
+  font-family: monospace; 
+}
+
+.parse-error a {
+  color: #469ad4;
+  cursor: pointer;
+}
+
+.parse-error a:hover {
+  text-decoration: underline;
+}
+
+.parse-error ul {
+  list-style-type: disc;
+  padding-left: 1em;
 }
 
 .warning-upper {
@@ -392,6 +447,7 @@ body {
    background: -o-linear-gradient(top,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* Opera 11.10+ */
    background: -ms-linear-gradient(top,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* IE10+ */
    background: linear-gradient(to bottom,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* W3C */
+   height: 75px;
 }
 
 .warning-lower {
@@ -406,6 +462,7 @@ body {
    width: 100%;
    text-align: center;
    display:none;
+   height: 75px;
 }
 
 .topbar {

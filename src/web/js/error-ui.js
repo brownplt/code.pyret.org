@@ -27,7 +27,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
       }
 
       function drawSrcloc(s) {
-        return s ? $("<span>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
+        return s ? $("<a>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
       }
       
       function errorHover(dom, locs) {
@@ -149,10 +149,34 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
             container.append($("<div>").text(String(e)));
           }
         }
-        function getLastUserLocation(e) {
+        function drawExpandableStackTrace(e) {
           var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
           var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
           var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
+          var container = $("<div>");
+          if(userLocs.length > 0) {
+            container.append($("<p>").text("Stack trace:"));
+            userLocs.forEach(function(ul) {
+              var slContainer = $("<div>");
+              var srcloc = drawSrcloc(ul);
+              slContainer.append(srcloc);
+              errorHover(srcloc, [ul]);
+              container.append(slContainer);
+            });
+            return expandableMore(container);
+          } else {
+            return container;
+          }
+        }
+        function getLastUserLocation(e) {
+          var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
+          var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+          var userLocs = srclocStack.filter(function(l) {
+            if(!(l && isSrcloc(l))) { return false; }
+            var source = runtime.getField(l, "source");
+            return (source === "definitions" || source.indexOf("interactions") !== -1);
+          });
+
           var probablyErrorLocation = userLocs[0];
           return probablyErrorLocation;
         }
@@ -226,6 +250,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           }
           container.append(dom);
         }
+        function drawNoBranchesMatched(loc, type) {
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this " + type + " expression");
+          dom.append($("<p>").append(["No case matched in ", expression]));
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
+        }
         function drawNonBooleanCondition(loc, type, value) {
           getDomValue(value, function(v) {
             var dom = $("<div>").addClass("compile-error");
@@ -270,18 +302,87 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
         function drawUserBreak() {
           container.append($("<div>").addClass("compile-error").text("Program stopped by user"));
         }
+        function drawFieldNotFound(loc, obj, field) {
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this lookup expression");
+          dom.append($("<p>").append(["Field ", $("<code>").text(field), " not found in ", expression]));
+          dom.append($("<p>").text("The object was:"));
+          var valueContainer = $("<div>");
+          dom.append(valueContainer);
+          setTimeout(function() {
+            outputUI.renderPyretValue(valueContainer, runtime, obj);
+          }, 0);
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
+        }
+        function drawLookupNonObject(loc, nonObj, field) {
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this lookup expression");
+          dom.append($("<p>").append(["Tried to look up field ", $("<code>").text(field), " on a non-object in ", expression]));
+          dom.append($("<p>").text("The non-object was:"));
+          var valueContainer = $("<div>");
+          dom.append(valueContainer);
+          setTimeout(function() {
+            outputUI.renderPyretValue(valueContainer, runtime, nonObj);
+          }, 0);
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
+        }
+        function drawInvalidArrayIndex(methodName, array, index, reason) {
+          var dom = $("<div>").addClass("compile-error");
+          var probablyErrorLocation = getLastUserLocation(e);
+          var expression = $("<a>").text(" this function call ");
+          dom.append($("<p>").append(["Invalid array index ", $("<code>").text(index), " around ", expression, "because: " + reason]));
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [probablyErrorLocation]);
+          container.append(dom);
+        }
+        function drawModuleLoadFailure(names) {
+          var dom = $("<div>").addClass("compile-error");
+          dom.append($("<p>").text("The module(s) " + names.join(", ") + " failed to load"));
+          container.append(dom);
+        }
         
         function drawPyretRuntimeError() {
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
+              "message-exception": drawMessageException,
+              "no-branches-matched": drawNoBranchesMatched,
+              "field-not-found": drawFieldNotFound,
+              "lookup-non-object": drawLookupNonObject,
               "generic-type-mismatch": drawGenericTypeMismatch,
               "arity-mismatch": drawArityMismatch,
-              "message-exception": drawMessageException,
               "non-boolean-condition": drawNonBooleanCondition,
               "non-boolean-op": drawNonBooleanOp,
               "non-function-app": drawNonFunctionApp,
+              "module-load-failure": drawModuleLoadFailure,
+              "invalid-array-index": drawInvalidArrayIndex,
               "user-break": drawUserBreak,
               "else": drawRuntimeErrorToString(e)
             });
+        }
+
+        function expandableMore(dom) {
+          var container = $("<div>");
+          container.append(dom);
+          var moreLink = $("<a>").text("(More...)");
+          var lessLink = $("<a>").text("(Less...)");
+          function toggle() {
+            dom.toggle();
+            lessLink.toggle();
+            moreLink.toggle();
+          }
+          moreLink.on("click", toggle);
+          lessLink.on("click", toggle);
+          container.append(moreLink).append(lessLink).append(dom);
+          dom.hide();
+          lessLink.hide();
+          return container;
+        }
+
+        function errorIcon() {
+          return $("<span>").addClass("error-icon").text("⚠");
         }
 
         function drawParseErrorNextToken(loc, nextToken) {

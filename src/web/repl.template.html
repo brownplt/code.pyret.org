@@ -3,25 +3,25 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>code.pyret.org</title>
-  <link rel="stylesheet" href="/src/web/reset.css"></link>
+  <link rel="stylesheet" href="/css/reset.css"></link>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-  <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
-  <link rel="stylesheet" href="/src/web/shared.css"></link>
-  <link rel="stylesheet" href="/src/web/editor.css"></link>
+  <link rel="stylesheet" href="/css/codemirror.css"></link>
+  <link rel="stylesheet" href="/css/shared.css"></link>
+  <link rel="stylesheet" href="/css/editor.css"></link>
 </head>
 <body>
 <div id="header">
-  <div id="docs"><a href="/src/web/doc.txt" target="_blank">Documentation</a></div>
-  <div id="programs" class="loginOnly"><a href="/my-programs">My Programs</a></div>
-  <div id="logout" class="loginOnly"><a href="/logout">Logout</a></div>
+  <div id="docs"><a target="_blank">Documentation</a></div>
+  <div id="programs" class="loginOnly"><a target="_blank" href="/my-programs.html">My Programs</a></div>
 </div>
 <div id="toolbar">
+  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
   <div id="program-name-container" class="loginOnly">
     <label for="program-name">Program Name:</label>
     <input id="program-name" type="text"></input>
   </div>
   <button id="saveButton" class="loginOnly blueButton">Save</button>
-  <button id="shareButton" class="loginOnly blueButton">Share</button>
+  <div id="shareContainer" class="loginOnly"></div>
   <span id="notification" class="notificationArea"></span>
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <button id="runButton" class="blueButton rhs">Run</button>
@@ -29,20 +29,40 @@
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
 <div id="REPL" class="replContainer"></div>
+<div id="help-keys">
+  <p>Press ESC to close this help window</p>
+  <ul>
+    <li><b>Ctrl-?</b> - Show this help</li>
+    <li><b>Ctrl-d</b> - Goto definitions window</li>
+    <li><b>Ctrl-i</b> - Goto interactions window</li>
+    <li><b>Ctrl-Enter</b> - Run the definitions window</li>
+  </ul>
+</div>
 </div>
 <div id="footer"></div>
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-<script src="/src/web/loader.js"></script>
-<script src="/node_modules/url.js/url.js"></script>
-<script src="/node_modules/q/q.js"></script>
-<script src="/src/web/programs.js"></script>
-<script src="/src/web/authenticate-storage.js"></script>
-<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
-
-<script src="/node_modules/requirejs/require.js"></script>
+<script src="/js/loader.js"></script>
+<script src="/js/url.js"></script>
+<script src="/js/q.js"></script>
+<script src="/js/share.js"></script>
+<script src="/js/programs.js"></script>
+<script src="/js/authenticate-storage.js"></script>
+<script>
+var clientId = "{{ google_client_id }}";
+var apiKey = "{{ google_api_key }}";
+function handleGoogLoad() {
+  handleClientLoad(clientId, apiKey);
+}
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script src="/js/codemirror.js"></script>
+<script src="/js/matchbrackets.js"></script>
+<script src="/js/draw.js"></script>
+<script src="/js/pyret-mode.js"></script>
+<script src="/js/require.js"></script>
 <script>
 requirejs.config({
   paths: {
@@ -50,18 +70,15 @@ requirejs.config({
 //      "compiler": "arr/compiler/",
 //      "arr": "arr/",
 //      "trove": "trove",
-    "q": "/node_modules/q/q",
-    "fs": "/src/web/fsstub",
-    "trove": "/src/web/teachpacks/"
+    "q": "/js/q",
+    "fs": "/js/fsstub"
   },
   waitSeconds: 0
 });
 </script>
-<script src="/src/web/pyret.js"></script>
-<script src="/lib/CodeMirror/lib/codemirror.js"></script>
-<script src="/lib/CodeMirror/addon/edit/matchbrackets.js"></script>
-<script src="/src/web/draw.js"></script>
-<script src="/lib/CodeMirror/mode/pyret/pyret.js"></script>
+<script src="/js/pyret.js"></script>
+<!--  <script type="text/javascript"
+        src="https://caja.appspot.com/caja.js"></script> -->
 <script>
 LOG = true;
 function ct_log(/* varargs */) {
@@ -76,16 +93,21 @@ function ct_error(/* varargs */) {
 }
 $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
-  define("repl-main", ["js/repl-lib", "/src/web/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
+
+    var initialParams = url.parse(document.location.href);
+    var params = url.parse("/?" + initialParams["hash"]);
+
     var dialects = dialectLib(runtime, runtime.namespace);
-    var dialectStr = window.location.hash.slice(1);
-    var dialect = dialects.dialects[dialectStr] || dialects.dialects["Bootstrap"]; // TODO: CHANGE THIS AS NEEDED
+    var dialectStr = params["get"] ? params["get"]["lang"] : "Pyret";
+    if (!dialects.dialects[dialectStr]) { dialectStr = "Pyret"; }
+    var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
     var replNS = dialect.makeNamespace(runtime);
     var replEnv = dialect.compileEnv;
-    var repl = replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr || "Bootstrap"});
+    var repl = replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr});
 
     // NOTE(joe): This forces the loading of all the built-in compiler libs
     var interactionsReady = repl.restartInteractions("");
@@ -105,6 +127,12 @@ $(function() {
         run: RUN_CODE,
         initialGas: 500
       });
+    $(document).on("keyup", function(e) {
+      if(e.keyCode === 27) { // "ESC"
+        $("#help-keys").fadeOut(500);
+        e.stopImmediatePropagation();
+      }
+    });
     $(document).on("keydown", function(e) {
       if(e.ctrlKey) {
         if(e.keyCode === 68) { // "Ctrl-d"
@@ -113,22 +141,58 @@ $(function() {
         } else if(e.keyCode === 73) { // "Ctrl-i"
           replWidget.focus();
           e.stopImmediatePropagation();
+        } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"
+          $("#help-keys").fadeIn(100);
+          e.stopImmediatePropagation();
         }
       }
     });
     
-    var lskey = "patch_saved_program";
-    var currentFile;
 
-    var params = url.parse(document.location.href);
-    var initialProgramId = null;
-    if(params["get"] && params["get"]["program"]) {
-      initialProgramId = params["get"]["program"];
-    }
+    storageAPI.then(function(api) {
+      api.collection.then(function() {
+        $(".loginOnly").show();
+        $(".logoutOnly").hide();
+      });
+      api.collection.fail(function() {
+        $(".loginOnly").hide();
+        $(".logoutOnly").show();
+      });
+    });
+
+    storageAPI = storageAPI.then(function(api) { return api.api; });
+    $("#connectButton").click(function() {
+      $("#connectButton").text("Connecting...");
+      $("#connectButton").attr("disabled", "disabled");
+      storageAPI = createProgramCollectionAPI(clientId, "code.pyret.org", false);
+      storageAPI.then(function(api) {
+        api.collection.then(function() {    
+          $(".loginOnly").show();
+          $(".logoutOnly").hide();
+          programToSave = Q.fcall(function() { return null; });
+        });
+        api.collection.fail(function(err) {
+          $("#connectButton").text("Connect to Google Drive");
+          $("#connectButton").attr("disabled", false);
+        });
+      });
+      storageAPI = storageAPI.then(function(api) { return api.api; });
+    });
+
+    var copyOnSave = false;
 
     var initialProgram = storageAPI.then(function(api) {
-      if(initialProgramId) {
-        var programLoad = api.getFileById(initialProgramId);
+      var programLoad = null;
+      if(params["get"] && params["get"]["program"]) {
+        programLoad = api.getFileById(params["get"]["program"]);
+        programLoad.then(function(p) { showShareContainer(p); });
+      }
+      if(params["get"] && params["get"]["share"]) {
+        programLoad = api.getSharedFileById(params["get"]["share"]);
+        $("#saveButton").text("Save a Copy");
+        copyOnSave = true;
+      }
+      if(programLoad) {
         programLoad.fail(function(err) {
           console.error(err);
           flashError("The program failed to load.");
@@ -137,11 +201,17 @@ $(function() {
       } else {
         return null;
       }
-    })
+    });
+
+    function setTitle(progName) {
+      document.title = progName + " - code.pyret.org";
+    }
 
     var programLoaded = initialProgram.then(function(p) {
+      console.log("Initial program: ", p);
       if(p !== null) {
         $("#program-name").val(p.getName());
+        setTitle(p.getName());
         return p.getContents().then(function(c) {
           editor.cm.setValue(c);
         });
@@ -150,13 +220,18 @@ $(function() {
 
     var programToSave = initialProgram;
 
+    function showShareContainer(p) {
+      $("#shareContainer").empty();
+      $("#shareContainer").append(makeShareLink(p));
+    }
+
     function nameOrUntitled() {
       return $("#program-name").val() || "Untitled";
     }
     function save() {
       flashMessage("Saving...");
       var savedProgram = programToSave.then(function(p) {
-        if(p !== null) {
+        if(p !== null && !copyOnSave) {
           if(p.getName() !== $("#program-name").val()) {
             programToSave = p.rename(nameOrUntitled()).then(function(newP) {
               return newP;
@@ -164,11 +239,16 @@ $(function() {
           }
           return programToSave
           .then(function(p) {
+            showShareContainer(p);
             return p.save(editor.cm.getValue(), false);
           })
           .then(function(p) {
             $("#program-name").val(p.getName());
+            $("#saveButton").text("Save");
+            history.pushState(null, null, "#program=" + p.getUniqueId());
+            window.location.hash = "#program=" + p.getUniqueId();
             flashMessage("Program saved as " + p.getName());
+            setTitle(p.getName());
             return p;
           })
         }
@@ -177,15 +257,18 @@ $(function() {
           $("#program-name").val(programName);
           programToSave = storageAPI
             .then(function(api) { return api.createFile(programName); });
+          copyOnSave = false;
           return save();
         }
       });
       savedProgram.fail(function(err) {
         flashError("Program failed to save.");
+        console.error(err);
       });
     }
     $("#saveButton").click(save);
 
+    programLoaded.then(function() { $("#loader").hide(); });
     Q.all([programLoaded, interactionsReady]).fin(function() { $("#loader").hide(); });
     editor.focus();
   });
@@ -206,6 +289,10 @@ function flashMessage(message) {
   $(".notificationArea").append(err);
   err.fadeOut(7000);
 }
+
+$(window).bind("beforeunload", function(_) {
+  return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
+});
     
 </script>
 </html>

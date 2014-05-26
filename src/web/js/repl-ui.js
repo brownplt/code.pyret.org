@@ -64,11 +64,11 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
 
     if (useLineNumbers) {
       var upperWarning = jQuery("<div>").addClass("warning-upper");
-      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/node_modules/pyret-lang/img/up-arrow.png");
+      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/img/up-arrow.png");
       upperWarning.append(upperArrow);
       CM.display.wrapper.appendChild(upperWarning.get(0));
       var lowerWarning = jQuery("<div>").addClass("warning-lower");
-      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/node_modules/pyret-lang/img/down-arrow.png");
+      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/img/down-arrow.png");
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
@@ -92,6 +92,16 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     CodeMirror.runMode(src, "pyret", container);
   }
 
+  // NOTE(joe): sadly depends on the page and hard to figure out how to make
+  // this less global
+  function scroll(output) {
+    $(".repl").animate({ 
+         scrollTop: output.height(),
+       },
+       500
+    );
+  }
+
   function makeHighlightingRunCode(runtime, codeRunner, isMain) {
     var image = imageLib(runtime, runtime.namespace);
 
@@ -106,6 +116,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
           var exn = err.exn;
           try {
             errorUI.drawError(output, uiOptions.cm, runtime, exn);
+            scroll(output);
           }
           catch(e) {
             console.error("There was an error while reporting the error: ", e);
@@ -117,9 +128,11 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
         if(!isMain) {
           var answer = runtime.getField(obj.result, "answer");
           outputUI.renderPyretValue(output, runtime, answer);
+          scroll(output);
         }
 
         checkUI.drawCheckResults(output, uiOptions.cm, runtime, runtime.getField(obj.result, "checks"));
+        scroll(output);
 
         console.log(JSON.stringify(obj.stats));
 
@@ -178,7 +191,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     promptContainer.append(promptArrow).append(prompt);
 
     container.on("click", function(e) {
-      if($(CM.getTextArea()).parent().offset().top < e.offsetY) {
+      if($(CM.getTextArea()).parent().offset().top < e.pageY) {
         CM.focus();
       }
     });
@@ -212,6 +225,12 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
 
     var breakButton = options.breakButton;
     container.append(output).append(promptContainer);
+
+    function clearAllMarks() {
+      CM.getAllMarks().forEach(function(m) {
+        m.clear();
+      });
+    }
 
     var runCode = makeHighlightingRunCode(runtime, function (src, uiOptions, options) {
       breakButton.attr("disabled", false);

@@ -38,48 +38,48 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
        // block.
        trArr.reverse().forEach(function(tr) {
 
-	 checkTotal = checkTotal + 1;
-	 checkTotalAll = checkTotalAll + 1;
+         checkTotal = checkTotal + 1;
+         checkTotalAll = checkTotalAll + 1;
 
  
-	 // Success for a test is signaled by the *absence* of a "reason" field.
-	 if (runtime.hasField(tr, "reason")) {
+         // Success for a test is signaled by the *absence* of a "reason" field.
+         if (runtime.hasField(tr, "reason")) {
 
-	   // The "reason" field is a function that returns a text
-	   // string to be displayed to the user.  We pack it in its
-	   // own <pre> object so it can be colored and indented for
-	   // contrast.
-	   runtime.runThunk(
-	     function() { return get(tr, "reason").app(); },
-	     function(returnVal) { 
+           // The "reason" field is a function that returns a text
+           // string to be displayed to the user.  We pack it in its
+           // own <pre> object so it can be colored and indented for
+           // contrast.
+           runtime.runThunk(
+             function() { return get(tr, "reason").app(); },
+             function(returnVal) { 
 
-	       addPreToDom("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-	       addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
+               addPreToDom("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+               addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
 
-	     });
-	 } else {
+             });
+         } else {
 
-	   // If you're here, the test passed, all is well.
-	   checkPassed = checkPassed + 1;
-	   checkPassedAll = checkPassedAll + 1;
+           // If you're here, the test passed, all is well.
+           checkPassed = checkPassed + 1;
+           checkPassedAll = checkPassedAll + 1;
 
-	   addPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
-	 }
+           addPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
+         }
        });
 
 // Print a message about the total passed in this check block.
 
        if (checkTotal > 1) {
-	 if (checkPassed == checkTotal) {
-	   addPreToDom("replOutputPassed", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
-	 } else {
-	   addPreToDom("replOutput", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
-	 }
+         if (checkPassed == checkTotal) {
+           addPreToDom("replOutputPassed", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+         } else {
+           addPreToDom("replOutput", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+         }
 
        } else if (checkTotal == 1 && checkPassed == 1) {
-	 addPreToDom("replOutputPassed", "Your test passed.", get(cr, "loc"));
+         addPreToDom("replOutputPassed", "Your test passed.", get(cr, "loc"));
        } else if (checkTotal == 1 && checkPassed == 0) {
-	 addPreToDom("replOutputFailed", "Your test failed.", get(cr, "loc"));
+         addPreToDom("replOutputFailed", "Your test failed.", get(cr, "loc"));
        }
        
      });
@@ -89,13 +89,13 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
 
      if (checkPassedAll == checkTotalAll) {
        if (checkTotalAll > 0) {
-	 if (checkTotalAll == 1) {
-	   var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, mate!");
-	 } else if (checkTotalAll == 2) {
-	   var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, both tests passed, mate!");
-	 } else {
-	   var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
-	 }
+         if (checkTotalAll == 1) {
+           var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, your test passed, mate!");
+         } else if (checkTotalAll == 2) {
+           var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, both tests passed, mate!");
+         } else {
+           var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+         }
        }
        container.append(outerDom);
      } else {
