@@ -169,7 +169,14 @@ $(function() {
         api.collection.then(function() {    
           $(".loginOnly").show();
           $(".logoutOnly").hide();
-          programToSave = Q.fcall(function() { return null; });
+          if(params["get"] && params["get"]["program"]) {
+            var toLoad = api.api.getFileById(params["get"]["program"]);
+            console.log("Logged in and has program to load: ", toLoad);
+            loadProgram(toLoad);
+            programToSave = toLoad;
+          } else {
+            programToSave = Q.fcall(function() { return null; });
+          }
         });
         api.collection.fail(function(err) {
           $("#connectButton").text("Connect to Google Drive");
@@ -207,16 +214,19 @@ $(function() {
       document.title = progName + " - code.pyret.org";
     }
 
-    var programLoaded = initialProgram.then(function(p) {
-      console.log("Initial program: ", p);
-      if(p !== null) {
-        $("#program-name").val(p.getName());
-        setTitle(p.getName());
-        return p.getContents().then(function(c) {
-          editor.cm.setValue(c);
-        });
-      }
-    });
+    function loadProgram(p) {
+      return p.then(function(p) {
+        if(p !== null) {
+          $("#program-name").val(p.getName());
+          setTitle(p.getName());
+          return p.getContents().then(function(c) {
+            editor.cm.setValue(c);
+          });
+        }
+      });
+    }
+
+    var programLoaded = loadProgram(initialProgram); 
 
     var programToSave = initialProgram;
 
