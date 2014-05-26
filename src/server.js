@@ -4,7 +4,6 @@ function start(config, onServerReady) {
   var express = require('express');
   var cookieSession = require('cookie-session');
   var cookieParser = require('cookie-parser');
-  var expressValidator = require('express-validator');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
   var request = require('request');
