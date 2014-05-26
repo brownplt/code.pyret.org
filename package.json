@@ -20,7 +20,8 @@
     "jasmine-node": "^1.14.3",
     "selenium-webdriver": "^2.41.0",
     "mustache": "^0.8.1",
-    "url.js": "^1.0.2"
+    "url.js": "^1.0.2",
+    "node-redis": "^0.1.7"
   },
   "devDependencies": {},
   "scripts": {
