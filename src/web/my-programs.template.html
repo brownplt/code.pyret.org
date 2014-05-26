@@ -94,7 +94,7 @@ storageAPI.fail(function(err) {
     $("<button>").addClass("blueButton").text("Connect to Drive")
   $("#main").append(connect);
   connect.click(function() {
-    createProgramCollectionAPI(clientId, "code.pyret.org", false).then(display);
+    createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false).then(display);
   });
   console.error("Failed to load files: ", err);
 });
