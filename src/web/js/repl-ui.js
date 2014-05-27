@@ -232,6 +232,27 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       });
     }
 
+    function afterRun() {
+      options.runButton.empty();
+      options.runButton.text("Run");
+      options.runButton.attr("disabled", false);
+    }
+    function setWhileRunning() {
+      options.runButton.empty();
+      var img = $("<img>").attr({
+        "src": "/img/pyret-spin.gif",
+        "width": "25px",
+      }).css({
+        "vertical-align": "middle"
+      });
+      var text = $("<span>").text("Running...");
+      text.css({
+        "vertical-align": "middle"
+      });
+      options.runButton.append([img, text]);
+      options.runButton.attr("disabled", true);
+    }
+
     var runCode = makeHighlightingRunCode(runtime, function (src, uiOptions, options) {
       breakButton.attr("disabled", false);
       output.empty();
@@ -252,7 +273,8 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       var thisWrite = uiOptions.write || write;
       lastNameRun = uiOptions.name || "interactions";
       lastEditorRun = uiOptions.cm || null;
-      evaluator.runMain(uiOptions.name || "run", src, enablePrompt(thisReturnHandler), thisWrite, enablePrompt(thisError), options);
+      setWhileRunning();
+      evaluator.runMain(uiOptions.name || "run", src, enablePrompt(thisReturnHandler), thisWrite, enablePrompt(thisError), options, afterRun);
     }, true);
 
     var enablePrompt = function (handler) { return function (result) {
@@ -282,13 +304,15 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
           breakButton.attr("disabled", false);
           CM.setValue("");
           promptContainer.hide();
+          setWhileRunning();
           makeHighlightingRunCode(runtime, function(src, uiOptions, options) {
             evaluator.runRepl('interactions',
                         src,
                         enablePrompt(uiOptions.wrappingReturnHandler(output)),
                         write,
                         enablePrompt(uiOptions.wrappingOnError(output)),
-                        merge(options, merge(replOpts, {check: true})));
+                        merge(options, merge(replOpts, {check: true})),
+                        afterRun);
           }, false)(code, merge(opts, {name: lastNameRun, cm: echoCM}), replOpts);
         },
         "interactions");
@@ -437,24 +461,32 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
   }
 
   function makeEvaluator(container, repl, runtime, handleReturnValue) {
-    var runMainCode = function(name, src, returnHandler, writer, onError, options) {
-      repl.restartInteractions(src).then(function(result) {
+    var runMainCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
+      var evaluation = repl.restartInteractions(src);
+      evaluation.then(function(result) {
         if(runtime.isSuccessResult(result)) {
           returnHandler(result);
         } else {
           onError(result);
         }
       });
+      if(noMatterWhat) {
+        evaluation.fin(noMatterWhat);
+      }
     };
 
-    var runReplCode = function(name, src, returnHandler, writer, onError, options) {
-      repl.run(src).then(function(result) {
+    var runReplCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
+      var evaluation = repl.run(src);
+      evaluation.then(function(result) {
         if(runtime.isSuccessResult(result)) {
           returnHandler(result);
         } else {
           onError(result);
         }
       });
+      if(noMatterWhat) {
+        evaluation.fin(noMatterWhat);
+      }
     };
 
     var breakFun = function(afterBreak) {
