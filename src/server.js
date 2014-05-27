@@ -74,8 +74,13 @@ function start(config, onServerReady) {
       if(error) {
         response.status(400).write("Error fetching file");
       }
-      response.write(body);
-      response.end();
+      if(resp.status !== 200) {
+        response.status(400).write("Error fetching file");
+      }
+      else {
+        response.write(body);
+        response.end();
+      }
     });
   });
 

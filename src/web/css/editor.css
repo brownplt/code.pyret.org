@@ -231,7 +231,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 75px;
+  padding-top: 55px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -246,7 +246,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 80px;
+  padding-top: 55px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -271,20 +271,27 @@ body {
   width: 100%;
   z-index: 5000;
   height: 100%;
-  padding-top: 75px;
+  padding-top: 55px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
 
 #program-name-container {
-  color: #eee;
-  float: left;
+  margin-top: 12px;
+  display: inline-block;
   font-family: sans-serif;
 }
 
+#program-name-container input {
+  display: inline-block;
+}
+
+#program-name-container label {
+  display: inline-block;
+}
+
 #saveButton {
-  float: left;
 }
 #shareContainer {
   display: inline-block;
@@ -315,6 +322,10 @@ body {
   display: none;
 }
 
+#menuContents {
+  background-color: #fefefe;
+  border: 1px solid black;
+}
 .replPrint {
   padding-top: 0;
   padding-bottom: 0.5em;
@@ -516,3 +527,14 @@ span.rationalRepeat {
   content: "×"
 }
 
+#breakButton {
+  width: 150px;
+  height: 40px;
+  margin: 5px;
+}
+
+#runButton {
+  width: 150px;
+  height: 40px;
+  margin: 5px;
+}

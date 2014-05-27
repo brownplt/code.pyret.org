@@ -10,7 +10,7 @@ em {
 #loader {
   position: fixed;
   left: 0px;
-  top: 80px;
+  top: 55px;
   width: 100%;
   height: 100%;
   z-index: 9999;
@@ -51,9 +51,10 @@ em {
   background: url("/img/pyret-logo.png") 10px 3px no-repeat #ddd;
   background-size: 40px 40px;
   padding-left: 60px;
+  box-sizing: border-box;
 }
 
-#header div {
+#header div a {
   width: 100px;
   margin-top: 15px;
   float: left;
@@ -65,11 +66,15 @@ em {
   font-family: sans-serif;
 }
 
+#menu {
+  display: inline-block;
+}
+
 #toolbar {
   position: fixed;
   z-index: 8000;
   top: 50px;
-  height: 25px;
+  height: 5px;
   width: 100%;
   background-color: #111;
 }
@@ -108,34 +113,6 @@ em {
 
 .rhs {
   float: right;
-}
-
-#logoutOptions {
-  position: fixed;
-  right: 0;
-  top: 75px;
-  z-index: 10000;
-  text-align: right;
-  background-color: 
-  background-color: #eee;
-  color: #469ad4;
-  border: 1px solid #111;
-  font-family: sans-serif;
-  display: none;
-}
-
-
-#logoutOptions a {
-  display: block;
-  padding: 5px;
-  color: #469ad4;
-  text-decoration: none;
-}
-
-#logoutOptions a:hover {
-  background-color: #469ad4;
-  text-decoration: none;
-  color: #eee;
 }
 
 h3 {

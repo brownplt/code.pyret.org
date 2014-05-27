@@ -14,7 +14,7 @@ table {
 }
 
 #main {
-  padding-top: 80px;
+  padding-top: 70px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
@@ -29,4 +29,9 @@ table {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+}
+
+#newLink {
+  /* !important overrides shared.css */
+  width: 200px !important;
 }

@@ -46,9 +46,7 @@ function facebookWidget(shareUrl) {
   return link;
 }
 
-function makeShareLink(originalFile) {
-  var link = $("<div>").append($("<button class=blueButton>").text("Share ▾"));
-  var shareDiv = $("<div>").addClass("share");
+function makeHoverMenu(triggerElt, menuElt, onShow) {
   var divHover = false;
   var linkHover = false;
   function hovering() {
@@ -58,44 +56,56 @@ function makeShareLink(originalFile) {
     setTimeout(function() {
       console.log(divHover, linkHover);
       if(!hovering()) {
-        shareDiv.fadeOut(500);
+        menuElt.fadeOut(500);
       }
     }, 500);
   }
   function showIfStillHovering() {
     setTimeout(function() {
       if(linkHover) {
-        shareDiv.css({
+        menuElt.css({
           position: "fixed",
-          top: link.offset().top + 20,
-          left: link.offset().left,
-          "z-index": 10000,
+          top: triggerElt.offset().top + 20,
+          left: triggerElt.offset().left,
+          "z-index": 12000,
           "min-height": "300px"
         });
-        $(document.body).append(shareDiv);
-        shareDiv.empty();
-        shareDiv.fadeIn(250);
-        showShares(shareDiv, originalFile);
+        $(document.body).append(menuElt);
+        menuElt.fadeIn(250);
+        onShow();
       }
     }, 100);
   }
-  shareDiv.hover(function() {
+  menuElt.hover(function() {
     divHover = true;
   }, function() {
     divHover = false;
     closeIfNotHovering();
   });
-  link.hover(function(e) {
-    if(!hovering()) { showIfStillHovering(); }
+  triggerElt.click(function(e) {
+    linkHover = true;
+    showIfStillHovering();
+  });
+  triggerElt.hover(function(e) {
     linkHover = true;
   }, function() {
     linkHover = false;
     closeIfNotHovering();
   });
-  return link;
+  return triggerElt;
+}
+
+function makeShareLink(originalFile) {
+  var link = $("<div>").append($("<button class=blueButton>").text("Share..."));
+  var shareDiv = $("<div>").addClass("share");
+  return makeHoverMenu(link, shareDiv,
+    function() {
+      showShares(shareDiv, originalFile);
+    });
 }
 
 function showShares(container, originalFile) {
+  container.empty();
   var shares = originalFile.getShares();
   container.text("Loading share info...");
   var displayDone = shares.then(function(sharedInstances) {

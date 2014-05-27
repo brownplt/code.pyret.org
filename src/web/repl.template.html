@@ -11,20 +11,23 @@
 </head>
 <body>
 <div id="header">
-  <div id="docs"><a target="_blank">Documentation</a></div>
-  <div id="programs" class="loginOnly"><a target="_blank" href="/my-programs.html">My Programs</a></div>
-</div>
-<div id="toolbar">
   <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
   <div id="program-name-container" class="loginOnly">
     <label for="program-name">Program Name:</label>
     <input id="program-name" type="text"></input>
   </div>
-  <button id="saveButton" class="loginOnly blueButton">Save</button>
-  <div id="shareContainer" class="loginOnly"></div>
-  <span id="notification" class="notificationArea"></span>
+  <button id="saveButton" class="blueButton loginOnly">Save</button>
+  <div id="shareContainer"></div>
+  <div id="menu"><button class="blueButton">More ▾</a></div>
+  <div id="menuContents" style="display: none; z-index: 12000;">
+    <div id="docs"><a target="_blank">Documentation</a></div>
+    <div id="programs"><a target="_blank" href="/my-programs.html">My Programs</a></div>
+  </div>
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <button id="runButton" class="blueButton rhs">Run</button>
+</div>
+<div id="toolbar">
+  <span id="notification" class="notificationArea"></span>
 </div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
@@ -77,7 +80,7 @@ requirejs.config({
   waitSeconds: 0
 });
 </script>
-<!--  <script type="text/javascript"
+<!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 <script>
 LOG = true;
@@ -94,6 +97,7 @@ function ct_error(/* varargs */) {
 $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
   define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib"], function(replLib, replUI, rtLib, dialectLib) {
+    makeHoverMenu($("#menu"), $("#menuContents"), function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
