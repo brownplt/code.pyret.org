@@ -340,8 +340,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           container.append(dom);
         }
         function drawModuleLoadFailure(names) {
+          var arr = runtime.ffi.toArray(names);
           var dom = $("<div>").addClass("compile-error");
-          dom.append($("<p>").text("The module(s) " + names.join(", ") + " failed to load"));
+          dom.append($("<p>").append(["The module(s) "], $("<code>").text(arr.join(", ")), [" failed to load"]));
           container.append(dom);
         }
         
