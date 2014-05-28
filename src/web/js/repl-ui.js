@@ -205,7 +205,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
         animationDiv = $("<div>").css({"z-index": 10000});
         output.append(animationDiv);
         function onClose() {
-          Jsworld.shutdown({ errorShutdown: runtime.ffi.userBreak });
+          Jsworld.shutdown({ cleanShutdown: true });
           showPrompt();
         }
         animationDiv.dialog({
@@ -445,7 +445,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       breakButton.attr("disabled", true);
       evaluator.requestBreak(function() {
           closeAnimationIfOpen();
-          Jsworld.shutdown({ errorShutdown: "break" });
+          Jsworld.shutdown({ cleanShutdown: true });
           showPrompt();
         });
     };
