@@ -70,18 +70,8 @@ function start(config, onServerReady) {
     var googleLink = decodeURIComponent(parsed.query.slice(0));
     var googleParsed = url.parse(googleLink);
     console.log(googleParsed);
-    request(googleLink, function(error, resp, body) {
-      if(error) {
-        response.status(400).write("Error fetching file");
-      }
-      if(resp.status !== 200) {
-        response.status(400).write("Error fetching file");
-      }
-      else {
-        response.write(body);
-        response.end();
-      }
-    });
+    var gReq = request(googleLink);
+    gReq.pipe(response);
   });
 
   app.get(config.google.redirect, function(req, res) {
