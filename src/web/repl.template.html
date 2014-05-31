@@ -83,7 +83,6 @@ function start() {
   start.src = "/js/repl.js";
   document.body.appendChild(start);
 }
-if(false) {
 if({{{ USE_STANDALONE_PYRET }}}) {
   var script = document.createElement("script");
   script.src = BASE + "pyret.js"
@@ -105,7 +104,7 @@ if({{{ USE_STANDALONE_PYRET }}}) {
       "js": phase1Base + "js",
       "compiler": phase1Base + "arr/compiler",
       "arr": phase1Base + "arr",
-      "js/../../../lib/jglr": phase1Base + "../../../../lib/jglr",
+      "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
       "trove": phase1Base + "trove",
       "q": "/js/q",
       "fs": "/js/fsstub"
@@ -114,25 +113,8 @@ if({{{ USE_STANDALONE_PYRET }}}) {
   });
   start();
 }
-}
 
 </script>
-<script>
-// NOTE(joe):
-// The file repl.js is loaded dynamically by the above script; it needs to
-// ensure that the correct Pyret version has started running before the REPL
-// starts up, and the best way to do that is by dynamically attaching the
-// script tag
-    requirejs.config({
-      paths: {
-        "q": "/js/q",
-        "fs": "/js/fsstub"
-      },
-      waitSeconds: 0
-    });
-</script>
-<script src="{{{ PYRET_RELEASE_BASE }}}/pyret.js"></script>
-<script src="/js/repl.js"></script>
 
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
