@@ -74,26 +74,30 @@ if(params.get && params.get["v"]) {
   VERSION = params.get["v"];
 }
 else {
-  VERSION = "{{{ CURRENT_PYRET_RELEASE }}}/";
+  VERSION = "{{{ CURRENT_PYRET_RELEASE }}}";
 }
+if(VERSION !== "") { VERSION = VERSION + "/"; }
 var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
 function start() {
   var start = document.createElement("script");
   start.src = "/js/repl.js";
   document.body.appendChild(start);
 }
+if(false) {
 if({{{ USE_STANDALONE_PYRET }}}) {
   var script = document.createElement("script");
-  script.src = BASE + "phase0/pyret.js"
-  requirejs.config({
-    paths: {
-      "q": "/js/q",
-      "fs": "/js/fsstub"
-    },
-    waitSeconds: 0
-  });
+  script.src = BASE + "pyret.js"
   document.body.insertBefore(script, document.getElementById("loadVersion"));
   script.addEventListener("load", function() { start(); });
+  setTimeout(function() {
+    requirejs.config({
+      paths: {
+        "q": "/js/q",
+        "fs": "/js/fsstub"
+      },
+      waitSeconds: 0
+    });
+  });
 } else {
   var phase1Base = BASE + "phase1/";
   requirejs.config({
@@ -110,8 +114,26 @@ if({{{ USE_STANDALONE_PYRET }}}) {
   });
   start();
 }
+}
 
 </script>
+<script>
+// NOTE(joe):
+// The file repl.js is loaded dynamically by the above script; it needs to
+// ensure that the correct Pyret version has started running before the REPL
+// starts up, and the best way to do that is by dynamically attaching the
+// script tag
+    requirejs.config({
+      paths: {
+        "q": "/js/q",
+        "fs": "/js/fsstub"
+      },
+      waitSeconds: 0
+    });
+</script>
+<script src="{{{ PYRET_RELEASE_BASE }}}/pyret.js"></script>
+<script src="/js/repl.js"></script>
+
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 </body>

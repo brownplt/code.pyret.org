@@ -1,16 +1,24 @@
-define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js"], function(ffiLib, srclocLib, errorLib, csLib, imageLib, outputUI) {
+define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
 
   function drawError(container, editor, runtime, exception) {
     var ffi = ffiLib(runtime, runtime.namespace);
     var image = imageLib(runtime, runtime.namespace);
     var cases = ffi.cases;
-    runtime.loadModules(runtime.namespace, [srclocLib, errorLib, csLib], function(srcloc, error, cs) {
+    runtime.loadModules(runtime.namespace, [srclocLib, errorLib, csLib, contractsLib], function(srcloc, error, cs, contracts) {
       var get = runtime.getField;
       function mkPred(pyretFunName) {
         return function(val) { return get(error, pyretFunName).app(val); }
       }
+      var isContractError = get(contracts, "ContractResult").app;
 
       var isRuntimeError = mkPred("RuntimeError");
+
+      function setImmediate(f) { setTimeout(f, 0); }
+      function renderValueIn(val, container) {
+        setImmediate(function() {
+          outputUI.renderPyretValue(container, runtime, val);
+        });
+      }
 
       // Exception will be one of:
       // - an Array of compileErrors,
@@ -410,6 +418,78 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
           container.append(dom);
         }
 
+        function drawTypeMismatch(isArg, loc) {
+          return function(val, name) {
+            var probablyErrorLocation = getLastUserLocation(e);
+            var dom = $("<div>").addClass("compile-error");
+            var valContainer = $("<div>");
+            renderValueIn(val, valContainer);
+            var type = $("<a>").append($("<code>").text("this annotation"));
+            var typeName = $("<code>").text(name);
+            errorHover(type, [loc]);
+            dom.append($("<p>").append(["Expected to get ", typeName, " because of ", type, " but got"]))
+              .append($("<br>"))
+              .append(valContainer);
+            if(probablyErrorLocation && isArg) {
+              var srcloc = drawSrcloc(probablyErrorLocation);
+              dom.append($("<br>"))
+                .append($("<p>").text(" called from around "))
+                .append(srcloc);
+              errorHover(srcloc, [probablyErrorLocation]);
+            }
+            dom.append(drawExpandableStackTrace(e));
+            container.append(dom);
+          };
+        }
+
+        function drawPredicateFailure(isArg, loc) {
+          return function(val, predName) {
+            var probablyErrorLocation = getLastUserLocation(e);
+            var dom = $("<div>").addClass("compile-error");
+            var valContainer = $("<div>");
+            renderValueIn(val, valContainer);
+            var type = $("<a>").text("this annotation");
+            var pred = $("<code>").text(predName);
+            errorHover(type, [loc]);
+            dom.append($("<p>").append(["The predicate ", pred, " in ", type, " returned false for this value:"]))
+              .append($("<br>"))
+              .append(valContainer);
+            if(probablyErrorLocation && isArg) {
+              var srcloc = drawSrcloc(probablyErrorLocation);
+              dom.append($("<br>"))
+                .append($("<p>").text(" called from around "))
+                .append(srcloc);
+              errorHover(srcloc, [probablyErrorLocation]);
+            }
+            dom.append(drawExpandableStackTrace(e));
+            container.append(dom);
+          };
+        }
+
+        function drawRecordFieldsFail(isArg, loc) {
+          return function(val, fieldFailures) {
+                        
+          };
+        }
+
+        function drawDotAnnNotPresent(isArg, loc) {
+          return function(name, field) {
+
+          }
+        }
+
+        function drawPyretContractFailure(err) {
+          var isArg = ffi.isFailArg(err);
+          var loc = get(e.exn, "loc");
+          var reason = get(e.exn, "reason");
+          cases(get(contracts, "FailureReason"), "FailureReason", reason, {
+              "type-mismatch": drawTypeMismatch(isArg, loc),
+              "predicate-failure": drawPredicateFailure(isArg, loc),
+              "record-fields-fail": drawRecordFieldsFail(isArg, loc),
+              "dot-ann-not-present": drawDotAnnNotPresent(isArg, loc)
+            });
+        }
+
         function drawPyretParseError() {
           cases(get(error, "ParseError"), "ParseError", e.exn, {
               "parse-error-next-token": drawParseErrorNextToken,
@@ -418,6 +498,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
         }
         if(!runtime.isObject(e.exn)) {
           drawRuntimeErrorToString(e)();
+        }
+        else if(isContractError(e.exn)) {
+          drawPyretContractFailure(e.exn);
         }
         else if(mkPred("RuntimeError")(e.exn)) {
           drawPyretRuntimeError();
