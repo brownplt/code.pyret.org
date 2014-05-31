@@ -97,6 +97,8 @@ function makeHoverMenu(triggerElt, menuElt, onShow) {
 
 function makeShareLink(originalFile) {
   var link = $("<div>").append($("<button class=blueButton>").text("Share..."));
+  link.attr("title", "Create links to share with others, and see previous shared copies you've made.");
+  link.tooltip({ position: { my: "right top", of: link } });
   var shareDiv = $("<div>").addClass("share");
   return makeHoverMenu(link, shareDiv,
     function() {
@@ -112,6 +114,8 @@ function showShares(container, originalFile) {
     container.empty();
     console.log(sharedInstances);
     var a = $("<a>").text("Share a new copy").attr("href", "javascript:void(0)");
+    a.attr("title", "This will make a new copy of the file as you see it now, and create a link that you can share with others.  They will be able to see, run, and make their own copy of your program, but not edit the original.");
+    a.tooltip({ position: { my: "right top", of: a } });
     a.click(function() {
       var copy = originalFile.makeShareCopy();
       a.text("Copying...").attr("href", null);

@@ -151,3 +151,12 @@ code {
   border: 1px solid #111;
   background-color: #fefefe;
 }
+
+.ui-tooltip {
+  z-index: 15000;
+  background: #fff;
+}
+
+.ui-tooltip.ui-widget-content {
+  background: #fff;
+}
