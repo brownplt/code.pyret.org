@@ -5,9 +5,9 @@ var storage = require("./storage/redis-store.js");
 var server = require("./server.js");
 Q.longStackSupport = true;
 
-var redis = process.env["REDISCLOUD_URL"];
-if(redis !== "") {
-  var redisURL = url.parse(redis);
+var redisParam = process.env["REDISCLOUD_URL"];
+if(redisParam !== "") {
+  var redisURL = url.parse(redisParam);
   var client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
   if(redisURL.auth) {
     client.auth(redisURL.auth.split(":")[1]);
