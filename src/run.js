@@ -7,7 +7,7 @@ Q.longStackSupport = true;
 
 var redis = process.env["REDISCLOUD_URL"];
 if(redis !== "") {
-  var redisURL = url.parse();
+  var redisURL = url.parse(redis);
   var client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
   if(redisURL.auth) {
     client.auth(redisURL.auth.split(":")[1]);
