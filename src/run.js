@@ -5,10 +5,16 @@ var storage = require("./storage/redis-store.js");
 var server = require("./server.js");
 Q.longStackSupport = true;
 
-var redisURL = url.parse(process.env["REDISCLOUD_URL"]);
-var client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
-if(redisURL.auth) {
-  client.auth(redisURL.auth.split(":")[1]);
+var redis = process.env["REDISCLOUD_URL"];
+if(redis !== "") {
+  var redisURL = url.parse();
+  var client = redis.createClient(redisURL.port, redisURL.hostname, {no_ready_check: true});
+  if(redisURL.auth) {
+    client.auth(redisURL.auth.split(":")[1]);
+  }
+}
+else {
+  var client = null;
 }
 
 var res = Q.fcall(function(db) {

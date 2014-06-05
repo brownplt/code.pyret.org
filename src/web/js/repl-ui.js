@@ -232,6 +232,12 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       });
     }
 
+    var img = $("<img>").attr({
+      "src": "/img/pyret-spin.gif",
+      "width": "25px",
+    }).css({
+      "vertical-align": "middle"
+    });
     function afterRun() {
       options.runButton.empty();
       options.runButton.text("Run");
@@ -239,12 +245,6 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     }
     function setWhileRunning() {
       options.runButton.empty();
-      var img = $("<img>").attr({
-        "src": "/img/pyret-spin.gif",
-        "width": "25px",
-      }).css({
-        "vertical-align": "middle"
-      });
       var text = $("<span>").text("Running...");
       text.css({
         "vertical-align": "middle"

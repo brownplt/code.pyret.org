@@ -68,9 +68,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           cases(get(srcloc, "Srcloc"), "Srcloc", oldLoc, {
             "builtin": function(_) {
               var p = $("<p>");
-              p.append("Oops!  The name ");
+              p.append("The name ");
               p.append($("<span>").addClass("code").text(id));
-              p.append(" is taken by Pyret, and your program isn't allowed to define it.  You need to pick a different name for ");
+              p.append(" is already defined.  You need to pick a different name for ");
               p.append($("<span>").addClass("code").text(id));
               p.append(" at ");
               p.append(drawSrcloc(newLoc));
