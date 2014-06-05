@@ -472,13 +472,30 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
         function drawRecordFieldsFail(isArg, loc) {
           return function(val, fieldFailures) {
-                        
+            var probablyErrorLocation = getLastUserLocation(e);
+            var dom = $("<div>").addClass("compile-error");
+            var valContainer = $("<div>");
+            renderValueIn(val, valContainer);
+            var type = $("<a>").text("this annotation");
+            errorHover(type, [loc]);
+            dom.append($("<p>").append(["The record annotation at ", type, " failed on this value:"]))
+              .append($("<br>"))
+              .append(valContainer);
+            var failuresArr = ffi.toArray(fieldFailures);
+
+
+            container.append(dom);
+
           };
         }
 
         function drawDotAnnNotPresent(isArg, loc) {
           return function(name, field) {
-
+            var dom = $("<div>").addClass("compile-error");
+            var ann = $("<a>").text(" the annotation named " + field);
+            errorHover(ann, [loc]);
+            dom.append($("<p>").append(["Couldn't find ", ann, " in the annotations from ", $("<code>").text(name)]));
+            container.append(dom);
           }
         }
 
