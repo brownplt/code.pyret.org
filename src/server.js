@@ -32,6 +32,15 @@ function start(config, onServerReady) {
 
   app = express();
 
+  // From http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
+  /* At the top, with other redirect methods before other routes */
+  app.get('*',function(req,res,next){
+    if(req.headers['x-forwarded-proto'] !== 'https' && !config.development)
+      res.redirect(config.baseUrl + req.url);
+    else
+      next(); /* Continue to other routes if we're not redirecting */
+  })
+
   // This has to go first to override other options
   app.get("/js/pyret.js", function(req, res) {
     res.set("Content-Encoding", "gzip");
