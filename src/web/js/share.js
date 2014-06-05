@@ -150,7 +150,7 @@ function showShares(container, originalFile) {
 
 function drawShareRow(f) {
   var container = $("<div>");
-  var localShareUrl = "/share.html#share=" + f.getUniqueId();
+  var localShareUrl = "/editor#share=" + f.getUniqueId();
   var shareUrl = window.location.origin + localShareUrl;
   container.append($("<span>").text(new Date(f.getModifiedTime())));
   container.append($("<a>").attr({
