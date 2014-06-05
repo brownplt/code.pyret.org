@@ -1,14 +1,7 @@
-.fileRow {
-  padding: 5px;
-  
-}
-
-.fileRow td {
-  padding-right: 1em;
-}
-
 #main {
   padding-top: 80px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
+
+

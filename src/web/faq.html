@@ -1,0 +1,77 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/src/web/reset.css"></link>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/lib/CodeMirror/lib/codemirror.css"></link>
+  <link rel="stylesheet" href="/src/web/shared.css"></link>
+  <link rel="stylesheet" href="/src/web/my-programs.css"></link>
+</head>
+<body>
+<div id="header">
+</div>
+<div id="toolbar">
+  <a id="newButton" href="/editor"><button class="loginOnly blueButton">Start New Program</button></a>
+</div>
+<div id="main">
+
+<h3>How do we use your Google account?</h3>
+
+<p> We ask for a single permission: <b>View and manage Google Drive files that
+you have opened or created with this app.</b> This permission lets us create
+files in your Drive, and update those files later.  Also, if in the future we
+provide a way for you to directly upload Pyret files and load them into
+<code>code.pyret.org</code> from your Drive, you can explicitly grant
+permission for this application to view and edit certain files.  </p>
+
+<p> We use client-only authorization (if you're really interested, we use APIs
+similar to the ones described in
+https://developers.google.com/drive/web/quickstart/quickstart-js), so this
+application can only access your data from open pages on our site.  We don't
+save any access tokens to our server (for the technical audience: our server
+only serves static files and acts as a proxy to get around some
+Same Origin Policy issues).  </p>
+
+<p> You can always go to <a
+href="https://security.google.com/settings/security/permissions?pli=1">https://security.google.com/settings/security/permissions?pli=1</a>
+and immediately remove all access that we have to your account.  Your programs
+and <code>code.pyret.org</code> folder will <em>not</em> be deleted if you do
+so, but you can always manually delete the folder and its contents yourself.
+</p>
+
+
+</p>
+
+<h3>Where are things stored in my Drive?</h3>
+
+<p>
+We initially make a single folder in your Google Drive, called
+<code>code.pyret.org</code>, and store all of your programs there, with the
+names you choose for them.  They are all created with you as the owner, and
+private to your account.
+</p>
+
+<p>
+If you <em>share</em> programs, we create a new folder, called
+<code>code.pyret.org.shared</code>, and we make a <em>publicly-readable
+copy</em> of any programs you share in that directory.  If you delete this
+files in this folder, links for those programs you have shared with others
+will stop working, but any copies others have made will be theirs to keep.
+Each time you share a program, a new copy is created from its current
+contents.
+</p>
+
+<p> We can only see files that we created, so simply moving another file into
+your <code>code.pyret.org</code> collection won’t cause it to show up in our
+interface: you need to create the file manually through our editor.  </p>
+
+<p> The listing of programs in this application only looks for the
+<code>code.pyret.org</code> folder and its contents, so if you rename or remove
+that folder, a new, empty one will be created for you on your next login.</p>
+
+</p>
+</div>
+</body>
+

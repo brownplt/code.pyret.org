@@ -17,6 +17,7 @@
 .repl .CodeMirror pre {
   padding: 0;
 }
+.CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
 .cm-s-default.CodeMirror { color: #111; }
 .cm-s-default .cm-comment { color: #39f; }
@@ -48,6 +49,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
     background-color: #fdc;
+    z-index: 4000;
 }
 
 .replTextOutput .CodeMirror {
@@ -87,6 +89,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 .repl {
   padding-left: 0.5em;
+  padding-bottom: 5em;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
   background-color: #f8f8f8;
@@ -105,7 +110,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .check-failure {
-  background-color: #fcc;
+  background-color: #d66;
 }
 
 .check-block {
@@ -117,7 +122,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .check-block-failed {
-  background-color: #fcc;
+  background-color: #d66;
 }
 
 .check-block-success {
@@ -227,7 +232,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 75px;
+  padding-top: 55px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -242,7 +247,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 80px;
+  padding-top: 55px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -267,23 +272,30 @@ body {
   width: 100%;
   z-index: 5000;
   height: 100%;
-  padding-top: 75px;
+  padding-top: 55px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
 
 #program-name-container {
-  color: #eee;
-  float: left;
+  margin-top: 12px;
+  display: inline-block;
   font-family: sans-serif;
 }
 
-#saveButton {
-  float: left;
+#program-name-container input {
+  display: inline-block;
 }
-#shareButton {
-  float: left;
+
+#program-name-container label {
+  display: inline-block;
+}
+
+#saveButton {
+}
+#shareContainer {
+  display: inline-block;
 }
 
 .notificationArea {
@@ -303,14 +315,18 @@ body {
   font-weight: bold;
 }
 
+.logoutOnly {
+  display: none;
+}
+
 .loginOnly {
   display: none;
 }
 
-.rhs {
-  float: right;
+#menuContents {
+  background-color: #fefefe;
+  border: 1px solid black;
 }
-
 .replPrint {
   padding-top: 0;
   padding-bottom: 0.5em;
@@ -364,7 +380,7 @@ span.rationalRepeat {
 }
 
 .error-highlight {
-  background-color: #FCC;
+  background-color: #fcc;
   border-bottom: 2px solid #F33;
 }
 
@@ -375,13 +391,9 @@ span.rationalRepeat {
 
 .compile-error {
   font-family: sans-serif;
-  border: 1px solid #F33;
-  border-radius: 1em;
-  padding: 1em;
-}
-
-.compile-error:hover {
-  background-color: #FCC;
+  border: 3px solid #d66;
+  font-size: 10pt;
+  padding: 3px;
 }
 
 .compile-error .code {
@@ -390,6 +402,49 @@ span.rationalRepeat {
 
 .compile-error .srcloc {
   font-family: monospace; 
+}
+
+.compile-error a {
+  color: #469ad4;
+  cursor: pointer;
+}
+
+.compile-error a:hover {
+  background-color: #fcc;
+}
+
+.parse-error {
+  font-family: sans-serif;
+  border: 3px solid #d66;
+  font-size: 10pt;
+  padding: 3px;
+}
+
+.error-icon {
+  size: 16pt;
+  color: #f33;
+}
+
+.parse-error .code {
+  font-family: monospace; 
+}
+
+.parse-error .srcloc {
+  font-family: monospace; 
+}
+
+.parse-error a {
+  color: #469ad4;
+  cursor: pointer;
+}
+
+.parse-error a:hover {
+  text-decoration: underline;
+}
+
+.parse-error ul {
+  list-style-type: disc;
+  padding-left: 1em;
 }
 
 .warning-upper {
@@ -404,6 +459,7 @@ span.rationalRepeat {
    background: -o-linear-gradient(top,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* Opera 11.10+ */
    background: -ms-linear-gradient(top,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* IE10+ */
    background: linear-gradient(to bottom,  rgba(221,44,44,1) 0%,rgba(145,78,78,0) 50%); /* W3C */
+   height: 75px;
 }
 
 .warning-lower {
@@ -418,12 +474,18 @@ span.rationalRepeat {
    width: 100%;
    text-align: center;
    display:none;
+   height: 75px;
 }
 
 .topbar {
   position: fixed;
   width: 100%;
   background-color: #eee;
+}
+
+/* NOTE(joe): removes the white bar in popups */
+.ui-widget-content{
+  background: none;
 }
 
 /* From internet: http://stackoverflow.com/questions/5663137/jquery-modal-dialog-is-hidden-by-overlay-div-if-dialogs-parent-has-fixed-positi */
@@ -471,3 +533,14 @@ span.rationalRepeat {
   content: "×"
 }
 
+#breakButton {
+  width: 150px;
+  height: 40px;
+  margin: 5px;
+}
+
+#runButton {
+  width: 150px;
+  height: 40px;
+  margin: 5px;
+}

@@ -1,0 +1,107 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/css/reset.css"></link>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/css/codemirror.css"></link>
+  <link rel="stylesheet" href="/css/shared.css"></link>
+  <link rel="stylesheet" href="/css/my-programs.css"></link>
+  <link rel="icon" type="image/png" href="/img/pyret-icon.png">
+</head>
+<body>
+<div id="loader" style="top: 80px;"><p></p></div>
+<div id="header">
+  <div id="newButton"><a id="newLink" href="/repl.html"><button class="loginOnly blueButton">Start New Program</button></a></div>
+</div>
+<div id="toolbar">
+</div>
+<div id="main">
+
+</div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/js/q.js"></script>
+<script src="/js/programs.js"></script>
+<script src="/js/authenticate-storage.js"></script>
+<script>
+// NOTE TO THOSE VIEWING SOURCE
+// These keys only work when used from a web page with the domain of this app.
+var clientId = "";
+var apiKey = "{{ GOOGLE_API_KEY }}";
+function handleGoogLoad() {
+  handleClientLoad(clientId, apiKey);
+}
+</script>
+<script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script src="/js/share.js"></script>
+<script src="/js/loader.js"></script>
+<script>
+
+function display(storageAPI) {
+  var api = storageAPI.api;
+  var result = api.getAllFiles()
+  .then(function(files) {
+    $("#main").empty();
+    $("#loader").hide();
+    var main = $("#main");
+    var table = $("<table>");
+    function makeEntry(file) {
+      console.log("Entry: ", file);
+      var elt = $("<tr>").addClass("fileRow");
+      elt.append($("<td>").append($("<div>").text(file.getName())).attr( {
+        "title": file.getName()
+      }));
+      elt.append($("<td>").text(new Date(file.getModifiedTime())));
+      elt.append($("<td>").append($("<a>").attr({
+        "target": "_blank",
+        "href": "/repl.html#program=" + file.getUniqueId()
+      }).text("Open")));
+      var shareLink = $("<td>").append(makeShareLink(file));
+      elt.append(shareLink);
+/*
+      elt.append($("<td>").append($("<a>").attr({
+        "target": "_blank",
+        "href": file.getExternalURL()
+      }).text("View on Google Drive")));
+*/
+      table.append(elt);
+    }
+    if(files.length > 0) {
+      main.append(table);
+      files.forEach(makeEntry);
+    }
+    else {
+      $("#main").append($("<p>").text("It looks like you don't have any programs yet.  You can start one by clicking “Start New Program” above."));
+    }
+  })
+  result.fail(function(err) {
+    console.error("Error loading programs: ", err);
+  });
+}
+
+function unexpectedError(err) {
+  console.error("Error loading programs: ", err);
+}
+
+storageAPI.then(function(api) {
+  api.collection.then(function() {
+    display(api);
+  });
+  api.collection.fail(function(err) {
+    $("#loader").hide();
+    $("#main").append($("<p>").text("We couldn't load your programs."));
+    var connect = 
+      $("<button>").addClass("blueButton").text("Connect to Drive")
+    $("#main").append(connect);
+    connect.click(function() {
+      createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false).then(display);
+    });
+    console.error("Failed to load files: ", err);
+  });
+});
+</script>
+</html>

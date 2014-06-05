@@ -1,0 +1,162 @@
+
+body {
+  line-height: 1.3;
+}
+
+em {
+  font-style: italic;
+}
+
+#loader {
+  position: fixed;
+  left: 0px;
+  top: 55px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: url('/img/pyret-spin.gif') 50% 40px no-repeat rgb(249,249,249);
+  background-size: 250px 250px;
+}
+
+#help-keys {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background-color: #ddd;
+  border-radius: 5px;
+  border: 50px solid rgba(0, 0, 0, 0.7);
+  -webkit-background-clip: padding-box; /* for Safari */
+  background-clip: padding-box;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  display: none;
+}
+
+#loader p {
+  position: relative;
+  top: 320px;
+  text-align: center;
+  width: 100%;
+}
+
+#header {
+  position: fixed;
+  z-index: 9000;
+  top: 0;
+  width: 100%;
+  height: 50px;
+  background: url("/img/pyret-logo.png") 10px 3px no-repeat #ddd;
+  background-size: 40px 40px;
+  padding-left: 60px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+#header div a {
+  width: 100px;
+  margin-top: 15px;
+  float: left;
+  padding-right: 2em;
+}
+
+#header a {
+  color: #111;
+  font-family: sans-serif;
+}
+
+#menu {
+  display: inline-block;
+}
+
+#toolbar {
+  position: fixed;
+  z-index: 8000;
+  top: 50px;
+  height: 5px;
+  width: 100%;
+  background-color: #111;
+}
+
+#footer {
+  height: 5px;
+  background-color: #111;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+
+.blueButton {
+    font-family: sans-serif;
+/*  darker blue option #2a348b */
+    background-color: #469ad4;
+    border: 1px solid #469ad4;
+    border-radius: 3px;
+    color: #eee;
+    text-align: center;
+}
+
+.blueButton:hover {
+    background-color: #eee;
+    color: #469ad4;
+    cursor: pointer;
+}
+
+.blueButton:disabled {
+    background-color: #9cc;
+    border: 1px solid #9cc;
+    color: #ddd;
+    cursor: default;
+}
+
+.rhs {
+  float: right;
+}
+
+h3 {
+  font-size: 16pt;
+  font-weight: bold;
+}
+
+p {
+  margin: .5em;
+}
+
+ul {
+  margin: .5em;
+}
+
+ul li{
+  padding-top: .5em;
+  padding-bottom: .5em;
+}
+
+b {
+  font-weight: bold;
+}
+
+code {
+  font-family: monospace;
+}
+
+#shareDialog {
+  
+}
+
+.share {
+  display: inline-block;
+  border: 1px solid #111;
+  background-color: #fefefe;
+}
+
+.ui-tooltip {
+  z-index: 15000;
+  background: #fff;
+}
+
+.ui-tooltip.ui-widget-content {
+  background: #fff;
+}

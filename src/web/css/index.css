@@ -13,14 +13,18 @@ h1 {
   height: 100px;
 }
 
-#login {
+#about {
   vertical-align: middle;
-  margin-right: 2em;
+  margin-left: 3em;
+  font-size: 18pt;
+  width: 20em;
 }
 
 #start {
   vertical-align: middle;
-  margin-left: 2em;;
+  margin-right: 3em;;
+  font-size: 18pt;
+  width: 20em;
 }
 
 #main {

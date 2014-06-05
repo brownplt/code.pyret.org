@@ -14,6 +14,7 @@ function makeAuth(config) {
 
   return {
     refreshAccess: function(refreshToken, callback) {
+      console.log(refreshToken);
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -26,7 +27,7 @@ function makeAuth(config) {
         callback(null, tokens.access_token);
       });
     },
-    getAuthUrl: function() {
+    getAuthUrl: function(afterUrl) {
         return oauth2Client.generateAuthUrl({
         // Offline lets us handle refreshing access on our own (rather than
         // popping up a dialog every half hour)
@@ -36,12 +37,12 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: 'email https://www.googleapis.com/auth/drive.file'
+        scope: 'email https://www.googleapis.com/auth/drive.file',
+        state: afterUrl
       });
     },
     serveRedirect: function(req, callback) {
       var authCode = req.param("code");
-      console.log(JSON.stringify(req.param("code")));
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -49,6 +50,7 @@ function makeAuth(config) {
               config.baseUrl + config.google.redirect
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
+        console.log("Got tokens: ", JSON.stringify(tokens));
         if(err !== null) { callback(err, null); return; }
         if(!(typeof tokens.id_token === "string")) {
           callback(new Error("No identity information provided"), null); return;
@@ -85,9 +87,8 @@ function makeAuth(config) {
         // from elsewhere, we need to set up polling of Google's public key
         // servers to get the correct public key of the day to validate these
         // tokens cryptographically.
-        console.log("tokens: ", JSON.stringify(tokens));
         var decodedId = jwt.decode(tokens.id_token, {}, true);
-        callback(null, { googleId: decodedId["sub"], email: decodedId["email"], access: tokens.access_token, refresh: tokens.refresh_token });
+        callback(null, { googleId: decodedId["sub"], access: tokens.access_token, refresh: tokens.refresh_token });
       });
     }
   };

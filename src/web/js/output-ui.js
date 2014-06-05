@@ -71,14 +71,14 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     
     function setWarningState(obj) {
  
-      var opacity = obj.css("opacity");
+      var opacity = Number(obj.css("opacity"));
 
-      if (warnDesired != opacity) {
+      if (warnDesired !== opacity) {
         // Only act if the warning is all the way in or out.  The '1'
         // in the following test is because the initial state is
         // opacity = 1, though the element is not visible.
-        if ((opacity == 0) || (opacity == fadeAmt) || (opacity == 1)) {
-          if (warnDesired == fadeAmt) {
+        if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
+          if (warnDesired === fadeAmt) {
             obj.fadeTo("fast", fadeAmt, function() {
               setTimeout(function() {
                 obj.fadeTo("slow", 0.0);
@@ -259,13 +259,20 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
           // Either we're looking at a string or some number with only
           // one representation. Just print it, using the CodeMirror
           // textarea for styling.
-          var outText = runtime.toReprJS(answer, "_torepr");
-
-          var echo = $("<textarea class='CodeMirror'>");
-          output.append(echoContainer);
-          echoContainer.append(echo);
-          var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: 'nocursor' });
-          echoCM.setValue(outText);
+          runtime.runThunk(function() {
+            return runtime.toReprJS(answer, "_torepr");
+          }, function(outText) {
+            var echo = $("<textarea class='CodeMirror'>");
+            output.append(echoContainer);
+            echoContainer.append(echo);
+            if(runtime.isSuccessResult(outText)) {
+              echo.text(outText.result);
+            }
+            else {
+              echo.text("<error displaying value>");
+            }
+            CodeMirror.fromTextArea(echo[0], { readOnly: true });
+          });
         }
 
         return echoContainer;

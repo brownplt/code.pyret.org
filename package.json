@@ -6,11 +6,10 @@
   "dependencies": {
     "lodash": "~2.4.1",
     "q": "~1.0.1",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang#new-world",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang",
     "requirejs": "~2.1.11",
     "node-static": "^0.7.3",
     "express": "^4.1.1",
-    "pg": "^3.0.3",
     "request": "^2.34.0",
     "googleapis": "^0.7.0",
     "node-uuid": "^1.4.1",
@@ -18,13 +17,17 @@
     "csurf": "^1.1.0",
     "cookie-session": "^1.0.1",
     "cookie-parser": "^1.0.1",
-    "url.js": "^1.0.2"
+    "jasmine-node": "^1.14.3",
+    "selenium-webdriver": "^2.41.0",
+    "mustache": "^0.8.1",
+    "url.js": "^1.0.2",
+    "redis": "^0.10.3"
   },
   "devDependencies": {},
   "scripts": {
-    "postinstall": "make post-install",
+    "postinstall": "make web",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Joe Politz",
-  "license": "ISC"
+  "license": "Apache 2"
 }
