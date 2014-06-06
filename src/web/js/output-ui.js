@@ -160,11 +160,18 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
   }
 
   function hoverLink(editors, runtime, srcloc, dom, loc, className) {
+    // http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript
+    function basename(str) {
+       var base = new String(str).substring(str.lastIndexOf('/') + 1); 
+        if(base.lastIndexOf(".") != -1)       
+           base = base.substring(0, base.lastIndexOf("."));
+       return base;
+    }
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
     var src = runtime.unwrap(get(loc, "source"));
     if (!editors.hasOwnProperty(src)) {
-      dom.attr("title", get(loc, "format").app(true));
+      dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.");
       dom.tooltip();
       return dom;
     }

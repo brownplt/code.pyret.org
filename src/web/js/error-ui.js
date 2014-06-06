@@ -363,6 +363,44 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append($("<p>").append(["The module(s) "], $("<code>").text(arr.join(", ")), [" failed to load"]));
           container.append(dom);
         }
+
+        function drawPlusError(val1, val2) {
+          var dom = $("<div>").addClass("compile-error");
+          var val1C = $("<div>");
+          var val2C = $("<div>");
+          dom.append([$("<p>").append(["Invalid use of ", $("<code>").text("+"), " for these values: "]),
+            val1C,
+            val2C,
+            $("<p>").text("Plus takes one of: "),
+            $("<ul>").append([
+              $("<li>").text("Two strings"),
+              $("<li>").text("Two numbers"),
+              $("<li>").text("A left-hand side with a _plus method")
+            ]),
+            drawExpandableStackTrace(e)]);
+          renderValueIn(val1, val1C);
+          renderValueIn(val2, val2C);
+          container.append(dom);
+        }
+
+        function drawNumericBinopError(val1, val2, opname, methodname) {
+          var dom = $("<div>").addClass("compile-error");
+          var val1C = $("<div>");
+          var val2C = $("<div>");
+          dom.append([$("<p>").append(["Invalid use of ", $("<code>").text(opname), " for these values: "]),
+            val1C,
+            val2C,
+            $("<p>").text("Either:"),
+            $("<ul>").append([
+              $("<li>").text("Both arguments must be numbers, or"),
+              $("<li>").text("The left-hand side must have a " + methodname + " method")
+            ]),
+            drawExpandableStackTrace(e)]);
+          renderValueIn(val1, val1C);
+          renderValueIn(val2, val2C);
+          container.append(dom);
+
+        }
         
         function drawPyretRuntimeError() {
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
@@ -372,6 +410,8 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "lookup-non-object": drawLookupNonObject,
               "generic-type-mismatch": drawGenericTypeMismatch,
               "arity-mismatch": drawArityMismatch,
+              "plus-error": drawPlusError,
+              "numeric-binop-error": drawNumericBinopError,
               "non-boolean-condition": drawNonBooleanCondition,
               "non-boolean-op": drawNonBooleanOp,
               "non-function-app": drawNonFunctionApp,
@@ -436,7 +476,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             renderValueIn(val, valContainer);
             var type = $("<a>").append($("<code>").text("this annotation"));
             var typeName = $("<code>").text(name);
-            errorHover(type, [loc]);
+            singleHover(type, loc);
             dom.append($("<p>").append(["Expected to get ", typeName, " because of ", type, " but got"]))
               .append($("<br>"))
               .append(valContainer);
