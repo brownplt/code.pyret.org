@@ -36,7 +36,7 @@ selenium-test-sauce:
 
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/%.html,$(wildcard src/web/*.template.html))
 
-build/web/%.html: src/web/%.template.html
+build/web/%.html: src/web/%.template.html .env
 	node make-template.js $< > $@
 
 COPY_HTML := $(patsubst src/web/%.html,build/web/%.html,$(wildcard src/web/*.html))
@@ -46,7 +46,7 @@ build/web/%.html: src/web/%.html
 
 OUT_CSS := $(patsubst src/web/%.template.css,build/web/%.css,$(wildcard src/web/css/*.template.css))
 
-build/web/css/%.css: src/web/css/%.template.css
+build/web/css/%.css: src/web/css/%.template.css .env
 	node make-template.js $< > $@
 
 COPY_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/*.css))
