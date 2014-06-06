@@ -17,6 +17,8 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       animationDiv = null;
     }
   }
+  var editors = {};
+  var interactionsCount = 0;
   function makeEditor(container, options) {
     var initial = "";
     if (options.hasOwnProperty("initial")) {
@@ -115,7 +117,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
         else {
           var exn = err.exn;
           try {
-            errorUI.drawError(output, uiOptions.cm, runtime, exn);
+            errorUI.drawError(output, editors, runtime, exn);
             scroll(output);
           }
           catch(e) {
@@ -131,7 +133,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
           scroll(output);
         }
 
-        checkUI.drawCheckResults(output, uiOptions.cm, runtime, runtime.getField(obj.result, "checks"));
+        checkUI.drawCheckResults(output, editors, runtime, runtime.getField(obj.result, "checks"));
         scroll(output);
 
         console.log(JSON.stringify(obj.stats));
@@ -257,7 +259,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       breakButton.attr("disabled", false);
       output.empty();
       promptContainer.hide();
-      var defaultReturnHandler = options.check ? checkModePrettyPrint : prettyPrint;
+      var defaultReturnHandler = checkModePrettyPrint;
       var thisReturnHandler;
       if (uiOptions.wrappingReturnHandler) {
         thisReturnHandler = uiOptions.wrappingReturnHandler(output);
@@ -274,6 +276,10 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       lastNameRun = uiOptions.name || "interactions";
       lastEditorRun = uiOptions.cm || null;
       setWhileRunning();
+
+      editors = {};
+      editors["definitions"] = uiOptions.cm;
+      interactionsCount = 0;
       evaluator.runMain(uiOptions.name || "run", src, enablePrompt(thisReturnHandler), thisWrite, enablePrompt(thisError), options, afterRun);
     }, true);
 
@@ -306,14 +312,17 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
           promptContainer.hide();
           setWhileRunning();
           makeHighlightingRunCode(runtime, function(src, uiOptions, options) {
-            evaluator.runRepl('interactions',
-                        src,
+            interactionsCount++;
+            var thisName = 'interactions' + interactionsCount;
+            editors[thisName] = echoCM;
+            evaluator.runRepl(thisName,
+                        code,
                         enablePrompt(uiOptions.wrappingReturnHandler(output)),
                         write,
                         enablePrompt(uiOptions.wrappingOnError(output)),
-                        merge(options, merge(replOpts, {check: true})),
+                        merge(options, merge(replOpts, {name: lastNameRun, check: true})),
                         afterRun);
-          }, false)(code, merge(opts, {name: lastNameRun, cm: echoCM}), replOpts);
+          }, false)(code, merge(opts, {cm: echoCM}), replOpts);
         },
         "interactions");
 
@@ -347,37 +356,6 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       if (err.message) {
         write(jQuery('<span/>').css('color', 'red').append(err.message));
         write(jQuery('<br/>'));
-      }
-    };
-
-    var prettyPrint = function(result) {
-      if (result.hasOwnProperty('_constructorName')) {
-        switch(result._constructorName.val) {
-        case 'p-num':
-        case 'p-bool':
-        case 'p-str':
-        case 'p-object':
-        case 'p-fun':
-        case 'p-method':
-          whalesongFFI.callPyretFun(
-              whalesongFFI.getPyretLib("torepr"),
-              [result],
-              function(s) {
-                var str = pyretMaps.getPrim(s);
-                write(jQuery("<pre class='repl-output'>").text(str));
-                write(jQuery('<br/>'));
-              }, function(e) {
-                ct_err("Failed to tostring: ", result);
-              });
-          return true;
-        case 'p-nothing':
-          return true;
-        default:
-          return false;
-        }
-      } else {
-        console.log(result);
-        return false;
       }
     };
 
@@ -438,7 +416,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       return true;
     }
 
-    var evaluator = makeEvaluator(container, repl, runtime, prettyPrint);
+    var evaluator = makeEvaluator(container, repl, runtime);
 
 
     var onBreak = function() {
@@ -460,7 +438,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     };
   }
 
-  function makeEvaluator(container, repl, runtime, handleReturnValue) {
+  function makeEvaluator(container, repl, runtime) {
     var runMainCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
       var evaluation = repl.restartInteractions(src);
       evaluation.then(function(result) {
@@ -476,7 +454,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     };
 
     var runReplCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
-      var evaluation = repl.run(src);
+      var evaluation = repl.run(src, name);
       evaluation.then(function(result) {
         if(runtime.isSuccessResult(result)) {
           returnHandler(result);
@@ -498,7 +476,12 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       repl.restartInteractions("").then(afterReset);
     };
 
-    return {runMain: runMainCode, runRepl: runReplCode, requestBreak: breakFun, requestReset: resetFun};
+    return {
+      runMain: runMainCode,
+      runRepl: runReplCode,
+      requestBreak: breakFun,
+      requestReset: resetFun
+    };
   }
 
   function namedRunner(runFun, name) {

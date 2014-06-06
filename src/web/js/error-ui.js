@@ -1,6 +1,6 @@
 define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
 
-  function drawError(container, editor, runtime, exception) {
+  function drawError(container, editors, runtime, exception) {
     var ffi = ffiLib(runtime, runtime.namespace);
     var image = imageLib(runtime, runtime.namespace);
     var cases = ffi.cases;
@@ -37,14 +37,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       function drawSrcloc(s) {
         return s ? $("<a>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
       }
-      
-      function errorHover(dom, locs) {
-        outputUI.hoverLocs(editor, runtime, srcloc, dom, locs, "error-highlight");
+
+      function singleHover(dom, loc) {
+        outputUI.hoverLink(editors, runtime, srcloc, dom, loc, "error-highlight");
       }
       
       function errorHover(dom, locs) {
-        outputUI.hoverLocs(editor, runtime, srcloc, dom, locs, "error-highlight");
+        outputUI.hoverLocs(editors, runtime, srcloc, dom, locs, "error-highlight");
       }
+      
 
       function drawCompileErrors(e) {
         function drawUnboundId(idExpr) {
@@ -62,7 +63,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               p.append(" is used but not defined at ");
               dom.append(p);
               dom.append(drawSrcloc(loc));
-              errorHover(dom, [loc]);
+              singleHover(dom, loc);
               container.append(dom);
             }
           });
@@ -79,7 +80,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               p.append(" at ");
               p.append(drawSrcloc(newLoc));
               dom.append(p);
-              errorHover(dom, [newLoc]);
+              singleHover(dom, newLoc);
               container.append(dom);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
@@ -92,7 +93,8 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               var p2 = $("<p>");
               p2.text("You need to pick a new name for one of them");
               dom.append(p).append("<br>").append(loc1).append("<br>").append(loc2).append("<br>").append(p2);
-              errorHover(dom, [oldLoc, newLoc]);
+              singleHover(loc1, oldLoc);
+              singleHover(loc2, newLoc);
               container.append(dom);
             }
           });
@@ -172,7 +174,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               var slContainer = $("<div>");
               var srcloc = drawSrcloc(ul);
               slContainer.append(srcloc);
-              errorHover(srcloc, [ul]);
+              singleHover(srcloc, ul);
               container.append(slContainer);
             });
             return expandableMore(container);
@@ -222,30 +224,34 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           }, 0);
           cases(get(srcloc, "Srcloc"), "Srcloc", funLoc, {
             "srcloc": function(/* skip args */) {
+              var caller = drawSrcloc(probablyErrorLocation);
+              var callee = drawSrcloc(funLoc);
               dom.append($("<p>").text("Expected to get " + arity + " arguments when calling the function at"))
                 .append($("<br>"))
-                .append(drawSrcloc(funLoc))
+                .append(callee)
                 .append($("<br>"))
                 .append($("<p>").text("from"))
                 .append($("<br>"))
-                .append(drawSrcloc(probablyErrorLocation))
+                .append(caller)
                 .append($("<br>"))
                 .append($("<p>").text("but got these " + args.length + " arguments: "))
                 .append($("<br>"))
                 .append(argDom)
               container.append(dom);
-              errorHover(dom, [funLoc, probablyErrorLocation]);
+              singleHover(callee, funLoc);
+              singleHover(caller, probablyErrorLocation);
             },
             "builtin": function(name) {
+              var caller = drawSrcloc(probablyErrorLocation);
               dom.append($("<p>").text("Expected to get " + arity + " arguments at"))
                 .append($("<br>"))
-                .append(drawSrcloc(probablyErrorLocation))
+                .append(caller)
                 .append($("<br>"))
                 .append($("<p>").text("but got these " + args.length + " arguments: "))
                 .append($("<br>"))
                 .append(argDom);
               container.append(dom);
-              errorHover(dom, [probablyErrorLocation]);
+              singleHover(caller, probablyErrorLocation);
             }
           });
         }

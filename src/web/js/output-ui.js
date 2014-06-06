@@ -10,36 +10,40 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     }
   }
 
-  function hoverLocs(editor, runtime, srcloc, elt, locs, cls) {
+  function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
 
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
-     function cmPosFromSrcloc(s) {
-       return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-         "builtin": function(_) { 
-   throw new Error("Cannot get CodeMirror loc from builtin location"); 
- },
+    function cmPosFromSrcloc(s) {
+      return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
+        "builtin": function(_) { 
+           throw new Error("Cannot get CodeMirror loc from builtin location"); 
+        },
 
-         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-           var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
-           return {
-             start: { line: startL - 1, ch: startC },
-             end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
-           };
-         }
-       });
-     }
+        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+          var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
+          return {
+            start: { line: startL - 1, ch: startC },
+            end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
+          };
+        }
+      });
+    }
     function highlightSrcloc(s, cls, withMarker) {
-       return runtime.safeCall(function() {
-         return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-           "builtin": function(_) { /* no-op */ },
-           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-             var cmLoc = cmPosFromSrcloc(s);
-             var marker = editor.markText(
-               cmLoc.start,
-               cmLoc.end,
-               { className: cls });
-            return marker;
+      return runtime.safeCall(function() {
+        return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
+          "builtin": function(_) { /* no-op */ },
+          "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+            var cmLoc = cmPosFromSrcloc(s);
+            var editor = editors[source];
+            if(editor) {
+              return editor.markText(
+                cmLoc.start,
+                cmLoc.end,
+                { className: cls });
+            } else {
+              return null;
+            }
           }
         });
       }, withMarker);
@@ -96,6 +100,8 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     var marks = [];
     elt.on("mouseenter", function() {
       var curLoc = locs[locIndex];
+      var editor = editors[get(curLoc, "source")];
+      if(!editor) { return; }
       var view = editor.getScrollInfo();
       cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
         "builtin": function(_) { },
@@ -115,7 +121,7 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         }
       });
       mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
-        marks = marks.concat(ms);
+        marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
       });
     });
     elt.on("mouseleave", function() {
@@ -136,6 +142,8 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         jQuery(".warning-lower").fadeOut("fast");
         function gotoNextLoc() {
           var curLoc = locs[locIndex];
+          var editor = editors[get(curLoc, "source")];
+          if(!editor) { return; }
           function rotateLoc() { locIndex = (locIndex + 1) % locs.length; }
           
           return cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
@@ -148,6 +156,20 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
         }
         gotoNextLoc();
       });
+    }
+  }
+
+  function hoverLink(editors, runtime, srcloc, dom, loc, className) {
+    var cases = runtime.ffi.cases;
+    var get = runtime.getField;
+    var src = runtime.unwrap(get(loc, "source"));
+    if (!editors.hasOwnProperty(src)) {
+      dom.attr("title", get(loc, "format").app(true));
+      dom.tooltip();
+      return dom;
+    }
+    else {
+      hoverLocs(editors, runtime, srcloc, dom, [loc], className);
     }
   }
 
@@ -281,7 +303,8 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
   }
   return {
     renderPyretValue: renderPyretValue,
-    hoverLocs: hoverLocs
+    hoverLocs: hoverLocs,
+    hoverLink: hoverLink
   };
 
 })

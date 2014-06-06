@@ -1,6 +1,6 @@
 define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, srclocLib, outputUI) {
 
- function drawCheckResults(container, editor, runtime, checkResults) {
+ function drawCheckResults(container, editors, runtime, checkResults) {
    var ffi = ffiLib(runtime, runtime.namespace);
    var cases = ffi.cases;
    var get = runtime.getField;
@@ -13,7 +13,7 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
      var checkContainer = $("<div>");
      function addPreToDom(cssClass, txt, loc) {
        var dom = $("<pre>").addClass(cssClass).text(txt);
-       outputUI.hoverLocs(editor, runtime, srcloc, dom, [loc], "check-highlight");
+       outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
        checkContainer.append(dom);
      }
 

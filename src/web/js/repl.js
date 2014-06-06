@@ -18,8 +18,9 @@ $(function() {
   if(params.get["share"] && !shownBefore) {
     window.localStorage.setItem(key, true);
     var explanation = $("<div>").append([$("<p>")
-      .text("You're viewing a shared program.  And edits you make are " +
-            "only applied to your copy.  You can save a copy of the program to " +
+      .text("You're viewing a copy of a shared program." +
+            "Feel free to edit it: don't worry, you won't change the original!" +
+            "You can save a copy of the program to " +
             "your Google drive that's completely separate from the original " +
             "if you want to have your own version. "),
       $("<p>").text("(Press escape or click the X to close this window and get started!)")]);
