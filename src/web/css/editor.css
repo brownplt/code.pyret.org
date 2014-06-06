@@ -300,18 +300,17 @@ body {
 
 .notificationArea {
   width: 200px;
+  font-family: sans-serif;
 }
 
 .notificationArea .active {
   width: 200px;
-  background: yellow;
   color: #111;
 }
 
 .notificationArea .error {
   width: 200px;
-  background: red;
-  color: #eee;
+  color: red;
   font-weight: bold;
 }
 

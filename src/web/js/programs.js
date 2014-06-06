@@ -54,6 +54,10 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
 
   function failCheck(p) {
     return p.then(function(result) {
+      // Network error
+      if(result && result.error) {
+        throw new Error(result);
+      }
       if(result && (typeof result.code === "number") && (result.code >= 400)) {
         console.log("Error: ", result);
         throw new Error(result);

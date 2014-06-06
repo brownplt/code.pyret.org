@@ -62,10 +62,11 @@ $(function() {
 
         // NOTE(joe): This forces the loading of all the built-in compiler libs
         var interactionsReady = repl.restartInteractions("");
+        var runButton = $("#runButton");
 
         var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
-            runButton: $("#runButton")
+            runButton: runButton
           });
         window.RUN_CODE = function(src, uiOpts, replOpts) {
           replWidget.runCode(src, uiOpts, replOpts);
@@ -86,6 +87,11 @@ $(function() {
             e.preventDefault();
           }
         });
+        function autoSave() {
+          programToSave.then(function(p) {
+            if(p !== null && !copyOnSave) { save(); }
+          });
+        }
         $(window).on("keydown", function(e) {
           if(e.ctrlKey) {
             if(e.keyCode === 83) { // "Ctrl-s"
@@ -95,6 +101,7 @@ $(function() {
             }
             else if(e.keyCode === 13) { // "Ctrl-Enter"
               editor.run();
+              autoSave();
               e.stopImmediatePropagation();
               e.preventDefault();
             } else if(e.keyCode === 68) { // "Ctrl-d"
@@ -167,7 +174,7 @@ $(function() {
           if(programLoad) {
             programLoad.fail(function(err) {
               console.error(err);
-              flashError("The program failed to load.");
+              stickError("The program failed to load.");
             });
             return programLoad;
           } else {
@@ -204,7 +211,7 @@ $(function() {
           return $("#program-name").val() || "Untitled";
         }
         function save() {
-          flashMessage("Saving...");
+          stickMessage("Saving...");
           var savedProgram = programToSave.then(function(p) {
             if(p !== null && !copyOnSave) {
               if(p.getName() !== $("#program-name").val()) {
@@ -237,10 +244,12 @@ $(function() {
             }
           });
           savedProgram.fail(function(err) {
-            flashError("Program failed to save.");
+            stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
             console.error(err);
           });
         }
+        $("#runButton").click(autoSave);
+        
         $("#saveButton").click(save);
 
         programLoaded.then(function() { $("#loader").hide(); });
@@ -257,6 +266,15 @@ $(function() {
 function clearFlash() {
   $(".notificationArea").empty();
 }
+function stickError(message, more) {
+  clearFlash();
+  var err = $("<span>").addClass("error").text(message);
+  if(more) {
+    err.attr("title", more);
+  }
+  err.tooltip();
+  $(".notificationArea").append(err);
+}
 function flashError(message) {
   clearFlash();
   var err = $("<span>").addClass("error").text(message);
@@ -268,6 +286,11 @@ function flashMessage(message) {
   var err = $("<span>").addClass("active").text(message);
   $(".notificationArea").append(err);
   err.fadeOut(7000);
+}
+function stickMessage(message) {
+  clearFlash();
+  var err = $("<span>").addClass("active").text(message);
+  $(".notificationArea").append(err);
 }
 
 $(window).bind("beforeunload", function(_) {
