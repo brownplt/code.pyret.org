@@ -54,6 +54,11 @@
 <script src="/js/url.js"></script>
 <script src="/js/q.js"></script>
 <script src="/js/share.js"></script>
+<script>
+var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
+var drawShareWidget = shareAPI.drawShareWidget;
+var makeHoverMenu = shareAPI.makeHoverMenu;
+</script>
 <script src="/js/programs.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>

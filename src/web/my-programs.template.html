@@ -38,6 +38,11 @@ function handleGoogLoad() {
 </script>
 <script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
 <script src="/js/share.js"></script>
+<script>
+var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
+var drawShareWidget = shareAPI.drawShareWidget;
+var makeShareLink = shareAPI.makeShareLink;
+</script>
 <script src="/js/loader.js"></script>
 <script>
 
