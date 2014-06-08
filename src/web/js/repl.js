@@ -19,7 +19,8 @@ $(function() {
     window.localStorage.setItem(key, true);
     var explanation = $("<div>").append([$("<p>")
       .text("You're viewing a copy of a shared program." +
-            "Feel free to edit it: don't worry, you won't change the original!" +
+            "Feel free to edit it: don't worry, you won't change the original!"),
+      $("<p>").text(
             "You can save a copy of the program to " +
             "your Google drive that's completely separate from the original " +
             "if you want to have your own version. "),
