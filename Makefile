@@ -59,6 +59,11 @@ build/web/css/codemirror.css: lib/CodeMirror/lib/codemirror.css
 
 MISC_CSS = build/web/css/codemirror.css
 
+COPY_GIF := $(patsubst src/web/img/%.gif,build/web/img/%.gif,$(wildcard src/web/img/*.gif))
+
+build/web/img/%.gif: src/web/img/%.gif
+	cp $< $@
+
 COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.js))
 
 build/web/js/%.js: src/web/js/%.js
@@ -107,5 +112,5 @@ $(WEBCSS):
 $(WEBIMG):
 	@$(call MKDIR,$(WEBIMG))
 
-web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG)
+web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG)
 

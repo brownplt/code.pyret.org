@@ -68,6 +68,26 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             }
           });
         }
+        function drawUnboundTypeId(idExpr) {
+          var dom = $("<div>").addClass("compile-error");
+          var name = get(get(idExpr, "id"), "toname").app();
+          var loc = get(idExpr, "l");
+          cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
+            "builtin": function(_) {
+              console.error("Should not be allowed to have a builtin that's unbound", e);
+            },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var p = $("<p>");
+              p.append("The name ");
+              p.append($("<span>").addClass("code").text(name));
+              p.append(" is used as a type but not defined as one, at ");
+              dom.append(p);
+              dom.append(drawSrcloc(loc));
+              singleHover(dom, loc);
+              container.append(dom);
+            }
+          });
+        }
         function drawShadowId(id, newLoc, oldLoc) {
           var dom = $("<div>").addClass("compile-error");
           cases(get(srcloc, "Srcloc"), "Srcloc", oldLoc, {
@@ -135,6 +155,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawCompileError(e) {
           cases(get(cs, "CompileError"), "CompileError", e, {
               "unbound-id": drawUnboundId,
+              "unbound-type-id": drawUnboundTypeId,
               "shadow-id": drawShadowId,
               "duplicate-id": drawShadowId, // NOTE(joe): intentional re-use, not copypasta
               "wf-err": drawWfError,

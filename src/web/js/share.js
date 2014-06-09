@@ -18,7 +18,7 @@ function makeShareAPI(pyretVersion) {
       .attr("target", "_blank")
       .attr("alt", "Share on Reddit")
       .append($("<img>")
-                .attr("src", "http://www.reddit.com/static/spreddit1.gif")
+                .attr("src", "/img/spreddit1.gif")
                 .css("border", 0));
     return link;
   }
