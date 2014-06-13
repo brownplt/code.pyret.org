@@ -4,7 +4,7 @@ define([], function() {
     var rt = repl.runtime;
     rt.INITIAL_GAS = gas;
     var body = "if x == 0: 0 else: f(x - 1, y, z) end"
-    var onRun = repl.run("fun f(x :: Number, y, z) -> Number: " + body + " end f(" + gas + ", \"y\", \"z\")", "noname");
+    var onRun = repl.restartInteractions("fun f(x :: Number, y, z) -> Number: " + body + " end f(" + gas + ", \"y\", \"z\")", "noname");
     console.log("Trying gas: ", gas);
     onRun.fail(function(err) {
       console.log("Gas run failed at: ", gas);
@@ -14,7 +14,8 @@ define([], function() {
       if(rt.isSuccessResult(result)) {
         console.log("Gas run succeeded at: ", gas, result);
         rt.INITIAL_GAS = Math.floor(gas / 2);
-        return repl;
+        // clear out the definition of "f"
+        return repl.restartInteractions("").then(function() { return repl; });
       } else {
         console.log("Gas run failed at: ", gas);
         return guessGas(Math.floor(gas / 2), repl);

@@ -60,7 +60,7 @@ $(function() {
       runtime.safeCall(function() {
         return replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr});
       }, function(repl) {
-        var gassed = guessGas.guessGas(10000, repl);
+        var gassed = guessGas.guessGas(3000, repl);
         gassed.fail(function(err) {
           console.error("Couldn't guess gas: ", err);
         });
