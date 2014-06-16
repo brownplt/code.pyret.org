@@ -324,7 +324,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             container.append(dom);
           });
         }
-        function drawNonFunctionApp(loc, nonFunVal, args) {
+        function drawNonFunctionApp(loc, nonFunVal) {
           getDomValue(nonFunVal, function(v) {
             var dom = $("<div>").addClass("compile-error");
             dom.append($("<p>").text("Expected a function in application but got:"));
