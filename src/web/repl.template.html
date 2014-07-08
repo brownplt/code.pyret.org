@@ -53,6 +53,21 @@
 <script src="/js/loader.js"></script>
 <script src="/js/url.js"></script>
 <script src="/js/q.js"></script>
+<script src="/js/codemirror.js"></script>
+<script src="/js/matchbrackets.js"></script>
+<script src="/js/draw.js"></script>
+<script src="/js/pyret-mode.js"></script>
+<script src="/js/require.js"></script>
+<script>
+  // Shim code for s-expression-lib.js
+  window.module = {};
+</script>
+<script src="/js/s-expression-lib.js"></script>
+<script>
+define("s-expression", [], function() {
+  return window.module.exports;
+});
+</script>
 <script src="/js/share.js"></script>
 <script>
 var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
@@ -70,11 +85,6 @@ function handleGoogLoad() {
 }
 </script>
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
-<script src="/js/codemirror.js"></script>
-<script src="/js/matchbrackets.js"></script>
-<script src="/js/draw.js"></script>
-<script src="/js/pyret-mode.js"></script>
-<script src="/js/require.js"></script>
 <script id="loadVersion">
 // Figure out what version of Pyret we should be using, if not the current default
 var initialParams = url.parse(document.location.href);
@@ -101,6 +111,7 @@ if({{{ USE_STANDALONE_PYRET }}}) {
     requirejs.config({
       paths: {
         "q": "/js/q",
+        "s-expression": "/js/s-expression",
         "fs": "/js/fsstub"
       },
       waitSeconds: 0
@@ -116,6 +127,7 @@ if({{{ USE_STANDALONE_PYRET }}}) {
       "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
       "trove": phase1Base + "trove",
       "q": "/js/q",
+      "s-expression": "/js/s-expression",
       "fs": "/js/fsstub"
     },
     waitSeconds: 0
