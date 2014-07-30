@@ -16,7 +16,7 @@ and test out the REPL, you only need to edit a few variables.  If you want to
 use the standalone pyret that comes with the checkout, use these settings:
 
 ```
-USE_STANDALONE_PYRET=true
+USE_STANDALONE_PYRET="true"
 PYRET_RELEASE_BASE="/js"
 CURRENT_PYRET_RELEASE=""
 ```
@@ -46,6 +46,31 @@ $ foreman run make web
 ```
 
 and then refresh the page.
+
+## Running with Development Pyret
+
+If you'd like to run with a development copy of Pyret, you can change the
+environment configuration to:
+
+```
+USE_STANDALONE_PYRET="false"
+PYRET_RELEASE_BASE="<url-to-your-pyret-checkout>/build"
+CURRENT_PYRET_RELEASE=""
+```
+
+So for example, if your Pyret checkout is in `/home/joe/src/pyret`, you would
+use:
+
+```
+PYRET_RELEASE_BASE="file:///home/joe/src/pyret/build"
+```
+
+Or if you were runnning it on another web server, hosted at `/pyret`:
+
+```
+PYRET_RELEASE_BASE="http://your-server/pyret/build"
+```
+
 
 ## Configuration with Google Auth and Storage
 
