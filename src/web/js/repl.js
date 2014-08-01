@@ -65,7 +65,7 @@ $(function() {
           console.error("Couldn't guess gas: ", err);
         });
         var done = gassed.then(function(repl) {
-          console.log("Gas succeeded at: ", repl.runtime.INITIAL_GAS);
+          console.log("Gas assumed safe at: ", repl.runtime.INITIAL_GAS);
 
           // NOTE(joe): This forces the loading of all the built-in compiler libs
           var interactionsReady = repl.restartInteractions("");
@@ -73,7 +73,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            console.error("REPL ought to be red eye ", result);
+            console.log("REPL ready.");
           });
           var runButton = $("#runButton");
 
