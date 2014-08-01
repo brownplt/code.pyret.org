@@ -26,10 +26,16 @@ Then you can run
 ```
 $ git submodule init
 $ git submodule update
-$ npm install
+$ foreman run npm install
 ```
 
 and the dependencies will be installed.
+
+Note that if you just run `npm install`, environment variables will not be set
+correctly when building templated HTML.  You can accomplish the same thing as
+`foreman run` by setting the environment variables in `.env` via your
+environments' mechanisms for doing so.  `foreman` just happens to also be
+useful for starting the server the same way Heroku does, etc.
 
 To run the server, run:
 
@@ -37,7 +43,7 @@ To run the server, run:
 $ foreman start
 ```
 
-The editor will be served from `http://localhost:5000`.
+The editor will be served from `http://localhost:5000/editor`.
 
 If you edit JavaScript or HTML files in `src/web`, run
 
@@ -75,10 +81,11 @@ PYRET_RELEASE_BASE="http://your-server/pyret/build"
 ## Configuration with Google Auth and Storage
 
 
-You also need to take `.env.example` and make it into a real `.env` that has a
-Google client secret and client ID.  You can easily make a free one for
-development at https://console.developers.google.com/project, then make a
-project, then go
+In order to have share links, saving, and other docs-related functionality
+work, you need to add to your `.env` a Google client secret and client ID.
+You can easily make a free one for development at
+https://console.developers.google.com/project.  At that page, make a project,
+then go through
 
     APIs & Auth -> Credentials -> Create New Client Id
 
@@ -87,4 +94,4 @@ redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
 `.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
 
-TODO: Redis details
+
