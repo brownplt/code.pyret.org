@@ -369,6 +369,20 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           errorHover(expression, [loc]);
           container.append(dom);
         }
+        function drawExtendNonObject(loc, nonObj) {
+          var dom = $("<div>").addClass("compile-error");
+          var expression = $("<a>").text("this expression");
+          dom.append($("<p>").append(["Tried to extend a non-object in ", expression]));
+          dom.append($("<p>").text("The non-object was:"));
+          var valueContainer = $("<div>");
+          dom.append(valueContainer);
+          setTimeout(function() {
+            outputUI.renderPyretValue(valueContainer, runtime, nonObj);
+          }, 0);
+          dom.append(drawExpandableStackTrace(e));
+          errorHover(expression, [loc]);
+          container.append(dom);
+        }
         function drawInvalidArrayIndex(methodName, array, index, reason) {
           var dom = $("<div>").addClass("compile-error");
           var probablyErrorLocation = getLastUserLocation(e);
@@ -429,6 +443,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "no-branches-matched": drawNoBranchesMatched,
               "field-not-found": drawFieldNotFound,
               "lookup-non-object": drawLookupNonObject,
+              "extend-non-object": drawExtendNonObject,
               "generic-type-mismatch": drawGenericTypeMismatch,
               "arity-mismatch": drawArityMismatch,
               "plus-error": drawPlusError,
