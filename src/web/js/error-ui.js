@@ -203,7 +203,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             return container;
           }
         }
-        function getLastUserLocation(e) {
+        function getLastUserLocation(e, ix) {
           var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
           var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
           var userLocs = srclocStack.filter(function(l) {
@@ -212,12 +212,12 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             return (source === "definitions" || source.indexOf("interactions") !== -1);
           });
 
-          var probablyErrorLocation = userLocs[0];
+          var probablyErrorLocation = userLocs[ix];
           return probablyErrorLocation;
         }
         function drawGenericTypeMismatch(value, type) {
           // TODO(joe): How to improve this search?
-          var probablyErrorLocation = getLastUserLocation(e);
+          var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
           getDomValue(value, function(valDom) {
             dom.append($("<p>").text("Expected to get a " + type + " as an argument, but got this instead: "))
@@ -235,7 +235,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
         function drawArityMismatch(funLoc, arity, args) {
           args = ffi.toArray(args);
-          var probablyErrorLocation = getLastUserLocation(e);
+          var probablyErrorLocation = getLastUserLocation(e, 1);
           var dom = $("<div>").addClass("compile-error");
           var argDom = $("<div>");
           setTimeout(function() {
@@ -275,9 +275,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               singleHover(caller, probablyErrorLocation);
             }
           });
+          dom.append(drawExpandableStackTrace(e));
         }
         function drawMessageException(message) {
-          var probablyErrorLocation = getLastUserLocation(e);
+          var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
           if(probablyErrorLocation !== undefined) {
             dom.append($("<p>").text(message + " At:"))
@@ -371,7 +372,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
         function drawInvalidArrayIndex(methodName, array, index, reason) {
           var dom = $("<div>").addClass("compile-error");
-          var probablyErrorLocation = getLastUserLocation(e);
+          var probablyErrorLocation = getLastUserLocation(e, 0);
           var expression = $("<a>").text(" this function call ");
           dom.append($("<p>").append(["Invalid array index ", $("<code>").text(index), " around ", expression, "because: " + reason]));
           dom.append(drawExpandableStackTrace(e));
@@ -491,7 +492,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
         function drawTypeMismatch(isArg, loc) {
           return function(val, name) {
-            var probablyErrorLocation = getLastUserLocation(e);
+            var probablyErrorLocation = getLastUserLocation(e, 0);
             var dom = $("<div>").addClass("compile-error");
             var valContainer = $("<div>");
             renderValueIn(val, valContainer);
@@ -515,7 +516,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
         function drawPredicateFailure(isArg, loc) {
           return function(val, predName) {
-            var probablyErrorLocation = getLastUserLocation(e);
+            var probablyErrorLocation = getLastUserLocation(e, 0);
             var dom = $("<div>").addClass("compile-error");
             var valContainer = $("<div>");
             renderValueIn(val, valContainer);
@@ -539,7 +540,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
         function drawRecordFieldsFail(isArg, loc) {
           return function(val, fieldFailures) {
-            var probablyErrorLocation = getLastUserLocation(e);
+            var probablyErrorLocation = getLastUserLocation(e, 0);
             var dom = $("<div>").addClass("compile-error");
             var valContainer = $("<div>");
             renderValueIn(val, valContainer);

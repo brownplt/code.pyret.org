@@ -388,6 +388,10 @@ span.rationalRepeat {
  border-bottom: 2px solid #33F;
 }
 
+.check-block-error {
+  padding-left: 2em;
+}
+
 .compile-error {
   font-family: sans-serif;
   border: 3px solid #d66;

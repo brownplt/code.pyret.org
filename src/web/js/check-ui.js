@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, srclocLib, outputUI) {
+define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, outputUI, errorUI) {
 
  function drawCheckResults(container, editors, runtime, checkResults) {
    var ffi = ffiLib(runtime, runtime.namespace);
@@ -8,7 +8,7 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
 
    var checkResultsArr = ffi.toArray(checkResults);
 
-   runtime.loadModules(runtime.namespace, [srclocLib], function(srcloc) {
+   runtime.loadModules(runtime.namespace, [optionLib, srclocLib], function(option, srcloc) {
 
      var checkContainer = $("<div>");
      function addPreToDom(cssClass, txt, loc) {
@@ -21,6 +21,7 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
      var checkTotalAll = 0;
      var checkPassedAll = 0;
      var checkBlockCount = checkResultsArr.length;
+     var checkBlocksErrored = 0;
 
      // Sort through all the check blocks.
      checkResultsArr.reverse().forEach(function(cr) {
@@ -31,7 +32,7 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
 
        var name = get(cr, "name");
        var trArr = ffi.toArray(get(cr, "test-results"));
-     
+
        addPreToDom("replOutput", "Check block: " + name, get(cr, "loc"));
 
        // Sort through the collection of test results within a check
@@ -69,25 +70,44 @@ define(["js/ffi-helpers", "trove/srcloc", "./output-ui.js"], function(ffiLib, sr
 
 // Print a message about the total passed in this check block.
 
-       if (checkTotal > 1) {
-         if (checkPassed == checkTotal) {
-           addPreToDom("replOutputPassed", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
-         } else {
-           addPreToDom("replOutput", checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+     
+       var thisCheckBlockErrored = false;
+       // Necessary check because this field was not present in older versions
+       if (runtime.hasField(cr, "maybe-err")) {
+         var error = get(cr, "maybe-err");
+         if(get(option, "is-some").app(error)) {
+           thisCheckBlockErrored = true;
+           checkBlocksErrored = checkBlocksErrored + 1;
+           addPreToDom("replOutputFailed", "  Check block " + name + " ended in an error (all tests may not have run):", get(cr, "loc"));
+           var errorDiv = $("<div>").addClass("check-block-error");
+           checkContainer.append(errorDiv);
+           checkContainer.append("<br/>");
+           var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val);
          }
-
-       } else if (checkTotal == 1 && checkPassed == 1) {
-         addPreToDom("replOutputPassed", "Your test passed.", get(cr, "loc"));
-       } else if (checkTotal == 1 && checkPassed == 0) {
-         addPreToDom("replOutputFailed", "Your test failed.", get(cr, "loc"));
        }
+
+       if(!thisCheckBlockErrored) {
+         if (checkTotal > 1) {
+           if (checkPassed == checkTotal) {
+             addPreToDom("replOutputPassed", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+           } else {
+             addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+           }
+
+         } else if (checkTotal == 1 && checkPassed == 1) {
+           addPreToDom("replOutputPassed", "  The test passed.", get(cr, "loc"));
+         } else if (checkTotal == 1 && checkPassed == 0) {
+           addPreToDom("replOutputFailed", "  The test failed.", get(cr, "loc"));
+         }
+       }
+
        
      });
 
      // If there was more than one check block, print a message about
      // the grand total of checks and passes.
 
-     if (checkPassedAll == checkTotalAll) {
+     if (checkPassedAll == checkTotalAll && checkBlocksErrored === 0) {
        if (checkTotalAll > 0) {
          if (checkTotalAll == 1) {
            var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, your test passed, mate!");
