@@ -120,6 +120,57 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           });
         }
 
+        function drawPointlessVar(loc) {
+          var dom = $("<div>").addClass("compile-error");
+          cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
+            "builtin": function(_) {
+              console.error("Should not be possible to have a builtin var that's anonymous", e);
+            },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var p = $("<p>");
+              p.append("Defining an anonymous variable is pointless: you have no name to modify. ");
+              p.append("Either give this expression a name, or bind it to an identifier rather than a variable.");
+              dom.append(p).append("<br>");
+              dom.append(drawSrcloc(loc));
+              singleHover(dom, loc);
+              container.append(dom);
+            }
+          });
+        }
+        function drawPointlessShadow(loc) {
+          var dom = $("<div>").addClass("compile-error");
+          cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
+            "builtin": function(_) {
+              console.error("Should not be possible to have a builtin var that's anonymous", e);
+            },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var p = $("<p>");
+              p.append("Anonymous identifiers cannot shadow anything: there is no name to shadow. ");
+              p.append("Either give this expression a name, or remove the shadow annotation.");
+              dom.append(p).append("<br>");
+              dom.append(drawSrcloc(loc));
+              singleHover(dom, loc);
+              container.append(dom);
+            }
+          });
+        }
+        function drawPointlessGraphId(loc) {
+          var dom = $("<div>").addClass("compile-error");
+          cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
+            "builtin": function(_) {
+              console.error("Should not be possible to have a builtin var that's anonymous", e);
+            },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var p = $("<p>");
+              p.append("Anonymous bindings in graphs are not permitted, as they cannot be used elsewhere in the graph.");
+              dom.append(p).append("<br>");
+              dom.append(drawSrcloc(loc));
+              singleHover(dom, loc);
+              container.append(dom);
+            }
+          });
+        }
+
         function drawWfError(msg, loc) {
           var dom = $("<div>").addClass("compile-error");
           dom.append("<p>").text(msg);
@@ -158,6 +209,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "unbound-type-id": drawUnboundTypeId,
               "shadow-id": drawShadowId,
               "duplicate-id": drawShadowId, // NOTE(joe): intentional re-use, not copypasta
+              "duplicate-field": drawShadowId, // NOTE(ben): ditto
+              "pointless-var": drawPointlessVar,
+              "pointless-shadow": drawPointlessShadow,
+              "pointless-graph-id": drawPointlessGraphId,
               "wf-err": drawWfError,
               "wf-err-split": drawWfErrSplit,
               "else": drawErrorToString(e)
