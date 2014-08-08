@@ -505,6 +505,30 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           container.append(dom);
         }
 
+        // NOTE(joe 8 Aug 2014): The underscore is a location that is
+        // currently always a builtin location, because of how set-ref works
+        function drawRefInit(isArg, _) {
+          return function(annLoc, reason) {
+            var probablyErrorLocation = getLastUserLocation(e, 0);
+            var dom = $("<div>").addClass("compile-error");
+            var loc = drawSrcloc(probablyErrorLocation);
+            var reasonDiv = $("<div>");
+            dom.append([
+              $("<p>").append([
+                  "Failed while initializing a graph at ",
+                  loc,
+                  " because: "
+                ]),
+              reasonDiv,
+              drawExpandableStackTrace(e)
+            ]);
+            singleHover(loc, probablyErrorLocation);
+            var nestedFailure = ffi.contractFail(annLoc, reason);
+            var nestedExn = runtime.makePyretFailException(nestedFailure);
+            drawError(reasonDiv, editors, runtime, nestedExn)
+            container.append(dom);
+          }
+        }
         function drawTypeMismatch(isArg, loc) {
           return function(val, name) {
             var probablyErrorLocation = getLastUserLocation(e, 0);
@@ -584,10 +608,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
         function drawPyretContractFailure(err) {
           var isArg = ffi.isFailArg(err);
-          var loc = get(e.exn, "loc");
-          var reason = get(e.exn, "reason");
+          var loc = get(err, "loc");
+          var reason = get(err, "reason");
           cases(get(contracts, "FailureReason"), "FailureReason", reason, {
               "type-mismatch": drawTypeMismatch(isArg, loc),
+              "ref-init": drawRefInit(isArg, loc),
               "predicate-failure": drawPredicateFailure(isArg, loc),
               "record-fields-fail": drawRecordFieldsFail(isArg, loc),
               "dot-ann-not-present": drawDotAnnNotPresent(isArg, loc)

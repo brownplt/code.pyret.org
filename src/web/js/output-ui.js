@@ -169,6 +169,11 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     }
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
+    if(!runtime.hasField(loc, "source")) {
+      var module = runtime.unwrap(get(loc, "module-name"));
+      dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(module) + " if you want more information.");
+      return;
+    }
     var src = runtime.unwrap(get(loc, "source"));
     if (!editors.hasOwnProperty(src)) {
       dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.");
