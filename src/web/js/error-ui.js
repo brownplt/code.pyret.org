@@ -68,6 +68,24 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             }
           });
         }
+        function drawUnboundVar(id, loc) {
+          var dom = $("<div>").addClass("compile-error");
+          cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
+            "builtin": function(_) {
+              console.error("Should not be allowed to have a builtin that's unbound", e);
+            },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var p = $("<p>");
+              p.append("The variable ");
+              p.append($("<span>").addClass("code").text(id));
+              p.append(" is assigned to, but not defined, at ");
+              dom.append(p);
+              dom.append(drawSrcloc(loc));
+              singleHover(dom, loc);
+              container.append(dom);
+            }
+          });
+        }
         function drawUnboundTypeId(idExpr) {
           var dom = $("<div>").addClass("compile-error");
           var name = get(get(idExpr, "id"), "toname").app();
@@ -192,6 +210,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           container.append(dom);
         }
 
+        function drawReservedName(loc, id) {
+          var dom = $("<div>").addClass("compile-error");
+          dom.append("<p>").text("Well-formedness: Pyret disallows the use of " + id + " as an identifier");
+          dom.append("<br>");
+          dom.append(drawSrcloc(loc));
+          errorHover(dom, [loc]);
+          container.append(dom);
+        }
+
         function drawErrorToString(e) {
           return function() {
             runtime.safeCall(function() {
@@ -206,6 +233,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawCompileError(e) {
           cases(get(cs, "CompileError"), "CompileError", e, {
               "unbound-id": drawUnboundId,
+              "unbound-var": drawUnboundVar,
               "unbound-type-id": drawUnboundTypeId,
               "shadow-id": drawShadowId,
               "duplicate-id": drawShadowId, // NOTE(joe): intentional re-use, not copypasta
@@ -215,6 +243,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "pointless-graph-id": drawPointlessGraphId,
               "wf-err": drawWfError,
               "wf-err-split": drawWfErrSplit,
+              "reserved-name": drawReservedName,
               "else": drawErrorToString(e)
             });
         }
