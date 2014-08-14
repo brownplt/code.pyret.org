@@ -207,6 +207,11 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
       getFileById: function(id) {
         return gQ(drive.files.get({fileId: id})).then(makeFile);
       },
+      getFileByName: function(name) {
+        return this.getAllFiles().then(function(files) {
+          return files.filter(function(f) { return f.getName() === name });
+        });
+      },
       getSharedFileById: function(id) {
         return gQ(drive.files.get({fileId: id})).then(makeSharedFile);
       },

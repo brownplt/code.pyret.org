@@ -38,7 +38,8 @@ $(function() {
 
 $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js"], function(replLib, replUI, rtLib, dialectLib, guessGas) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
+  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive) {
     makeHoverMenu($("#menu"), $("#menuContents"), function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -57,8 +58,22 @@ $(function() {
       var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
       var replNS = dialect.makeNamespace(runtime);
       var replEnv = dialect.compileEnv;
+      var getDriveImports = gdrive.makeDriveImporter(storageAPI);
+      var getSpecialImport = function(runtime, importStmt) {
+        var kind = runtime.getField(importStmt, "kind");
+        var args = runtime.ffi.toArray(runtime.getField(importStmt, "args"));
+        if(kind === "gdrive") {
+          return getDriveImports.getMyDriveImport(runtime, args[0]);
+        } else if(kind === "gdrive-id") {
+          return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
+        }
+      };
       runtime.safeCall(function() {
-        return replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr});
+        return replLib.create(runtime, replNS, replEnv, {
+            name: "definitions",
+            dialect: dialectStr,
+            getSpecialImport: getSpecialImport
+          });
       }, function(repl) {
         var gassed = guessGas.guessGas(3000, repl);
         gassed.fail(function(err) {
