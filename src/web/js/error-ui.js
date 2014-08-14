@@ -21,13 +21,17 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       // Exception will be one of:
-      // - an Array of compileErrors,
+      // - an Array of compileErrors (this is legacy, but useful for old versions),
+      // - a PyretException with a list of compileErrors
       // - a PyretException with a stack and a Pyret value error
       // - something internal and JavaScripty, which we don't want
       //   users to see but will have a hard time ruling out
 
       if(exception instanceof Array) {
         drawCompileErrors(exception);
+      }
+      if(exception.exn instanceof Array) {
+        drawCompileErrors(exception.exn);
       } else if(runtime.isPyretException(exception)) {
         drawPyretException(exception);
       } else {

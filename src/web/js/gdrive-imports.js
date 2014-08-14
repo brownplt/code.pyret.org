@@ -35,7 +35,29 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
       },
       // Runtime x String x Array<String> -> ModuleLoadResult
       getSharedDriveImport: function(runtime, filename, id) {
-
+        return storageAPI.then(function(storage) {
+          var api = storage.api;
+          var returnP = Q.defer();
+          var fullname = "@gdrive-id-" + filename + "-" + id;
+          // Do not re-load modules that were loaded by id
+          if(requirejs.defined(fullname)) {
+            returnP.resolve("loaded");
+          }
+          else {
+            var fileP = api.getSharedFileById(id);
+            fileP.fail(function(err) { returnP.reject(err); });
+            var contentsP = fileP.then(function(file) { return file.getContents(); });
+            contentsP.then(function(contents) {
+              evalLib.runParsePyret(runtime, contents, { name: fullname }, function(result) {
+                if(runtime.isFailureResult(result)) { returnP.reject(result); }
+                else {
+                  returnP.resolve({ ast: result.result, name: fullname });
+                }
+              });
+            });
+          }
+          return returnP.promise;
+        });
       }
     };
   }
