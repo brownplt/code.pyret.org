@@ -52,15 +52,21 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
     }));
   }
 
+  function DriveError(err) {
+    this.err = err;
+  }
+  DriveError.prototype = Error.prototype;
+
   function failCheck(p) {
     return p.then(function(result) {
       // Network error
       if(result && result.error) {
-        throw new Error(result);
+        console.error("Error fetching file from gdrive: ", result);
+        throw new DriveError(result);
       }
       if(result && (typeof result.code === "number") && (result.code >= 400)) {
-        console.log("Error: ", result);
-        throw new Error(result);
+        console.error("40X Error fetching file from gdrive: ", result);
+        throw new DriveError(result);
       }
       return result;
     });

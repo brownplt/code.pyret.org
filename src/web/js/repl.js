@@ -62,10 +62,12 @@ $(function() {
       var getSpecialImport = function(runtime, importStmt) {
         var kind = runtime.getField(importStmt, "kind");
         var args = runtime.ffi.toArray(runtime.getField(importStmt, "args"));
-        if(kind === "gdrive") {
+        if(kind === "my-gdrive") {
           return getDriveImports.getMyDriveImport(runtime, args[0]);
-        } else if(kind === "gdrive-id") {
+        } else if(kind === "shared-gdrive") {
           return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
+        } else {
+          return Q.fcall(function() { throw "No such drive type: " + kind; });
         }
       };
       runtime.safeCall(function() {
