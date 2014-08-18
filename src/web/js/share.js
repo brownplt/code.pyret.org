@@ -159,6 +159,17 @@ function makeShareAPI(pyretVersion) {
     return window.location.origin + localShareUrl;
   }
 
+  function getImportLetter(letter) {
+    var maybeUpcase = letter.toUpperCase();
+    var isUppercaseAlpha = !!/[A-Z]/.exec(maybeUpcase);
+    if(isUppercaseAlpha) {
+      return maybeUpcase;
+    }
+    else {
+      return "M";
+    }
+  }
+
   function drawShareRow(f) {
     var container = $("<div>");
     var shareUrl = makeShareUrl(f.getUniqueId());
@@ -171,8 +182,9 @@ function makeShareAPI(pyretVersion) {
     var importTextContainer = $("<div>");
     var importText = $("<input type='text'>").addClass("import-syntax");
     importTextContainer.append(importText);
+    var importLetter = getImportLetter(f.getName()[0]);
     var importCode = "import shared-gdrive(\"" + f.getName() +
-        "\", \"" + f.getUniqueId() + "\") as " + f.getName()[0].toUpperCase();
+        "\", \"" + f.getUniqueId() + "\") as " + importLetter;
     importText.attr("size", importCode.length);
     importText.attr("editable", false);
     importText.mouseup(function() { $(this).select(); });
