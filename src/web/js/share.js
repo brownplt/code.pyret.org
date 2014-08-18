@@ -164,7 +164,7 @@ function makeShareAPI(pyretVersion) {
     var shareUrl = makeShareUrl(f.getUniqueId());
     container.append($("<span>").text(new Date(f.getModifiedTime())));
     container.append($("<a>").attr({
-        "href": localShareUrl,
+        "href": shareUrl,
         "target": "_blank"
       }).text(f.getName()));
     container.append(drawShareWidget(shareUrl));
