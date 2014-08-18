@@ -172,7 +172,7 @@ function makeShareAPI(pyretVersion) {
     var importText = $("<input type='text'>").addClass("import-syntax");
     importTextContainer.append(importText);
     var importCode = "import shared-gdrive(\"" + f.getName() +
-        "\", \"" + f.getUniqueId() + "\")";
+        "\", \"" + f.getUniqueId() + "\") as " + f.getName()[0].toUpperCase();
     importText.attr("size", importCode.length);
     importText.attr("editable", false);
     importText.mouseup(function() { $(this).select(); });
