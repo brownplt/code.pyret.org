@@ -40,7 +40,7 @@ $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
   define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
   function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive) {
-    makeHoverMenu($("#menu"), $("#menuContents"), function() {});
+    makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });

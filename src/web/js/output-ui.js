@@ -1,4 +1,8 @@
-define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
+define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsnums) {
+
+  // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
+  // version or something else?
+  var shareAPI = makeShareAPI("");
 
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
@@ -159,14 +163,34 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     }
   }
 
+  function basename(str) {
+     var base = new String(str).substring(str.lastIndexOf('/') + 1); 
+     if(base.lastIndexOf(".") != -1)       
+        base = base.substring(0, base.lastIndexOf("."));
+     return base;
+  }
+
+  var sharedPrefix = "@shared-gdrive";
+  var mydrivePrefix = "@my-gdrive";
+
+  function isSharedImport(filename) {
+    var gdriveIndex = filename.indexOf(sharedPrefix);
+    return gdriveIndex === 0;
+  }
+
+  function getSharedId(filename) {
+    var path = filename.slice(sharedPrefix.length);
+    var id = basename(path);
+    return id;
+  }
+
+  function isGDriveImport(filename) {
+    var mydriveIndex = filename.indexOf(mydrivePrefix);
+    return mydriveIndex === 0;
+  }
+
   function hoverLink(editors, runtime, srcloc, dom, loc, className) {
     // http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript
-    function basename(str) {
-       var base = new String(str).substring(str.lastIndexOf('/') + 1); 
-        if(base.lastIndexOf(".") != -1)       
-           base = base.substring(0, base.lastIndexOf("."));
-       return base;
-    }
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
     if(!runtime.hasField(loc, "source")) {
@@ -176,9 +200,28 @@ define(["trove/image-lib","js/js-numbers"], function(imageLib,jsnums) {
     }
     var src = runtime.unwrap(get(loc, "source"));
     if (!editors.hasOwnProperty(src)) {
-      dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.");
-      dom.tooltip();
-      return dom;
+      if(isSharedImport(src)) {
+        var url = shareAPI.makeShareUrl(getSharedId(src));
+        var hoverDiv = $("<div>").addClass("module-info-hover").append(
+          get(loc, "format").app(true) + ":  This code is in "
+          + " a shared module on Google Drive.  You can see the file ",
+          $("<a>").attr({"href": url, "target": "_blank"}).text("here"),
+          ".");
+        shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});
+        return dom;
+      }
+      else if(isGDriveImport(src)) {
+        var hoverDiv = $("<div>").addClass("module-info-hover").append(
+          get(loc, "format").app(true) + ":  This code is in "
+          + " your Google Drive in the file named " + basename(src) + ".")
+        shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});
+        return dom;
+      }
+      else {
+        dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.");
+        dom.tooltip();
+        return dom;
+      }
     }
     else {
       hoverLocs(editors, runtime, srcloc, dom, [loc], className);

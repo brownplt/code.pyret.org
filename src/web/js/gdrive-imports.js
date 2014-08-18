@@ -19,7 +19,7 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
           });
           filesP.fail(function(err) { returnP.reject(err); });
 
-          var fullname = "@my-gdrive-" + filename;
+          var fullname = "@my-gdrive/" + filename;
 
           var contentsP = filesP.then(function(files) { return files[0].getContents(); });
           contentsP.then(function(contents) {
@@ -41,7 +41,7 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
         return storageAPI.then(function(storage) {
           var api = storage.api;
           var returnP = Q.defer();
-          var fullname = "@shared-gdrive-" + filename + "-" + id;
+          var fullname = "@shared-gdrive/" + filename + "/" + id;
           // Do not re-load modules that were loaded by id
           if(requirejs.defined(fullname)) {
             returnP.resolve("loaded");

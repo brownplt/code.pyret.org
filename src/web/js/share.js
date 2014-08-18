@@ -48,7 +48,7 @@ function makeShareAPI(pyretVersion) {
     return link;
   }
 
-  function makeHoverMenu(triggerElt, menuElt, onShow) {
+  function makeHoverMenu(triggerElt, menuElt, showOnHover, onShow) {
     var divHover = false;
     var linkHover = false;
     function hovering() {
@@ -89,6 +89,7 @@ function makeShareAPI(pyretVersion) {
       showIfStillHovering();
     });
     triggerElt.hover(function(e) {
+      if(showOnHover) { showIfStillHovering(); }
       linkHover = true;
     }, function() {
       linkHover = false;
@@ -102,7 +103,7 @@ function makeShareAPI(pyretVersion) {
     link.attr("title", "Create links to share with others, and see previous shared copies you've made.");
     link.tooltip({ position: { my: "right top", of: link } });
     var shareDiv = $("<div>").addClass("share");
-    return makeHoverMenu(link, shareDiv,
+    return makeHoverMenu(link, shareDiv, false,
       function() {
         showShares(shareDiv, originalFile);
       });
@@ -150,13 +151,17 @@ function makeShareAPI(pyretVersion) {
     });
   }
 
-  function drawShareRow(f) {
-    var container = $("<div>");
-    var localShareUrl = "/editor#share=" + f.getUniqueId();
+  function makeShareUrl(id) {
+    var localShareUrl = "/editor#share=" + id;
     if(pyretVersion !== "") {
       localShareUrl += "&v=" + pyretVersion;
     }
-    var shareUrl = window.location.origin + localShareUrl;
+    return window.location.origin + localShareUrl;
+  }
+
+  function drawShareRow(f) {
+    var container = $("<div>");
+    var shareUrl = makeShareUrl(f.getUniqueId());
     container.append($("<span>").text(new Date(f.getModifiedTime())));
     container.append($("<a>").attr({
         "href": localShareUrl,
@@ -169,7 +174,8 @@ function makeShareAPI(pyretVersion) {
   return {
     drawShareWidget: drawShareWidget,
     makeShareLink: makeShareLink,
-    makeHoverMenu: makeHoverMenu
+    makeHoverMenu: makeHoverMenu,
+    makeShareUrl: makeShareUrl
   };
 
 }
