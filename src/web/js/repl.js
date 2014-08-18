@@ -60,6 +60,7 @@ $(function() {
       var replEnv = dialect.compileEnv;
       var getDriveImports = gdrive.makeDriveImporter(storageAPI);
       var getSpecialImport = function(runtime, importStmt) {
+        var loc = runtime.getField(importStmt, "l");
         var kind = runtime.getField(importStmt, "kind");
         var args = runtime.ffi.toArray(runtime.getField(importStmt, "args"));
         if(kind === "my-gdrive") {
@@ -67,7 +68,14 @@ $(function() {
         } else if(kind === "shared-gdrive") {
           return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
         } else {
-          return Q.fcall(function() { throw "No such drive type: " + kind; });
+          var ret = Q.defer();
+          // TODO(joe): How to export this from ffi-helpers?
+          var cs = require("compiler/compile-structs.arr");
+          runtime.loadModules(runtime.namespace, [cs], function(cs) {
+            ret.reject([runtime.getField(cs, "wf-err").app("No such import type: " + kind +
+                ", did you mean my-gdrive or shared-gdrive?", loc)]);
+          });
+          return ret.promise;
         }
       };
       runtime.safeCall(function() {
