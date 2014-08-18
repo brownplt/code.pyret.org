@@ -1,7 +1,7 @@
 function makeShareAPI(pyretVersion) {
 
   function drawShareWidget(shareUrl) {
-    var widget = $("<div>").append([
+    var widget = $("<span class='share-buttons'>").append([
         redditWidget(shareUrl),
         googleWidget(shareUrl),
         facebookWidget(shareUrl)
@@ -163,11 +163,21 @@ function makeShareAPI(pyretVersion) {
     var container = $("<div>");
     var shareUrl = makeShareUrl(f.getUniqueId());
     container.append($("<span>").text(new Date(f.getModifiedTime())));
+    container.append($("<span>&nbsp;</span>"));
     container.append($("<a>").attr({
         "href": shareUrl,
         "target": "_blank"
       }).text(f.getName()));
-    container.append(drawShareWidget(shareUrl));
+    var importTextContainer = $("<div>");
+    var importText = $("<input type='text'>").addClass("import-syntax");
+    importTextContainer.append(importText);
+    var importCode = "import shared-gdrive(\"" + f.getName() +
+        "\", \"" + f.getUniqueId() + "\")";
+    importText.attr("size", importCode.length);
+    importText.attr("editable", false);
+    importText.mouseup(function() { $(this).select(); });
+    importText.val(importCode);
+    container.append(importTextContainer);
     return container;
   }
 
