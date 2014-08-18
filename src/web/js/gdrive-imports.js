@@ -17,7 +17,34 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
             }
             return files;
           });
-          filesP.fail(function(err) { returnP.reject(err); });
+          filesP.fail(function(failure) {
+            var message = "";
+            var defaultMessage = "There was an error fetching file with name " + filename + 
+                  " (labelled " + filename + ") from Google Drive.";
+            if(failure.message === "Authentication failure") {
+              message = "Couldn't access the file named " + filename +
+                " on Google Drive due to an " +
+                "authentication failure.  my-gdrive imports require that you are "
+                + "connected to Google Drive.";
+            }
+            else if(failure.err) {
+              if(failure.err.code === 404) {
+                message = "Couldn't find the file named " + filename +
+                  " on Google Drive.";
+              }
+              else if(failure.err.message) {
+                message = "There was an error fetching file named " + filename + 
+                  " from Google Drive: " + failure.err.message;
+              }
+              else {
+                message = defaultMessage;
+              }
+            }
+            else {
+              message = defaultMessage;
+            }
+            returnP.reject(runtime.ffi.makeMessageException(message));
+          });
 
           var fullname = "@my-gdrive/" + filename;
 
