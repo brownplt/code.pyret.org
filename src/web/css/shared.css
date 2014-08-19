@@ -152,6 +152,11 @@ code {
   background-color: #fefefe;
 }
 
+.import-syntax {
+  width: auto;
+  font-family: monospace;
+}
+
 .ui-tooltip {
   z-index: 15000;
   background: #fff;

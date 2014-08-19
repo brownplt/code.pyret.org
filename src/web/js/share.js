@@ -1,7 +1,7 @@
 function makeShareAPI(pyretVersion) {
 
   function drawShareWidget(shareUrl) {
-    var widget = $("<div>").append([
+    var widget = $("<span class='share-buttons'>").append([
         redditWidget(shareUrl),
         googleWidget(shareUrl),
         facebookWidget(shareUrl)
@@ -48,7 +48,7 @@ function makeShareAPI(pyretVersion) {
     return link;
   }
 
-  function makeHoverMenu(triggerElt, menuElt, onShow) {
+  function makeHoverMenu(triggerElt, menuElt, showOnHover, onShow) {
     var divHover = false;
     var linkHover = false;
     function hovering() {
@@ -89,6 +89,7 @@ function makeShareAPI(pyretVersion) {
       showIfStillHovering();
     });
     triggerElt.hover(function(e) {
+      if(showOnHover) { showIfStillHovering(); }
       linkHover = true;
     }, function() {
       linkHover = false;
@@ -102,7 +103,7 @@ function makeShareAPI(pyretVersion) {
     link.attr("title", "Create links to share with others, and see previous shared copies you've made.");
     link.tooltip({ position: { my: "right top", of: link } });
     var shareDiv = $("<div>").addClass("share");
-    return makeHoverMenu(link, shareDiv,
+    return makeHoverMenu(link, shareDiv, false,
       function() {
         showShares(shareDiv, originalFile);
       });
@@ -150,26 +151,53 @@ function makeShareAPI(pyretVersion) {
     });
   }
 
-  function drawShareRow(f) {
-    var container = $("<div>");
-    var localShareUrl = "/editor#share=" + f.getUniqueId();
+  function makeShareUrl(id) {
+    var localShareUrl = "/editor#share=" + id;
     if(pyretVersion !== "") {
       localShareUrl += "&v=" + pyretVersion;
     }
-    var shareUrl = window.location.origin + localShareUrl;
+    return window.location.origin + localShareUrl;
+  }
+
+  function getImportLetter(letter) {
+    var maybeUpcase = letter.toUpperCase();
+    var isUppercaseAlpha = !!/[A-Z]/.exec(maybeUpcase);
+    if(isUppercaseAlpha) {
+      return maybeUpcase;
+    }
+    else {
+      return "M";
+    }
+  }
+
+  function drawShareRow(f) {
+    var container = $("<div>");
+    var shareUrl = makeShareUrl(f.getUniqueId());
     container.append($("<span>").text(new Date(f.getModifiedTime())));
+    container.append($("<span>&nbsp;</span>"));
     container.append($("<a>").attr({
-        "href": localShareUrl,
+        "href": shareUrl,
         "target": "_blank"
       }).text(f.getName()));
-    container.append(drawShareWidget(shareUrl));
+    var importTextContainer = $("<div>");
+    var importText = $("<input type='text'>").addClass("import-syntax");
+    importTextContainer.append(importText);
+    var importLetter = getImportLetter(f.getName()[0]);
+    var importCode = "import shared-gdrive(\"" + f.getName() +
+        "\", \"" + f.getUniqueId() + "\") as " + importLetter;
+    importText.attr("size", importCode.length);
+    importText.attr("editable", false);
+    importText.mouseup(function() { $(this).select(); });
+    importText.val(importCode);
+    container.append(importTextContainer);
     return container;
   }
 
   return {
     drawShareWidget: drawShareWidget,
     makeShareLink: makeShareLink,
-    makeHoverMenu: makeHoverMenu
+    makeHoverMenu: makeHoverMenu,
+    makeShareUrl: makeShareUrl
   };
 
 }

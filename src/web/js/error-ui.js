@@ -21,13 +21,17 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       // Exception will be one of:
-      // - an Array of compileErrors,
+      // - an Array of compileErrors (this is legacy, but useful for old versions),
+      // - a PyretException with a list of compileErrors
       // - a PyretException with a stack and a Pyret value error
       // - something internal and JavaScripty, which we don't want
       //   users to see but will have a hard time ruling out
 
       if(exception instanceof Array) {
         drawCompileErrors(exception);
+      }
+      if(exception.exn instanceof Array) {
+        drawCompileErrors(exception.exn);
       } else if(runtime.isPyretException(exception)) {
         drawPyretException(exception);
       } else {
@@ -194,7 +198,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append("<p>").text(msg);
           dom.append("<br>");
           dom.append(drawSrcloc(loc));
-          errorHover(dom, [loc]);
+          singleHover(dom, loc);
           container.append(dom);
         }
 
@@ -205,8 +209,8 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var locArray = ffi.toArray(locs)
           locArray.forEach(function(l) {
             dom.append(drawSrcloc(l)).append("<br>");
+            singleHover(dom, l);
           });
-          errorHover(dom, locArray);
           container.append(dom);
         }
 
@@ -215,7 +219,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append("<p>").text("Well-formedness: Pyret disallows the use of " + id + " as an identifier");
           dom.append("<br>");
           dom.append(drawSrcloc(loc));
-          errorHover(dom, [loc]);
+          singleHover(dom, loc);
           container.append(dom);
         }
 
@@ -314,7 +318,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             $(valDom).trigger({type: 'afterAttach'});
             $('*', valDom).trigger({type : 'afterAttach'});
             container.append(dom);
-            errorHover(dom, [probablyErrorLocation]);
+            singleHover(dom, probablyErrorLocation);
           });
         }
         function drawArityMismatch(funLoc, arity, args) {
@@ -368,7 +372,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             dom.append($("<p>").text(message + " At:"))
               .append($("<br>"))
               .append(drawSrcloc(probablyErrorLocation));
-            errorHover(dom, [probablyErrorLocation]);
+            singleHover(dom, probablyErrorLocation);
           } else {
             dom.append($("<p>").text(message));
           }
@@ -379,7 +383,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var expression = $("<a>").text("this " + type + " expression");
           dom.append($("<p>").append(["No case matched in ", expression]));
           dom.append(drawExpandableStackTrace(e));
-          errorHover(expression, [loc]);
+          singleHover(expression, loc);
           container.append(dom);
         }
         function drawNonBooleanCondition(loc, type, value) {
@@ -391,7 +395,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             $(v).trigger({type: 'afterAttach'});
             $('*', v).trigger({type : 'afterAttach'});
             dom.append(drawSrcloc(loc));
-            errorHover(dom, [loc]);
+            singleHover(dom, loc);
             container.append(dom);
           });
         }
@@ -405,7 +409,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             $('*', v).trigger({type : 'afterAttach'});
             dom.append($("<br>"));
             dom.append(drawSrcloc(loc));
-            errorHover(dom, [loc]);
+            singleHover(dom, loc);
             container.append(dom);
           });
         }
@@ -419,7 +423,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             $('*', v).trigger({type : 'afterAttach'});
             dom.append($("<br>"));
             dom.append(drawSrcloc(loc));
-            errorHover(dom, [loc]);
+            singleHover(dom, loc);
             container.append(dom);
           });
         }
@@ -437,7 +441,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             outputUI.renderPyretValue(valueContainer, runtime, obj);
           }, 0);
           dom.append(drawExpandableStackTrace(e));
-          errorHover(expression, [loc]);
+          singleHover(expression, loc);
           container.append(dom);
         }
         function drawLookupNonObject(loc, nonObj, field) {
@@ -451,7 +455,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             outputUI.renderPyretValue(valueContainer, runtime, nonObj);
           }, 0);
           dom.append(drawExpandableStackTrace(e));
-          errorHover(expression, [loc]);
+          singleHover(expression, loc);
           container.append(dom);
         }
         function drawExtendNonObject(loc, nonObj) {
@@ -465,7 +469,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             outputUI.renderPyretValue(valueContainer, runtime, nonObj);
           }, 0);
           dom.append(drawExpandableStackTrace(e));
-          errorHover(expression, [loc]);
+          singleHover(expression, loc);
           container.append(dom);
         }
         function drawInvalidArrayIndex(methodName, array, index, reason) {
@@ -474,7 +478,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var expression = $("<a>").text(" this function call ");
           dom.append($("<p>").append(["Invalid array index ", $("<code>").text(index), " around ", expression, "because: " + reason]));
           dom.append(drawExpandableStackTrace(e));
-          errorHover(expression, [probablyErrorLocation]);
+          singleHover(expression, probablyErrorLocation);
           container.append(dom);
         }
         function drawModuleLoadFailure(names) {
@@ -585,7 +589,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var dom = $("<div>").addClass("parse-error");
           dom.append($("<p>").text("Pyret didn't understand your program around ").append(drawSrcloc(loc)));
           dom.append(expandableMore(explanation));
-          errorHover(dom, [loc]);
+          singleHover(dom, loc);
           container.append(dom);
         }
 
@@ -630,7 +634,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               dom.append($("<br>"))
                 .append($("<p>").text(" called from around "))
                 .append(srcloc);
-              errorHover(srcloc, [probablyErrorLocation]);
+              singleHover(srcloc, probablyErrorLocation);
             }
             dom.append(drawExpandableStackTrace(e));
             container.append(dom);
@@ -645,7 +649,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             renderValueIn(val, valContainer);
             var type = $("<a>").text("this annotation");
             var pred = $("<code>").text(predName);
-            errorHover(type, [loc]);
+            singleHover(type, loc);
             dom.append($("<p>").append(["The predicate ", pred, " in ", type, " returned false for this value:"]))
               .append($("<br>"))
               .append(valContainer);
@@ -654,7 +658,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               dom.append($("<br>"))
                 .append($("<p>").text(" called from around "))
                 .append(srcloc);
-              errorHover(srcloc, [probablyErrorLocation]);
+              singleHover(srcloc, probablyErrorLocation);
             }
             dom.append(drawExpandableStackTrace(e));
             container.append(dom);
@@ -668,7 +672,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             var valContainer = $("<div>");
             renderValueIn(val, valContainer);
             var type = $("<a>").text("this annotation");
-            errorHover(type, [loc]);
+            singleHover(type, loc);
             dom.append($("<p>").append(["The record annotation at ", type, " failed on this value:"]))
               .append($("<br>"))
               .append(valContainer);
@@ -684,7 +688,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           return function(name, field) {
             var dom = $("<div>").addClass("compile-error");
             var ann = $("<a>").text(" the annotation named " + field);
-            errorHover(ann, [loc]);
+            singleHover(ann, loc);
             dom.append($("<p>").append(["Couldn't find ", ann, " in the annotations from ", $("<code>").text(name)]));
             container.append(dom);
           }

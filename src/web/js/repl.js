@@ -38,8 +38,9 @@ $(function() {
 
 $(function() {
   var BASE = "http://cs.brown.edu/~joe/private/pyret-dev/";
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js"], function(replLib, replUI, rtLib, dialectLib, guessGas) {
-    makeHoverMenu($("#menu"), $("#menuContents"), function() {});
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
+  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive) {
+    makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
@@ -57,8 +58,32 @@ $(function() {
       var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
       var replNS = dialect.makeNamespace(runtime);
       var replEnv = dialect.compileEnv;
+      var getDriveImports = gdrive.makeDriveImporter(storageAPI);
+      var getSpecialImport = function(runtime, importStmt) {
+        var loc = runtime.getField(importStmt, "l");
+        var kind = runtime.getField(importStmt, "kind");
+        var args = runtime.ffi.toArray(runtime.getField(importStmt, "args"));
+        if(kind === "my-gdrive") {
+          return getDriveImports.getMyDriveImport(runtime, args[0]);
+        } else if(kind === "shared-gdrive") {
+          return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
+        } else {
+          var ret = Q.defer();
+          // TODO(joe): How to export this from ffi-helpers?
+          var cs = require("compiler/compile-structs.arr");
+          runtime.loadModules(runtime.namespace, [cs], function(cs) {
+            ret.reject([runtime.getField(cs, "wf-err").app("No such import type: " + kind +
+                ", did you mean my-gdrive or shared-gdrive?", loc)]);
+          });
+          return ret.promise;
+        }
+      };
       runtime.safeCall(function() {
-        return replLib.create(runtime, replNS, replEnv, {name: "definitions", dialect: dialectStr});
+        return replLib.create(runtime, replNS, replEnv, {
+            name: "definitions",
+            dialect: dialectStr,
+            getSpecialImport: getSpecialImport
+          });
       }, function(repl) {
         var gassed = guessGas.guessGas(3000, repl);
         gassed.fail(function(err) {
