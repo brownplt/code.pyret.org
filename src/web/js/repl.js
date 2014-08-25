@@ -224,6 +224,22 @@ $(function() {
             document.title = progName + " - code.pyret.org";
           }
 
+          $("#download a").click(function() {
+            var downloadElt = $("#download a");
+            var contents = editor.cm.getValue();
+            var downloadBlob = window.URL.createObjectURL(new Blob([contents], {type: 'text/plain'}));
+            var filename = $("#program-name").val();
+            if(!filename) { filename = 'untitled_program.arr'; }
+            if(filename.indexOf(".arr") !== (filename.length - 4)) {
+              filename += ".arr";
+            }
+            downloadElt.attr({
+              download: filename,
+              href: downloadBlob
+            });
+            $("#download").append(downloadElt);
+          });
+
           function loadProgram(p) {
             return p.then(function(p) {
               if(p !== null) {

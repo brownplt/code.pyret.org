@@ -88,6 +88,9 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         getName: function() {
           return googFileObject.title;
         },
+        getDownloadLink: function() {
+          return googFileObject.downloadUrl;
+        },
         getModifiedTime: function() {
           return googFileObject.modifiedDate;
         },
@@ -102,6 +105,9 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         shared: false,
         getName: function() {
           return googFileObject.title;
+        },
+        getDownloadLink: function() {
+          return googFileObject.downloadUrl;
         },
         getModifiedTime: function() {
           return googFileObject.modifiedDate;
