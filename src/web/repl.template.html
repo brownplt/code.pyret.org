@@ -88,6 +88,7 @@ function handleGoogLoad() {
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
 <script id="loadVersion">
 // Figure out what version of Pyret we should be using, if not the current default
+var APP_BASE_URL = "{{{ BASE_URL }}}";
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
 if(params.get && params.get["v"]) {
