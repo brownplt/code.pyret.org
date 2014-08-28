@@ -54,7 +54,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       function drawCompileErrors(e) {
         function drawUnboundId(idExpr) {
           var dom = $("<div>").addClass("compile-error");
-          var name = get(get(idExpr, "id"), "toname").app();
+          var name = runtime.toReprJS(get(idExpr, "id"), "tostring");
           var loc = get(idExpr, "l");
           cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
             "builtin": function(_) {
@@ -92,7 +92,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
         function drawUnboundTypeId(idExpr) {
           var dom = $("<div>").addClass("compile-error");
-          var name = get(get(idExpr, "id"), "toname").app();
+          var name = runtime.toReprJS(get(idExpr, "id"), "tostring");
           var loc = get(idExpr, "l");
           cases(get(srcloc, "Srcloc"), "Srcloc", loc, {
             "builtin": function(_) {
@@ -226,7 +226,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawErrorToString(e) {
           return function() {
             runtime.safeCall(function() {
-              return get(e, "tostring").app()
+              return runtime.toReprJS(e, "tostring");
             }, function(s) {
               container.append($("<div>").addClass("compile-error").text(s));
             });
