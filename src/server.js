@@ -1,4 +1,6 @@
 var Q = require("q");
+var M = require("mmmagic");
+var Magic = M.Magic;
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -74,13 +76,42 @@ function start(config, onServerReady) {
     }
   });
 
-  app.get("/download", function(req, response) {
+  app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleLink = decodeURIComponent(parsed.query.slice(0));
     var googleParsed = url.parse(googleLink);
     console.log(googleParsed);
-    var gReq = request(googleLink);
-    gReq.pipe(response);
+    var host = googleParsed['hostname'];
+    if(host !== 'docs.google.com') {
+      response.status(400).send({type: "bad-domain", error: "Tried to get a file from non-Google host " + host});
+      return;
+    }
+    var gReq = request(googleLink, function(error, googResponse, body) {
+      var h = googResponse.headers;
+      var ct = h['content-type']
+      if(ct.indexOf('text/plain') !== 0) {
+        response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
+        return;
+      }
+      response.set('content-type', 'text/plain');
+      response.send(body);
+    });
+  });
+
+  app.get("/downloadImg", function(req, response) {
+    var parsed = url.parse(req.url);
+    var googleLink = decodeURIComponent(parsed.query.slice(0));
+    var googleParsed = url.parse(googleLink);
+    var gReq = request({url: googleLink, encoding: 'binary'}, function(error, imgResponse, body) {
+      var h = imgResponse.headers;
+      var ct = h['content-type']
+      if(ct.indexOf('image/') !== 0) { 
+        response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
+        return;
+      }
+      response.set('content-type', ct);
+      response.end(body, 'binary');
+    });
   });
 
   app.get(config.google.redirect, function(req, res) {

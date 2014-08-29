@@ -13,7 +13,7 @@
 <body>
 <div id="loader" style="top: 80px;"><p></p></div>
 <div id="header">
-  <div id="newButton"><a id="newLink" href="/repl.html"><button class="loginOnly blueButton">Start New Program</button></a></div>
+  <div id="newButton"><a id="newLink" href="/editor"><button class="loginOnly blueButton">Start New Program</button></a></div>
 </div>
 <div id="toolbar">
 </div>
@@ -63,7 +63,7 @@ function display(storageAPI) {
       elt.append($("<td>").text(new Date(file.getModifiedTime())));
       elt.append($("<td>").append($("<a>").attr({
         "target": "_blank",
-        "href": "/repl.html#program=" + file.getUniqueId()
+        "href": "/editor#program=" + file.getUniqueId()
       }).text("Open")));
       var shareLink = $("<td>").append(makeShareLink(file));
       elt.append(shareLink);

@@ -77,7 +77,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
       return {
         shared: true,
         getContents: function() {
-          var proxyDownloadLink = "/download?" + encodeURIComponent(googFileObject.webContentLink);
+          var proxyDownloadLink = "/downloadGoogleFile?" + encodeURIComponent(googFileObject.webContentLink);
           return Q($.ajax(proxyDownloadLink, {
             method: "get",
             dataType: 'text'

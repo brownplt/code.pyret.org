@@ -44,7 +44,7 @@ $(function() {
     $("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
     runtime.setParam("imgUrlProxy", function(s) {
-      return APP_BASE_URL + "/download?" + s;
+      return APP_BASE_URL + "/downloadImg?" + s;
     });
 
     var dialects = Q.defer();
