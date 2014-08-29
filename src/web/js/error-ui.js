@@ -266,42 +266,74 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
       }
 
+      function expandableMore(dom) {
+        var container = $("<div>");
+        container.append(dom);
+        var moreLink = $("<a>").text("(More...)");
+        var lessLink = $("<a>").text("(Less...)");
+        function toggle() {
+          dom.toggle();
+          lessLink.toggle();
+          moreLink.toggle();
+        }
+        moreLink.on("click", toggle);
+        lessLink.on("click", toggle);
+        container.append(moreLink).append(lessLink).append(dom);
+        dom.hide();
+        lessLink.hide();
+        return container;
+      }
+
+      function drawExpandableStackTrace(e) {
+        var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
+        var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+        var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
+        var container = $("<div>");
+        if(userLocs.length > 0) {
+          container.append($("<p>").text("Stack trace:"));
+          userLocs.forEach(function(ul) {
+            var slContainer = $("<div>");
+            var srcloc = drawSrcloc(ul);
+            slContainer.append(srcloc);
+            singleHover(srcloc, ul);
+            container.append(slContainer);
+          });
+          return expandableMore(container);
+        } else {
+          return container;
+        }
+      }
+      function getLastUserLocation(e, ix) {
+        var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
+        var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+        var userLocs = srclocStack.filter(function(l) {
+          if(!(l && isSrcloc(l))) { return false; }
+          var source = runtime.getField(l, "source");
+          return (source === "definitions" || source.indexOf("interactions") !== -1 || source.indexOf("gdrive") !== -1);
+        });
+
+        var probablyErrorLocation = userLocs[ix];
+        return probablyErrorLocation;
+      }
       function drawPyretException(e) {
         function drawRuntimeErrorToString(e) {
           return function() {
-            container.append($("<div>").text(String(e)));
+            var dom = $("<div>");
+            var exnstringContainer = $("<div>");
+            dom
+              .addClass("compile-error")
+              .append($("<p>").text("Error: "))
+              .append(exnstringContainer)
+              .append($("<p>"))
+              .append(drawExpandableStackTrace(e));
+            container.append(dom);
+            if(runtime.isPyretVal(e.exn)) {
+              outputUI.renderPyretValue(exnstringContainer, runtime, e.exn);
+            }
+            else {
+              exnstringContainer.text(String(e.exn));
+            }
           }
-        }
-        function drawExpandableStackTrace(e) {
-          var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
-          var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
-          var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
-          var container = $("<div>");
-          if(userLocs.length > 0) {
-            container.append($("<p>").text("Stack trace:"));
-            userLocs.forEach(function(ul) {
-              var slContainer = $("<div>");
-              var srcloc = drawSrcloc(ul);
-              slContainer.append(srcloc);
-              singleHover(srcloc, ul);
-              container.append(slContainer);
-            });
-            return expandableMore(container);
-          } else {
-            return container;
-          }
-        }
-        function getLastUserLocation(e, ix) {
-          var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
-          var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
-          var userLocs = srclocStack.filter(function(l) {
-            if(!(l && isSrcloc(l))) { return false; }
-            var source = runtime.getField(l, "source");
-            return (source === "definitions" || source.indexOf("interactions") !== -1);
-          });
-
-          var probablyErrorLocation = userLocs[ix];
-          return probablyErrorLocation;
         }
         function drawGenericTypeMismatch(value, type) {
           // TODO(joe): How to improve this search?
@@ -372,10 +404,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             dom.append($("<p>").text(message + " At:"))
               .append($("<br>"))
               .append(drawSrcloc(probablyErrorLocation));
-            singleHover(dom, probablyErrorLocation);
           } else {
             dom.append($("<p>").text(message));
           }
+          dom.append(drawExpandableStackTrace(e));
           container.append(dom);
         }
         function drawNoBranchesMatched(loc, type) {
@@ -547,24 +579,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             });
         }
 
-        function expandableMore(dom) {
-          var container = $("<div>");
-          container.append(dom);
-          var moreLink = $("<a>").text("(More...)");
-          var lessLink = $("<a>").text("(Less...)");
-          function toggle() {
-            dom.toggle();
-            lessLink.toggle();
-            moreLink.toggle();
-          }
-          moreLink.on("click", toggle);
-          lessLink.on("click", toggle);
-          container.append(moreLink).append(lessLink).append(dom);
-          dom.hide();
-          lessLink.hide();
-          return container;
-        }
-
         function errorIcon() {
           return $("<span>").addClass("error-icon").text("⚠");
         }
@@ -725,7 +739,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         else if(mkPred("ParseError")(e.exn)) {
           drawPyretParseError();
         } else {
-          drawRuntimeErrorToString(e);
+          drawRuntimeErrorToString(e)();
         }
       }
 
