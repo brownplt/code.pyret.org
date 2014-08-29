@@ -1,6 +1,4 @@
 var Q = require("q");
-var M = require("mmmagic");
-var Magic = M.Magic;
 
 function start(config, onServerReady) {
   var express = require('express');
