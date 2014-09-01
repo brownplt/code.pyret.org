@@ -1,5 +1,6 @@
 define(["q", "js/eval-lib"], function(Q, evalLib) {
   function makeDriveImporter(storageAPI) {
+    var contentsMap = {};
     return {
       // ModuleLoadResult = Promise<{ name: String, ast: Program } U "loaded">
       // Runtime x String -> ModuleLoadResult
@@ -18,6 +19,10 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
             return files;
           });
           filesP.fail(function(failure) {
+            if(runtime.isPyretException(failure)) {
+              returnP.reject(failure);
+              return;
+            }
             var message = "";
             var defaultMessage = "There was an error fetching file with name " + filename + 
                   " (labelled " + filename + ") from Google Drive.";
@@ -50,12 +55,15 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
 
           var contentsP = filesP.then(function(files) { return files[0].getContents(); });
           contentsP.then(function(contents) {
-            evalLib.runParsePyret(runtime, contents, { name: fullname }, function(result) {
-              if(runtime.isFailureResult(result)) { returnP.reject(result); }
-              else {
-                returnP.resolve({ ast: result.result, name: fullname });
-              }
-            });
+            if(requirejs.defined(fullname) && contentsMap[fullname] === contents) {
+              // File has been successfully loaded and hasn't changed, so just
+              // note that it is loaded already
+              returnP.resolve("loaded");
+            }
+            else {
+              contentsMap[fullname] = contents;
+              returnP.resolve({ code: contents, name: fullname });
+            }
           });
           contentsP.fail(function(err) {
             returnP.reject(runtime.makeFailureResult(err));
@@ -102,12 +110,7 @@ define(["q", "js/eval-lib"], function(Q, evalLib) {
               return file.getContents();
             });
             contentsP.then(function(contents) {
-              evalLib.runParsePyret(runtime, contents, { name: fullname }, function(result) {
-                if(runtime.isFailureResult(result)) { returnP.reject(result); }
-                else {
-                  returnP.resolve({ ast: result.result, name: fullname });
-                }
-              });
+              returnP.resolve({ code: contents, name: fullname });
             });
             contentsP.fail(function(err) {
               console.log("Error: ", err);
