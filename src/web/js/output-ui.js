@@ -348,7 +348,9 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
             else {
               echo.text("<error displaying value>");
             }
-            CodeMirror.fromTextArea(echo[0], { readOnly: true });
+            setTimeout(function() {
+              CodeMirror.fromTextArea(echo[0], { readOnly: true });
+            }, 0);
           });
         }
 
