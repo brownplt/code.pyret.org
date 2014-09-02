@@ -13,26 +13,53 @@ var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
 
 $(function() {
-  var key = "share-explanation-has-been-shown";
+  var key = "firefox-warning-has-been-shown";
   var shownBefore = window.localStorage.getItem(key);
-  if(params.get["share"] && !shownBefore) {
+  var ua = "";
+  if(window.navigator && window.navigator.userAgent) {
+    ua = window.navigator.userAgent;
+  }
+  if(ua.indexOf("Firefox") !== -1 && !shownBefore) {
     window.localStorage.setItem(key, true);
     var explanation = $("<div>").append([$("<p>")
-      .text("You're viewing a copy of a shared program.  " +
-            "Feel free to edit it: don't worry, you won't change the original!"),
-      $("<p>").text(
-            "You can save a copy of the program to " +
-            "your Google drive that's completely separate from the original " +
-            "if you want to have your own version. "),
-      $("<p>").text("(Press escape or click the X to close this window and get started!)")]);
+      .text("It looks like you're using a version of Firefox.  " +
+            "Some Pyret programs run slowly on Firefox, so if you have a poor experience, consider using Chrome or Chromium, which interact with Pyret more efficiently."),
+      $("<p>").text("(Press escape or click the X to close this window)")]);
     explanation.dialog({
-      title: "Sharing",
+      title: "Firefox",
       modal: true,
 			overlay : { opacity: 0.5, background: 'black'},
       width : "500px",
       height : "auto",
-      closeOnEscape : true
+      closeOnEscape : true,
+      close: checkShare
     });
+  }
+  else {
+    checkShare();
+  }
+  function checkShare() {
+    var key = "share-explanation-has-been-shown";
+    var shownBefore = window.localStorage.getItem(key);
+    if(params.get["share"] && !shownBefore) {
+      window.localStorage.setItem(key, true);
+      var explanation = $("<div>").append([$("<p>")
+        .text("You're viewing a copy of a shared program.  " +
+              "Feel free to edit it: don't worry, you won't change the original!"),
+        $("<p>").text(
+              "You can save a copy of the program to " +
+              "your Google drive that's completely separate from the original " +
+              "if you want to have your own version. "),
+        $("<p>").text("(Press escape or click the X to close this window and get started!)")]);
+      explanation.dialog({
+        title: "Sharing",
+        modal: true,
+        overlay : { opacity: 0.5, background: 'black'},
+        width : "500px",
+        height : "auto",
+        closeOnEscape : true
+      });
+    }
   }
 });
 

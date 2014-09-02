@@ -2,6 +2,15 @@ define([], function() {
   // Hard to do better than this
   function guessGas(gas, repl) {
     var rt = repl.runtime;
+    var ua = "";
+    if(window.navigator && window.navigator.userAgent) {
+      ua = window.navigator.userAgent;
+    }
+    if(ua.indexOf("Firefox") !== -1) {
+      rt.INITIAL_GAS = 200;
+      // clear out the definition of "f"
+      return repl.restartInteractions("").then(function() { return repl; });
+    }
     rt.INITIAL_GAS = gas;
     var body = "if x == 0: 0 else: f(x - 1, y, z) end"
     var onRun = repl.restartInteractions("fun f(x :: Number, y, z) -> Number: " + body + " end f(" + gas + ", \"y\", \"z\")", "noname");
