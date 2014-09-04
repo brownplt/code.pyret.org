@@ -355,7 +355,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
         function drawArityMismatch(funLoc, arity, args) {
           args = ffi.toArray(args);
-          var probablyErrorLocation = getLastUserLocation(e, 1);
+          var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
           var argDom = $("<div>");
           setTimeout(function() {
