@@ -120,11 +120,18 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
        container.append(outerDom);
      } else {
        container.append(checkContainer); 
-       if (checkBlockCount > 1) {
+       if (checkBlocksErrored > 0) {
+         var count = $("<pre>").addClass("replOutput").text(checkPassedAll + " tests passed and " + (checkTotalAll - checkPassedAll) + " failed in all check blocks.");
+         var however = $("<pre>").addClass("replOutputFailed").text("HOWEVER " + checkBlocksErrored + " check block(s) ended in error, so some tests may not have run.");
+         var so = $("<pre>").addClass("replOutputFailed").text("Check the output above to see what errors occured.");
+         container.append([count, however, so]);
 
-         var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
-         container.append(outerDom);
-
+       }
+       else {
+         if(checkBlockCount > 1) {
+           var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
+           container.append(outerDom);
+         }
        }
      }
 
