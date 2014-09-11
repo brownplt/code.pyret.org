@@ -51,7 +51,10 @@ function makeAuth(config) {
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
         console.log("Got tokens: ", JSON.stringify(tokens));
-        if(err !== null) { callback(err, null); return; }
+        if(err !== null) {
+          console.error("Error in Google login: ", err);
+          callback(err, null); return;
+        }
         if(!(typeof tokens.id_token === "string")) {
           callback(new Error("No identity information provided"), null); return;
         }
