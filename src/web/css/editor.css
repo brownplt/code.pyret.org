@@ -226,7 +226,7 @@ body {
 
 .replMain {
   position: absolute;
-  z-index: 7000;
+  z-index: 8500;
   left: 0;
   width: 50%;
   top:0;

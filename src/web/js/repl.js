@@ -158,10 +158,26 @@ $(function() {
               if(p !== null && !copyOnSave) { save(); }
             });
           }
+          var editorBig = false;
+          function toggleEditorSize() {
+            if(editorBig) {
+              editorBig = false;
+              $(".replMain").css("width", "50%");
+            }
+            else {
+              editorBig = true;
+              $(".replMain").css("width", "95%");
+            }
+          }
           $(window).on("keydown", function(e) {
             if(e.ctrlKey) {
               if(e.keyCode === 83) { // "Ctrl-s"
                 save();
+                e.stopImmediatePropagation();
+                e.preventDefault();
+              }
+              else if(e.keyCode === 77) { // "Ctrl-m"
+                toggleEditorSize();
                 e.stopImmediatePropagation();
                 e.preventDefault();
               }
