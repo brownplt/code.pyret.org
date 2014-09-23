@@ -77,13 +77,25 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
       return {
         shared: true,
         getContents: function() {
-          var proxyDownloadLink = "/downloadGoogleFile?" + encodeURIComponent(googFileObject.webContentLink);
-          return Q($.ajax(proxyDownloadLink, {
-            method: "get",
-            dataType: 'text'
-          })).then(function(response) {
-            return response;
-          });
+          var auth = gapi.auth.getToken();
+          if(auth) {
+            return Q($.ajax(googFileObject.downloadUrl, {
+              method: "get",
+              dataType: 'text',
+              headers: {'Authorization': 'Bearer ' + gapi.auth.getToken().access_token },
+            })).then(function(response) {
+              return response;
+            });
+          }
+          else {
+            var proxyDownloadLink = "/downloadGoogleFile?" + encodeURIComponent(googFileObject.webContentLink);
+            return Q($.ajax(proxyDownloadLink, {
+              method: "get",
+              dataType: 'text'
+            })).then(function(response) {
+              return response;
+            });
+          }
         },
         getName: function() {
           return googFileObject.title;
