@@ -76,14 +76,18 @@ function start(config, onServerReady) {
 
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
-    var googleLink = decodeURIComponent(parsed.query.slice(0));
+    var googleId = decodeURIComponent(parsed.query.slice(0));
+    var googleLink = "https://googledrive.com/host/" + googleId;
+    console.log(googleLink);
+    /*
     var googleParsed = url.parse(googleLink);
     console.log(googleParsed);
     var host = googleParsed['hostname'];
-    if(host !== 'docs.google.com') {
+    if(host !== 'googledrive.com') {
       response.status(400).send({type: "bad-domain", error: "Tried to get a file from non-Google host " + host});
       return;
     }
+    */
     var gReq = request(googleLink, function(error, googResponse, body) {
       var h = googResponse.headers;
       var ct = h['content-type']
