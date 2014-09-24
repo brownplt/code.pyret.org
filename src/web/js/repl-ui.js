@@ -189,6 +189,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       promptContainer.fadeIn(100);
       CM.setValue("");
       CM.focus();
+      CM.refresh();
     }
     promptContainer.append(promptArrow).append(prompt);
 
