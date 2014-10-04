@@ -353,6 +353,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             singleHover(dom, probablyErrorLocation);
           });
         }
+        function drawCasesArityMismatch(branchLoc, numArgs, actualArity) {
+          var dom = $("<div>").addClass("compile-error");
+          var loc = drawSrcloc(branchLoc);
+          singleHover(loc, branchLoc);
+          dom.append($("<p>").append(["The cases branch at ", loc, " should have only " + actualArity + " arguments, but there are ", numArgs]));
+          dom.append(drawExpandableStackTrace(e));
+          container.append(dom);
+        }
         function drawArityMismatch(funLoc, arity, args) {
           args = ffi.toArray(args);
           var probablyErrorLocation = getLastUserLocation(e, 0);
@@ -567,6 +575,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "extend-non-object": drawExtendNonObject,
               "generic-type-mismatch": drawGenericTypeMismatch,
               "arity-mismatch": drawArityMismatch,
+              "cases-arity-mismatch": drawCasesArityMismatch,
               "plus-error": drawPlusError,
               "numeric-binop-error": drawNumericBinopError,
               "non-boolean-condition": drawNonBooleanCondition,
@@ -603,6 +612,12 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var dom = $("<div>").addClass("parse-error");
           dom.append($("<p>").text("Pyret didn't understand your program around ").append(drawSrcloc(loc)));
           dom.append(expandableMore(explanation));
+          singleHover(dom, loc);
+          container.append(dom);
+        }
+        function drawParseErrorEOF(loc) {
+          var dom = $("<div>").addClass("parse-error");
+          dom.append($("<p>").text("Pyret didn't understand the very end of your program.  You may be missing an \"end\", or closing punctuation like \")\" or \"]\", right at the end."));
           singleHover(dom, loc);
           container.append(dom);
         }
@@ -724,6 +739,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawPyretParseError() {
           cases(get(error, "ParseError"), "ParseError", e.exn, {
               "parse-error-next-token": drawParseErrorNextToken,
+              "parse-error-eof": drawParseErrorEOF,
               "else": drawRuntimeErrorToString(e)
             });
         }
