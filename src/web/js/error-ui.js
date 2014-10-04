@@ -361,6 +361,23 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append(drawExpandableStackTrace(e));
           container.append(dom);
         }
+        function drawCasesSingletonMismatch(branchLoc, shouldBeSingleton) {
+          var dom = $("<div>").addClass("compile-error");
+          var loc = drawSrcloc(branchLoc);
+          singleHover(loc, branchLoc);
+          var para;
+          if(shouldBeSingleton) {
+            para = $("<p>").append(["The cases branch at ", loc, " has an argument list, but the variant is a singleton."]);
+          } else {
+            para = $("<p>").append(["The cases branch at ", loc, " doesn't have an argument list, but the variant is not a singleton."]);
+          }
+          dom.append(para);
+          dom.append(drawExpandableStackTrace(e));
+          container.append(dom);
+          dom.append($("<p>").append(["The cases branch at ", loc, " should have only " + actualArity + " arguments, but there are ", numArgs]));
+          dom.append(drawExpandableStackTrace(e));
+          container.append(dom);
+        }
         function drawArityMismatch(funLoc, arity, args) {
           args = ffi.toArray(args);
           var probablyErrorLocation = getLastUserLocation(e, 0);
@@ -423,6 +440,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var domLoc = drawSrcloc(loc);
           dom.append($("<p>").append(["The name ", name, " was used at ", domLoc, " before it was defined"]));
           singleHover(domLoc, loc);
+          dom.append(drawExpandableStackTrace(e));
           container.append(dom);
         }
         function drawNoBranchesMatched(loc, type) {
@@ -584,6 +602,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "generic-type-mismatch": drawGenericTypeMismatch,
               "arity-mismatch": drawArityMismatch,
               "cases-arity-mismatch": drawCasesArityMismatch,
+              "cases-singleton-mismatch": drawCasesSingletonMismatch,
               "plus-error": drawPlusError,
               "numeric-binop-error": drawNumericBinopError,
               "non-boolean-condition": drawNonBooleanCondition,
