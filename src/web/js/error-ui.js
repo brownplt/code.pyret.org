@@ -418,6 +418,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append(drawExpandableStackTrace(e));
           container.append(dom);
         }
+        function drawUninitializedId(loc, name) {
+          var dom = $("<div>").addClass("compile-error");
+          var domLoc = drawSrcloc(loc);
+          dom.append($("<p>").append(["The name ", name, " was used at ", domLoc, " before it was defined"]));
+          singleHover(domLoc, loc);
+          container.append(dom);
+        }
         function drawNoBranchesMatched(loc, type) {
           var dom = $("<div>").addClass("compile-error");
           var expression = $("<a>").text("this " + type + " expression");
@@ -569,6 +576,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawPyretRuntimeError() {
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
               "message-exception": drawMessageException,
+              "uninitialized-id": drawUninitializedId,
               "no-branches-matched": drawNoBranchesMatched,
               "field-not-found": drawFieldNotFound,
               "lookup-non-object": drawLookupNonObject,
