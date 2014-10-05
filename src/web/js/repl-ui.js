@@ -4,9 +4,11 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     Object.keys(obj).forEach(function(k) {
       newobj[k] = obj[k];
     });
-    Object.keys(extension).forEach(function(k) {
-      newobj[k] = extension[k];
-    });
+    if (extension !== undefined) {
+      Object.keys(extension).forEach(function(k) {
+          newobj[k] = extension[k];
+      });
+    }
     return newobj;
   }
   var animationDiv = null;
@@ -31,8 +33,8 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
 
     var runFun = function (code, options) {};
     if (options.hasOwnProperty("run")) {
-      runFun = function (code, replOptions) {
-        options.run(code, {cm: CM}, replOptions);
+      runFun = function (code, replOptions, uiOptions) {
+        options.run(code, merge({cm: CM, runButton: $("#runButton")}, uiOptions), replOptions);
       }
     }
 
@@ -78,6 +80,12 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     if(options.runButton) {
       options.runButton.on("click", function() {
         runFun(CM.getValue(), {check: true});
+      });
+    }
+
+    if(options.typeButton) {
+      options.typeButton.on("click", function() {
+        runFun(CM.getValue(), {check: true, typeCheck: true, dialect: "Pyret"}, {runButton: options.typeButton});
       });
     }
 
@@ -242,19 +250,20 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     }).css({
       "vertical-align": "middle"
     });
-    function afterRun() {
-      options.runButton.empty();
-      options.runButton.text("Run");
-      options.runButton.attr("disabled", false);
+    function afterRun(runButton) {
+      runButton.empty();
+      runButton.text(runButton.data("original-text"));
+      runButton.attr("disabled", false);
     }
-    function setWhileRunning() {
-      options.runButton.empty();
+    function setWhileRunning(runButton) {
+      runButton.data("original-text", runButton.text());
+      runButton.empty();
       var text = $("<span>").text("Running...");
       text.css({
         "vertical-align": "middle"
       });
-      options.runButton.append([img, text]);
-      options.runButton.attr("disabled", true);
+      runButton.append([img, text]);
+      runButton.attr("disabled", true);
     }
 
     var runCode = makeHighlightingRunCode(runtime, function (src, uiOptions, options) {
@@ -277,12 +286,12 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       var thisWrite = uiOptions.write || write;
       lastNameRun = uiOptions.name || "interactions";
       lastEditorRun = uiOptions.cm || null;
-      setWhileRunning();
+      setWhileRunning(uiOptions.runButton);
 
       editors = {};
       editors["definitions"] = uiOptions.cm;
       interactionsCount = 0;
-      evaluator.runMain(uiOptions.name || "run", src, enablePrompt(thisReturnHandler), thisWrite, enablePrompt(thisError), options, afterRun);
+      evaluator.runMain(uiOptions.name || "run", src, enablePrompt(thisReturnHandler), thisWrite, enablePrompt(thisError), options, function(){ afterRun(uiOptions.runButton); });
     }, true);
 
     var enablePrompt = function (handler) { return function (result) {
@@ -312,7 +321,8 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
           breakButton.attr("disabled", false);
           CM.setValue("");
           promptContainer.hide();
-          setWhileRunning();
+          var runButton = $("#runButton");
+          setWhileRunning(runButton);
           makeHighlightingRunCode(runtime, function(src, uiOptions, options) {
             interactionsCount++;
             var thisName = 'interactions' + interactionsCount;
@@ -323,7 +333,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
                         write,
                         enablePrompt(uiOptions.wrappingOnError(output)),
                         merge(options, merge(replOpts, {name: lastNameRun, check: true})),
-                        afterRun);
+                        function(){ afterRun(runButton); });
           }, false)(code, merge(opts, {cm: echoCM}), replOpts);
         },
         "interactions");
@@ -442,7 +452,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
 
   function makeEvaluator(container, repl, runtime) {
     var runMainCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
-      var evaluation = repl.restartInteractions(src);
+      var evaluation = repl.restartInteractions(src, options);
       evaluation.then(function(result) {
         if(runtime.isSuccessResult(result)) {
           returnHandler(result);

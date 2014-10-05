@@ -548,6 +548,12 @@ span.rationalRepeat {
   margin: 5px;
 }
 
+#typeButton {
+  width: 150px;
+  height: 40px;
+  margin: 5px;
+}
+
 .module-info-hover {
   width: 30em;
   height: auto;

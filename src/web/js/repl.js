@@ -129,9 +129,11 @@ $(function() {
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
+          var typeButton = $("#typeButton");
 
           var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
               breakButton: $("#breakButton"),
+              typeButton: typeButton,
               runButton: runButton
             });
           window.RUN_CODE = function(src, uiOpts, replOpts) {
@@ -141,6 +143,7 @@ $(function() {
           $("#main").prepend(codeContainer);
           var editor = replUI.makeEditor(codeContainer, {
               runButton: $("#runButton"),
+              typeButton: $("#typeButton"),
               simpleEditor: false,
               initial: "print('Ahoy, world!')",
               run: RUN_CODE,
