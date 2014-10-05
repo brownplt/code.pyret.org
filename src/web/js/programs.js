@@ -293,18 +293,12 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
   function initialize() {
     drive = gapi.client.drive;
 
-    var list = gQ(drive.files.list({}));
+    var list = gQ(drive.files.list({
+      q: "trashed=false and title = '" + collectionName + "' and "+
+         "mimeType = '" + FOLDER_MIME + "'"
+    }));
     var baseCollection = list.then(function(filesResult) {
-      var foundCollection = false;
-      if(filesResult.items) {
-        filesResult.items.forEach(function(i) {
-          if(i.mimeType === FOLDER_MIME &&
-             i.title === collectionName &&
-             !(i.explicitlyTrashed)) {
-            foundCollection = i;
-          }
-        });
-      }
+      var foundCollection = filesResult.items && filesResult.items[0];
       var baseCollection;
       if(!foundCollection) {
         return gQ(
