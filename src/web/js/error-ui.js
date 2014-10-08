@@ -374,9 +374,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append(para);
           dom.append(drawExpandableStackTrace(e));
           container.append(dom);
-          dom.append($("<p>").append(["The cases branch at ", loc, " should have only " + actualArity + " arguments, but there are ", numArgs]));
-          dom.append(drawExpandableStackTrace(e));
-          container.append(dom);
         }
         function drawArityMismatch(funLoc, arity, args) {
           args = ffi.toArray(args);
