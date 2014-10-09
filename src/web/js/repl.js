@@ -168,6 +168,7 @@ $(function() {
               editorBig = true;
               $(".replMain").css("width", "95%");
             }
+            editor.refresh();
           }
           $(window).on("keydown", function(e) {
             if(e.ctrlKey) {
@@ -184,14 +185,6 @@ $(function() {
               else if(e.keyCode === 13) { // "Ctrl-Enter"
                 editor.run();
                 autoSave();
-                e.stopImmediatePropagation();
-                e.preventDefault();
-              } else if(e.keyCode === 68) { // "Ctrl-d"
-                editor.focus();
-                e.stopImmediatePropagation();
-                e.preventDefault();
-              } else if(e.keyCode === 73) { // "Ctrl-i"
-                replWidget.focus();
                 e.stopImmediatePropagation();
                 e.preventDefault();
               } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"

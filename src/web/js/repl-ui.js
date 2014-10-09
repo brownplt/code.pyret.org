@@ -83,6 +83,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
 
     return {
       cm: CM,
+      refresh: function() { CM.refresh(); },
       run: function() {
         runFun(CM.getValue(), {check: true});
       },
