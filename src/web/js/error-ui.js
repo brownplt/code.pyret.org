@@ -228,7 +228,43 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             runtime.safeCall(function() {
               return runtime.toReprJS(e, "tostring");
             }, function(s) {
-              container.append($("<div>").addClass("compile-error").text(s));
+
+              var commentBox = $("<textarea>")
+                .css({"width": "100%", "height": "5em", "display": "none"});
+              function toggle(ev) {
+                    ev.stopImmediatePropagation();
+                    var newDisplay = commentBox.css("display") === "none" ? "inline" : "none";
+                    var newText = commentBox.css("display") === "none" ? "Hide comment box" : "Show comment box";
+                    commentBox.css("display", newDisplay);
+                    toggleBox.text(newText);
+              }
+              var toggleBox = $("<a>")
+                .text("Show comment box")
+                .click(toggle);
+              var submitLink = $("<a>")
+                .text("Report this error")
+                .click(function(ev) {
+                  ev.stopImmediatePropagation();
+                  var CM = editors.definitions;
+                  var request = $.ajax({
+                      type: "POST",
+                      url: "https://docs.google.com/forms/d/1xg-Bywhp5BWBAz-h3buH5qBgw9vH7MHRmLNtI7pD7m0/formResponse",
+                      data: {
+                          "entry.1574705563": s,
+                          "entry.805170695": CM !== undefined ? CM.getValue() : "",
+                          "entry.1977801227": commentBox.val()
+                      },
+                      error: function(jqXHR, textStatus, errorThrown) {
+                      }
+                  });
+                  request.done(function(result) {
+                      alert("Successfully submitted error report");
+                  });
+                });
+              container.append($("<div>")
+                .addClass("compile-error")
+                .text(s)
+                .append("<br /><br />", toggleBox, "<br />", commentBox, submitLink));
             });
           };
         }
