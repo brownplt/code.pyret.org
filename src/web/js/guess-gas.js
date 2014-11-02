@@ -13,7 +13,7 @@ define([], function() {
     }
     rt.INITIAL_GAS = gas;
     var body = "if x == 0: 0 else: f(x - 1, y, z) end"
-    var onRun = repl.restartInteractions("fun f(x :: Number, y, z) -> Number: " + body + " end f(" + gas + ", \"y\", \"z\")", "noname");
+    var onRun = repl.restartInteractions("fun f(x :: Number, y, z) -> Number: " + body + " end\nf(" + gas + ", \"y\", \"z\")", "noname");
     console.log("Trying gas: ", gas);
     onRun.fail(function(err) {
       console.log("Gas run failed at: ", gas);
