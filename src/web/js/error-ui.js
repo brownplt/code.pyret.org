@@ -448,6 +448,20 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           singleHover(expression, loc);
           container.append(dom);
         }
+        function drawNoCasesMatched(loc, value) {
+          var dom = $("<div>").addClass("compile-error");
+          var domLoc = drawSrcloc(loc);
+          singleHover(domLoc, loc);
+          var valContainer = $("<div>");
+          dom.append([
+            $("<p>").append(["No cases matched in the cases expression at ", domLoc, " for the value:"]),
+            valContainer,
+            $("<p>"),
+            drawExpandableStackTrace(e)
+          ]);
+          container.append(dom);
+          outputUI.renderPyretValue(valContainer, runtime, value);
+        }
         function drawNonBooleanCondition(loc, type, value) {
           getDomValue(value, function(v) {
             var dom = $("<div>").addClass("compile-error");
@@ -593,6 +607,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "message-exception": drawMessageException,
               "uninitialized-id": drawUninitializedId,
               "no-branches-matched": drawNoBranchesMatched,
+              "no-cases-matched": drawNoCasesMatched,
               "field-not-found": drawFieldNotFound,
               "lookup-non-object": drawLookupNonObject,
               "extend-non-object": drawExtendNonObject,
