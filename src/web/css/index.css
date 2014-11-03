@@ -17,14 +17,14 @@ h1 {
   vertical-align: middle;
   margin-left: 3em;
   font-size: 18pt;
-  width: 20em;
+  width: 100px;
 }
 
 #start {
   vertical-align: middle;
   margin-right: 3em;;
   font-size: 18pt;
-  width: 20em;
+  width: 100px;
 }
 
 #main {
@@ -32,10 +32,15 @@ h1 {
   height: 100%;
 }
 
-.centered {
-  width: 50%;
+.main-logo {
+  width: 600px;
   margin: auto;
-  padding: auto;
+  text-align: center;
+}
+
+.centered {
+  width: 450px;
+  margin: auto;
   text-align: center;
 }
 
