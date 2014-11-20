@@ -59,13 +59,20 @@
 <script src="/js/pyret-mode.js"></script>
 <script src="/js/require.js"></script>
 <script>
-  // Shim code for s-expression-lib.js
   window.module = {};
 </script>
 <script src="/js/s-expression-lib.js"></script>
 <script>
+var sexp_exports = window.module.exports;
 define("s-expression", [], function() {
-  return window.module.exports;
+  return sexp_exports;
+});
+</script>
+<script src="/js/seedrandom.js"></script>
+<script>
+var seed_exports = window.module.exports;
+define("seedrandom", [], function() {
+  return seed_exports;
 });
 </script>
 <script src="/js/share.js"></script>

@@ -75,6 +75,9 @@ build/web/js/q.js: node_modules/q/q.js
 build/web/js/s-expression-lib.js: node_modules/s-expression/index.js
 	cp $< $@
 
+build/web/js/seedrandom.js: node_modules/seedrandom/seedrandom.js
+	cp $< $@
+
 build/web/js/url.js: node_modules/url.js/url.js
 	cp $< $@
 
@@ -90,7 +93,7 @@ build/web/js/matchbrackets.js: lib/CodeMirror/addon/edit/matchbrackets.js
 build/web/js/pyret-mode.js: lib/CodeMirror/mode/pyret/pyret.js
 	cp $< $@
 
-MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js build/web/js/codemirror.js build/web/js/matchbrackets.js build/web/js/pyret-mode.js build/web/js/s-expression-lib.js
+MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js build/web/js/codemirror.js build/web/js/matchbrackets.js build/web/js/pyret-mode.js build/web/js/s-expression-lib.js build/web/js/seedrandom.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
