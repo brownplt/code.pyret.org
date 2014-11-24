@@ -284,6 +284,9 @@ $(function() {
                 setTitle(p.getName());
                 return p.getContents().then(function(c) {
                   editor.cm.setValue(c);
+                  // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
+                  // in which undo can revert the program back to empty
+                  editor.cm.clearHistory();
                 });
               }
             });
