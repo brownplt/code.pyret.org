@@ -1,6 +1,7 @@
-var myWorker = new SharedWorker("/js/compile-worker.js");
 
-myWorker.onerror = function(err) {
+var compileWorker = new SharedWorker("/js/compile-worker.js");
+
+compileWorker.onerror = function(err) {
   console.log("Worker failed with error: ", err);
 }
 
@@ -9,22 +10,25 @@ function dispatch(type, args) {
     case "log":
       console.log("[worker] ", args.message);
       break;
+    case "loaded":
+      console.log("Successfully connected to worker");
+      break;
   }
-  if(oEvent.data === "Loaded Pyret!") {
-    console.log("Loaded Pyret!");
-  }
-  
 }
 
-myWorker.port.onmessage = function (oEvent) {
-  console.log("Received message", oEvent);
-  dispatch(oEvent.data.type, oEvent.data.args);
+compileWorker.port.onmessage = function (workerEvent) {
+  dispatch(workerEvent.data.type, workerEvent.data.args);
 };
 
-myWorker.port.postMessage({
+var myId = Math.random() * 100000000;
+
+compileWorker.port.postMessage({
   type: "initialize",
   args: {
     base: BASE,
-    useStandalone: STANDALONE
+    useStandalone: STANDALONE,
+    windowId: myId
   }
 });
+
+console.log("My windowId is " + myId);
