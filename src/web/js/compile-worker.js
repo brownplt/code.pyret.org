@@ -1,10 +1,5 @@
 importScripts("/js/require.js");
 
-var initialState = {
-  firstLoad: true,
-  connectedWindows: []
-};
-
 function Handled(newState, messages) {
   this.newState = newState;
   this.messages = messages;
@@ -57,43 +52,39 @@ function handleInitialConnection(args, client) {
   ]);
 }
 
+function handleCompile() {
+
+}
 
 
-function dispatch(type, args, client) {
+function dispatch(type, args, state, client) {
   switch(type) {
     case "initialize":
       return handleInitialConnection(args, client)
     case "compile":
-      return handleCompile(type, args);
+      return handleCompile(type, args, client);
   }
 }
 
-function makeHandlers(client) {
-  return {
-    log: function(message) { return log(client, message); },
-    registerConnection: function() {
-      client.postMessage({
-        type: "connected",
-        args: { /* some sort of windowId? */ }
-      );
-    },
-    dispatch: {
-      initialize: function(message) {
-
-      }
-    }
-  }
-}
-
-
-self.onmessage = function(messageEvent) {
-  console.log("New message");
-  messageEvent.source.postMessage("Messaged!");
-  dispatch(messageEvent.data.type, messageEvent.data.args);
+var initialState = {
+  firstLoad: true,
+  connectedWindows: []
 };
 
-self.onconnect = function(message) {
-  var handlers = makeHandlers(message.source);
-  handleInitialConnection(message.data, message.source);
+var currentState = initialState;
+
+self.onconnect = function(initialMessageEvent) {
+  initialMessageEvent.source.onmessage = function(message) {
+    var result = dispatch(message.data.type, message.data.args, message.source);
+    currentState = result.state;
+    result.messages.forEach(function(m) {
+      m.client.postMessage(m.data);
+    });
+  };
+  dispatch(
+      initialMessageEvent.data.type,
+      initialMessageEvent.data.args,
+      initialMessageEvent.source
+    );
 }
 
