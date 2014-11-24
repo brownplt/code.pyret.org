@@ -110,7 +110,8 @@ function start() {
   start.src = "/js/repl.js";
   document.body.appendChild(start);
 }
-if({{{ USE_STANDALONE_PYRET }}}) {
+var STANDALONE = {{{ USE_STANDALONE_PYRET }}};
+if(STANDALONE) {
   var script = document.createElement("script");
   script.src = BASE + "pyret.js"
   document.body.insertBefore(script, document.getElementById("loadVersion"));
@@ -144,6 +145,7 @@ if({{{ USE_STANDALONE_PYRET }}}) {
 }
 
 </script>
+<script src="/js/worker-client.js"></script>
 
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
