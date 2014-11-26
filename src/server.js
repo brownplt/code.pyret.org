@@ -204,6 +204,10 @@ function start(config, onServerReady) {
     res.sendfile("build/web/repl.html");
   });
 
+  app.get("/embeditor", function(req, res) {
+    res.sendfile("build/web/embedditor.html");
+  });
+
   app.get("/my-programs", function(req, res) {
     var u = requireLogin(req, res);
     u.then(function(user) {

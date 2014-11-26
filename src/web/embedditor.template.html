@@ -1,0 +1,150 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/css/reset.css"></link>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/css/codemirror.css"></link>
+  <link rel="stylesheet" href="/css/shared.css"></link>
+  <link rel="stylesheet" href="/css/editor.css"></link>
+  <link rel="icon" type="image/png" href="/img/pyret-icon.png">
+</head>
+<body>
+<div id="header">
+  <div style="display:none" id="program-name-container">
+    <label for="program-name">Program Name:</label>
+    <input id="program-name" type="text" disabled=true></input>
+    <label><a target="_blank" id="popout" href="#">Pop out ↗</a><label>
+  </div>
+  <span id="notification" class="notificationArea"></span>
+  <button id="breakButton" class="blueButton rhs">Stop</button>
+  <button id="runButton" class="blueButton rhs">Run</button>
+</div>
+<div id="toolbar"></div>
+<div id="loader"><p>Raising the masts...</p></div>
+<div id="main">
+<div id="REPL" class="replContainer"></div>
+<div id="help-keys">
+  <p>Press ESC to close this help window</p>
+  <ul>
+    <li><b>Ctrl-?</b> - Show this help</li>
+    <li><b>Ctrl-s</b> - Save</li>
+    <li><b>Ctrl-m</b> - Toggle maximization of the editor window</li>
+    <li><b>Ctrl-Enter</b> - Run the definitions window</li>
+  </ul>
+</div>
+</div>
+<div id="footer"></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/js/loader.js"></script>
+<script src="/js/url.js"></script>
+<script src="/js/q.js"></script>
+<script src="/js/codemirror.js"></script>
+<script src="/js/matchbrackets.js"></script>
+<script src="/js/draw.js"></script>
+<script src="/js/pyret-mode.js"></script>
+<script src="/js/require.js"></script>
+<script>
+  window.module = {};
+</script>
+<script src="/js/s-expression-lib.js"></script>
+<script>
+var sexp_exports = window.module.exports;
+define("s-expression", [], function() {
+  return sexp_exports;
+});
+</script>
+<script src="/js/seedrandom.js"></script>
+<script>
+var seed_exports = window.module.exports;
+define("seedrandom", [], function() {
+  return seed_exports;
+});
+</script>
+<script src="/js/share.js"></script>
+<script>
+var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
+var makeShareLink = shareAPI.makeShareLink;
+var drawShareWidget = shareAPI.drawShareWidget;
+var makeHoverMenu = shareAPI.makeHoverMenu;
+</script>
+<script src="/js/programs.js"></script>
+<script src="/js/authenticate-storage.js"></script>
+<script>
+var clientId = "";
+var apiKey = "{{ GOOGLE_API_KEY }}";
+function handleGoogLoad() {
+  handleClientLoad(clientId, apiKey);
+}
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script id="loadVersion">
+// Figure out what version of Pyret we should be using, if not the current default
+var APP_BASE_URL = "{{{ BASE_URL }}}";
+var initialParams = url.parse(document.location.href);
+var params = url.parse("/?" + initialParams["hash"]);
+if(params.get && params.get["v"]) {
+  VERSION = params.get["v"];
+}
+else {
+  VERSION = "{{{ CURRENT_PYRET_RELEASE }}}";
+}
+if(VERSION !== "") { VERSION = VERSION + "/"; }
+var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
+function start() {
+  var start = document.createElement("script");
+  start.src = "/js/repl.js";
+  document.body.appendChild(start);
+}
+if({{{ USE_STANDALONE_PYRET }}}) {
+  var script = document.createElement("script");
+  script.src = BASE + "pyret.js"
+  document.body.insertBefore(script, document.getElementById("loadVersion"));
+  script.addEventListener("load", function() { start(); });
+  setTimeout(function() {
+    requirejs.config({
+      paths: {
+        "q": "/js/q",
+        "s-expression": "/js/s-expression",
+        "fs": "/js/fsstub"
+      },
+      waitSeconds: 0
+    });
+  });
+} else {
+  var phase1Base = BASE + "phase1/";
+  requirejs.config({
+    paths: {
+      "js": phase1Base + "js",
+      "compiler": phase1Base + "arr/compiler",
+      "arr": phase1Base + "arr",
+      "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
+      "trove": phase1Base + "trove",
+      "q": "/js/q",
+      "s-expression": "/js/s-expression",
+      "fs": "/js/fsstub"
+    },
+    waitSeconds: 0
+  });
+  start();
+}
+
+</script>
+
+<script>
+var initialParams = url.parse(document.location.href);
+var params = url.parse("/?" + initialParams["hash"]);
+if(params.get["share"]) {
+  $("#program-name-container").show();
+  $("#popout").attr("href", "/editor#share=" + params.get["share"]);
+}
+</script>
+
+<!-- <script type="text/javascript"
+        src="https://caja.appspot.com/caja.js"></script> -->
+</body>
+</html>
+
