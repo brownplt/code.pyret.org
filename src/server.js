@@ -55,7 +55,7 @@ function start(config, onServerReady) {
     key: "code.pyret.org"
   }));
   app.use(cookieParser());
-  app.use(csrf());
+  // app.use(csrf());
 
   var auth = googleAuth.makeAuth(config);
   var db = config.db;
