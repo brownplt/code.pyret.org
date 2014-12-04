@@ -248,17 +248,18 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
                   var CM = editors.definitions;
                   var request = $.ajax({
                       type: "POST",
-                      url: "https://docs.google.com/forms/d/1xg-Bywhp5BWBAz-h3buH5qBgw9vH7MHRmLNtI7pD7m0/formResponse",
+                      url: "/uploadErrorMessage",
                       data: {
-                          "entry.1574705563": s,
-                          "entry.805170695": CM !== undefined ? CM.getValue() : "",
-                          "entry.1977801227": commentBox.val()
+                          "errstr":  s,
+                          "program": CM !== undefined ? CM.getValue() : "",
+                          "comment": commentBox.val()
                       },
                       error: function(jqXHR, textStatus, errorThrown) {
+                        alert("Unable to submit error report. Please try again later.");
                       }
                   });
                   request.done(function(result) {
-                      alert("Successfully submitted error report");
+                    alert("Successfully submitted error report");
                   });
                 });
               container.append($("<div>")

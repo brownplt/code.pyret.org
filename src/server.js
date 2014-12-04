@@ -116,6 +116,21 @@ function start(config, onServerReady) {
     });
   });
 
+  app.post("/uploadErrorMessage", function(req, response) {
+    var formLink = "https://docs.google.com/forms/d/1xg-Bywhp5BWBAz-h3buH5qBgw9vH7MHRmLNtI7pD7m0/formResponse";
+    var errstr  = req.param("errstr");
+    var comment = req.param("comment");
+    var program = req.param("program");
+    request
+      .post(formLink)
+      .form({
+        "entry.1574705563": errstr,
+        "entry.805170695": comment,
+        "entry.1977801227": program
+      })
+      .pipe(response);
+  });
+
   app.get(config.google.redirect, function(req, res) {
     auth.serveRedirect(req, function(err, data) {
       console.log("Data was: ", data);
