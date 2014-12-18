@@ -74,17 +74,30 @@ function start(config, onServerReady) {
     }
   });
 
+  app.get("/jsProxy", function(req, response) {
+    var parsed = url.parse(req.url);
+    var jsUrl = decodeURIComponent(parsed.query.slice(0));
+    var gReq = request(jsUrl, function(error, jsResponse, body) {
+      console.log(error, jsResponse.statusCode);
+      if(error || (jsResponse.statusCode >= 400)) {
+        response.status(400).send({type: "no-js-file", error: "Couldn't load JS file from " + jsUrl});
+        return;
+      }
+      response.send(body);
+    });
+  });
+
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
     var googleLink = "https://googledrive.com/host/" + googleId;
     console.log(googleLink);
     /*
-    var googleParsed = url.parse(googleLink);
-    console.log(googleParsed);
-    var host = googleParsed['hostname'];
+    var googleparsed = url.parse(googlelink);
+    console.log(googleparsed);
+    var host = googleparsed['hostname'];
     if(host !== 'googledrive.com') {
-      response.status(400).send({type: "bad-domain", error: "Tried to get a file from non-Google host " + host});
+      response.status(400).send({type: "bad-domain", error: "tried to get a file from non-google host " + host});
       return;
     }
     */
