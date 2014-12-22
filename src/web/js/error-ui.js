@@ -654,6 +654,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           singleHover(dom, loc);
           container.append(dom);
         }
+        function drawParseErrorUnterminatedString(loc) {
+          var dom = $("<div>").addClass("parse-error");
+          dom.append($("<p>").text("Pyret thinks your program has an incomplete string literal around ").append(drawSrcloc(loc)).append("; you may be missing closing punctuation."));
+          singleHover(dom, loc);
+          container.append(dom);
+        }
+          
         function drawParseErrorEOF(loc) {
           var dom = $("<div>").addClass("parse-error");
           dom.append($("<p>").text("Pyret didn't understand the very end of your program.  You may be missing an \"end\", or closing punctuation like \")\" or \"]\", right at the end."));
@@ -779,6 +786,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           cases(get(error, "ParseError"), "ParseError", e.exn, {
               "parse-error-next-token": drawParseErrorNextToken,
               "parse-error-eof": drawParseErrorEOF,
+              "parse-error-unterminated-string": drawParseErrorUnterminatedString,
               "else": drawRuntimeErrorToString(e)
             });
         }
