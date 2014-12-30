@@ -55,7 +55,7 @@ function start(config, onServerReady) {
     key: "code.pyret.org"
   }));
   app.use(cookieParser());
-  app.use(csrf());
+//  app.use(csrf());
 
   var auth = googleAuth.makeAuth(config);
   var db = config.db;
@@ -85,6 +85,67 @@ function start(config, onServerReady) {
       }
       response.send(body);
     });
+  });
+
+  var okGoogleDomains = [
+    "spreadsheets.google.com",
+    "googleapis.com",
+    "drive.google.com",
+    "googledrive.com"
+  ];
+  function checkGoogle(req, response) {
+    var parsed = url.parse(req.url);
+    var googleUrl = decodeURIComponent(parsed.query.slice(0));
+    var parsedUrl = url.parse(googleUrl);
+    var found = okGoogleDomains.filter(function(v) { return parsedUrl.host === v; });
+    if(found.length === 0) {
+      response.status(400).send({type: "invalid-domain", error: "Refusing to proxy request to domain " + parsedUrl.host});
+      return null;
+    }
+    return googleUrl;
+  }
+
+  app.use(function(req, res, next) {
+    var contentType = req.headers['content-type'] || ''
+      , mime = contentType.split(';')[0];
+
+    if (mime != 'application/atom+xml') {
+      return next();
+    }
+
+    var data = '';
+    req.setEncoding('utf8');
+    req.on('data', function(chunk) {
+      data += chunk;
+    });
+    req.on('end', function() {
+      req.rawBody = data;
+      next();
+    });
+  });
+
+  app.post("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": "application/atom+xml"
+      };
+      var post = request.post({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      post.pipe(response);
+    }
+  });
+
+  app.get("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      req.pipe(request(googleUrl)).pipe(response);
+    }
   });
 
   app.get("/downloadGoogleFile", function(req, response) {
