@@ -292,14 +292,6 @@ body {
   display: inline-block;
 }
 
-#program-name-container span {
-  display: inline-block;
-}
-
-#program-name-container a {
-  margin-top: 0 !important;
-}
-
 #saveButton {
 }
 #shareContainer {
