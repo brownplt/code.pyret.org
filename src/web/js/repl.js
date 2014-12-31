@@ -158,6 +158,7 @@ $(function() {
               if(p !== null && !copyOnSave) { save(); }
             });
           }
+        /* Moved to resize.js for development:
           var editorBig = false;
           function toggleEditorSize() {
             if(editorBig) {
@@ -171,7 +172,7 @@ $(function() {
               $(".replMain").css("width", "95%");
             }
             editor.refresh();
-          }
+          } */
           $(window).on("keydown", function(e) {
             if(e.ctrlKey) {
               if(e.keyCode === 83) { // "Ctrl-s"
@@ -179,11 +180,12 @@ $(function() {
                 e.stopImmediatePropagation();
                 e.preventDefault();
               }
+              /* moved to resize.js for development:
               else if(e.keyCode === 77) { // "Ctrl-m"
                 toggleEditorSize();
                 e.stopImmediatePropagation();
                 e.preventDefault();
-              }
+              }*/
               else if(e.keyCode === 13) { // "Ctrl-Enter"
                 editor.run();
                 autoSave();
