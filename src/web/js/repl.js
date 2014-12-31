@@ -163,6 +163,8 @@ $(function() {
             if(editorBig) {
               editorBig = false;
               $(".replMain").css("width", "50%");
+              $("#REPL").css("width", "50%");
+              $("#REPL").css("left", "50%");
             }
             else {
               editorBig = true;
@@ -194,7 +196,7 @@ $(function() {
               }
             }
           });
-          
+
 
           storageAPI.then(function(api) {
             api.collection.then(function() {
@@ -213,7 +215,7 @@ $(function() {
             $("#connectButton").attr("disabled", "disabled");
             storageAPI = createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false);
             storageAPI.then(function(api) {
-              api.collection.then(function() {    
+              api.collection.then(function() {
                 $(".loginOnly").show();
                 $(".logoutOnly").hide();
                 if(params["get"] && params["get"]["program"]) {
@@ -292,7 +294,7 @@ $(function() {
             });
           }
 
-          var programLoaded = loadProgram(initialProgram); 
+          var programLoaded = loadProgram(initialProgram);
 
           var programToSave = initialProgram;
 
@@ -343,7 +345,7 @@ $(function() {
             });
           }
           $("#runButton").click(autoSave);
-          
+
           $("#saveButton").click(save);
 
           Q.all([programLoaded, interactionsReady]).fin(function() { $("#loader").hide(); });
@@ -393,4 +395,3 @@ function stickMessage(message) {
 $(window).bind("beforeunload", function(_) {
   return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
 });
-    
