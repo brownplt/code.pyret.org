@@ -1,5 +1,4 @@
 $( document ).ready( function() {
-  $( "head" ).append('<style id="repl-resize" type="text/css"></style>');
   $( "#REPL" ).css( "left", "50%");
   var replHeight = $( "#REPL" ).height();
   $( "#REPL" ).resizable({
@@ -13,8 +12,8 @@ $( document ).ready( function() {
 
   function leftResize(event, ui) {
   var leftWidth = (window.innerWidth - ui.size.width)
-    $( "#repl-resize" ).text(
-      ".replMain{width:" + leftWidth + "px;}");}
+    $(".replMain").css("width", leftWidth + "px");
+      }
 
   $( "#REPL" ).on( "resizestop", toPercent);
 
@@ -24,8 +23,8 @@ $( document ).ready( function() {
     var leftWidthPct = 100 - rightWidthPct
     $( "#REPL" ).css( "width", rightWidthPct + "%");
     $( "#REPL" ).css( "left", leftWidthPct + "%");
-    $( "#repl-resize" ).text( ".replMain{width:" + leftWidthPct + "%;}");}
-  });
+    $(".replMain").css("width", leftWidthPct + "%");
+  }});
 
 $( window ).resize( function() {
     $( "#REPL" ).resizable( "option", "maxWidth", window.innerWidth - 128);
