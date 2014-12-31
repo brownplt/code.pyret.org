@@ -8,6 +8,8 @@ $( document ).ready( function() {
     minWidth: 100,
     handles: "w"});
 
+  $( ".ui-resizable-handle").css("cursor", "ew-resize");
+
   $( "#REPL" ).on( "resize", leftResize);
 
   function leftResize(event, ui) {
