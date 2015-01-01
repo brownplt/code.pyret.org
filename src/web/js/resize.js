@@ -1,5 +1,14 @@
 $( document ).ready( function() {
+  $( "head" ).append('<style id="repl-resize" type="text/css"></style>');
+  $( "#repl-resize").text(
+  '#handle{ \
+    background:-webkit-linear-gradient(left, #ffffff 0%,#B3B3B3 30%,#000000 47%,#000000 53%,#B3B3B3 70%,#ffffff 99%);\
+    background:-o-linear-gradient(left, #ffffff 0%,#B3B3B3 30%,#000000 47%,#000000 53%,#B3B3B3 70%,#ffffff 99%);\
+    background:-moz-linear-gradient(left, #ffffff 0%,#B3B3B3 30%,#000000 47%,#000000 53%,#B3B3B3 70%,#ffffff 99%);\
+    background:linear-gradient(to right, #ffffff 0%,#B3B3B3 30%,#000000 47%,#000000 53%,#B3B3B3 70%,#ffffff 99%);}\
+  div.CodeMirror{border-right:none;}');
   $( "#REPL" ).css( "left", "50%");
+  $( "#REPL" ).css( "z-index", "9000");
   var editorEvenSplit = true;
   var replHeight = $( "#REPL" ).height();
   $( "#REPL" ).resizable({
@@ -14,7 +23,6 @@ $( document ).ready( function() {
   $( ".ui-resizable-w" ).css("top", "55px");
   $( ".ui-resizable-w" ).css("width", "5px");
   $( ".ui-resizable-w" ).css("left", "0px");
-  $( ".ui-resizable-w" ).css("background", "black");
   $( ".repl" ).css("padding-left", "10px");
 
   $( "#REPL" ).on( "resize", leftResize);
