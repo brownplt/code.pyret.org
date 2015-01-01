@@ -43,8 +43,11 @@ $( document ).ready( function() {
         e.stopImmediatePropagation();
         e.preventDefault();
       }
+      else if (e.keyCode === 13) {
+        e.preventDefault();
+      }
     }
-  })
+  });
 
   function toggleEditorSize() {
     if(editorEvenSplit) {
@@ -55,7 +58,6 @@ $( document ).ready( function() {
       editorEvenSplit = true;
       setSize("50", "50");
     }
-    editor.refresh();
   }
 
 
