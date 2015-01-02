@@ -51,11 +51,16 @@ $( document ).ready( function() {
         e.stopImmediatePropagation();
         e.preventDefault();
       }
-      else if (e.keyCode === 13) {
+    }
+  });
+  $(window).on("keypress", function(e) {
+    if(e.ctrlKey) {
+      if (e.keyCode === 13) {
         e.preventDefault();
       }
     }
   });
+
 
   function toggleEditorSize() {
     if(editorEvenSplit) {
