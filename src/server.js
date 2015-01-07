@@ -196,8 +196,12 @@ function start(config, onServerReady) {
     }
   });
 
-  app.get("/share", function(req, res) {
-
+  app.get("/open-from-drive", function(req, res) {
+    var parsed = url.parse(req.url, true);
+    console.log("Parsed: ", parsed);
+    var state = decodeURIComponent(parsed.query["state"]);
+    var programId = JSON.parse(state)["ids"][0];
+    res.redirect("/editor#program=" + programId);
   });
 
   app.get("/editor", function(req, res) {
