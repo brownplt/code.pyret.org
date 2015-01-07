@@ -216,7 +216,8 @@ function start(config, onServerReady) {
         drive.files.insert({
           resource: {
             title: 'new-file.arr',
-            mimeType: 'text/plain'
+            mimeType: 'text/plain',
+            parents: [{id: folderId}]
           },
           media: {
             mimeType: 'text/plain',
