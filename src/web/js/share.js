@@ -67,7 +67,7 @@ function makeShareAPI(pyretVersion) {
         if(linkHover) {
           menuElt.css({
             position: "fixed",
-            top: triggerElt.offset().top + 20,
+            top: triggerElt.offset().top + triggerElt.height(),
             left: triggerElt.offset().left,
             "z-index": 12000,
             "min-height": "300px"
