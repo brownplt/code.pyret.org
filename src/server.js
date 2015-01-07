@@ -1,4 +1,5 @@
 var Q = require("q");
+var gapi = require('googleapis');
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -199,7 +200,38 @@ function start(config, onServerReady) {
   app.get("/new-from-drive", function(req, res) {
     var u = requireLogin(req, res);
     u.then(function(user) {
-      res.redirect("/editor");
+      auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        var client = new gapi.auth.OAuth2(
+            config.google.clientId,
+            config.google.clientSecret,
+            config.baseUrl + config.google.redirect
+          );
+        client.setCredentials({
+          access_token: newToken
+        });
+        var drive = gapi.drive({ version: 'v2', auth: client });
+        var parsed = url.parse(req.url, true);
+        var state = decodeURIComponent(parsed.query["state"]);
+        var folderId = JSON.parse(state)["folderId"];
+        drive.files.insert({
+          resource: {
+            title: 'new-file.arr',
+            mimeType: 'text/plain'
+          },
+          media: {
+            mimeType: 'text/plain',
+            body: ''
+          }
+        }, function(err, response) {
+          if(err) {
+            res.redirect("/editor");
+          }
+          else {
+            console.log(response);
+            res.redirect("/editor#program=" + response.id);
+          }
+        });
+      });
     });
   });
 
@@ -207,7 +239,6 @@ function start(config, onServerReady) {
     var u = requireLogin(req, res);
     u.then(function(user) {
       var parsed = url.parse(req.url, true);
-      console.log("Parsed: ", parsed);
       var state = decodeURIComponent(parsed.query["state"]);
       var programId = JSON.parse(state)["ids"][0];
       res.redirect("/editor#program=" + programId);
