@@ -196,6 +196,13 @@ function start(config, onServerReady) {
     }
   });
 
+  app.get("/new-from-drive", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      res.redirect("/editor");
+    });
+  });
+
   app.get("/open-from-drive", function(req, res) {
     var u = requireLogin(req, res);
     u.then(function(user) {
