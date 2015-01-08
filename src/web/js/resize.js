@@ -8,7 +8,7 @@ $( document ).ready( function() {
     background:linear-gradient(to right, #ffffff 0%,#B3B3B3 30%,#000000 47%,#000000 53%,#B3B3B3 70%,#ffffff 99%);}\
   div.CodeMirror{border-right:none;}');
   $( "#REPL" ).css( "left", "50%");
-  $( "#REPL" ).css( "z-index", "9000");
+  $( "#REPL" ).css( "z-index", "8500");
   var editorEvenSplit = true;
   var replHeight = $( "#REPL" ).height();
   $( "#REPL" ).resizable({
