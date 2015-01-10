@@ -1,5 +1,6 @@
-define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
+define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js", "/js/share.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
 
+  var shareAPI = makeShareAPI("");
   function drawError(container, editors, runtime, exception) {
     var ffi = ffiLib(runtime, runtime.namespace);
     var image = imageLib(runtime, runtime.namespace);
@@ -38,18 +39,46 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawUnknownException(exception);
       }
 
+      function isSharedImport(filename) {
+        sharedPrefix = "@shared-gdrive";
+        var gdriveIndex = filename.indexOf(sharedPrefix);
+        return gdriveIndex === 0;
+      }
+
+      function basename(str) {
+        var base = new String(str).substring(str.lastIndexOf('/') + 1);
+        if(base.lastIndexOf(".") != -1)
+          base = base.substring(0, base.lastIndexOf("."));
+          return base;
+        }
+
+      function getSharedId(filename) {
+        var path = filename.slice(sharedPrefix.length);
+        var id = basename(path);
+        return id;
+      }
+
       function drawSrcloc(s) {
-        return s ? $("<a>").addClass("srcloc").text(get(s, "format").app(true)) : $("<span>");
+        var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+        var src = runtime.unwrap(get(s, "source"));
+        if(!editors.hasOwnProperty(src)) {
+          if(isSharedImport(src)) {
+            var sharedId = getSharedId(src);
+            var srcUrl = shareAPI.makeShareUrl(sharedId);
+            return srcElem.attr({href: srcUrl, target: "_blank"});
+          }
+        }
+        return s ? srcElem : $("<span>");
       }
 
       function singleHover(dom, loc) {
         outputUI.hoverLink(editors, runtime, srcloc, dom, loc, "error-highlight");
       }
-      
+
       function errorHover(dom, locs) {
         outputUI.hoverLocs(editors, runtime, srcloc, dom, locs, "error-highlight");
       }
-      
+
 
       function drawCompileErrors(e) {
         function drawUnboundId(idExpr) {
@@ -601,7 +630,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           container.append(dom);
 
         }
-        
+
         function drawPyretRuntimeError() {
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
               "message-exception": drawMessageException,
@@ -642,7 +671,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               .append($("<p>").text("The program contains something extra"))
               .append($("<p>").html("Look carefully at the <span class='error-highlight'>highlighted text</span>.  Does it contains something extra?  A common source of errors is typing too much text or in the wrong order."))
               .append($("<p>").html("<em>Usually, removing the extra item will fix this error.</em>  However, you may have meant to keep this text, so think before you delete!"));
-          var explanation = 
+          var explanation =
             $("<div>")
               .append($("<p>").text("Typical reasons for getting this error are"))
               .append($("<ul>")
@@ -660,7 +689,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           singleHover(dom, loc);
           container.append(dom);
         }
-          
+
         function drawParseErrorEOF(loc) {
           var dom = $("<div>").addClass("parse-error");
           dom.append($("<p>").text("Pyret didn't understand the very end of your program.  You may be missing an \"end\", or closing punctuation like \")\" or \"]\", right at the end."));
@@ -819,4 +848,3 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
   }
 
 });
-
