@@ -90,13 +90,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               console.error("Should not be allowed to have a builtin that's unbound", e);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var srcElem = drawSrcloc(loc)
               var p = $("<p>");
               p.append("The name ");
               p.append($("<span>").addClass("code").text(name));
               p.append(" is used but not defined at ");
               dom.append(p);
-              dom.append(drawSrcloc(loc));
-              singleHover(dom, loc);
+              dom.append(srcElem);
+              singleHover(srcElem, loc);
               container.append(dom);
             }
           });
@@ -108,13 +109,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               console.error("Should not be allowed to have a builtin that's unbound", e);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var srcElem = drawSrcloc(loc)
               var p = $("<p>");
               p.append("The variable ");
               p.append($("<span>").addClass("code").text(id));
               p.append(" is assigned to, but not defined, at ");
               dom.append(p);
-              dom.append(drawSrcloc(loc));
-              singleHover(dom, loc);
+              dom.append(srcElem);
+              singleHover(srcElem, loc);
               container.append(dom);
             }
           });
@@ -128,13 +130,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               console.error("Should not be allowed to have a builtin that's unbound", e);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var srcElem = drawSrcloc(loc)
               var p = $("<p>");
               p.append("The name ");
               p.append($("<span>").addClass("code").text(name));
               p.append(" is used as a type but not defined as one, at ");
               dom.append(p);
-              dom.append(drawSrcloc(loc));
-              singleHover(dom, loc);
+              dom.append(srcElem);
+              singleHover(srcElem, loc);
               container.append(dom);
             }
           });
@@ -144,14 +147,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           cases(get(srcloc, "Srcloc"), "Srcloc", oldLoc, {
             "builtin": function(_) {
               var p = $("<p>");
+              var srcElem = drawSrcloc(newLoc);
               p.append("The name ");
               p.append($("<span>").addClass("code").text(id));
               p.append(" is already defined.  You need to pick a different name for ");
               p.append($("<span>").addClass("code").text(id));
               p.append(" at ");
-              p.append(drawSrcloc(newLoc));
+              p.append(srcElem);
               dom.append(p);
-              singleHover(dom, newLoc);
+              singleHover(srcElem, newLoc);
               container.append(dom);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
@@ -178,12 +182,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               console.error("Should not be possible to have a builtin var that's anonymous", e);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var srcElem = drawSrcloc(loc);
               var p = $("<p>");
               p.append("Defining an anonymous variable is pointless: you have no name to modify. ");
               p.append("Either give this expression a name, or bind it to an identifier rather than a variable.");
               dom.append(p).append("<br>");
-              dom.append(drawSrcloc(loc));
-              singleHover(dom, loc);
+              dom.append(srcElem);
+              singleHover(srcElem, loc);
               container.append(dom);
             }
           });
@@ -195,12 +200,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               console.error("Should not be possible to have a builtin var that's anonymous", e);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var srcElem = drawSrcloc(loc);
               var p = $("<p>");
               p.append("Anonymous identifiers cannot shadow anything: there is no name to shadow. ");
               p.append("Either give this expression a name, or remove the shadow annotation.");
               dom.append(p).append("<br>");
-              dom.append(drawSrcloc(loc));
-              singleHover(dom, loc);
+              dom.append(srcElem);
+              singleHover(srcElem, loc);
               container.append(dom);
             }
           });
@@ -212,22 +218,24 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               console.error("Should not be possible to have a builtin var that's anonymous", e);
             },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var srcElem = drawSrcloc(loc);
               var p = $("<p>");
               p.append("Anonymous bindings in graphs are not permitted, as they cannot be used elsewhere in the graph.");
               dom.append(p).append("<br>");
-              dom.append(drawSrcloc(loc));
-              singleHover(dom, loc);
+              dom.append(srcElem);
+              singleHover(srcElem, loc);
               container.append(dom);
             }
           });
         }
 
         function drawWfError(msg, loc) {
+          var srcElem = drawSrcloc(loc);
           var dom = $("<div>").addClass("compile-error");
           dom.append("<p>").text(msg);
           dom.append("<br>");
-          dom.append(drawSrcloc(loc));
-          singleHover(dom, loc);
+          dom.append(srcElem);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
 
@@ -237,18 +245,20 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           dom.append("<br>")
           var locArray = ffi.toArray(locs)
           locArray.forEach(function(l) {
-            dom.append(drawSrcloc(l)).append("<br>");
-            singleHover(dom, l);
+            var srcElem = drawSrcloc(l);
+            dom.append(srcElem).append("<br>");
+            singleHover(srcElem, l);
           });
           container.append(dom);
         }
 
         function drawReservedName(loc, id) {
+          var srcElem = drawSrcloc(loc);
           var dom = $("<div>").addClass("compile-error");
           dom.append("<p>").text("Well-formedness: Pyret disallows the use of " + id + " as an identifier");
           dom.append("<br>");
-          dom.append(drawSrcloc(loc));
-          singleHover(dom, loc);
+          dom.append(srcElem);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
 
@@ -368,6 +378,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           // TODO(joe): How to improve this search?
           var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
+          var srcElem = drawSrcloc(probablyErrorLocation);
           getDomValue(value, function(valDom) {
             dom.append($("<p>").text("Expected to get a " + type + " as an argument, but got this instead: "))
               .append($("<br>"))
@@ -375,11 +386,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               .append($("<br>"))
               .append($("<p>").text("at "))
               .append($("<br>"))
-              .append(drawSrcloc(probablyErrorLocation));
+              .append(srcElem);
             $(valDom).trigger({type: 'afterAttach'});
             $('*', valDom).trigger({type : 'afterAttach'});
             container.append(dom);
-            singleHover(dom, probablyErrorLocation);
+            singleHover(srcElem, probablyErrorLocation);
           });
         }
         function drawCasesArityMismatch(branchLoc, numArgs, actualArity) {
@@ -493,19 +504,21 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
         function drawNonBooleanCondition(loc, type, value) {
           getDomValue(value, function(v) {
+            var srcElem = drawSrcloc(loc);
             var dom = $("<div>").addClass("compile-error");
             dom.append($("<p>").text("Expected true or false for the test in an " + type + " expression, but got:"));
             dom.append($("<br>"));
             dom.append(v);
             $(v).trigger({type: 'afterAttach'});
             $('*', v).trigger({type : 'afterAttach'});
-            dom.append(drawSrcloc(loc));
-            singleHover(dom, loc);
+            dom.append(srcElem);
+            singleHover(srcElem, loc);
             container.append(dom);
           });
         }
         function drawNonBooleanOp(loc, position, type, value) {
           getDomValue(value, function(v) {
+            var srcElem = drawSrcloc(loc);
             var dom = $("<div>").addClass("compile-error");
             dom.append($("<p>").text("Expected true or false for the " + position + " argument in " + type + " expression, but got:"));
             dom.append($("<br>"));
@@ -513,13 +526,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             $(v).trigger({type: 'afterAttach'});
             $('*', v).trigger({type : 'afterAttach'});
             dom.append($("<br>"));
-            dom.append(drawSrcloc(loc));
-            singleHover(dom, loc);
+            dom.append(srcElem);
+            singleHover(srcElem, loc);
             container.append(dom);
           });
         }
         function drawNonFunctionApp(loc, nonFunVal) {
           getDomValue(nonFunVal, function(v) {
+            var srcElem = drawSrcloc(loc);
             var dom = $("<div>").addClass("compile-error");
             dom.append($("<p>").text("Expected a function in application but got:"));
             dom.append($("<br>"));
@@ -527,8 +541,8 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             $(v).trigger({type: 'afterAttach'});
             $('*', v).trigger({type : 'afterAttach'});
             dom.append($("<br>"));
-            dom.append(drawSrcloc(loc));
-            singleHover(dom, loc);
+            dom.append(srcElem);
+            singleHover(srcElem, loc);
             container.append(dom);
           });
         }
@@ -678,22 +692,25 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
                 .append($("<li>").append(explanationMissing))
                 .append($("<li>").append(explanationExtra)));
           var dom = $("<div>").addClass("parse-error");
-          dom.append($("<p>").text("Pyret didn't understand your program around ").append(drawSrcloc(loc)));
+          var srcElem = drawSrcloc(loc);
+          dom.append($("<p>").text("Pyret didn't understand your program around ").append(srcElem));
           dom.append(expandableMore(explanation));
-          singleHover(dom, loc);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
         function drawParseErrorUnterminatedString(loc) {
           var dom = $("<div>").addClass("parse-error");
-          dom.append($("<p>").text("Pyret thinks your program has an incomplete string literal around ").append(drawSrcloc(loc)).append("; you may be missing closing punctuation."));
-          singleHover(dom, loc);
+          var srcElem = drawSrcloc(loc);
+          dom.append($("<p>").text("Pyret thinks your program has an incomplete string literal around ").append(srcElem).append("; you may be missing closing punctuation."));
+          singleHover(srcElem, loc);
           container.append(dom);
         }
 
         function drawParseErrorEOF(loc) {
           var dom = $("<div>").addClass("parse-error");
+          var srcElem = drawSrcloc(loc);
           dom.append($("<p>").text("Pyret didn't understand the very end of your program.  You may be missing an \"end\", or closing punctuation like \")\" or \"]\", right at the end."));
-          singleHover(dom, loc);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
 
