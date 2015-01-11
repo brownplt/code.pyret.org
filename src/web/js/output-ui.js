@@ -20,8 +20,8 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
      // that Code Mirror seems to use zero-based lines.
     function cmPosFromSrcloc(s) {
       return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-        "builtin": function(_) { 
-           throw new Error("Cannot get CodeMirror loc from builtin location"); 
+        "builtin": function(_) {
+           throw new Error("Cannot get CodeMirror loc from builtin location");
         },
 
         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
@@ -76,9 +76,9 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     var warnWait = 250;
     var warnDuration = 5000;
     var fadeAmt = 0.5;
-    
+
     function setWarningState(obj) {
- 
+
       var opacity = Number(obj.css("opacity"));
 
       if (warnDesired !== opacity) {
@@ -91,7 +91,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
               setTimeout(function() {
                 obj.fadeTo("slow", 0.0);
                 warnDesired = 0;
-              }, warnDuration) });                         
+              }, warnDuration) });
           } else {
             obj.fadeTo("fast", 0.0);
           }
@@ -115,11 +115,11 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
             warnDesired = fadeAmt;
             // We set a timeout so that a quick pass through the area
             // won't bring up the warning.
-            setTimeout(function() { setWarningState(jQuery(".warning-upper")); }, 
+            setTimeout(function() { setWarningState(jQuery(".warning-upper")); },
                        warnWait);
           } else if (view.top + view.clientHeight < charCh.bottom) {
             warnDesired = fadeAmt;
-            setTimeout(function() { setWarningState(jQuery(".warning-lower")); }, 
+            setTimeout(function() { setWarningState(jQuery(".warning-lower")); },
                        warnWait);
           }
         }
@@ -130,9 +130,9 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     });
     elt.on("mouseleave", function() {
       warnDesired = 0;
-      setTimeout(function() { setWarningState(jQuery(".warning-upper"));}, 
+      setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
                  warnWait);
-      setTimeout(function() { setWarningState(jQuery(".warning-lower"));}, 
+      setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
                  warnWait);
 
       marks.forEach(function(m) { return m && m.clear(); })
@@ -149,7 +149,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
           var editor = editors[get(curLoc, "source")];
           if(!editor) { return; }
           function rotateLoc() { locIndex = (locIndex + 1) % locs.length; }
-          
+
           return cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
             "builtin": function(_) { rotateLoc(); gotoNextLoc(); },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
@@ -164,8 +164,8 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
   }
 
   function basename(str) {
-     var base = new String(str).substring(str.lastIndexOf('/') + 1); 
-     if(base.lastIndexOf(".") != -1)       
+     var base = new String(str).substring(str.lastIndexOf('/') + 1);
+     if(base.lastIndexOf(".") != -1)
         base = base.substring(0, base.lastIndexOf("."));
      return base;
   }
@@ -179,6 +179,12 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
   }
 
   function getSharedId(filename) {
+    var path = filename.slice(sharedPrefix.length);
+    var id = basename(path);
+    return id;
+  }
+
+  function getMyDriveId(filename) {
     var path = filename.slice(sharedPrefix.length);
     var id = basename(path);
     return id;
@@ -296,7 +302,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
           outText = $("<span>").addClass("rationalNumber fraction").text(answer.toString());
           // On click, switch the representation from a fraction to
           // decimal, and back again.
-          outText.click(function() { 
+          outText.click(function() {
 
             // A function to use the class of a container to toggle
             // between the two representations of a fraction.  The
@@ -326,7 +332,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
             // This function returns three string values, numerals to
             // appear before the decimal point, numerals to appear
             // after, and numerals to be repeated.
-            var decimal = jsnums.toRepeatingDecimal(answer.numerator(), 
+            var decimal = jsnums.toRepeatingDecimal(answer.numerator(),
                                                     answer.denominator());
             var decimalString = decimal[0].toString() + "." +
               decimal[1].toString();
@@ -338,7 +344,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
           output.append(echoContainer);
 
         } else {
-          
+
           // Either we're looking at a string or some number with only
           // one representation. Just print it, using the CodeMirror
           // textarea for styling.

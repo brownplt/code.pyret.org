@@ -58,6 +58,31 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         return id;
       }
 
+      function getMyDriveId(filename) {
+        var path = filename.slice(sharedPrefix.length);
+        var id = basename(path);
+        return id;
+      }
+
+      function getMyDriveId(filename) {
+        mydrivePrefix = "@my-gdrive";
+        var path = filename.slice(mydrivePrefix.length);
+        var id = basename(path);
+        return id;
+      }
+
+      function isGDriveImport(filename) {
+        mydrivePrefix = "@my-gdrive";
+        var mydriveIndex = filename.indexOf(mydrivePrefix);
+        return mydriveIndex === 0;
+      }
+
+      function makeMyDriveUrl(id){
+          var localDriveUrl = "/editor#program=" + id;
+          //Pyret version??
+          return window.location.origin + localDriveUrl;
+      }
+
       function drawSrcloc(s) {
         var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
         var src = runtime.unwrap(get(s, "source"));
@@ -66,6 +91,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             var sharedId = getSharedId(src);
             var srcUrl = shareAPI.makeShareUrl(sharedId);
             return srcElem.attr({href: srcUrl, target: "_blank"});
+          }
+          else if(isGDriveImport(src)) {
+            var MyDriveId = getMyDriveId(src);
+            var srcUrl = makeMyDriveUrl(MyDriveId);
+            srcElem.attr({href: srcUrl, target: "_blank"});
           }
         }
         return s ? srcElem : $("<span>");
