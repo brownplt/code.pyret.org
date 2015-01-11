@@ -201,31 +201,37 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     var src = runtime.unwrap(get(loc, "source"));
     if (!editors.hasOwnProperty(src)) {
       if(isSharedImport(src)) {
-        var url = shareAPI.makeShareUrl(getSharedId(src));
+        /*var url = shareAPI.makeShareUrl(getSharedId(src));
         var hoverDiv = $("<div>").addClass("module-info-hover").append(
-          get(loc, "format").app(true) + ":  This code is in "
-          + " a shared module on Google Drive.  You can see the file ",
-          $("<a>").attr({"href": url, "target": "_blank"}).text("here"),
-          ".");
-        shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});
-        return dom;
+        get(loc, "format").app(true) +
+        You can see the file ",
+        $("<a>").attr({"href": url, "target": "_blank"}).text("here"),
+        ".");
+        shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});*/
+        var msg = "This code is in a shared module on Google Drive. Click to open the file.";
+        return errorTooltip(dom, msg);
       }
       else if(isGDriveImport(src)) {
-        var hoverDiv = $("<div>").addClass("module-info-hover").append(
-          get(loc, "format").app(true) + ":  This code is in "
-          + " your Google Drive in the file named " + basename(src) + ".")
-        shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});
-        return dom;
+        /* var hoverDiv = $("<div>").addClass("module-info-hover").append(
+          get(loc, "format").app(true) +
+        shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});*/
+        var msg = "This code is in your Google Drive in the file named " + basename(src) + ".";
+        return errorTooltip(dom, msg);
       }
       else {
-        dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.");
-        dom.tooltip();
-        return dom;
+        var msg = get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.";
+        return errorTooltip(dom, msg);
       }
     }
     else {
       hoverLocs(editors, runtime, srcloc, dom, [loc], className);
     }
+  }
+
+  function errorTooltip(dom, msg){
+    dom.attr("title", msg);
+    dom.tooltip();
+    return dom;
   }
 
   // Because some finicky functions (like images and CodeMirrors), require
