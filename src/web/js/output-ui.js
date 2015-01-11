@@ -185,7 +185,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
   }
 
   function getMyDriveId(filename) {
-    var path = filename.slice(sharedPrefix.length);
+    var path = filename.slice(mydrivePrefix.length);
     var id = basename(path);
     return id;
   }
@@ -373,7 +373,12 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
   return {
     renderPyretValue: renderPyretValue,
     hoverLocs: hoverLocs,
-    hoverLink: hoverLink
+    hoverLink: hoverLink,
+    isSharedImport: isSharedImport,
+    basename: basename,
+    getSharedId: getSharedId,
+    getMyDriveId: getMyDriveId,
+    isGDriveImport: isGDriveImport
   };
 
 })

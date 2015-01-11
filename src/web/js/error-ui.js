@@ -39,7 +39,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawUnknownException(exception);
       }
 
-      function isSharedImport(filename) {
+      /* function isSharedImport(filename) {
         sharedPrefix = "@shared-gdrive";
         var gdriveIndex = filename.indexOf(sharedPrefix);
         return gdriveIndex === 0;
@@ -59,12 +59,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       function getMyDriveId(filename) {
-        var path = filename.slice(sharedPrefix.length);
-        var id = basename(path);
-        return id;
-      }
-
-      function getMyDriveId(filename) {
         mydrivePrefix = "@my-gdrive";
         var path = filename.slice(mydrivePrefix.length);
         var id = basename(path);
@@ -75,7 +69,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         mydrivePrefix = "@my-gdrive";
         var mydriveIndex = filename.indexOf(mydrivePrefix);
         return mydriveIndex === 0;
-      }
+      } */
 
       function makeMyDriveUrl(id){
           var localDriveUrl = "/editor#program=" + id;
@@ -87,13 +81,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
         var src = runtime.unwrap(get(s, "source"));
         if(!editors.hasOwnProperty(src)) {
-          if(isSharedImport(src)) {
-            var sharedId = getSharedId(src);
+          if(outputUI.isSharedImport(src)) {
+            var sharedId = outputUI.getSharedId(src);
             var srcUrl = shareAPI.makeShareUrl(sharedId);
             return srcElem.attr({href: srcUrl, target: "_blank"});
           }
-          else if(isGDriveImport(src)) {
-            var MyDriveId = getMyDriveId(src);
+          else if(outputUI.isGDriveImport(src)) {
+            var MyDriveId = outputUI.getMyDriveId(src);
             var srcUrl = makeMyDriveUrl(MyDriveId);
             srcElem.attr({href: srcUrl, target: "_blank"});
           }
