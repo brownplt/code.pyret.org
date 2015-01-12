@@ -82,13 +82,14 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   height: 100%;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
+  border-right: none; /* Resizable */
 }
 .replMain .CodeMirror-scroll {
   height: 100%;
 }
 
 .repl {
-  padding-left: 0.5em;
+  padding-left: 1em;
   padding-bottom: 5em;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -241,7 +242,8 @@ body {
 
 .replContainer {
   position: absolute;
-  z-index: 7000;
+  z-index: 8500;
+  left: 50%;
   right: 0;
   width: 50%;
   top:0;
@@ -253,16 +255,6 @@ body {
   -moz-box-sizing: border-box;
   margin:0;
 }
-
-.replContainer.maximized {
-    width: 90%;
-    z-index: 9000;
-}
-
-.replContainer.minimized {
-    margin-right: -35%;
-}
-
 
 .runButton {
     width: 50px;
@@ -326,6 +318,7 @@ body {
   background-color: #fefefe;
   border: 1px solid black;
 }
+
 .replPrint {
   padding-top: 0;
   padding-bottom: 0.5em;
@@ -400,11 +393,11 @@ span.rationalRepeat {
 }
 
 .compile-error .code {
-  font-family: monospace; 
+  font-family: monospace;
 }
 
 .compile-error .srcloc {
-  font-family: monospace; 
+  font-family: monospace;
 }
 
 .compile-error a {
@@ -429,11 +422,11 @@ span.rationalRepeat {
 }
 
 .parse-error .code {
-  font-family: monospace; 
+  font-family: monospace;
 }
 
 .parse-error .srcloc {
-  font-family: monospace; 
+  font-family: monospace;
 }
 
 .parse-error a {
@@ -536,6 +529,25 @@ span.rationalRepeat {
   content: "×"
 }
 
+/* Resizable REPL */
+#handle{
+  background:-webkit-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
+  background:-o-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
+  background:-moz-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
+  background:linear-gradient(to right, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
+  cursor: ew-resize;
+  width:5px;
+  border: 1px solid #A6A6A6;
+  border-top: none;
+  border-bottom: none;
+  top: 0px;
+  left:0px;
+  bottom: 0px;
+  margin-top: 55px;
+  margin-bottom: 5px;
+  height:auto;
+}
+
 #breakButton {
   width: 150px;
   height: 40px;
@@ -555,4 +567,3 @@ span.rationalRepeat {
   padding: 5px;
   background-color: #eeeeee;
 }
-

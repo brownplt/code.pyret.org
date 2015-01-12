@@ -158,21 +158,55 @@ $(function() {
               if(p !== null && !copyOnSave) { save(); }
             });
           }
-        /* Moved to resize.js for development:
-          var editorBig = false;
+
+          // Resizable
+          var replHeight = $( "#REPL" ).height();
+          var editorEvenSplit = true;
+          $( "#REPL" ).resizable({
+            maxHeight: replHeight,
+            maxWidth: window.innerWidth - 128,
+            minHeight: replHeight,
+            minWidth: 100,
+            handles: {"w": "#handle"}});
+
+          $( "#REPL" ).on( "resize", leftResize);
+          $( "#REPL" ).on( "resize", function() {editorEvenSplit = false;});
+
+          function leftResize(event, ui) {
+            var leftWidth = (window.innerWidth - ui.size.width)
+            $(".replMain").css("width", leftWidth + "px");
+          }
+
+          $( "#REPL" ).on( "resizestop", toPercent);
+
+          function toPercent(event, ui) {
+            rightResizePct = (ui.size.width / window.innerWidth) * 100
+            leftResizePct = 100 - rightResizePct
+            setEditorSize(leftResizePct, rightResizePct);
+          }
+
+          $( window ).resize( function() {
+            $( "#REPL" ).resizable( "option", "maxWidth", window.innerWidth - 128);
+          });
+          // End Resizable
+
+          function setEditorSize(leftPct, rightPct) {
+            $( "#REPL" ).css( "width", rightPct + "%");
+            $( "#REPL" ).css( "left", leftPct + "%");
+            $(".replMain").css("width", leftPct + "%");
+          }
+
           function toggleEditorSize() {
-            if(editorBig) {
-              editorBig = false;
-              $(".replMain").css("width", "50%");
-              $("#REPL").css("width", "50%");
-              $("#REPL").css("left", "50%");
+            if(editorEvenSplit) {
+              editorEvenSplit = false;
+              setEditorSize(leftResizePct, rightResizePct);
             }
             else {
-              editorBig = true;
-              $(".replMain").css("width", "95%");
+              editorEvenSplit = true;
+              setEditorSize("50", "50");
             }
-            editor.refresh();
-          } */
+          }
+
           $(window).on("keydown", function(e) {
             if(e.ctrlKey) {
               if(e.keyCode === 83) { // "Ctrl-s"
@@ -180,12 +214,11 @@ $(function() {
                 e.stopImmediatePropagation();
                 e.preventDefault();
               }
-              /* moved to resize.js for development:
               else if(e.keyCode === 77) { // "Ctrl-m"
                 toggleEditorSize();
                 e.stopImmediatePropagation();
                 e.preventDefault();
-              }*/
+              }
               else if(e.keyCode === 13) { // "Ctrl-Enter"
                 editor.run();
                 autoSave();
@@ -198,7 +231,6 @@ $(function() {
               }
             }
           });
-
 
           storageAPI.then(function(api) {
             api.collection.then(function() {
