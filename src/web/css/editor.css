@@ -271,9 +271,9 @@ body {
 }
 
 #program-name-container {
-  margin-top: 12px;
   display: inline-block;
   font-family: sans-serif;
+  vertical-align:top;
 }
 
 #program-name-container input {
@@ -283,7 +283,7 @@ body {
   vertical-align:top;
   border:none;
   font-size: 18px;
-  background: rgb(223, 223, 223);
+  background: rgb(239, 239, 239);
 }
 
 #program-name-container label {
