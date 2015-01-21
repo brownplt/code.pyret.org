@@ -256,10 +256,6 @@ body {
   margin:0;
 }
 
-.runButton {
-    width: 50px;
-}
-
 #main {
   width: 100%;
   z-index: 5000;
@@ -551,13 +547,17 @@ span.rationalRepeat {
 #breakButton {
   width: 150px;
   height: 40px;
-  margin: 5px;
+  position: fixed;
+  right: 5px;
+  top: 5px;
 }
 
 #runButton {
   width: 150px;
   height: 40px;
-  margin: 5px;
+  position: fixed;
+  right: 165px;
+  top: 5px;
 }
 
 .module-info-hover {
