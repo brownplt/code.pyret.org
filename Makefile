@@ -93,7 +93,13 @@ build/web/js/matchbrackets.js: lib/CodeMirror/addon/edit/matchbrackets.js
 build/web/js/pyret-mode.js: lib/CodeMirror/mode/pyret/pyret.js
 	cp $< $@
 
-MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js build/web/js/codemirror.js build/web/js/matchbrackets.js build/web/js/pyret-mode.js build/web/js/s-expression-lib.js build/web/js/seedrandom.js
+build/web/js/emacs.js: lib/CodeMirror/keymap/emacs.js
+	cp $< $@
+
+build/web/js/vim.js: lib/CodeMirror/keymap/vim.js
+	cp $< $@
+
+MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js build/web/js/codemirror.js build/web/js/matchbrackets.js build/web/js/pyret-mode.js build/web/js/s-expression-lib.js build/web/js/seedrandom.js build/web/js/emacs.js build/web/js/vim.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
