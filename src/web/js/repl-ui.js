@@ -54,8 +54,8 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
             if (cm.options.keyMap !== "emacs") {cm.options.keyMap = "emacs";}
             else {cm.options.keyMap = "default";}},
         "F9": function(cm) {
-            if (cm.options.keyMap !== "vim") {cm.options.keyMap = "vim";}
-            else {cm.options.keyMap = "default";}}
+            if (cm.options.keyMap !== "vim") {cm.options.vimMode = true;}
+            else {cm.options.vimMode = false; cm.options.keyMap = "default";}}
       },
       indentUnit: 2,
       tabSize: 2,
