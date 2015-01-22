@@ -51,11 +51,27 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue(), {check: false, "type-env": !options.simpleEditor}); },
         "Tab": "indentAuto",
         "F8": function(cm) {
-            if (cm.options.keyMap !== "emacs") {cm.options.keyMap = "emacs";}
-            else {cm.options.keyMap = "default";}},
+          if (cm.options.keyMap !== "emacs") {
+            cm.options.keyMap = "emacs";
+            cm.refresh();
+          }
+          else {
+            cm.options.keyMap = "default";
+            cm.refresh();
+          }
+        },
         "F9": function(cm) {
-            if (cm.options.keyMap !== "vim") {cm.options.vimMode = true;}
-            else {cm.options.vimMode = false; cm.options.keyMap = "default";}}
+          if (cm.options.vimMode !== true) {
+            cm.options.vimMode = true;
+            cm.options.keyMap = "vim";
+            cm.refresh();
+          }
+          else {
+            cm.options.vimMode = false;
+            cm.options.keyMap = "default";
+            cm.refresh();
+          }
+        }
       },
       indentUnit: 2,
       tabSize: 2,

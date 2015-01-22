@@ -19,6 +19,11 @@
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+.CodeMirror.cm-fat-cursor div.CodeMirror-cursor {
+  background: #ddd;
+  width: auto;
+  border: 0;
+}
 .cm-s-default.CodeMirror { color: #111; }
 .cm-s-default .cm-comment { color: #39f; }
 .cm-s-default .cm-builtin { color: #555; }
