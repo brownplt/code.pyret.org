@@ -283,7 +283,7 @@ body {
   vertical-align:top;
   border:none;
   font-size: 18px;
-  background: rgb(239, 239, 239);
+  background: #BBDEFB;
 }
 
 #program-name-container label {
@@ -301,9 +301,19 @@ body {
   font-family: sans-serif;
 }
 
+.notificationArea span{
+  position:fixed;
+  display:block;
+  left: 60px;
+  bottom: 45px;
+  padding: 10px 24px;
+  background: #323232;
+  border-radius:2px;
+}
+
 .notificationArea .active {
   width: 200px;
-  color: #111;
+  color: #eee;
 }
 
 .notificationArea .error {
@@ -324,10 +334,11 @@ body {
   background-color: #fefefe;
   border: none;
   box-shadow: 0px 7px 8px rgba(0, 0, 0, 0.3);
+  overflow:hidden;
 }
 
 #menuContents div:hover{
-  box-shadow: 0px 5px 10px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.2s;
 }
 
@@ -408,12 +419,12 @@ span.rationalRepeat {
 
 .compile-error {
   font-family: sans-serif;
-  /* border: 3px solid #d66; */
+  border: 1px dashed #FF3131;
   font-size: 10pt;
-  padding: 4px;
-  box-shadow: 0px 3px 10px rgba(0,0,0,0.25);
-  border-radius: 2px;
-  background: #ECDBDB;
+  padding: 3px;
+  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  border-radius: 3px;
+  background: #FFF2F2;
   margin: 6px;
 }
 
@@ -436,12 +447,12 @@ span.rationalRepeat {
 
 .parse-error {
   font-family: sans-serif;
-  border: 3px solid #d66;
+  border: 1px dashed #FF3131;
   font-size: 10pt;
   padding: 3px;
-  box-shadow: 0px 3px 10px rgba(0,0,0,0.25);
-  border-radius: 2px;
-  background: #ECDBDB;
+  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  border-radius: 3px;
+  background: #FFF2F2;
   margin: 6px;
 }
 
@@ -577,12 +588,29 @@ span.rationalRepeat {
   height:auto;
 }
 
-#breakButton {
+#runButton, #breakButton {
   width: 150px;
+  background: #fb8c00;
+  box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
-#runButton {
+#runButton:disabled, #breakButton:disabled{
   width: 150px;
+  background: none;
+  box-shadow: none;
+}
+
+#runButton:hover,
+#breakButton:hover{
+  background:#ffa726;
+  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+#runButton:hover[disabled],
+#breakButton:hover[disabled]{
+  background: none;
+  box-shadow: none;
 }
 
 .module-info-hover {
