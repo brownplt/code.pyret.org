@@ -10,21 +10,24 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
 
    runtime.loadModules(runtime.namespace, [optionLib, srclocLib], function(option, srcloc) {
 
-     var checkContainer = $("<div>");
-     function addPreToDom(cssClass, txt, loc) {
-       var dom = $("<pre>").addClass(cssClass).text(txt);
-       outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
-       checkContainer.append(dom);
-     }
-
-     // These counters keep cumulative statistics for all the check blocks. 
+     // These counters keep cumulative statistics for all the check blocks.
      var checkTotalAll = 0;
      var checkPassedAll = 0;
      var checkBlockCount = checkResultsArr.length;
      var checkBlocksErrored = 0;
 
+     var checkContainer = $("<div>");
+
      // Sort through all the check blocks.
      checkResultsArr.reverse().forEach(function(cr) {
+
+       var eachContainer = $("<div>").addClass("check-block");
+
+       function addPreToDom(cssClass, txt, loc) {
+         var dom = $("<pre>").addClass(cssClass).text(txt);
+         outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
+         eachContainer.append(dom);
+       }
 
        // Counters for cumulative stats within a check block.
        var checkTotal = 0;
@@ -42,7 +45,13 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
          checkTotal = checkTotal + 1;
          checkTotalAll = checkTotalAll + 1;
 
- 
+         eachTestDiv = $("<div>").addClass("check-block");
+         function addTestPreToDom(cssClass, txt) {
+           var dom = $("<pre>").addClass(cssClass).text(txt);
+           eachTestDiv.append(dom);
+         }
+
+
          // Success for a test is signaled by the *absence* of a "reason" field.
          if (runtime.hasField(tr, "reason")) {
 
@@ -52,10 +61,13 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            // contrast.
            runtime.runThunk(
              function() { return get(tr, "reason").app(); },
-             function(returnVal) { 
+             function(returnVal) {
 
-               addPreToDom("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-               addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
+              // addPreToDom("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+              // addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
+              addTestPreToDom("replOutputFailed","  test (" + get(tr, "code") + "): failed, reason:")
+              addTestPreToDom("replOutputReason",returnVal.result);
+              eachTestDiv.addClass("check-block-failed");
 
              });
          } else {
@@ -64,13 +76,16 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            checkPassed = checkPassed + 1;
            checkPassedAll = checkPassedAll + 1;
 
-           addPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
+           //addPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
+           addTestPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok");
+           eachTestDiv.addClass("check-block-success");
          }
+         eachContainer.append(eachTestDiv);
        });
 
 // Print a message about the total passed in this check block.
 
-     
+
        var thisCheckBlockErrored = false;
        // Necessary check because this field was not present in older versions
        if (runtime.hasField(cr, "maybe-err")) {
@@ -80,9 +95,10 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            checkBlocksErrored = checkBlocksErrored + 1;
            addPreToDom("replOutputFailed", "  Check block " + name + " ended in an error (all tests may not have run):", get(cr, "loc"));
            var errorDiv = $("<div>").addClass("check-block-error");
-           checkContainer.append(errorDiv);
-           checkContainer.append("<br/>");
+           eachContainer.append(errorDiv);
+           eachContainer.append("<br/>");
            var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val);
+           eachContainer.addClass("check-block-errored");
          }
        }
 
@@ -90,18 +106,23 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
          if (checkTotal > 1) {
            if (checkPassed == checkTotal) {
              addPreToDom("replOutputPassed", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+            // eachContainer.addClass("check-block-success")
            } else {
              addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+            // eachContainer.addClass("check-block-failed");
            }
 
          } else if (checkTotal == 1 && checkPassed == 1) {
            addPreToDom("replOutputPassed", "  The test passed.", get(cr, "loc"));
+          // eachContainer.addClass("check-block-success")
          } else if (checkTotal == 1 && checkPassed == 0) {
            addPreToDom("replOutputFailed", "  The test failed.", get(cr, "loc"));
+          // eachContainer.addClass("check-block-failed")
          }
        }
 
-       
+       checkContainer.append(eachContainer);
+
      });
 
      // If there was more than one check block, print a message about
@@ -119,20 +140,24 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
        }
        container.append(outerDom);
      } else {
-       container.append(checkContainer); 
        if (checkBlocksErrored > 0) {
+         var sumDiv = $('<div>').addClass("check-block check-block-summary");
          var count = $("<pre>").addClass("replOutput").text(checkPassedAll + " tests passed and " + (checkTotalAll - checkPassedAll) + " failed in all check blocks.");
          var however = $("<pre>").addClass("replOutputFailed").text("HOWEVER " + checkBlocksErrored + " check block(s) ended in error, so some tests may not have run.");
          var so = $("<pre>").addClass("replOutputFailed").text("Check the output above to see what errors occured.");
-         container.append([count, however, so]);
+         sumDiv.append([count, however, so]);
+         checkContainer.append(sumDiv);
 
        }
        else {
          if(checkBlockCount > 1) {
            var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
-           container.append(outerDom);
+           var sumDiv = $('<div>').addClass("check-block check-block-summary");
+           sumDiv.append(outerDom);
+           checkContainer.append(sumDiv);
          }
        }
+       container.append(checkContainer);
      }
 
    });
