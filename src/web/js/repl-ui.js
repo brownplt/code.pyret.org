@@ -53,11 +53,9 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
         "F8": function(cm) {
           if (cm.options.keyMap !== "emacs") {
             cm.options.keyMap = "emacs";
-            cm.refresh();
           }
           else {
             cm.options.keyMap = "default";
-            cm.refresh();
           }
         },
         "F9": function(cm) {
