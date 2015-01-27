@@ -64,8 +64,8 @@ $(function() {
 });
 
 $(function() {
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
-  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js", "/js/http-imports.js"],
+  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive, http) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -95,6 +95,8 @@ $(function() {
           return getDriveImports.getMyDriveImport(runtime, args[0]);
         } else if(kind === "shared-gdrive") {
           return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
+        } else if(kind === "gdrive-js") {
+          return http.getHttpImport(runtime, args[0], args[1]);
         } else {
           var ret = Q.defer();
           // TODO(joe): How to export this from ffi-helpers?

@@ -75,6 +75,29 @@ function start(config, onServerReady) {
     }
   });
 
+  app.get("/gdrive-js-proxy", function(req, response) {
+    var parsed = url.parse(req.url);
+    var googleId = decodeURIComponent(parsed.query.slice(0));
+    var idPart = googleId.slice(0, 13);
+    console.log("idPart: ", idPart);
+    if(!config.okGoogleIds.hasOwnProperty(idPart)) {
+      response.status(400).send({type: "bad-file", error: "Invalid file id"});
+      return;
+    }
+    var googleLink = "https://googledrive.com/host/" + googleId;
+    console.log("Sending request to: ", googleLink);
+    var gReq = request(googleLink, function(error, googResponse, body) {
+      var h = googResponse.headers;
+      var ct = h['content-type']
+      if(ct.indexOf('text/plain') !== 0 && ct.indexOf("application/x-javascript") !== 0) {
+        response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
+        return;
+      }
+      response.set('content-type', 'text/plain');
+      response.send(body);
+    });
+  });
+
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
