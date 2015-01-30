@@ -109,7 +109,7 @@ function start(config, onServerReady) {
     var contentType = req.headers['content-type'] || ''
       , mime = contentType.split(';')[0];
 
-    if (mime != 'application/atom+xml') {
+    if (mime != 'application/atom+xml' && mime != 'application/json')) {
       return next();
     }
 
@@ -130,7 +130,7 @@ function start(config, onServerReady) {
       var headers = {
         "Authorization": req.headers["authorization"],
         "GData-Version": "3.0",
-        "content-type": "application/atom+xml"
+        "content-type": req.headers["content-type"],
       };
       var post = request.post({
         url: googleUrl,
@@ -141,6 +141,23 @@ function start(config, onServerReady) {
     }
   });
 
+  app.put("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+      };
+      var put = request.put({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      put.pipe(response);
+    }
+  });
+
   app.get("/googleProxy", function(req, response) {
     var googleUrl = checkGoogle(req, response);
     if(googleUrl !== null) {
@@ -148,6 +165,13 @@ function start(config, onServerReady) {
     }
   });
 
+  app.delete("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      req.pipe(request(googleUrl)).pipe(response);
+    }
+  });
+  
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
