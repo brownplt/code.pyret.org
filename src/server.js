@@ -79,13 +79,11 @@ function start(config, onServerReady) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
     var idPart = googleId.slice(0, 13);
-    console.log("idPart: ", idPart);
     if(!config.okGoogleIds.hasOwnProperty(idPart)) {
       response.status(400).send({type: "bad-file", error: "Invalid file id"});
       return;
     }
     var googleLink = "https://googledrive.com/host/" + googleId;
-    console.log("Sending request to: ", googleLink);
     var gReq = request(googleLink, function(error, googResponse, body) {
       if(error) {
         response.status(400).send({type: "failed-file", error: "Failed file response"});
@@ -107,7 +105,6 @@ function start(config, onServerReady) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
     var googleLink = "https://googledrive.com/host/" + googleId;
-    console.log(googleLink);
     /*
     var googleParsed = url.parse(googleLink);
     console.log(googleParsed);
