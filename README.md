@@ -68,8 +68,9 @@ your deployment as gdrive-js capable, just ask them for a share link and get
 those digits.
 
 (NOTE(joe Jan 2015): There isn't documentation indicating that this is a stable
-way to do this, so this is an interim note.  There may be a better Google Drive
-endpoint/id to use, but this is suitable for what I'm doing right now.)
+way to do this, so this is an interim note.  We may need a more complicated
+identity-checking mechanism, but this is super-simple and easier to change/rip
+out if necessary.)
 
 ## Running with Development Pyret
 
