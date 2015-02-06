@@ -87,14 +87,19 @@ function start(config, onServerReady) {
     var googleLink = "https://googledrive.com/host/" + googleId;
     console.log("Sending request to: ", googleLink);
     var gReq = request(googleLink, function(error, googResponse, body) {
-      var h = googResponse.headers;
-      var ct = h['content-type']
-      if(ct.indexOf('text/plain') !== 0 && ct.indexOf("application/x-javascript") !== 0) {
-        response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
-        return;
+      if(error) {
+        response.status(400).send({type: "failed-file", error: "Failed file response"});
       }
-      response.set('content-type', 'text/plain');
-      response.send(body);
+      if(!error) {
+        var h = googResponse.headers;
+        var ct = h['content-type']
+        if(ct.indexOf('text/plain') !== 0 && ct.indexOf("application/x-javascript") !== 0) {
+          response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
+          return;
+        }
+        response.set('content-type', 'text/plain');
+        response.send(body);
+      }
     });
   });
 

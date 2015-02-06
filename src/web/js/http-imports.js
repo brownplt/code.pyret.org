@@ -3,7 +3,6 @@ define(["q", "js/secure-loader"], function(Q, loader) {
     var promise = Q.defer();
     var fetch = $.ajax("/gdrive-js-proxy?" + id);
     fetch.then(function(result) {
-      console.log(result);
       var loaded = loader.goodIdea(runtime, "@gdrive-js/" + name + "/" + id, result);
       loaded.then(function(_) {
         promise.resolve({code: "", name: "skip"});
