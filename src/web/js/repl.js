@@ -153,6 +153,19 @@ $(function() {
               e.preventDefault();
             }
           });
+
+          $("#docs").on("click", function(e){
+            $("#doc-overlay").toggle();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          });
+
+          $("#doc-close").on("click", function(e){
+            $("#doc-overlay").toggle();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          });
+
           function autoSave() {
             programToSave.then(function(p) {
               if(p !== null && !copyOnSave) { save(); }
