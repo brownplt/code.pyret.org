@@ -81,7 +81,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
          testContainer.append(eachTest);
        });
        eachContainer.append(testContainer);
-       $(document).on("click", ".expandElement", function(e) {
+       $(eachContainer).on("click", ".expandElement", function(e) {
          if (testContainer.is(":visible")) {
            eachContainer.addClass("expandElement");
            expandButton.text("Click to Expand");
