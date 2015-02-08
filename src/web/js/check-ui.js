@@ -22,11 +22,21 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
      checkResultsArr.reverse().forEach(function(cr) {
 
        var eachContainer = $("<div>").addClass("check-block");
+       var testContainer = $("<div>").addClass("check-block-collapsible");
 
        function addPreToDom(cssClass, txt, loc) {
          var dom = $("<pre>").addClass(cssClass).text(txt);
          outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
          eachContainer.append(dom);
+       }
+
+       function expandTooltip(dom, visDom){
+          if (visDom.is(":hidden")){
+           dom.attr("title", "Click to expand");
+         }
+         else {
+           dom.removeAttr("title");
+         }
        }
 
        // Counters for cumulative stats within a check block.
@@ -45,12 +55,12 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
          checkTotal = checkTotal + 1;
          checkTotalAll = checkTotalAll + 1;
 
-         eachTestDiv = $("<div>").addClass("check-block");
-         function addTestPreToDom(cssClass, txt) {
+         var eachTest = $("<div>").addClass("check-block-test");
+         function addPreToTest(cssClass, txt, loc) {
            var dom = $("<pre>").addClass(cssClass).text(txt);
-           eachTestDiv.append(dom);
+           outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
+           eachTest.append(dom);
          }
-
 
          // Success for a test is signaled by the *absence* of a "reason" field.
          if (runtime.hasField(tr, "reason")) {
@@ -63,11 +73,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
              function() { return get(tr, "reason").app(); },
              function(returnVal) {
 
-              // addPreToDom("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-              // addPreToDom("replOutputReason", returnVal.result, get(tr, "loc"));
-              addTestPreToDom("replOutputFailed","  test (" + get(tr, "code") + "): failed, reason:")
-              addTestPreToDom("replOutputReason",returnVal.result);
-              eachTestDiv.addClass("check-block-failed");
+              addPreToTest("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+              addPreToTest("replOutputReason", returnVal.result, get(tr, "loc"));
 
              });
          } else {
@@ -75,13 +82,14 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            // If you're here, the test passed, all is well.
            checkPassed = checkPassed + 1;
            checkPassedAll = checkPassedAll + 1;
-
-           //addPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
-           addTestPreToDom("replOutputPassed", "  test (" + get(tr, "code") + "): ok");
-           eachTestDiv.addClass("check-block-success");
+           addPreToTest("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
          }
-         eachContainer.append(eachTestDiv);
+         testContainer.append(eachTest);
        });
+       eachContainer.append(testContainer);
+       eachContainer.on("click", function() {
+         testContainer.toggle();
+         expandTooltip(eachContainer,testContainer);});
 
 // Print a message about the total passed in this check block.
 
@@ -95,6 +103,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            checkBlocksErrored = checkBlocksErrored + 1;
            addPreToDom("replOutputFailed", "  Check block " + name + " ended in an error (all tests may not have run):", get(cr, "loc"));
            var errorDiv = $("<div>").addClass("check-block-error");
+           errorDiv.hover(function(event) {event.stopPropagation();})
            eachContainer.append(errorDiv);
            eachContainer.append("<br/>");
            var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val);
@@ -105,24 +114,25 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
        if(!thisCheckBlockErrored) {
          if (checkTotal > 1) {
            if (checkPassed == checkTotal) {
-             addPreToDom("replOutputPassed", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
-            // eachContainer.addClass("check-block-success")
+             addPreToDom("replOutputPassed", "  All " + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+             eachContainer.addClass("check-block-success");
+             testContainer.hide();
+             expandTooltip(eachContainer, testContainer);
            } else {
-             addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
-            // eachContainer.addClass("check-block-failed");
-           }
-
+            addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+            eachContainer.addClass("check-block-failed");
+          }
          } else if (checkTotal == 1 && checkPassed == 1) {
            addPreToDom("replOutputPassed", "  The test passed.", get(cr, "loc"));
-          // eachContainer.addClass("check-block-success")
+           eachContainer.addClass("check-block-success");
+           testContainer.hide();
+           expandTooltip(eachContainer, testContainer);
          } else if (checkTotal == 1 && checkPassed == 0) {
            addPreToDom("replOutputFailed", "  The test failed.", get(cr, "loc"));
-          // eachContainer.addClass("check-block-failed")
+          eachContainer.addClass("check-block-failed");
          }
        }
-
        checkContainer.append(eachContainer);
-
      });
 
      // If there was more than one check block, print a message about

@@ -123,9 +123,17 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background: #E1F5FE;
 }
 
+.check-block-collapsible{
+  margin: 0px -5px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.check-block-collapsible div:nth-child(1){
+  border-top: 1px solid rgba(0,0,0,0.3);
+}
+
 .check-block-failed {
   background-color: #FFECB3;
-  margin: 5px;
 }
 
 .check-block-errored {
@@ -139,8 +147,14 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .check-block-summary{
-  background-color: #FFEA00;
+  background-color: #CDDEE7;
   border: 1px solid #1A237E;
+}
+
+.check-block-test{
+  border-bottom: 1px solid rgba(0,0,0,0.3);
+  margin: 5px 0px;
+  padding: 5px 0px;
 }
 
 .repl-output {
@@ -378,8 +392,8 @@ body {
 }
 
 .replOutput {
-  padding-top: 0;
-  padding-bottom: 0.5em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
   color: #1f1180;
 }
 
@@ -397,7 +411,6 @@ body {
 
 .replOutputReason {
  padding-top: 0;
- padding-bottom: 0.5em;
  padding-left: 3.0em;
  color: #af1180;
 }
