@@ -73,6 +73,7 @@ em {
   display: inline-block;
   height: 100%;
   vertical-align: top;
+  float:left;
 }
 
 #toolbar {
@@ -96,7 +97,7 @@ em {
 .blueButton {
     font-family: sans-serif;
 /*  darker blue option #2a348b */
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0,0,0,0.3);
     border: none;
     border-radius: 0px;
     color: #fff;
@@ -107,6 +108,8 @@ em {
     margin: none;
     padding: 0px 15px;
     vertical-align: top;
+    float:left;
+    margin:0px 1px;
 }
 
 .blueButton:hover {
