@@ -30,15 +30,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
          eachContainer.append(dom);
        }
 
-       function expandTooltip(dom, visDom){
-          if (visDom.is(":hidden")){
-           dom.attr("title", "Click to expand");
-         }
-         else {
-           dom.removeAttr("title");
-         }
-       }
-
        // Counters for cumulative stats within a check block.
        var checkTotal = 0;
        var checkPassed = 0;
@@ -46,7 +37,10 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
        var name = get(cr, "name");
        var trArr = ffi.toArray(get(cr, "test-results"));
 
-       addPreToDom("replOutput", "Check block: " + name, get(cr, "loc"));
+       addPreToDom("replOutput check-title expandElement", "Check block: " + name, get(cr, "loc"));
+       expandButton = $("<pre>").addClass("expandElement expandText").text("Click to Expand");
+       eachContainer.append(expandButton);
+       eachContainer.addClass("expandElement");
 
        // Sort through the collection of test results within a check
        // block.
@@ -87,9 +81,18 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
          testContainer.append(eachTest);
        });
        eachContainer.append(testContainer);
-       eachContainer.on("click", function() {
+       $(document).on("click", ".expandElement", function(e) {
+         if (testContainer.is(":visible")) {
+           eachContainer.addClass("expandElement");
+           expandButton.text("Click to Expand");
+         }
+         else {
+           eachContainer.removeClass("expandElement");
+           expandButton.text("Click to Collapse");
+         }
          testContainer.toggle();
-         expandTooltip(eachContainer,testContainer);});
+         e.stopPropagation();
+         });
 
 // Print a message about the total passed in this check block.
 
@@ -117,19 +120,19 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
              addPreToDom("replOutputPassed", "  All " + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
              eachContainer.addClass("check-block-success");
              testContainer.hide();
-             expandTooltip(eachContainer, testContainer);
            } else {
             addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
             eachContainer.addClass("check-block-failed");
+            testContainer.hide();
           }
          } else if (checkTotal == 1 && checkPassed == 1) {
            addPreToDom("replOutputPassed", "  The test passed.", get(cr, "loc"));
            eachContainer.addClass("check-block-success");
            testContainer.hide();
-           expandTooltip(eachContainer, testContainer);
          } else if (checkTotal == 1 && checkPassed == 0) {
            addPreToDom("replOutputFailed", "  The test failed.", get(cr, "loc"));
           eachContainer.addClass("check-block-failed");
+          testContainer.hide();
          }
        }
        checkContainer.append(eachContainer);

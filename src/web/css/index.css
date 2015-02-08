@@ -18,6 +18,7 @@ h1 {
   margin-left: 3em;
   font-size: 18pt;
   width: 100px;
+  float:none;
 }
 
 #start {
@@ -25,6 +26,7 @@ h1 {
   margin-right: 3em;;
   font-size: 18pt;
   width: 100px;
+  float:none;
 }
 
 #main {
@@ -60,4 +62,3 @@ a.blueButton {
   padding-right: 5px;
   text-decoration: none;
 }
-

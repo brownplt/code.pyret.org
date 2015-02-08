@@ -91,6 +91,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 .repl {
   padding-left: 1em;
   padding-bottom: 5em;
+  padding-top: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   height: 100%;
@@ -117,10 +118,11 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 .check-block {
   border: none;
   border-radius: 3px;
-  margin: 15px 5px;
+  margin: 10px 5px;
   padding: 5px;
   box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
   background: #E1F5FE;
+  position:relative;
 }
 
 .check-block-collapsible{
@@ -155,6 +157,18 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   border-bottom: 1px solid rgba(0,0,0,0.3);
   margin: 5px 0px;
   padding: 5px 0px;
+}
+
+.check-title{
+  padding: 5px;
+  margin: -5px;
+}
+
+.expandText{
+  color:rgba(0,0,0,0.3);
+  position:absolute;
+  top: 5px;
+  right: 5px;
 }
 
 .repl-output {
@@ -260,7 +274,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 50px;
+  padding-top: 40px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -276,7 +290,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 55px;
+  padding-top: 40px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -291,8 +305,8 @@ body {
   width: 100%;
   z-index: 5000;
   height: 100%;
-  padding-top: 55px;
-  padding-bottom: 5px;
+  padding-top: 40px;
+  padding-bottom: 0px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
@@ -302,6 +316,7 @@ body {
   font-family: sans-serif;
   vertical-align:top;
   float:left;
+  height:100%;
 }
 
 #program-name-container input {
@@ -313,6 +328,8 @@ body {
   font-size: 18px;
   background: #E0F0F6;
   float:left;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 #program-name-container label {
@@ -616,16 +633,16 @@ span.rationalRepeat {
   border-top: none;
   border-bottom: none;
   top: 0px;
-  left:0px;
+  left: 0px;
   bottom: 0px;
-  margin-top: 50px;
+  margin-top: 40px;
   margin-bottom: 5px;
   height:auto;
 }
 
 #runButton, #breakButton {
   width: 150px;
-  background: #CF8B01; /*#fb8c00*/
+  background: #CF3B31; /*#fb8c00*/
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
@@ -637,7 +654,7 @@ span.rationalRepeat {
 
 #runButton:hover,
 #breakButton:hover{
-  background:#E19C37; /*#ffa726;*/
+  background:#B30C00; /*#ffa726;*/
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
 }
 
