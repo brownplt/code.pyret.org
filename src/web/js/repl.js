@@ -154,6 +154,7 @@ $(function() {
             }
           });
 
+          /* Documentation Overlay */
           $("#docs").on("click", function(e){
             $("#doc-overlay").toggle();
             e.stopImmediatePropagation();
@@ -165,6 +166,30 @@ $(function() {
             e.stopImmediatePropagation();
             e.preventDefault();
           });
+
+          $("#doc-overlay").draggable({
+            start: fixIframe,
+            stop: fixIframe,
+            handle: "#doc-bar",
+            cancel: "#doc-close"
+            });
+
+          $("#doc-overlay").resizable({
+            handles: {
+              s:"#doc-bottom",
+              e: "#doc-right",
+              w:"#doc-left",
+              sw: "#doc-sw-corner",
+              se:"#doc-se-corner"},
+            start: fixIframe,
+            stop: fixIframe,
+            containment: "#doc-containment",
+            scroll: false
+            });
+
+          function fixIframe() {
+            $("#doc-cover").toggle();
+          }
 
           function autoSave() {
             programToSave.then(function(p) {
