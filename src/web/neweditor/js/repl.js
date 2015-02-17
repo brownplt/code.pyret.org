@@ -187,6 +187,20 @@ $(function() {
             scroll: false
             });
 
+          $('#font-plus').click(changeFont);
+          $('#font-minus').click(changeFont);
+
+          function changeFont(e){
+            fontSize = parseInt($('#main').css("font-size"));
+            if ($(e.target).is("#font-plus") && (fontSize < 60)){
+              $('#main').css('font-size', '+=4');
+            }
+            else if ($(e.target).is("#font-minus") && (fontSize > 5)){
+              $('#main').css('font-size', '-=4');
+            }
+            editor.refresh();
+          }
+
           function fixIframe() {
             $("#doc-cover").toggle();
           }
