@@ -383,7 +383,7 @@ body {
 }
 
 #menuContents {
-  background-color: #C4D6DE;
+  background-color: #C8C8C8;
   border: none;
   box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
   overflow:hidden;
@@ -392,7 +392,7 @@ body {
 #menuContents div:hover{
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.4);
   transition: box-shadow 0.2s;
-  background-color: #5FACB0;
+  background-color: rgba(0,0,0,0.3);
 }
 
 #menuContents div a{
@@ -641,8 +641,28 @@ span.rationalRepeat {
 
 #runButton, #breakButton {
   width: 150px;
-  background: #CF3B31; /*#fb8c00*/
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
+}
+
+#runButton{
+  background: #317BCF;
+}
+
+#runButton:hover{
+  background:#0060CE;
+}
+
+#breakButton{
+  background:#CF3B31;
+}
+
+#breakButton:hover{
+  background:#B30C00;
+}
+
+#runButton:hover,
+#breakButton:hover{
+  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
 }
 
 #runButton:disabled, #breakButton:disabled{
@@ -650,13 +670,6 @@ span.rationalRepeat {
   background: none;
   box-shadow: none;
 }
-
-#runButton:hover,
-#breakButton:hover{
-  background:#B30C00; /*#ffa726;*/
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
-}
-
 
 #runButton:hover[disabled],
 #breakButton:hover[disabled]{
