@@ -37,7 +37,9 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: 'email https://www.googleapis.com/auth/drive.file',
+        scope: "email "
+             + "https://www.googleapis.com/auth/drive.file "
+             + "https://www.googleapis.com/auth/drive.install",
         state: afterUrl
       });
     },

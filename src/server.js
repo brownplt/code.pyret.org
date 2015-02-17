@@ -1,4 +1,5 @@
 var Q = require("q");
+var gapi = require('googleapis');
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -74,11 +75,36 @@ function start(config, onServerReady) {
     }
   });
 
+  app.get("/gdrive-js-proxy", function(req, response) {
+    var parsed = url.parse(req.url);
+    var googleId = decodeURIComponent(parsed.query.slice(0));
+    var idPart = googleId.slice(0, 13);
+    if(!config.okGoogleIds.hasOwnProperty(idPart)) {
+      response.status(400).send({type: "bad-file", error: "Invalid file id"});
+      return;
+    }
+    var googleLink = "https://googledrive.com/host/" + googleId;
+    var gReq = request(googleLink, function(error, googResponse, body) {
+      if(error) {
+        response.status(400).send({type: "failed-file", error: "Failed file response"});
+      }
+      if(!error) {
+        var h = googResponse.headers;
+        var ct = h['content-type']
+        if(ct.indexOf('text/plain') !== 0 && ct.indexOf("application/x-javascript") !== 0) {
+          response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
+          return;
+        }
+        response.set('content-type', 'text/plain');
+        response.send(body);
+      }
+    });
+  });
+
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
     var googleLink = "https://googledrive.com/host/" + googleId;
-    console.log(googleLink);
     /*
     var googleParsed = url.parse(googleLink);
     console.log(googleParsed);
@@ -107,7 +133,7 @@ function start(config, onServerReady) {
     var gReq = request({url: googleLink, encoding: 'binary'}, function(error, imgResponse, body) {
       var h = imgResponse.headers;
       var ct = h['content-type']
-      if(ct.indexOf('image/') !== 0) { 
+      if(ct.indexOf('image/') !== 0) {
         response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
         return;
       }
@@ -153,7 +179,7 @@ function start(config, onServerReady) {
           }
         });
         user.then(function(u) {
-          const redirect = req.param("state") || "/my-programs"; 
+          const redirect = req.param("state") || "/my-programs";
           console.log(JSON.stringify(u));
           req.session["user_id"] = u.google_id;
           console.log("Redirecting after successful login", JSON.stringify(req.session));
@@ -196,12 +222,61 @@ function start(config, onServerReady) {
     }
   });
 
-  app.get("/share", function(req, res) {
+  app.get("/new-from-drive", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        var client = new gapi.auth.OAuth2(
+            config.google.clientId,
+            config.google.clientSecret,
+            config.baseUrl + config.google.redirect
+          );
+        client.setCredentials({
+          access_token: newToken
+        });
+        var drive = gapi.drive({ version: 'v2', auth: client });
+        var parsed = url.parse(req.url, true);
+        var state = decodeURIComponent(parsed.query["state"]);
+        var folderId = JSON.parse(state)["folderId"];
+        drive.files.insert({
+          resource: {
+            title: 'new-file.arr',
+            mimeType: 'text/plain',
+            parents: [{id: folderId}]
+          },
+          media: {
+            mimeType: 'text/plain',
+            body: ''
+          }
+        }, function(err, response) {
+          if(err) {
+            res.redirect("/editor");
+          }
+          else {
+            console.log(response);
+            res.redirect("/editor#program=" + response.id);
+          }
+        });
+      });
+    });
+  });
 
+  app.get("/open-from-drive", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      var parsed = url.parse(req.url, true);
+      var state = decodeURIComponent(parsed.query["state"]);
+      var programId = JSON.parse(state)["ids"][0];
+      res.redirect("/editor#program=" + programId);
+    });
   });
 
   app.get("/editor", function(req, res) {
     res.sendfile("build/web/repl.html");
+  });
+
+  app.get("/neweditor", function(req, res) {
+    res.sendfile("build/web/neweditor.html");
   });
 
   app.get("/my-programs", function(req, res) {

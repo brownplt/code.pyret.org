@@ -4,8 +4,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
 
   gapi.client.setApiKey(apiKey);
   var drive;
-  var SCOPE = "https://www.googleapis.com/auth/drive.file "
-    + "https://www.googleapis.com/auth/drive.install";
+  var SCOPE = "https://www.googleapis.com/auth/drive.file";
   var FOLDER_MIME = "application/vnd.google-apps.folder";
   var BACKREF_KEY = "originalProgram";
   var PUBLIC_LINK = "pubLink";
@@ -43,6 +42,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
   }
 
   function gQ(request) {
+    console.log("Trying: ", request);
     return failCheck(authCheck(function() {
       var d = Q.defer();
       request.execute(function(result) {

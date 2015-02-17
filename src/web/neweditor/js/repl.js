@@ -64,8 +64,8 @@ $(function() {
 });
 
 $(function() {
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js", "/js/http-imports.js"],
-  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive, http) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
+  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -95,8 +95,6 @@ $(function() {
           return getDriveImports.getMyDriveImport(runtime, args[0]);
         } else if(kind === "shared-gdrive") {
           return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
-        } else if(kind === "gdrive-js") {
-          return http.getHttpImport(runtime, args[0], args[1]);
         } else {
           var ret = Q.defer();
           // TODO(joe): How to export this from ffi-helpers?
@@ -155,6 +153,60 @@ $(function() {
               e.preventDefault();
             }
           });
+
+          /* Documentation Overlay */
+          $("#docs").on("click", function(e){
+            $("#doc-overlay").toggle();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          });
+
+          $("#doc-close").on("click", function(e){
+            $("#doc-overlay").toggle();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          });
+
+          $("#doc-overlay").draggable({
+            start: fixIframe,
+            stop: fixIframe,
+            handle: "#doc-bar",
+            cancel: "#doc-close"
+            });
+
+          $("#doc-overlay").resizable({
+            handles: {
+              s:"#doc-bottom",
+              e: "#doc-right",
+              w:"#doc-left",
+              sw: "#doc-sw-corner",
+              se:"#doc-se-corner"},
+            start: fixIframe,
+            stop: fixIframe,
+            containment: "#doc-containment",
+            scroll: false
+            });
+
+          $('#font-plus').click(changeFont);
+          $('#font-minus').click(changeFont);
+
+          function changeFont(e){
+            fontSize = parseInt($('#main').css("font-size"));
+            if ($(e.target).is("#font-plus") && (fontSize < 55)){
+              $('#main').css('font-size', '+=4');
+            }
+            else if ($(e.target).is("#font-minus") && (fontSize > 10)){
+              $('#main').css('font-size', '-=4');
+            }
+            editor.refresh();
+            $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
+          }
+          $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
+
+          function fixIframe() {
+            $("#doc-cover").toggle();
+          }
+
           function autoSave() {
             programToSave.then(function(p) {
               if(p !== null && !copyOnSave) { save(); }
@@ -298,38 +350,6 @@ $(function() {
           function setTitle(progName) {
             document.title = progName + " - code.pyret.org";
           }
-
-          window.saveJSFile = function() {
-            function makeImportText(name, id) {
-              return "import gdrive-js(\"" + name + "\", \"" + id + "\") as G";
-            }
-            var str = editor.cm.getValue();
-            require(["js/eval-lib", "compiler/compile-structs.arr"], function(e, cs) {
-              runtime.loadModules(runtime.namespace, [cs],
-                function(mod) {
-                  var progName = $("#program-name").val() + ".js";
-                  e.runCompileSrcPyret(runtime, str, {name: "gdrive-js/" + progName}, function(result) {
-                    storageAPI.then(function(api) {
-                      var jsfile = api.createFile(progName);
-                      jsfile.then(function(f) {
-                        if(!runtime.isSuccessResult(result)) {
-                          console.error("Failed to create JS file", result);
-                        }
-                        else {
-                          f.save(result.result).
-                            then(function(f) {
-                              return f.makeShareCopy();
-                            }).
-                            then(function(copied) {
-                              console.log(makeImportText(progName, copied.getUniqueId()));
-                            });
-                        }
-                      });
-                    });
-                  });
-                });
-            });
-          };
 
           $("#download a").click(function() {
             var downloadElt = $("#download a");

@@ -49,15 +49,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       extraKeys: {
         "Shift-Enter": function(cm) { runFun(cm.getValue(), {check: true, "type-env": !options.simpleEditor }); },
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue(), {check: false, "type-env": !options.simpleEditor}); },
-        "Tab": "indentAuto",
-        "F8": function(cm) {
-          if (cm.options.keyMap !== "emacs") {
-            cm.options.keyMap = "emacs";
-          }
-          else {
-            cm.options.keyMap = "default";
-          }
-        }
+        "Tab": "indentAuto"
       },
       indentUnit: 2,
       tabSize: 2,
