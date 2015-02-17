@@ -54,6 +54,16 @@ COPY_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/*.cs
 build/web/css/%.css: src/web/css/%.css
 	cp $< $@
 
+COPY_NEW_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/neweditor/css/*.css))
+
+build/web/neweditor/css/%.css: src/web/neweditor/css/%.css
+	cp $< $@
+
+COPY_NEW_JS := $(patsubst src/web/%.js,build/web/%.js,$(wildcard src/web/neweditor/js/*.js))
+
+build/web/neweditor/js/%.js: src/web/neweditor/js/%.js
+	cp $< $@
+
 build/web/css/codemirror.css: lib/CodeMirror/lib/codemirror.css
 	cp $< $@
 
@@ -108,6 +118,8 @@ WEB = build/web
 WEBJS = build/web/js
 WEBCSS = build/web/css
 WEBIMG = build/web/img
+NEWCSS = build/web/neweditor/css
+NEWJS = build/web/neweditor/js
 
 $(WEB):
 	@$(call MKDIR,$(WEB))
@@ -121,5 +133,10 @@ $(WEBCSS):
 $(WEBIMG):
 	@$(call MKDIR,$(WEBIMG))
 
-web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG)
+$(NEWCSS):
+	@$(call MKDIR,$(NEWCSS))
 
+$(NEWJS):
+	@$(call MKDIR,$(NEWJS))
+
+web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)

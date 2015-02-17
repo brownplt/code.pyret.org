@@ -133,7 +133,7 @@ function start(config, onServerReady) {
     var gReq = request({url: googleLink, encoding: 'binary'}, function(error, imgResponse, body) {
       var h = imgResponse.headers;
       var ct = h['content-type']
-      if(ct.indexOf('image/') !== 0) { 
+      if(ct.indexOf('image/') !== 0) {
         response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
         return;
       }
@@ -179,7 +179,7 @@ function start(config, onServerReady) {
           }
         });
         user.then(function(u) {
-          const redirect = req.param("state") || "/my-programs"; 
+          const redirect = req.param("state") || "/my-programs";
           console.log(JSON.stringify(u));
           req.session["user_id"] = u.google_id;
           console.log("Redirecting after successful login", JSON.stringify(req.session));
@@ -273,6 +273,10 @@ function start(config, onServerReady) {
 
   app.get("/editor", function(req, res) {
     res.sendfile("build/web/repl.html");
+  });
+
+  app.get("/neweditor", function(req, res) {
+    res.sendfile("build/web/neweditor.html");
   });
 
   app.get("/my-programs", function(req, res) {
