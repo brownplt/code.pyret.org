@@ -384,16 +384,15 @@ body {
 }
 
 #menuContents {
-  background-color: #C8C8C8;
+  background-color: #EFEFEF;
   border: none;
   box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
   overflow:hidden;
 }
 
 #menuContents div:hover{
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.4);
   transition: box-shadow 0.2s;
-  background-color: rgba(0,0,0,0.3);
+  background-color: rgba(0,0,0,0.2);
 }
 
 #menuContents div a{
@@ -404,8 +403,16 @@ body {
   display: block;
 }
 
+div#font{
+  min-width: 180px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-left: 0px;
+  border-right: 0px;
+  background:rgba(0,0,0,0.05);
+}
+
 div#font:hover{
-  background:none;
+  background:rgba(0,0,0,0.05);
   box-shadow: none;
 }
 
@@ -414,22 +421,26 @@ div#font:hover{
   padding: 10px 0px;
   text-align:center;
   display: inline-block;
+  font-family:sans-serif;
 }
 
 #font-plus{
-  width: 25%;
+  width: 20%;
   cursor: pointer;
 }
 
 #font-minus{
-  width: 25%;
+  width: 20%;
   cursor: pointer;
 }
 
 #font-label{
-  width: 50%;
+  width: calc(60% - 2px);
   cursor: default;
   padding: 10px 5px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-top:none;
+  border-bottom:none;
 }
 
 div#font-label:hover{
