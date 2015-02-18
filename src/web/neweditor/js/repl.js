@@ -64,7 +64,7 @@ $(function() {
 });
 
 $(function() {
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
+  define("repl-main", ["js/repl-lib", "/neweditor/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js"],
   function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
