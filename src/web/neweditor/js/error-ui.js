@@ -41,8 +41,12 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
       function drawSrcloc(s) {
         var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+        if(!runtime.hasField(s, "source")) {
+          return srcElem;
+        }
         var src = runtime.unwrap(get(s, "source"));
         if(!editors.hasOwnProperty(src)) {
+          srcElem
           if(outputUI.isSharedImport(src)) {
             var sharedId = outputUI.getSharedId(src);
             var srcUrl = shareAPI.makeShareUrl(sharedId);
