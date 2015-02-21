@@ -207,7 +207,21 @@ $(function() {
           }
           $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
-          $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);})
+          $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
+
+          editor.cm.on('beforeChange', curlyQuotes);
+
+          function curlyQuotes(instance, changeObj){
+            var newText = jQuery.map(changeObj.text, function(str, i) {
+              str = str.replace(/”/g, "\"")
+              str = str.replace(/“/g, "\"")
+              str = str.replace(/‘/g, "\'")
+              str = str.replace(/’/g, "\'")
+              return str;
+            });
+            changeObj.update(undefined, undefined, newText);
+
+          }
 
           function autoSave() {
             programToSave.then(function(p) {
