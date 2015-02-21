@@ -207,6 +207,8 @@ $(function() {
           }
           $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
+          $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);})
+
           function autoSave() {
             programToSave.then(function(p) {
               if(p !== null && !copyOnSave) { save(); }

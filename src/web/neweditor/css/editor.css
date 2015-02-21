@@ -358,21 +358,20 @@ body {
 .notificationArea span{
   position:fixed;
   display:block;
-  left: 60px;
+  left: 55%;
   bottom: 45px;
   padding: 10px 24px;
-  background: #323232;
+  background: rgba(32, 32, 32, 0.95);
   border-radius:2px;
+  width: 35%;
 }
 
 .notificationArea .active {
-  width: 200px;
   color: #eee;
 }
 
 .notificationArea .error {
-  width: 200px;
-  color: red;
+  color: #F44336;
   font-weight: bold;
 }
 
