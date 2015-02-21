@@ -156,13 +156,13 @@ $(function() {
 
           /* Documentation Overlay */
           $("#docs").on("click", function(e){
-            $("#doc-overlay").toggle();
+            $("#doc-containment").toggle();
             e.stopImmediatePropagation();
             e.preventDefault();
           });
 
           $("#doc-close").on("click", function(e){
-            $("#doc-overlay").toggle();
+            $("#doc-containment").toggle();
             e.stopImmediatePropagation();
             e.preventDefault();
           });
@@ -187,6 +187,10 @@ $(function() {
             scroll: false
             });
 
+            function fixIframe() {
+              $("#doc-cover").toggle();
+            }
+
           $('#font-plus').click(changeFont);
           $('#font-minus').click(changeFont);
 
@@ -202,10 +206,6 @@ $(function() {
             $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
           }
           $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
-
-          function fixIframe() {
-            $("#doc-cover").toggle();
-          }
 
           function autoSave() {
             programToSave.then(function(p) {

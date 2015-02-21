@@ -41,6 +41,8 @@ em {
   height: calc(100% - 20px);
   margin: 10px;
   z-index:10000;
+  pointer-events: none;
+  display:none;
 }
 
 #doc-overlay{
@@ -50,9 +52,9 @@ em {
   width: 60%;
   top: 10%;
   left: 30%;
-  z-index: 10000;
-  display:none;
+  z-index: 10001;
   border-radius: 2px;
+  pointer-events: auto;
 }
 
 #doc-cover{
