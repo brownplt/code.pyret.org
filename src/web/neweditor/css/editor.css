@@ -351,19 +351,21 @@ body {
   height:100%
 }
 .notificationArea {
-  width: 200px;
+  width: 35%;
   font-family: sans-serif;
-}
-
-.notificationArea span{
   position:fixed;
   display:block;
   left: 55%;
   bottom: 45px;
+}
+
+.notificationArea div{
   padding: 10px 24px;
   background: rgba(32, 32, 32, 0.95);
   border-radius:2px;
-  width: 35%;
+  width: 100%;
+  vertical-align:bottom;
+  margin: 10px 0px;
 }
 
 .notificationArea .active {
@@ -373,6 +375,20 @@ body {
 .notificationArea .error {
   color: #F44336;
   font-weight: bold;
+}
+
+.notificationArea .curlyQ{
+  cursor:pointer;
+}
+
+.notificationArea .curlyQ-msg{
+  color: #eee;
+}
+
+.notificationArea .curlyQ-button{
+  color: #F44336;
+  font-weight: bold;
+  float:right;
 }
 
 .logoutOnly {

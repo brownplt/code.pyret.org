@@ -209,7 +209,43 @@ $(function() {
           }
           $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
-          $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);})
+          $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
+
+          editor.cm.on('beforeChange', curlyQuotes);
+
+          function curlyQuotes(instance, changeObj){
+            $('.notificationArea .curlyQ').remove();
+            curlybool = false;
+            if((changeObj.origin == "paste")){
+            var newText = jQuery.map(changeObj.text, function(str, i) {
+              curlybool = curlybool || (str.search(/[\u2018\u2019\u201C\u201D]/g) > -1);
+              str = str.replace(/\u201D/g, "\"")
+              str = str.replace(/\u201C/g, "\"")
+              str = str.replace(/\u2019/g, "\'")
+              str = str.replace(/\u2018/g, "\'")
+              return str;
+            });
+            if(curlybool){
+            curlyQUndo(changeObj.text, changeObj.from);
+            changeObj.update(undefined, undefined, newText);
+          }
+          }}
+
+          function curlyQUndo(oldText, from){
+            var lineN = oldText.length - 1
+            var to = {line: from.line + lineN, ch: from.ch + oldText[lineN].length}
+            console.log(from, to);
+            message = "Curly quotes converted"
+            var container = $('<div>').addClass("curlyQ")
+            var msg = $("<span>").addClass("curlyQ-msg").text(message);
+            var button = $("<span>").addClass("curlyQ-button").text("Click to Undo");
+            container.append(msg).append(button);
+            container.click(function(){
+              editor.cm.replaceRange(oldText, from, to);
+            });
+            $(".notificationArea").prepend(container);
+            container.delay(15000).fadeOut(3000);
+          }
 
           function autoSave() {
             programToSave.then(function(p) {
@@ -459,29 +495,29 @@ function clearFlash() {
 }
 function stickError(message, more) {
   clearFlash();
-  var err = $("<span>").addClass("error").text(message);
+  var err = $("<div>").addClass("error").text(message);
   if(more) {
     err.attr("title", more);
   }
   err.tooltip();
-  $(".notificationArea").append(err);
+  $(".notificationArea").prepend(err);
 }
 function flashError(message) {
   clearFlash();
-  var err = $("<span>").addClass("error").text(message);
-  $(".notificationArea").append(err);
+  var err = $("<div>").addClass("error").text(message);
+  $(".notificationArea").prepend(err);
   err.fadeOut(7000);
 }
 function flashMessage(message) {
   clearFlash();
-  var err = $("<span>").addClass("active").text(message);
-  $(".notificationArea").append(err);
+  var err = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(err);
   err.fadeOut(7000);
 }
 function stickMessage(message) {
   clearFlash();
-  var err = $("<span>").addClass("active").text(message);
-  $(".notificationArea").append(err);
+  var err = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(err);
 }
 
 $(window).bind("beforeunload", function(_) {
