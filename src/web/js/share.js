@@ -67,10 +67,9 @@ function makeShareAPI(pyretVersion) {
         if(linkHover) {
           menuElt.css({
             position: "fixed",
-            top: triggerElt.offset().top + 20,
+            top: triggerElt.offset().top + triggerElt.outerHeight(),
             left: triggerElt.offset().left,
-            "z-index": 12000,
-            "min-height": "300px"
+            "z-index": 12000
           });
           $(document.body).append(menuElt);
           menuElt.fadeIn(250);
