@@ -172,6 +172,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
 
   var sharedPrefix = "@shared-gdrive";
   var mydrivePrefix = "@my-gdrive";
+  var jsdrivePrefix = "gdrive-js";
 
   function isSharedImport(filename) {
     var gdriveIndex = filename.indexOf(sharedPrefix);
@@ -192,6 +193,10 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
 
   function isGDriveImport(filename) {
     var mydriveIndex = filename.indexOf(mydrivePrefix);
+    return mydriveIndex === 0;
+  }
+  function isJSImport(filename) {
+    var mydriveIndex = filename.indexOf(jsdrivePrefix);
     return mydriveIndex === 0;
   }
 
@@ -223,6 +228,11 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
         shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});*/
         var msg = "This code is in your Google Drive in the file named " + basename(src) + ".";
         return errorTooltip(dom, msg);
+      }
+      else if(isJSImport(src)) {
+        dom.attr("title", get(loc, "format").app(true) + ":  This code is part of a library.");
+        dom.tooltip();
+        return dom;
       }
       else {
         var msg = get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.";
