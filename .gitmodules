@@ -1,6 +1,3 @@
-[submodule "lib/CodeMirror"]
-	path = lib/CodeMirror
-	url = https://github.com/jpolitz/CodeMirror
 [submodule "test/jasmine"]
 	path = test/jasmine
 	url = https://github.com/pivotal/jasmine
