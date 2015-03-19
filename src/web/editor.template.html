@@ -6,8 +6,8 @@
   <link rel="stylesheet" href="/css/reset.css"></link>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
   <link rel="stylesheet" href="/css/codemirror.css"></link>
-  <link rel="stylesheet" href="/neweditor/css/shared.css"></link>
-  <link rel="stylesheet" href="/neweditor/css/editor.css"></link>
+  <link rel="stylesheet" href="/css/shared.css"></link>
+  <link rel="stylesheet" href="/css/editor.css"></link>
   <link rel="icon" type="image/png" href="/img/pyret-icon.png">
 </head>
 <body>
@@ -65,12 +65,12 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-<script src="/neweditor/js/loader.js"></script>
+<script src="/js/loader.js"></script>
 <script src="/js/url.js"></script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/matchbrackets.js"></script>
-<script src="/neweditor/js/draw.js"></script>
+<script src="/js/draw.js"></script>
 <script src="/js/pyret-mode.js"></script>
 <script src="/js/require.js"></script>
 <script>
@@ -90,7 +90,7 @@ define("seedrandom", [], function() {
   return seed_exports;
 });
 </script>
-<script src="/neweditor/js/share.js"></script>
+<script src="/js/share.js"></script>
 <script>
 var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
 var makeShareLink = shareAPI.makeShareLink;
@@ -98,7 +98,7 @@ var drawShareWidget = shareAPI.drawShareWidget;
 var makeHoverMenu = shareAPI.makeHoverMenu;
 </script>
 <script src="/js/programs.js"></script>
-<script src="/neweditor/js/authenticate-storage.js"></script>
+<script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "";
 var apiKey = "{{ GOOGLE_API_KEY }}";
@@ -122,7 +122,7 @@ if(VERSION !== "") { VERSION = VERSION + "/"; }
 var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
 function start() {
   var start = document.createElement("script");
-  start.src = "/neweditor/js/repl.js";
+  start.src = "/js/repl.js";
   document.body.appendChild(start);
 }
 if({{{ USE_STANDALONE_PYRET }}}) {

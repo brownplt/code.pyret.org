@@ -1,9 +1,3 @@
-#logo {
-  width: 200px;
-  height: 200px;
-  vertical-align: middle;
-}
-
 h1 {
   text-align: center;
   width: 100%;
@@ -18,6 +12,7 @@ h1 {
   margin-left: 3em;
   font-size: 18pt;
   width: 100px;
+  float:none;
 }
 
 #start {
@@ -25,6 +20,7 @@ h1 {
   margin-right: 3em;;
   font-size: 18pt;
   width: 100px;
+  float:none;
 }
 
 #main {
@@ -37,6 +33,12 @@ h1 {
   margin: auto;
   text-align: center;
 }
+.main-logo img {
+  width: 200px;
+  height: 200px;
+  vertical-align: middle;
+}
+
 
 .centered {
   width: 450px;
@@ -60,4 +62,3 @@ a.blueButton {
   padding-right: 5px;
   text-decoration: none;
 }
-

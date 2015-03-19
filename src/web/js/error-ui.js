@@ -39,38 +39,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawUnknownException(exception);
       }
 
-      /* function isSharedImport(filename) {
-        sharedPrefix = "@shared-gdrive";
-        var gdriveIndex = filename.indexOf(sharedPrefix);
-        return gdriveIndex === 0;
-      }
-
-      function basename(str) {
-        var base = new String(str).substring(str.lastIndexOf('/') + 1);
-        if(base.lastIndexOf(".") != -1)
-          base = base.substring(0, base.lastIndexOf("."));
-          return base;
-        }
-
-      function getSharedId(filename) {
-        var path = filename.slice(sharedPrefix.length);
-        var id = basename(path);
-        return id;
-      }
-
-      function getMyDriveId(filename) {
-        mydrivePrefix = "@my-gdrive";
-        var path = filename.slice(mydrivePrefix.length);
-        var id = basename(path);
-        return id;
-      }
-
-      function isGDriveImport(filename) {
-        mydrivePrefix = "@my-gdrive";
-        var mydriveIndex = filename.indexOf(mydrivePrefix);
-        return mydriveIndex === 0;
-      } */
-
       function makeMyDriveUrl(id){
           var localDriveUrl = "/editor#program=" + id;
           //Pyret version??
@@ -79,6 +47,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
       function drawSrcloc(s) {
         var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+        if(!runtime.hasField(s, "source")) {
+          return srcElem;
+        }
         var src = runtime.unwrap(get(s, "source"));
         if(!editors.hasOwnProperty(src)) {
           if(outputUI.isSharedImport(src)) {
@@ -90,6 +61,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             var MyDriveId = outputUI.getMyDriveId(src);
             var srcUrl = makeMyDriveUrl(MyDriveId);
             srcElem.attr({href: srcUrl, target: "_blank"});
+          }
+          else if(outputUI.isJSImport(src)) {
+            /* NOTE(joe): No special handling here, since it's opaque code */
           }
         }
         return s ? srcElem : $("<span>");
@@ -505,11 +479,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           container.append(dom);
         }
         function drawNoBranchesMatched(loc, type) {
+          var srcElem = drawSrcloc(loc);
           var dom = $("<div>").addClass("compile-error");
-          var expression = $("<a>").text("this " + type + " expression");
-          dom.append($("<p>").append(["No case matched in ", expression]));
+          dom.append($("<p>").append(["No case matched in the ", type, " expression at ", srcElem ]));
           dom.append(drawExpandableStackTrace(e));
-          singleHover(expression, loc);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
         function drawNoCasesMatched(loc, value) {
@@ -575,8 +549,12 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
         function drawFieldNotFound(loc, obj, field) {
           var dom = $("<div>").addClass("compile-error");
-          var expression = $("<a>").text("this lookup expression");
-          dom.append($("<p>").append(["Field ", $("<code>").text(field), " not found in ", expression]));
+          var srcElem = drawSrcloc(loc);
+          dom.append($("<p>").append(
+            ["Field ",
+            $("<code>").text(field),
+            " not found in the lookup expression at ",
+            srcElem]));
           dom.append($("<p>").text("The object was:"));
           var valueContainer = $("<div>");
           dom.append(valueContainer);
@@ -584,13 +562,17 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             outputUI.renderPyretValue(valueContainer, runtime, obj);
           }, 0);
           dom.append(drawExpandableStackTrace(e));
-          singleHover(expression, loc);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
         function drawLookupNonObject(loc, nonObj, field) {
           var dom = $("<div>").addClass("compile-error");
-          var expression = $("<a>").text("this lookup expression");
-          dom.append($("<p>").append(["Tried to look up field ", $("<code>").text(field), " on a non-object in ", expression]));
+          var srcElem = drawSrcloc(loc);
+          dom.append($("<p>").append(
+            ["Tried to look up field ",
+            $("<code>").text(field),
+            " on a non-object in the lookup expression at ",
+             srcElem]));
           dom.append($("<p>").text("The non-object was:"));
           var valueContainer = $("<div>");
           dom.append(valueContainer);
@@ -598,13 +580,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             outputUI.renderPyretValue(valueContainer, runtime, nonObj);
           }, 0);
           dom.append(drawExpandableStackTrace(e));
-          singleHover(expression, loc);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
         function drawExtendNonObject(loc, nonObj) {
           var dom = $("<div>").addClass("compile-error");
-          var expression = $("<a>").text("this expression");
-          dom.append($("<p>").append(["Tried to extend a non-object in ", expression]));
+          var srcElem = drawSrcloc(loc);
+          dom.append($("<p>").append(
+            ["Tried to extend a non-object in the expression at ",
+            srcElem]));
           dom.append($("<p>").text("The non-object was:"));
           var valueContainer = $("<div>");
           dom.append(valueContainer);
@@ -612,16 +596,22 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             outputUI.renderPyretValue(valueContainer, runtime, nonObj);
           }, 0);
           dom.append(drawExpandableStackTrace(e));
-          singleHover(expression, loc);
+          singleHover(srcElem, loc);
           container.append(dom);
         }
         function drawInvalidArrayIndex(methodName, array, index, reason) {
           var dom = $("<div>").addClass("compile-error");
           var probablyErrorLocation = getLastUserLocation(e, 0);
-          var expression = $("<a>").text(" this function call ");
-          dom.append($("<p>").append(["Invalid array index ", $("<code>").text(index), " around ", expression, "because: " + reason]));
+          var srcElem = drawSrcloc(probablyErrorLocation);
+          dom.append($("<p>").append(
+            ["Invalid array index ",
+            $("<code>").text(index),
+            " around the function call at ",
+            srcElem,
+            " because: ",
+            reason]));
           dom.append(drawExpandableStackTrace(e));
-          singleHover(expression, probablyErrorLocation);
+          singleHover(srcElem, probablyErrorLocation);
           container.append(dom);
         }
         function drawModuleLoadFailure(names) {
@@ -768,10 +758,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             var dom = $("<div>").addClass("compile-error");
             var valContainer = $("<div>");
             renderValueIn(val, valContainer);
-            var type = $("<a>").append($("<code>").text("this annotation"));
+            var annElem = drawSrcloc(loc);
             var typeName = $("<code>").text(name);
-            singleHover(type, loc);
-            dom.append($("<p>").append(["Expected to get ", typeName, " because of ", type, " but got"]))
+            singleHover(annElem, loc);
+            dom.append($("<p>").append(
+              ["Expected to get ",
+              typeName,
+              " because of the annotation at ",
+              annElem,
+              " but got"]))
               .append($("<br>"))
               .append(valContainer);
             if(probablyErrorLocation && isArg) {
@@ -792,10 +787,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             var dom = $("<div>").addClass("compile-error");
             var valContainer = $("<div>");
             renderValueIn(val, valContainer);
-            var type = $("<a>").text("this annotation");
+            var annElem = drawSrcloc(loc);
             var pred = $("<code>").text(predName);
-            singleHover(type, loc);
-            dom.append($("<p>").append(["The predicate ", pred, " in ", type, " returned false for this value:"]))
+            singleHover(annElem, loc);
+            dom.append($("<p>").append(
+              ["The predicate ",
+              pred,
+              " in the annotation at ",
+              annElem,
+              " returned false for this value:"]))
               .append($("<br>"))
               .append(valContainer);
             if(probablyErrorLocation && isArg) {

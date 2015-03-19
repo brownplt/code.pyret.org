@@ -155,6 +155,98 @@ $(function() {
               e.preventDefault();
             }
           });
+
+          /* Documentation Overlay */
+          $("#docs").on("click", function(e){
+            $("#doc-containment").toggle();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          });
+
+          $("#doc-close").on("click", function(e){
+            $("#doc-containment").toggle();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          });
+
+          $("#doc-overlay").draggable({
+            start: fixIframe,
+            stop: fixIframe,
+            handle: "#doc-bar",
+            cancel: "#doc-close"
+            });
+
+          $("#doc-overlay").resizable({
+            handles: {
+              s:"#doc-bottom",
+              e: "#doc-right",
+              w:"#doc-left",
+              sw: "#doc-sw-corner",
+              se:"#doc-se-corner"},
+            start: fixIframe,
+            stop: fixIframe,
+            containment: "#doc-containment",
+            scroll: false
+            });
+
+            function fixIframe() {
+              $("#doc-cover").toggle();
+            }
+
+          $('#font-plus').click(changeFont);
+          $('#font-minus').click(changeFont);
+
+          function changeFont(e){
+            fontSize = parseInt($('#main').css("font-size"));
+            if ($(e.target).is("#font-plus") && (fontSize < 55)){
+              $('#main').css('font-size', '+=4');
+            }
+            else if ($(e.target).is("#font-minus") && (fontSize > 10)){
+              $('#main').css('font-size', '-=4');
+            }
+            editor.refresh();
+            $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
+          }
+          $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
+
+          $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
+
+          editor.cm.on('beforeChange', curlyQuotes);
+
+          function curlyQuotes(instance, changeObj){
+            $('.notificationArea .curlyQ').remove();
+            curlybool = false;
+            if((changeObj.origin == "paste")){
+            var newText = jQuery.map(changeObj.text, function(str, i) {
+              curlybool = curlybool || (str.search(/[\u2018\u2019\u201C\u201D]/g) > -1);
+              str = str.replace(/\u201D/g, "\"")
+              str = str.replace(/\u201C/g, "\"")
+              str = str.replace(/\u2019/g, "\'")
+              str = str.replace(/\u2018/g, "\'")
+              return str;
+            });
+            if(curlybool){
+            curlyQUndo(changeObj.text, changeObj.from);
+            changeObj.update(undefined, undefined, newText);
+          }
+          }}
+
+          function curlyQUndo(oldText, from){
+            var lineN = oldText.length - 1
+            var to = {line: from.line + lineN, ch: from.ch + oldText[lineN].length}
+            console.log(from, to);
+            message = "Curly quotes converted"
+            var container = $('<div>').addClass("curlyQ")
+            var msg = $("<span>").addClass("curlyQ-msg").text(message);
+            var button = $("<span>").addClass("curlyQ-button").text("Click to Undo");
+            container.append(msg).append(button);
+            container.click(function(){
+              editor.cm.replaceRange(oldText, from, to);
+            });
+            $(".notificationArea").prepend(container);
+            container.delay(15000).fadeOut(3000);
+          }
+
           function autoSave() {
             programToSave.then(function(p) {
               if(p !== null && !copyOnSave) { save(); }
@@ -299,38 +391,6 @@ $(function() {
             document.title = progName + " - code.pyret.org";
           }
 
-          window.saveJSFile = function() {
-            function makeImportText(name, id) {
-              return "import gdrive-js(\"" + name + "\", \"" + id + "\") as G";
-            }
-            var str = editor.cm.getValue();
-            require(["js/eval-lib", "compiler/compile-structs.arr"], function(e, cs) {
-              runtime.loadModules(runtime.namespace, [cs],
-                function(mod) {
-                  var progName = $("#program-name").val() + ".js";
-                  e.runCompileSrcPyret(runtime, str, {name: "gdrive-js/" + progName}, function(result) {
-                    storageAPI.then(function(api) {
-                      var jsfile = api.createFile(progName);
-                      jsfile.then(function(f) {
-                        if(!runtime.isSuccessResult(result)) {
-                          console.error("Failed to create JS file", result);
-                        }
-                        else {
-                          f.save(result.result).
-                            then(function(f) {
-                              return f.makeShareCopy();
-                            }).
-                            then(function(copied) {
-                              console.log(makeImportText(progName, copied.getUniqueId()));
-                            });
-                        }
-                      });
-                    });
-                  });
-                });
-            });
-          };
-
           $("#download a").click(function() {
             var downloadElt = $("#download a");
             var contents = editor.cm.getValue();
@@ -435,29 +495,29 @@ function clearFlash() {
 }
 function stickError(message, more) {
   clearFlash();
-  var err = $("<span>").addClass("error").text(message);
+  var err = $("<div>").addClass("error").text(message);
   if(more) {
     err.attr("title", more);
   }
   err.tooltip();
-  $(".notificationArea").append(err);
+  $(".notificationArea").prepend(err);
 }
 function flashError(message) {
   clearFlash();
-  var err = $("<span>").addClass("error").text(message);
-  $(".notificationArea").append(err);
+  var err = $("<div>").addClass("error").text(message);
+  $(".notificationArea").prepend(err);
   err.fadeOut(7000);
 }
 function flashMessage(message) {
   clearFlash();
-  var err = $("<span>").addClass("active").text(message);
-  $(".notificationArea").append(err);
+  var err = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(err);
   err.fadeOut(7000);
 }
 function stickMessage(message) {
   clearFlash();
-  var err = $("<span>").addClass("active").text(message);
-  $(".notificationArea").append(err);
+  var err = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(err);
 }
 
 $(window).bind("beforeunload", function(_) {

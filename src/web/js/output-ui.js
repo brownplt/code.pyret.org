@@ -195,10 +195,14 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     var mydriveIndex = filename.indexOf(mydrivePrefix);
     return mydriveIndex === 0;
   }
-
   function isJSImport(filename) {
-    var mydriveIndex = filename.indexOf(jsdrivePrefix);
-    return mydriveIndex === 0;
+    var jsdriveIndex = filename.indexOf(jsdrivePrefix);
+    return jsdriveIndex === 0;
+  }
+  function getJSFilename(filename) {
+    var path = filename.slice(jsdrivePrefix.length);
+    var id = basename(path);
+    return id;
   }
 
   function hoverLink(editors, runtime, srcloc, dom, loc, className) {
@@ -231,7 +235,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
         return errorTooltip(dom, msg);
       }
       else if(isJSImport(src)) {
-        dom.attr("title", get(loc, "format").app(true) + ":  This code is part of a library.");
+        dom.attr("title", get(loc, "format").app(true) + ":  This code is part of a library defined in " + getJSFilename(src));
         dom.tooltip();
         return dom;
       }
@@ -389,7 +393,9 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     basename: basename,
     getSharedId: getSharedId,
     getMyDriveId: getMyDriveId,
-    isGDriveImport: isGDriveImport
+    isGDriveImport: isGDriveImport,
+    isJSImport: isJSImport,
+    getJSFilename: getJSFilename
   };
 
 })

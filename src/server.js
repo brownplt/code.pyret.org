@@ -272,11 +272,11 @@ function start(config, onServerReady) {
   });
 
   app.get("/editor", function(req, res) {
-    res.sendfile("build/web/repl.html");
+    res.sendfile("build/web/editor.html");
   });
 
   app.get("/neweditor", function(req, res) {
-    res.sendfile("build/web/neweditor.html");
+    res.sendfile("build/web/editor.html");
   });
 
   app.get("/my-programs", function(req, res) {
