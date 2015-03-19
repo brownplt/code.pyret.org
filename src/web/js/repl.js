@@ -157,11 +157,14 @@ $(function() {
           });
 
           /* Documentation Overlay */
+          /*
+          NOTE(joe): Skipping this for now, until HTTPS solution for docs worked out
           $("#docs").on("click", function(e){
             $("#doc-containment").toggle();
             e.stopImmediatePropagation();
             e.preventDefault();
           });
+          */
 
           $("#doc-close").on("click", function(e){
             $("#doc-containment").toggle();
@@ -330,6 +333,9 @@ $(function() {
             api.collection.then(function() {
               $(".loginOnly").show();
               $(".logoutOnly").hide();
+              api.api.getCollectionLink().then(function(link) {
+                $("#drive-view a").attr("href", link);
+              });
             });
             api.collection.fail(function() {
               $(".loginOnly").hide();
@@ -346,6 +352,9 @@ $(function() {
               api.collection.then(function() {
                 $(".loginOnly").show();
                 $(".logoutOnly").hide();
+                api.api.getCollectionLink().then(function(link) {
+                  $("#drive-view a").attr("href", link);
+                });
                 if(params["get"] && params["get"]["program"]) {
                   var toLoad = api.api.getFileById(params["get"]["program"]);
                   console.log("Logged in and has program to load: ", toLoad);

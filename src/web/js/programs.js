@@ -216,6 +216,11 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
     }
 
     var api = {
+      getCollectionLink: function() {
+        return baseCollection.then(function(bc) {
+          return bc.alternateLink;
+        });
+      },
       getFileById: function(id) {
         return gQ(drive.files.get({fileId: id})).then(makeFile);
       },
