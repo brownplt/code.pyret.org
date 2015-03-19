@@ -400,6 +400,38 @@ $(function() {
             document.title = progName + " - code.pyret.org";
           }
 
+          window.saveJSFile = function() {
+            function makeImportText(name, id) {
+              return "import gdrive-js(\"" + name + "\", \"" + id + "\") as G";
+            }
+            var str = editor.cm.getValue();
+            require(["js/eval-lib", "compiler/compile-structs.arr"], function(e, cs) {
+              runtime.loadModules(runtime.namespace, [cs],
+                function(mod) {
+                  var progName = $("#program-name").val() + ".js";
+                  e.runCompileSrcPyret(runtime, str, {name: "gdrive-js/" + progName}, function(result) {
+                    storageAPI.then(function(api) {
+                      var jsfile = api.createFile(progName);
+                      jsfile.then(function(f) {
+                        if(!runtime.isSuccessResult(result)) {
+                          console.error("Failed to create JS file", result);
+                        }
+                        else {
+                          f.save(result.result).
+                            then(function(f) {
+                              return f.makeShareCopy();
+                            }).
+                            then(function(copied) {
+                              console.log(makeImportText(progName, copied.getUniqueId()));
+                            });
+                        }
+                      });
+                    });
+                  });
+                });
+            });
+          };
+
           $("#download a").click(function() {
             var downloadElt = $("#download a");
             var contents = editor.cm.getValue();
