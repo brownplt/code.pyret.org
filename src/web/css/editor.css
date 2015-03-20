@@ -262,6 +262,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   display: inline-block;
 }
 
+.repl-echo .CodeMirror-cursors {
+  display: none;
+}
+
 body {
   margin: 0;
   padding: 0;
