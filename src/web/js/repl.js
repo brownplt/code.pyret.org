@@ -64,8 +64,14 @@ $(function() {
 });
 
 $(function() {
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js", "/js/http-imports.js"],
-  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive, http) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf",
+  "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js",
+  "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
+  "trove/runtime-lib", "compiler/repl-support.arr",
+  "compiler/locators/builtin.arr", "/js/gdrive-locators.js",
+  "compiler/compile-structs.arr"],
+  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive, http, compileLib,
+  pyRepl, runtimeLib, replSupport, builtin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -108,14 +114,127 @@ $(function() {
           return ret.promise;
         }
       };
-      runtime.safeCall(function() {
+
+      var gf = runtime.getField;
+      var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+      var gtf = function(m, f) { return gf(m, "types")[f]; };
+
+      runtime.loadModulesNew(runtime.namespace,
+        [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
+        function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
+          var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib);
+          function findModule(contextIgnored, dependency) {
+            return runtime.safeTail(function() {
+              return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
+                {
+                  builtin: function(name) {
+                    return gmf(builtin, "make-builtin-locator").app(name);
+                  },
+                  dependency: function(protocol, args) {
+                    var arr = runtime.ffi.toArray(args);
+                    if (protocol === "my-gdrive") {
+                      return constructors.makeMyGDriveLocator(arr[0]);
+                    }
+                    else {
+                      console.error("Unknown import: ", dependency);
+                    }
+                  }
+                });
+             });
+          }
+
+        // NOTE(joe): This line is "cheating" by mixing runtime levels,
+        // and uses the same runtime for the compiler and running code.
+        // Usually you can only get a new Runtime by calling create, but
+        // here we magic the current runtime into one.
+        var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+          runtime.makeObject({
+            "runtime": runtime.makeOpaque(runtime)
+          }));
+
+        return runtime.safeCall(function() {
+          return gmf(replSupport, "make-repl-definitions-locator").app(
+            "definitions",
+            "definitions",
+            runtime.makeFunction(function() {
+              return editor.cm.getValue();
+            }),
+            gmf(compileLib, "standard-builtins"));
+        }, function(locator) {
+          return runtime.safeCall(function() {
+            return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
+          }, function(repl) {
+            var jsRepl = {
+              restartInteractions: function(ignoredStr) {
+                var ret = Q.defer();
+                setTimeout(function() {
+                  runtime.runThunk(function() {
+                    return gf(repl, "restart-interactions").app();
+                  }, function(result) {
+                    if (runtime.isFailureResult(result)) {
+                      ret.resolve(result);
+                    }
+                    else {
+                      ret.resolve(result.result.val.result);
+                    }
+                  });
+                }, 0);
+                return ret.promise;
+              },
+              run: function(str) {
+                var ret = Q.defer();
+                setTimeout(function() {
+                  runtime.runThunk(function() {
+                    return runtime.safeCall(
+                      function() {
+                        return gmf(replSupport,
+                        "make-repl-interaction-locator").app(
+                          "interactions",
+                          "interactions",
+                          runtime.makeFunction(function() { return str; }),
+                          repl);
+                      },
+                      function(locator) {
+                        return gf(repl, "run-interaction").app(locator); 
+                      });
+                  }, function(result) {
+                    if (runtime.isFailureResult(result)) {
+                      ret.resolve(result);
+                    }
+                    else {
+                      ret.resolve(result.result.val.result);
+                    }
+                  });
+                }, 0);
+                return ret.promise;
+              },
+              pause: function(afterPause) {
+                runtime.schedulePause(function(resumer) {
+                  afterPause(resumer);
+                });
+              },
+              stop: function() {
+                runtime.breakAll();
+              },
+              runtime: runtime
+            };
+            doWithRepl(jsRepl);
+
+          });
+        });
+      });
+
+      var editor;
+
+      /*runtime.safeCall(function() {
         return replLib.create(runtime, replNS, replEnv, {
             name: "definitions",
             dialect: dialectStr,
             getSpecialImport: getSpecialImport
           });
-      }, function(repl) {
-        var gassed = guessGas.guessGas(3000, repl);
+      }, */
+      function doWithRepl(repl) {
+        var gassed = Q(repl); //guessGas.guessGas(3000, repl);
         gassed.fail(function(err) {
           console.error("Couldn't guess gas: ", err);
         });
@@ -141,7 +260,7 @@ $(function() {
           };
           var codeContainer = $("<div>").addClass("replMain");
           $("#main").prepend(codeContainer);
-          var editor = replUI.makeEditor(codeContainer, {
+          editor = replUI.makeEditor(codeContainer, {
               runButton: $("#runButton"),
               simpleEditor: false,
               initial: "print('Ahoy, world!')",
@@ -523,7 +642,7 @@ $(function() {
         done.fail(function(err) {
           console.error("Pyret failed to load.", err);
         });
-      });
+      }
     });
     load.fail(function(err) {
       console.error("Pyret failed to load.", err);

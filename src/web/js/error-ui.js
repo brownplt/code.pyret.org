@@ -377,6 +377,26 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             singleHover(srcElem, probablyErrorLocation);
           });
         }
+        function drawEqualityFailure(reason, left, right) {
+          var probablyErrorLocation = getLastUserLocation(e, 0);
+          var dom = $("<div>").addClass("compile-error");
+          var srcElem = drawSrcloc(probablyErrorLocation);
+          singleHover(srcElem, probablyErrorLocation);
+          var leftContainer = $("<div>");
+          var rightContainer = $("<div>");
+          dom.append($("<p>").text("These two values cannot be compared for direct equality:"));
+          dom.append("<br>");
+          dom.append(leftContainer);
+          dom.append("<br>");
+          dom.append(rightContainer);
+          if(runtime.isRoughnum(left) || runtime.isRoughnum(right)) {
+            dom.append($("<p>").text("Approximations of numbers (Roughnums) cannot be compared for equality.  The program may need to use within()"));
+          }
+          outputUI.renderPyretValue(leftContainer, runtime, left);
+          outputUI.renderPyretValue(rightContainer, runtime, right);
+          dom.append($("<p>").append(["At ", srcElem]));
+          container.append(dom);
+        }
         function drawCasesArityMismatch(branchLoc, numArgs, actualArity) {
           var dom = $("<div>").addClass("compile-error");
           var loc = outputUI.drawSrcloc(editors, runtime, branchLoc);
@@ -446,8 +466,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawMessageException(message) {
           var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
+          var srcloc = drawSrcloc(probablyErrorLocation);
+          singleHover(srcloc, probablyErrorLocation);
           if(probablyErrorLocation !== undefined) {
-            dom.append($("<p>").text(message + " At:"))
+            dom.append($("<p>").text(message))
               .append($("<br>"))
               .append(outputUI.drawSrcloc(editors, runtime, probablyErrorLocation));
           } else {
@@ -655,6 +677,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "lookup-non-object": drawLookupNonObject,
               "extend-non-object": drawExtendNonObject,
               "generic-type-mismatch": drawGenericTypeMismatch,
+              "equality-failure": drawEqualityFailure,
               "arity-mismatch": drawArityMismatch,
               "cases-arity-mismatch": drawCasesArityMismatch,
               "cases-singleton-mismatch": drawCasesSingletonMismatch,
