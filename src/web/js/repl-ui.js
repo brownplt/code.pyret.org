@@ -203,7 +203,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     var output = jQuery("<div id='output' class='cm-s-default'>");
     runtime.setStdout(function(str) {
         ct_log(str);
-        output.append($("<div>").addClass("replPrint").text(str));
+        output.append($("<pre>").addClass("replPrint").text(str));
       });
     runtime.setParam("current-animation-port", function(dom) {
         animationDiv = $("<div>").css({"z-index": 10000});
