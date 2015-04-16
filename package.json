@@ -1,5 +1,5 @@
 {
-  "name": "patch-experiment",
+  "name": "code.pyret.org",
   "version": "0.0.0",
   "description": "An experimental repl app for Pyret",
   "main": "index.js",
@@ -9,6 +9,7 @@
     "s-expression": "~2.2.0",
     "pyret-lang": "git://github.com/brownplt/pyret-lang",
     "CodeMirror": "git://github.com/jpolitz/CodeMirror",
+    "horizon": "git+ssh://git@github.com/brownplt/code.pyret.org#horizon",
     "requirejs": "2.1.14",
     "node-static": "^0.7.3",
     "express": "^4.1.1",
@@ -28,7 +29,6 @@
   },
   "devDependencies": {},
   "scripts": {
-    "postinstall": "make web",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
