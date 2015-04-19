@@ -172,6 +172,34 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             }
           });
         }
+        function drawBadAssignment(id, newLoc, oldLoc) {
+          var dom = $("<div>").addClass("compile-error");
+          var p = $("<p>");
+          var srcElem = drawSrcloc(newLoc);
+          var srcId = $("<span>").addClass("code").text(id)
+          var varElt = $("<span>").addClass("code").text("var")
+          p.append("The name ");
+          p.append(srcId);
+          p.append(" is defined as an identifier, but is assigned as if it were a variable at ");
+          p.append(srcElem);
+          p.append(".");
+          dom.append(p);
+          singleHover(srcElem, newLoc);
+          
+
+          cases(get(srcloc, "Srcloc"), "Srcloc", oldLoc, {
+            "builtin": function(_) {
+              container.append(dom);
+            },
+            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+              var declLocElem = drawSrcloc(oldLoc);
+              p.append("<br/>");
+              singleHover(declLocElem, oldLoc);
+              p.append(["One possible fix is to change the declaration of ", id, " to use ", varElt, " at ", declLocElem, ". "]);
+              container.append(dom);
+            }
+          });
+        }
 
         function drawPointlessVar(loc) {
           var dom = $("<div>").addClass("compile-error");
@@ -277,6 +305,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "unbound-var": drawUnboundVar,
               "unbound-type-id": drawUnboundTypeId,
               "shadow-id": drawShadowId,
+              "bad-assignment": drawBadAssignment,
               "duplicate-id": drawShadowId, // NOTE(joe): intentional re-use, not copypasta
               "duplicate-field": drawShadowId, // NOTE(ben): ditto
               "pointless-var": drawPointlessVar,
