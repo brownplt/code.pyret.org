@@ -255,135 +255,208 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     return dom;
   }
 
+
+  // A function to use the class of a container to toggle
+  // between the two representations of a fraction.  The
+  // three arguments are a string to be the representation
+  // as a fraction, a string to represent the non-repeating
+  // part of the decimal number, and a string to be
+  // repeated. The 'rationalRepeat' class puts a bar over
+  // the string.
+  $.fn.toggleFrac = function(frac, dec, decRpt) {
+    if (this.hasClass("fraction")) {
+      this.text(dec);
+      // This is the stuff to be repeated.  If the digit to
+      // be repeated is just a zero, then ignore this
+      // feature, and leave off the zero.
+      if (decRpt != "0") {
+        var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
+        this.append(cont);
+      }
+      this.removeClass("fraction");
+    } else {
+      this.text(frac);
+      this.addClass("fraction");
+    }
+    return this;
+  }
+
+  // A function to use the class of a container to toggle 
+  // between the two representations of an object.
+  $.fn.toggleObject = function(output, runtime, asStr, obj) {
+    if (this.hasClass("expanded")) {
+      this.text(asStr);
+      this.removeClass("expanded");
+    } else {
+      this.addClass("expanded");
+      var fields = $("<dl>");
+      var fieldNames;
+      if (runtime.isDataValue(obj)) {
+        this.text(obj.$name);
+        fieldNames = obj.$constructor.$fieldNames;
+      } else {
+        this.text("Object");
+        fieldNames = runtime.getFields(obj);
+      }
+      for (var i = 0; i < fieldNames.length; i++) {
+        fields.append($("<dt>").text(fieldNames[i]));
+        fields.append($("<dd>").append(renderPyretValue(output, runtime, runtime.getField(obj, fieldNames[i]))));
+      }
+      this.append(fields);
+    }
+    return this;
+  }
+
+
+  var renderers = {};
+  renderers.renderPOpaque = function renderPOpaque(output, runtime, val) {
+    var image = imageLib(runtime, runtime.namespace);
+    if (image.isImage(val.val)) {
+      return renderers.renderImage(output, runtime, val.val);
+    } else {
+      return renderers.renderToRepr(output, runtime, val);
+    }
+  }
+  renderers.renderImage = function renderImage(output, runtime, img) {
+    var image = imageLib(runtime, runtime.namespace);
+
+    var container = $("<div>").addClass('replOutput');
+    output.append(container);
+    var imageDom;
+    var maxWidth = output.width() * .75;
+    var maxHeight = $(document).height() * .6;
+    var realWidth = img.getWidth();
+    var realHeight = img.getHeight();
+    if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
+      container.addClass("replImageThumbnail");
+      container.attr("title", "Click to see full image");
+      var scaleFactorX = 100 / realWidth;
+      var scaleFactorY = 200 / realHeight;
+      var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
+      var scaled = image.makeScaleImage(scaleFactor, scaleFactor, img);
+      imageDom = scaled.toDomNode();
+      container.append(imageDom);
+      $(imageDom).trigger({type: 'afterAttach'});
+      $('*', imageDom).trigger({type : 'afterAttach'});
+      var originalImageDom = img.toDomNode();
+      $(imageDom).on("click", function() {
+        var dialog = $("<div>");
+        dialog.dialog({
+          modal: true,
+          height: $(document).height() * .9,
+          width: $(document).width() * .9,
+          resizable: true
+        });
+        dialog.css({"overflow": "scroll"});
+        dialog.append($(originalImageDom));
+        $(originalImageDom).trigger({type: 'afterAttach'});
+        $('*', originalImageDom).trigger({type : 'afterAttach'});
+      });
+      return imageDom;
+    } else {
+      imageDom = img.toDomNode();
+      container.append(imageDom);
+      $(imageDom).trigger({type: 'afterAttach'});
+      $('*', imageDom).trigger({type : 'afterAttach'});
+      return imageDom;
+    }
+  }
+  renderers.renderPNumber = function renderPNumber(output, runtime, num) {
+    // If we're looking at a rational number, arrange it so that a
+    // click will toggle the decimal representation of that
+    // number.  Note that this feature abandons the convenience of
+    // publishing output via the CodeMirror textarea.
+    if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
+      var echoContainer = $("<div>").addClass("replTextOutput");
+      outText = $("<span>").addClass("rationalNumber fraction").text(num.toString());
+      // On click, switch the representation from a fraction to
+      // decimal, and back again.
+      outText.click(function() {
+        // This function returns three string values, numerals to
+        // appear before the decimal point, numerals to appear
+        // after, and numerals to be repeated.
+        var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
+        var decimalString = decimal[0].toString() + "." + decimal[1].toString();
+
+        $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
+
+      });
+      echoContainer.append(outText);
+      output.append(echoContainer);
+      return echoContainer;
+    } else {
+      return renderers.renderToRepr(output, runtime, num);
+    }    
+  }
+  renderers.renderPNothing = function renderPNothing(output, runtime, val) {
+    return $("<div>").addClass("replTextOutput");
+  }
+  renderers.renderToRepr = function renderToRepr(output, runtime, val) {
+    var echoContainer = $("<div>").addClass("replTextOutput");
+    // Either we're looking at a string or some number with only
+    // one representation. Just print it, using the CodeMirror
+    // textarea for styling.
+    runtime.runThunk(function() {
+      return runtime.toReprJS(val, "_torepr");
+    }, function(outText) {
+      var echo = $("<textarea class='CodeMirror'>");
+      output.append(echoContainer);
+      echoContainer.append(echo);
+      if(runtime.isSuccessResult(outText)) {
+        echo.text(outText.result);
+      }
+      else {
+        echo.text("<error displaying value>");
+      }
+      setTimeout(function() {
+        CodeMirror.fromTextArea(echo[0], { readOnly: true });
+      }, 0);
+    });
+    return echoContainer;
+  }
+  renderers.renderPBoolean = renderers.renderToRepr;
+  renderers.renderPString = renderers.renderToRepr;
+  renderers.renderPMethod = renderers.renderToRepr;
+  renderers.renderPFunction = renderers.renderToRepr;
+  renderers.renderPRef = function(output, runtime, answer) {
+    var container = renderPyretValue(output, runtime, runtime.getRef(answer));
+    container.append($("<span class='warning'>").text("May be stale!"));
+    return container;
+  }
+  renderers.renderPObject = function(output, runtime, answer) {
+    var container = renderers.renderToRepr(output, runtime, answer);
+    container.click(function(e) {
+      var thiz = this;
+      runtime.runThunk(function() {
+        return runtime.toReprJS(answer, "_torepr");
+      }, function(outText) { 
+        if(runtime.isSuccessResult(outText)) {
+          $(thiz).toggleObject(output, runtime, outText.result, answer);
+        }
+        else {
+          $(thiz).toggleObject(output, runtime, "<error displaying value>", answer);
+        }
+      });
+      e.stopPropagation();
+    });
+    return container;
+  }
+
   // Because some finicky functions (like images and CodeMirrors), require
   // extra events to happen for them to show up, we provide this as an
   // imperative API: the DOM node created will be appended to the output
   // and also returned
   function renderPyretValue(output, runtime, answer) {
-    var image = imageLib(runtime, runtime.namespace);
-
-    if(runtime.isOpaque(answer) && image.isImage(answer.val)) {
-      var container = $("<div>").addClass('replOutput');
-      output.append(container);
-      var imageDom;
-      var maxWidth = output.width() * .75;
-      var maxHeight = $(document).height() * .6;
-      var realWidth = answer.val.getWidth();
-      var realHeight = answer.val.getHeight();
-      if(answer.val.getWidth() > maxWidth || answer.val.getHeight() > maxHeight) {
-        container.addClass("replImageThumbnail");
-        container.attr("title", "Click to see full image");
-        var scaleFactorX = 100 / realWidth;
-        var scaleFactorY = 200 / realHeight;
-        var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
-        var scaled = image.makeScaleImage(scaleFactor, scaleFactor, answer.val);
-        imageDom = scaled.toDomNode();
-        container.append(imageDom);
-        $(imageDom).trigger({type: 'afterAttach'});
-        $('*', imageDom).trigger({type : 'afterAttach'});
-        var originalImageDom = answer.val.toDomNode();
-        $(imageDom).on("click", function() {
-          var dialog = $("<div>");
-          dialog.dialog({
-            modal: true,
-            height: $(document).height() * .9,
-            width: $(document).width() * .9,
-            resizable: true
-          });
-          dialog.css({"overflow": "scroll"});
-          dialog.append($(originalImageDom));
-          $(originalImageDom).trigger({type: 'afterAttach'});
-          $('*', originalImageDom).trigger({type : 'afterAttach'});
-        });
-
-      } else {
-        imageDom = answer.val.toDomNode();
-        container.append(imageDom);
-        $(imageDom).trigger({type: 'afterAttach'});
-        $('*', imageDom).trigger({type : 'afterAttach'});
-        return imageDom;
-      }
-    } else {
-      var echoContainer = $("<div>").addClass("replTextOutput");
-
-      if (!runtime.isNothing(answer)) {
-
-        // If we're looking at a rational number, arrange it so that a
-        // click will toggle the decimal representation of that
-        // number.  Note that this feature abandons the convenience of
-        // publishing output via the CodeMirror textarea.
-        if (runtime.isNumber(answer) && jsnums.isExact(answer) && !jsnums.isInteger(answer)) {
-
-          outText = $("<span>").addClass("rationalNumber fraction").text(answer.toString());
-          // On click, switch the representation from a fraction to
-          // decimal, and back again.
-          outText.click(function() {
-
-            // A function to use the class of a container to toggle
-            // between the two representations of a fraction.  The
-            // three arguments are a string to be the representation
-            // as a fraction, a string to represent the non-repeating
-            // part of the decimal number, and a string to be
-            // repeated. The 'rationalRepeat' class puts a bar over
-            // the string.
-            $.fn.toggleFrac = function(frac, dec, decRpt) {
-              if (this.hasClass("fraction")) {
-                this.text(dec);
-                // This is the stuff to be repeated.  If the digit to
-                // be repeated is just a zero, then ignore this
-                // feature, and leave off the zero.
-                if (decRpt != "0") {
-                  var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
-                  this.append(cont);
-                }
-                this.removeClass("fraction");
-              } else {
-                this.text(frac);
-                this.addClass("fraction");
-              }
-              return this;
-            }
-
-            // This function returns three string values, numerals to
-            // appear before the decimal point, numerals to appear
-            // after, and numerals to be repeated.
-            var decimal = jsnums.toRepeatingDecimal(answer.numerator(),
-                                                    answer.denominator());
-            var decimalString = decimal[0].toString() + "." +
-              decimal[1].toString();
-
-            $(this).toggleFrac(answer.toString(), decimalString, decimal[2]);
-
-          });
-          echoContainer.append(outText);
-          output.append(echoContainer);
-
-        } else {
-
-          // Either we're looking at a string or some number with only
-          // one representation. Just print it, using the CodeMirror
-          // textarea for styling.
-          runtime.runThunk(function() {
-            return runtime.toReprJS(answer, "_torepr");
-          }, function(outText) {
-            var echo = $("<textarea class='CodeMirror'>");
-            output.append(echoContainer);
-            echoContainer.append(echo);
-            if(runtime.isSuccessResult(outText)) {
-              echo.text(outText.result);
-            }
-            else {
-              echo.text("<error displaying value>");
-            }
-            setTimeout(function() {
-              CodeMirror.fromTextArea(echo[0], { readOnly: true });
-            }, 0);
-          });
-        }
-
-        return echoContainer;
-      }
-    }
+    if (runtime.isOpaque(answer)) { return renderers.renderPOpaque(output, runtime, answer); }
+    else if (runtime.isNumber(answer)) { return renderers.renderPNumber(output, runtime, answer); }
+    else if (runtime.isString(answer)) { return renderers.renderPString(output, runtime, answer); }
+    else if (runtime.isBoolean(answer)) { return renderers.renderPBoolean(output, runtime, answer); }
+    else if (runtime.isObject(answer)) { return renderers.renderPObject(output, runtime, answer); }
+    else if (runtime.isNothing(answer)) { return renderers.renderPNothing(output, runtime, answer); }
+    else if (runtime.isFunction(answer)) { return renderers.renderPFunction(output, runtime, answer); }
+    else if (runtime.isMethod(answer)) { return renderers.renderPMethod(output, runtime, answer); }
+    else if (runtime.isRef(answer)) { return renderers.renderPRef(output, runtime, answer); }
+    else { return renderers.renderToRepr(output, runtime, answer); }
   }
   return {
     renderPyretValue: renderPyretValue,

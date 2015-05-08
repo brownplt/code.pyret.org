@@ -57,6 +57,27 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background-color: transparent;
 }
 
+.replTextOutput dl { 
+   border: 1px solid gray;
+}
+.replTextOutput dl:after {
+   content: '';
+   display: table;
+   clear: both;
+}
+.replTextOutput dt { 
+   float: left; 
+   clear: left; 
+   padding: 0 1em;
+}
+.replTextOutput dt:after {
+   content: ":";
+}
+.replTextOutput dd {
+   float: left;
+}
+   
+
 #output {
   font-family : monospace;
 }
