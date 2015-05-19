@@ -302,7 +302,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       var realWidth = img.getWidth();
       var realHeight = img.getHeight();
       if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
-        container.addClass("replImageThumbnail");
+        container.addClass("replImageThumbnail has-icon");
         container.attr("title", "Click to see full image");
         var scaleFactorX = 100 / realWidth;
         var scaleFactorY = 200 / realHeight;
@@ -310,7 +310,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
         var scaled = image.makeScaleImage(scaleFactor, scaleFactor, img);
         imageDom = scaled.toDomNode();
         container.append(imageDom);
-        container.append($("<img>").attr("src", "/img/magnifier.gif").addClass("magnifier"));
+        container.append($("<img>").attr("src", "/img/magnifier.gif").addClass("info-icon"));
         $(imageDom).trigger({type: 'afterAttach'});
         $('*', imageDom).trigger({type : 'afterAttach'});
         var originalImageDom = img.toDomNode();
@@ -381,9 +381,12 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
     };
     renderers["render-ref"] = function(top) {
-      var container = $("<span>").addClass("replOutput");
+      var container = $("<span>").addClass("replOutput has-icon");
       container.append(top.done[0]);
-      var warning = $("<span class='warning'>").text("May be stale! Click to refresh");
+      var warning = $("<img>")
+        .attr("src", "/img/warning.gif")
+        .attr("title", "May be stale! Click to refresh")
+        .addClass("info-icon");
       container.append(warning);
       warning.click(function(e) {
         runtime.runThunk(function() { 

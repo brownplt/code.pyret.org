@@ -545,7 +545,7 @@ span.rationalRepeat {
   text-decoration: overline;
 }
 
-.replImageThumbnail { position: relative; }
+.has-icon { position: relative; }
 
 .replImageThumbnail canvas {
   cursor: pointer;
@@ -560,14 +560,14 @@ span.rationalRepeat {
   margin: 0px;
 }
 
-.replImageThumbnail .magnifier {
+.has-icon .info-icon {
    display: none;
    position: absolute;
    bottom: 0;
    right: 0;
 }
 
-.replImageThumbnail:hover .magnifier {
+.has-icon:hover .info-icon {
    cursor: pointer;
    display: initial;
 }
