@@ -281,182 +281,224 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     return this;
   }
 
-  // A function to use the class of a container to toggle 
-  // between the two representations of an object.
-  $.fn.toggleObject = function(output, runtime, asStr, obj) {
-    if (this.hasClass("expanded")) {
-      this.text(asStr);
-      this.removeClass("expanded");
-    } else {
-      this.addClass("expanded");
-      var fields = $("<dl>");
-      var fieldNames;
-      if (runtime.isDataValue(obj)) {
-        this.text(obj.$name);
-        fieldNames = obj.$constructor.$fieldNames;
+  function installRenderers(runtime) {
+    if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
+    var renderers = runtime.ReprMethods["$cpo"];
+    renderers["opaque"] = function renderPOpaque(val) {
+      var image = imageLib(runtime, runtime.namespace);
+      if (image.isImage(val.val)) {
+        return renderers.renderImage(val.val);
       } else {
-        this.text("Object");
-        fieldNames = runtime.getFields(obj);
+        return renderers.renderText("opqaue", val);
       }
-      for (var i = 0; i < fieldNames.length; i++) {
-        fields.append($("<dt>").text(fieldNames[i]));
-        fields.append($("<dd>").append(renderPyretValue(output, runtime, runtime.getField(obj, fieldNames[i]))));
-      }
-      this.append(fields);
-    }
-    return this;
-  }
-
-
-  var renderers = {};
-  renderers.renderPOpaque = function renderPOpaque(output, runtime, val) {
-    var image = imageLib(runtime, runtime.namespace);
-    if (image.isImage(val.val)) {
-      return renderers.renderImage(output, runtime, val.val);
-    } else {
-      return renderers.renderToRepr(output, runtime, val);
-    }
-  }
-  renderers.renderImage = function renderImage(output, runtime, img) {
-    var image = imageLib(runtime, runtime.namespace);
-
-    var container = $("<div>").addClass('replOutput');
-    output.append(container);
-    var imageDom;
-    var maxWidth = output.width() * .75;
-    var maxHeight = $(document).height() * .6;
-    var realWidth = img.getWidth();
-    var realHeight = img.getHeight();
-    if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
-      container.addClass("replImageThumbnail");
-      container.attr("title", "Click to see full image");
-      var scaleFactorX = 100 / realWidth;
-      var scaleFactorY = 200 / realHeight;
-      var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
-      var scaled = image.makeScaleImage(scaleFactor, scaleFactor, img);
-      imageDom = scaled.toDomNode();
-      container.append(imageDom);
-      $(imageDom).trigger({type: 'afterAttach'});
-      $('*', imageDom).trigger({type : 'afterAttach'});
-      var originalImageDom = img.toDomNode();
-      $(imageDom).on("click", function() {
-        var dialog = $("<div>");
-        dialog.dialog({
-          modal: true,
-          height: $(document).height() * .9,
-          width: $(document).width() * .9,
-          resizable: true
+    };
+    renderers.renderImage = function renderImage(img) {
+      var image = imageLib(runtime, runtime.namespace);
+      
+      var container = $("<span>").addClass('replOutput');
+      var imageDom;
+      var maxWidth = $(document).width() * .375;
+      var maxHeight = $(document).height() * .6;
+      var realWidth = img.getWidth();
+      var realHeight = img.getHeight();
+      if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
+        container.addClass("replImageThumbnail");
+        container.attr("title", "Click to see full image");
+        var scaleFactorX = 100 / realWidth;
+        var scaleFactorY = 200 / realHeight;
+        var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
+        var scaled = image.makeScaleImage(scaleFactor, scaleFactor, img);
+        imageDom = scaled.toDomNode();
+        container.append(imageDom);
+        container.append($("<img>").attr("src", "/img/magnifier.gif").addClass("magnifier"));
+        $(imageDom).trigger({type: 'afterAttach'});
+        $('*', imageDom).trigger({type : 'afterAttach'});
+        var originalImageDom = img.toDomNode();
+        $(imageDom).click(function(e) {
+          var dialog = $("<div>");
+          dialog.dialog({
+            modal: true,
+            height: $(document).height() * .9,
+            width: $(document).width() * .9,
+            resizable: true
+          });
+          dialog.css({"overflow": "scroll"});
+          dialog.append($(originalImageDom));
+          $(originalImageDom).trigger({type: 'afterAttach'});
+          $('*', originalImageDom).trigger({type : 'afterAttach'});
+          e.stopPropagation();
         });
-        dialog.css({"overflow": "scroll"});
-        dialog.append($(originalImageDom));
-        $(originalImageDom).trigger({type: 'afterAttach'});
-        $('*', originalImageDom).trigger({type : 'afterAttach'});
+        return container;
+      } else {
+        imageDom = img.toDomNode();
+        container.append(imageDom);
+        $(imageDom).trigger({type: 'afterAttach'});
+        $('*', imageDom).trigger({type : 'afterAttach'});
+        return container;
+      }
+    };
+    renderers["number"] = function renderPNumber(num) {
+      // If we're looking at a rational number, arrange it so that a
+      // click will toggle the decimal representation of that
+      // number.  Note that this feature abandons the convenience of
+      // publishing output via the CodeMirror textarea.
+      if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
+        outText = $("<span>").addClass("replTextOutput rationalNumber fraction").text(num.toString());
+        // On click, switch the representation from a fraction to
+        // decimal, and back again.
+        outText.click(function(e) {
+          // This function returns three string values, numerals to
+          // appear before the decimal point, numerals to appear
+          // after, and numerals to be repeated.
+          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
+          var decimalString = decimal[0].toString() + "." + decimal[1].toString();
+
+          $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
+          e.stopPropagation();
+        });
+        return outText;
+      } else {
+        return renderers.renderText("number", num);
+      }    
+    };
+    renderers["nothing"] = function renderPNothing(val) {
+      return $("<span>").addClass("replTextOutput");
+    };
+    renderers.renderText = function renderText(valType, val) {
+      var echo = $("<span>").addClass("replTextOutput");
+      echo.text(renderers.__proto__[valType](val));
+      setTimeout(function() {
+        CodeMirror.runMode(echo.text(), "pyret", echo);
+        echo.addClass("cm-s-default");
+      }, 0);
+      return echo;
+    };
+    renderers["boolean"] = function(val) { return renderers.renderText("boolean", val); };
+    renderers["string"] = function(val) { return renderers.renderText("string", val); };
+    renderers["method"] = function(val) { return renderers.renderText("method", val); };
+    renderers["function"] = function(val) { return renderers.renderText("function", val); };
+    renderers["ref"] = function(val, implicit, pushTodo) {
+      pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
+    };
+    renderers["render-ref"] = function(top) {
+      var container = $("<span>").addClass("replOutput");
+      container.append(top.done[0]);
+      var warning = $("<span class='warning'>").text("May be stale! Click to refresh");
+      container.append(warning);
+      warning.click(function(e) {
+        runtime.runThunk(function() { 
+          // re-render the value
+          return runtime.toReprJS(runtime.getRef(top.extra.origVal), renderers); 
+        }, function(newTop) {
+          if(runtime.isSuccessResult(newTop)) {
+            warning.detach()
+            container.empty();
+            container.append(newTop.result);
+            container.append(warning);
+          }
+          else {
+            warning.detach();
+            container.empty();
+            container.text("<error displaying value>");
+            container.append(warning);
+          }
+        });
+        e.stopPropagation();
       });
-      return imageDom;
-    } else {
-      imageDom = img.toDomNode();
-      container.append(imageDom);
-      $(imageDom).trigger({type: 'afterAttach'});
-      $('*', imageDom).trigger({type : 'afterAttach'});
-      return imageDom;
+      return container;
+    };
+    renderers["object"] = function(val, pushTodo) {
+      var keys = [];
+      var vals = [];
+      for (var field in val.dict) {
+        keys.push(field); // NOTE: this is reversed order from the values,
+        vals.unshift(val.dict[field]); // because processing will reverse them back
+      }
+      pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
+    };
+    renderers["render-object"] = function(top) {
+      var container = $("<span>").addClass("replOutput");
+      var name = $("<span>").addClass("expanded").text("Object");
+      var openBrace = $("<span>").addClass("collapsed").text("{");
+      var closeBrace = $("<span>").addClass("collapsed").text("}");
+      var dl = $("<dl>")
+      container.append(name);
+      container.append(openBrace);
+      for (var i = 0; i < top.extra.keys.length; i++) {
+        //if (i > 1) { container.append($("<span>").addClass("collapsed").text(", ")); }
+        dl.append($("<dt>").text(top.extra.keys[i]));
+        dl.append($("<dd>").append(top.done[i]));
+      }
+      container.append(dl);
+      container.append(closeBrace);
+      container.click(function(e) { 
+        container.toggleClass("expanded"); 
+        e.stopPropagation();
+      });
+      return container;
+    };
+    renderers["data"] = function processData(val, pushTodo) {
+      var vals = val.$app_fields_raw(function(/* varargs */) {
+        var ans = new Array(arguments.length);
+        for (var i = 0; i < arguments.length; i++) ans[i] = arguments[i];
+        return ans;
+      });
+      pushTodo(undefined, val, undefined, vals, "render-data", 
+               { arity: val.$arity, implicitRefs: val.$mut_fields_mask, 
+                 fields: val.$constructor.$fieldNames, constructorName: val.$name });
+    },
+    renderers["render-data"] = function renderData(top) {
+      var container = $("<span>").addClass("replOutput");
+      var name = $("<span>").text(top.extra.constructorName);
+      var openParen = $("<span>").addClass("collapsed").text("(");
+      var closeParen = $("<span>").addClass("collapsed").text(")");
+      var dl = $("<dl>")
+      container.append(name);
+      if (top.extra.arity !== -1) {
+        container.append(openParen);
+        var numFields = top.extra.fields.length;
+        for (var i = 0; i < numFields; i++) {
+          //if (i > 1) { container.append($("<span>").addClass("collapsed").text(", ")); }
+          dl.append($("<dt>").text(top.extra.fields[i]).addClass("expanded"));
+          dl.append($("<dd>").append(top.done[numFields - i - 1]));
+        }
+        container.append(dl);
+        container.append(closeParen);
+      }
+      container.click(function(e) { 
+        container.toggleClass("expanded"); 
+        e.stopPropagation();
+      });
+      return container;
     }
   }
-  renderers.renderPNumber = function renderPNumber(output, runtime, num) {
-    // If we're looking at a rational number, arrange it so that a
-    // click will toggle the decimal representation of that
-    // number.  Note that this feature abandons the convenience of
-    // publishing output via the CodeMirror textarea.
-    if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
-      var echoContainer = $("<div>").addClass("replTextOutput");
-      outText = $("<span>").addClass("rationalNumber fraction").text(num.toString());
-      // On click, switch the representation from a fraction to
-      // decimal, and back again.
-      outText.click(function() {
-        // This function returns three string values, numerals to
-        // appear before the decimal point, numerals to appear
-        // after, and numerals to be repeated.
-        var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
-        var decimalString = decimal[0].toString() + "." + decimal[1].toString();
-
-        $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
-
-      });
-      echoContainer.append(outText);
-      output.append(echoContainer);
-      return echoContainer;
-    } else {
-      return renderers.renderToRepr(output, runtime, num);
-    }    
-  }
-  renderers.renderPNothing = function renderPNothing(output, runtime, val) {
-    return $("<div>").addClass("replTextOutput");
-  }
-  renderers.renderToRepr = function renderToRepr(output, runtime, val) {
-    var echoContainer = $("<div>").addClass("replTextOutput");
-    // Either we're looking at a string or some number with only
-    // one representation. Just print it, using the CodeMirror
-    // textarea for styling.
-    runtime.runThunk(function() {
-      return runtime.toReprJS(val, "_torepr");
-    }, function(outText) {
-      var echo = $("<textarea class='CodeMirror'>");
-      output.append(echoContainer);
-      echoContainer.append(echo);
-      if(runtime.isSuccessResult(outText)) {
-        echo.text(outText.result);
-      }
-      else {
-        echo.text("<error displaying value>");
-      }
-      setTimeout(function() {
-        CodeMirror.fromTextArea(echo[0], { readOnly: true });
-      }, 0);
-    });
-    return echoContainer;
-  }
-  renderers.renderPBoolean = renderers.renderToRepr;
-  renderers.renderPString = renderers.renderToRepr;
-  renderers.renderPMethod = renderers.renderToRepr;
-  renderers.renderPFunction = renderers.renderToRepr;
-  renderers.renderPRef = function(output, runtime, answer) {
-    var container = renderPyretValue(output, runtime, runtime.getRef(answer));
-    container.append($("<span class='warning'>").text("May be stale!"));
-    return container;
-  }
-  renderers.renderPObject = function(output, runtime, answer) {
-    var container = renderers.renderToRepr(output, runtime, answer);
-    container.click(function(e) {
-      var thiz = this;
-      runtime.runThunk(function() {
-        return runtime.toReprJS(answer, "_torepr");
-      }, function(outText) { 
-        if(runtime.isSuccessResult(outText)) {
-          $(thiz).toggleObject(output, runtime, outText.result, answer);
-        }
-        else {
-          $(thiz).toggleObject(output, runtime, "<error displaying value>", answer);
-        }
-      });
-      e.stopPropagation();
-    });
-    return container;
-  }
-
   // Because some finicky functions (like images and CodeMirrors), require
   // extra events to happen for them to show up, we provide this as an
   // imperative API: the DOM node created will be appended to the output
   // and also returned
   function renderPyretValue(output, runtime, answer) {
-    if (runtime.isOpaque(answer)) { return renderers.renderPOpaque(output, runtime, answer); }
-    else if (runtime.isNumber(answer)) { return renderers.renderPNumber(output, runtime, answer); }
-    else if (runtime.isString(answer)) { return renderers.renderPString(output, runtime, answer); }
-    else if (runtime.isBoolean(answer)) { return renderers.renderPBoolean(output, runtime, answer); }
-    else if (runtime.isObject(answer)) { return renderers.renderPObject(output, runtime, answer); }
-    else if (runtime.isNothing(answer)) { return renderers.renderPNothing(output, runtime, answer); }
-    else if (runtime.isFunction(answer)) { return renderers.renderPFunction(output, runtime, answer); }
-    else if (runtime.isMethod(answer)) { return renderers.renderPMethod(output, runtime, answer); }
-    else if (runtime.isRef(answer)) { return renderers.renderPRef(output, runtime, answer); }
-    else { return renderers.renderToRepr(output, runtime, answer); }
+    installRenderers(runtime);
+    runtime.runThunk(function() {
+      return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
+    }, function(container) {
+      if(runtime.isSuccessResult(container)) {
+        $(output).append(container.result);
+      }
+      else {
+        $(output).append($("<span>").addClass("error").text("<error displaying value>"));
+      }
+      return container;
+    });
+    // if (runtime.isOpaque(answer)) { return renderers.renderPOpaque(output, runtime, answer); }
+    // else if (runtime.isNumber(answer)) { return renderers.renderPNumber(output, runtime, answer); }
+    // else if (runtime.isString(answer)) { return renderers.renderPString(output, runtime, answer); }
+    // else if (runtime.isBoolean(answer)) { return renderers.renderPBoolean(output, runtime, answer); }
+    // else if (runtime.isObject(answer)) { return renderers.renderPObject(output, runtime, answer); }
+    // else if (runtime.isNothing(answer)) { return renderers.renderPNothing(output, runtime, answer); }
+    // else if (runtime.isFunction(answer)) { return renderers.renderPFunction(output, runtime, answer); }
+    // else if (runtime.isMethod(answer)) { return renderers.renderPMethod(output, runtime, answer); }
+    // else if (runtime.isRef(answer)) { return renderers.renderPRef(output, runtime, answer); }
+    // else { return renderers.renderToRepr(output, runtime, answer); }
   }
   return {
     renderPyretValue: renderPyretValue,
