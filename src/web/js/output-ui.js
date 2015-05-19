@@ -441,6 +441,8 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       return container;
     };
     renderers["data"] = function processData(val, pushTodo) {
+      if (runtime.ffi.isList(val)) { renderers.processList(val, pushTodo); return; }
+
       var vals = val.$app_fields_raw(function(/* varargs */) {
         var ans = new Array(arguments.length);
         for (var i = 0; i < arguments.length; i++) ans[i] = arguments[i];
@@ -449,7 +451,11 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       pushTodo(undefined, val, undefined, vals, "render-data", 
                { arity: val.$arity, implicitRefs: val.$mut_fields_mask, 
                  fields: val.$constructor.$fieldNames, constructorName: val.$name });
-    },
+    };
+    renderers["processList"] = function processList(val, pushTodo) {
+      var vals = runtime.ffi.toArray(val);
+      pushTodo(undefined, val, undefined, vals, "render-list");
+    };
     renderers["render-data"] = function renderData(top) {
       var container = $("<span>").addClass("replOutput");
       var name = $("<span>").text(top.extra.constructorName);
@@ -473,7 +479,17 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
         e.stopPropagation();
       });
       return container;
-    }
+    };
+    renderers["render-list"] = function renderList(top) {
+      var container = $("<span>").addClass("replOutput");
+      container.append($("<span>").text("[list: "));
+      for (var i = top.done.length - 1; i >= 0; i--) {
+        container.append(top.done[i]);
+        if (i != 0) { container.append($("<span>").text(", ")); }
+      }
+      container.append($("<span>").text("]"));
+      return container;
+    };
   }
   // Because some finicky functions (like images and CodeMirrors), require
   // extra events to happen for them to show up, we provide this as an

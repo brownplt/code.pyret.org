@@ -487,6 +487,14 @@ div#font-label:hover{
   padding-top: 0.4em;
   padding-bottom: 0.4em;
   color: #1f1180;
+  display: inline-block;
+}
+
+.replOutput .replOutput {
+   padding-top: 0em;
+   padding-bottom: 0em;
+   margin-top: 0.2em;
+   margin-bottom: 0.2em;
 }
 
 
