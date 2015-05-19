@@ -218,7 +218,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "compiler/compile-struc
          f(v.val.toDomNode());
        } else {
          runtime.safeCall(function() {
-           return runtime.toReprJS(v, "_torepr")
+           return runtime.toReprJS(v, runtime.ReprMethods._torepr);
          }, function(str) {
            f($("<div>").text(str));
          });

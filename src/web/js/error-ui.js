@@ -291,7 +291,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawErrorToString(e) {
           return function() {
             runtime.safeCall(function() {
-              return runtime.toReprJS(e, "tostring");
+              return runtime.toReprJS(e, runtime.ReprMethods._tostring);
             }, function(s) {
               container.append($("<div>").addClass("compile-error").text(s));
             });
@@ -325,7 +325,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           f(v.val.toDomNode());
         } else {
           runtime.safeCall(function() {
-            return runtime.toReprJS(v, "_torepr")
+            return runtime.toReprJS(v, runtime.ReprMethods._torepr);
           }, function(str) {
             f($("<div>").text(str));
           });
