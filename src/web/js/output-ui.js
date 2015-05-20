@@ -506,7 +506,8 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
         $(output).append(container.result);
       }
       else {
-        $(output).append($("<span>").addClass("error").text("<error displaying value>"));
+        $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
+        console.log(container.exn);
       }
       return container;
     });
