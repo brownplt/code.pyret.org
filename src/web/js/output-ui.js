@@ -440,22 +440,6 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       });
       return container;
     };
-    renderers["data"] = function processData(val, pushTodo) {
-      if (runtime.ffi.isList(val)) { renderers.processList(val, pushTodo); return; }
-
-      var vals = val.$app_fields_raw(function(/* varargs */) {
-        var ans = new Array(arguments.length);
-        for (var i = 0; i < arguments.length; i++) ans[i] = arguments[i];
-        return ans;
-      });
-      pushTodo(undefined, val, undefined, vals, "render-data", 
-               { arity: val.$arity, implicitRefs: val.$mut_fields_mask, 
-                 fields: val.$constructor.$fieldNames, constructorName: val.$name });
-    };
-    renderers["processList"] = function processList(val, pushTodo) {
-      var vals = runtime.ffi.toArray(val);
-      pushTodo(undefined, val, undefined, vals, "render-list");
-    };
     renderers["render-data"] = function renderData(top) {
       var container = $("<span>").addClass("replOutput");
       var name = $("<span>").text(top.extra.constructorName);
@@ -467,7 +451,6 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
         container.append(openParen);
         var numFields = top.extra.fields.length;
         for (var i = 0; i < numFields; i++) {
-          //if (i > 1) { container.append($("<span>").addClass("collapsed").text(", ")); }
           dl.append($("<dt>").text(top.extra.fields[i]).addClass("expanded"));
           dl.append($("<dd>").append(top.done[numFields - i - 1]));
         }
@@ -480,15 +463,34 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       });
       return container;
     };
-    renderers["render-list"] = function renderList(top) {
+    renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
       var container = $("<span>").addClass("replOutput");
-      container.append($("<span>").text("[list: "));
-      for (var i = top.done.length - 1; i >= 0; i--) {
-        container.append(top.done[i]);
-        if (i != 0) { container.append($("<span>").text(", ")); }
-      }
-      container.append($("<span>").text("]"));
-      return container;
+      function helper(container, val, values) {
+        if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
+        else if (runtime.ffi.isVSCollection(val)) {
+          var newCont = $("<span>");
+          container.append(newCont);
+          newCont.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
+          var items = runtime.ffi.toArray(runtime.getField(val, "items"));
+          for (var i = items.length - 1; i >= 0; i--) {
+            helper(newCont, items[i], values);
+            if (i != 0) { newCont.append($("<span>").text(", ")); }
+          }
+          newCont.append($("<span>").text("]"));
+        } else {
+          var newCont = $("<span>");
+          container.append(newCont);
+          newCont.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
+          var items = runtime.ffi.toArray(runtime.getField(val, "items"));
+          for (var i = items.length - 1; i >= 0; i--) {
+            helper(newCont, items[i], values);
+            if (i != 0) { newCont.append($("<span>").text(", ")); }
+          }
+          newCont.append($("<span>").text(")"));
+        }
+        return container;
+      };
+      return helper(container, top.extra.skeleton, top.done);
     };
   }
   // Because some finicky functions (like images and CodeMirrors), require
@@ -508,16 +510,6 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
       }
       return container;
     });
-    // if (runtime.isOpaque(answer)) { return renderers.renderPOpaque(output, runtime, answer); }
-    // else if (runtime.isNumber(answer)) { return renderers.renderPNumber(output, runtime, answer); }
-    // else if (runtime.isString(answer)) { return renderers.renderPString(output, runtime, answer); }
-    // else if (runtime.isBoolean(answer)) { return renderers.renderPBoolean(output, runtime, answer); }
-    // else if (runtime.isObject(answer)) { return renderers.renderPObject(output, runtime, answer); }
-    // else if (runtime.isNothing(answer)) { return renderers.renderPNothing(output, runtime, answer); }
-    // else if (runtime.isFunction(answer)) { return renderers.renderPFunction(output, runtime, answer); }
-    // else if (runtime.isMethod(answer)) { return renderers.renderPMethod(output, runtime, answer); }
-    // else if (runtime.isRef(answer)) { return renderers.renderPRef(output, runtime, answer); }
-    // else { return renderers.renderToRepr(output, runtime, answer); }
   }
   return {
     renderPyretValue: renderPyretValue,
@@ -529,7 +521,8 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     getMyDriveId: getMyDriveId,
     isGDriveImport: isGDriveImport,
     isJSImport: isJSImport,
-    getJSFilename: getJSFilename
+    getJSFilename: getJSFilename,
+    installRenderers: installRenderers
   };
 
 })

@@ -321,15 +321,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       function getDomValue(v, f) {
-        if(runtime.isOpaque(v) && image.isImage(v.val)) {
-          f(v.val.toDomNode());
-        } else {
-          runtime.safeCall(function() {
-            return runtime.toReprJS(v, runtime.ReprMethods._torepr);
-          }, function(str) {
-            f($("<div>").text(str));
-          });
-        }
+        outputUI.installRenderers(runtime);
+        runtime.safeCall(function() {
+          return runtime.toReprJS(v, runtime.ReprMethods["$cpo"]);
+        }, f);
       }
 
       function expandableMore(dom) {
