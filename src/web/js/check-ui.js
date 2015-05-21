@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, outputUI, errorUI) {
+define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI) {
 
  function drawCheckResults(container, editors, runtime, checkResults) {
    var ffi = ffiLib(runtime, runtime.namespace);
@@ -8,7 +8,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
 
    var checkResultsArr = ffi.toArray(checkResults);
 
-   runtime.loadModules(runtime.namespace, [optionLib, srclocLib], function(option, srcloc) {
+   runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib], function(option, srcloc, ED) {
 
      // These counters keep cumulative statistics for all the check blocks.
      var checkTotalAll = 0;
@@ -56,21 +56,92 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            eachTest.append(dom);
          }
 
-         // Success for a test is signaled by the *absence* of a "reason" field.
-         if (runtime.hasField(tr, "reason")) {
+         function addReasonToTest(cssClass, errorDisp, loc) {
+           var dom = $("<div>").addClass(cssClass);
+           outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
+           eachTest.append(dom);
+           renderErrorDispInto(errorDisp, dom);
+         }
+         function renderErrorDispInto(errorDisp, container) {
+           ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+             "v-sequence": function(seq) {
+               var inner = $("<div>");
+               container.append(inner);
+               var contents = ffi.toArray(seq);
+               for (var i = 0; i < contents.length; i++) {
+                 var para = $("<p>");
+                 inner.append(para);
+                 renderErrorDispInto(contents[i], para);
+               }
+             },
+             "h-sequence": function(seq) {
+               var inner = $("<span>");
+               container.append(inner);
+               var contents = ffi.toArray(seq);
+               for (var i = 0; i < contents.length; i++) {
+                 renderErrorDispInto(contents[i], inner);
+               }
+             },
+             "embed": function(val) {
+               runtime.runThunk(
+                 function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); },
+                 function(out) {
+                   if (runtime.isSuccessResult(out)) {
+                     container.append(out.result);
+                   } else {
+                     container.append($("<span>").addClass("output-failed")
+                                      .text("<error rendering embedded value; details logged to console>"));
+                     console.log(out.exn);
+                   }
+                 });
+             },
+             "text": function(txt) { container.append($("<span>").text(txt)); },
+             "loc": function(loc) {
+               runtime.runThunk(
+                 function() { return runtime.toReprJS(loc, runtime.ReprMethods._tostring); },
+                 function(str) {
+                   if (runtime.isSuccessResult(str)) {
+                     var locdom = $("<span>").text(str.result);
+                     outputUI.hoverLocs(editors, runtime, srcloc, locdom, [loc], "check-highlight");
+                     container.append(locdom);
+                   } else {
+                     container.append($("<span>").addClass("tostring-failed")
+                                      .text("<error rendering srcloc; details logged to console>"));
+                     console.log(str.exn);
+                   }
+                 });
+             }
+           });
+         }
 
-           // The "reason" field is a function that returns a text
-           // string to be displayed to the user.  We pack it in its
-           // own <pre> object so it can be colored and indented for
-           // contrast.
+         if (!ffi.isTestSuccess(tr)) {
+
+           // // The "reason" field is a function that returns a text
+           // // string to be displayed to the user.  We pack it in its
+           // // own <pre> object so it can be colored and indented for
+           // // contrast.
+           // runtime.runThunk(
+           //   function() { return get(tr, "reason").app(); },
+           //   function(returnVal) {
+
+           //    addPreToTest("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+           //    addPreToTest("replOutputReason", returnVal.result, get(tr, "loc"));
+
+           //   });
+           outputUI.installRenderers(runtime);
            runtime.runThunk(
-             function() { return get(tr, "reason").app(); },
-             function(returnVal) {
-
-              addPreToTest("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-              addPreToTest("replOutputReason", returnVal.result, get(tr, "loc"));
-
-             });
+             function() { return get(tr, "render-reason").app(); },
+             function(out) {
+               addPreToTest("replOutputFailed", 
+                            "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+               if (runtime.isSuccessResult(out)) {
+                 addReasonToTest("replOutputReason", out.result, get(tr, "loc"));
+               } else {
+                 addPreToTest("replOutputReason", "<error rendering result; details logged to console>", get(tr, "loc"));
+                 console.log(out.exn);
+               }
+             }
+           );
          } else {
 
            // If you're here, the test passed, all is well.
