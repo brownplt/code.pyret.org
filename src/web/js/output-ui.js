@@ -3,7 +3,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
   var shareAPI = makeShareAPI("");
-
+  
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
     else {
@@ -13,6 +13,24 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
       });
     }
   }
+
+  function expandableMore(dom) {
+    var container = $("<div>");
+    var moreLink = $("<a>").text("(More...)");
+    var lessLink = $("<a>").text("(Less...)");
+    function toggle() {
+      dom.toggle();
+      lessLink.toggle();
+      moreLink.toggle();
+    }
+    moreLink.on("click", toggle);
+    lessLink.on("click", toggle);
+    container.append(moreLink).append(lessLink).append(dom);
+    dom.hide();
+    lessLink.hide();
+    return container;
+  }
+
 
   function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
     var get = runtime.getField;
@@ -289,67 +307,92 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
     return srcElem;
   }
 
-  function renderErrorDisplayInto(editors, runtime, errorDisp, container) {
+  function renderErrorDisplay(editors, runtime, errorDisp) {
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
-    runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
-      function help(errorDisp, container) {
-        ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
-          "v-sequence": function(seq) {
-            var inner = $("<div>");
-            container.append(inner);
+
+    return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
+      function help(errorDisp) {
+        return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+          "v-sequence": function(seq) { 
+            var result = $("<div>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
-              var para = $("<p>");
-              inner.append(para);
-              help(contents[i], para);
+              result.append(help(contents[i]));
             }
+            return result;
           },
-          "h-sequence": function(seq) {
-            var inner = $("<span>");
-            container.append(inner);
+          "numbered-sequence": function(seq) { 
+            var result = $("<ol>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
-              if (i != 0) { inner.append(" "); }
-              help(contents[i], inner);
+              result.append($("<li>").append(help(contents[i])));
             }
+            return result;
+          },
+          "bulleted-sequence": function(seq) { 
+            var result = $("<ul>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append($("<li>").append(help(contents[i])));
+            }
+            return result;
+          },
+          "h-sequence": function(seq, separator) { 
+            var result = $("<p>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              if (i != 0 && separator !== "") result.append(separator);
+              result.append(help(contents[i]));
+            }
+            return result;
           },
           "embed": function(val) {
+            var placeholder = $("<span>").text("Rendering...");
             runtime.runThunk(
               function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); },
               function(out) {
                 if (runtime.isSuccessResult(out)) {
-                  container.append(out.result);
+                  if ($.contains(document.documentElement, placeholder[0])) {
+                    placeholder.replaceWith(out.result); 
+                  }
+                  else { 
+                    placeholder = out.result; 
+                  }
+                  return out.result;
                 } else {
                   var msg = $("<span>").addClass("output-failed")
                     .text("<error rendering embedded value; details logged to console>");
-                  container.append(msg);
                   console.log(out.exn);
+                  return msg;
                 }
               });
+            return placeholder;
+          },
+          "optional": function(contents) {
+            return expandableMore(help(contents));
           },
           "text": function(txt) { 
-            container.append($("<span>").text(txt));
+            return $("<span>").text(txt);
           },
           "code": function(contents) {
-            var inner = $("<span>").addClass("code");
-            help(contents, inner);
-            container.append(inner);
+            return $("<code>").append(help(contents));
+          },
+          "styled": function(contents, style) {
+            return help(contents).addClass(style);
           },
           "loc": function(loc) { 
-            var locdom = drawSrcloc(editors, runtime, loc);
-            container.append(locdom);
+            return drawSrcloc(editors, runtime, loc);
           },
           "loc-display": function(loc, style, contents) {
-            var inner = $("<span>");
-            help(contents, inner);
+            var inner = help(contents);
             hoverLink(editors, runtime, srcloc, inner, loc, style);
-            container.append(inner);
+            return inner;
           }
         });
       }
-      help(errorDisp, container);
+      return help(errorDisp);
     });
   }
 
@@ -621,8 +664,9 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
     isJSImport: isJSImport,
     getJSFilename: getJSFilename,
     installRenderers: installRenderers,
-    renderErrorDisplayInto: renderErrorDisplayInto,
-    drawSrcloc: drawSrcloc
+    renderErrorDisplay: renderErrorDisplay,
+    drawSrcloc: drawSrcloc,
+    expandableMore: expandableMore
   };
 
 })

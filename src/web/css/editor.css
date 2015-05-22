@@ -655,9 +655,13 @@ span.rationalRepeat {
   text-decoration: underline;
 }
 
-.parse-error ul {
+.parse-error ul, .compile-error ul {
   list-style-type: disc;
   padding-left: 1em;
+}
+
+.parse-error .hint, .compile-error .hint {
+   font-style: italic;
 }
 
 .warning-upper {

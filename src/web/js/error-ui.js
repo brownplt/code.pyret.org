@@ -283,15 +283,16 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "else": drawErrorToString(e)
             });
           container.append($("<hr>"));
-          dom = $("<div>").addClass("compile-error");
-          container.append(dom);
           runtime.runThunk(
             function() { return get(e, "render-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                outputUI.renderErrorDisplayInto(editors, runtime, errorDisp.result, dom);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                dom.addClass("compile-error");
+                container.append(dom);
               } else {
-                dom.append("An error occurred rendering the reason for this error; details logged to the console");
+                container.append($("<span>").addClass("compile-error")
+                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.log(errorDisp.exn);
               }
             });
@@ -304,24 +305,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         runtime.safeCall(function() {
           return runtime.toReprJS(v, runtime.ReprMethods["$cpo"]);
         }, f);
-      }
-
-      function expandableMore(dom) {
-        var container = $("<div>");
-        container.append(dom);
-        var moreLink = $("<a>").text("(More...)");
-        var lessLink = $("<a>").text("(Less...)");
-        function toggle() {
-          dom.toggle();
-          lessLink.toggle();
-          moreLink.toggle();
-        }
-        moreLink.on("click", toggle);
-        lessLink.on("click", toggle);
-        container.append(moreLink).append(lessLink).append(dom);
-        dom.hide();
-        lessLink.hide();
-        return container;
       }
 
       function drawExpandableStackTrace(e) {
@@ -338,7 +321,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             singleHover(srcloc, ul);
             container.append(slContainer);
           });
-          return expandableMore(container);
+          return outputUI.expandableMore(container);
         } else {
           return container;
         }
@@ -686,19 +669,20 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "else": drawRuntimeErrorToString(e)
             });
           container.append($("<hr>"));
-          dom = $("<div>").addClass("compile-error");
-          container.append(dom);
           runtime.runThunk(
             function() { return get(e.exn, "render-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                outputUI.renderErrorDisplayInto(editors, runtime, errorDisp.result, dom);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                dom.addClass("compile-error");
+                container.append(dom);
+                dom.append(drawExpandableStackTrace(e));
               } else {
-                dom.append("An error occurred rendering the reason for this error; details logged to the console");
+                container.append($("<span>").addClass("compile-error")
+                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.log(errorDisp.exn);
               }
             });
-          dom.append(drawExpandableStackTrace(e));
         }
 
         function errorIcon() {
@@ -725,7 +709,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var dom = $("<div>").addClass("parse-error");
           var srcElem = outputUI.drawSrcloc(editors, runtime, loc);
           dom.append($("<p>").text("Pyret didn't understand your program around ").append(srcElem));
-          dom.append(expandableMore(explanation));
+          dom.append(outputUI.expandableMore(explanation));
           singleHover(srcElem, loc);
           container.append(dom);
         }
@@ -867,6 +851,20 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "record-fields-fail": drawRecordFieldsFail(isArg, loc),
               "dot-ann-not-present": drawDotAnnNotPresent(isArg, loc)
             });
+          container.append($("<hr>"));
+          runtime.runThunk(
+            function() { return get(reason, "render-reason").app(); },
+            function(errorDisp) {
+              if (runtime.isSuccessResult(errorDisp)) {
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                dom.addClass("parse-error");
+                container.append(dom);
+              } else {
+                container.append($("<span>").addClass("compile-error")
+                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.log(errorDisp.exn);
+              }
+            });
         }
 
         function drawPyretParseError() {
@@ -875,6 +873,20 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "parse-error-eof": drawParseErrorEOF,
               "parse-error-unterminated-string": drawParseErrorUnterminatedString,
               "else": drawRuntimeErrorToString(e)
+            });
+          container.append($("<hr>"));
+          runtime.runThunk(
+            function() { return get(e.exn, "render-reason").app(); },
+            function(errorDisp) {
+              if (runtime.isSuccessResult(errorDisp)) {
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                dom.addClass("parse-error");
+                container.append(dom);
+              } else {
+                container.append($("<span>").addClass("compile-error")
+                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.log(errorDisp.exn);
+              }
             });
         }
         if(!runtime.isObject(e.exn)) {
