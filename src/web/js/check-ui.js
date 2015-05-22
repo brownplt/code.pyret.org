@@ -60,58 +60,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
            var dom = $("<div>").addClass(cssClass);
            outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
            eachTest.append(dom);
-           renderErrorDispInto(errorDisp, dom);
-         }
-         function renderErrorDispInto(errorDisp, container) {
-           ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
-             "v-sequence": function(seq) {
-               var inner = $("<div>");
-               container.append(inner);
-               var contents = ffi.toArray(seq);
-               for (var i = 0; i < contents.length; i++) {
-                 var para = $("<p>");
-                 inner.append(para);
-                 renderErrorDispInto(contents[i], para);
-               }
-             },
-             "h-sequence": function(seq) {
-               var inner = $("<span>");
-               container.append(inner);
-               var contents = ffi.toArray(seq);
-               for (var i = 0; i < contents.length; i++) {
-                 renderErrorDispInto(contents[i], inner);
-               }
-             },
-             "embed": function(val) {
-               runtime.runThunk(
-                 function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); },
-                 function(out) {
-                   if (runtime.isSuccessResult(out)) {
-                     container.append(out.result);
-                   } else {
-                     container.append($("<span>").addClass("output-failed")
-                                      .text("<error rendering embedded value; details logged to console>"));
-                     console.log(out.exn);
-                   }
-                 });
-             },
-             "text": function(txt) { container.append($("<span>").text(txt)); },
-             "loc": function(loc) {
-               runtime.runThunk(
-                 function() { return runtime.toReprJS(loc, runtime.ReprMethods._tostring); },
-                 function(str) {
-                   if (runtime.isSuccessResult(str)) {
-                     var locdom = $("<span>").text(str.result);
-                     outputUI.hoverLocs(editors, runtime, srcloc, locdom, [loc], "check-highlight");
-                     container.append(locdom);
-                   } else {
-                     container.append($("<span>").addClass("tostring-failed")
-                                      .text("<error rendering srcloc; details logged to console>"));
-                     console.log(str.exn);
-                   }
-                 });
-             }
-           });
+           outputUI.renderErrorDispInto(editors, runtime, errorDisp, dom);
          }
 
          if (!ffi.isTestSuccess(tr)) {
@@ -128,7 +77,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
            //    addPreToTest("replOutputReason", returnVal.result, get(tr, "loc"));
 
            //   });
-           outputUI.installRenderers(runtime);
            runtime.runThunk(
              function() { return get(tr, "render-reason").app(); },
              function(out) {

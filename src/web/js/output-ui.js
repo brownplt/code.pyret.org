@@ -1,4 +1,4 @@
-define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsnums) {
+define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], function(imageLib,jsnums,share,srclocLib, errordisplayLib) {
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
@@ -15,6 +15,8 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
   }
 
   function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
+    var get = runtime.getField;
+    var cases = runtime.ffi.cases;
 
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
@@ -191,6 +193,12 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     return id;
   }
 
+  function makeMyDriveUrl(id){
+    var localDriveUrl = "/editor#program=" + id;
+    //Pyret version??
+    return window.location.origin + localDriveUrl;
+  }
+
   function isGDriveImport(filename) {
     var mydriveIndex = filename.indexOf(mydrivePrefix);
     return mydriveIndex === 0;
@@ -255,6 +263,95 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     return dom;
   }
 
+  function drawSrcloc(editors, runtime, s) {
+    if (!s) { return $("<span>"); }
+    var get = runtime.getField;
+    var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+    if(!runtime.hasField(s, "source")) {
+      return srcElem;
+    }
+    var src = runtime.unwrap(get(s, "source"));
+    if(!editors.hasOwnProperty(src)) {
+      if(isSharedImport(src)) {
+        var sharedId = getSharedId(src);
+        var srcUrl = shareAPI.makeShareUrl(sharedId);
+        return srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isGDriveImport(src)) {
+        var MyDriveId = getMyDriveId(src);
+        var srcUrl = makeMyDriveUrl(MyDriveId);
+        srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isJSImport(src)) {
+        /* NOTE(joe): No special handling here, since it's opaque code */
+      }
+    }
+    return srcElem;
+  }
+
+  function renderErrorDisplayInto(editors, runtime, errorDisp, container) {
+    var get = runtime.getField;
+    var ffi = runtime.ffi;
+    installRenderers(runtime);
+    runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
+      function help(errorDisp, container) {
+        ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+          "v-sequence": function(seq) {
+            var inner = $("<div>");
+            container.append(inner);
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              var para = $("<p>");
+              inner.append(para);
+              help(contents[i], para);
+            }
+          },
+          "h-sequence": function(seq) {
+            var inner = $("<span>");
+            container.append(inner);
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              if (i != 0) { inner.append(" "); }
+              help(contents[i], inner);
+            }
+          },
+          "embed": function(val) {
+            runtime.runThunk(
+              function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); },
+              function(out) {
+                if (runtime.isSuccessResult(out)) {
+                  container.append(out.result);
+                } else {
+                  var msg = $("<span>").addClass("output-failed")
+                    .text("<error rendering embedded value; details logged to console>");
+                  container.append(msg);
+                  console.log(out.exn);
+                }
+              });
+          },
+          "text": function(txt) { 
+            container.append($("<span>").text(txt));
+          },
+          "code": function(contents) {
+            var inner = $("<span>").addClass("code");
+            help(contents, inner);
+            container.append(inner);
+          },
+          "loc": function(loc) { 
+            var locdom = drawSrcloc(editors, runtime, loc);
+            container.append(locdom);
+          },
+          "loc-display": function(loc, style, contents) {
+            var inner = $("<span>");
+            help(contents, inner);
+            hoverLink(editors, runtime, srcloc, inner, loc, style);
+            container.append(inner);
+          }
+        });
+      }
+      help(errorDisp, container);
+    });
+  }
 
   // A function to use the class of a container to toggle
   // between the two representations of a fraction.  The
@@ -523,7 +620,9 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     isGDriveImport: isGDriveImport,
     isJSImport: isJSImport,
     getJSFilename: getJSFilename,
-    installRenderers: installRenderers
+    installRenderers: installRenderers,
+    renderErrorDisplayInto: renderErrorDisplayInto,
+    drawSrcloc: drawSrcloc
   };
 
 })
