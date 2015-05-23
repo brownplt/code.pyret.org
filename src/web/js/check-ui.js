@@ -64,19 +64,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
          }
 
          if (!ffi.isTestSuccess(tr)) {
-
-           // // The "reason" field is a function that returns a text
-           // // string to be displayed to the user.  We pack it in its
-           // // own <pre> object so it can be colored and indented for
-           // // contrast.
-           // runtime.runThunk(
-           //   function() { return get(tr, "reason").app(); },
-           //   function(returnVal) {
-
-           //    addPreToTest("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-           //    addPreToTest("replOutputReason", returnVal.result, get(tr, "loc"));
-
-           //   });
            runtime.runThunk(
              function() { return get(tr, "render-reason").app(); },
              function(out) {
@@ -91,7 +78,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
              }
            );
          } else {
-
            // If you're here, the test passed, all is well.
            checkPassed = checkPassed + 1;
            checkPassedAll = checkPassedAll + 1;
