@@ -60,7 +60,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
            var dom = $("<div>").addClass(cssClass);
            outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
            eachTest.append(dom);
-           dom.append(outputUI.renderErrorDispInto(editors, runtime, errorDisp));
+           dom.append(outputUI.renderErrorDisplay(editors, runtime, errorDisp, []));
          }
 
          if (!ffi.isTestSuccess(tr)) {
