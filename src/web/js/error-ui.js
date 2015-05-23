@@ -287,7 +287,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(e, "render-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
                 dom.addClass("compile-error");
                 container.append(dom);
               } else {
@@ -673,7 +673,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(e.exn, "render-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
                 dom.addClass("compile-error");
                 container.append(dom);
                 dom.append(drawExpandableStackTrace(e));
@@ -853,12 +853,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             });
           container.append($("<hr>"));
           runtime.runThunk(
-            function() { return get(reason, "render-reason").app(); },
+            function() { return get(err, "render-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
                 dom.addClass("parse-error");
                 container.append(dom);
+                dom.append(drawExpandableStackTrace(e));
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
@@ -879,7 +880,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(e.exn, "render-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
                 dom.addClass("parse-error");
                 container.append(dom);
               } else {

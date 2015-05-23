@@ -31,6 +31,19 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
     return container;
   }
 
+  function getLastUserLocation(runtime, srcloc, e, ix) {
+    var srclocStack = e.map(runtime.makeSrcloc);
+    var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
+    var userLocs = srclocStack.filter(function(l) {
+      if(!(l && isSrcloc(l))) { return false; }
+      var source = runtime.getField(l, "source");
+      return (source === "definitions" 
+              || source.indexOf("interactions") !== -1
+              || source.indexOf("gdrive") !== -1);
+    });
+    var probablyErrorLocation = userLocs[ix];
+    return probablyErrorLocation;
+  }
 
   function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
     var get = runtime.getField;
@@ -307,7 +320,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
     return srcElem;
   }
 
-  function renderErrorDisplay(editors, runtime, errorDisp) {
+  function renderErrorDisplay(editors, runtime, errorDisp, stack) {
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
@@ -381,6 +394,37 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
           },
           "styled": function(contents, style) {
             return help(contents).addClass(style);
+          },
+          "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
+            var probablyErrorLocation;
+            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+            else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
+            else { probablyErrorLocation = false; }
+            if (probablyErrorLocation) {
+              var placeholder = $("<span>").text("Rendering...");
+              runtime.runThunk(
+                function() { return contentsWithLoc.app(probablyErrorLocation); },
+                function(out) {
+                  if (runtime.isSuccessResult(out)) {
+                    var rendered = help(out.result);
+                    if ($.contains(document.documentElement, placeholder[0])) {
+                      placeholder.replaceWith(rendered);
+                    }
+                    else { 
+                      placeholder = rendered;
+                    }
+                    return rendered;
+                  } else {
+                    var msg = $("<span>").addClass("output-failed")
+                      .text("<error rendering embedded contents; details logged to console>");
+                    console.log(out.exn);
+                    return msg;
+                  }
+                });
+              return placeholder;
+            } else {
+              return help(contentsWithoutLoc);
+            }
           },
           "loc": function(loc) { 
             return drawSrcloc(editors, runtime, loc);
