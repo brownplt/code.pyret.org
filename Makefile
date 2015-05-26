@@ -16,9 +16,10 @@ endif
 
 CM=node_modules/codemirror
 
-
-build/web/js/pyret.js.gz: node_modules/pyret-lang/build/phase0/pyret.js
-	gzip -9 node_modules/pyret-lang/build/phase0/pyret.js -c > build/web/js/pyret.js.gz
+build/web/js/pyret.js.gz:
+	cd node_modules/pyret-lang/ && make standalone1
+	sed -i "s/define('pyret-start/define('pyret/" node_modules/pyret-lang/build/phase1/pyret.js
+	gzip -9 node_modules/pyret-lang/build/phase1/pyret.js -c > build/web/js/pyret.js.gz
 	touch build/web/js/pyret.js
 
 .PHONY : post-install
@@ -142,3 +143,5 @@ $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
 web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+
+web-local: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
