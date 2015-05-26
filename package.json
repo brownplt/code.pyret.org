@@ -28,7 +28,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "postinstall": "make -j3 web",
+    "postinstall": "make -j5 web",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
