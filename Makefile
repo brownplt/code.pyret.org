@@ -17,7 +17,7 @@ endif
 CM=node_modules/codemirror
 
 build/web/js/pyret.js.gz:
-	cd node_modules/pyret-lang/ && $(MAKE) standalone1
+	cd node_modules/pyret-lang/ && $(MAKE) -j2 standalone1
 	sed -i "s/define('pyret-start/define('pyret/" node_modules/pyret-lang/build/phase1/pyret.js
 	gzip -9 node_modules/pyret-lang/build/phase1/pyret.js -c > build/web/js/pyret.js.gz
 	touch build/web/js/pyret.js
