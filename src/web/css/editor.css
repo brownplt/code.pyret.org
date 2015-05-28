@@ -57,6 +57,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background-color: transparent;
 }
 
+   
+
 #output {
   font-family : monospace;
 }
@@ -170,6 +172,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   position:absolute;
   top: 5px;
   right: 5px;
+  cursor: pointer;
 }
 
 .repl-output {
@@ -485,7 +488,45 @@ div#font-label:hover{
   padding-top: 0.4em;
   padding-bottom: 0.4em;
   color: #1f1180;
+  display: inline-block;
 }
+
+.replOutput .replOutput {
+   padding-top: 0em;
+   padding-bottom: 0em;
+   margin-top: 0.2em;
+   margin-bottom: 0.2em;
+}
+
+
+.replOutput.expanded > dl > .collapsed, .replOutput.expanded > .collapsed { display: none; }
+.replOutput:not(.expanded) > dl > .expanded:not(.replOutput),
+.replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
+
+.replOutput.expanded > dl { 
+   border: 1px solid gray;
+}
+
+.replOutput > dl { display: inline; }
+.replOutput.expanded > dl {
+   display: table;
+   clear: both;
+}
+.replOutput > dl > dt:after {
+   content: ": ";
+}
+.replOutput > dl > dt { display: inline; }
+.replOutput.expanded dt { 
+   float: left; 
+   clear: left; 
+   padding: 0 1em;
+}
+.replOutput > dl > dd { display: inline-block; }
+.replOutput.expanded > dl > dd {
+   float: left;
+}
+.replOutput > dl > dd:not(:last-of-type):after { content: ", "; }
+
 
 .replOutputPassed {
   padding-top: 0;
@@ -513,18 +554,33 @@ span.rationalRepeat {
   text-decoration: overline;
 }
 
+.has-icon { position: relative; }
+
 .replImageThumbnail canvas {
   cursor: pointer;
-  border: 1px solid #111;
-  margin: 1px;
+  box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
+  margin: 2px;
+  position: relative;
 }
 
-.replImageThumbnail canvas:hover {
+.replImageThumbnail:hover canvas {
   cursor: pointer;
-  border: 2px solid #111;
-  margin: 0px;
+  box-shadow: 0px 2px 4px rgba(128,0,0,0.75);
+  margin: 2px;
 }
 
+.has-icon .info-icon {
+   display: none;
+   position: absolute;
+   bottom: 0;
+   right: 0;
+}
+
+.has-icon:hover .info-icon {
+   cursor: pointer;
+   display: initial;
+}
+   
 .error-highlight {
   background-color: #fcc;
   border-bottom: 2px solid #F33;
@@ -600,9 +656,13 @@ span.rationalRepeat {
   text-decoration: underline;
 }
 
-.parse-error ul {
+.parse-error ul, .compile-error ul {
   list-style-type: disc;
   padding-left: 1em;
+}
+
+.parse-error .hint, .compile-error .hint {
+   font-style: italic;
 }
 
 .warning-upper {

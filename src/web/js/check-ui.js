@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, outputUI, errorUI) {
+define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI) {
 
  function drawCheckResults(container, editors, runtime, checkResults) {
    var ffi = ffiLib(runtime, runtime.namespace);
@@ -8,7 +8,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
 
    var checkResultsArr = ffi.toArray(checkResults);
 
-   runtime.loadModules(runtime.namespace, [optionLib, srclocLib], function(option, srcloc) {
+   runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib], function(option, srcloc, ED) {
 
      // These counters keep cumulative statistics for all the check blocks.
      var checkTotalAll = 0;
@@ -56,23 +56,28 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "./output-ui.js", "./e
            eachTest.append(dom);
          }
 
-         // Success for a test is signaled by the *absence* of a "reason" field.
-         if (runtime.hasField(tr, "reason")) {
+         function addReasonToTest(cssClass, errorDisp, loc) {
+           var dom = $("<div>").addClass(cssClass);
+           outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
+           eachTest.append(dom);
+           dom.append(outputUI.renderErrorDisplay(editors, runtime, errorDisp, []));
+         }
 
-           // The "reason" field is a function that returns a text
-           // string to be displayed to the user.  We pack it in its
-           // own <pre> object so it can be colored and indented for
-           // contrast.
+         if (!ffi.isTestSuccess(tr)) {
            runtime.runThunk(
-             function() { return get(tr, "reason").app(); },
-             function(returnVal) {
-
-              addPreToTest("replOutputFailed", "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
-              addPreToTest("replOutputReason", returnVal.result, get(tr, "loc"));
-
-             });
+             function() { return get(tr, "render-reason").app(); },
+             function(out) {
+               addPreToTest("replOutputFailed", 
+                            "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
+               if (runtime.isSuccessResult(out)) {
+                 addReasonToTest("replOutputReason", out.result, get(tr, "loc"));
+               } else {
+                 addPreToTest("replOutputReason", "<error rendering result; details logged to console>", get(tr, "loc"));
+                 console.log(out.exn);
+               }
+             }
+           );
          } else {
-
            // If you're here, the test passed, all is well.
            checkPassed = checkPassed + 1;
            checkPassedAll = checkPassedAll + 1;
