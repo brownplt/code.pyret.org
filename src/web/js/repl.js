@@ -122,7 +122,7 @@ $(function() {
       runtime.loadModulesNew(runtime.namespace,
         [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
         function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
-          var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib);
+          var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
           function findModule(contextIgnored, dependency) {
             return runtime.safeTail(function() {
               return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
@@ -159,12 +159,13 @@ $(function() {
             runtime.makeFunction(function() {
               return editor.cm.getValue();
             }),
-            gmf(compileLib, "standard-builtins"));
+            gmf(compileStructs, "standard-globals"));
         }, function(locator) {
           return runtime.safeCall(function() {
             return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
           }, function(repl) {
             var jsRepl = {
+              runtime: runtime.getField(pyRuntime, "runtime").val,
               restartInteractions: function(ignoredStr) {
                 var ret = Q.defer();
                 setTimeout(function() {
@@ -172,10 +173,10 @@ $(function() {
                     return gf(repl, "restart-interactions").app();
                   }, function(result) {
                     if (runtime.isFailureResult(result)) {
-                      ret.resolve(result);
+                      console.error("Repl failed to run: ", result);
                     }
                     else {
-                      ret.resolve(result.result.val.result);
+                      ret.resolve(result.result);
                     }
                   });
                 }, 0);
@@ -199,10 +200,10 @@ $(function() {
                       });
                   }, function(result) {
                     if (runtime.isFailureResult(result)) {
-                      ret.resolve(result);
+                      console.error("Repl failed to run: ", result);
                     }
                     else {
-                      ret.resolve(result.result.val.result);
+                      ret.resolve(result.result);
                     }
                   });
                 }, 0);
@@ -251,16 +252,19 @@ $(function() {
           });
           var runButton = $("#runButton");
 
+          var codeContainer = $("<div>").addClass("replMain");
+          $("#main").prepend(codeContainer);
+
+          
           var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
               breakButton: $("#breakButton"),
               runButton: runButton
             });
+          // NOTE(joe): assigned on window for debuggability
           window.RUN_CODE = function(src, uiOpts, replOpts) {
             replWidget.runCode(src, uiOpts, replOpts);
           };
-          var codeContainer = $("<div>").addClass("replMain");
-          $("#main").prepend(codeContainer);
-          editor = replUI.makeEditor(codeContainer, {
+          editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
               simpleEditor: false,
               initial: "print('Ahoy, world!')",

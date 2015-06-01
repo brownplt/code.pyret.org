@@ -1,4 +1,4 @@
-define(["q", "js/eval-lib"], function(Q, evalLib) {
+define(["q"], function(Q) {
   function makeDriveImporter(storageAPI) {
     var contentsMap = {};
     return {

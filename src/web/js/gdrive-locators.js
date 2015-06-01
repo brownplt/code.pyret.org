@@ -1,5 +1,5 @@
 define(["q"], function(q) {
-  function makeLocatorConstructors(storageAPI, runtime, compileLib) {
+  function makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     function makeMyGDriveLocator(filename) {
@@ -81,17 +81,17 @@ define(["q"], function(q) {
 
           function getDependencies(self) {
             return runtime.safeCall(function() {
-              return runtime.getField(self, "get-module").app();
+              return gf(self, "get-module").app();
             }, function(mod) {
               return runtime.safeTail(function() {
-                return gmf(compileLib, "get-dependencies-with-env").app(mod, uri, gmf(compileLib, "standard-builtins"));
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
               });
             });
           }
 
           function getProvides(self) {
             return runtime.safeCall(function() {
-              return runtime.getField(self, "get-module").app();
+              return gf(self, "get-module").app();
             }, function(mod) {
               return runtime.safeTail(function() {
                 return gmf(compileLib, "get-provides").app(mod, uri);
@@ -99,8 +99,16 @@ define(["q"], function(q) {
             });
           }
 
+          function getExtraImports(self) {
+            return gmf(compileStructs, "standard-imports");
+          }
+
+          function getGlobals(self) {
+            return gmf(compileStructs, "standard-globals");
+          }
+
           function getCompileEnv(_) {
-            return gmf(compileLib, "standard-builtins");
+            return gmf(compileStructs, "standard-builtins");
           }
 
           function getNamespace(_, otherRuntime) {
@@ -120,6 +128,8 @@ define(["q"], function(q) {
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
             "get-provides": m0(getProvides),
+            "get-extra-imports": m0(getExtraImports),
+            "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
             "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
