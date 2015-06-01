@@ -106,7 +106,12 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
           {
             left: function(compileResultErrors) {
               closeAnimationIfOpen();
-              errorUI.drawCompileErrors(output, editors, runtime, compileResultErrors);
+              var errs = [];
+              var results = ffi.toArray(compileResultErrors);
+              results.forEach(function(r) {
+                errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
+              });
+              errorUI.drawError(output, editors, runtime, {exn: errs});
             },
             right: function(v) {
               rr.loadBuiltinModules(
@@ -128,7 +133,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                     return true;
                   
                   } else {
-
+                    errorUI.drawError(output, editors, rr, runResult.exn);
                   }
                 });
             }
