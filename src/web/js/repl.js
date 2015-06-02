@@ -135,6 +135,9 @@ $(function() {
                     if (protocol === "my-gdrive") {
                       return constructors.makeMyGDriveLocator(arr[0]);
                     }
+                    else if (protocol === "shared-gdrive") {
+                      return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                    }
                     else {
                       console.error("Unknown import: ", dependency);
                     }
@@ -172,12 +175,7 @@ $(function() {
                   runtime.runThunk(function() {
                     return gf(repl, "restart-interactions").app();
                   }, function(result) {
-                    if (runtime.isFailureResult(result)) {
-                      console.error("Repl failed to run: ", result);
-                    }
-                    else {
-                      ret.resolve(result.result);
-                    }
+                    ret.resolve(result);
                   });
                 }, 0);
                 return ret.promise;
@@ -199,12 +197,7 @@ $(function() {
                         return gf(repl, "run-interaction").app(locator); 
                       });
                   }, function(result) {
-                    if (runtime.isFailureResult(result)) {
-                      console.error("Repl failed to run: ", result);
-                    }
-                    else {
-                      ret.resolve(result.result);
-                    }
+                    ret.resolve(result);
                   });
                 }, 0);
                 return ret.promise;
