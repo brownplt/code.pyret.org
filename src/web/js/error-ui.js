@@ -380,7 +380,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawEqualityFailure(reason, left, right) {
           var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
-          var srcElem = drawSrcloc(probablyErrorLocation);
+          var srcElem = outputUI.drawSrcloc(editors, runtime, probablyErrorLocation);
           singleHover(srcElem, probablyErrorLocation);
           var leftContainer = $("<div>");
           var rightContainer = $("<div>");
@@ -466,7 +466,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawMessageException(message) {
           var probablyErrorLocation = getLastUserLocation(e, 0);
           var dom = $("<div>").addClass("compile-error");
-          var srcloc = drawSrcloc(probablyErrorLocation);
+          var srcloc = outputUI.drawSrcloc(editors, runtime, probablyErrorLocation);
           singleHover(srcloc, probablyErrorLocation);
           if(probablyErrorLocation !== undefined) {
             dom.append($("<p>").text(message))
