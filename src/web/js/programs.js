@@ -73,6 +73,30 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
   }
 
   function createAPI(baseCollection) {
+    function makeURLFile(url) {
+      return {
+        shared: false,
+        getContents: function() {
+          var proxyDownloadLink = "/downloadURLFile?" + url;
+          return Q($.ajax(proxyDownloadLink, {
+            method: "get",
+            datatype: 'text'
+          })).then(function(response) {
+            return response;
+          });
+        },
+        getName: function() {
+          return "Je teste";
+        },
+        getDownloadLink: function() {
+          return url;
+        },
+        getModifiedTime: function() {
+          return "2015-06-03T10:42:42Z";
+        }
+      };
+    }
+    
     function makeSharedFile(googFileObject) {
       return {
         shared: true,
@@ -228,6 +252,9 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         return this.getAllFiles().then(function(files) {
           return files.filter(function(f) { return f.getName() === name });
         });
+      },
+      getFileByURL: function(url) {
+        return Q(makeURLFile(url));
       },
       getSharedFileById: function(id) {
         return gQ(drive.files.get({fileId: id})).then(makeSharedFile);
