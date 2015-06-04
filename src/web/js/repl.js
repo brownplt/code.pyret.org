@@ -180,7 +180,7 @@ $(function() {
                 }, 0);
                 return ret.promise;
               },
-              run: function(str) {
+              run: function(str, name) {
                 var ret = Q.defer();
                 setTimeout(function() {
                   runtime.runThunk(function() {
@@ -188,8 +188,8 @@ $(function() {
                       function() {
                         return gmf(replSupport,
                         "make-repl-interaction-locator").app(
-                          "interactions",
-                          "interactions",
+                          name,
+                          name,
                           runtime.makeFunction(function() { return str; }),
                           repl);
                       },
@@ -236,11 +236,12 @@ $(function() {
           console.log("Gas assumed safe at: ", repl.runtime.INITIAL_GAS);
 
           // NOTE(joe): This forces the loading of all the built-in compiler libs
-          var interactionsReady = repl.restartInteractions("");
+          var interactionsReady = repl.restartInteractions();
           interactionsReady.fail(function(err) {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
+            editor.cm.setValue("print('Ahoy, world!')");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
@@ -260,7 +261,7 @@ $(function() {
           editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
               simpleEditor: false,
-              initial: "print('Ahoy, world!')",
+              initial: "",
               run: RUN_CODE,
               initialGas: 100
             });
