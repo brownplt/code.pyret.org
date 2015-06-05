@@ -138,6 +138,9 @@ $(function() {
                     else if (protocol === "shared-gdrive") {
                       return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
                     }
+                    else if (protocol === "gdrive-js") {
+                      return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                    }
                     else {
                       console.error("Unknown import: ", dependency);
                     }
