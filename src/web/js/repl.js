@@ -124,11 +124,14 @@ $(function() {
         function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
           var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
           function findModule(contextIgnored, dependency) {
-            return runtime.safeTail(function() {
+            return runtime.safeCall(function() {
               return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
                 {
                   builtin: function(name) {
-                    return gmf(builtin, "make-builtin-locator").app(name);
+                    return gmf(compileLib, "located").app(
+                      gmf(builtin, "make-builtin-locator").app(name),
+                      runtime.nothing
+                      );
                   },
                   dependency: function(protocol, args) {
                     var arr = runtime.ffi.toArray(args);
@@ -146,6 +149,8 @@ $(function() {
                     }
                   }
                 });
+             }, function(l) {
+                return gmf(compileLib, "located").app(l, runtime.nothing); 
              });
           }
 
