@@ -65,12 +65,12 @@ $(function() {
 
 $(function() {
   define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf",
-  "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js",
+  "js/dialects-lib", "/js/guess-gas.js",
   "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
   "trove/runtime-lib", "compiler/repl-support.arr",
   "compiler/locators/builtin.arr", "/js/gdrive-locators.js",
   "compiler/compile-structs.arr"],
-  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive, http, compileLib,
+  function(replLib, replUI, rtLib, dialectLib, guessGas, http, compileLib,
   pyRepl, runtimeLib, replSupport, builtin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
@@ -92,28 +92,6 @@ $(function() {
       var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
       var replNS = dialect.makeNamespace(runtime);
       var replEnv = dialect.compileEnv;
-      var getDriveImports = gdrive.makeDriveImporter(storageAPI);
-      var getSpecialImport = function(runtime, importStmt) {
-        var loc = runtime.getField(importStmt, "l");
-        var kind = runtime.getField(importStmt, "kind");
-        var args = runtime.ffi.toArray(runtime.getField(importStmt, "args"));
-        if(kind === "my-gdrive") {
-          return getDriveImports.getMyDriveImport(runtime, args[0]);
-        } else if(kind === "shared-gdrive") {
-          return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
-        } else if(kind === "gdrive-js") {
-          return http.getHttpImport(runtime, args[0], args[1]);
-        } else {
-          var ret = Q.defer();
-          // TODO(joe): How to export this from ffi-helpers?
-          var cs = require("compiler/compile-structs.arr");
-          runtime.loadModules(runtime.namespace, [cs], function(cs) {
-            ret.reject([runtime.getField(cs, "wf-err").app("No such import type: " + kind +
-                ", did you mean my-gdrive or shared-gdrive?", loc)]);
-          });
-          return ret.promise;
-        }
-      };
 
       var gf = runtime.getField;
       var gmf = function(m, f) { return gf(gf(m, "values"), f); };
@@ -228,13 +206,6 @@ $(function() {
 
       var editor;
 
-      /*runtime.safeCall(function() {
-        return replLib.create(runtime, replNS, replEnv, {
-            name: "definitions",
-            dialect: dialectStr,
-            getSpecialImport: getSpecialImport
-          });
-      }, */
       function doWithRepl(repl) {
         var gassed = Q(repl); //guessGas.guessGas(3000, repl);
         gassed.fail(function(err) {
