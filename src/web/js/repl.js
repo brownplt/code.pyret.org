@@ -80,126 +80,114 @@ $(function() {
       return APP_BASE_URL + "/downloadImg?" + s;
     });
 
-    var dialects = Q.defer();
-    runtime.runThunk(function() {
-      return dialectLib(runtime, runtime.namespace);
-    }, function(dialectsResult) {
-      dialects.resolve(dialectsResult.result);
-    });
-    var load = dialects.promise.then(function(dialects) {
-      var dialectStr = params["get"] ? params["get"]["lang"] : "Pyret";
-      if (!dialects.dialects[dialectStr]) { dialectStr = "Pyret"; }
-      var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
-      var replNS = dialect.makeNamespace(runtime);
-      var replEnv = dialect.compileEnv;
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+    var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-      var gf = runtime.getField;
-      var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-      var gtf = function(m, f) { return gf(m, "types")[f]; };
-
-      runtime.loadModulesNew(runtime.namespace,
-        [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
-        function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
-          var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
-          function findModule(contextIgnored, dependency) {
-            return runtime.safeCall(function() {
-              return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
-                {
-                  builtin: function(name) {
-                    return gmf(compileLib, "located").app(
-                      gmf(builtin, "make-builtin-locator").app(name),
-                      runtime.nothing
-                      );
-                  },
-                  dependency: function(protocol, args) {
-                    var arr = runtime.ffi.toArray(args);
-                    if (protocol === "my-gdrive") {
-                      return constructors.makeMyGDriveLocator(arr[0]);
-                    }
-                    else if (protocol === "shared-gdrive") {
-                      return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
-                    }
-                    else if (protocol === "gdrive-js") {
-                      return constructors.makeGDriveJSLocator(arr[0], arr[1]);
-                    }
-                    else {
-                      console.error("Unknown import: ", dependency);
-                    }
-                  }
-                });
-             }, function(l) {
-                return gmf(compileLib, "located").app(l, runtime.nothing); 
-             });
-          }
-
-        // NOTE(joe): This line is "cheating" by mixing runtime levels,
-        // and uses the same runtime for the compiler and running code.
-        // Usually you can only get a new Runtime by calling create, but
-        // here we magic the current runtime into one.
-        var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
-          runtime.makeObject({
-            "runtime": runtime.makeOpaque(runtime)
-          }));
-
-        return runtime.safeCall(function() {
-          return gmf(replSupport, "make-repl-definitions-locator").app(
-            "definitions",
-            "definitions",
-            runtime.makeFunction(function() {
-              return editor.cm.getValue();
-            }),
-            gmf(compileStructs, "standard-globals"));
-        }, function(locator) {
+    runtime.loadModulesNew(runtime.namespace,
+      [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
+      function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
+        var replNS = runtime.namespace;
+        var replEnv = gmf(compileStructs, "standard-builtins");
+        var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
+        function findModule(contextIgnored, dependency) {
           return runtime.safeCall(function() {
-            return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
-          }, function(repl) {
-            var jsRepl = {
-              runtime: runtime.getField(pyRuntime, "runtime").val,
-              restartInteractions: function(ignoredStr) {
-                var ret = Q.defer();
-                setTimeout(function() {
-                  runtime.runThunk(function() {
-                    return gf(repl, "restart-interactions").app();
-                  }, function(result) {
-                    ret.resolve(result);
-                  });
-                }, 0);
-                return ret.promise;
-              },
-              run: function(str, name) {
-                var ret = Q.defer();
-                setTimeout(function() {
-                  runtime.runThunk(function() {
-                    return runtime.safeCall(
-                      function() {
-                        return gmf(replSupport,
-                        "make-repl-interaction-locator").app(
-                          name,
-                          name,
-                          runtime.makeFunction(function() { return str; }),
-                          repl);
-                      },
-                      function(locator) {
-                        return gf(repl, "run-interaction").app(locator); 
-                      });
-                  }, function(result) {
-                    ret.resolve(result);
-                  });
-                }, 0);
-                return ret.promise;
-              },
-              pause: function(afterPause) {
-                runtime.schedulePause(function(resumer) {
-                  afterPause(resumer);
-                });
-              },
-              stop: function() {
-                runtime.breakAll();
-              },
-              runtime: runtime
-            };
-            doWithRepl(jsRepl);
+            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
+              {
+                builtin: function(name) {
+                  return gmf(compileLib, "located").app(
+                    gmf(builtin, "make-builtin-locator").app(name),
+                    runtime.nothing
+                    );
+                },
+                dependency: function(protocol, args) {
+                  var arr = runtime.ffi.toArray(args);
+                  if (protocol === "my-gdrive") {
+                    return constructors.makeMyGDriveLocator(arr[0]);
+                  }
+                  else if (protocol === "shared-gdrive") {
+                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                  }
+                  else if (protocol === "gdrive-js") {
+                    return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                  }
+                  else {
+                    console.error("Unknown import: ", dependency);
+                  }
+                }
+              });
+           }, function(l) {
+              return gmf(compileLib, "located").app(l, runtime.nothing); 
+           });
+        }
 
+      // NOTE(joe): This line is "cheating" by mixing runtime levels,
+      // and uses the same runtime for the compiler and running code.
+      // Usually you can only get a new Runtime by calling create, but
+      // here we magic the current runtime into one.
+      var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+        runtime.makeObject({
+          "runtime": runtime.makeOpaque(runtime)
+        }));
+
+      return runtime.safeCall(function() {
+        return gmf(replSupport, "make-repl-definitions-locator").app(
+          "definitions",
+          "definitions",
+          runtime.makeFunction(function() {
+            return editor.cm.getValue();
+          }),
+          gmf(compileStructs, "standard-globals"));
+      }, function(locator) {
+        return runtime.safeCall(function() {
+          return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
+        }, function(repl) {
+          var jsRepl = {
+            runtime: runtime.getField(pyRuntime, "runtime").val,
+            restartInteractions: function(ignoredStr) {
+              var ret = Q.defer();
+              setTimeout(function() {
+                runtime.runThunk(function() {
+                  return gf(repl, "restart-interactions").app();
+                }, function(result) {
+                  ret.resolve(result);
+                });
+              }, 0);
+              return ret.promise;
+            },
+            run: function(str, name) {
+              var ret = Q.defer();
+              setTimeout(function() {
+                runtime.runThunk(function() {
+                  return runtime.safeCall(
+                    function() {
+                      return gmf(replSupport,
+                      "make-repl-interaction-locator").app(
+                        name,
+                        name,
+                        runtime.makeFunction(function() { return str; }),
+                        repl);
+                    },
+                    function(locator) {
+                      return gf(repl, "run-interaction").app(locator); 
+                    });
+                }, function(result) {
+                  ret.resolve(result);
+                });
+              }, 0);
+              return ret.promise;
+            },
+            pause: function(afterPause) {
+              runtime.schedulePause(function(resumer) {
+                afterPause(resumer);
+              });
+            },
+            stop: function() {
+              runtime.breakAll();
+            },
+            runtime: runtime
+          };
+          doWithRepl(jsRepl);
           });
         });
       });
@@ -620,7 +608,6 @@ $(function() {
           console.error("Pyret failed to load.", err);
         });
       }
-    });
     load.fail(function(err) {
       console.error("Pyret failed to load.", err);
     });
