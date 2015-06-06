@@ -66,7 +66,7 @@ function start(config, onServerReady) {
   });
 
   app.get("/login", function(req, res) {
-    var redirect = req.param("redirect") || "/my-programs";
+    var redirect = req.param("redirect") || "/editor";
     if(!(req.session && req.session["user_id"])) {
       res.redirect(auth.getAuthUrl(redirect));
     }
@@ -179,7 +179,7 @@ function start(config, onServerReady) {
           }
         });
         user.then(function(u) {
-          const redirect = req.param("state") || "/my-programs";
+          const redirect = req.param("state") || "/editor";
           console.log(JSON.stringify(u));
           req.session["user_id"] = u.google_id;
           console.log("Redirecting after successful login", JSON.stringify(req.session));
@@ -277,14 +277,6 @@ function start(config, onServerReady) {
 
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
-  });
-
-  app.get("/my-programs", function(req, res) {
-    var u = requireLogin(req, res);
-    u.then(function(user) {
-      console.log("Responding");
-      res.sendfile("build/web/my-programs.html");
-    });
   });
 
   app.get("/api-test", function(req, res) {
