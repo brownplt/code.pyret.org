@@ -380,6 +380,9 @@ $(function() {
               programLoad = api.getFileById(params["get"]["program"]);
               programLoad.then(function(p) { showShareContainer(p); });
             }
+            if(params["get"] && params["get"]["programurl"]) {
+              programLoad = api.getFileByURL(params["get"]["programurl"]);
+            }
             if(params["get"] && params["get"]["share"]) {
               programLoad = api.getSharedFileById(params["get"]["share"]);
               $("#saveButton").text("Save a Copy");

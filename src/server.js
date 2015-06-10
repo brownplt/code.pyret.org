@@ -126,6 +126,23 @@ function start(config, onServerReady) {
     });
   });
 
+  app.get("/downloadURLFile", function(req, response) {
+    var parsed = url.parse(req.url);
+    var urlLink = decodeURIComponent(parsed.query.slice(0));
+    var urlParsed = url.parse(urlLink);
+    var urlReq = request(urlLink, function(error, urlResponse, body) {
+      var h = urlResponse.headers;
+      var ct = h['content-type'];
+      if(ct && ct.indexOf('text/plain') !== 0) {
+        response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
+        return;
+      }
+      response.set('content-type', 'text/plain');
+      response.send(body);
+    });
+  });
+
+  
   app.get("/downloadImg", function(req, response) {
     var parsed = url.parse(req.url);
     var googleLink = decodeURIComponent(parsed.query.slice(0));
