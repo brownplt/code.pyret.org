@@ -65,12 +65,12 @@ $(function() {
 
 $(function() {
   define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf",
-  "js/dialects-lib", "/js/guess-gas.js",
+  "/js/guess-gas.js",
   "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
   "trove/runtime-lib", "compiler/repl-support.arr",
   "compiler/locators/builtin.arr", "/js/gdrive-locators.js",
   "compiler/compile-structs.arr"],
-  function(replLib, replUI, rtLib, dialectLib, guessGas, http, compileLib,
+  function(replLib, replUI, rtLib, guessGas, http, compileLib,
   pyRepl, runtimeLib, replSupport, builtin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
