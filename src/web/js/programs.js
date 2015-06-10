@@ -77,6 +77,12 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
       return {
         shared: false,
         getContents: function() {
+          if(window.localStorage) {
+            var contents = window.localStorage.getItem("urlfile://" + url);
+            if(contents !== null) {
+              return Q(contents);
+            }
+          }
           var proxyDownloadLink = "/downloadURLFile?" + url;
           return Q($.ajax(proxyDownloadLink, {
             method: "get",
@@ -93,6 +99,15 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         },
         getModifiedTime: function() {
           return "2015-06-03T10:42:42Z";
+        },
+        getFragment: function() {
+          return "#programurl=" + url;
+        },
+        save: function(contents, newRevision) {
+          if(window.localStorage) {
+            window.localStorage.setItem("urlfile://" + url, contents);
+          }
+          return this;
         }
       };
     }
@@ -135,6 +150,9 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         },
         getModifiedTime: function() {
           return googFileObject.modifiedDate;
+        },
+        getFragment: function() {
+          return "#program=" + this.getUniqueId;
         },
         getUniqueId: function() {
           return googFileObject.id;

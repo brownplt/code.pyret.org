@@ -208,7 +208,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            editor.cm.setValue("print('Ahoy, world!')");
+            //editor.cm.setValue("print('Ahoy, world!')");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
@@ -579,8 +579,8 @@ $(function() {
                 .then(function(p) {
                   $("#program-name").val(p.getName());
                   $("#saveButton").text("Save");
-                  history.pushState(null, null, "#program=" + p.getUniqueId());
-                  window.location.hash = "#program=" + p.getUniqueId();
+                  history.pushState(null, null, p.getFragment());
+                  window.location.hash = p.getFragment();
                   flashMessage("Program saved as " + p.getName());
                   setTitle(p.getName());
                   return p;
@@ -611,9 +611,6 @@ $(function() {
           console.error("Pyret failed to load.", err);
         });
       }
-    load.fail(function(err) {
-      console.error("Pyret failed to load.", err);
-    });
   });
   require(["repl-main"]);
 });
