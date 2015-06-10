@@ -1,4 +1,4 @@
-define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], function(imageLib,jsnums,share,srclocLib, errordisplayLib) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], function(jsnums,share,srclocLib, errordisplayLib) {
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
@@ -469,16 +469,13 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
     if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
     var renderers = runtime.ReprMethods["$cpo"];
     renderers["opaque"] = function renderPOpaque(val) {
-      var image = imageLib(runtime, runtime.namespace);
-      if (image.isImage(val.val)) {
+      if (runtime.imageLib.isImage(val.val)) {
         return renderers.renderImage(val.val);
       } else {
         return renderers.renderText("opqaue", val);
       }
     };
     renderers.renderImage = function renderImage(img) {
-      var image = imageLib(runtime, runtime.namespace);
-      
       var container = $("<span>").addClass('replOutput');
       var imageDom;
       var maxWidth = $(document).width() * .375;
@@ -491,7 +488,7 @@ define(["trove/image-lib","js/js-numbers","/js/share.js","trove/srcloc", "trove/
         var scaleFactorX = 100 / realWidth;
         var scaleFactorY = 200 / realHeight;
         var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
-        var scaled = image.makeScaleImage(scaleFactor, scaleFactor, img);
+        var scaled = runtime.imageLib.makeScaleImage(scaleFactor, scaleFactor, img);
         imageDom = scaled.toDomNode();
         container.append(imageDom);
         container.append($("<img>").attr("src", "/img/magnifier.gif").addClass("info-icon"));
