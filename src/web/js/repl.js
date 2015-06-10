@@ -608,9 +608,6 @@ $(function() {
           console.error("Pyret failed to load.", err);
         });
       }
-    load.fail(function(err) {
-      console.error("Pyret failed to load.", err);
-    });
   });
   require(["repl-main"]);
 });
