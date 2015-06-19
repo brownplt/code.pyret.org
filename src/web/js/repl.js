@@ -112,6 +112,10 @@ $(function() {
                   else if (protocol === "shared-gdrive") {
                     return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
                   }
+                  else if (protocol === "js-http") {
+                    // TODO: THIS IS WRONG with the new locator system
+                    return http.getHttpImport(runtime, args[0]);
+                  }
                   else if (protocol === "gdrive-js") {
                     return constructors.makeGDriveJSLocator(arr[0], arr[1]);
                   }

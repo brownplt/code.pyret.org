@@ -75,32 +75,104 @@ function start(config, onServerReady) {
     }
   });
 
-  app.get("/gdrive-js-proxy", function(req, response) {
+  app.get("/jsProxy", function(req, response) {
     var parsed = url.parse(req.url);
-    var googleId = decodeURIComponent(parsed.query.slice(0));
-    var idPart = googleId.slice(0, 13);
-    if(!config.okGoogleIds.hasOwnProperty(idPart)) {
-      response.status(400).send({type: "bad-file", error: "Invalid file id"});
-      return;
-    }
-    var googleLink = "https://googledrive.com/host/" + googleId;
-    var gReq = request(googleLink, function(error, googResponse, body) {
-      if(error) {
-        response.status(400).send({type: "failed-file", error: "Failed file response"});
+    var jsUrl = decodeURIComponent(parsed.query.slice(0));
+    var gReq = request(jsUrl, function(error, jsResponse, body) {
+      console.log(error, jsResponse.statusCode);
+      if(error || (jsResponse.statusCode >= 400)) {
+        response.status(400).send({type: "no-js-file", error: "Couldn't load JS file from " + jsUrl});
+        return;
       }
-      if(!error) {
-        var h = googResponse.headers;
-        var ct = h['content-type']
-        if(ct.indexOf('text/plain') !== 0 && ct.indexOf("application/x-javascript") !== 0) {
-          response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
-          return;
-        }
-        response.set('content-type', 'text/plain');
-        response.send(body);
-      }
+      response.send(body);
     });
   });
 
+  var okGoogleDomains = [
+    "spreadsheets.google.com",
+    "googleapis.com",
+    "drive.google.com",
+    "googledrive.com"
+  ];
+  function checkGoogle(req, response) {
+    var parsed = url.parse(req.url);
+    var googleUrl = decodeURIComponent(parsed.query.slice(0));
+    var parsedUrl = url.parse(googleUrl);
+    var found = okGoogleDomains.filter(function(v) { return parsedUrl.host === v; });
+    if(found.length === 0) {
+      response.status(400).send({type: "invalid-domain", error: "Refusing to proxy request to domain " + parsedUrl.host});
+      return null;
+    }
+    return googleUrl;
+  }
+
+  app.use(function(req, res, next) {
+    var contentType = req.headers['content-type'] || ''
+      , mime = contentType.split(';')[0];
+
+    if (mime != 'application/atom+xml' && mime != 'application/json')) {
+      return next();
+    }
+
+    var data = '';
+    req.setEncoding('utf8');
+    req.on('data', function(chunk) {
+      data += chunk;
+    });
+    req.on('end', function() {
+      req.rawBody = data;
+      next();
+    });
+  });
+
+  app.post("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+      };
+      var post = request.post({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      post.pipe(response);
+    }
+  });
+
+  app.put("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+      };
+      var put = request.put({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      put.pipe(response);
+    }
+  });
+
+  app.get("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      req.pipe(request(googleUrl)).pipe(response);
+    }
+  });
+
+  app.delete("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      req.pipe(request(googleUrl)).pipe(response);
+    }
+  });
+  
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
@@ -279,6 +351,21 @@ function start(config, onServerReady) {
     res.sendfile("build/web/editor.html");
   });
 
+  app.get("/share", function(req, res) {
+
+  });
+
+  app.get("/embeditor", function(req, res) {
+    res.sendfile("build/web/embedditor.html");
+  });
+
+  app.get("/my-programs", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      console.log("Responding");
+      res.sendfile("build/web/my-programs.html");
+    });
+  });
   app.get("/api-test", function(req, res) {
     res.sendfile("build/web/api-play.html");
   });
