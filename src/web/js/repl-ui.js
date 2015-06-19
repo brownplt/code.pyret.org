@@ -65,13 +65,6 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
 
-    // True for editor, false for repl entries
-    if(options.runButton) {
-      options.runButton.on("click", function() {
-        runFun(CM.getValue());
-      });
-    }
-
     return {
       cm: CM,
       refresh: function() { CM.refresh(); },
@@ -241,10 +234,11 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     }).css({
       "vertical-align": "middle"
     });
+    var runContents;
     function afterRun(cm) {
       return function() {
         options.runButton.empty();
-        options.runButton.text("Run");
+        options.runButton.append(runContents);
         options.runButton.attr("disabled", false);
         breakButton.attr("disabled", true);
         if(cm) {
@@ -259,6 +253,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       }
     }
     function setWhileRunning() {
+      runContents = options.runButton.contents();
       options.runButton.empty();
       var text = $("<span>").text("Running...");
       text.css({
@@ -278,7 +273,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       editors = {};
       editors["definitions"] = uiOptions.cm;
       interactionsCount = 0;
-      var replResult = repl.restartInteractions(src);
+      var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
       var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
         console.error("Error displaying result: ", err);
       });
