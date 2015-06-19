@@ -107,10 +107,10 @@ function start(config, onServerReady) {
   }
 
   app.use(function(req, res, next) {
-    var contentType = req.headers['content-type'] || ''
-      , mime = contentType.split(';')[0];
+    var contentType = req.headers['content-type'] || '';
+    var mime = contentType.split(';')[0];
 
-    if (mime != 'application/atom+xml' && mime != 'application/json')) {
+    if (mime != 'application/atom+xml' && mime != 'application/json') {
       return next();
     }
 
@@ -162,7 +162,17 @@ function start(config, onServerReady) {
   app.get("/googleProxy", function(req, response) {
     var googleUrl = checkGoogle(req, response);
     if(googleUrl !== null) {
-      req.pipe(request(googleUrl)).pipe(response);
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+      };
+      var get = request.get({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      get.pipe(response);
     }
   });
 
