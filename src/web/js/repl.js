@@ -144,11 +144,11 @@ $(function() {
         }, function(repl) {
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
-            restartInteractions: function(ignoredStr) {
+            restartInteractions: function(ignoredStr, typeCheck) {
               var ret = Q.defer();
               setTimeout(function() {
                 runtime.runThunk(function() {
-                  return gf(repl, "restart-interactions").app();
+                  return gf(repl, "restart-interactions").app(typeCheck);
                 }, function(result) {
                   ret.resolve(result);
                 });
@@ -223,8 +223,31 @@ $(function() {
             });
           // NOTE(joe): assigned on window for debuggability
           window.RUN_CODE = function(src, uiOpts, replOpts) {
-            replWidget.runCode(src, uiOpts, replOpts);
+            doRunAction(src);
           };
+
+          $("#runDropdown").click(function() {
+            $("#run-dropdown-content").toggle();
+          });
+
+          var currentAction = "run";
+
+          $("#select-run").click(function() {
+            runButton.text("Run");
+            currentAction = "run";
+            doRunAction(editor.cm.getValue());
+            $("#run-dropdown-content").hide();
+          });
+
+          $("#select-tc-run").click(function() {
+            runButton.text("Type-check and Run");
+            currentAction = "tc-and-run";
+            doRunAction(editor.cm.getValue());
+            $("#run-dropdown-content").hide();
+          });
+
+          var codeContainer = $("<div>").addClass("replMain");
+          $("#main").prepend(codeContainer);
           editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
               simpleEditor: false,
@@ -232,6 +255,20 @@ $(function() {
               run: RUN_CODE,
               initialGas: 100
             });
+
+          function doRunAction(src) {
+            switch (currentAction) {
+              case "run":
+                replWidget.runCode(src, {check: true});
+                break;
+              case "tc-and-run":
+                replWidget.runCode(src, {check: true, "type-check": true});
+                break;
+            }
+          }
+
+          runButton.on("click", function() { doRunAction(editor.cm.getValue()); });
+
           $(window).on("keyup", function(e) {
             if(e.keyCode === 27) { // "ESC"
               $("#help-keys").fadeOut(500);
@@ -401,7 +438,7 @@ $(function() {
                 e.preventDefault();
               }
               else if(e.keyCode === 13) { // "Ctrl-Enter"
-                editor.run();
+                doRunAction(editor.cm.getValue());
                 autoSave();
                 e.stopImmediatePropagation();
                 e.preventDefault();
