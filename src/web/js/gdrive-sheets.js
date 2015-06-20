@@ -106,7 +106,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
       headers: headers,
       body: method == 'POST' || method == 'PUT' ? query_or_data : null,
     }).done(function(data, textStatus, jqXHR) {
-      console.log(data);
+      // console.log(data);
       ret.resolve(data.feed);
     }).fail(function(jqXHR, textStatus, error) {
       if (jqXHR.status === 401) {
@@ -325,30 +325,230 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
     function(runtime, namespace) {
       var F = runtime.makeFunction;
       var O = runtime.makeObject;
-      function loadSheetAndProcess(name, opts) {
+      function colNameToNum(name) {
+        if (!/[A-Z]+/.test(name)) { return undefined; }
+        var ans = 0;
+        var A = 'A'.charCodeAt(0) - 1;
+        for (var i = 0; i < name.length; i++) {
+          ans = ans * 26 + (name.charCodeAt(i) - A);
+        }
+        return ans - 1;
+      }
+      function makePyretSpreadsheet(ss) {
+        var sheetsByNamePy = {};
+        var sheetsByPosPy = [];
+        var getSheetByName = runtime.makeMethod1(function(self, sheetName) {
+          if (arguments.length !== 2) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['sheet-by-name'], 1, $a); }
+          runtime.checkString(sheetName);
+          if (sheetsByNamePy[sheetName]) { return sheetsByNamePy[sheetName]; }
+          for (var i = 0; i < ss.worksheets.length; i++) {
+            if (ss.worksheets[i].title === sheetName) {
+              sheetsByNamePy[sheetName] = sheetsByPosPy[i] = makePyretWorksheet(ss.worksheets[i]);
+              return sheetsByNamePy[sheetName];
+            }
+          }
+          runtime.ffi.throwMessageException("No worksheet named " + sheetName + " in this spreadsheet");
+        });
+        var getSheetByPos = runtime.makeMethod1(function(self, pos) {
+          if (arguments.length !== 2) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['sheet-by-pos'], 1, $a); }
+          runtime.checkNumber(pos);
+          if (sheetsByPosPy[pos]) { return sheetsByPosPy[pos]; }
+          if (pos >= ss.worksheets.length) {
+            runtime.ffi.throwMessageException("No worksheet numbered " + pos + " in this spreadsheet");
+          }
+          sheetsByNamePy[ss.worksheets[pos].title] = sheetsByPosPy[pos] = makePyretWorksheet(ss.worksheets[pos]);
+          return sheetsByPosPy[pos];
+        });
+        return O({
+          title: ss.title,
+          updated: ss.updated,
+          author: ss.author.name,
+          'sheet-by-name': getSheetByName,
+          'sheet-by-pos': getSheetByPos
+        });
+      }
+      function makePyretWorksheet(ws) {
+        var cellsArr = undefined;
+        function getCells() {
+          var ret = q.defer();
+          if (cellsArr) { ret.resolve(cellsArr); }
+          else {
+            ws.cells().then(function(cells) {
+              cellsArr = cells.cells;
+              ret.resolve(cellsArr);
+            });
+          }
+          return ret.promise;
+        }
+        function processCells(cells, resumer, opts) {
+          // the range $startCol$startRow:$endCol$endRow is INCLUSIVE
+          var rows = [];
+          var startRow = opts.startRow || 0;
+          var endRow = opts.endRow || (cells.length - 1);
+          for (var i = startRow; i <= endRow; i++) {
+            if (i === 0 && opts.skipHeader) continue;
+            var rowArr = cells[i];
+            if (opts.startCol !== undefined && opts.endCol !== undefined) {
+              rowArr = rowArr.slice(opts.startCol, opts.endCol + 1);
+            }
+            var rowPy;
+            if (opts.constr) {
+              rowPy = opts.constr.app.apply(null, rowArr); // NOT stack-safe yet
+            } else {
+              rowPy = runtime.ffi.makeList(rowArr);
+            }
+            rows.push(rowPy);
+          }
+          resumer.resume(runtime.ffi.makeList(rows));
+        }
+        function checkCol(colNum, colName, min, max) {
+          if (colNum === undefined) { runtime.ffi.throwMessageException("Invalid column name: " + colName); }
+          if (colNum < min) {
+            runtime.ffi.throwMessageException("Invalid column index: " + colNum + " (indices must be at least " + min + ")");
+          } else if (colNum >= max) { 
+            runtime.ffi.throwMessageException("Invalid column index: this worksheet has fewer than " +
+                                              (colNum === 1 ? "1 column" : colNum + " columns"));
+          }
+        }
+        function checkRow(rowNum, min, max) {
+          if (rowNum < min) {
+            runtime.ffi.throwMessageException("Invalid row index: " + rowNum + " (indices must be at least " + min + ")");
+          } else if (rowNum >= max) { 
+            runtime.ffi.throwMessageException("Invalid row index: this worksheet has fewer than " +
+                                              (rowNum === 1 ? "1 row" : rowNum + " rows"));
+          }
+        }
+        var getCellAt = runtime.makeMethod2(function(self, col, rowNum) {
+          if (arguments.length !== 3) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['cell-at'], 2, $a); }
+          runtime.checkString(col);
+          runtime.checkNumber(rowNum);
+          var colNum = colNameToNum(col);
+          checkCol(colNum, col, 0, ws.colCount);
+          checkRow(rowNum, 0, ws.rowCount);
+          runtime.pauseStack(function(resumer) {
+            getCells()
+              .then(function(cells) {
+                if (cells[rowNum] && cells[rowNum][colNum]) { resumer.resume(cells[rowNum][colNum]); }
+                else { resumer.resume(""); }
+              })
+              .catch(function (err) {
+                if (runtime.isPyretException(err)) { resumer.error(err); }
+                else { resumer.error(runtime.makeString(String(err))); }
+              });
+          });
+        });
+        var getAllCells = runtime.makeMethod0(function(self) {
+          if (arguments.length !== 1) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['all-cells'], 0, $a); }
+          runtime.pauseStack(function(resumer) {
+            getCells()
+              .then(function(cells) { processCells(cells, resumer, {}); })
+              .catch(function (err) {
+                if (runtime.isPyretException(err)) { resumer.error(err); }
+                else { resumer.error(runtime.makeString(String(err))); }
+              });
+          });
+        });
+        var getAllCellsAs = runtime.makeMethod2(function(self, constr, skipHeader) {
+          if (arguments.length !== 3) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['all-cells-as'], 2, $a); }
+          runtime.checkFunction(constr);
+          runtime.checkBoolean(skipHeader);
+          runtime.pauseStack(function(resumer) {
+            getCells()
+              .then(function(cells) { processCells(cells, resumer, {constr: constr, skipHeader: skipHeader}); })
+              .catch(function (err) {
+                if (runtime.isPyretException(err)) { resumer.error(err); }
+                else { resumer.error(runtime.makeString(String(err))); }
+              });
+          });
+        });
+        var getCellRange = runtime.makeMethod4(function(self, startColName, startRow, endColName, endRow) {
+          if (arguments.length !== 5) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['cell-range'], 4, $a); }
+          runtime.checkString(startColName);
+          runtime.checkNumber(startRow);
+          runtime.checkString(endColName);
+          runtime.checkNumber(endRow);
+          var startCol = colNameToNum(startColName);
+          var endCol = colNameToNum(endColName);
+          checkCol(startCol, startColName, 0, ws.colCount);
+          checkRow(startRow, 0, ws.rowCount);
+          checkCol(endCol, endColName, 0, ws.colCount);
+          checkRow(endRow, 0, ws.rowCount);
+          runtime.pauseStack(function(resumer) {
+            getCells()
+              .then(function(cells) { 
+                processCells(cells, resumer, {startRow: startRow - 1, startCol: startCol, endRow: endRow - 1, endCol: endCol});
+              })
+              .catch(function (err) {
+                if (runtime.isPyretException(err)) { resumer.error(err); }
+                else { resumer.error(runtime.makeString(String(err))); }
+              });
+          });
+        });
+        var getCellRangeAs = runtime.makeMethod5(function(self, startColName, startRow, endColName, endRow, constr) {
+          if (arguments.length !== 6) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['cell-range-as'], 5, $a); }
+          runtime.checkString(startColName);
+          runtime.checkNumber(startRow);
+          runtime.checkString(endColName);
+          runtime.checkNumber(endRow);
+          runtime.checkFunction(constr);
+          var startCol = colNameToNum(startColName);
+          var endCol = colNameToNum(endColName);
+          checkCol(startCol, startColName, 0, ws.colCount);
+          checkRow(startRow, 0, ws.rowCount);
+          checkCol(endCol, endColName, 0, ws.colCount);
+          checkRow(endRow, 0, ws.rowCount);
+          runtime.pauseStack(function(resumer) {
+            getCells()
+              .then(function(cells) { 
+                processCells(cells, resumer, 
+                             {startRow: startRow - 1, startCol: startCol, endRow: endRow - 1, endCol: endCol, constr: constr});
+              })
+              .catch(function (err) {
+                if (runtime.isPyretException(err)) { resumer.error(err); }
+                else { resumer.error(runtime.makeString(String(err))); }
+              });
+          });
+        });
+        return O({
+          title: ws.title,
+          'row-count': ws.rowCount,
+          'col-count': ws.colCount,
+          'cell-at': getCellAt,
+          'all-cells': getAllCells,
+          'all-cells-as': getAllCellsAs,
+          'cell-range': getCellRange,
+          'cell-range-as': getCellRangeAs
+        });
+      }
+      function loadSheetAndProcess2(name, visibility) {
         runtime.pauseStack(function(resumer) {
-          Spreadsheets({key: name, auth: gapi.auth, visibility: opts.visibility})
-            .then(function (spreadsheet) { return spreadsheet.worksheets[0].cells(); })
-            .then(function(cells) {
-              var rows = [];
-              for (var i = 0; i < cells.cells.length; i++) {
-                if (i === 0 && opts.skipHeader) continue;
-                var rowArr = cells.cells[i];
-                var rowPy;
-                if (opts.constr) {
-                  rowPy = opts.constr.app.apply(null, rowArr); // NOT stack-safe yet
-                } else {
-                  rowPy = runtime.ffi.makeList(rowArr);
-                }
-                rows.push(rowPy);
-              }
-              resumer.resume(runtime.ffi.makeList(rows));
-            })
+          Spreadsheets({key: name, auth: gapi.auth, visibility: visibility})
+            .then(function (spreadsheet) { resumer.resume(makePyretSpreadsheet(spreadsheet)); })
             .catch(function (err) {
               if (runtime.isPyretException(err)) { resumer.error(err); }
               else { resumer.error(runtime.makeString(String(err))); }
             });
         });
+      }
+
+      function loadSheetAndProcess(name, opts) {
+        runtime.pauseStack(function(resumer) {
+          Spreadsheets({key: name, auth: gapi.auth, visibility: opts.visibility})
+            .then(function (spreadsheet) { return spreadsheet.worksheets[0].cells(); })
+            .then(function(cells) { processCells(cells.cells, resumer, opts); })
+            .catch(function (err) {
+              if (runtime.isPyretException(err)) { resumer.error(err); }
+              else { resumer.error(runtime.makeString(String(err))); }
+            });
+        });
+      }
+
+
+      function loadSpreadsheet(name, visibility) {
+        if (arguments.length !== 2) { var $a=new Array(arguments.length); for (var $i=0;$i<arguments.length;$i++) { $a[$i]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['load-spreadsheet'], 2, $a); }
+        runtime.checkString(name);
+        runtime.checkString(visibility);
+        loadSheetAndProcess2(name, visibility);
       }
 
       function loadSheetRaw(name) {
@@ -369,7 +569,10 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           types: {},
           values: O({
             "load-sheet-raw": F(loadSheetRaw),
-            "load-sheet": F(loadSheet)
+            "load-sheet": F(loadSheet),
+            "load-spreadsheet": F(loadSpreadsheet),
+            "public": runtime.makeString("public"),
+            "private": runtime.makeString("private"),
           })
         }),
         "answer": runtime.nothing
