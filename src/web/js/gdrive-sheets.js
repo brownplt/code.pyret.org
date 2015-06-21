@@ -43,7 +43,19 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
       encodeURIComponent(stringifyPrimitive(obj));
   };
 
-
+  // Taken from http://stackoverflow.com/questions/1912501/unescape-html-entities-in-javascript
+  function extractError(htmlStr){
+    // We're not using jQuery here, so there shouldn't be
+    // any XSS potential.
+    var temp = document.createElement('div');
+    temp.innerHTML = htmlStr;
+    // Non-published sheets have a fancier error message
+    var maybeError = temp.getElementsByClassName("errorMessage");
+    if (maybeError.length > 0) {
+      return maybeError[0].innerHTML;
+    }
+    return temp.childNodes.length === 0 ? "" : temp.childNodes[0].nodeValue;
+  }
   // copied from https://raw.githubusercontent.com/samcday/node-google-spreadsheets/master/lib/spreadsheets.js
 
   // If caller has installed googleapis, we do some sanity checking to make sure it's a version we know.
@@ -111,8 +123,15 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
     }).fail(function(jqXHR, textStatus, error) {
       if (jqXHR.status === 401) {
         ret.reject("Invalid authorization key");
+      } else if (jqXHR.status == 501 ) {
+        // A bit of a kludge, but this is more informative than 
+        // 'Unsupported Projection.' As for the *real* source of
+        // this, we may want to look into using "basic" instead
+        // of "full" projection, as that *does* still work with
+        // older spreadsheets.
+        ret.reject("Old Spreadsheets not supported. Please upgrade the spreadsheet or try another.");
       } else if ( jqXHR.status >= 400 ) {
-        ret.reject("HTTP error " + jqXHR.status + ": " + textStatus + " " + JSON.stringify(error));
+        ret.reject(extractError(jqXHR.responseText));
       } else if ( response.statusCode === 200 && response.headers['content-type'].indexOf('text/html') >= 0 ) {
         ret.reject("Sheet is private. Use authentication or make public. (see https://github.com/theoephraim/node-google-spreadsheet#a-note-on-authentication for details)");
       }
