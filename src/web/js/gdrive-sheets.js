@@ -1,709 +1,704 @@
 "use strict";
 define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
-  // copied from npm querystring:encode.js
-  var stringifyPrimitive = function(v) {
-    switch (typeof v) {
-    case 'string':
-      return v;
-      
-    case 'boolean':
-      return v ? 'true' : 'false';
-      
-    case 'number':
-      return isFinite(v) ? v : '';
-      
-    default:
-      return '';
-    }
-  };
-
-  function encodeQuerystring(obj, sep, eq, name) {
-    sep = sep || '&';
-    eq = eq || '=';
-    if (obj === null) {
-      obj = undefined;
-    }
-    
-    if (typeof obj === 'object') {
-      return Object.keys(obj).map(function(k) {
-        var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
-        if (Array.isArray(obj[k])) {
-          return obj[k].map(function(v) {
-            return ks + encodeURIComponent(stringifyPrimitive(v));
-          }).join(sep);
-        } else {
-          return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
-      }
-      }).join(sep);
-      
-    }
-    
-    if (!name) return '';
-    return encodeURIComponent(stringifyPrimitive(name)) + eq +
-      encodeURIComponent(stringifyPrimitive(obj));
-  };
-
-  function ensureXML(query) {
-    // The json2xml function is taken from Stefan Gossner
-    // (goessner.net). Modified to convert to XML using 
-    // Google's rules
-    function json2xml(o, tab) {
-      // These two helpers taken from 
-      // github.com/theoprahim/node-google-spreadsheets/blob/master/index.js
-      function xmlSafeValue(val) {
-        if (val == null) {
+  return util.definePyretModule("gdrive-sheets", [],
+    {values : ["load-sheet-raw", "load-sheet"],
+      types : []},
+    function(runtime, namespace) {
+      // copied from npm querystring:encode.js
+      var stringifyPrimitive = function(v) {
+        switch (typeof v) {
+        case 'string':
+          return v;
+          
+        case 'boolean':
+          return v ? 'true' : 'false';
+          
+        case 'number':
+          return isFinite(v) ? v : '';
+          
+        default:
           return '';
-        } 
-        return String(val)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-      }
-      function xmlSafeColumnName(val) {
-        if (!val) return '';
-        return String(val)
-          .replace(/[\s_]+/g, '');
-      }
-      function fixupKey(key) {
-        return String(key).replace(/\$/g, ':');
-      }
-      function isString(s) { 
-        return (s instanceof String) || (typeof s === 'string');
-      }
-      var toXml = function(v, name, ind) {
-        name = fixupKey(name);
-        var xml = "";
-        if (v instanceof Array) {
-          for (var i=0, n=v.length; i<n; i++)
-            xml += ind + toXml(v[i], name, ind+"\t") + "\n";
         }
-        else if (typeof(v) == "object") {
-           var hasChild = false;
-           xml += ind + "<" + name;
-           for (var m in v) {
-             if (isString(v[m]) && !(m === "$t" || m === ":t"))
-               xml += " " + fixupKey(xmlSafeColumnName(m)) + "=\"" 
-                 + xmlSafeValue(v[m]) + "\"";
-             else
-               hasChild = true;
-           }
-           xml += hasChild ? ">" : "/>";
-           if (hasChild) {
-             for (var m in v) {
-               if (m === "$t" || m === ":t")
-                 xml += v[m];
-               else if (!isString(v[m]))
-                  xml += toXml(v[m], m, ind+"\t");
-             }
-             xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
-           }
-        }
-        else {
-          xml += ind + "<" + name + ">" + v.toString() +  "</" + name + ">";
-        }
-        return xml;
-       };
-       var xml="";
-       for (var m in o){
-          xml += toXml(o[m], m, "");
-       }
-       return tab ? xml.replace(/\t/g, tab) : xml.replace(/\t|\n/g, "");
-    }
-    if (query instanceof String) {
-      return query;
-    }
-    return json2xml(query);
-  };
-
-  function ensureJSON(response) { 
-    function renameKey(key) { 
-      return key.replace(/:/g, '$');
-    }
-    function xml2json(res) { 
-      var ret = {};
-      if (res.nodeType === 3) { 
-        return ret;
-      }
-      if (res.attributes) {
-        var attributes = [];
-        // Credit to Felipe Alcibar for this fast NodeList -> Array implementation
-        for (var i=-1,l=res.attributes.length;++i!==l;attributes.push(res.attributes[i])){}
-        attributes.forEach(function(attr){
-          ret[renameKey(attr.nodeName)] = String(attr.nodeValue);
-        });
-      }
-      if (res.childNodes) {
-        var childNodes = [];
-        for (var i=-1,l=res.childNodes.length;++i!==l;childNodes.push(res.childNodes[i])){}
-        childNodes.forEach(function(child){
-          var key = renameKey(child.nodeName);
-          if (child.nodeType === 3) {
-            ret.$t = child.nodeValue;
-          } else if (ret[key]) { 
-            if (Array.isArray(ret[key])) { 
-              ret[key].push(xml2json(child));
-            } else { 
-              ret[key] = [ ret[key] ];
-              ret[key].push(xml2json(child));
-            }
-          } else {
-            ret[key] = xml2json(child);
-          }
-        });
-      }
-      return ret;
-    }
-    // Taken from Douglas on Stack Overflow
-    var documentElement = (response ? response.ownerDocument || response : 0).documentElement;
-    var isXML = documentElement ? documentElement.nodeName !== "HTML" : false;
-    return isXML ? xml2json(response) : response;
-  }
-
-  // Taken from http://stackoverflow.com/questions/1912501/unescape-html-entities-in-javascript
-  function extractError(htmlStr){
-    // We're not using jQuery here, so there shouldn't be
-    // any XSS potential.
-    var temp = document.createElement('div');
-    temp.innerHTML = htmlStr;
-    // Non-published sheets have a fancier error message
-    var maybeError = temp.getElementsByClassName("errorMessage");
-    if (maybeError.length > 0) {
-      return maybeError[0].innerHTML;
-    }
-    return temp.childNodes.length === 0 ? "" : temp.childNodes[0].nodeValue;
-  }
-  // copied from https://raw.githubusercontent.com/samcday/node-google-spreadsheets/master/lib/spreadsheets.js
-
-  // If caller has installed googleapis, we do some sanity checking to make sure it's a version we know.
-  var FEED_URL = "https://spreadsheets.google.com/feeds/";
-
-  var token;
-
-  var Spreadsheets;
-
-  var forceArray = function(val) {
-    if(Array.isArray(val)) {
-      return val;
-    }
-
-    return [val];
-  };
-
-  var createSpreadsheet = function(name) {
-    var opts = {};
-    opts.mimeType = 'application/vnd.google-apps.spreadsheet';
-    opts.fileExtension = false;
-    var ret = q.defer();
-    storageAPI
-      .then(function(api){
-        ret.resolve(api.createFile(name, opts));
-      })
-      .catch(ret.reject);
-    return ret.promise;
-  }
-
-  var getFeed = function(params, opts, query, rootElt) {
-    var visibility = "public";
-    var projection = "values";
-    var headers = {};
-    var method = "GET";
-    var checkTok = false;
-
-    if (opts.auth) {
-      visibility = "private";
-      projection = "full";
-    }
-    if (opts.visibility) {
-      visibility = opts.visibility;
-    }
-    if (opts.method) {
-      method = opts.method;
-    }
-
-    query = query || {};
-    // When sending POST/PUT requests, we want
-    // to add attributes to the object which will
-    // be converted into the root XML element.
-    var queryDest = rootElt ? query[rootElt] : query;
-    queryDest["alt"] = "json";
-
-
-    if ( typeof(params) == 'string' ) {
-      // used for edit / delete requests
-      url = params;
-    } else if ( Array.isArray( params )){
-      //used for get and post requets
-      params.push( visibility, projection );
-      url = FEED_URL + params.join("/");
-    }
-
-    if ( opts.auth && opts.auth.getToken() ) {
-      headers['Authorization'] = 'Bearer ' + opts.auth.getToken().access_token;
-    }
-
-    if ( method == 'POST' || method == 'PUT' ){
-      headers['content-type'] = 'application/atom+xml';
-      queryDest['xmlns'] = 'http://www.w3.org/2005/Atom';
-      delete queryDest['alt'];
-      if( !queryDest['xmlns$gs'] && !queryDest['xmlns$gsx'] ) {
-        queryDest['xmlns$gs'] = 'http://schemas.google.com/spreadsheets/2006';
-      }
-      /* The API only accepts XML in PUSH/PUT requests, it would seem,
-       * so we convert the query object into XML using the rules found
-       * at https://developers.google.com/gdata/docs/json
-       */
-      query = ensureXML(query);
-      query = '<?xml version="1.0" encoding="UTF-8"?>' + query;
-    }
-
-    if ( method == 'POST' || method == 'PUT' || method == 'DELETE' ) { 
-      if( token ) {
-        // To keep csurf from getting upset
-        headers['X-CSRF-Token'] = token;
-      }    
-    }
-
-    if ( method == 'GET' ) { 
-      checkTok = token === undefined;
-      if ( query ) { 
-        url += "?" + encodeQuerystring( query );
-      }
-    } 
-    console.log("url = " + url);
-    console.log("Trying to get /googleProxy?" + encodeURIComponent(url));
-
-    var ret = q.defer();
-    $.ajax("/googleProxy?" + encodeURIComponent(url), {
-      method: method,
-      headers: headers,
-      data: method == 'POST' || method == 'PUT' ? query : null,
-    }).done(function(data, textStatus, jqXHR) {
-      if ( checkTok ) {
-        // Retrieve the CSRF token from csurf
-        token = jqXHR.getResponseHeader('X-Pyret-Token');
-      }
-      //console.log(data);
-      ret.resolve(ensureJSON(data.feed || data));
-    }).fail(function(jqXHR, textStatus, error) {
-      /*console.log("FAILED");
-      console.log(jqXHR);
-      console.log(textStatus);
-      console.log(error);*/
-      if (jqXHR.status === 401) {
-        ret.reject("Invalid authorization key");
-      } else if (jqXHR.status == 501 ) {
-        // A bit of a kludge, but this is more informative than 
-        // 'Unsupported Projection.' As for the *real* source of
-        // this, we may want to look into using "basic" instead
-        // of "full" projection, as that *does* still work with
-        // older spreadsheets.
-        ret.reject("Old Spreadsheets not supported. Please upgrade the spreadsheet or try another.");
-      } else if ( jqXHR.status >= 400 ) {
-        ret.reject(extractError(jqXHR.responseText));
-      } else if ( response.statusCode === 200 && response.headers['content-type'].indexOf('text/html') >= 0 ) {
-        ret.reject("Sheet is private. Use authentication or make public. (see https://github.com/theoephraim/node-google-spreadsheet#a-note-on-authentication for details)");
-      }
-    });
-    return ret.promise;
-  };
-
-  var Worksheet = function(spreadsheet, data) {
-    // This should be okay, unless Google decided to change their URL scheme...
-    var id = data.id.$t;
-    this.id = id.substring(id.lastIndexOf("/") + 1);
-    this.spreadsheet = spreadsheet;
-    this.rowCount = data.gs$rowCount.$t;
-    this.colCount = data.gs$colCount.$t;
-    this.title = data.title.$t;
-    this.editLink = data.link.filter(function(l){ return l.rel === "edit"; })[0].href;
-    this.rawData = data;
-  };
-
-  function prepareRowsOrCellsOpts(worksheet, opts) {
-    opts = opts || {};
-    opts.key = worksheet.spreadsheet.key;
-    opts.auth = worksheet.spreadsheet.auth;
-    opts.worksheet = worksheet.id;
-    return opts;
-  }
-
-  Worksheet.prototype.rows = function(opts) {
-    opts = opts || {};
-    opts.ws = this;
-    return Spreadsheets.rows(prepareRowsOrCellsOpts(this, opts));
-  };
-
-  Worksheet.prototype.cells = function(opts) {
-    return Spreadsheets.cells(prepareRowsOrCellsOpts(this, opts));
-  };
-
-  // PRECONDITION: No bad entries in contents
-  Worksheet.prototype.updateCells = function(startRow, startCol, contents, opts) {
-    if (!(Array.isArray(contents))) {
-      throw new Error("contents must be an array. Given: " + contents);
-    }
-    opts = prepareRowsOrCellsOpts(this, opts);
-    opts.method = "PUT";
-    var params = ["cells", opts.key, opts.worksheet, "private", "full"];
-    var baseUrl = FEED_URL + params.join("/");
-    /*
-     * FIXME:
-     * So here's the deal: Google Sheets has a means of doing batch
-     * updates via their API, but it seems to have no intention of
-     * cooperating. After playing with the OAuth playground, it became
-     * apparent that the errors were stemming from the API not accepting
-     * the batch requests, despite the XML being correctly formed.
-     * As such, the entry-setting requests are currently *not* batched.
-     */
-    function setEntry(rowIdx, colIdx, value) {
-      var rowNum = startRow + rowIdx + 1;
-      var colNum = startCol + colIdx + 1;
-      var url = baseUrl + "/R" + rowNum + "C" + colNum;
-      var outObj = { 
-        title : { type : "text", $t : "R" + rowNum + "C" + colNum },
-        id : { $t : url },
-        link : { rel : "edit", type : "application/atom+xml", href : url },
-        gs$cell : { row : String(rowNum), col : String(colNum),
-          inputValue : String(value) }
       };
-      return getFeed(url, opts, { entry : outObj }, 'entry');
-    }
-    var expectedLen;
-    var promises = [];
-    contents.forEach(function(row, rowIdx) {
-      if (!(Array.isArray(row))) {
-        throw new Error("Non-array row: " + row);
-      } 
-      expectedLen = expectedLen || row.length;
-      if (row.length !== expectedLen) {
-        throw new Error("Wrong number of columns given in row " + 
-          rowIdx + ". Expected: " + expectedLen
-          + " Given: " + row.length);
+
+      function encodeQuerystring(obj, sep, eq, name) {
+        sep = sep || '&';
+        eq = eq || '=';
+        if (obj === null) {
+          obj = undefined;
+        }
+        
+        if (typeof obj === 'object') {
+          return Object.keys(obj).map(function(k) {
+            var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+            if (Array.isArray(obj[k])) {
+              return obj[k].map(function(v) {
+                return ks + encodeURIComponent(stringifyPrimitive(v));
+              }).join(sep);
+            } else {
+              return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+          }
+          }).join(sep);
+          
+        }
+        
+        if (!name) return '';
+        return encodeURIComponent(stringifyPrimitive(name)) + eq +
+          encodeURIComponent(stringifyPrimitive(obj));
+      };
+
+      function ensureXML(query) {
+        // The json2xml function is taken from Stefan Gossner
+        // (goessner.net). Modified to convert to XML using 
+        // Google's rules
+        function json2xml(o, tab) {
+          // These two helpers taken from 
+          // github.com/theoprahim/node-google-spreadsheets/blob/master/index.js
+          function xmlSafeValue(val) {
+            if (val == null) {
+              return '';
+            } 
+            return String(val)
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;');
+          }
+          function xmlSafeColumnName(val) {
+            if (!val) return '';
+            return String(val)
+              .replace(/[\s_]+/g, '');
+          }
+          function fixupKey(key) {
+            return String(key).replace(/\$/g, ':');
+          }
+          function isString(s) { 
+            return (s instanceof String) || (typeof s === 'string');
+          }
+          var toXml = function(v, name, ind) {
+            name = fixupKey(name);
+            var xml = "";
+            if (v instanceof Array) {
+              for (var i=0, n=v.length; i<n; i++)
+                xml += ind + toXml(v[i], name, ind+"\t") + "\n";
+            }
+            else if (typeof(v) == "object") {
+               var hasChild = false;
+               xml += ind + "<" + name;
+               for (var m in v) {
+                 if (isString(v[m]) && !(m === "$t" || m === ":t"))
+                   xml += " " + fixupKey(xmlSafeColumnName(m)) + "=\"" 
+                     + xmlSafeValue(v[m]) + "\"";
+                 else
+                   hasChild = true;
+               }
+               xml += hasChild ? ">" : "/>";
+               if (hasChild) {
+                 for (var m in v) {
+                   if (m === "$t" || m === ":t")
+                     xml += v[m];
+                   else if (!isString(v[m]))
+                      xml += toXml(v[m], m, ind+"\t");
+                 }
+                 xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
+               }
+            }
+            else {
+              xml += ind + "<" + name + ">" + v.toString() +  "</" + name + ">";
+            }
+            return xml;
+           };
+           var xml="";
+           for (var m in o){
+              xml += toXml(o[m], m, "");
+           }
+           return tab ? xml.replace(/\t/g, tab) : xml.replace(/\t|\n/g, "");
+        }
+        if (query instanceof String) {
+          return query;
+        }
+        return json2xml(query);
+      };
+
+      function ensureJSON(response) { 
+        function renameKey(key) { 
+          return key.replace(/:/g, '$');
+        }
+        function xml2json(res) { 
+          var ret = {};
+          if (res.nodeType === 3) { 
+            return ret;
+          }
+          if (res.attributes) {
+            var attributes = [];
+            // Credit to Felipe Alcibar for this fast NodeList -> Array implementation
+            for (var i=-1,l=res.attributes.length;++i!==l;attributes.push(res.attributes[i])){}
+            attributes.forEach(function(attr){
+              ret[renameKey(attr.nodeName)] = String(attr.nodeValue);
+            });
+          }
+          if (res.childNodes) {
+            var childNodes = [];
+            for (var i=-1,l=res.childNodes.length;++i!==l;childNodes.push(res.childNodes[i])){}
+            childNodes.forEach(function(child){
+              var key = renameKey(child.nodeName);
+              if (child.nodeType === 3) {
+                ret.$t = child.nodeValue;
+              } else if (ret[key]) { 
+                if (Array.isArray(ret[key])) { 
+                  ret[key].push(xml2json(child));
+                } else { 
+                  ret[key] = [ ret[key] ];
+                  ret[key].push(xml2json(child));
+                }
+              } else {
+                ret[key] = xml2json(child);
+              }
+            });
+          }
+          return ret;
+        }
+        // Taken from Douglas on Stack Overflow
+        var documentElement = (response ? response.ownerDocument || response : 0).documentElement;
+        var isXML = documentElement ? documentElement.nodeName !== "HTML" : false;
+        return isXML ? xml2json(response) : response;
       }
-      // Row is valid
-      row.forEach(function(entry, colIdx) {
-        // We still want to put in entry if entry === false
-        var entryExists = (entry !== undefined) && (entry !== null);
-        promises.push(setEntry(rowIdx, colIdx, entryExists ? String(entry) : "")); 
-            // Clear cell if entry is undefined or null
-      });
-    });
-    return q.all(promises);
-  };
 
-  // FIXME: DOES NOT WORK RIGHT NOW
-  // Attempting to use causes Google to return the error:
-  // "Blank rows cannot be written; use delete instead."
-  Worksheet.prototype.addRow = function(data, opts) {
-    var outData = { xmlns$gsx : "https://schemas.google.com/spreadsheets/2006/extended" };
-    Object.keys(data).forEach(function(key) { 
-      outData['gsx:' + key] = { $t : String(data[key]) };
-    });
-    opts = prepareRowsOrCellsOpts(this, opts);
-    opts.method = "POST";
-    return getFeed(["list", opts.key, opts.worksheet], opts, { entry : outData }, 'entry');
-  };
+      // Taken from http://stackoverflow.com/questions/1912501/unescape-html-entities-in-javascript
+      function extractError(htmlStr){
+        // We're not using jQuery here, so there shouldn't be
+        // any XSS potential.
+        var temp = document.createElement('div');
+        temp.innerHTML = htmlStr;
+        // Non-published sheets have a fancier error message
+        var maybeError = temp.getElementsByClassName("errorMessage");
+        if (maybeError.length > 0) {
+          return maybeError[0].innerHTML;
+        }
+        return temp.childNodes.length === 0 ? "" : temp.childNodes[0].nodeValue;
+      }
+      // copied from https://raw.githubusercontent.com/samcday/node-google-spreadsheets/master/lib/spreadsheets.js
 
-  Worksheet.prototype.updateRow = function(row, data, opts) {
-    var isRow = row instanceof Row;
-    if (!isRow && !this.rowEntries) {
-      this.rows(); // Populates this.rowEntries
-    }
-    if (!isRow && (!this.rowEntries || !this.rowEntries[rowNum])) {
-      throw new Error("Row at index " + rowNum + " not in row list.");
-    }
-    var rowEntry = isRow ? row : this.rowEntries[rowNum];
-    Object.keys(data).forEach(function(key){
-      rowEntry["gsx:" + key] = { $t : String(data[key]) };
-    });
-    opts = prepareRowsOrCellsOpts(this, opts);
-    opts.method = "PUT";
-    return getFeed(rowEntry.id, opts, { entry : rowEntry }, 'entry');
-  };
+      // If caller has installed googleapis, we do some sanity checking to make sure it's a version we know.
+      var FEED_URL = "https://spreadsheets.google.com/feeds/";
 
-  Worksheet.prototype.deleteRow = function(row, opts) {
-    var ret = q.defer();
-    opts = opts || {};
-    var ws = this;
-    if (!(row instanceof Row) && !ws.rowEntries) { 
-      if (opts.rowsCalled) { 
-        ret.reject("Internal error: Rows failed to populate");
-      } else {
-        this.rows()
-          .then(function(res){
-            opts['rowsCalled'] = true;
-            ret.resolve(ws.deleteRow(row, opts));
+      var token;
+
+      var Spreadsheets;
+
+      var forceArray = function(val) {
+        if(Array.isArray(val)) {
+          return val;
+        }
+
+        return [val];
+      };
+
+      var createSpreadsheet = function(name) {
+        var opts = {};
+        opts.mimeType = 'application/vnd.google-apps.spreadsheet';
+        opts.fileExtension = false;
+        var ret = q.defer();
+        storageAPI
+          .then(function(api){
+            ret.resolve(api.createFile(name, opts));
           })
           .catch(ret.reject);
-      }
-    } else {
-      if (!(row instanceof Row) && !ws.rowEntries[row]) { 
-        ret.reject("Row at index " + row + " not in row list.");
-      }
-      row = (row instanceof Row) ? row : ws.rowEntries[row];
-      var editLink = row.link.filter(function(l){ return l.rel === "edit"; })[0].href;
-      opts = prepareRowsOrCellsOpts(ws, opts);
-      opts.method = "DELETE";
-      getFeed(editLink, opts, null)
-        .then(function(result){
-          var deleteSuccessful = ws.rowEntries.splice(ws.rowEntries.indexOf(row), 1);
-          if (deleteSuccessful) { ret.resolve(result); }
-          else { ret.reject("Internal Error: Failed to remove row"); }
-        })
-        .catch(ret.reject);
-    }
-    return ret.promise;
-  };
-
-  Worksheet.prototype.updateName = function(newName, opts) {
-    opts = prepareRowsOrCellsOpts(this, opts);
-    opts.method = "PUT";
-    this.rawData.title.$t = String(newName);
-    this.title = String(newName);
-    var outData = { entry : $.extend({}, this.rawData) };
-    delete outData.entry['gd$etag'];
-    return getFeed(this.editLink, opts, outData, 'entry');
-  };
-
-  Worksheet.prototype.resizeRows = function(newRowNum, opts) {
-    opts = prepareRowsOrCellsOpts(this, opts);
-    opts.method = "PUT";
-    this.rawData.gs$rowCount.$t = String(newRowNum);
-    this.rowCount = newRowNum;
-    var outData = { entry : $.extend({}, this.rawData) };
-    delete outData.entry['gd$etag'];
-    return getFeed(this.editLink, opts, outData, 'entry');
-  };
-
-  Worksheet.prototype.resizeCols = function(newColNum, opts) {
-    opts = prepareRowsOrCellsOpts(this, opts);
-    opts.method = "PUT";
-    this.rawData.gs$colCount.$t = String(newColNum);
-    this.colCount = newColNum;
-    var outData = { entry : $.extend({}, this.rawData) };
-    delete outData.entry['gd$etag'];
-    return getFeed(this.editLink, opts, outData, 'entry');
-  };
-
-  var Spreadsheet = function(key, auth, data) {
-    this.key = key;
-    this.auth = auth;
-    this.title = data.title.$t;
-    this.updated = data.updated.$t;
-    this.author = {
-      name: data.author[0].name.$t,
-      email: data.author[0].email.$t
-    };
-
-    this.worksheets = [];
-    var worksheets = forceArray(data.entry);
-
-    worksheets.forEach(function(worksheetData) {
-      this.worksheets.push(new Worksheet(this, worksheetData));
-    }, this);
-  };
-
-  Spreadsheet.prototype.addWorksheet = function(name, opts) { 
-    opts = opts || {};
-    opts.key = opts.key || this.key;
-    opts.auth = opts.auth || this.auth;
-    opts.method = 'POST';
-    var ret = q.defer();
-    var outData = { entry : {} };
-    var ss = this;
-    outData.entry.title = {};
-    outData.entry.title.$t = name;
-    outData.entry.gs$rowCount = opts.rowCount || 50;
-    outData.entry.gs$colCount = opts.colCount || 26;
-    getFeed(['worksheets', opts.key], opts, outData, 'entry')
-      .then(function(data){
-        if (!data.entry) { 
-          ret.reject("Internal Error: Failed to create worksheet '" + name + '"'); 
-        }
-        ss.worksheets.push(new Worksheet(ss, data.entry));
-        ret.resolve(ss.worksheets[ss.worksheets.length - 1]);
-      })
-      .catch(ret.reject);
-    return ret.promise;
-  }
-
-  Spreadsheet.prototype.deleteWorksheet = function(ws, opts) {
-    opts = prepareRowsOrCellsOpts(ws, opts);
-    opts.method = "DELETE";
-    var ret = q.defer();
-    var ss = this;
-    getFeed(ws.editLink, opts, null)
-      .then(function(result) {
-        var deletionSuccessful = (ss.worksheets.splice(ss.worksheets.indexOf(ws), 1) !== []);
-        if (deletionSuccessful) { ret.resolve(result); }
-        else { ret.reject("Internal Error: Failed to delete worksheet from spreadsheet"); }
-      })
-      .catch(ret.reject);
-    return ret.promise;
-  };
-  
-  var Row = function(data) {
-    Object.keys(data).forEach(function(key) {
-      var val;
-      val = data[key];
-      if(key.substring(0, 4) === "gsx:")  {
-        if(typeof val === 'object' && Object.keys(val).length === 0) {
-          val = null;
-        }
-        if (key === "gsx:") {
-          this[key.substring(0, 3)] = val;
-        } else {
-          this[key.substring(4)] = val;
-        }
-      } else if(key.substring(0, 4) === "gsx$") {
-        if (key === "gsx$") {
-          this[key.substring(0, 3)] = val;
-        } else {
-          this[key.substring(4)] = val.$t || val;
-        }
-      } else {
-        if (key === "id") {
-          this[key] = val;
-        } else if (val.$t) {
-          this[key] = val.$t;
-        }
-      }
-    }, this);
-  };
-
-  var Cells = function(data) {
-    // Populate the cell data into an array grid.
-    this.cells = [];
-
-    var entries = forceArray(data.entry);
-    var cell, row, col;
-    entries.forEach(function(entry) {
-      cell = entry.gs$cell;
-      row = cell.row;
-      col = cell.col;
-
-      if(!this.cells[row - 1]) {
-        this.cells[row - 1] = [];
+        return ret.promise;
       }
 
-      var val = undefined;
-      if (cell.numericValue) { val = Number(cell.numericValue); }
-      else if (cell.$t === "true") { val = true; }
-      else if (cell.$t === "false") { val = false; }
-      else { val = cell.$t || ""; }
-      this.cells[row - 1][col - 1] = val;
-    }, this);
-  };
+      var getFeed = function(params, opts, query, rootElt) {
+        var visibility = "public";
+        var projection = "values";
+        var headers = {};
+        var method = "GET";
+        var checkTok = false;
 
-  Spreadsheets = function(opts) {
-    if(!opts) {
-      throw new Error("Invalid arguments.");
-    }
-    if(!opts.key) {
-      throw new Error("Spreadsheet key not provided.");
-    }
+        if (opts.auth) {
+          visibility = "private";
+          projection = "full";
+        }
+        if (opts.visibility) {
+          visibility = opts.visibility;
+        }
+        if (opts.method) {
+          method = opts.method;
+        }
 
-    return getFeed(["worksheets", opts.key], opts, null).then(function(data) {
-      return new Spreadsheet(opts.key, opts.auth, data);
-    });
-  };
+        query = query || {};
+        // When sending POST/PUT requests, we want
+        // to add attributes to the object which will
+        // be converted into the root XML element.
+        var queryDest = rootElt ? query[rootElt] : query;
+        queryDest["alt"] = "json";
 
-  Spreadsheets.rows = function(opts) {
-    if(!opts) {
-      throw new Error("Invalid arguments.");
-    }
-    if(!opts.key) {
-      throw new Error("Spreadsheet key not provided.");
-    }
-    if(!opts.worksheet) {
-      throw new Error("Worksheet not specified.");
-    }
 
-    var query = {};
-    if(opts.start) {
-      query["start-index"] = opts.start;
-    }
-    if(opts.num) {
-      query["max-results"] = opts.num;
-    }
-    if(opts.orderby) {
-      query.orderby = opts.orderby;
-    }
-    if(opts.reverse) {
-      query.reverse = opts.reverse;
-    }
-    if(opts.sq) {
-      query.sq = opts.sq;
-    }
+        if ( typeof(params) == 'string' ) {
+          // used for edit / delete requests
+          url = params;
+        } else if ( Array.isArray( params )){
+          //used for get and post requets
+          params.push( visibility, projection );
+          url = FEED_URL + params.join("/");
+        }
 
-    var ws = opts.ws;
-    return getFeed(["list", opts.key, opts.worksheet], opts, query).then(function(data) {
-      var rows = [];
-      if (ws) {
-        ws.rowEntries = [];
-      }
+        if ( opts.auth && opts.auth.getToken() ) {
+          headers['Authorization'] = 'Bearer ' + opts.auth.getToken().access_token;
+        }
 
-      if(typeof data.entry !== "undefined" && data.entry !== null) {
-        var entries = forceArray(data.entry);
+        if ( method == 'POST' || method == 'PUT' ){
+          headers['content-type'] = 'application/atom+xml';
+          queryDest['xmlns'] = 'http://www.w3.org/2005/Atom';
+          delete queryDest['alt'];
+          if( !queryDest['xmlns$gs'] && !queryDest['xmlns$gsx'] ) {
+            queryDest['xmlns$gs'] = 'http://schemas.google.com/spreadsheets/2006';
+          }
+          /* The API only accepts XML in PUSH/PUT requests, it would seem,
+           * so we convert the query object into XML using the rules found
+           * at https://developers.google.com/gdata/docs/json
+           */
+          query = ensureXML(query);
+          query = '<?xml version="1.0" encoding="UTF-8"?>' + query;
+        }
 
-        entries.forEach(function(entry) {
-          rows.push(new Row(entry));
-          if (ws) { ws.rowEntries.push(entry); }
+        if ( method == 'POST' || method == 'PUT' || method == 'DELETE' ) { 
+          if( token ) {
+            // To keep csurf from getting upset
+            headers['X-CSRF-Token'] = token;
+          }    
+        }
+
+        if ( method == 'GET' ) { 
+          checkTok = token === undefined;
+          if ( query ) { 
+            url += "?" + encodeQuerystring( query );
+          }
+        } 
+        console.log("url = " + url);
+        console.log("Trying to get /googleProxy?" + encodeURIComponent(url));
+
+        var ret = q.defer();
+        $.ajax("/googleProxy?" + encodeURIComponent(url), {
+          method: method,
+          headers: headers,
+          data: method == 'POST' || method == 'PUT' ? query : null,
+        }).done(function(data, textStatus, jqXHR) {
+          if ( checkTok ) {
+            // Retrieve the CSRF token from csurf
+            token = jqXHR.getResponseHeader('X-Pyret-Token');
+          }
+          //console.log(data);
+          ret.resolve(ensureJSON(data.feed || data));
+        }).fail(function(jqXHR, textStatus, error) {
+          /*console.log("FAILED");
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(error);*/
+          if (jqXHR.status === 401) {
+            ret.reject("Invalid authorization key");
+          } else if (jqXHR.status == 501 ) {
+            // A bit of a kludge, but this is more informative than 
+            // 'Unsupported Projection.' As for the *real* source of
+            // this, we may want to look into using "basic" instead
+            // of "full" projection, as that *does* still work with
+            // older spreadsheets.
+            ret.reject("Old Spreadsheets not supported. Please upgrade the spreadsheet or try another.");
+          } else if ( jqXHR.status >= 400 ) {
+            ret.reject(extractError(jqXHR.responseText));
+          } else if ( response.statusCode === 200 && response.headers['content-type'].indexOf('text/html') >= 0 ) {
+            ret.reject("Sheet is private. Use authentication or make public. (see https://github.com/theoephraim/node-google-spreadsheet#a-note-on-authentication for details)");
+          }
         });
+        return ret.promise;
+      };
+
+      var Worksheet = function(spreadsheet, data) {
+        // This should be okay, unless Google decided to change their URL scheme...
+        var id = data.id.$t;
+        this.id = id.substring(id.lastIndexOf("/") + 1);
+        this.spreadsheet = spreadsheet;
+        this.rowCount = data.gs$rowCount.$t;
+        this.colCount = data.gs$colCount.$t;
+        this.title = data.title.$t;
+        this.editLink = data.link.filter(function(l){ return l.rel === "edit"; })[0].href;
+        this.rawData = data;
+      };
+
+      function prepareRowsOrCellsOpts(worksheet, opts) {
+        opts = opts || {};
+        opts.key = worksheet.spreadsheet.key;
+        opts.auth = worksheet.spreadsheet.auth;
+        opts.worksheet = worksheet.id;
+        return opts;
       }
 
-      return rows;
-    });
-  };
+      Worksheet.prototype.rows = function(opts) {
+        opts = opts || {};
+        opts.ws = this;
+        return Spreadsheets.rows(prepareRowsOrCellsOpts(this, opts));
+      };
 
-  Spreadsheets.cells = function(opts) {
-    if(!opts) {
-      throw new Error("Invalid arguments.");
-    }
-    if(!opts.key) {
-      throw new Error("Spreadsheet key not provided.");
-    }
-    if(!opts.worksheet) {
-      throw new Error("Worksheet not specified.");
-    }
+      Worksheet.prototype.cells = function(opts) {
+        return Spreadsheets.cells(prepareRowsOrCellsOpts(this, opts));
+      };
 
-    var query = {
-    };
-    if(opts.range) {
-      query.range = opts.range;
-    }
-    if (opts.maxRow) {
-      query["max-row"] = opts.maxRow;
-    }
-    if (opts.minRow) {
-      query["min-row"] = opts.minRow;
-    }
-    if (opts.maxCol) {
-      query["max-col"] = opts.maxCol;
-    }
-    if (opts.minCol) {
-      query["min-col"] = opts.minCol;
-    }
+      // PRECONDITION: No bad entries in contents
+      Worksheet.prototype.updateCells = function(startRow, startCol, contents, opts) {
+        if (!(Array.isArray(contents))) {
+          throw new Error("contents must be an array. Given: " + contents);
+        }
+        opts = prepareRowsOrCellsOpts(this, opts);
+        opts.method = "PUT";
+        var params = ["cells", opts.key, opts.worksheet, "private", "full"];
+        var baseUrl = FEED_URL + params.join("/");
+        /*
+         * FIXME:
+         * So here's the deal: Google Sheets has a means of doing batch
+         * updates via their API, but it seems to have no intention of
+         * cooperating. After playing with the OAuth playground, it became
+         * apparent that the errors were stemming from the API not accepting
+         * the batch requests, despite the XML being correctly formed.
+         * As such, the entry-setting requests are currently *not* batched.
+         */
+        function setEntry(rowIdx, colIdx, value) {
+          var rowNum = startRow + rowIdx + 1;
+          var colNum = startCol + colIdx + 1;
+          var url = baseUrl + "/R" + rowNum + "C" + colNum;
+          var outObj = { 
+            title : { type : "text", $t : "R" + rowNum + "C" + colNum },
+            id : { $t : url },
+            link : { rel : "edit", type : "application/atom+xml", href : url },
+            gs$cell : { row : String(rowNum), col : String(colNum),
+              inputValue : String(value) }
+          };
+          return getFeed(url, opts, { entry : outObj }, 'entry');
+        }
+        var expectedLen;
+        var promises = [];
+        contents.forEach(function(row, rowIdx) {
+          if (!(Array.isArray(row))) {
+            throw new Error("Non-array row: " + row);
+          } 
+          expectedLen = expectedLen || row.length;
+          if (row.length !== expectedLen) {
+            throw new Error("Wrong number of columns given in row " + 
+              rowIdx + ". Expected: " + expectedLen
+              + " Given: " + row.length);
+          }
+          // Row is valid
+          row.forEach(function(entry, colIdx) {
+            // We still want to put in entry if entry === false
+            var entryExists = (entry !== undefined) && (entry !== null);
+            promises.push(setEntry(rowIdx, colIdx, entryExists ? String(entry) : "")); 
+                // Clear cell if entry is undefined or null
+          });
+        });
+        return q.all(promises);
+      };
 
-    return getFeed(["cells", opts.key, opts.worksheet], opts, query).then(function(data) {
-      if(typeof data.entry !== "undefined" && data.entry !== null) {
-        return new Cells(data);
-      } else {
-        return { cells: {} }; // Not entirely happy about defining the data format in 2 places (here and in Cells()), but the alternative is moving this check for undefined into that constructor, which means it's in a different place than the one for .rows() above -- and that mismatch is what led to it being missed
+      // FIXME: DOES NOT WORK RIGHT NOW
+      // Attempting to use causes Google to return the error:
+      // "Blank rows cannot be written; use delete instead."
+      Worksheet.prototype.addRow = function(data, opts) {
+        var outData = { xmlns$gsx : "https://schemas.google.com/spreadsheets/2006/extended" };
+        Object.keys(data).forEach(function(key) { 
+          outData['gsx:' + key] = { $t : String(data[key]) };
+        });
+        opts = prepareRowsOrCellsOpts(this, opts);
+        opts.method = "POST";
+        return getFeed(["list", opts.key, opts.worksheet], opts, { entry : outData }, 'entry');
+      };
+
+      Worksheet.prototype.updateRow = function(row, data, opts) {
+        var isRow = row instanceof Row;
+        if (!isRow && !this.rowEntries) {
+          this.rows(); // Populates this.rowEntries
+        }
+        if (!isRow && (!this.rowEntries || !this.rowEntries[rowNum])) {
+          throw new Error("Row at index " + rowNum + " not in row list.");
+        }
+        var rowEntry = isRow ? row : this.rowEntries[rowNum];
+        Object.keys(data).forEach(function(key){
+          rowEntry["gsx:" + key] = { $t : String(data[key]) };
+        });
+        opts = prepareRowsOrCellsOpts(this, opts);
+        opts.method = "PUT";
+        return getFeed(rowEntry.id, opts, { entry : rowEntry }, 'entry');
+      };
+
+      Worksheet.prototype.deleteRow = function(row, opts) {
+        var ret = q.defer();
+        opts = opts || {};
+        var ws = this;
+        if (!(row instanceof Row) && !ws.rowEntries) { 
+          if (opts.rowsCalled) { 
+            ret.reject("Internal error: Rows failed to populate");
+          } else {
+            this.rows()
+              .then(function(res){
+                opts['rowsCalled'] = true;
+                ret.resolve(ws.deleteRow(row, opts));
+              })
+              .catch(ret.reject);
+          }
+        } else {
+          if (!(row instanceof Row) && !ws.rowEntries[row]) { 
+            ret.reject("Row at index " + row + " not in row list.");
+          }
+          row = (row instanceof Row) ? row : ws.rowEntries[row];
+          var editLink = row.link.filter(function(l){ return l.rel === "edit"; })[0].href;
+          opts = prepareRowsOrCellsOpts(ws, opts);
+          opts.method = "DELETE";
+          getFeed(editLink, opts, null)
+            .then(function(result){
+              var deleteSuccessful = ws.rowEntries.splice(ws.rowEntries.indexOf(row), 1);
+              if (deleteSuccessful) { ret.resolve(result); }
+              else { ret.reject("Internal Error: Failed to remove row"); }
+            })
+            .catch(ret.reject);
+        }
+        return ret.promise;
+      };
+
+      Worksheet.prototype.updateName = function(newName, opts) {
+        opts = prepareRowsOrCellsOpts(this, opts);
+        opts.method = "PUT";
+        this.rawData.title.$t = String(newName);
+        this.title = String(newName);
+        var outData = { entry : $.extend({}, this.rawData) };
+        delete outData.entry['gd$etag'];
+        return getFeed(this.editLink, opts, outData, 'entry');
+      };
+
+      Worksheet.prototype.resizeRows = function(newRowNum, opts) {
+        opts = prepareRowsOrCellsOpts(this, opts);
+        opts.method = "PUT";
+        this.rawData.gs$rowCount.$t = String(newRowNum);
+        this.rowCount = newRowNum;
+        var outData = { entry : $.extend({}, this.rawData) };
+        delete outData.entry['gd$etag'];
+        return getFeed(this.editLink, opts, outData, 'entry');
+      };
+
+      Worksheet.prototype.resizeCols = function(newColNum, opts) {
+        opts = prepareRowsOrCellsOpts(this, opts);
+        opts.method = "PUT";
+        this.rawData.gs$colCount.$t = String(newColNum);
+        this.colCount = newColNum;
+        var outData = { entry : $.extend({}, this.rawData) };
+        delete outData.entry['gd$etag'];
+        return getFeed(this.editLink, opts, outData, 'entry');
+      };
+
+      var Spreadsheet = function(key, auth, data) {
+        this.key = key;
+        this.auth = auth;
+        this.title = data.title.$t;
+        this.updated = data.updated.$t;
+        this.author = {
+          name: data.author[0].name.$t,
+          email: data.author[0].email.$t
+        };
+
+        this.worksheets = [];
+        var worksheets = forceArray(data.entry);
+
+        worksheets.forEach(function(worksheetData) {
+          this.worksheets.push(new Worksheet(this, worksheetData));
+        }, this);
+      };
+
+      Spreadsheet.prototype.addWorksheet = function(name, opts) { 
+        opts = opts || {};
+        opts.key = opts.key || this.key;
+        opts.auth = opts.auth || this.auth;
+        opts.method = 'POST';
+        var ret = q.defer();
+        var outData = { entry : {} };
+        var ss = this;
+        outData.entry.title = {};
+        outData.entry.title.$t = name;
+        outData.entry.gs$rowCount = opts.rowCount || 50;
+        outData.entry.gs$colCount = opts.colCount || 26;
+        getFeed(['worksheets', opts.key], opts, outData, 'entry')
+          .then(function(data){
+            if (!data.entry) { 
+              ret.reject("Internal Error: Failed to create worksheet '" + name + '"'); 
+            }
+            ss.worksheets.push(new Worksheet(ss, data.entry));
+            ret.resolve(ss.worksheets[ss.worksheets.length - 1]);
+          })
+          .catch(ret.reject);
+        return ret.promise;
       }
-    });
-  };
 
+      Spreadsheet.prototype.deleteWorksheet = function(ws, opts) {
+        opts = prepareRowsOrCellsOpts(ws, opts);
+        opts.method = "DELETE";
+        var ret = q.defer();
+        var ss = this;
+        getFeed(ws.editLink, opts, null)
+          .then(function(result) {
+            var deletionSuccessful = (ss.worksheets.splice(ss.worksheets.indexOf(ws), 1) !== []);
+            if (deletionSuccessful) { ret.resolve(result); }
+            else { ret.reject("Internal Error: Failed to delete worksheet from spreadsheet"); }
+          })
+          .catch(ret.reject);
+        return ret.promise;
+      };
+      
+      var Row = function(data) {
+        Object.keys(data).forEach(function(key) {
+          var val;
+          val = data[key];
+          if(key.substring(0, 4) === "gsx:")  {
+            if(typeof val === 'object' && Object.keys(val).length === 0) {
+              val = null;
+            }
+            if (key === "gsx:") {
+              this[key.substring(0, 3)] = val;
+            } else {
+              this[key.substring(4)] = val;
+            }
+          } else if(key.substring(0, 4) === "gsx$") {
+            if (key === "gsx$") {
+              this[key.substring(0, 3)] = val;
+            } else {
+              this[key.substring(4)] = val.$t || val;
+            }
+          } else {
+            if (key === "id") {
+              this[key] = val;
+            } else if (val.$t) {
+              this[key] = val.$t;
+            }
+          }
+        }, this);
+      };
 
-  return util.definePyretModule(
-    "gdrive-sheets",
-    [],
-    {
-      values: ["load-sheet-raw", "load-sheet"],
-      types: []
-    },
-    function(runtime, namespace) {
+      var Cells = function(data) {
+        // Populate the cell data into an array grid.
+        this.cells = [];
+
+        var entries = forceArray(data.entry);
+        var cell, row, col;
+        entries.forEach(function(entry) {
+          cell = entry.gs$cell;
+          row = cell.row;
+          col = cell.col;
+
+          if(!this.cells[row - 1]) {
+            this.cells[row - 1] = [];
+          }
+
+          var val = undefined;
+          if (cell.numericValue) { val = runtime.makeNumberFromString(cell.numericValue); }
+          else if (cell.$t === "true") { val = true; }
+          else if (cell.$t === "false") { val = false; }
+          else { val = cell.$t || ""; }
+          this.cells[row - 1][col - 1] = val;
+        }, this);
+      };
+
+      Spreadsheets = function(opts) {
+        if(!opts) {
+          throw new Error("Invalid arguments.");
+        }
+        if(!opts.key) {
+          throw new Error("Spreadsheet key not provided.");
+        }
+
+        return getFeed(["worksheets", opts.key], opts, null).then(function(data) {
+          return new Spreadsheet(opts.key, opts.auth, data);
+        });
+      };
+
+      Spreadsheets.rows = function(opts) {
+        if(!opts) {
+          throw new Error("Invalid arguments.");
+        }
+        if(!opts.key) {
+          throw new Error("Spreadsheet key not provided.");
+        }
+        if(!opts.worksheet) {
+          throw new Error("Worksheet not specified.");
+        }
+
+        var query = {};
+        if(opts.start) {
+          query["start-index"] = opts.start;
+        }
+        if(opts.num) {
+          query["max-results"] = opts.num;
+        }
+        if(opts.orderby) {
+          query.orderby = opts.orderby;
+        }
+        if(opts.reverse) {
+          query.reverse = opts.reverse;
+        }
+        if(opts.sq) {
+          query.sq = opts.sq;
+        }
+
+        var ws = opts.ws;
+        return getFeed(["list", opts.key, opts.worksheet], opts, query).then(function(data) {
+          var rows = [];
+          if (ws) {
+            ws.rowEntries = [];
+          }
+
+          if(typeof data.entry !== "undefined" && data.entry !== null) {
+            var entries = forceArray(data.entry);
+
+            entries.forEach(function(entry) {
+              rows.push(new Row(entry));
+              if (ws) { ws.rowEntries.push(entry); }
+            });
+          }
+
+          return rows;
+        });
+      };
+
+      Spreadsheets.cells = function(opts) {
+        if(!opts) {
+          throw new Error("Invalid arguments.");
+        }
+        if(!opts.key) {
+          throw new Error("Spreadsheet key not provided.");
+        }
+        if(!opts.worksheet) {
+          throw new Error("Worksheet not specified.");
+        }
+
+        var query = {
+        };
+        if(opts.range) {
+          query.range = opts.range;
+        }
+        if (opts.maxRow) {
+          query["max-row"] = opts.maxRow;
+        }
+        if (opts.minRow) {
+          query["min-row"] = opts.minRow;
+        }
+        if (opts.maxCol) {
+          query["max-col"] = opts.maxCol;
+        }
+        if (opts.minCol) {
+          query["min-col"] = opts.minCol;
+        }
+
+        return getFeed(["cells", opts.key, opts.worksheet], opts, query).then(function(data) {
+          if(typeof data.entry !== "undefined" && data.entry !== null) {
+            return new Cells(data);
+          } else {
+            return { cells: {} }; // Not entirely happy about defining the data format in 2 places (here and in Cells()), but the alternative is moving this check for undefined into that constructor, which means it's in a different place than the one for .rows() above -- and that mismatch is what led to it being missed
+          }
+        });
+      };
+
       var F = runtime.makeFunction;
       var O = runtime.makeObject;
       function colNameToNum(name) {
