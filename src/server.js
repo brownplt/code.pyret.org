@@ -8,9 +8,15 @@ function start(config, onServerReady) {
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
   var request = require('request');
+  var mustache = require('mustache-express');
   var url = require('url');
 //  var mail = require('./mail.js');
   var fs = require('fs');
+
+  function loggedIn(req) {
+    var session = req.session;
+    return session && session["user_id"];
+  }
 
   function requireLogin(req, res) {
     var login = Q.defer();
@@ -33,6 +39,7 @@ function start(config, onServerReady) {
 
   app = express();
 
+
   // From http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
   /* At the top, with other redirect methods before other routes */
   app.get('*',function(req,res,next){
@@ -49,8 +56,6 @@ function start(config, onServerReady) {
     res.send(fs.readFileSync("build/web/js/pyret.js.gz"));
   });
 
-  app.use(express.static(__dirname + "/../build/web/"));
-
   app.use(cookieSession({
     secret: config.sessionSecret,
     key: "code.pyret.org"
@@ -61,8 +66,20 @@ function start(config, onServerReady) {
   var auth = googleAuth.makeAuth(config);
   var db = config.db;
 
+  app.set('views', __dirname + '/../build/web/views');
+  app.engine('html', mustache());
+  app.set('view engine', 'html');
+
+  app.use(express.static(__dirname + "/../build/web/"));
+
+  app.get("/close.html", function(_, res) { res.render("close.html"); });
+
   app.get("/", function(req, res) {
-    res.sendfile("build/web/index.html");
+    var content = loggedIn(req) ? "My Programs" : "Log In";
+    res.render("index.html", {
+      LEFT_LINK: content,
+      GOOGLE_API_KEY: config.GOOGLE_API_KEY
+    });
   });
 
   app.get("/login", function(req, res) {
@@ -272,7 +289,7 @@ function start(config, onServerReady) {
   });
 
   app.get("/editor", function(req, res) {
-    res.sendfile("build/web/editor.html");
+    res.render("editor.html");
   });
 
   app.get("/neweditor", function(req, res) {

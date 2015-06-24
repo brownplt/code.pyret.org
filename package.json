@@ -24,7 +24,8 @@
     "mustache": "^0.8.1",
     "url.js": "^1.0.2",
     "redis": "^0.10.3",
-    "seedrandom": "~2.3.10"
+    "seedrandom": "~2.3.10",
+    "mustache-express": "^1.2.1"
   },
   "devDependencies": {},
   "scripts": {

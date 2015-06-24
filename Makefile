@@ -37,14 +37,14 @@ selenium-test-sauce:
 	TEST_LOC="sauce" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
 
 
-OUT_HTML := $(patsubst src/web/%.template.html,build/web/%.html,$(wildcard src/web/*.template.html))
+OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
-build/web/%.html: src/web/%.template.html
+build/web/views/%.html: src/web/%.template.html
 	node make-template.js $< > $@
 
-COPY_HTML := $(patsubst src/web/%.html,build/web/%.html,$(wildcard src/web/*.html))
+COPY_HTML := $(patsubst src/web/%.html,build/web/views/%.html,$(wildcard src/web/*.html))
 
-build/web/%.html: src/web/%.html
+build/web/views/%.html: src/web/%.html
 	cp $< $@
 
 OUT_CSS := $(patsubst src/web/%.template.css,build/web/%.css,$(wildcard src/web/css/*.template.css))
@@ -118,11 +118,15 @@ build/web/img/%: node_modules/pyret-lang/img/%
 
 
 WEB = build/web
+WEBV = build/web/views
 WEBJS = build/web/js
 WEBCSS = build/web/css
 WEBIMG = build/web/img
 NEWCSS = build/web/neweditor/css
 NEWJS = build/web/neweditor/js
+
+$(WEBV):
+	@$(call MKDIR,$(WEBV))
 
 $(WEB):
 	@$(call MKDIR,$(WEB))
@@ -142,6 +146,6 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
-web: $(WEB) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
