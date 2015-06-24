@@ -9,7 +9,7 @@ h1 {
 
 #left {
   vertical-align: middle;
-  margin-left: 3em;
+  margin-right: 3em;
   font-size: 18pt;
   width: 100px;
   float:none;
@@ -17,7 +17,7 @@ h1 {
 
 #right {
   vertical-align: middle;
-  margin-right: 3em;;
+  margin-left: 3em;;
   font-size: 18pt;
   width: 100px;
   float:none;
