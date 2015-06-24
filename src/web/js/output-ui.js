@@ -363,25 +363,44 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
           },
           "embed": function(val) {
             var placeholder = $("<span>").text("Rendering...");
-            runtime.runThunk(
-              function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); },
-              function(out) {
-                if (runtime.isSuccessResult(out)) {
-                  if ($.contains(document.documentElement, placeholder[0])) {
-                    placeholder.replaceWith(out.result); 
-                  }
-                  else { 
-                    placeholder = out.result; 
-                  }
-                  return out.result;
-                } else {
-                  var msg = $("<span>").addClass("output-failed")
-                    .text("<error rendering embedded value; details logged to console>");
-                  console.log(out.exn);
-                  return msg;
-                }
-              });
-            return placeholder;
+            var replace = function(replacement) {
+              if ($.contains(document.documentElement, placeholder[0])) {
+                placeholder.replaceWith(replacement);
+              } else {
+                placeholder = replacement;
+              }
+            }
+            var tryTorepr = function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); }
+            var processTryTorepr = function(out) {
+              var replacement;
+              if (runtime.isSuccessResult(out)) {
+                replacement = out.result;
+              } else {
+                replacement = $("<span>").addClass("output-failed")
+                  .text("<error rendering embedded value; details logged to console>");
+                console.log(out.exn);
+              }
+              replace(replacement);
+              return placeholder;
+            }
+            var tryRenderReason = function() { return runtime.getField(val, "render-reason").app(); }
+            var processTryRenderReason = function(out) {
+              if (runtime.isSuccessResult(out)) {
+                var replacement = help(out.result);
+                $(replacement).addClass("nestedReason");
+                replace(replacement);
+              } else {
+                runtime.runThunk(tryTorepr, processTryTorepr);
+              }
+              return placeholder;
+            }
+            if (runtime.isObject(val) && runtime.hasField(val, "render-reason")) {
+              runtime.runThunk(tryRenderReason, processTryRenderReason);
+              return placeholder;
+            } else {
+              runtime.runThunk(tryTorepr, processTryTorepr);
+              return placeholder;
+            }
           },
           "optional": function(contents) {
             return expandableMore(help(contents));
@@ -626,7 +645,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       var name = $("<span>").text(top.extra.constructorName);
       var openParen = $("<span>").addClass("collapsed").text("(");
       var closeParen = $("<span>").addClass("collapsed").text(")");
-      var dl = $("<dl>")
+      var dl = $("<dl>");
       container.append(name);
       if (top.extra.arity !== -1) {
         container.append(openParen);

@@ -133,7 +133,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background: rgba(255, 255, 255, 0.6);
 }
 
-.check-block-collapsible div:nth-child(1){
+.check-block-collapsible > div:nth-child(1){
   border-top: 1px solid rgba(0,0,0,0.3);
 }
 
@@ -540,7 +540,7 @@ div#font-label:hover{
   color: #af1180;
 }
 
-.replOutputReason {
+.replOutputReason, .nestedReason {
  padding-top: 0;
  padding-left: 3.0em;
  color: #af1180;
