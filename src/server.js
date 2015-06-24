@@ -149,6 +149,7 @@ function start(config, onServerReady) {
         "Authorization": req.headers["authorization"],
         "GData-Version": "3.0",
         "content-type": req.headers["content-type"],
+        "If-Match": "*",
       };
       var put = request.put({
         url: googleUrl,
@@ -172,6 +173,7 @@ function start(config, onServerReady) {
         body: req.rawBody,
         headers: headers
       });
+      response.append('X-Pyret-Token', req.csrfToken());
       get.pipe(response);
     }
   });

@@ -101,7 +101,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
       };
 
     }
-    function makeFile(googFileObject) {
+    function makeFile(googFileObject, mimeType, fileExtension) {
       return {
         shared: false,
         getName: function() {
@@ -125,7 +125,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
             }))
           .then(function(files) {
             if(!files.items) { return []; }
-            else { return files.items.map(makeFile); }
+            else { return files.items.map(fileBuilder); }
           });;
         },
         getContents: function() {
@@ -143,7 +143,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
             resource: {
               'title': newName
             }
-          })).then(makeFile);
+          })).then(fileBuilder);
         },
         makeShareCopy: function() {
           var shareCollection = findOrCreateShareDirectory();
@@ -173,7 +173,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
             }));
           });
           return Q.all([newFile, updated]).spread(function(fileObj) {
-            return makeFile(fileObj);
+            return fileBuilder(fileObj);
           });
         },
         save: function(contents, newRevision) {
@@ -189,8 +189,8 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
           const delimiter = "\r\n--" + boundary + "\r\n";
           const close_delim = "\r\n--" + boundary + "--";
           var metadata = {
-            'mimeType': "text/plain",
-            'fileExtension': "arr"
+            'mimeType': mimeType,
+            'fileExtension': fileExtension
           };
           var multipartRequestBody =
                 delimiter +
@@ -210,10 +210,21 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
                 'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
               },
               'body': multipartRequestBody});
-          return gQ(request).then(makeFile);
+          return gQ(request).then(fileBuilder);
         },
         _googObj: googFileObject
       };
+    }
+
+    // The primary purpose of this is to have some sort of fallback for
+    // any situation in which the file object has somehow lost its info
+    function fileBuilder(googFileObject) { 
+      if ((googFileObject.mimeType === 'text/plain' && !googFileObject.fileExtension) 
+          || googFileObject.fileExtension === 'arr') { 
+        return makeFile(googFileObject, 'text/plain', 'arr');
+      } else {
+        return makeFile(googFileObject, googFileObject.mimeType, googFileObject.fileExtension);
+      }
     }
 
     var api = {
@@ -223,7 +234,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         });
       },
       getFileById: function(id) {
-        return gQ(drive.files.get({fileId: id})).then(makeFile);
+        return gQ(drive.files.get({fileId: id})).then(fileBuilder);
       },
       getFileByName: function(name) {
         return this.getAllFiles().then(function(files) {
@@ -238,25 +249,32 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
           return gQ(drive.files.list({ q: "trashed=false and '" + bc.id + "' in parents" }))
           .then(function(filesResult) {
             if(!filesResult.items) { return []; }
-            return filesResult.items.map(makeFile);
+            return filesResult.items.map(fileBuilder);
           });
         });
       },
-      createFile: function(name) {
+      createFile: function(name, opts) {
+        opts = opts || {};
+        var mimeType = opts.mimeType || 'text/plain';
+        var fileExtension = opts.fileExtension || 'arr';
         return baseCollection.then(function(bc) {
-          var request = 
-            gapi.client.request({
-              'path': '/drive/v2/files',
-              'method': 'POST',
-              'params': {},
-              'body': {
-                "parents": [{id: bc.id}],
-                "mimeType": "text/plain",
-                "fileExtension": "arr",
-                "title": name
-              }
-            });
-          return gQ(request).then(makeFile);
+          var reqOpts = {
+            'path': '/drive/v2/files',
+            'method': 'POST',
+            'params': opts.params || {},
+            'body': {
+              'parents': [{id: bc.id}],
+              'mimeType': mimeType,
+              'title': name
+            }
+          };
+          // Allow the file extension to be omitted
+          // (Google can sometime infer from the mime type)
+          if (opts.fileExtension !== false) {
+            reqOpts.body.fileExtension = fileExtension;
+          }
+          var request = gapi.client.request(reqOpts);
+          return gQ(request).then(fileBuilder);
         });
       },
       checkLogin: function() {
