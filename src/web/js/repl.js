@@ -83,6 +83,30 @@ $(function() {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
+    var okImports = [
+        "world",
+        "image",
+        "image-structs",
+        "string-dict",
+        "checkers",
+        "lists",
+        "error",
+        "option",
+        "pick",
+        "either",
+        "sets",
+        "arrays",
+        "contracts",
+        "ast",
+        "parse-pyret",
+        "s-exp",
+        "s-exp-structs",
+        "pprint",
+        "srcloc",
+        "format",
+        "equality",
+        "valueskeleton"
+    ];
 
     runtime.loadModulesNew(runtime.namespace,
       [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
@@ -95,6 +119,9 @@ $(function() {
             return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
               {
                 builtin: function(name) {
+                  if(okImports.indexOf(name) === -1) {
+                    throw runtime.throwMessageException("Unknown module: " + name);
+                  }
                   return gmf(compileLib, "located").app(
                     gmf(builtin, "make-builtin-locator").app(name),
                     runtime.nothing
