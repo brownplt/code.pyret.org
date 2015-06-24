@@ -1,9 +1,9 @@
 define(["q", "js/secure-loader"], function(Q, loader) {
-  function getHttpImport(runtime, name, id) {
+  function getHttpImport(runtime, url) {
     var promise = Q.defer();
-    var fetch = $.ajax("/gdrive-js-proxy?" + id);
+    var fetch = $.ajax("/jsProxy?" + url);
     fetch.then(function(result) {
-      var loaded = loader.goodIdea(runtime, "@gdrive-js/" + name + "/" + id, result);
+      var loaded = loader.goodIdea(runtime, "@js-http/" + url, result);
       loaded.then(function(_) {
         promise.resolve({code: "", name: "skip"});
       });

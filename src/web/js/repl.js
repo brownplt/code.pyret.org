@@ -68,10 +68,10 @@ $(function() {
   "/js/guess-gas.js",
   "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
   "trove/runtime-lib", "compiler/repl-support.arr",
-  "compiler/locators/builtin.arr", "/js/gdrive-locators.js",
+  "compiler/locators/builtin.arr", "/js/cpo-builtins.js", "/js/gdrive-locators.js",
   "compiler/compile-structs.arr"],
   function(replLib, replUI, rtLib, guessGas, http, compileLib,
-  pyRepl, runtimeLib, replSupport, builtin, gdriveLocators, compileStructs) {
+  pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -119,13 +119,17 @@ $(function() {
             return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
               {
                 builtin: function(name) {
-                  if(okImports.indexOf(name) === -1) {
-                    throw runtime.throwMessageException("Unknown module: " + name);
+                  if (cpoBuiltin.knownCpoModule(name)) {
+                    return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
                   }
-                  return gmf(compileLib, "located").app(
-                    gmf(builtin, "make-builtin-locator").app(name),
-                    runtime.nothing
+                  else if(okImports.indexOf(name) === -1) {
+                    throw runtime.throwMessageException("Unknown module: " + name);
+                  } else {
+                    return gmf(compileLib, "located").app(
+                      gmf(builtin, "make-builtin-locator").app(name),
+                      runtime.nothing
                     );
+                  }
                 },
                 dependency: function(protocol, args) {
                   var arr = runtime.ffi.toArray(args);
@@ -134,6 +138,10 @@ $(function() {
                   }
                   else if (protocol === "shared-gdrive") {
                     return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                  }
+                  else if (protocol === "js-http") {
+                    // TODO: THIS IS WRONG with the new locator system
+                    return http.getHttpImport(runtime, args[0]);
                   }
                   else if (protocol === "gdrive-js") {
                     return constructors.makeGDriveJSLocator(arr[0], arr[1]);

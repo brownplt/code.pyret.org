@@ -38,6 +38,7 @@ function makeAuth(config) {
         // for it so that we don't have to do another popup on the client.
         // #notpola
         scope: "email "
+             + "https://spreadsheets.google.com/feeds "
              + "https://www.googleapis.com/auth/drive.file "
              + "https://www.googleapis.com/auth/drive.install",
         state: afterUrl
