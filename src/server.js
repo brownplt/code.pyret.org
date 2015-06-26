@@ -123,6 +123,15 @@ function start(config, onServerReady) {
     return googleUrl;
   }
 
+  function hasMime(response, mimeList) {
+    for (var i = 0; i < mimeList.length; i++) {
+      if (response.indexOf(mimeList[i]) > -1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   app.use(function(req, res, next) {
     var contentType = req.headers['content-type'] || '';
     var mime = contentType.split(';')[0];
@@ -179,6 +188,11 @@ function start(config, onServerReady) {
 
   app.get("/googleProxy", function(req, response) {
     var googleUrl = checkGoogle(req, response);
+    // Check if the request is expecting a result other than
+    // JSON or XML (and, if so, block it)
+    if(req.accepts && !req.accepts('json') && !req.accepts('atom+xml')) {
+      response.sendStatus(403);
+    }
     if(googleUrl !== null) {
       var headers = {
         "Authorization": req.headers["authorization"],
@@ -189,9 +203,17 @@ function start(config, onServerReady) {
         url: googleUrl,
         body: req.rawBody,
         headers: headers
+      }).on('response', function(res){
+        var contentType = res.headers['content-type'];
+        // Likely to have multiple MIME types, so 
+        // we need to check substrings
+        if (hasMime(contentType, ['application/json', 'application/atom+xml'])) {
+          res.headers['X-Pyret-Token'] = req.csrfToken();
+          get.pipe(response);
+        } else {
+          response.sendStatus(403);
+        }
       });
-      response.append('X-Pyret-Token', req.csrfToken());
-      get.pipe(response);
     }
   });
 
