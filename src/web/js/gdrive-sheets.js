@@ -317,8 +317,8 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         var id = data.id.$t;
         this.id = id.substring(id.lastIndexOf("/") + 1);
         this.spreadsheet = spreadsheet;
-        this.rowCount = data.gs$rowCount.$t;
-        this.colCount = data.gs$colCount.$t;
+        this.rowCount = Number(data.gs$rowCount.$t);
+        this.colCount = Number(data.gs$colCount.$t);
         this.title = data.title.$t;
         this.editLink = data.link.filter(function(l){ return l.rel === "edit"; })[0].href;
         this.rawData = data;
@@ -364,13 +364,22 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           var rowNum = startRow + rowIdx + 1;
           var colNum = startCol + colIdx + 1;
           var url = baseUrl + "/R" + rowNum + "C" + colNum;
+          var stringVal = runtime.toRepr(value);
+          if (runtime.isString(value)) {
+            // If we've been sent a quoted number,
+            // leave the quotes
+            stringVal = isNaN(value) ? value : stringVal;
+          }
           var outObj = { 
             title : { type : "text", $t : "R" + rowNum + "C" + colNum },
             id : { $t : url },
             link : { rel : "edit", type : "application/atom+xml", href : url },
             gs$cell : { row : String(rowNum), col : String(colNum),
-              inputValue : String(value) }
+              inputValue : String(stringVal) }
           };
+          if (runtime.isNumber(value)) {
+            outObj.gs$cell.numericValue = stringVal;
+          }
           return getFeed(url, opts, { entry : outObj }, 'entry');
         }
         var expectedLen;
@@ -389,7 +398,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           row.forEach(function(entry, colIdx) {
             // We still want to put in entry if entry === false
             var entryExists = (entry !== undefined) && (entry !== null);
-            promises.push(setEntry(rowIdx, colIdx, entryExists ? String(entry) : "")); 
+            promises.push(setEntry(rowIdx, colIdx, entryExists ? entry : "")); 
                 // Clear cell if entry is undefined or null
           });
         });
@@ -595,6 +604,15 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           if (cell.numericValue) { val = runtime.makeNumberFromString(cell.numericValue); }
           else if (cell.$t === "true") { val = true; }
           else if (cell.$t === "false") { val = false; }
+          // Check if it's a quoted number (without this, 
+          // quoted numbers are interpreted with extra
+          // quotes... e.g. "\"11\"")
+          else if ((typeof(cell.$t) === 'string') 
+            && (cell.$t.length > 2)
+            && (cell.$t.match(/^".*"$/))
+            && !isNaN(cell.$t.substring(1, cell.$t.length - 1))) { 
+              val = cell.$t.substring(1, cell.$t.length - 1); 
+          }
           else { val = cell.$t || ""; }
           this.cells[row - 1][col - 1] = val;
         }, this);
@@ -728,9 +746,10 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         var getSheetByPos = runtime.makeMethod1(function(self, pos) {
           if (arguments.length !== 2) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['sheet-by-pos'], 1, $a); }
           runtime.checkNumber(pos);
+          pos -= 1;
           if (sheetsByPosPy[pos]) { return sheetsByPosPy[pos]; }
           if ((pos >= ss.worksheets.length) || (pos < 0)) {
-            runtime.ffi.throwMessageException("No worksheet numbered " + pos + " in this spreadsheet");
+            runtime.ffi.throwMessageException("No worksheet numbered " + (pos + 1) + " in this spreadsheet");
           }
           sheetsByNamePy[ss.worksheets[pos].title] = sheetsByPosPy[pos] = makePyretWorksheet(ss.worksheets[pos]);
           return sheetsByPosPy[pos];
@@ -747,7 +766,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
                   })
                   .catch(function(err){
                     if (runtime.isPyretException(err)) { resumer.error(err); }
-                    else { resumer.error(runtime.makeString(String(err))); }
+                    else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
                   });
               });
             }
@@ -757,8 +776,9 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         var deleteSheetByPos = runtime.makeMethod1(function(self, pos) { 
           if (arguments.length !== 2) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['delete-sheet-by-pos'], 1, $a); }
           runtime.checkNumber(pos);
+          pos -= 1;
           if ((pos >= ss.worksheets.length) || (pos < 0)) { 
-            runtime.ffi.throwMessageException("No worksheet numbered " + pos + " in this spreadsheet");
+            runtime.ffi.throwMessageException("No worksheet numbered " + (pos + 1) + " in this spreadsheet");
           }
           runtime.pauseStack(function(resumer){
             ss.deleteWorksheet(ss.worksheets[pos])
@@ -767,7 +787,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function(err){
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               })
           });
         });
@@ -787,7 +807,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function(err){
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -908,7 +928,8 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           runtime.checkNumber(rowNum);
           var colNum = colNameToNum(col);
           checkCol(colNum, col, 0, ws.colCount);
-          checkRow(rowNum, 0, ws.rowCount);
+          checkRow(rowNum, 1, ws.rowCount + 1);
+          rowNum -= 1;
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) {
@@ -917,7 +938,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -928,7 +949,8 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           var colNum = colNameToNum(col);
           // Any cell can be set; we just need the indices to be positive
           checkCol(colNum, col, 0, Number.POSITIVE_INFINITY);
-          checkRow(rowNum, 0, Number.POSITIVE_INFINITY);
+          checkRow(rowNum, 1, Number.POSITIVE_INFINITY);
+          rowNum -= 1;
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) {
@@ -943,7 +965,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -953,12 +975,13 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           runtime.checkNumber(startRow);
           var checkList = runtime.makeCheckType(runtime.ffi.isList, "List");
           checkList(entries);
-          var rowNum = startRow;
+          var rowNum = startRow - 1;
           var colNum = colNameToNum(startCol);
           var contents = runtime.ffi.toArray(entries);
+          contents.forEach(checkList);
           // Any cell can be set; we just need the indices to be positive
           checkCol(colNum, startCol, 0, Number.POSITIVE_INFINITY);
-          checkRow(rowNum, 0, Number.POSITIVE_INFINITY);
+          checkRow(startRow, 1, Number.POSITIVE_INFINITY);
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) {
@@ -968,7 +991,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -979,7 +1002,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               .then(function(cells) { processCells(cells, resumer, {}); })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -992,7 +1015,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               .then(function(cells) { processCells(cells, resumer, {constr: constr, skipHeader: skipHeader}); })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1005,9 +1028,11 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           var startCol = colNameToNum(startColName);
           var endCol = colNameToNum(endColName);
           checkCol(startCol, startColName, 0, ws.colCount);
-          checkRow(startRow, 0, ws.rowCount);
-          checkCol(endCol, endColName, 0, ws.colCount);
-          checkRow(endRow, 0, ws.rowCount);
+          checkRow(startRow, 1, ws.rowCount + 1);
+          checkCol(endCol, endColName, startCol, ws.colCount);
+          checkRow(endRow, startRow, ws.rowCount + 1);
+          startRow -= 1;
+          endRow -= 1;
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) { 
@@ -1015,7 +1040,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1029,9 +1054,11 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           var startCol = colNameToNum(startColName);
           var endCol = colNameToNum(endColName);
           checkCol(startCol, startColName, 0, ws.colCount);
-          checkRow(startRow, 0, ws.rowCount);
-          checkCol(endCol, endColName, 0, ws.colCount);
-          checkRow(endRow, 0, ws.rowCount);
+          checkRow(startRow, 1, ws.rowCount + 1);
+          checkCol(endCol, endColName, startCol, ws.colCount);
+          checkRow(endRow, startRow, ws.rowCount + 1);
+          startRow -= 1;
+          endRow -= 1;
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) { 
@@ -1040,7 +1067,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function (err) {
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1053,7 +1080,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function(err) { 
                 if (runtime.isPyretException(err)) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1067,7 +1094,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function(err){
                 if ( runtime.isPyretException(err) ) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1075,6 +1102,8 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           if (arguments.length !== 3) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['update-row'], 2, $a); }
           runtime.checkNumber(rowNum);
           runtime.checkObject(contents);
+          checkRow(rowNum, 1, ws.numRows + 1);
+          rowNum -= 1;
           runtime.pauseStack(function(resumer){
             ws.updateRow(rowNum, contents.dict)
               .then(function(result){
@@ -1082,13 +1111,15 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function(err){
                 if ( runtime.isPyretException(err) ) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
         var deleteRow = runtime.makeMethod1(function(self, rowNum){
           if (arguments.length !== 2) { var $a=new Array(arguments.length-1); for (var $i=1;$i<arguments.length;$i++) { $a[$i-1]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['delete-row'], 1, $a); }
           runtime.checkNumber(rowNum);
+          checkRow(rowNum, 1, ws.numRows + 1);
+          rowNum -= 1;
           runtime.pauseStack(function(resumer) {
             ws.deleteRow(rowNum)
               .then(function(result){
@@ -1096,7 +1127,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
               })
               .catch(function(err){
                 if ( runtime.isPyretException(err) ) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1106,11 +1137,12 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           runtime.pauseStack(function(resumer) {
             ws.updateName(newName)
               .then(function(result){
+                self.dict.title = runtime.makeString(newName);
                 resumer.resume(runtime.makeNothing());
               })
               .catch(function(err){
                 if ( runtime.isPyretException(err) ) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1123,11 +1155,12 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           runtime.pauseStack(function(resumer){
             ws.resizeRows(numRows)
               .then(function(result){
+                self.dict['row-count'] = runtime.makeNumber(numRows);
                 resumer.resume(runtime.makeNothing());
               })
               .catch(function(err){
                 if ( runtime.isPyretException(err) ) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
@@ -1140,18 +1173,19 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           runtime.pauseStack(function(resumer){
             ws.resizeCols(numCols)
               .then(function(result){
+                self.dict['col-count'] = runtime.makeNumber(numRows);
                 resumer.resume(runtime.makeNothing());
               })
               .catch(function(err){
                 if ( runtime.isPyretException(err) ) { resumer.error(err); }
-                else { resumer.error(runtime.makeString(String(err))); }
+                else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
               });
           });
         });
         return O({
           title: ws.title,
-          'row-count': ws.rowCount,
-          'col-count': ws.colCount,
+          'row-count': runtime.makeNumber(ws.rowCount),
+          'col-count': runtime.makeNumber(ws.colCount),
           'cell-at': getCellAt,
           'set-cell-at': setCellAt,
           'set-cell-range': setCellRange,
@@ -1159,10 +1193,10 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           'all-cells-as': getAllCellsAs,
           'cell-range': getCellRange,
           'cell-range-as': getCellRangeAs,
-          'all-rows': getAllRows,
+          // 'all-rows': getAllRows, <---+
           // 'add-row': addRow, <- Disable for now; see Worksheet.addRow
-          'update-row': updateRow,
-          'delete-row': deleteRow,
+          // 'update-row': updateRow, <--+
+          // 'delete-row': deleteRow, <--+-- Disabled; pending removal
           'update-name': updateName,
           'resize-rows': resizeRows,
           'resize-cols': resizeCols
@@ -1174,7 +1208,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             .then(function (spreadsheet) { resumer.resume(makePyretSpreadsheet(spreadsheet)); })
             .catch(function (err) {
               if (runtime.isPyretException(err)) { resumer.error(err); }
-              else { resumer.error(runtime.makeString(String(err))); }
+              else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
             });
         });
       }
@@ -1186,7 +1220,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             .then(function(cells) { processCells(cells.cells, resumer, opts); })
             .catch(function (err) {
               if (runtime.isPyretException(err)) { resumer.error(err); }
-              else { resumer.error(runtime.makeString(String(err))); }
+              else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
             });
         });
       }
@@ -1222,12 +1256,12 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
                 .then(function(ss){ resumer.resume(makePyretSpreadsheet(ss)) })
                 .catch(function(err) {
                   if (runtime.isPyretException(err)) { resumer.error(err); }
-                  else { resumer.error(runtime.makeString(String(err))); }
+                  else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
                 });
             })
             .catch(function(err){
               if (runtime.isPyretException(err)) { resumer.error(err); }
-              else { resumer.error(runtime.makeString(String(err))); }
+              else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
             });
         });
       }
