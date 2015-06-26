@@ -616,6 +616,12 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           else { val = cell.$t || ""; }
           this.cells[row - 1][col - 1] = val;
         }, this);
+        for (var row = 0; row < this.cells.length; row++) {
+          for (var col = 0; col < this.cells[row].length; col++) {
+            if (this.cells[row][col] === undefined)
+              this.cells[row][col] = "";
+          }
+        }
       };
 
       Spreadsheets = function(opts) {
