@@ -1031,8 +1031,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           checkRow(startRow, 1, ws.rowCount + 1);
           checkCol(endCol, endColName, startCol, ws.colCount);
           checkRow(endRow, startRow, ws.rowCount + 1);
-          startRow -= 1;
-          endRow -= 1;
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) { 
@@ -1057,8 +1055,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           checkRow(startRow, 1, ws.rowCount + 1);
           checkCol(endCol, endColName, startCol, ws.colCount);
           checkRow(endRow, startRow, ws.rowCount + 1);
-          startRow -= 1;
-          endRow -= 1;
           runtime.pauseStack(function(resumer) {
             getCells()
               .then(function(cells) { 
