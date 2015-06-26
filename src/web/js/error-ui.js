@@ -41,6 +41,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
 
       function singleHover(dom, loc) {
+        if (loc === undefined) { 
+          console.error("Given an undefined location to highlight, at", (new Error()).stack);
+          return;
+        }
         outputUI.hoverLink(editors, runtime, srcloc, dom, loc, "error-highlight");
       }
 
