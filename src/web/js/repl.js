@@ -105,7 +105,9 @@ $(function() {
         "srcloc",
         "format",
         "equality",
-        "valueskeleton"
+        "valueskeleton",
+        "plot",
+        "graph"
     ];
 
     runtime.loadModulesNew(runtime.namespace,
