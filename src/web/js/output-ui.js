@@ -543,23 +543,27 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       // number.  Note that this feature abandons the convenience of
       // publishing output via the CodeMirror textarea.
       if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
+        // This function returns three string values, numerals to
+        // appear before the decimal point, numerals to appear
+        // after, and numerals to be repeated.
+        var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
+        var decimalString = decimal[0].toString() + "." + decimal[1].toString();
+
         outText = $("<span>").addClass("replTextOutput rationalNumber fraction").text(num.toString());
+
+        outText.toggleFrac(num.toString(), decimalString, decimal[2]);
+
         // On click, switch the representation from a fraction to
         // decimal, and back again.
         outText.click(function(e) {
-          // This function returns three string values, numerals to
-          // appear before the decimal point, numerals to appear
-          // after, and numerals to be repeated.
-          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
-          var decimalString = decimal[0].toString() + "." + decimal[1].toString();
-
           $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
           e.stopPropagation();
         });
+
         return outText;
       } else {
         return renderers.renderText("number", num);
-      }    
+      }
     };
     renderers["nothing"] = function renderPNothing(val) {
       return $("<span>").addClass("replTextOutput");
