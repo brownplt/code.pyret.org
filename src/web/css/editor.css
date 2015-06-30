@@ -830,6 +830,7 @@ span.rationalRepeat {
   top: 40px;
   margin: 0;
   width: 172px;
+  display: none;
 }
 
 #run-dropdown-content li {

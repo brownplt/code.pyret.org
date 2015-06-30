@@ -283,8 +283,6 @@ $(function() {
             $("#run-dropdown-content").hide();
           });
 
-          var codeContainer = $("<div>").addClass("replMain");
-          $("#main").prepend(codeContainer);
           editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
               simpleEditor: false,
