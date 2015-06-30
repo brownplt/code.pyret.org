@@ -556,19 +556,14 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         // On click, switch the representation from a fraction to
         // decimal, and back again.
         outText.click(function(e) {
-          // This function returns three string values, numerals to
-          // appear before the decimal point, numerals to appear
-          // after, and numerals to be repeated.
-          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
-          var decimalString = decimal[0].toString() + "." + decimal[1].toString();
-
           $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
           e.stopPropagation();
         });
+
         return outText;
       } else {
         return renderers.renderText("number", num);
-      }    
+      }
     };
     renderers["nothing"] = function renderPNothing(val) {
       return $("<span>").addClass("replTextOutput").text("nothing");
