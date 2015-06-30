@@ -491,7 +491,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       if (runtime.imageLib.isImage(val.val)) {
         return renderers.renderImage(val.val);
       } else {
-        return renderers.renderText("opqaue", val);
+        return renderers.renderText("opaque", val);
       }
     };
     renderers.renderImage = function renderImage(img) {
@@ -502,7 +502,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       var realWidth = img.getWidth();
       var realHeight = img.getHeight();
       if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
-        container.addClass("replImageThumbnail has-icon");
+        container.addClass("replToggle replImageThumbnail has-icon");
         container.attr("title", "Click to see full image");
         var scaleFactorX = 100 / realWidth;
         var scaleFactorY = 200 / realHeight;
@@ -514,7 +514,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         $(imageDom).trigger({type: 'afterAttach'});
         $('*', imageDom).trigger({type : 'afterAttach'});
         var originalImageDom = img.toDomNode();
-        $(imageDom).click(function(e) {
+        $(container).click(function(e) {
           var dialog = $("<div>");
           dialog.dialog({
             modal: true,
@@ -543,7 +543,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       // number.  Note that this feature abandons the convenience of
       // publishing output via the CodeMirror textarea.
       if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
-        outText = $("<span>").addClass("replTextOutput rationalNumber fraction").text(num.toString());
+        // This function returns three string values, numerals to
+        // appear before the decimal point, numerals to appear
+        // after, and numerals to be repeated.
+        var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
+        var decimalString = decimal[0].toString() + "." + decimal[1].toString();
+
+        outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction").text(num.toString());
+
+        outText.toggleFrac(num.toString(), decimalString, decimal[2]);
+
         // On click, switch the representation from a fraction to
         // decimal, and back again.
         outText.click(function(e) {
@@ -562,7 +571,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       }    
     };
     renderers["nothing"] = function renderPNothing(val) {
-      return $("<span>").addClass("replTextOutput");
+      return $("<span>").addClass("replTextOutput").text("nothing");
     };
     renderers.renderText = function renderText(valType, val) {
       var echo = $("<span>").addClass("replTextOutput");
@@ -581,7 +590,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
     };
     renderers["render-ref"] = function(top) {
-      var container = $("<span>").addClass("replOutput has-icon");
+      var container = $("<span>").addClass("replToggle replOutput has-icon");
       container.append(top.done[0]);
       var warning = $("<img>")
         .attr("src", "/img/warning.gif")
@@ -620,7 +629,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
     };
     renderers["render-object"] = function(top) {
-      var container = $("<span>").addClass("replOutput");
+      var container = $("<span>").addClass("replToggle replOutput");
       var name = $("<span>").addClass("expanded").text("Object");
       var openBrace = $("<span>").addClass("collapsed").text("{");
       var closeBrace = $("<span>").addClass("collapsed").text("}");
@@ -641,7 +650,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       return container;
     };
     renderers["render-data"] = function renderData(top) {
-      var container = $("<span>").addClass("replOutput");
+      var container = $("<span>").addClass("replToggle replOutput");
       var name = $("<span>").text(top.extra.constructorName);
       var openParen = $("<span>").addClass("collapsed").text("(");
       var closeParen = $("<span>").addClass("collapsed").text(")");
@@ -664,7 +673,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       return container;
     };
     renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
-      var container = $("<span>").addClass("replOutput");
+      var container = $("<span>").addClass("replToggle replOutput");
       function helper(container, val, values) {
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
         else if (runtime.ffi.isVSCollection(val)) {

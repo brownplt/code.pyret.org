@@ -127,6 +127,9 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                     if(rr.isSuccessResult(runResult)) {
                       if(!isMain) {
                         var answer = rr.getField(runResult.result, "answer");
+                        if(rr.isNothing(answer)) {
+                          return;
+                        }
                         outputUI.renderPyretValue(output, rr, answer);
                         scroll(output);
                       }
