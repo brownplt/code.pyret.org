@@ -294,10 +294,10 @@ $(function() {
           function doRunAction(src) {
             switch (currentAction) {
               case "run":
-                replWidget.runCode(src, {check: true});
+                replWidget.runCode(src, {check: true, cm: editor.cm});
                 break;
               case "tc-and-run":
-                replWidget.runCode(src, {check: true, "type-check": true});
+                replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
                 break;
             }
           }

@@ -1,8 +1,26 @@
 "use strict";
-define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
+define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q, loader, util, t) {
+  var List = function(thing) { 
+    return t.tyapp(t.libName("lists", "List"), [thing]);
+  }
+  var Sheet = t.record({
+    title: t.string,
+    "row-count": t.number,
+    "col-count": t.number,
+    "all-cells": t.arrow([], List(List(t.string)))
+  });
+  var SpreadSheet = t.record({
+    "sheet-by-pos": t.arrow([t.number], Sheet)
+  });
   return util.definePyretModule("gdrive-sheets", [],
-    {values : ["load-sheet-raw", "load-sheet"],
-      types : []},
+    {
+      values : {
+        "load-sheet-raw": t.any,
+        "load-spreadsheet": t.arrow([t.string, t.string], SpreadSheet)
+      },
+      aliases: {},
+      datatypes: {}
+    },
     function(runtime, namespace) {
       // copied from npm querystring:encode.js
       var stringifyPrimitive = function(v) {
@@ -601,9 +619,9 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           }
 
           var val = undefined;
-          if (cell.numericValue) { val = runtime.makeNumberFromString(cell.numericValue); }
-          else if (cell.$t === "true") { val = true; }
-          else if (cell.$t === "false") { val = false; }
+          if (cell.numericValue) { val = cell.numericValue; /* runtime.makeNumberFromString(cell.numericValue); */}
+          else if (cell.$t === "true") { val = "true"; }
+          else if (cell.$t === "false") { val = "false"; }
           // Check if it's a quoted number (without this, 
           // quoted numbers are interpreted with extra
           // quotes... e.g. "\"11\"")
