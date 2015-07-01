@@ -1,4 +1,4 @@
-define(["q", "js/runtime-util"], function(q, util) {
+define(["q", "js/runtime-util", "js/type-util"], function(q, util, t) {
   var knownModules = {
     "gdrive-sheets": true
   };
@@ -53,7 +53,8 @@ define(["q", "js/runtime-util"], function(q, util) {
           return gmf(compileLib, "make-base-namespace").app(otherRuntime);
         }
         
-        function getUri(_) { return "cpo-js://" + name; }
+        var uri = "cpo-js://" + name;
+        function getUri(_) { return uri; }
         function name(_) { return name; }
         function setCompiled(_) { return runtime.nothing; }
 
@@ -83,11 +84,19 @@ define(["q", "js/runtime-util"], function(q, util) {
           }),
           "set-compiled": m2(setCompiled),
           "get-compiled": m1(function() {
-            return runtime.ffi.makeSome(
-              gmf(compileLib, "pre-loaded").app(
-                gmf(compileStructs, "minimal-builtins"),
-                runtime.makeOpaque(mod.theModule))
-            );
+            return runtime.safeCall(function() {
+              return gmf(compileStructs, "provides-from-raw-provides").app(
+                uri,
+                t.providesToPyret(runtime, mod.provides));
+            },
+            function(provides) {
+              return runtime.ffi.makeSome(
+                gmf(compileLib, "pre-loaded").app(
+                  provides,
+                  gmf(compileStructs, "minimal-builtins"),
+                  runtime.makeOpaque(mod.theModule))
+              );
+            });
           })
         }));
       });
