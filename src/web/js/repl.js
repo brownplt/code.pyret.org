@@ -64,13 +64,13 @@ $(function() {
 });
 
 $(function() {
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf",
+  define("repl-main", ["/js/repl-ui.js", "js/runtime-anf",
   "/js/guess-gas.js",
   "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
   "trove/runtime-lib", "compiler/repl-support.arr",
   "compiler/locators/builtin.arr", "/js/cpo-builtins.js", "/js/gdrive-locators.js",
   "compiler/compile-structs.arr"],
-  function(replLib, replUI, rtLib, guessGas, http, compileLib,
+  function(replUI, rtLib, guessGas, http, compileLib,
   pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
@@ -294,10 +294,10 @@ $(function() {
           function doRunAction(src) {
             switch (currentAction) {
               case "run":
-                replWidget.runCode(src, {check: true});
+                replWidget.runCode(src, {check: true, cm: editor.cm});
                 break;
               case "tc-and-run":
-                replWidget.runCode(src, {check: true, "type-check": true});
+                replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
                 break;
             }
           }

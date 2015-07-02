@@ -120,11 +120,10 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                     if(rr.isSuccessResult(runResult)) {
                       if(!isMain) {
                         var answer = rr.getField(runResult.result, "answer");
-                        if(rr.isNothing(answer)) {
-                          return;
+                        if(!rr.isNothing(answer)) {
+                          outputUI.renderPyretValue(output, rr, answer);
+                          scroll(output);
                         }
-                        outputUI.renderPyretValue(output, rr, answer);
-                        scroll(output);
                       }
 
                       checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
