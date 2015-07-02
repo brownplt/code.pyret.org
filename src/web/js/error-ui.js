@@ -270,6 +270,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
 
         function drawCompileError(e) {
+        /*
           cases(get(cs, "CompileError"), "CompileError", e, {
               "unbound-id": drawUnboundId,
               "unbound-var": drawUnboundVar,
@@ -287,6 +288,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "else": drawErrorToString(e)
             });
           container.append($("<hr>"));
+          */
           runtime.runThunk(
             function() { return get(e, "render-reason").app(); },
             function(errorDisp) {
@@ -317,7 +319,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
         var container = $("<div>");
         if(userLocs.length > 0) {
-          container.append($("<p>").text("Stack trace:"));
+          container.append($("<p>").text("Evaluation in progress when the error occurred:"));
           userLocs.forEach(function(ul) {
             var slContainer = $("<div>");
             var srcloc = outputUI.drawSrcloc(editors, runtime, ul);
@@ -672,6 +674,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretRuntimeError() {
+          /*
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
               "message-exception": drawMessageException,
               "uninitialized-id": drawUninitializedId,
@@ -696,6 +699,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "else": drawRuntimeErrorToString(e)
             });
           container.append($("<hr>"));
+          */
           runtime.runThunk(
             function() { return get(e.exn, "render-reason").app(); },
             function(errorDisp) {
@@ -871,6 +875,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var isArg = ffi.isFailArg(err);
           var loc = get(err, "loc");
           var reason = get(err, "reason");
+          /*
           cases(get(contracts, "FailureReason"), "FailureReason", reason, {
               "type-mismatch": drawTypeMismatch(isArg, loc),
               "ref-init": drawRefInit(isArg, loc),
@@ -879,6 +884,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "dot-ann-not-present": drawDotAnnNotPresent(isArg, loc)
             });
           container.append($("<hr>"));
+          */
           runtime.runThunk(
             function() { return get(err, "render-reason").app(); },
             function(errorDisp) {
@@ -896,6 +902,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretParseError() {
+          /*
           cases(get(error, "ParseError"), "ParseError", e.exn, {
               "parse-error-next-token": drawParseErrorNextToken,
               "parse-error-eof": drawParseErrorEOF,
@@ -903,6 +910,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               "else": drawRuntimeErrorToString(e)
             });
           container.append($("<hr>"));
+          */
           runtime.runThunk(
             function() { return get(e.exn, "render-reason").app(); },
             function(errorDisp) {
