@@ -498,7 +498,7 @@ div#font-label:hover{
    margin-bottom: 0.2em;
 }
 
-
+/* definition lists for objects */
 .replOutput.expanded > dl > .collapsed, .replOutput.expanded > .collapsed { display: none; }
 .replOutput:not(.expanded) > dl > .expanded:not(.replOutput),
 .replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
@@ -513,7 +513,8 @@ div#font-label:hover{
    clear: both;
 }
 .replOutput > dl > dt:after {
-   content: ": ";
+   content: ":";
+   padding-right: 0.5em;
 }
 .replOutput > dl > dt { display: inline; }
 .replOutput.expanded dt { 
@@ -525,7 +526,47 @@ div#font-label:hover{
 .replOutput.expanded > dl > dd {
    float: left;
 }
-.replOutput > dl > dd:not(:last-of-type):after { content: ", "; }
+.replOutput > dl > dd:not(:last-of-type):after { 
+   content: ","; 
+   padding-right: 0.5em;
+}
+
+/* expandable lists for collections */
+ul.collection { margin: 0; }
+ul.collection > li { 
+   margin-left: 1em; 
+   clear: both;
+}
+ul.collection > li > span.label {
+   float: left;
+   clear: left;
+}
+ul.collection > li > span.label:before { padding-left: 0.5em; }
+ul.collection > li > span.label:after { content: ":"; padding-right: 0.5em; }
+ul.collection > li > span.label.expandable:before { content: "\025B8"; }
+ul.collection > li > span.contents { 
+   display: none; 
+   float: left;
+}
+ul.collection > li.expanded > span.contents { display: inline; }
+ul.collection > li.expanded > span.label.expandable:before { content: "\025BE"; }
+
+ul.inlineCollection { 
+  display: inline; 
+  margin: 0;
+}
+ul.inlineCollection > li { 
+  display: inline; 
+}
+ul.inlineCollection > li:not(:last-of-type):after {
+  content: ", ";
+}
+ul.inlineCollection > li, ul.inlineCollection ul > li { display: inline; }
+ul.inlineCollection > li > span.label {
+   display: none;
+ }
+
+
 
 
 .replOutputPassed {
