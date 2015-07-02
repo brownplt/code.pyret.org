@@ -686,13 +686,10 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         var items = runtime.ffi.toArray(runtime.getField(val, "items"));
         groupItems(ul, items, values, 0, items.length);
         container.append($("<span>").text("]"));
-        /*
-          this part doesn't quite work visually, yet, so it's disabled for now
         container.click(function(e) {
           ul.each(makeInline);
           e.stopPropagation();
         });
-        */
       } else if (runtime.ffi.isVSConstr(val)) {
         container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
         var items = runtime.ffi.toArray(runtime.getField(val, "items"));
@@ -710,7 +707,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       return container;
     }
     function groupItems(ul, items, values, minIdx, maxIdx) {
-      if (Math.log10(maxIdx - minIdx) <= 1) {
+      // The grouping behavior isn't visually clean yet, so commenting out for now...
+      // if (Math.log10(maxIdx - minIdx) <= 1) {
         for (var i = maxIdx - 1; i >= minIdx; i--) {
           var li = $("<li>").addClass("expanded");
           var title = $("<span>").addClass("label").text("Item " + (minIdx + maxIdx - 1 - i));
@@ -718,19 +716,19 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
           ul.append(li.append(title).append(contents));
           helper(contents, items[i], values);
         }
-      } else {
-        var intervalSize = Math.pow(10, Math.ceil(Math.log10(maxIdx - minIdx)) - 1);
-        for (var i = minIdx; i < maxIdx; i += intervalSize) {
-          var li = $("<li>");
-          var title = $("<span>").addClass("label").addClass("expandable")
-            .text("[Items " + i + "--" + Math.min(i + intervalSize - 1, maxIdx - 1) + "]");
-          var contents = $("<span>").addClass("contents");
-          var newUl = $("<ul>").addClass("inlineCollection");
-          ul.append(li.append(title).append(contents.append(newUl)));
-          li.click(toggleExpanded);
-          groupItems(newUl, items, values, i, Math.min(i + intervalSize, maxIdx));
-        }
-      }
+      // } else {
+      //   var intervalSize = Math.pow(10, Math.ceil(Math.log10(maxIdx - minIdx)) - 1);
+      //   for (var i = minIdx; i < maxIdx; i += intervalSize) {
+      //     var li = $("<li>");
+      //     var title = $("<span>").addClass("label").addClass("expandable")
+      //       .text("[Items " + i + "--" + Math.min(i + intervalSize - 1, maxIdx - 1) + "]");
+      //     var contents = $("<span>").addClass("contents");
+      //     var newUl = $("<ul>").addClass("inlineCollection");
+      //     ul.append(li.append(title).append(contents.append(newUl)));
+      //     li.click(toggleExpanded);
+      //     groupItems(newUl, items, values, i, Math.min(i + intervalSize, maxIdx));
+      //   }
+      // }
     }
     renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
       var container = $("<span>").addClass("replToggle replOutput");
