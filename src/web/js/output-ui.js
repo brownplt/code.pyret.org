@@ -671,6 +671,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       var container = $("<span>").addClass("replToggle replOutput");
       function helper(container, val, values) {
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
+        else if (runtime.ffi.isVSStr(val)) {
+          container.append($("<span>").text(runtime.getField(val, "s")));
+        }
+        else if (runtime.ffi.isVSSeq) {
+          console.error("VSSeq not yet handled: ", val);
+        }
         else if (runtime.ffi.isVSCollection(val)) {
           var newCont = $("<span>");
           container.append(newCont);
