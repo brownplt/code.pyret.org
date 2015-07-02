@@ -27,7 +27,7 @@
 .cm-s-default .cm-keyword { color: #636; }
 .cm-s-default .cm-number { color: #164; }
 .cm-s-default .cm-string { color: #164; }
-.cm-s-default .cm-type { color: #339; }
+.cm-s-default .cm-type { color: #111; }
 .cptteach-fixed { line-height: 1.5; background: #ddd; }
 
 div.CodeMirror span.CodeMirror-matchingbracket-region {
