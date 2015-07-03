@@ -96,6 +96,21 @@ Or if you were runnning it on another web server, hosted at `/pyret`:
 PYRET_RELEASE_BASE="http://your-server/pyret/build"
 ```
 
+@jpolitz often runs with:
+
+```
+USE_STANDALONE_PYRET="false"
+PYRET_RELEASE_BASE="http://localhost:8000/build"
+CURRENT_PYRET_RELEASE=""
+```
+
+And then, from a checkout of `pyret-lang`, runs
+
+```
+python -m SimpleHTTPServer
+```
+
+
 
 ## Configuration with Google Auth and Storage
 

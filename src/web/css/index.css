@@ -7,17 +7,17 @@ h1 {
   height: 100px;
 }
 
-#about {
+#left {
   vertical-align: middle;
-  margin-left: 3em;
+  margin-right: 3em;
   font-size: 18pt;
   width: 100px;
   float:none;
 }
 
-#start {
+#right {
   vertical-align: middle;
-  margin-right: 3em;;
+  margin-left: 3em;;
   font-size: 18pt;
   width: 100px;
   float:none;

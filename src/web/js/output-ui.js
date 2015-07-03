@@ -1,9 +1,9 @@
-define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsnums) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], function(jsnums,share,srclocLib, errordisplayLib) {
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
   var shareAPI = makeShareAPI("");
-
+  
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
     else {
@@ -14,7 +14,40 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     }
   }
 
+  function expandableMore(dom) {
+    var container = $("<div>");
+    var moreLink = $("<a>").text("(More...)");
+    var lessLink = $("<a>").text("(Less...)");
+    function toggle() {
+      dom.toggle();
+      lessLink.toggle();
+      moreLink.toggle();
+    }
+    moreLink.on("click", toggle);
+    lessLink.on("click", toggle);
+    container.append(moreLink).append(lessLink).append(dom);
+    dom.hide();
+    lessLink.hide();
+    return container;
+  }
+
+  function getLastUserLocation(runtime, srcloc, e, ix) {
+    var srclocStack = e.map(runtime.makeSrcloc);
+    var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
+    var userLocs = srclocStack.filter(function(l) {
+      if(!(l && isSrcloc(l))) { return false; }
+      var source = runtime.getField(l, "source");
+      return (source === "definitions" 
+              || source.indexOf("interactions") !== -1
+              || source.indexOf("gdrive") !== -1);
+    });
+    var probablyErrorLocation = userLocs[ix];
+    return probablyErrorLocation;
+  }
+
   function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
+    var get = runtime.getField;
+    var cases = runtime.ffi.cases;
 
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
@@ -191,6 +224,12 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     return id;
   }
 
+  function makeMyDriveUrl(id){
+    var localDriveUrl = "/editor#program=" + id;
+    //Pyret version??
+    return window.location.origin + localDriveUrl;
+  }
+
   function isGDriveImport(filename) {
     var mydriveIndex = filename.indexOf(mydrivePrefix);
     return mydriveIndex === 0;
@@ -255,34 +294,227 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     return dom;
   }
 
-  // Because some finicky functions (like images and CodeMirrors), require
-  // extra events to happen for them to show up, we provide this as an
-  // imperative API: the DOM node created will be appended to the output
-  // and also returned
-  function renderPyretValue(output, runtime, answer) {
-    var image = imageLib(runtime, runtime.namespace);
+  function drawSrcloc(editors, runtime, s) {
+    if (!s) { return $("<span>"); }
+    var get = runtime.getField;
+    var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+    if(!runtime.hasField(s, "source")) {
+      return srcElem;
+    }
+    var src = runtime.unwrap(get(s, "source"));
+    if(!editors.hasOwnProperty(src)) {
+      if(isSharedImport(src)) {
+        var sharedId = getSharedId(src);
+        var srcUrl = shareAPI.makeShareUrl(sharedId);
+        return srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isGDriveImport(src)) {
+        var MyDriveId = getMyDriveId(src);
+        var srcUrl = makeMyDriveUrl(MyDriveId);
+        srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isJSImport(src)) {
+        /* NOTE(joe): No special handling here, since it's opaque code */
+      }
+    }
+    return srcElem;
+  }
 
-    if(runtime.isOpaque(answer) && image.isImage(answer.val)) {
-      var container = $("<div>").addClass('replOutput');
-      output.append(container);
+  function renderErrorDisplay(editors, runtime, errorDisp, stack) {
+    var get = runtime.getField;
+    var ffi = runtime.ffi;
+    installRenderers(runtime);
+
+    return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
+      function help(errorDisp) {
+        return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+          "v-sequence": function(seq) { 
+            var result = $("<div>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append(help(contents[i]));
+            }
+            return result;
+          },
+          "numbered-sequence": function(seq) { 
+            var result = $("<ol>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append($("<li>").append(help(contents[i])));
+            }
+            return result;
+          },
+          "bulleted-sequence": function(seq) { 
+            var result = $("<ul>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append($("<li>").append(help(contents[i])));
+            }
+            return result;
+          },
+          "h-sequence": function(seq, separator) { 
+            var result = $("<p>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              if (i != 0 && separator !== "") result.append(separator);
+              result.append(help(contents[i]));
+            }
+            return result;
+          },
+          "embed": function(val) {
+            var placeholder = $("<span>").text("Rendering...");
+            var replace = function(replacement) {
+              if ($.contains(document.documentElement, placeholder[0])) {
+                placeholder.replaceWith(replacement);
+              } else {
+                placeholder = replacement;
+              }
+            }
+            var tryTorepr = function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); }
+            var processTryTorepr = function(out) {
+              var replacement;
+              if (runtime.isSuccessResult(out)) {
+                replacement = out.result;
+              } else {
+                replacement = $("<span>").addClass("output-failed")
+                  .text("<error rendering embedded value; details logged to console>");
+                console.log(out.exn);
+              }
+              replace(replacement);
+              return placeholder;
+            }
+            var tryRenderReason = function() { return runtime.getField(val, "render-reason").app(); }
+            var processTryRenderReason = function(out) {
+              if (runtime.isSuccessResult(out)) {
+                var replacement = help(out.result);
+                $(replacement).addClass("nestedReason");
+                replace(replacement);
+              } else {
+                runtime.runThunk(tryTorepr, processTryTorepr);
+              }
+              return placeholder;
+            }
+            if (runtime.isObject(val) && runtime.hasField(val, "render-reason")) {
+              runtime.runThunk(tryRenderReason, processTryRenderReason);
+              return placeholder;
+            } else {
+              runtime.runThunk(tryTorepr, processTryTorepr);
+              return placeholder;
+            }
+          },
+          "optional": function(contents) {
+            return expandableMore(help(contents));
+          },
+          "text": function(txt) { 
+            return $("<span>").text(txt);
+          },
+          "code": function(contents) {
+            return $("<code>").append(help(contents));
+          },
+          "styled": function(contents, style) {
+            return help(contents).addClass(style);
+          },
+          "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
+            var probablyErrorLocation;
+            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+            else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
+            else { probablyErrorLocation = false; }
+            if (probablyErrorLocation) {
+              var placeholder = $("<span>").text("Rendering...");
+              runtime.runThunk(
+                function() { return contentsWithLoc.app(probablyErrorLocation); },
+                function(out) {
+                  if (runtime.isSuccessResult(out)) {
+                    var rendered = help(out.result);
+                    if ($.contains(document.documentElement, placeholder[0])) {
+                      placeholder.replaceWith(rendered);
+                    }
+                    else { 
+                      placeholder = rendered;
+                    }
+                    return rendered;
+                  } else {
+                    var msg = $("<span>").addClass("output-failed")
+                      .text("<error rendering embedded contents; details logged to console>");
+                    console.log(out.exn);
+                    return msg;
+                  }
+                });
+              return placeholder;
+            } else {
+              return help(contentsWithoutLoc);
+            }
+          },
+          "loc": function(loc) { 
+            return drawSrcloc(editors, runtime, loc);
+          },
+          "loc-display": function(loc, style, contents) {
+            var inner = help(contents);
+            hoverLink(editors, runtime, srcloc, inner, loc, style);
+            return inner;
+          }
+        });
+      }
+      return help(errorDisp);
+    });
+  }
+
+  // A function to use the class of a container to toggle
+  // between the two representations of a fraction.  The
+  // three arguments are a string to be the representation
+  // as a fraction, a string to represent the non-repeating
+  // part of the decimal number, and a string to be
+  // repeated. The 'rationalRepeat' class puts a bar over
+  // the string.
+  $.fn.toggleFrac = function(frac, dec, decRpt) {
+    if (this.hasClass("fraction")) {
+      this.text(dec);
+      // This is the stuff to be repeated.  If the digit to
+      // be repeated is just a zero, then ignore this
+      // feature, and leave off the zero.
+      if (decRpt != "0") {
+        var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
+        this.append(cont);
+      }
+      this.removeClass("fraction");
+    } else {
+      this.text(frac);
+      this.addClass("fraction");
+    }
+    return this;
+  }
+
+  function installRenderers(runtime) {
+    if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
+    var renderers = runtime.ReprMethods["$cpo"];
+    renderers["opaque"] = function renderPOpaque(val) {
+      if (runtime.imageLib.isImage(val.val)) {
+        return renderers.renderImage(val.val);
+      } else {
+        return renderers.renderText("opqaue", val);
+      }
+    };
+    renderers.renderImage = function renderImage(img) {
+      var container = $("<span>").addClass('replOutput');
       var imageDom;
-      var maxWidth = output.width() * .75;
+      var maxWidth = $(document).width() * .375;
       var maxHeight = $(document).height() * .6;
-      var realWidth = answer.val.getWidth();
-      var realHeight = answer.val.getHeight();
-      if(answer.val.getWidth() > maxWidth || answer.val.getHeight() > maxHeight) {
-        container.addClass("replImageThumbnail");
+      var realWidth = img.getWidth();
+      var realHeight = img.getHeight();
+      if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
+        container.addClass("replImageThumbnail has-icon");
         container.attr("title", "Click to see full image");
         var scaleFactorX = 100 / realWidth;
         var scaleFactorY = 200 / realHeight;
         var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
-        var scaled = image.makeScaleImage(scaleFactor, scaleFactor, answer.val);
+        var scaled = runtime.imageLib.makeScaleImage(scaleFactor, scaleFactor, img);
         imageDom = scaled.toDomNode();
         container.append(imageDom);
+        container.append($("<img>").attr("src", "/img/magnifier.gif").addClass("info-icon"));
         $(imageDom).trigger({type: 'afterAttach'});
         $('*', imageDom).trigger({type : 'afterAttach'});
-        var originalImageDom = answer.val.toDomNode();
-        $(imageDom).on("click", function() {
+        var originalImageDom = img.toDomNode();
+        $(imageDom).click(function(e) {
           var dialog = $("<div>");
           dialog.dialog({
             modal: true,
@@ -294,96 +526,191 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
           dialog.append($(originalImageDom));
           $(originalImageDom).trigger({type: 'afterAttach'});
           $('*', originalImageDom).trigger({type : 'afterAttach'});
+          e.stopPropagation();
         });
-
+        return container;
       } else {
-        imageDom = answer.val.toDomNode();
+        imageDom = img.toDomNode();
         container.append(imageDom);
         $(imageDom).trigger({type: 'afterAttach'});
         $('*', imageDom).trigger({type : 'afterAttach'});
-        return imageDom;
+        return container;
       }
-    } else {
-      var echoContainer = $("<div>").addClass("replTextOutput");
+    };
+    renderers["number"] = function renderPNumber(num) {
+      // If we're looking at a rational number, arrange it so that a
+      // click will toggle the decimal representation of that
+      // number.  Note that this feature abandons the convenience of
+      // publishing output via the CodeMirror textarea.
+      if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
+        outText = $("<span>").addClass("replTextOutput rationalNumber fraction").text(num.toString());
+        // On click, switch the representation from a fraction to
+        // decimal, and back again.
+        outText.click(function(e) {
+          // This function returns three string values, numerals to
+          // appear before the decimal point, numerals to appear
+          // after, and numerals to be repeated.
+          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
+          var decimalString = decimal[0].toString() + "." + decimal[1].toString();
 
-      if (!runtime.isNothing(answer)) {
-
-        // If we're looking at a rational number, arrange it so that a
-        // click will toggle the decimal representation of that
-        // number.  Note that this feature abandons the convenience of
-        // publishing output via the CodeMirror textarea.
-        if (runtime.isNumber(answer) && jsnums.isExact(answer) && !jsnums.isInteger(answer)) {
-
-          outText = $("<span>").addClass("rationalNumber fraction").text(answer.toString());
-          // On click, switch the representation from a fraction to
-          // decimal, and back again.
-          outText.click(function() {
-
-            // A function to use the class of a container to toggle
-            // between the two representations of a fraction.  The
-            // three arguments are a string to be the representation
-            // as a fraction, a string to represent the non-repeating
-            // part of the decimal number, and a string to be
-            // repeated. The 'rationalRepeat' class puts a bar over
-            // the string.
-            $.fn.toggleFrac = function(frac, dec, decRpt) {
-              if (this.hasClass("fraction")) {
-                this.text(dec);
-                // This is the stuff to be repeated.  If the digit to
-                // be repeated is just a zero, then ignore this
-                // feature, and leave off the zero.
-                if (decRpt != "0") {
-                  var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
-                  this.append(cont);
-                }
-                this.removeClass("fraction");
-              } else {
-                this.text(frac);
-                this.addClass("fraction");
-              }
-              return this;
-            }
-
-            // This function returns three string values, numerals to
-            // appear before the decimal point, numerals to appear
-            // after, and numerals to be repeated.
-            var decimal = jsnums.toRepeatingDecimal(answer.numerator(),
-                                                    answer.denominator());
-            var decimalString = decimal[0].toString() + "." +
-              decimal[1].toString();
-
-            $(this).toggleFrac(answer.toString(), decimalString, decimal[2]);
-
-          });
-          echoContainer.append(outText);
-          output.append(echoContainer);
-
-        } else {
-
-          // Either we're looking at a string or some number with only
-          // one representation. Just print it, using the CodeMirror
-          // textarea for styling.
-          runtime.runThunk(function() {
-            return runtime.toReprJS(answer, "_torepr");
-          }, function(outText) {
-            var echo = $("<textarea class='CodeMirror'>");
-            output.append(echoContainer);
-            echoContainer.append(echo);
-            if(runtime.isSuccessResult(outText)) {
-              echo.text(outText.result);
-            }
-            else {
-              echo.text("<error displaying value>");
-            }
-            setTimeout(function() {
-              CodeMirror.fromTextArea(echo[0], { readOnly: true });
-            }, 0);
-          });
+          $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
+          e.stopPropagation();
+        });
+        return outText;
+      } else {
+        return renderers.renderText("number", num);
+      }    
+    };
+    renderers["nothing"] = function renderPNothing(val) {
+      return $("<span>").addClass("replTextOutput");
+    };
+    renderers.renderText = function renderText(valType, val) {
+      var echo = $("<span>").addClass("replTextOutput");
+      echo.text(renderers.__proto__[valType](val));
+      setTimeout(function() {
+        CodeMirror.runMode(echo.text(), "pyret", echo);
+        echo.addClass("cm-s-default");
+      }, 0);
+      return echo;
+    };
+    renderers["boolean"] = function(val) { return renderers.renderText("boolean", val); };
+    renderers["string"] = function(val) { return renderers.renderText("string", val); };
+    renderers["method"] = function(val) { return renderers.renderText("method", val); };
+    renderers["function"] = function(val) { return renderers.renderText("function", val); };
+    renderers["ref"] = function(val, implicit, pushTodo) {
+      pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
+    };
+    renderers["render-ref"] = function(top) {
+      var container = $("<span>").addClass("replOutput has-icon");
+      container.append(top.done[0]);
+      var warning = $("<img>")
+        .attr("src", "/img/warning.gif")
+        .attr("title", "May be stale! Click to refresh")
+        .addClass("info-icon");
+      container.append(warning);
+      warning.click(function(e) {
+        runtime.runThunk(function() { 
+          // re-render the value
+          return runtime.toReprJS(runtime.getRef(top.extra.origVal), renderers); 
+        }, function(newTop) {
+          if(runtime.isSuccessResult(newTop)) {
+            warning.detach()
+            container.empty();
+            container.append(newTop.result);
+            container.append(warning);
+          }
+          else {
+            warning.detach();
+            container.empty();
+            container.text("<error displaying value>");
+            container.append(warning);
+          }
+        });
+        e.stopPropagation();
+      });
+      return container;
+    };
+    renderers["object"] = function(val, pushTodo) {
+      var keys = [];
+      var vals = [];
+      for (var field in val.dict) {
+        keys.push(field); // NOTE: this is reversed order from the values,
+        vals.unshift(val.dict[field]); // because processing will reverse them back
+      }
+      pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
+    };
+    renderers["render-object"] = function(top) {
+      var container = $("<span>").addClass("replOutput");
+      var name = $("<span>").addClass("expanded").text("Object");
+      var openBrace = $("<span>").addClass("collapsed").text("{");
+      var closeBrace = $("<span>").addClass("collapsed").text("}");
+      var dl = $("<dl>")
+      container.append(name);
+      container.append(openBrace);
+      for (var i = 0; i < top.extra.keys.length; i++) {
+        //if (i > 1) { container.append($("<span>").addClass("collapsed").text(", ")); }
+        dl.append($("<dt>").text(top.extra.keys[i]));
+        dl.append($("<dd>").append(top.done[i]));
+      }
+      container.append(dl);
+      container.append(closeBrace);
+      container.click(function(e) { 
+        container.toggleClass("expanded"); 
+        e.stopPropagation();
+      });
+      return container;
+    };
+    renderers["render-data"] = function renderData(top) {
+      var container = $("<span>").addClass("replOutput");
+      var name = $("<span>").text(top.extra.constructorName);
+      var openParen = $("<span>").addClass("collapsed").text("(");
+      var closeParen = $("<span>").addClass("collapsed").text(")");
+      var dl = $("<dl>");
+      container.append(name);
+      if (top.extra.arity !== -1) {
+        container.append(openParen);
+        var numFields = top.extra.fields.length;
+        for (var i = 0; i < numFields; i++) {
+          dl.append($("<dt>").text(top.extra.fields[i]).addClass("expanded"));
+          dl.append($("<dd>").append(top.done[numFields - i - 1]));
         }
-
-        return echoContainer;
+        container.append(dl);
+        container.append(closeParen);
       }
-    }
+      container.click(function(e) { 
+        container.toggleClass("expanded"); 
+        e.stopPropagation();
+      });
+      return container;
+    };
+    renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
+      var container = $("<span>").addClass("replOutput");
+      function helper(container, val, values) {
+        if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
+        else if (runtime.ffi.isVSCollection(val)) {
+          var newCont = $("<span>");
+          container.append(newCont);
+          newCont.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
+          var items = runtime.ffi.toArray(runtime.getField(val, "items"));
+          for (var i = items.length - 1; i >= 0; i--) {
+            helper(newCont, items[i], values);
+            if (i != 0) { newCont.append($("<span>").text(", ")); }
+          }
+          newCont.append($("<span>").text("]"));
+        } else {
+          var newCont = $("<span>");
+          container.append(newCont);
+          newCont.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
+          var items = runtime.ffi.toArray(runtime.getField(val, "items"));
+          for (var i = items.length - 1; i >= 0; i--) {
+            helper(newCont, items[i], values);
+            if (i != 0) { newCont.append($("<span>").text(", ")); }
+          }
+          newCont.append($("<span>").text(")"));
+        }
+        return container;
+      };
+      return helper(container, top.extra.skeleton, top.done);
+    };
+  }
+  // Because some finicky functions (like images and CodeMirrors), require
+  // extra events to happen for them to show up, we provide this as an
+  // imperative API: the DOM node created will be appended to the output
+  // and also returned
+  function renderPyretValue(output, runtime, answer) {
+    installRenderers(runtime);
+    runtime.runThunk(function() {
+      return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
+    }, function(container) {
+      if(runtime.isSuccessResult(container)) {
+        $(output).append(container.result);
+      }
+      else {
+        $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
+        console.log(container.exn);
+      }
+      return container;
+    });
   }
   return {
     renderPyretValue: renderPyretValue,
@@ -395,7 +722,11 @@ define(["trove/image-lib","js/js-numbers","/js/share.js"], function(imageLib,jsn
     getMyDriveId: getMyDriveId,
     isGDriveImport: isGDriveImport,
     isJSImport: isJSImport,
-    getJSFilename: getJSFilename
+    getJSFilename: getJSFilename,
+    installRenderers: installRenderers,
+    renderErrorDisplay: renderErrorDisplay,
+    drawSrcloc: drawSrcloc,
+    expandableMore: expandableMore
   };
 
 })

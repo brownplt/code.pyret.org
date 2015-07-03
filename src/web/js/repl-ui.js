@@ -1,4 +1,4 @@
-define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib"], function(imageLib, checkUI, errorUI, outputUI, worldLib) {
+define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib"], function(ffi, util, imageLib, checkUI, errorUI, outputUI, worldLib) {
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -19,7 +19,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
   }
   var editors = {};
   var interactionsCount = 0;
-  function makeEditor(container, options) {
+  function makeEditor(container, runtime, options) {
     var initial = "";
     if (options.hasOwnProperty("initial")) {
       initial = options.initial;
@@ -29,26 +29,16 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     textarea.val(initial);
     container.append(textarea);
 
-    var runFun = function (code, options) {};
-    if (options.hasOwnProperty("run")) {
-      runFun = function (code, replOptions) {
-        options.run(code, {cm: CM}, replOptions);
-      }
+    var runFun = function (code, replOptions) {
+      options.run(code, {cm: CM}, replOptions);
     }
 
     var useLineNumbers = !options.simpleEditor;
 
-    if(options.cmOptions && options.cmOptions.gutters) {
-      var optGutters = options.cmOptions.gutters;
-      delete options.cmOptions.gutters;
-    }
-    else {
-      var optGutters = [];
-    }
     var cmOptions = {
       extraKeys: {
-        "Shift-Enter": function(cm) { runFun(cm.getValue(), {check: true, "type-env": !options.simpleEditor }); },
-        "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue(), {check: false, "type-env": !options.simpleEditor}); },
+        "Shift-Enter": function(cm) { runFun(cm.getValue()); },
+        "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
         "Tab": "indentAuto"
       },
       indentUnit: 2,
@@ -75,9 +65,10 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
 
+    // True for editor, false for repl entries
     if(options.runButton) {
       options.runButton.on("click", function() {
-        runFun(CM.getValue(), {check: true});
+        runFun(CM.getValue());
       });
     }
 
@@ -85,7 +76,7 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       cm: CM,
       refresh: function() { CM.refresh(); },
       run: function() {
-        runFun(CM.getValue(), {check: true});
+        runFun(CM.getValue());
       },
       focus: function() { CM.focus(); }
     };
@@ -105,51 +96,62 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     );
   }
 
-  function makeHighlightingRunCode(runtime, codeRunner, isMain) {
-    var image = imageLib(runtime, runtime.namespace);
+  function displayResult(output, callingRuntime, resultRuntime, isMain) {
+    var runtime = callingRuntime;
+    var rr = resultRuntime;
+    return function(result) {
+      runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
+        console.log("Result is: ", result);
+        if(callingRuntime.isFailureResult(result)) {
+          errorUI.drawError(output, editors, callingRuntime, result.exn);
+        }
+        else if(callingRuntime.isSuccessResult(result)) {
+          result = result.result;
+          ffi.cases(ffi.isEither, "Either", result,
+            {
+              left: function(compileResultErrors) {
+                closeAnimationIfOpen();
+                var errs = [];
+                var results = ffi.toArray(compileResultErrors);
+                results.forEach(function(r) {
+                  errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
+                });
+                errorUI.drawError(output, editors, runtime, {exn: errs});
+              },
+              right: function(v) {
+                rr.loadBuiltinModules(
+                  [util.modBuiltin("load-lib")],
+                  "repl-ui",
+                  function(loadLib) {
+                    var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
+                    if(rr.isSuccessResult(runResult)) {
+                      if(!isMain) {
+                        var answer = rr.getField(runResult.result, "answer");
+                        outputUI.renderPyretValue(output, rr, answer);
+                        scroll(output);
+                      }
 
-    return function(src, uiOptions, options) {
-      function highlightingOnError(output) { return function(err) {
-        closeAnimationIfOpen();
-        ct_log(err);
-        if (!runtime.isFailureResult(err)) {
-          ct_err("Got a non-failure result in OnError handler: ", err);
+                      checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
+                      scroll(output);
+
+                      console.log(JSON.stringify(runResult.stats));
+                      return true;
+                    
+                    } else {
+                      errorUI.drawError(output, editors, rr, runResult.exn);
+                    }
+                  });
+              }
+            });
         }
         else {
-          var exn = err.exn;
-          try {
-            errorUI.drawError(output, editors, runtime, exn);
-            scroll(output);
-          }
-          catch(e) {
-            console.error("There was an error while reporting the error: ", e);
-          }
+          console.error("Bad result: ", result);
+          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
         }
-      };}
-
-      function highlightingCheckReturn(output) { return function(obj) {
-        if(!isMain) {
-          var answer = runtime.getField(obj.result, "answer");
-          outputUI.renderPyretValue(output, runtime, answer);
-          scroll(output);
-        }
-
-        checkUI.drawCheckResults(output, editors, runtime, runtime.getField(obj.result, "checks"));
-        scroll(output);
-
-        console.log(JSON.stringify(obj.stats));
-
-        return true;
-
-      };}
-
-      var theseUIOptions = merge(uiOptions, {
-          wrappingOnError: highlightingOnError
       });
-      theseUIOptions.wrappingReturnHandler = highlightingCheckReturn;
-      codeRunner(src, theseUIOptions, options);
     }
   }
+
   //: -> (code -> printing it on the repl)
   function makeRepl(container, repl, runtime, options) {
     
@@ -230,22 +232,28 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
     var breakButton = options.breakButton;
     container.append(output).append(promptContainer);
 
-    function clearAllMarks() {
-      CM.getAllMarks().forEach(function(m) {
-        m.clear();
-      });
-    }
-
     var img = $("<img>").attr({
       "src": "/img/pyret-spin.gif",
       "width": "25px",
     }).css({
       "vertical-align": "middle"
     });
-    function afterRun() {
-      options.runButton.empty();
-      options.runButton.text("Run");
-      options.runButton.attr("disabled", false);
+    function afterRun(cm) {
+      return function() {
+        options.runButton.empty();
+        options.runButton.text("Run");
+        options.runButton.attr("disabled", false);
+        breakButton.attr("disabled", true);
+        if(cm) {
+          cm.setValue("");
+          cm.setOption("readonly", false);
+          cm.getDoc().eachLine(function (line) {
+            cm.removeLineClass(line, 'background', 'cptteach-fixed');
+          });
+        }
+        output.get(0).scrollTop = output.get(0).scrollHeight;
+        showPrompt();
+      }
     }
     function setWhileRunning() {
       options.runButton.empty();
@@ -257,84 +265,55 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       options.runButton.attr("disabled", true);
     }
 
-    var runCode = makeHighlightingRunCode(runtime, function (src, uiOptions, options) {
+    var runMainCode = function(src, uiOptions) {
       breakButton.attr("disabled", false);
       output.empty();
       promptContainer.hide();
-      var defaultReturnHandler = checkModePrettyPrint;
-      var thisReturnHandler;
-      if (uiOptions.wrappingReturnHandler) {
-        thisReturnHandler = uiOptions.wrappingReturnHandler(output);
-      } else {
-        thisReturnHandler = uiOptions.handleReturn || defaultReturnHandler;
-      }
-      var thisError;
-      if (uiOptions.wrappingOnError) {
-        thisError = uiOptions.wrappingOnError(output);
-      } else {
-        thisError = uiOptions.error || onError;
-      }
-      var thisWrite = uiOptions.write || write;
-      lastNameRun = uiOptions.name || "interactions";
       lastEditorRun = uiOptions.cm || null;
       setWhileRunning();
 
       editors = {};
       editors["definitions"] = uiOptions.cm;
       interactionsCount = 0;
-      evaluator.runMain(uiOptions.name || "run", src, enablePrompt(thisReturnHandler), thisWrite, enablePrompt(thisError), options, afterRun);
-    }, true);
+      var replResult = repl.restartInteractions(src);
+      var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+        console.error("Error displaying result: ", err);
+      });
+      doneRendering.fin(afterRun(false));
+    };
 
-    var enablePrompt = function (handler) { return function (result) {
-        breakButton.attr("disabled", true);
-        CM.setValue("");
-        CM.setOption("readOnly", false);
-        CM.getDoc().eachLine(function (line) {
-          CM.removeLineClass(line, 'background', 'cptteach-fixed');
-        });
-        output.get(0).scrollTop = output.get(0).scrollHeight;
-        showPrompt();
-        return handler(result);
-      };
-    }
+    var runner = function(code) {
+      items.unshift(code);
+      pointer = -1;
+      var echoContainer = $("<div class='echo-container'>");
+      var echoSpan = $("<span>").addClass("repl-echo");
+      var echo = $("<textarea>");
+      echoSpan.append(echo);
+      echoContainer.append(drawPromptArrow()).append(echoSpan);
+      write(echoContainer);
+      var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
+      echoCM.setValue(code);
+      breakButton.attr("disabled", false);
+      CM.setValue("");
+      promptContainer.hide();
+      setWhileRunning();
+      interactionsCount++;
+      var thisName = 'interactions' + interactionsCount;
+      editors[thisName] = echoCM;
+      var replResult = repl.run(code, thisName);
+      var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+        console.error("Error displaying result: ", err);
+      });
+      doneRendering.fin(afterRun(CM));
+    };
 
-    var runner = makeLoggingRunCode(function(code, opts, replOpts){
-          items.unshift(code);
-          pointer = -1;
-          var echoContainer = $("<div class='echo-container'>");
-          var echoSpan = $("<span>").addClass("repl-echo");
-          var echo = $("<textarea>");
-          echoSpan.append(echo);
-          echoContainer.append(drawPromptArrow()).append(echoSpan);
-          write(echoContainer);
-          var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
-          echoCM.setValue(code);
-          breakButton.attr("disabled", false);
-          CM.setValue("");
-          promptContainer.hide();
-          setWhileRunning();
-          makeHighlightingRunCode(runtime, function(src, uiOptions, options) {
-            interactionsCount++;
-            var thisName = 'interactions' + interactionsCount;
-            editors[thisName] = echoCM;
-            evaluator.runRepl(thisName,
-                        code,
-                        enablePrompt(uiOptions.wrappingReturnHandler(output)),
-                        write,
-                        enablePrompt(uiOptions.wrappingOnError(output)),
-                        merge(options, merge(replOpts, {name: lastNameRun, check: true})),
-                        afterRun);
-          }, false)(code, merge(opts, {cm: echoCM}), replOpts);
-        },
-        "interactions");
-
-    var CM = makeEditor(prompt, {
+    var CM = makeEditor(prompt, runtime, {
       simpleEditor: true,
       run: runner,
       initial: "",
       cmOptions: {
         extraKeys: {
-          'Enter': function(cm) { runner(cm.getValue(), {cm: cm}, {check: true, "type-env": false }); },
+          'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
           'Shift-Enter': "newlineAndIndent",
           'Up': prevItem,
           'Down': nextItem,
@@ -353,176 +332,25 @@ define(["trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "
       output.append(dom);
     };
 
-    var onError = function(err, editor) {
-      ct_log("onError: ", err);
-      if (err.message) {
-        write(jQuery('<span/>').css('color', 'red').append(err.message));
-        write(jQuery('<br/>'));
-      }
-    };
-
-    var checkModePrettyPrint = function(obj) {
-      function drawSuccess(name, message) {
-        return $("<div>").text(name +  ": " + message)
-          .addClass("check check-success")
-          .append("<br/>");
-      }
-      function drawFailure(name, message) {
-        return $('<div>').text(name + ": " + message)
-          .addClass("check check-failure")
-          .append("<br/>");
-      }
-      var dict = pyretMaps.toDictionary(obj);
-      var blockResults = pyretMaps.toDictionary(pyretMaps.get(dict, "results"));
-      function getPrimField(v, field) {
-        return pyretMaps.getPrim(pyretMaps.get(pyretMaps.toDictionary(v), field));
-      }
-
-      pyretMaps.map(blockResults, function(result) {
-        pyretMaps.map(pyretMaps.toDictionary(result), function(checkBlockResult) {
-          var cbDict = pyretMaps.toDictionary(checkBlockResult);
-          var container = $("<div>");
-          var message = $("<p>");
-          var name = getPrimField(checkBlockResult, "name");
-          container.append("<p>").text(name);
-          container.append(message);
-          container.addClass("check-block");
-          if (pyretMaps.hasKey(cbDict, "err")) {
-            var messageText = pyretMaps.get(cbDict, "err");
-            if (pyretMaps.hasKey(pyretMaps.toDictionary(messageText), "message")) {
-              messageText = getPrimField(pyretMaps.get(cbDict, "err"), "message");
-            } else {
-              messageText = pyretMaps.getPrim(pyretMaps.get(cbDict, "err"));
-            }
-            message.text("Check block ended in error: " + messageText);
-            container.css({
-              "background-color": "red"
-            });
-          }
-
-
-          pyretMaps.map(pyretMaps.toDictionary(pyretMaps.get(pyretMaps.toDictionary(checkBlockResult), "results")), function(individualResult) {
-            if (pyretMaps.hasKey(pyretMaps.toDictionary(individualResult), "reason")) {
-              container.append(drawFailure(
-                  getPrimField(individualResult, "name"),
-                  getPrimField(individualResult, "reason")));
-            } else {
-              container.append(drawSuccess(
-                  getPrimField(individualResult, "name"),
-                  "Success!"));
-            }
-          });
-          output.append(container);
-        });
-      });
-      return true;
-    }
-
-    var evaluator = makeEvaluator(container, repl, runtime);
-
-
     var onBreak = function() {
       breakButton.attr("disabled", true);
-      evaluator.requestBreak(function() {
-          closeAnimationIfOpen();
-          Jsworld.shutdown({ cleanShutdown: true });
-          showPrompt();
-        });
+      repl.stop();
+      closeAnimationIfOpen();
+      Jsworld.shutdown({ cleanShutdown: true });
+      showPrompt();
     };
-
 
     breakButton.attr("disabled", true);
     breakButton.click(onBreak);
 
     return {
-      runCode: runCode,
+      runCode: runMainCode,
       focus: function() { CM.focus(); }
     };
-  }
-
-  function makeEvaluator(container, repl, runtime) {
-    var runMainCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
-      var evaluation = repl.restartInteractions(src);
-      evaluation.then(function(result) {
-        if(runtime.isSuccessResult(result)) {
-          returnHandler(result);
-        } else {
-          onError(result);
-        }
-      });
-      if(noMatterWhat) {
-        evaluation.fin(noMatterWhat);
-      }
-    };
-
-    var runReplCode = function(name, src, returnHandler, writer, onError, options, noMatterWhat) {
-      var evaluation = repl.run(src, name);
-      evaluation.then(function(result) {
-        if(runtime.isSuccessResult(result)) {
-          returnHandler(result);
-        } else {
-          onError(result);
-        }
-      });
-      if(noMatterWhat) {
-        evaluation.fin(noMatterWhat);
-      }
-    };
-
-    var breakFun = function(afterBreak) {
-      repl.stop();
-      afterBreak();
-    };
-
-    var resetFun = function(afterReset) {
-      repl.restartInteractions("").then(afterReset);
-    };
-
-    return {
-      runMain: runMainCode,
-      runRepl: runReplCode,
-      requestBreak: breakFun,
-      requestReset: resetFun
-    };
-  }
-
-  function namedRunner(runFun, name) {
-    return function(src, uiOptions, langOptions) {
-      runFun(src, merge(uiOptions, { name: name }), langOptions);
-    };
-  }
-
-  function makeLoggingRunCode(codeRunner, name) {
-    return codeRunner;
-/*
-    var toLog = [];
-    function codeLog(src, uiOpts, replOpts) {
-      toLog.push({name: name, url: String(window.location), src: src, name: uiOpts.name, time: String(Date.now())});
-    }
-    function sendLog() {
-      if(toLog.length > 0) {
-        $.ajax("/notification/code_run", {
-          type: "POST",
-          dataType: "json",
-          data: {run_events: JSON.stringify(toLog)}
-        });
-        toLog = [];
-      }
-      window.setTimeout(sendLog, 30000);
-    }
-    sendLog();
-    
-    return namedRunner(function(src, uiOpts, replOpts) {
-      codeLog(src, uiOpts, replOpts);
-      codeRunner(src, uiOpts, replOpts);
-    }, name);
-*/
   }
 
   return {
     makeRepl: makeRepl,
     makeEditor: makeEditor
   };
-
-
 });

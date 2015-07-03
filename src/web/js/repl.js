@@ -64,8 +64,14 @@ $(function() {
 });
 
 $(function() {
-  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf", "js/dialects-lib", "/js/guess-gas.js", "/js/gdrive-imports.js", "/js/http-imports.js"],
-  function(replLib, replUI, rtLib, dialectLib, guessGas, gdrive, http) {
+  define("repl-main", ["js/repl-lib", "/js/repl-ui.js", "js/runtime-anf",
+  "/js/guess-gas.js",
+  "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
+  "trove/runtime-lib", "compiler/repl-support.arr",
+  "compiler/locators/builtin.arr", "/js/gdrive-locators.js",
+  "compiler/compile-structs.arr"],
+  function(replLib, replUI, rtLib, guessGas, http, compileLib,
+  pyRepl, runtimeLib, replSupport, builtin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -74,48 +80,149 @@ $(function() {
       return APP_BASE_URL + "/downloadImg?" + s;
     });
 
-    var dialects = Q.defer();
-    runtime.runThunk(function() {
-      return dialectLib(runtime, runtime.namespace);
-    }, function(dialectsResult) {
-      dialects.resolve(dialectsResult.result);
-    });
-    var load = dialects.promise.then(function(dialects) {
-      var dialectStr = params["get"] ? params["get"]["lang"] : "Pyret";
-      if (!dialects.dialects[dialectStr]) { dialectStr = "Pyret"; }
-      var dialect = dialects.dialects[dialectStr]; // TODO: CHANGE THIS AS NEEDED
-      var replNS = dialect.makeNamespace(runtime);
-      var replEnv = dialect.compileEnv;
-      var getDriveImports = gdrive.makeDriveImporter(storageAPI);
-      var getSpecialImport = function(runtime, importStmt) {
-        var loc = runtime.getField(importStmt, "l");
-        var kind = runtime.getField(importStmt, "kind");
-        var args = runtime.ffi.toArray(runtime.getField(importStmt, "args"));
-        if(kind === "my-gdrive") {
-          return getDriveImports.getMyDriveImport(runtime, args[0]);
-        } else if(kind === "shared-gdrive") {
-          return getDriveImports.getSharedDriveImport(runtime, args[0], args[1]);
-        } else if(kind === "gdrive-js") {
-          return http.getHttpImport(runtime, args[0], args[1]);
-        } else {
-          var ret = Q.defer();
-          // TODO(joe): How to export this from ffi-helpers?
-          var cs = require("compiler/compile-structs.arr");
-          runtime.loadModules(runtime.namespace, [cs], function(cs) {
-            ret.reject([runtime.getField(cs, "wf-err").app("No such import type: " + kind +
-                ", did you mean my-gdrive or shared-gdrive?", loc)]);
-          });
-          return ret.promise;
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+    var gtf = function(m, f) { return gf(m, "types")[f]; };
+    var okImports = [
+        "world",
+        "image",
+        "image-structs",
+        "string-dict",
+        "checkers",
+        "lists",
+        "error",
+        "option",
+        "pick",
+        "either",
+        "sets",
+        "arrays",
+        "contracts",
+        "ast",
+        "parse-pyret",
+        "s-exp",
+        "s-exp-structs",
+        "pprint",
+        "srcloc",
+        "format",
+        "equality",
+        "valueskeleton"
+    ];
+
+    runtime.loadModulesNew(runtime.namespace,
+      [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
+      function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
+        var replNS = runtime.namespace;
+        var replEnv = gmf(compileStructs, "standard-builtins");
+        var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
+        function findModule(contextIgnored, dependency) {
+          return runtime.safeCall(function() {
+            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
+              {
+                builtin: function(name) {
+                  if(okImports.indexOf(name) === -1) {
+                    throw runtime.throwMessageException("Unknown module: " + name);
+                  }
+                  return gmf(compileLib, "located").app(
+                    gmf(builtin, "make-builtin-locator").app(name),
+                    runtime.nothing
+                    );
+                },
+                dependency: function(protocol, args) {
+                  var arr = runtime.ffi.toArray(args);
+                  if (protocol === "my-gdrive") {
+                    return constructors.makeMyGDriveLocator(arr[0]);
+                  }
+                  else if (protocol === "shared-gdrive") {
+                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                  }
+                  else if (protocol === "gdrive-js") {
+                    return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                  }
+                  else {
+                    console.error("Unknown import: ", dependency);
+                  }
+                }
+              });
+           }, function(l) {
+              return gmf(compileLib, "located").app(l, runtime.nothing); 
+           });
         }
-      };
-      runtime.safeCall(function() {
-        return replLib.create(runtime, replNS, replEnv, {
-            name: "definitions",
-            dialect: dialectStr,
-            getSpecialImport: getSpecialImport
+
+      // NOTE(joe): This line is "cheating" by mixing runtime levels,
+      // and uses the same runtime for the compiler and running code.
+      // Usually you can only get a new Runtime by calling create, but
+      // here we magic the current runtime into one.
+      var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+        runtime.makeObject({
+          "runtime": runtime.makeOpaque(runtime)
+        }));
+
+      return runtime.safeCall(function() {
+        return gmf(replSupport, "make-repl-definitions-locator").app(
+          "definitions",
+          "definitions",
+          runtime.makeFunction(function() {
+            return editor.cm.getValue();
+          }),
+          gmf(compileStructs, "standard-globals"));
+      }, function(locator) {
+        return runtime.safeCall(function() {
+          return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
+        }, function(repl) {
+          var jsRepl = {
+            runtime: runtime.getField(pyRuntime, "runtime").val,
+            restartInteractions: function(ignoredStr) {
+              var ret = Q.defer();
+              setTimeout(function() {
+                runtime.runThunk(function() {
+                  return gf(repl, "restart-interactions").app();
+                }, function(result) {
+                  ret.resolve(result);
+                });
+              }, 0);
+              return ret.promise;
+            },
+            run: function(str, name) {
+              var ret = Q.defer();
+              setTimeout(function() {
+                runtime.runThunk(function() {
+                  return runtime.safeCall(
+                    function() {
+                      return gmf(replSupport,
+                      "make-repl-interaction-locator").app(
+                        name,
+                        name,
+                        runtime.makeFunction(function() { return str; }),
+                        repl);
+                    },
+                    function(locator) {
+                      return gf(repl, "run-interaction").app(locator); 
+                    });
+                }, function(result) {
+                  ret.resolve(result);
+                });
+              }, 0);
+              return ret.promise;
+            },
+            pause: function(afterPause) {
+              runtime.schedulePause(function(resumer) {
+                afterPause(resumer);
+              });
+            },
+            stop: function() {
+              runtime.breakAll();
+            },
+            runtime: runtime
+          };
+          doWithRepl(jsRepl);
           });
-      }, function(repl) {
-        var gassed = guessGas.guessGas(3000, repl);
+        });
+      });
+
+      var editor;
+
+      function doWithRepl(repl) {
+        var gassed = Q(repl); //guessGas.guessGas(3000, repl);
         gassed.fail(function(err) {
           console.error("Couldn't guess gas: ", err);
         });
@@ -123,28 +230,32 @@ $(function() {
           console.log("Gas assumed safe at: ", repl.runtime.INITIAL_GAS);
 
           // NOTE(joe): This forces the loading of all the built-in compiler libs
-          var interactionsReady = repl.restartInteractions("");
+          var interactionsReady = repl.restartInteractions();
           interactionsReady.fail(function(err) {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
+            editor.cm.setValue("print('Ahoy, world!')");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
 
+          var codeContainer = $("<div>").addClass("replMain");
+          $("#main").prepend(codeContainer);
+
+          
           var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
               breakButton: $("#breakButton"),
               runButton: runButton
             });
+          // NOTE(joe): assigned on window for debuggability
           window.RUN_CODE = function(src, uiOpts, replOpts) {
             replWidget.runCode(src, uiOpts, replOpts);
           };
-          var codeContainer = $("<div>").addClass("replMain");
-          $("#main").prepend(codeContainer);
-          var editor = replUI.makeEditor(codeContainer, {
+          editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
               simpleEditor: false,
-              initial: "print('Ahoy, world!')",
+              initial: "",
               run: RUN_CODE,
               initialGas: 100
             });
@@ -523,11 +634,7 @@ $(function() {
         done.fail(function(err) {
           console.error("Pyret failed to load.", err);
         });
-      });
-    });
-    load.fail(function(err) {
-      console.error("Pyret failed to load.", err);
-    });
+      }
   });
   require(["repl-main"]);
 });

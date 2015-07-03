@@ -12,9 +12,9 @@
 <div id="main">
   <h1>code.pyret.org</h1>
   <div class="main-logo">
-    <a id="start" class="blueButton" href="/editor">Start Coding</a>
-    <img src="/img/pyret-logo.png"></img>
-    <a id="about" target="_blank" class="blueButton" href="http://pyret.org">What's Pyret?</a>
+    <a id="left" class="blueButton">{{ LEFT_LINK }}</a>
+    <a href="http://pyret.org" target="_blank" alt="What's Pyret?"><img src="/img/pyret-logo.png"></img></a>
+    <a id="right" class="blueButton" href="/editor">Start Coding</a>
   <br/>
   <br/>
   <div class="centered">
@@ -29,6 +29,48 @@
     <a target="_blank" href="/editor#share=0B32bNEogmncOMTg5T2plV19LX0k">Play 2048</a></br>
   </div> </div>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="/js/q.js"></script>
+<script src="/js/programs.js"></script>
+<script src="/js/authenticate-storage.js"></script>
+<script>
+var clientId = "";
+var apiKey = "{{ GOOGLE_API_KEY }}";
+function handleGoogLoad() {
+  handleClientLoad(clientId, apiKey);
+}
+</script>
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script>
+var gdriveCollection = storageAPI.then(function(storage) {
+  return storage.collection;
+});
+function showMyPrograms(collection) {
+  storageAPI.then(function(sa) {
+    sa.api.getCollectionLink().then(function(newLink) {
+      $("#left").text("My Programs").attr("href", newLink);
+    });
+  });
+}
+gdriveCollection.then(function(c) {
+  showMyPrograms(c);
+});
+gdriveCollection.fail(function(err) {
+  $("#left").click(function() {
+    $("#left").text("Connecting...");
+    $("#left").attr("disabled", "disabled");
+    storageAPI = createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false);
+    storageAPI.then(function(api) {
+      $("#left").off("click");
+      showMyPrograms(api);
+    });
+    storageAPI.fail(function(err) {
+      $("#connectButton").text("Log In");
+      $("#connectButton").attr("disabled", false);
+    });
+  });
+});
+</script>
 
 
 </body>

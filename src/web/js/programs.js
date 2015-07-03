@@ -218,7 +218,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
     var api = {
       getCollectionLink: function() {
         return baseCollection.then(function(bc) {
-          return bc.alternateLink;
+          return "https://drive.google.com/drive/u/0/folders/" + bc.id;
         });
       },
       getFileById: function(id) {
