@@ -57,7 +57,6 @@ gdriveCollection.then(function(c) {
 });
 gdriveCollection.fail(function(err) {
   $("#left").click(function() {
-    $("#left").text("Connecting...");
     $("#left").attr("disabled", "disabled");
     storageAPI = createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false);
     storageAPI.then(function(api) {
