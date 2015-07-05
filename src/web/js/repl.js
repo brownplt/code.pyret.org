@@ -235,7 +235,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            editor.cm.setValue("print('Ahoy, world!')");
+            //editor.cm.setValue("print('Ahoy, world!')");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
