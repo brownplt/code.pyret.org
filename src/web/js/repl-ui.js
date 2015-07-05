@@ -101,7 +101,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     var rr = resultRuntime;
     return function(result) {
       runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
-        console.log("Result is: ", result);
+        console.log("Management/compile run stats:", JSON.stringify(result.stats));
         if(callingRuntime.isFailureResult(result)) {
           errorUI.drawError(output, editors, callingRuntime, result.exn);
         }
@@ -124,6 +124,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                   "repl-ui",
                   function(loadLib) {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
+                    console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       if(!isMain) {
                         var answer = rr.getField(runResult.result, "answer");
@@ -137,7 +138,6 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                       checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
                       scroll(output);
 
-                      console.log(JSON.stringify(runResult.stats));
                       return true;
                     
                     } else {
