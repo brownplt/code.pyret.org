@@ -22,7 +22,7 @@ node_js:
 install:
 - npm install
 before_script:
-- curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
+- curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh -L | bash
 - node src/run.js &
 - sleep 3
 - wget -qO- http://localhost:5000/
