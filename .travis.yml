@@ -23,6 +23,7 @@ install:
 - npm install
 before_script:
 - node src/run.js &
+- sleep 3
 script:
 - make selenium-test-sauce
 addons:
