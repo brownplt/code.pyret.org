@@ -52,7 +52,7 @@ function start(testName, withDriver) {
         browserName: browserName,
         username: process.env["SAUCE_USERNAME"],
         accessKey: process.env["SAUCE_ACCESS_KEY"],
-        "tunnel-identifier": jobid,
+        "tunnelIdentifier": jobid,
         "build": jobid
       }).
       build();
