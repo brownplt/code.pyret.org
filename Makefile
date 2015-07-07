@@ -34,7 +34,7 @@ selenium-test-local:
 
 .PHONY : selenium-test-sauce
 selenium-test-sauce:
-	TEST_LOC="sauce" node test/test.js test/browser/static
+	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
 
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))

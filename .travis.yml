@@ -11,15 +11,18 @@ env:
     - PYRET_RELEASE_BASE="/js"
     - CURRENT_PYRET_RELEASE=""
     - PORT=5000
-    - SAUCE_TEST_TARGET="https://pyret-horizon.herokuapp.com"
+    - SAUCE_TEST_TARGET="http://localhost:5000"
     - SAUCE_USERNAME="gibbs"
     - secure: "VX28IH71QA8F0jUknRbw6Qmda1z9AT/mJ8QLQTqJn64tvTYRxLvDlgZfQ91rAFk2EBgqP3Ii+YRMkn02MGizrCS9TtH2QTkRZZuwHJ129BFUhDk4v9xh26GEYt/sNCoQ+2+VY+TmpLCI11B4QC+w3FQFV6H1glsdfM9F2nt61uqpwF6Wnyhr4lViKL1G0xJAs7f5GXKK8FrxMLoQmToVUL2KZMNGe3sqy4OSvXWnAmFL4YjcBXy4Wd41REsRH/OWPKMoTIbWw5+ZxIyIBruJ6L2/hpdNECLVO26BKVo4A0fe1+fCvd9i/Z3E5x865tk5msnUZYkuByAGEBwFZ5AOo/bcZbh7ZZUrkLecuuU5zbPJPdsnFu9VUzPp7dBzsNQSrLhCjqadcAmtIuZGkSZ1aoqLlNqCtgAY2qlBl2gah3sNGGkucQEZuaO8TJP5nQobiPIbZ9GesX3GSW7TTr60fRE1g/ffwSPvNPow6YqClYJBQtOHpcWN7Qk6+DFMwugKpBIoUJrhec8CGPpZznxKFkN3d4aHybe4TXx1ycbbXgugyysbBs3OphnzHgNX+U/OgfJQlgFXqkJx5qvkPfCkMGaeu7vtQJC/VtOOQYaAQFsI8GtBTPD3y5QhwvjcCBp5x/TW52/p4AyAewk36/5ZcSad6qkPYSSfJZmDHtSwgoM="
   matrix:
-    - BROWSER="chrome"
+    - SAUCE_BROWSER="chrome"
+    - SAUCE_BROWSER="firefox"
 node_js:
 - 0.10.26
 install:
 - npm install
+before_script:
+- node src/run.js
 script:
 - make selenium-test-sauce
 addons:

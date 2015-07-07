@@ -10,8 +10,10 @@ describe("Loading pages", function() {
 
         function loadPage(url, pred) {
           tester.webbit("should load " + url, function(done) {
+            console.log("Trying to load " + url + " with driver");
             driver.get(url);
             driver.wait(function() {
+              console.log("Waiting...");
               return pred;
             }, 40000);
             driver.call(function() { 

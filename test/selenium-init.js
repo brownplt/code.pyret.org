@@ -4,7 +4,9 @@ var webdriver = require('selenium-webdriver');
 
 var testServer;
 
-var browserName = process.env["BROWSER"] || "chrome";
+var browserName = process.env["SAUCE_BROWSER"] || "chrome";
+
+console.log("Browser name: ", browserName);
 
 function start(testName, withDriver) {
   if (process.env["TEST_LOC"] === "local") {
@@ -43,8 +45,6 @@ function start(testName, withDriver) {
     var access = process.env["SAUCE_ACCESS_KEY"];
     var jobid = process.env["TRAVIS_JOB_NUMBER"];
     var url = "http://" + uname + ":" + access + "@localhost:4445/wd/hub/"
-    // NOTE(joe): intentional overwrite for debug
-    var url = "https://ondemand.saucelabs.com/wd/hub"
     var driver = new webdriver.Builder().
       usingServer(url).
       withCapabilities({
@@ -52,10 +52,11 @@ function start(testName, withDriver) {
         browserName: browserName,
         username: process.env["SAUCE_USERNAME"],
         accessKey: process.env["SAUCE_ACCESS_KEY"],
-        "tunnel-identifier": jobid,
+//        "tunnel-identifier": jobid,
         "build": jobid
       }).
       build();
+      /*
     if(!testServer) {
       server.start({
         baseUrl: process.env["BASE_URL"],
@@ -72,9 +73,10 @@ function start(testName, withDriver) {
         withDriver(testServer, process.env["SAUCE_TEST_TARGET"], driver);
       });
     }
-    else {
-      withDriver(testServer, process.env["BASE_URL"], driver);
-    }
+    */
+    //else {
+      withDriver(null, process.env["SAUCE_TEST_TARGET"], driver);
+    //}
   }
   else { // Local sauce test, assumes server is running somewhere
     var uname = process.env["SAUCE_USERNAME"];
