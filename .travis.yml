@@ -2,9 +2,7 @@ language: node_js
 node_js:
 - 0.10.26
 install:
-- npm install
-before_script:
 - cp .env.example .env
-- source .env && make web
+- source .env && npm install
 script:
-- make selenium-test-local
+- source .env && make selenium-test-local
