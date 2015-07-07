@@ -43,7 +43,7 @@ function start(testName, withDriver) {
     var access = process.env["SAUCE_ACCESS_KEY"];
     var jobid = process.env["TRAVIS_JOB_NUMBER"];
     if(jobid) {
-      var url = uname + ":" + access + "@localhost:4445/wd/hub/"
+      var url = "http://" + uname + ":" + access + "@localhost:4445/wd/hub/"
     }
     else {
       var url = "https://ondemand.saucelabs.com/wd/hub"
