@@ -1,3 +1,0 @@
-[submodule "test/jasmine"]
-	path = test/jasmine
-	url = https://github.com/pivotal/jasmine

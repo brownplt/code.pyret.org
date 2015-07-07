@@ -30,11 +30,11 @@ install-link:
 
 .PHONY : selenium-test-local
 selenium-test-local:
-	TEST_LOC="local" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
+	TEST_LOC="local" node test/test.js test/browser
 
 .PHONY : selenium-test-sauce
 selenium-test-sauce:
-	TEST_LOC="sauce" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
+	TEST_LOC="sauce" node test/test.js test/browser
 
 
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))

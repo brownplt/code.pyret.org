@@ -1,5 +1,5 @@
 _ = require("jasmine-node");
-var tester = require("./selenium-init.js");
+var tester = require("./../../selenium-init.js");
 var webdriver = require('selenium-webdriver');
 
 var contains = tester.contains;

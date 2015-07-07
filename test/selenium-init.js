@@ -1,8 +1,8 @@
 _ = require("jasmine-node");
-var server = require("./../../src/server.js");
+var server = require("./../src/server.js");
 var webdriver = require('selenium-webdriver');
 
-function start(withDriver) {
+function start(testName, withDriver) {
   if (process.env["TEST_LOC"] === "local") {
     console.log("Starting local server");
     server.start({
@@ -26,11 +26,13 @@ function start(withDriver) {
     var driver = new webdriver.Builder().
       usingServer("https://ondemand.saucelabs.com/wd/hub").
       withCapabilities({
-        browserName: "internet explorer",
+        testName: testName,
+        browserName: "chrome",
         username: process.env["SAUCE_USERNAME"],
         accessKey: process.env["SAUCE_ACCESS_KEY"]
       }).
       build();
+    console.log("Built tester, starting tests");
     withDriver(null, process.env["SAUCE_TEST_TARGET"], driver);
   }
 }
@@ -68,6 +70,7 @@ function contains(str) {
 }
 
 function setupExceptions(test, done) {
+  console.log("setting up exceptions");
   webdriver.promise.controlFlow().on('uncaughtException', function(e) {
     console.error('Unhandled error: ' + e);
     test.fail(new Error("Unhandled exception: " + e));
@@ -76,10 +79,19 @@ function setupExceptions(test, done) {
 }
 
 function webbit(description, runner, timeout) {
+  console.log("Registering test");
   it(description, function(done) {
+    console.log("About to set up exceptions");
     setupExceptions(this, done);
     runner(done);
   }, timeout);
+}
+
+function pyretLoaded(driver) {
+  return driver.findElement(webdriver.By.id("loader")).getCssValue("display")
+    .then(function(d) {
+      return d === "none";
+    });
 }
 
 function waitForPyretLoad(driver, timeout) {
@@ -93,6 +105,13 @@ function waitForPyretLoad(driver, timeout) {
   }, timeout || 3000);
 }
 
+function loadAndRunPyret(code, driver, timeout) {
+  waitForPyretLoad(driver, timeout);
+  // http://stackoverflow.com/a/1145525 
+  var escaped = code.split("\n").join("\\n");
+  driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(\""+ escaped + "\");");
+  driver.findElement(webdriver.By.id("runButton")).click();
+}
 
 module.exports = {
   webbit: webbit,
@@ -101,5 +120,7 @@ module.exports = {
   contains: contains,
   waitThenClick: waitThenClick,
   waitForPyretLoad: waitForPyretLoad,
+  pyretLoaded: pyretLoaded,
+  loadAndRunPyret: loadAndRunPyret,
   start: start
 };
