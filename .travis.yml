@@ -22,3 +22,5 @@ install:
 - npm install
 script:
 - make selenium-test-sauce
+addons:
+  sauce_connect: true
