@@ -310,7 +310,6 @@ function start(config, onServerReady) {
   });
 
   app.get("/getAccessToken", function(req, res) {
-    console.log(JSON.stringify(req.session));
     function noAuth() {
       res.status(404).send("No account information found.");
     }
@@ -427,3 +426,4 @@ function start(config, onServerReady) {
 module.exports = {
   start: start
 };
+

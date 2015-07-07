@@ -7,14 +7,14 @@ describe("testing javascript in the browser", function() {
   after(tester.teardown);
 
   it("should load the index page", function(done) {
-    this.timeout(25000);
+    this.timeout(10000);
     this.browser.get(this.base);
     var headline = this.browser.findElement(webdriver.By.id('right'));
     this.browser.call(done);
   });
 
   it("should load the editor", function(done) {
-    this.timeout(25000);
+    this.timeout(40000);
     var self = this;
     this.browser.get(this.base + "/editor");
     this.browser.wait(function() { return tester.pyretLoaded(self.browser); });
