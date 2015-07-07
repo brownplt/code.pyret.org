@@ -26,6 +26,6 @@ before_script:
 - node src/run.js &
 - sleep 3
 script:
-- node test/test.js test/browser/static
+- mocha --timeout 120000
 addons:
   sauce_connect: true
