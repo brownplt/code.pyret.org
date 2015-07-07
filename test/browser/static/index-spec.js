@@ -6,7 +6,7 @@ var contains = tester.contains;
 var waitThenClick = tester.waitThenClick;
 
 describe("Loading pages", function() {
-      tester.start(function(maybeServer, baseUrl, driver) {
+      tester.start("Loading pages", function(maybeServer, baseUrl, driver) {
 
         function loadPage(url, pred) {
           tester.webbit("should load " + url, function(done) {

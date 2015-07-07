@@ -8,7 +8,7 @@ var googleLogin = tester.googleLogin;
 var googleLogout = tester.googleLogout;
 
 describe("Sign in", function() {
-      tester.start(function(maybeServer, baseUrl, driver) {
+      tester.start("Signing in", function(maybeServer, baseUrl, driver) {
         tester.webbit("Should forget everything it knows", function(done) {
           driver.get("https://security.google.com/settings/security/permissions");
           googleLogin(driver);

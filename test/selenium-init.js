@@ -22,6 +22,7 @@ function start(testName, withDriver) {
           redirect: "/oauth2callback"
         }
       }, function(app, server) {
+        testServer = server;
         console.log("Server started, initializing selenium");
         var driver = new webdriver.Builder().
           withCapabilities({browserName: browserName}).

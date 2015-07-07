@@ -8,7 +8,7 @@ var googleLogin = tester.googleLogin;
 var googleLogout = tester.googleLogout;
 
 describe("Saving programs", function() {
-      tester.start(function(maybeServer, baseUrl, driver) {
+      tester.start("Saving programs", function(maybeServer, baseUrl, driver) {
         tester.webbit("should open up the editor and save a new program", function(done) {
           var name = "test-program" + String(Math.floor(Math.random() * 10000));
           driver.get(baseUrl);
