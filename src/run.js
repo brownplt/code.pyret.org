@@ -30,7 +30,7 @@ var res = Q.fcall(function(db) {
       redirect: "/oauth2callback"
     }
   }, function(app) {
-
+    console.log("Server ready.");
   });
 });
 res.fail(function(err) {
