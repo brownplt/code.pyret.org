@@ -38,13 +38,15 @@ function start(testName, withDriver) {
     }
   }
   else {
+    console.log("Job id: ", process.env["TRAVIS_JOB_NUMBER"]);
     var driver = new webdriver.Builder().
       usingServer("https://ondemand.saucelabs.com/wd/hub").
       withCapabilities({
         testName: testName,
         browserName: browserName,
         username: process.env["SAUCE_USERNAME"],
-        accessKey: process.env["SAUCE_ACCESS_KEY"]
+        accessKey: process.env["SAUCE_ACCESS_KEY"],
+        "tunnel-identifier": process.env["TRAVIS_JOB_NUMBER"]
       }).
       build();
     console.log("Built tester, starting tests");
