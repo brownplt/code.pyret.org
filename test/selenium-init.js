@@ -44,15 +44,15 @@ function start(testName, withDriver) {
     var access = process.env["SAUCE_ACCESS_KEY"];
     var jobid = process.env["TRAVIS_JOB_NUMBER"];
     console.log("Job id: ", jobid);
-    var url = "http://" + uname + ":" + access + "@localhost:4445/wd/hub"
+    var url = 'http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub'; 
     var driver = new webdriver.Builder().
       usingServer(url).
       withCapabilities({
-        browserName: browserName,
-        username: process.env["SAUCE_USERNAME"],
-        accessKey: process.env["SAUCE_ACCESS_KEY"],
-        "tunnel-identifier": jobid,
-        "build": jobid
+        'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
+        build: process.env.TRAVIS_BUILD_NUMBER,
+        username: process.env.SAUCE_USERNAME,
+        accessKey: process.env.SAUCE_ACCESS_KEY,
+        browserName: "chrome"
       }).
       build();
       /*
