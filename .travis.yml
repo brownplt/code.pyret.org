@@ -1,6 +1,7 @@
 language: node_js
 env:
   global:
+    - TEST_LOC="sauce"
     - GOOGLE_CLIENT_ID=""
     - GOOGLE_CLIENT_SECRET=""
     - GOOGLE_API_KEY=""
@@ -25,6 +26,6 @@ before_script:
 - node src/run.js &
 - sleep 3
 script:
-- make selenium-test-sauce
+- node test/test.js test/browser/static
 addons:
   sauce_connect: true
