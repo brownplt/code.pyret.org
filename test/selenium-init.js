@@ -5,6 +5,7 @@ var webdriver = require('selenium-webdriver');
 function start(testName, withDriver) {
   if (process.env["TEST_LOC"] === "local") {
     console.log("Starting local server");
+    console.log("Environment variables are: ", process.env["BASE_URL"], process.env["PORT"], process.env["TEST_LOC"]);
     server.start({
       baseUrl: process.env["BASE_URL"],
       port: process.env["PORT"],
