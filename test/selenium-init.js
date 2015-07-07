@@ -28,7 +28,7 @@ function start(testName, withDriver) {
       usingServer("https://ondemand.saucelabs.com/wd/hub").
       withCapabilities({
         testName: testName,
-        browserName: "chrome",
+        browserName: process.env["BROWSER"] || "chrome",
         username: process.env["SAUCE_USERNAME"],
         accessKey: process.env["SAUCE_ACCESS_KEY"]
       }).
