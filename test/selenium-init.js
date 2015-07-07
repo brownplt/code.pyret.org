@@ -43,6 +43,8 @@ function start(testName, withDriver) {
     var access = process.env["SAUCE_ACCESS_KEY"];
     var jobid = process.env["TRAVIS_JOB_NUMBER"];
     var url = "http://" + uname + ":" + access + "@localhost:4445/wd/hub/"
+    // NOTE(joe): intentional overwrite for debug
+    var url = "https://ondemand.saucelabs.com/wd/hub"
     var driver = new webdriver.Builder().
       usingServer(url).
       withCapabilities({
