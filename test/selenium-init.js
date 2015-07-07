@@ -37,17 +37,12 @@ function start(testName, withDriver) {
       withDriver(testServer, process.env["BASE_URL"], driver);
     }
   }
-  else {
+  else if (process.env["TRAVIS_JOB_NUMBER"]) {
     console.log("Job id: ", process.env["TRAVIS_JOB_NUMBER"]);
     var uname = process.env["SAUCE_USERNAME"];
     var access = process.env["SAUCE_ACCESS_KEY"];
     var jobid = process.env["TRAVIS_JOB_NUMBER"];
-    if(jobid) {
-      var url = "http://" + uname + ":" + access + "@localhost:4445/wd/hub/"
-    }
-    else {
-      var url = "https://ondemand.saucelabs.com/wd/hub"
-    }
+    var url = "http://" + uname + ":" + access + "@localhost:4445/wd/hub/"
     var driver = new webdriver.Builder().
       usingServer(url).
       withCapabilities({
@@ -57,6 +52,39 @@ function start(testName, withDriver) {
         accessKey: process.env["SAUCE_ACCESS_KEY"],
         "tunnel-identifier": jobid,
         "build": jobid
+      }).
+      build();
+    if(!testServer) {
+      server.start({
+        baseUrl: process.env["BASE_URL"],
+        port: process.env["PORT"],
+        sessionSecret: process.env["SESSION_SECRET"],
+        google: {
+          clientId: process.env["GOOGLE_CLIENT_ID"],
+          clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
+          redirect: "/oauth2callback"
+        }
+      }, function(_, server) {
+        testServer = server;
+        console.log("Server started, initializing selenium");
+        withDriver(testServer, process.env["SAUCE_TEST_TARGET"], driver);
+      });
+    }
+    else {
+      withDriver(testServer, process.env["BASE_URL"], driver);
+    }
+  }
+  else { // Local sauce test, assumes server is running somewhere
+    var uname = process.env["SAUCE_USERNAME"];
+    var access = process.env["SAUCE_ACCESS_KEY"];
+    var url = "https://ondemand.saucelabs.com/wd/hub"
+    var driver = new webdriver.Builder().
+      usingServer(url).
+      withCapabilities({
+        testName: testName,
+        browserName: browserName,
+        username: uname,
+        accessKey: access
       }).
       build();
     console.log("Built tester, starting tests");
