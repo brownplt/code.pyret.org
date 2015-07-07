@@ -2,33 +2,46 @@ _ = require("jasmine-node");
 var server = require("./../src/server.js");
 var webdriver = require('selenium-webdriver');
 
+var testServer;
+
+var browserName = process.env["BROWSER"] || "chrome";
+
 function start(testName, withDriver) {
   if (process.env["TEST_LOC"] === "local") {
     console.log("Starting local server");
     console.log("Environment variables are: ", process.env["BASE_URL"], process.env["PORT"], process.env["TEST_LOC"]);
-    server.start({
-      baseUrl: process.env["BASE_URL"],
-      port: process.env["PORT"],
-      sessionSecret: process.env["SESSION_SECRET"],
-      google: {
-        clientId: process.env["GOOGLE_CLIENT_ID"],
-        clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
-        redirect: "/oauth2callback"
-      }
-    }, function(app, server) {
-      console.log("Server started, initializing selenium");
+    // only start one server if multiple jobs running
+    if(!testServer) {
+      server.start({
+        baseUrl: process.env["BASE_URL"],
+        port: process.env["PORT"],
+        sessionSecret: process.env["SESSION_SECRET"],
+        google: {
+          clientId: process.env["GOOGLE_CLIENT_ID"],
+          clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
+          redirect: "/oauth2callback"
+        }
+      }, function(app, server) {
+        console.log("Server started, initializing selenium");
+        var driver = new webdriver.Builder().
+          withCapabilities({browserName: browserName}).
+          build();
+        withDriver(server, process.env["BASE_URL"], driver);
+      });
+    }
+    else {
       var driver = new webdriver.Builder().
-        withCapabilities({browserName: "chrome"}).
+        withCapabilities({browserName: browserName}).
         build();
-      withDriver(server, process.env["BASE_URL"], driver);
-    });
+      withDriver(testServer, process.env["BASE_URL"], driver);
+    }
   }
   else {
     var driver = new webdriver.Builder().
       usingServer("https://ondemand.saucelabs.com/wd/hub").
       withCapabilities({
         testName: testName,
-        browserName: process.env["BROWSER"] || "chrome",
+        browserName: browserName,
         username: process.env["SAUCE_USERNAME"],
         accessKey: process.env["SAUCE_ACCESS_KEY"]
       }).
