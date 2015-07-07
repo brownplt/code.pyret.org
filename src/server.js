@@ -25,7 +25,6 @@ function start(config, onServerReady) {
       res.redirect("/login?redirect=" + encodeURIComponent(req.originalUrl));
     }
     if(!session || !session["user_id"]) {
-      console.log("Redirecting, no user id in session", JSON.stringify(session));
       redirect();
     }
     else {
@@ -96,7 +95,6 @@ function start(config, onServerReady) {
     var parsed = url.parse(req.url);
     var jsUrl = decodeURIComponent(parsed.query.slice(0));
     var gReq = request(jsUrl, function(error, jsResponse, body) {
-      console.log(error, jsResponse.statusCode);
       if(error || (jsResponse.statusCode >= 400)) {
         response.status(400).send({type: "no-js-file", error: "Couldn't load JS file from " + jsUrl});
         return;
@@ -267,17 +265,14 @@ function start(config, onServerReady) {
 
   app.get(config.google.redirect, function(req, res) {
     auth.serveRedirect(req, function(err, data) {
-      console.log("Data was: ", data);
       if(err) { res.send({type: "auth error", error: err}); }
       else {
-        console.log("Redirect returned data: ", data);
         var existingUser = db.getUserByGoogleId(data.googleId);
         existingUser.fail(function(err) {
-          console.log("Error on getting user: ", err);
+          console.error("Error on getting user: ", err);
           res.send({type: "DB error", error: err});
         });
         var user = existingUser.then(function(user) {
-          console.log("Existing user: ", typeof user, JSON.stringify(user));
           if(user === null) {
             var newUser = db.createUser({
               google_id: data.googleId,
@@ -303,9 +298,7 @@ function start(config, onServerReady) {
         });
         user.then(function(u) {
           const redirect = req.param("state") || "/editor";
-          console.log(JSON.stringify(u));
           req.session["user_id"] = u.google_id;
-          console.log("Redirecting after successful login", JSON.stringify(req.session));
           res.redirect(redirect);
         });
         user.fail(function(err) {
@@ -337,7 +330,7 @@ function start(config, onServerReady) {
         });
       });
       maybeUser.fail(function(err) {
-        console.log("Failed to get an access token: ", err);
+        console.error("Failed to get an access token: ", err);
         noAuth();
       });
     } else {
@@ -376,7 +369,6 @@ function start(config, onServerReady) {
             res.redirect("/editor");
           }
           else {
-            console.log(response);
             res.redirect("/editor#program=" + response.id);
           }
         });
@@ -413,7 +405,6 @@ function start(config, onServerReady) {
   app.get("/my-programs", function(req, res) {
     var u = requireLogin(req, res);
     u.then(function(user) {
-      console.log("Responding");
       res.sendfile("build/web/my-programs.html");
     });
   });

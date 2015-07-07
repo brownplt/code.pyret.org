@@ -14,7 +14,6 @@ function makeAuth(config) {
 
   return {
     refreshAccess: function(refreshToken, callback) {
-      console.log(refreshToken);
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -53,7 +52,6 @@ function makeAuth(config) {
               config.baseUrl + config.google.redirect
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
-        console.log("Got tokens: ", JSON.stringify(tokens));
         if(err !== null) {
           console.error("Error in Google login: ", err);
           callback(err, null); return;

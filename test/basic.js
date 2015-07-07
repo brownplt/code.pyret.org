@@ -3,8 +3,8 @@ var tester = require("../test-util/util.js");
 var webdriver = require("selenium-webdriver");
 
 describe("testing javascript in the browser", function() {
-  beforeEach(tester.setup);
-  afterEach(tester.teardown);
+  before(tester.setup);
+  after(tester.teardown);
 
   it("should load the index page", function(done) {
     this.timeout(25000);
