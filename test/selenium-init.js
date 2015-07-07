@@ -40,19 +40,18 @@ function start(testName, withDriver) {
     }
   }
   else if (process.env["TRAVIS_JOB_NUMBER"]) {
-    console.log("Job id: ", process.env["TRAVIS_JOB_NUMBER"]);
     var uname = process.env["SAUCE_USERNAME"];
     var access = process.env["SAUCE_ACCESS_KEY"];
     var jobid = process.env["TRAVIS_JOB_NUMBER"];
-    var url = "http://" + uname + ":" + access + "@ondemand.saucelabs.com/wd/hub"
+    console.log("Job id: ", jobid);
+    var url = "http://" + uname + ":" + access + "@ondemand.saucelabs.com:80/wd/hub"
     var driver = new webdriver.Builder().
       usingServer(url).
       withCapabilities({
-        testName: testName,
         browserName: browserName,
         username: process.env["SAUCE_USERNAME"],
         accessKey: process.env["SAUCE_ACCESS_KEY"],
-        "tunnelIdentifier": jobid,
+        "tunnel-identifier": jobid,
         "build": jobid
       }).
       build();

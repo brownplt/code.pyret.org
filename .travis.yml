@@ -24,6 +24,7 @@ install:
 before_script:
 - node src/run.js &
 - sleep 3
+- wget -qO- http://localhost:5000/
 script:
 - make selenium-test-sauce
 addons:
