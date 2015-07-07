@@ -10,7 +10,9 @@ describe("Running Pyret programs", function() {
       tester.start("Images", function(maybeServer, baseUrl, driver) {
 
         tester.webbit("should run a simple image program", function(done) {
+          console.log("About to get " + baseUrl + "/editor");
           driver.get(baseUrl + "/editor");
+          console.log("Registering Pyret run command");
           loadAndRunPyret(
 "include image\n" +
 "check:\n" +
@@ -18,6 +20,7 @@ describe("Running Pyret programs", function() {
 "end\n",
            driver, 60000);
          driver.wait(function() {
+          console.log("Waiting for test to complete.");
           return driver.isElementPresent(tester.contains("Looks shipshape"));
          }, 40000);
          driver.call(done);
