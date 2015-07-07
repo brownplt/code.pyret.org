@@ -10,7 +10,6 @@ function start(config, onServerReady) {
   var request = require('request');
   var mustache = require('mustache-express');
   var url = require('url');
-//  var mail = require('./mail.js');
   var fs = require('fs');
 
   function loggedIn(req) {
