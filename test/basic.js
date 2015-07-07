@@ -20,7 +20,7 @@ describe("testing javascript in the browser", function() {
       }).build();
     }
 
-    return this.browser.get("http://localhost:8000/page/index.html");
+    return this.browser.get("http://localhost:5000");
   });
 
   afterEach(function() {
