@@ -22,7 +22,7 @@ node_js:
 install:
 - npm install
 before_script:
-- node src/run.js
+- node src/run.js &
 script:
 - make selenium-test-sauce
 addons:
