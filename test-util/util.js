@@ -11,7 +11,7 @@ function setup() {
     this.browser = new webdriver.Builder()
     .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
     .withCapabilities({
-      testName: process.env.TRAVIS_JOB_NUMBER,
+      name: this.currentTest.title,
       'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
       build: process.env.TRAVIS_BUILD_NUMBER,
       username: process.env.SAUCE_USERNAME,
@@ -30,6 +30,7 @@ function setup() {
     this.browser = new webdriver.Builder()
     .usingServer('https://ondemand.saucelabs.com/wd/hub')
     .withCapabilities({
+      name: this.currentTest.title,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
       browserName: browser

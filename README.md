@@ -53,25 +53,6 @@ $ foreman run make web
 
 and then refresh the page.
 
-## What Does `OK_GOOGLE_IDS` Mean?
-
-The special `gdrive-js` import form:
-
-    import gdrive-js("stuff.arr", "0B32bNEogmncOdUZkTmZ5dVJsNGs") as S
-
-is only allowed to work with a statically-configured set of accounts.  These
-are configured via the `OK_GOOGLE_IDS` config variable, encoded as a JSON
-string mapping ids to email addresses.  The email addresses are purely
-documentary.  The 12-digit ID is unique to each Google account, and it is the
-first 12 digits of any share URL made by a user.  If you want to add a user to
-your deployment as gdrive-js capable, just ask them for a share link and get
-those digits.
-
-(NOTE(joe Jan 2015): There isn't documentation indicating that this is a stable
-way to do this, so this is an interim note.  We may need a more complicated
-identity-checking mechanism, but this is super-simple and easier to change/rip
-out if necessary.)
-
 ## Running with Development Pyret
 
 If you'd like to run with a development copy of Pyret, you can change the
