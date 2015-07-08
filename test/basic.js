@@ -3,8 +3,8 @@ var tester = require("../test-util/util.js");
 var webdriver = require("selenium-webdriver");
 
 describe("testing javascript in the browser", function() {
-  beforeEach(tester.setup);
-  afterEach(tester.teardown);
+  before(tester.setup);
+  after(tester.teardown);
 
   it("should load the index page", function(done) {
     this.timeout(10000);
@@ -14,7 +14,7 @@ describe("testing javascript in the browser", function() {
   });
 
   it("should load the editor", function(done) {
-    this.timeout(40000);
+    this.timeout(60000);
     var self = this;
     this.browser.get(this.base + "/editor");
     this.browser.wait(function() { return tester.pyretLoaded(self.browser); });
