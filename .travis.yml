@@ -17,7 +17,6 @@ env:
     - secure: "e0vpQGmW0d69Ql72Mw6gsGsMxAKgt61ZNqsfQEtNlAGtx7CbTKe3xg8kF1ygwFVEB7GDmTaojTcSGbRwqqZ5GAa8dsTAkefhOtfCDV5KUjvXXbpo9J/8YLiZiIy7ksHyh1yhByvvWmZZpjmdxWwcH8gUqtpae3bGtz7rQX3jLf2v3OR5uVFt8vKRMSR9imCWmq6tpnu+GVoaCFOHjq3U7LS1h78R2LJz+MnTuCbDtYFlxp/sAyS7vSXssFScl6wqOsgH5PHlj+kaHhFWLhzsAzG1RoHftqqIeinXzDcYo8EC/c6O3hMf2KtHm/Hsh1dPR8GnE6WClxPw0xNbh10jVf7b1CXuzKGF8a1JlmtsVztiujsMswZGGLpTkqBvBAiuDsMOwKFNk7UrR5FA/0bVMMsluKxW/0UBzVPN9QyMKAs19ca1t/qT3abxYFyvXrDibKMLuS1uCCsZbwTkjkPwfWBzin8ohK2gLi+y24eQFSd27XWcmk+fJHfgJ458OgvczubK0CsyPAaJtCvRBYKvLQaEtkc4RkoM0yx6NhYYLCZqH1DRneam40rVSrVO41yT/PUnA5U64q16ptbn90Vgw/yKlp9OLtWKheBDTinwbst1kegbCSj4qZtORFLIQIUsZQN6SUm9tCACqFosDpRXAzURc2IOdsSUmtJEqvkijsc="
   matrix:
     - SAUCE_BROWSER="chrome"
-    - SAUCE_BROWSER="safari"
     - SAUCE_BROWSER="internet explorer"
 node_js:
 - 0.10.26
