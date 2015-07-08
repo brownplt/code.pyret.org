@@ -141,24 +141,28 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       var curLoc = locs[locIndex];
       var editor = editors[get(curLoc, "source")];
       if(!editor) { return; }
-      var view = editor.getScrollInfo();
-      cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
-        "builtin": function(_) { },
-        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-          var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
-          if (view.top > charCh.top) {
-            warnDesired = fadeAmt;
-            // We set a timeout so that a quick pass through the area
-            // won't bring up the warning.
-            setTimeout(function() { setWarningState(jQuery(".warning-upper")); },
-                       warnWait);
-          } else if (view.top + view.clientHeight < charCh.bottom) {
-            warnDesired = fadeAmt;
-            setTimeout(function() { setWarningState(jQuery(".warning-lower")); },
-                       warnWait);
+      if (jQuery(editor.getWrapperElement()).find(".warning-upper").length !== 0) { 
+        var view = editor.getScrollInfo();
+        cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
+          "builtin": function(_) { },
+          "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+            var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
+            if (view.top > charCh.top) {
+              warnDesired = fadeAmt;
+              // We set a timeout so that a quick pass through the area
+              // won't bring up the warning.
+              var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
+              setTimeout(function() { setWarningState(warningUpper); },
+                         warnWait);
+            } else if (view.top + view.clientHeight < charCh.bottom) {
+              warnDesired = fadeAmt;
+              var warningLower = jQuery(editor.getWrapperElement()).find(".warning-lower");
+              setTimeout(function() { setWarningState(warningLower); },
+                         warnWait);
+            }
           }
-        }
-      });
+        });
+      }
       mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
         marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
       });
