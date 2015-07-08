@@ -17,12 +17,12 @@ function setup() {
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
       tags: [process.env.TRAVIS_BRANCH, browser],
-      customData: [{
+      customData: {
         "browser": browser,
         "commit": process.env.TRAVIS_COMMIT,
         "commit-range": process.env.TRAVIS_COMMIT_RANGE,
         "branch": process.env.TRAVIS_BRANCH,
-      }],
+      },
       browserName: browser
     }).build();
   } else if(process.env.SAUCE_USERNAME !== undefined) {
