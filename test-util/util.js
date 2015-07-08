@@ -11,10 +11,17 @@ function setup() {
     this.browser = new webdriver.Builder()
     .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
     .withCapabilities({
+      testName: process.env.TRAVIS_JOB_NUMBER,
       'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
       build: process.env.TRAVIS_BUILD_NUMBER,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
+      tags: [{
+        "browser": browser,
+        "commit": process.env.TRAVIS_COMMIT,
+        "commit-range": process.env.TRAVIS_COMMIT_RANGE,
+        "branch": process.env.TRAVIS_BRANCH,
+      }],
       browserName: browser
     }).build();
   } else if(process.env.SAUCE_USERNAME !== undefined) {
