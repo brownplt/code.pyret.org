@@ -1,3 +1,4 @@
+var assert = require("assert");
 var webdriver = require("selenium-webdriver");
 
 function teardown() {
@@ -47,6 +48,10 @@ function setup() {
   return;
 }
 
+function contains(str) {
+  return webdriver.By.xpath("//*[contains(text(), '" + str + "')]")
+}
+
 function pyretLoaded(driver) {
   return driver.findElement(webdriver.By.id("loader")).getCssValue("display")
     .then(function(d) {
@@ -54,8 +59,48 @@ function pyretLoaded(driver) {
     });
 }
 
+function waitForPyretLoad(driver, timeout) {
+  return driver.wait(function() { return pyretLoaded(driver); }, timeout);
+}
+
+function loadAndRunPyret(code, driver, timeout) {
+  waitForPyretLoad(driver, timeout);
+  // http://stackoverflow.com/a/1145525 
+  var escaped = code.split("\n").join("\\n");
+  driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(\""+ escaped + "\");");
+  driver.findElement(webdriver.By.id("runButton")).click();
+}
+
+function checkAllTestsPassed(code, driver, test, timeout) {
+  loadAndRunPyret(code, driver, timeout);
+  var replOutput = driver.findElement(webdriver.By.id("output"));
+  driver.wait(function() {
+    return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
+      return elements.length > 0;
+    });
+  }, timeout);
+  var outputElements = replOutput.findElements(webdriver.By.xpath("*"));
+  outputElements.then(function(elements) {
+    elements[0].getAttribute("class").then(function(cls) {
+      if(cls.indexOf("error") !== -1) {
+        elements[0].getInnerHtml().then(function(str) {
+          driver.session_.then(function(s) {
+            var message = "See https://saucelabs.com/jobs/" + s.id_ + "\n\n" + str;
+            assert.equal("An error occurred", message);
+          });
+        });
+      }
+      else {
+        return replOutput.findElement(contains("Looks shipshape"));
+      }
+    });
+  });
+}
+
 module.exports = {
   pyretLoaded: pyretLoaded,
+  waitForPyretLoad: waitForPyretLoad,
   setup: setup,
-  teardown: teardown
+  teardown: teardown,
+  checkAllTestsPassed: checkAllTestsPassed
 }
