@@ -17,7 +17,7 @@ function setup() {
       build: process.env.TRAVIS_BUILD_NUMBER,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
-      tags: [process.env.TRAVIS_BRANCH, browser],
+      tags: [process.env.TRAVIS_BRANCH, browser, "travis"],
       customData: {
         "browser": browser,
         "commit": process.env.TRAVIS_COMMIT,
