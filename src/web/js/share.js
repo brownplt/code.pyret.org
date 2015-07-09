@@ -121,26 +121,30 @@ function makeShareAPI(pyretVersion) {
     }
   }
 
-  function drawShareRow(f) {
+  function autoHighlightBox(text) {
     var container = $("<div>");
+    var textBox = $("<input type='text'>").addClass("auto-highlight");
+    container.append(textBox);
+    textBox.attr("size", text.length);
+    textBox.attr("editable", false);
+    textBox.mouseup(function() { $(this).select(); });
+    textBox.val(text);
+    return textBox;
+  }
+
+  function drawShareRow(f) {
+    var container = $("<div>").addClass("sharebox");
     var shareUrl = makeShareUrl(f.getUniqueId());
-    container.append($("<span>").text(new Date(f.getModifiedTime())));
-    container.append($("<span>&nbsp;</span>"));
-    container.append($("<a>").attr({
-        "href": shareUrl,
-        "target": "_blank"
-      }).text(f.getName()));
-    var importTextContainer = $("<div>");
-    var importText = $("<input type='text'>").addClass("import-syntax");
-    importTextContainer.append(importText);
+    var showDate = new Date(f.getModifiedTime()).toLocaleString();
+    var hoverDate = String(new Date(f.getModifiedTime()));
+    container.append($("<label>").text(showDate).attr("alt", hoverDate));
+    container.append($("<br>"));
+    container.append(autoHighlightBox(shareUrl));
+    container.append($("<br>"));
     var importLetter = getImportLetter(f.getName()[0]);
     var importCode = "import shared-gdrive(\"" + f.getName() +
         "\", \"" + f.getUniqueId() + "\") as " + importLetter;
-    importText.attr("size", importCode.length);
-    importText.attr("editable", false);
-    importText.mouseup(function() { $(this).select(); });
-    importText.val(importCode);
-    container.append(importTextContainer);
+    container.append(autoHighlightBox(importCode));
     return container;
   }
 
