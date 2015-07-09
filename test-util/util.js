@@ -1,5 +1,6 @@
 var assert = require("assert");
 var webdriver = require("selenium-webdriver");
+var fs = require("fs");
 
 function teardown() {
   return this.browser.quit();
@@ -66,13 +67,30 @@ function waitForPyretLoad(driver, timeout) {
 function loadAndRunPyret(code, driver, timeout) {
   waitForPyretLoad(driver, timeout);
   // http://stackoverflow.com/a/1145525 
-  var escaped = code.split("\n").join("\\n");
-  driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(\""+ escaped + "\");");
+  var escaped = escape(code);
+  driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(unescape(\""+ escaped + "\"));");
   driver.findElement(webdriver.By.id("runButton")).click();
 }
 
-function checkAllTestsPassed(code, driver, test, timeout) {
+function checkWorldProgramRunsCleanly(code, driver, test, timeout) {
   loadAndRunPyret(code, driver, timeout);
+  driver.wait(function() {
+    return driver
+      .findElements(webdriver.By.className("ui-dialog-title")).then(
+        function(elements) { return elements.length > 0; });
+  }, timeout);
+  driver.sleep(5); // make sure the big-bang can run for 5 seconds
+  driver.findElement(webdriver.By.className("ui-icon-closethick"))
+    .click();
+  checkAllTestsPassed(driver, test, timeout);
+}
+
+function runAndCheckAllTestsPassed(code, driver, test, timeout) {
+  loadAndRunPyret(code, driver, timeout);
+  checkAllTestsPassed(driver, test, timeout);
+}
+
+function checkAllTestsPassed(driver, test, timeout) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   driver.wait(function() {
     return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
@@ -97,10 +115,29 @@ function checkAllTestsPassed(code, driver, test, timeout) {
   });
 }
 
+function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
+  it("should run " + name + " programs", function(done) {
+    var self = this;
+    self.browser.get(self.base + "/editor");
+    var tests = fs.readdirSync(base).filter(function(p) {
+      return p.indexOf(".arr") === (p.length - 4);
+    });
+    self.timeout(tests.length * (baseTimeout || 30000));
+    tests.forEach(function(program) {
+      var programText = String(fs.readFileSync(base + program));
+      testFun(programText, self);
+    });
+    self.browser.call(done);
+  });
+}
+
+
 module.exports = {
   pyretLoaded: pyretLoaded,
   waitForPyretLoad: waitForPyretLoad,
   setup: setup,
   teardown: teardown,
-  checkAllTestsPassed: checkAllTestsPassed
+  runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
+  checkWorldProgramRunsCleanly: checkWorldProgramRunsCleanly,
+  doForEachPyretFile: doForEachPyretFile
 }
