@@ -109,6 +109,65 @@ redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
 `.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
 
+## Testing with Selenium
+
+There are tests in `test-util/` and `test/` that use Selenium to script a
+browser.
+
+The instructions for setting up Selenium to open Chrome locally are pretty
+platform-specific, but you can try just running:
+
+```
+foreman run mocha
+```
+
+with Selenium installed, but YMMV.
+
+The easiest thing to do is probably to run all the tests on Sauce Labs
+(https://saucelabs.com).  Pyret has an account there and you can email Joe to
+get a sub-account if you want, you can also get a personal free account with
+unlimited testing if you only test open-source stuff (which Pyret/CPO are).
+Sauce also stores screencasts and logs of your tests, which can be helpful
+with debugging.
+
+First, add your sauce username and access key (from your account page at
+Sauce) to `.env`:
+
+```
+SAUCE_USERNAME="gibbs"
+SAUCE_ACCESS_KEY="deadbeef-2671-11e5-a6a1-206a8a0824be"
+```
+
+(Not my real access key)
+
+First, install the Sauce Connect client for your system from
+https://docs.saucelabs.com/reference/sauce-connect/.  Follow the instructions
+for starting the server (the default configuration should work fine), using
+the same username and access key, for example, on Ubuntu I run:
+
+```
+~/sc-4.3.9-linux32$ ./bin/sc -u gibbs -k deadbeef-2671-11e5-a6a1-206a8a0824be
+```
+
+That sets up a tunnel to Sauce Labs, and on the same machine you should now be
+able to run:
+
+```
+$ foreman run mocha
+```
+
+To run only a particular file, pass in one of the filenames in `test/`, e.g.
+
+```
+$ foreman run mocha test/world.js
+```
+
+Check out how `world.js` and `image.js` are written: they look up files from
+`test-util/pyret-programs` and run them according to Selenium testers in
+`test-util/util.js`.  The best way to test a whole new library is probably to
+add a directory here and figure out a good predicate that can be applied
+across the files (`runAndCheckAllTestsPassed` is probably a good candidate for
+many use cases).
 
 ## Setting up your own remote version of code.pyret.org with Heroku:
 
