@@ -150,7 +150,7 @@ function makeShareAPI(pyretVersion) {
     var hoverDate = String(new Date(f.getModifiedTime()));
     container.append($("<label>").text(displayDate).attr("alt", hoverDate));
     var shareLink = $("<a href='javascript:void()'>").text("(Share Link)").addClass("copy-link");
-    var importLink = $("<a href='javascript:void()'>").text("(Import Link)").addClass("copy-link");
+    var importLink = $("<a href='javascript:void()'>").text("(Import Code)").addClass("copy-link");
     container.append(shareLink);
     container.append(importLink);
     function showCopyText(title, text) {
