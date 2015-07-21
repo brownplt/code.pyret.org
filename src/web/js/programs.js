@@ -73,7 +73,11 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
   }
 
   function createAPI(baseCollection) {
-    function makeURLFile(url) {
+    function makeURLFile(url,name) {
+      var progname = name;
+      if (progname === undefined) {
+        progname = "foo";
+      }
       return {
         shared: false,
         getContents: function() {
@@ -92,7 +96,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
           });
         },
         getName: function() {
-          return "Je teste";
+          return progname;
         },
         getDownloadLink: function() {
           return url;
