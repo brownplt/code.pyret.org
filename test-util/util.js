@@ -3,7 +3,9 @@ var webdriver = require("selenium-webdriver");
 var fs = require("fs");
 
 function teardown() {
-  return this.browser.quit();
+  if(!(this.currentTest.state === 'failed')) {
+    return this.browser.quit();
+  }
 }
 
 function setup() {
@@ -37,7 +39,6 @@ function setup() {
       accessKey: process.env.SAUCE_ACCESS_KEY,
       browserName: browser
     }).build();
-
   } else {
     this.base = process.env.BASE_URL;
     this.browser = new webdriver.Builder()
