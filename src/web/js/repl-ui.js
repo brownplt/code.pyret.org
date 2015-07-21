@@ -119,7 +119,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
                     if(rr.isSuccessResult(runResult)) {
                       if(!isMain) {
-                        var answer = rr.getField(runResult.result, "answer");
+                        var answer = rr.getColonField(runResult.result, "answer");
                         if(!rr.isNothing(answer)) {
                           outputUI.renderPyretValue(output, rr, answer);
                           scroll(output);
