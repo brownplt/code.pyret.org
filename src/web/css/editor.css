@@ -750,7 +750,7 @@ span.rationalRepeat {
 /* From internet: http://stackoverflow.com/questions/5663137/jquery-modal-dialog-is-hidden-by-overlay-div-if-dialogs-parent-has-fixed-positi */
 .ui-widget-overlay{
   position:fixed;
-  z-index: 9500;
+  z-index: 11000;
   width: 100%;
   height: 100%;
   top: 0;
@@ -764,7 +764,7 @@ span.rationalRepeat {
   border: 2px solid #111;
   background-color: #eee;
   border-radius: 5px;
-  z-index: 10000;
+  z-index: 15000;
 }
 
 .ui-dialog-titlebar {

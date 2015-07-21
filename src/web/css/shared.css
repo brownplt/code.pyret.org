@@ -311,10 +311,16 @@ code {
 
 .auto-highlight {
   border: none;
-  font-family: monospace;
+  /* TODO(joe): Best way to override JQuery modal UI settings? */
+  font-family: monospace !important;
 }
 
 .sharebox {
   border: 1px solid #111;
   padding: 2px;
+}
+
+.copy-link {
+  text-decoration: none;
+  padding-left: 3px;
 }
