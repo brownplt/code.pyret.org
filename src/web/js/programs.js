@@ -42,14 +42,22 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
     });
   }
 
-  function gQ(request) {
-    return failCheck(authCheck(function() {
+  function gQ(request, skipAuth) {
+    var oldAccess = gapi.auth.getToken();
+    if(skipAuth) { gapi.auth.setToken({access_token: null}); }
+    var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       request.execute(function(result) {
         d.resolve(result);
       });
       return d.promise;
     }));
+    if(skipAuth) {
+      ret.fin(function() {
+        gapi.auth.setToken({access_token: oldAccess});
+      });
+    }
+    return ret;
   }
 
   function DriveError(err) {
@@ -230,7 +238,7 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
         });
       },
       getSharedFileById: function(id) {
-        return gQ(drive.files.get({fileId: id})).then(makeSharedFile);
+        return gQ(drive.files.get({fileId: id}), true).then(makeSharedFile);
       },
       getAllFiles: function() {
         return baseCollection.then(function(bc) {
