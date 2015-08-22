@@ -1,4 +1,4 @@
-define(["./support.js", 'js/js-numbers', "trove/parse-pyret"], function(sup, jsnums, parsePyret) {
+define(["./support.js", 'js/js-numbers'], function(sup, jsnums) {
 
   var types = sup.types
   var Vector = sup.Vector
