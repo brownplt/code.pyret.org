@@ -69,9 +69,10 @@ $(function() {
   "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
   "trove/runtime-lib", "compiler/repl-support.arr",
   "compiler/locators/builtin.arr", "/js/cpo-builtins.js", "/js/gdrive-locators.js",
-  "compiler/compile-structs.arr"],
+  "compiler/compile-structs.arr",
+  "/js/spyret-parse.js"],
   function(replUI, rtLib, guessGas, http, compileLib,
-  pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin, gdriveLocators, compileStructs) {
+  pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin, gdriveLocators, compileStructs, spyretParse) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -118,7 +119,7 @@ $(function() {
         var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
         function findModule(contextIgnored, dependency) {
           return runtime.safeCall(function() {
-            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
+            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
               {
                 builtin: function(name) {
                   if (cpoBuiltin.knownCpoModule(name)) {
@@ -154,7 +155,7 @@ $(function() {
                 }
               });
            }, function(l) {
-              return gmf(compileLib, "located").app(l, runtime.nothing); 
+              return gmf(compileLib, "located").app(l, runtime.nothing);
            });
         }
 
@@ -168,11 +169,11 @@ $(function() {
         }));
 
       return runtime.safeCall(function() {
-        return gmf(replSupport, "make-repl-definitions-locator").app(
+        return gmf(replSupport, "make-repl-definitions-wescheme-locator").app(
           "definitions",
           "definitions",
           runtime.makeFunction(function() {
-            return editor.cm.getValue();
+            return spyretParse.schemeToPyretAST(runtime, editor.cm.getValue());
           }),
           gmf(compileStructs, "standard-globals"));
       }, function(locator) {
@@ -199,14 +200,16 @@ $(function() {
                   return runtime.safeCall(
                     function() {
                       return gmf(replSupport,
-                      "make-repl-interaction-locator").app(
+                      "make-repl-interaction-wescheme-locator").app(
                         name,
                         name,
-                        runtime.makeFunction(function() { return str; }),
+                        runtime.makeFunction(function() {
+                          return spyretParse.schemeToPyretAST(runtime, str);
+                        }),
                         repl);
                     },
                     function(locator) {
-                      return gf(repl, "run-interaction").app(locator); 
+                      return gf(repl, "run-interaction").app(locator);
                     });
                 }, function(result) {
                   ret.resolve(result);
@@ -253,7 +256,6 @@ $(function() {
           var codeContainer = $("<div>").addClass("replMain");
           $("#main").prepend(codeContainer);
 
-          
           var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
               breakButton: $("#breakButton"),
               runButton: runButton
