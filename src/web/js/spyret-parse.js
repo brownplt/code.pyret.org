@@ -7157,7 +7157,8 @@ define(["./support.js", 'js/js-numbers', "trove/parse-pyret"], function(sup, jsn
         var pinfo = plt.compiler.analyze(program, debug);
         console.log("pyretstring is " + plt.compiler.toPyretString(ast, pinfo));
         var jast = plt.compiler.toPyretAST(ast, pinfo);
-        return parsePyret.translate(jast, "repl-main");
+        //return parsePyret.translate(jast, "repl-main");
+        return jast;
       }
 
       return {
