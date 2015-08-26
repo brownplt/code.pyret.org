@@ -6149,6 +6149,7 @@ define(["./support.js", 'js/js-numbers'], function(sup, jsnums) {
         // convertToPyretString : [listof Programs] pinfo -> Pyret String
         // BSL-to-pyret translation for testing. ignores location information altogether
         function converttoPyretString(programs, pinfo){
+          console.log('converttoPyretString of ' + programs);
           _pinfo = pinfo;
           // identify structs
           var isStruct = function(b){return (b instanceof structBinding);},
