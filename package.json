@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ds26gte/code.pyret.org"
+    "url": "git://github.com/ds26gte/code.pyret.org#spyret"
   },
   "author": "Joe Politz",
   "license": "Apache-2.0"
