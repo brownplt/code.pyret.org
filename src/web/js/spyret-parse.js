@@ -7157,10 +7157,10 @@ define(["./support.js", 'js/js-numbers'], function(sup, jsnums) {
         var program = astAndPinfo[0];
         var pinfo = plt.compiler.analyze(program, debug);
         console.log("pyretstring is " + plt.compiler.toPyretString(ast, pinfo));
-        var jast = plt.compiler.toPyretAST(ast, pinfo);
+        //var jast = plt.compiler.toPyretAST(ast, pinfo);
         //return parsePyret.translate(jast, "repl-main");
-        console.log('jast is ' + jast);
-        return jast;
+        //console.log('jast is ' + jast);
+        return runtime.ffi.makeList([ast]);
       }
 
       return {
