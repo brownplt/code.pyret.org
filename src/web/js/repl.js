@@ -169,11 +169,13 @@ $(function() {
         }));
 
       return runtime.safeCall(function() {
-        return gmf(replSupport, "make-repl-definitions-wescheme-locator").app(
+        return gmf(replSupport, "make-repl-definitions-locator").app(
           "definitions",
           "definitions",
           runtime.makeFunction(function() {
-            return spyretParse.schemeToPyretAST(runtime, editor.cm.getValue());
+            var pstring = spyretParse.schemeToPyretString(runtime, editor.cm.getValue());
+            console.log('pyret string (frm repl) is ' + pstring);
+            return pstring;
           }),
           gmf(compileStructs, "standard-globals"));
       }, function(locator) {
@@ -200,11 +202,13 @@ $(function() {
                   return runtime.safeCall(
                     function() {
                       return gmf(replSupport,
-                      "make-repl-interaction-wescheme-locator").app(
+                      "make-repl-interaction-locator").app(
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          return spyretParse.schemeToPyretAST(runtime, str);
+                          var pstring = spyretParse.schemeToPyretString(runtime, editor.cm.getValue());
+                          console.log('pyret string (frm repl) is ' + pstring);
+                          return pstring;
                         }),
                         repl);
                     },
@@ -248,7 +252,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            editor.cm.setValue("print('Ahoy, world!')");
+            editor.cm.setValue("(+ 12 34)");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");

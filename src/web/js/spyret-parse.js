@@ -7156,15 +7156,32 @@ define(["./support.js", 'js/js-numbers'], function(sup, jsnums) {
         var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
         var program = astAndPinfo[0];
         var pinfo = plt.compiler.analyze(program, debug);
-        console.log("pyretstring is " + plt.compiler.toPyretString(ast, pinfo));
-        //var jast = plt.compiler.toPyretAST(ast, pinfo);
-        //return parsePyret.translate(jast, "repl-main");
-        //console.log('jast is ' + jast);
-        return runtime.ffi.makeList([ast]);
+        var pstring = plt.compiler.toPyretString(ast, pinfo);
+        console.log("pyretstring is " + pstring);
+        var jast = plt.compiler.toPyretAST(ast, pinfo);
+        console.log('jast is ' + jast);
+        return runtime.ffi.makeList([jast]);
+      }
+
+      function schemeToPyretString(runtime, code) {
+        // is runtime param needed hn
+        console.log("code is " + code);
+        var debug = false;
+        var sexp = plt.compiler.lex(code, undefined, debug);
+        console.log("sexp is " + sexp);
+        var ast = plt.compiler.parse(sexp, debug)
+        console.log("ast is " + ast);
+        var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
+        var program = astAndPinfo[0];
+        var pinfo = plt.compiler.analyze(program, debug);
+        var pstring = plt.compiler.toPyretString(ast, pinfo);
+        console.log("pyretstring is " + pstring);
+        return pstring.toString();
       }
 
       return {
-        schemeToPyretAST: schemeToPyretAST
+        schemeToPyretAST: schemeToPyretAST,
+        schemeToPyretString: schemeToPyretString
       }
 
     });
