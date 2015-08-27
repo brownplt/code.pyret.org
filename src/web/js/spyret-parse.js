@@ -1,4 +1,4 @@
-define(["./support.js", 'js/js-numbers'], function(sup, jsnums) {
+define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
   var types = sup.types
   var Vector = sup.Vector
@@ -7163,20 +7163,22 @@ define(["./support.js", 'js/js-numbers'], function(sup, jsnums) {
         return runtime.ffi.makeList([jast]);
       }
 
-      function schemeToPyretString(runtime, code) {
+      function schemeToPyretString(code) {
         // is runtime param needed hn
-        console.log("code is " + code);
+        //console.log("code is " + code);
         var debug = false;
         var sexp = plt.compiler.lex(code, undefined, debug);
-        console.log("sexp is " + sexp);
+        //console.log("sexp is " + sexp);
         var ast = plt.compiler.parse(sexp, debug)
-        console.log("ast is " + ast);
+        //console.log("ast is " + ast);
         var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
         var program = astAndPinfo[0];
         var pinfo = plt.compiler.analyze(program, debug);
         var pstring = plt.compiler.toPyretString(ast, pinfo);
-        console.log("pyretstring is " + pstring);
-        return pstring.toString();
+        //console.log("pyretstring is " + pstring);
+        // separate toplevel programs by newline because pyret can't
+        // tolerate programs strung together on same line
+        return pstring.join('\n');
       }
 
       return {
