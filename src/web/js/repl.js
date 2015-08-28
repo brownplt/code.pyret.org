@@ -187,6 +187,7 @@ $(function() {
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
             restartInteractions: function(ignoredStr, typeCheck) {
+              console.log('restartInteractions called/ ' + ignoredStr + ' ' + typeCheck);
               var ret = Q.defer();
               setTimeout(function() {
                 runtime.runThunk(function() {
