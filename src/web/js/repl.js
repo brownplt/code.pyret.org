@@ -308,7 +308,9 @@ $(function() {
                 replWidget.runCode(src, {check: true, cm: editor.cm});
                 break;
               case "tc-and-run":
-                replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
+                //replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
+                //disable type-check for wescheme
+                replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": false});
                 break;
             }
           }
