@@ -169,14 +169,15 @@ $(function() {
         }));
 
       return runtime.safeCall(function() {
+        console.log('calling make-repl-definitions-locator');
         return gmf(replSupport, "make-repl-definitions-locator").app(
           "definitions",
           "definitions",
           runtime.makeFunction(function() {
             var sstring = editor.cm.getValue();
-            console.log('raw string (frm repl) is ' + sstring);
+            console.log('raw string (frm repl) is ' + sstring + '|||');
             var pstring = spyretParse.schemeToPyretString(sstring);
-            console.log('pyret string (frm repl) is ' + pstring);
+            console.log('pyret string (frm repl) is ' + pstring + '|||');
             return pstring;
           }),
           gmf(compileStructs, "standard-globals"));
@@ -204,15 +205,16 @@ $(function() {
                 runtime.runThunk(function() {
                   return runtime.safeCall(
                     function() {
+                      console.log('calling make-repl-interaction-locator');
                       return gmf(replSupport,
                       "make-repl-interaction-locator").app(
                         name,
                         name,
                         runtime.makeFunction(function() {
                           var sstring = editor.cm.getValue();
-                          console.log('raw string (frm repl) is ' + sstring);
+                          console.log('raw string (frm repl) is ' + sstring + '|||');
                           var pstring = spyretParse.schemeToPyretString(sstring);
-                          console.log('pyret string (frm repl) is ' + pstring);
+                          console.log('pyret string (frm repl) is ' + pstring + '|||');
                           return pstring;
                         }),
                         repl);
