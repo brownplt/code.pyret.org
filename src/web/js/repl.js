@@ -259,8 +259,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            //Ahoy
-            editor.cm.setValue("(print (+ 12 34))");
+            editor.cm.setValue("(print (string-append \"Ahoy, \" \"world\"))");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
