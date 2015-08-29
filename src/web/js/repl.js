@@ -211,9 +211,8 @@ $(function() {
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          var sstring = editor.cm.getValue();
-                          console.log('raw string (frm repl) is ' + sstring);
-                          var pstring = spyretParse.schemeToPyretString(sstring);
+                          console.log('raw string (frm repl) is ' + str);
+                          var pstring = spyretParse.schemeToPyretString(str);
                           console.log('pyret string (frm repl) is ' + pstring);
                           return pstring;
                         }),
