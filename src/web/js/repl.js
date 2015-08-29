@@ -261,6 +261,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
+            //Ahoy
             editor.cm.setValue("(+ 12 34)");
             console.log("REPL ready.");
           });
