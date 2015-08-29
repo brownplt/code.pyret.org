@@ -175,10 +175,9 @@ $(function() {
           "definitions",
           runtime.makeFunction(function() {
             var sstring = editor.cm.getValue();
-            console.log('raw string (frm repl) is ' + sstring + '|||');
-            //var pstring = spyretParse.schemeToPyretString(sstring);
-            var pstring = sstring;
-            console.log('pyret string (frm repl) is ' + pstring + '|||');
+            console.log('raw string (frm repl) is ' + sstring);
+            var pstring = spyretParse.schemeToPyretString(sstring);
+            console.log('pyret string (frm repl) is ' + pstring);
             return pstring;
           }),
           gmf(compileStructs, "standard-globals"));
@@ -213,10 +212,9 @@ $(function() {
                         name,
                         runtime.makeFunction(function() {
                           var sstring = editor.cm.getValue();
-                          console.log('raw string (frm repl) is ' + sstring + '|||');
-                          //var pstring = spyretParse.schemeToPyretString(sstring);
-                          var pstring = sstring;
-                          console.log('pyret string (frm repl) is ' + pstring + '|||');
+                          console.log('raw string (frm repl) is ' + sstring);
+                          var pstring = spyretParse.schemeToPyretString(sstring);
+                          console.log('pyret string (frm repl) is ' + pstring);
                           return pstring;
                         }),
                         repl);
