@@ -271,9 +271,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       editors = {};
       editors["definitions"] = uiOptions.cm;
       interactionsCount = 0;
-      console.log('starting repl.restartInteractions');
       var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
-      console.log('done repl.restartInteractions');
       var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
         console.error("Error displaying result: ", err);
       });
