@@ -1122,9 +1122,10 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       return i;
     }
 
-    Array.prototype.toString = function () {return this.join(" "); };
+    //Array.prototype.toString = function () {return this.join(" "); };
+
     function sexpToString(sexp) {
-      return (sexp instanceof Array)? "(" + sexp.map(sexpToString).toString() + ")"
+      return (sexp instanceof Array)? "(" + sexp.map(sexpToString).join(" ") + ")"
         : sexp.toString();
     }
 
