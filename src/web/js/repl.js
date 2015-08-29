@@ -260,7 +260,7 @@ $(function() {
           });
           interactionsReady.then(function(result) {
             //Ahoy
-            editor.cm.setValue("(+ 12 34)");
+            editor.cm.setValue("(print (+ 12 34))");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
