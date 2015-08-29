@@ -177,6 +177,7 @@ $(function() {
             var sstring = editor.cm.getValue();
             console.log('raw string (frm repl) is ' + sstring + '|||');
             var pstring = spyretParse.schemeToPyretString(sstring);
+            pstring = sstring;
             console.log('pyret string (frm repl) is ' + pstring + '|||');
             return pstring;
           }),
@@ -214,6 +215,7 @@ $(function() {
                           var sstring = editor.cm.getValue();
                           console.log('raw string (frm repl) is ' + sstring + '|||');
                           var pstring = spyretParse.schemeToPyretString(sstring);
+                          pstring = sstring;
                           console.log('pyret string (frm repl) is ' + pstring + '|||');
                           return pstring;
                         }),
