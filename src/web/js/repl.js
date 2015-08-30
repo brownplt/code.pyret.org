@@ -176,9 +176,9 @@ $(function() {
           runtime.makeFunction(function() {
             var sstring = editor.cm.getValue();
             console.log('raw string (frm repl) is ' + sstring);
-            var pstring = spyretParse.schemeToPyretString(sstring);
-            console.log('pyret string (frm repl) is ' + pstring);
-            return pstring;
+            var pstrings = spyretParse.schemeToPyretString(sstring);
+            console.log('pyretstrings (frm repl): ' + pstrings);
+            return pstrings.join('\n');
           }),
           gmf(compileStructs, "standard-globals"));
       }, function(locator) {
@@ -212,8 +212,14 @@ $(function() {
                         name,
                         runtime.makeFunction(function() {
                           console.log('raw string (frm repl) is ' + str);
-                          var pstring = spyretParse.schemeToPyretString(str);
-                          console.log('pyret string (frm repl) is ' + pstring);
+                          var pstrings = spyretParse.schemeToPyretString(str);
+                          if (pstrings.length > 1) {
+                            var errmsg = 'Well-formedness: more than 1 WeScheme expression on a line';
+                            console.error(errmsg);
+                            throw spyretParse.types.schemeError(errmsg);
+                          }
+                          var pstring = pstrings[0].toString();
+                          console.log('pyretstring (frm repl) is ' + pstring);
                           return pstring;
                         }),
                         repl);

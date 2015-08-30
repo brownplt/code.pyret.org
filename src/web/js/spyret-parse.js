@@ -7179,12 +7179,14 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         //console.log("pyretstring is " + pstring);
         // separate toplevel programs by newline because pyret can't
         // tolerate programs strung together on same line
-        return pstring.join('\n');
+        //return pstring.join('\n');
+        return pstring;
       }
 
       return {
-        schemeToPyretAST: schemeToPyretAST,
-        schemeToPyretString: schemeToPyretString
+        //schemeToPyretAST: schemeToPyretAST,
+        schemeToPyretString: schemeToPyretString,
+        types: types
       }
 
     });
