@@ -5,7 +5,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
   var shareAPI = makeShareAPI("");
   Math.LN10 = Math.LN10 || Math.log(10);
   Math.log10 = Math.log10 || function log10(n) { return Math.log(n) / Math.LN10; };
-  
+
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
     else {
@@ -39,7 +39,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     var userLocs = srclocStack.filter(function(l) {
       if(!(l && isSrcloc(l))) { return false; }
       var source = runtime.getField(l, "source");
-      return (source === "definitions" 
+      return (source === "definitions"
               || source.indexOf("interactions") !== -1
               || source.indexOf("gdrive") !== -1);
     });
@@ -141,7 +141,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       var curLoc = locs[locIndex];
       var editor = editors[get(curLoc, "source")];
       if(!editor) { return; }
-      if (jQuery(editor.getWrapperElement()).find(".warning-upper").length !== 0) { 
+      if (jQuery(editor.getWrapperElement()).find(".warning-upper").length !== 0) {
         var view = editor.getScrollInfo();
         cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
           "builtin": function(_) { },
@@ -334,7 +334,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
       function help(errorDisp) {
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
-          "v-sequence": function(seq) { 
+          "v-sequence": function(seq) {
             var result = $("<div>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -342,7 +342,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
             }
             return result;
           },
-          "numbered-sequence": function(seq) { 
+          "numbered-sequence": function(seq) {
             var result = $("<ol>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -350,7 +350,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
             }
             return result;
           },
-          "bulleted-sequence": function(seq) { 
+          "bulleted-sequence": function(seq) {
             var result = $("<ul>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -358,7 +358,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
             }
             return result;
           },
-          "h-sequence": function(seq, separator) { 
+          "h-sequence": function(seq, separator) {
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -411,7 +411,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
           "optional": function(contents) {
             return expandableMore(help(contents));
           },
-          "text": function(txt) { 
+          "text": function(txt) {
             return $("<span>").text(txt);
           },
           "code": function(contents) {
@@ -435,7 +435,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
                     if ($.contains(document.documentElement, placeholder[0])) {
                       placeholder.replaceWith(rendered);
                     }
-                    else { 
+                    else {
                       placeholder = rendered;
                     }
                     return rendered;
@@ -451,7 +451,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
               return help(contentsWithoutLoc);
             }
           },
-          "loc": function(loc) { 
+          "loc": function(loc) {
             return drawSrcloc(editors, runtime, loc);
           },
           "loc-display": function(loc, style, contents) {
@@ -548,7 +548,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       // click will toggle the decimal representation of that
       // number.  Note that this feature abandons the convenience of
       // publishing output via the CodeMirror textarea.
-      if (jsnums.isExact(num) && !jsnums.isInteger(num)) {
+      if (jsnums.isRational(num) && !jsnums.isInteger(num)) {
         // This function returns three string values, numerals to
         // appear before the decimal point, numerals to appear
         // after, and numerals to be repeated.
@@ -599,9 +599,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         .addClass("info-icon");
       container.append(warning);
       warning.click(function(e) {
-        runtime.runThunk(function() { 
+        runtime.runThunk(function() {
           // re-render the value
-          return runtime.toReprJS(runtime.getRef(top.extra.origVal), renderers); 
+          return runtime.toReprJS(runtime.getRef(top.extra.origVal), renderers);
         }, function(newTop) {
           if(runtime.isSuccessResult(newTop)) {
             warning.detach()
@@ -644,8 +644,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       }
       container.append(dl);
       container.append(closeBrace);
-      container.click(function(e) { 
-        container.toggleClass("expanded"); 
+      container.click(function(e) {
+        container.toggleClass("expanded");
         e.stopPropagation();
       });
       return container;
