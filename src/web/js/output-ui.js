@@ -567,6 +567,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         });
 
         return outText;
+      } else if (jsnums.isComplexRoughnum(num)) {
+        return renderers.renderText("number", num.toSchemeString());
       } else {
         return renderers.renderText("number", num);
       }
