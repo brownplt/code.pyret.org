@@ -6636,16 +6636,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
               , pos:loc};
         }
         // Bytecode generation for jsnums types
-        jsnums.Rational.prototype.toPyret = function(){
-          var loc = this.location;
-          return {name: "frac-expr"
-              , kids: [{value: this.stx
-                       , key: "'RATIONAL:"+this.stx
-                       , name: "RATIONAL"
-                       , pos: this.location}]
-              , pos: loc};
-        };
-        jsnums.BigInteger.prototype.toPyret = function(){
+        jsnums.BigInteger.prototype.toPyret =
+          jsnums.Rational.prototype.toPyret =
+          jsnums.Roughnum.prototype.toPyret =
+          jsnums.ComplexRational.prototype.toPyret =
+          jsnums.ComplexRoughnum.prototype.toPyret =
+          function(){
           var loc = this.location;
           return {name: "num-expr"
               , kids: [{value: this.stx
@@ -6653,18 +6649,6 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                        , name: "NUMBER"
                        , pos: loc}]
               , pos: loc};
-        };
-        jsnums.FloatPoint.prototype.toPyret = function(){
-          var loc = this.location;
-          return {name: "num-expr"
-              , kids: [{value: this.stx
-                       , key: "'NUMBER:"+this.stx
-                       , name: "NUMBER"
-                       , pos: loc}]
-              , pos: loc};
-        };
-        jsnums.Complex.prototype.toPyret = function(){
-          throw "Complex Numbers are not supported in Pyret";
         };
 
         Char.prototype.toPyret = function(){
