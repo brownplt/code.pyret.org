@@ -23,13 +23,11 @@ sys.error = function(e) {
 	}
 };
 
-
 sys.inspect = function(x) {
     // FIXME: add more helpful inspect function that'll show
     // us what's really inside.  Perhaps use toString()?
     return x + '';
 };
-
 
 var DEBUG_ON = false;
 
@@ -49,7 +47,6 @@ var debugF = function(f_s) {
     }
 }
 
-
 var hasOwnProperty = {}.hasOwnProperty;
 
 var deepEqual = function (obj1, obj2) {
@@ -66,7 +63,7 @@ var deepEqual = function (obj1, obj2) {
             return true;
         } else {
             return false;
-        }        
+        }
     }
 
     if (typeof(obj1) === 'string' || typeof(obj1) === 'number') {
@@ -88,7 +85,6 @@ var deepEqual = function (obj1, obj2) {
     return true;
 }
 
-
 var assert = {};
 
 assert.equal = function(x, y) {
@@ -103,13 +99,11 @@ assert.deepEqual = function(x, y) {
 	}
 }
 
-
 assert.ok = function(x) {
 	if (!x) {
 		throw new Error('AssertError: not ok: ' + x );
 	}
 }
-
 
 assert.throwsExn = function(f) {
 	try {
@@ -129,13 +123,11 @@ assert.throwsExn = function(f) {
 
     See http://www.JSON.org/js.html
 
-
     This code should be minified before deployment.
     See http://javascript.crockford.com/jsmin.html
 
     USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
     NOT CONTROL.
-
 
     This file creates a global JSON object containing two methods: stringify
     and parse.
@@ -210,7 +202,6 @@ assert.throwsExn = function(f) {
             text = JSON.stringify(['e', {pluribus: 'unum'}]);
             // text is '["e",{"pluribus":"unum"}]'
 
-
             text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
             // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
 
@@ -219,7 +210,6 @@ assert.throwsExn = function(f) {
                     'Date(' + this[key] + ')' : value;
             });
             // text is '["Date(---current time---)"]'
-
 
         JSON.parse(text, reviver)
             This method parses a JSON text to produce an object or array.
@@ -262,7 +252,6 @@ assert.throwsExn = function(f) {
                 return value;
             });
 
-
     This is a reference implementation. You are free to copy, modify, or
     redistribute.
 */
@@ -275,7 +264,6 @@ assert.throwsExn = function(f) {
     lastIndex, length, parse, prototype, push, replace, slice, stringify,
     test, toJSON, toString, valueOf
 */
-
 
 // Create a JSON object only if one does not already exist. We create the
 // methods in a closure to avoid creating global variables.
@@ -326,7 +314,6 @@ if (!this.JSON) {
         },
         rep;
 
-
     function quote(string) {
 
 // If the string contains no control characters, no quote characters, and no
@@ -343,7 +330,6 @@ if (!this.JSON) {
             }) + '"' :
             '"' + string + '"';
     }
-
 
     function str(key, holder) {
 
@@ -517,7 +503,6 @@ if (!this.JSON) {
         };
     }
 
-
 // If the JSON object does not yet have a parse method, give it one.
 
     if (typeof JSON.parse !== 'function') {
@@ -548,7 +533,6 @@ if (!this.JSON) {
                 }
                 return reviver.call(holder, key, value);
             }
-
 
 // Parsing happens in four stages. In the first stage, we replace certain
 // Unicode characters with escape sequences. JavaScript handles many characters
@@ -653,7 +637,6 @@ var helpers = {};
 		return result;
 	};
 
-
 	// forEachK: CPS( array CPS(array -> void) (error -> void) -> void )
 	// Iterates through an array and applies f to each element using CPS
 	// If an error is thrown, it catches the error and calls f_error on it
@@ -673,13 +656,12 @@ var helpers = {};
 		forEachHelp(0);
 	};
 
-
 	// reportError: (or exception string) -> void
 	// Reports an error to the user, either at the console
 	// if the console exists, or as alerts otherwise.
 	var reportError = function(e) {
 		var reporter;
-		if (typeof(console) != 'undefined' && 
+		if (typeof(console) != 'undefined' &&
 			typeof(console.log) != 'undefined') {
 			reporter = (function(x) { console.log(x); });
 		} else {
@@ -711,11 +693,9 @@ var helpers = {};
 //		}
 	};
 
-
 	var raise = function(v) {
 		throw types.schemeError(v);
 	};
-
 
 	var procArityContains = function(n) {
 		return function(proc) {
@@ -774,11 +754,10 @@ var helpers = {};
 
 	var throwColoredCheckError = function(aState, details, pos, args){
 
-
-		var positionStack = 
+		var positionStack =
         		state.captureCurrentContinuationMarks(aState).ref(
             		types.symbol('moby-application-position-key'));
-        
+
        		var locationList = positionStack[positionStack.length - 1];
 
        		//locations -> array
@@ -791,10 +770,10 @@ var helpers = {};
 				var actualArgs = [];
 				for(i = 0; i < args.length; i++) {
 					if((! (state.isState(args[i])))
-					   && 
+					   &&
 					   (!((args[i].name !== undefined) && args[i].name === ""))) {
 						actualArgs.push(args[i]);
-					} 
+					}
 				}
 				window.wtf = args[2];
 				for(i = 0; i < actualArgs.length; i++){
@@ -810,7 +789,7 @@ var helpers = {};
 					//removing the last space
 					var lastEltText = coloredParts[coloredParts.length-1].text;
 					lastEltText = lastEltText.substring(0, lastEltText.length - 1);
-					coloredParts[coloredParts.length - 1] = new types.ColoredPart(lastEltText, 
+					coloredParts[coloredParts.length - 1] = new types.ColoredPart(lastEltText,
 																					coloredParts[coloredParts.length-1].location);
 				}
 				return coloredParts;
@@ -829,9 +808,8 @@ var helpers = {};
 			var typeName = details.typeName+'';
 			var fL = typeName.substring(0,1);   //first letter of type name
 
-
-			if(args) { 
-				var argColoredParts = getArgColoredParts(locationList.rest()); 
+			if(args) {
+				var argColoredParts = getArgColoredParts(locationList.rest());
 				if(argColoredParts.length > 0){
 				raise( types.incompleteExn(types.exnFailContract,
 							   new types.Message([
@@ -840,7 +818,7 @@ var helpers = {};
 							   		((fL === "a" || fL === "e" || fL === "i" || fL === "o" || fL === "u") ? "an " : "a "),
 							   		typeName,
 							   		" as ",
-							   		details.ordinalPosition, 
+							   		details.ordinalPosition,
 							   		" argument, but given: ",
 							   		new types.ColoredPart(types.toWrittenString(details.actualValue), getLocation(pos)),
 							   		"; other arguments were: ",
@@ -856,7 +834,7 @@ var helpers = {};
 						   		((fL === "a" || fL === "e" || fL === "i" || fL === "o" || fL === "u") ? "an " : "a "),
 						   		typeName,
 						   		" as ",
-						   		details.ordinalPosition, 
+						   		details.ordinalPosition,
 						   		" argument, but given: ",
 						   		new types.ColoredPart(types.toWrittenString(details.actualValue), getLocation(pos))
 						   	]),
@@ -865,10 +843,10 @@ var helpers = {};
 	};
 
 	var throwCheckError = function(aState, details, pos, args) {
-		
+
 		if(aState instanceof state.State){
 			//if it's defined and a State, can inspect position stack
-			var positionStack = 
+			var positionStack =
 			state.captureCurrentContinuationMarks(aState).ref(
 	    		types.symbol('moby-application-position-key'));
 
@@ -883,7 +861,7 @@ var helpers = {};
 
 	var check = function(aState, x, f, functionName, typeName, position, args) {
 		if ( !f(x) ) {
-			throwCheckError(aState, 
+			throwCheckError(aState,
 					{ functionName: functionName,
 					  typeName: typeName,
 					  ordinalPosition: helpers.ordinalize(position),
@@ -915,31 +893,30 @@ var helpers = {};
     var isList = function(x) {
         var tortoise, hare;
         tortoise = hare = x;
-        if (hare === types.EMPTY) { 
-            return true; 
+        if (hare === types.EMPTY) {
+            return true;
         }
         while (true) {
             if (!(types.isPair(hare))) { return false; }
-            if (types.isPair(tortoise)) { 
+            if (types.isPair(tortoise)) {
                 // optimization to get amortized linear time isList.
-                if (tortoise._isList === true) { return true; } 
-                tortoise = tortoise.rest(); 
+                if (tortoise._isList === true) { return true; }
+                tortoise = tortoise.rest();
             }
             hare = hare.rest();
-            if (types.isPair(hare)) { 
+            if (types.isPair(hare)) {
                 if (hare._isList) { tortoise._isList = true; return true; }
-                hare = hare.rest(); 
+                hare = hare.rest();
                 if (types.isPair(hare) && hare._isList) { tortoise._isList = true; return true; }
             }
-            if (hare === types.EMPTY) { 
+            if (hare === types.EMPTY) {
                 // optimization to get amortized linear time isList.
                 tortoise._isList = true;
-                return true; 
+                return true;
             }
             if (tortoise === hare) { return false; }
         }
     };
-
 
 	var isListOf = function(x, f) {
             if (! isList(x)) { return false; }
@@ -961,7 +938,6 @@ var helpers = {};
 						args);
 		}
 	};
-
 
 //	// remove: array any -> array
 //	// removes the first instance of v in a
@@ -985,7 +961,6 @@ var helpers = {};
 		}
 		return b;
 	};
-
 
 	var schemeListToArray = function(lst) {
 		var result = [];
@@ -1014,7 +989,6 @@ var helpers = {};
 		}
 	}
 
-
 	var flattenSchemeListToArray = function(x) {
 		if ( !isList(x) ) {
 			return [x];
@@ -1028,7 +1002,6 @@ var helpers = {};
 		return ret;
 	};
 
-
 	// assocListToHash: (listof (list X Y)) -> (hashof X Y)
 	var assocListToHash = function(lst) {
 		var result = {};
@@ -1040,7 +1013,6 @@ var helpers = {};
 		}
 		return result;
 	};
-
 
 	var ordinalize = function(n) {
 		// special case for 11th:
@@ -1056,7 +1028,6 @@ var helpers = {};
 		}
 		return res;
 	}
-
 
 	var wrapJsObject = function(x) {
 		if (x === undefined) {
@@ -1078,7 +1049,6 @@ var helpers = {};
 			return types.jsObject(x.toString(), x);
 		}
 	};
-
 
 	var getKeyCodeName = function(e) {
 	    var code = e.charCode || e.keyCode;
@@ -1131,10 +1101,6 @@ var helpers = {};
 	    return keyname;
 	};
 
-
-
-
-
         // maybeCallAfterAttach: dom-node -> void
         // walk the tree rooted at aNode, and call afterAttach if the element has
         // such a method.
@@ -1153,13 +1119,6 @@ var helpers = {};
 		}
 	    }
 	};
-
-
-
-
-
-
-
 
     // makeLocationDom: location -> dom
     // Dom type that has special support in the editor through the print hook.
@@ -1190,12 +1149,11 @@ var helpers = {};
 	locationSpan.appendChild(idSpan);
 	locationSpan.appendChild(offsetSpan);
 	locationSpan.appendChild(lineSpan);
-	locationSpan.appendChild(columnSpan);   
+	locationSpan.appendChild(columnSpan);
 	locationSpan.appendChild(spanSpan);
 
 	return locationSpan;
     };
-
 
     var isLocationDom = function(thing) {
 	return (thing
@@ -1205,10 +1163,6 @@ var helpers = {};
 		&&
 		thing['className'] === 'location-reference');
     };
-
-
-
-
 
 	////////////////////////////////////////////////
 
@@ -1224,7 +1178,7 @@ var helpers = {};
 	helpers.check = check;
 	helpers.checkVarArity = checkVarArity;
 	helpers.checkListOf = checkListOf;
-	
+
 //	helpers.remove = remove;
 	helpers.map = map;
 	helpers.schemeListToArray = schemeListToArray;
@@ -3280,8 +3234,10 @@ var ArityAtLeast = makeStructureType('arity-at-least', false, 1, 0, false,
 types.symbol = Symbol.makeInstance;
 types.rational = jsnums.makeRational;
 types.roughnum = jsnums.makeRoughnum;
-types['float'] = jsnums.makeFloat;
-types.complex = jsnums.makeComplex;
+types.complexrational = jsnums.makeComplexRational;
+types.complexroughnum = jsnums.makeComplexRoughnum;
+//types['float'] = jsnums.makeFloat;
+//types.complex = jsnums.makeComplex;
 types.bignum = jsnums.makeBignum;
 types.list = makeList;
 types.vector = makeVector;
