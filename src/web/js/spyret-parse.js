@@ -3,7 +3,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
   var types = sup.types
   var Vector = sup.Vector
 
-// extracted from wescheme's compiler-calc.js
+  // extracted from wescheme's compiler-calc.js
 
   //var jsnums = sup.jsnums
   // Input 0
@@ -1922,7 +1922,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // Input 3
 
-  /*
+      /*
 
   //////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////// PARSER OBJECT //////////////////////////////
@@ -1930,13 +1930,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
   Parser for http://docs.racket-lang.org/htdp-langs/intermediate-lam.html
 
-   * Given an Array of SExps, produce an array of Programs or a structured error
-   * see structures.js for Program Objects and Error throwing
+       * Given an Array of SExps, produce an array of Programs or a structured error
+       * see structures.js for Program Objects and Error throwing
 
-   TODO
-   - Perf: give location information to all AST nodes as constructor argument
-   - JSLint
-   */
+       TODO
+       - Perf: give location information to all AST nodes as constructor argument
+       - JSLint
+       */
 
       (function () {
         'use strict';
@@ -4648,320 +4648,6 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
          - stop using synchronous XmlHttpRequests -> probably only after the compiler is folded into the evaluator
        */
 
-      (function () {
-        'use strict';
-
-        // import frequently-used bindings
-        var literal          = plt.compiler.literal;
-        var symbolExpr       = plt.compiler.symbolExpr;
-        var Program          = plt.compiler.Program;
-        var couple           = plt.compiler.couple;
-        var ifExpr           = plt.compiler.ifExpr;
-        var beginExpr        = plt.compiler.beginExpr;
-        var localExpr        = plt.compiler.localExpr;
-        var andExpr          = plt.compiler.andExpr;
-        var orExpr           = plt.compiler.orExpr;
-        var lambdaExpr       = plt.compiler.lambdaExpr;
-        var quotedExpr       = plt.compiler.quotedExpr;
-        var callExpr         = plt.compiler.callExpr;
-        var defFunc          = plt.compiler.defFunc;
-        var defVar           = plt.compiler.defVar;
-        var defVars          = plt.compiler.defVars;
-        var defStruct        = plt.compiler.defStruct;
-        var requireExpr      = plt.compiler.requireExpr;
-        var provideStatement = plt.compiler.provideStatement;
-
-        var throwError       = plt.compiler.throwError;
-
-        var modified = false;
-
-        //////////////////////////////////////////////////////////////////////////////
-        // CONSTANT-FOLDING //////////////////////////////////////////////////////////
-
-        Program.prototype.foldConstants = function(){ return this; };
-        defFunc.prototype.foldConstants = function(){
-          this.body = this.body.foldConstants();
-          return this;
-        };
-        defVar.prototype.foldConstants = function(){
-          this.expr = this.expr.foldConstants();
-          return this;
-        };
-        defVars.prototype.foldConstants = function(){
-          this.expr = this.expr.foldConstants();
-          return this;
-        };
-        beginExpr.prototype.foldConstants = function(){
-          this.exprs = foldConstants(this.exprs);
-          return this;
-        };
-        lambdaExpr.prototype.foldConstants = function(){
-          this.body = this.body.foldConstants();
-          return this;
-        };
-        localExpr.prototype.foldConstants = function(){
-          this.defs = foldConstants(this.defs);
-          this.body = this.body.foldConstants();
-          return this;
-        };
-        callExpr.prototype.foldConstants = function(){
-          var that = this, foldableOps = ["+","-","*","/"], result;
-          function isNumberLiteral(exp){
-            return (exp instanceof literal) && jsnums.isSchemeNumber(exp.val);
-          }
-          function isNotOne(l){return !(l instanceof literal) || (l.val!==1); }
-          function getVal(literal){return literal.val; }
-
-          if((that.func instanceof symbolExpr) && (foldableOps.indexOf(that.func.val) > -1)){
-            switch(that.func.val){
-              case "+":
-                // fold
-                if(that.args.every(isNumberLiteral)){
-                modified = true;
-                result = new literal(that.args.map(getVal).reduce(jsnums.add, 0));
-              }
-              // (+ x) => x
-              else if(that.args.length===1){
-                result = that.args[0].foldConstants();
-                modified = true;
-              }
-              // give up
-              else{
-                that.args = foldConstants(that.args);
-                result = that;
-              }
-              break;
-              case "-":
-                // fold
-                if((that.args.length >= 2) && that.args.every(isNumberLiteral)){
-                result = new literal(that.args.slice(1).map(getVal).reduce(jsnums.subtract, that.args[0].val));
-                modified = true;
-              }
-              // (- 3) => -3
-              else if((that.args.length===1) && isNumberLiteral(that.args[0])){
-                result = new literal(jsnums.multiply(-1, args[0].val));
-                modified = true;
-              }
-              // give up
-              else{
-                that.args = foldConstants(that.args);
-                result = that;
-              }
-              break;
-              case "*":
-                // fold
-                if(that.args.every(isNumberLiteral)){
-                result = new literal(that.args.map(getVal).reduce(jsnums.multiply, 1));
-                modified = true;
-              }
-              // (* ... 0 ...) => 0
-              else if(that.args.some(function(l){return isNumberLiteral(l) && (l.val===0);})){
-                result = new literal(0);
-                modified = true;
-              }
-              // (* 3) => 3
-              else if(that.args.length===1){
-                result = that.args[0].foldConstants();
-                modified = true;
-              }
-              else{
-                that.args = foldConstants(that.args);
-                result = that;
-              }
-              break;
-              case "/":
-                // remove any argument after the first one that is a 1
-                if(that.args.length >= 2){
-                that.args = foldConstants([that.args[0]].concat(that.args.slice(1).filter(isNotOne)));
-                modified = true;
-              }
-              // fold
-              if((that.args.length >= 2) && that.args.every(isNumberLiteral)){
-                result = new literal(that.args.slice(1).map(getVal).reduce(jsnums.divide, that.args[0].val));
-                modified = true;
-              }
-              // (/ 3) => 1/3
-              else if((that.args.length===1) && isNumberLiteral(that.args[0])){
-                result = new literal(jsnums.divide(1, that.args[0].val));
-                modified = true;
-              }
-              // give up
-              else{
-                that.args = foldConstants(that.args);
-                result = that;
-              }
-              break;
-            }
-            result.location = that.location;
-            return result;
-          } else {
-            that.args = foldConstants(that.args);
-            return that;
-          }
-        };
-        // eliminate branches if we know the predicate already
-        ifExpr.prototype.foldConstants = function(){
-          if(isBooleanSym(this.predicate)){
-            modified = true;
-            return (this.predicate.val==="true")? this.consequence : this.alternative;
-          }
-          this.predicate = this.predicate.foldConstants();
-          this.consequence = this.consequence.foldConstants();
-          this.alternative = this.alternative.foldConstants();
-          return this;
-        };
-        // ands become nested ifs
-        andExpr.prototype.foldConstants = function(){
-          this.exprs = foldConstants(this.exprs);
-          return this;
-        };
-        // ors become nested lets-with-if-bodies
-        orExpr.prototype.foldConstants = function(){
-          this.exprs = foldConstants(this.exprs);
-          return this;
-        };
-
-        //////////////////////////////////////////////////////////////////////////////
-        // REMOVE RUNTIME CHECKS /////////////////////////////////////////////////////
-
-        function isBooleanSym(x){
-          return (x instanceof symbolExpr) && ((x.val==="true") || (x.val==="false"));
-        }
-
-        // Program.prototype.desugar: pinfo -> [Program, pinfo]
-        Program.prototype.removeRuntimeChecks = function(){ return this; };
-        defFunc.prototype.removeRuntimeChecks = function(){
-          this.body = this.body.removeRuntimeChecks();
-          return this;
-        };
-        defVar.prototype.removeRuntimeChecks = function(){
-          this.expr = this.expr.removeRuntimeChecks();
-          return this;
-        };
-        defVars.prototype.removeRuntimeChecks = function(){
-          this.exprs = this.expr.removeRuntimeChecks();
-          return this;
-        };
-        beginExpr.prototype.removeRuntimeChecks = function(){
-          this.exprs = removeRuntimeChecks(this.expr);
-          return this;
-        };
-        lambdaExpr.prototype.removeRuntimeChecks = function(){
-          this.body = this.body.foldConstants();
-          return this;
-        };
-        localExpr.prototype.removeRuntimeChecks = function(){
-          this.defs = removeRuntimeChecks(this.defs);
-          this.body = this.body.removeRuntimeChecks();
-          return this;
-        };
-        // unwrap verify-boolean-branch-value if we're already
-        // using a boolean value
-        callExpr.prototype.removeRuntimeChecks = function(){
-          if((this.func instanceof symbolExpr)
-             && (this.func.val==="verify-boolean-branch-value")
-           && isBooleanSym(this.args[2])){
-             modified = true;
-             return this.args[2];
-           }
-           this.args = removeRuntimeChecks(this.args);
-           return this;
-        };
-        ifExpr.prototype.removeRuntimeChecks = function(){
-          this.predicate = this.predicate.removeRuntimeChecks();
-          this.consequence = this.consequence.removeRuntimeChecks();
-          this.alternative = this.alternative.removeRuntimeChecks();
-          return this;
-        };
-        andExpr.prototype.removeRuntimeChecks = function(){
-          this.exprs = foldConstants(this.exprs);
-          return this;
-        };
-        orExpr.prototype.removeRuntimeChecks = function(){
-          this.exprs = foldConstants(this.exprs);
-          return this;
-        };
-
-        //////////////////////////////////////////////////////////////////////////////
-        // INLINE //////////////////////////////////////////////////////////
-
-        // Program.prototype.inline: pinfo -> [Program, pinfo]
-        Program.prototype.inline = function(){ return this; };
-        /*
-           defFunc.prototype.inline = function(){
-           };
-           defVar.prototype.inline = function(){
-           };
-           defVars.prototype.inline = function{
-           };
-           defStruct.prototype.inline = function(){
-           };
-           beginExpr.prototype.inline = function(){
-           };
-           lambdaExpr.prototype.inline = function(){
-           };
-           localExpr.prototype.inline = function(){
-           };
-           callExpr.prototype.inline = function(){
-           };
-           ifExpr.prototype.inline = function(){
-           };
-        // ands become nested ifs
-        andExpr.prototype.inline = function(){
-        };
-        // ors become nested lets-with-if-bodies
-        orExpr.prototype.inline = function(){
-        };
-        quotedExpr.prototype.inline = function () {
-        };
-        symbolExpr.prototype.inline = function(){
-        };
-         */
-        /////////////////////////////////////////////////////////////
-
-        // optimize : [listof Programs] -> [listof Programs]
-        // run through all three phases
-        function optimize(programs){
-          function optimize_(programs, passes){
-            modified = false;
-            programs = foldConstants(programs);
-            programs = removeRuntimeChecks(programs);
-            return (modified && (passes<5))? optimize_(programs, passes+1) : programs;
-          }
-          return optimize_(programs, 0);
-        }
-        // inline: [listof Programs] pinfo -> [listof Programs]
-        // Collects the definitions either imported or defined by this program.
-        function inline(programs, pinfo){
-          return programs.reduce((function(pinfo, p){ return p.inline(pinfo); })
-                          , pinfo);
-        }
-        // foldConstants: [listof Programs] -> [listof Programs]
-        // Walk through the program and collect all the provide statements.
-        function foldConstants(programs){
-          return programs.map(function(p){ return p.foldConstants(); });
-        }
-        // removeRuntimeChecks: [listof Programs] -> foldConstants
-        // Collects the uses of bindings that this program uses.
-        function removeRuntimeChecks(programs){
-          return programs.map(function(p){ return p.removeRuntimeChecks(); });
-        }
-
-        /////////////////////
-        /* Export Bindings */
-        /////////////////////
-        plt.compiler.optimize = function(programs){
-          var start       = new Date().getTime();
-          try { var optimized = optimize(programs); }             // do the actual work
-          catch (e) { console.log("OPTIMIZATION ERROR"); throw e; }
-          var end         = new Date().getTime();
-          if(debug){
-            console.log("Optimized in "+(Math.floor(end-start))+"ms");
-          }
-          return optimized;
-        }
-      })();
-
       // Input 7
 
       /*
@@ -6087,477 +5773,487 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // Input 8
 
-                                  /*
-
-                                     BSL AST -> Pyret Source
-                                     follows definition from http://www.pyret.org/docs/latest/
-
-                                     TODO:
-                                     - insert accessor and predicate functions into source, to allow them to evaluate to functions?
-                                     - use those functions in the pyret source instead, simplifying callExpr translation?
-                                     - use binop form of all infix functions
-                                     - fix quoted symbols, so they print as strings
-                                     - translate append as a binop tree
-                                     - we must auto-insert data definition for posn, and functions for lists (first, append, etc) and boxes
-                                   */
-      (function () {
-        'use strict';
-
-        // import frequently-used bindings
-        var literal          = plt.compiler.literal;
-        var symbolExpr       = plt.compiler.symbolExpr;
-        var Program          = plt.compiler.Program;
-        var couple           = plt.compiler.couple;
-        var ifExpr           = plt.compiler.ifExpr;
-        var beginExpr        = plt.compiler.beginExpr;
-        var letExpr          = plt.compiler.letExpr;
-        var letStarExpr      = plt.compiler.letStarExpr;
-        var letrecExpr       = plt.compiler.letrecExpr;
-        var localExpr        = plt.compiler.localExpr;
-        var andExpr          = plt.compiler.andExpr;
-        var orExpr           = plt.compiler.orExpr;
-        var condExpr         = plt.compiler.condExpr;
-        var caseExpr         = plt.compiler.caseExpr;
-        var lambdaExpr       = plt.compiler.lambdaExpr;
-        var quotedExpr       = plt.compiler.quotedExpr;
-        var unquotedExpr     = plt.compiler.unquotedExpr;
-        var quasiquotedExpr  = plt.compiler.quasiquotedExpr;
-        var unquoteSplice    = plt.compiler.unquoteSplice;
-        var callExpr         = plt.compiler.callExpr;
-        var whenUnlessExpr   = plt.compiler.whenUnlessExpr;
-        var defFunc          = plt.compiler.defFunc;
-        var defVar           = plt.compiler.defVar;
-        var defVars          = plt.compiler.defVars;
-        var defStruct        = plt.compiler.defStruct;
-        var requireExpr      = plt.compiler.requireExpr;
-        var provideStatement = plt.compiler.provideStatement;
-        var unsupportedExpr  = plt.compiler.unsupportedExpr;
-        var throwError       = plt.compiler.throwError;
-        var structBinding    = plt.compiler.structBinding;
-
-        var _pinfo = null, constructors = {}, accessors = {}, predicates = {};
-        // add info about posns
-        constructors["make-posn"] = "posn";
-        accessors["posn-x"] = "x";
-        accessors["posn-y"] = "y";
-        predicates["posn?"] = "is-posn";
-        // add info about lists
-        accessors["rest"] = "rest";
-        accessors["first"] = "first";
-        accessors["length"] = "length";
-        predicates["posn?"] = "is-posn";
-
-        // convertToPyretString : [listof Programs] pinfo -> Pyret String
-        // BSL-to-pyret translation for testing. ignores location information altogether
-        function converttoPyretString(programs, pinfo){
-          console.log('converttoPyretString of ' + programs);
-          _pinfo = pinfo;
-          // identify structs
-          var isStruct = function(b){return (b instanceof structBinding);},
-            accumulateStructInfo = function(b){
-            constructors[b.constructor] = b.name;
-            predicates[b.predicate] = "is-"+b.name;
-            b.accessors.forEach(function(a){accessors[a]=a.substring(b.name.length+1);});
-          },
-          isTestCase = function(p){
-            return (p instanceof callExpr)
-            && (p.func instanceof symbolExpr)
-            && (["check-expect", "EXAMPLE", "check-within"].indexOf(p.func.val) > -1);
-          },
-          defsAndExprs = programs.filter(function(p){return !isTestCase(p);}),
-            testCases = programs.filter(isTestCase);
-          _pinfo.definedNames.values().filter(isStruct).forEach(accumulateStructInfo);
-
-          return defsAndExprs.map(toPyretString, []).concat(testCases.map(toPyretString));
-        }
-
-        function toPyretString(p){return p.toPyretString(); }
-
-        ////////////////////////// FUNCTION MAPPINGS ///////////////////////
-        // pyret functions that are infix
-        var infix = ["+","-","*","/","=",">","<",">=","<=","and","or", "append", "string"];
-        // racket functions for which there is no known translation
-        var noTranslation = ["eval"];
-
-        // racket->pyret function name mapping
-        var symbolMap = {};
-        symbolMap["min"]    = "num-min";
-        symbolMap["max"]    = "num-max";
-        symbolMap["abs"]    = "num-abs";
-        symbolMap["sin"]    = "num-sin";
-        symbolMap["cos"]    = "num-cos";
-        symbolMap["tan"]    = "num-tan";
-        symbolMap["asin"]   = "num-asin";
-        symbolMap["acos"]   = "num-acos";
-        symbolMap["atan"]   = "num-atan";
-        symbolMap["modulo"] = "num-modulo";
-        symbolMap["sqrt"]   = "num-sqrt";
-        symbolMap["sqr"]    = "num-sqr";
-        symbolMap["ceiling"]= "num-ceiling";
-        symbolMap["floor"]  = "num-floor";
-        symbolMap["log"]    = "num-log";
-        symbolMap["expt"]   = "num-expr";
-        symbolMap["="]      = "==";
-        symbolMap["equal?"] = "equal-always";
-        symbolMap["image=?"] = "equal-always";
-        symbolMap["string=?"] = "equal-always";
-        symbolMap["ormap"]  = "any";
-        symbolMap["number->string"] = "num-tostring";
-        symbolMap["bitmap/url"] = "image-url";
-        symbolMap["empty?"] = "is-empty";
-        symbolMap["cons?"]  = "is-link";
-        symbolMap["cons"]   = "link";
-
-        function makeBinopTreeForInfixApplication(infixOperator, exprs){
-          function addExprToTree(tree, expr){
-            return "("+expr.toPyretString()+" "+infixOperator+" "+tree+")";
-          }
-          // starting with the first expr, build the binop-expr tree
-          var last = exprs[exprs.length-1], rest = exprs.slice(0, exprs.length-1);
-          return rest.reduceRight(addExprToTree, last.toPyretString());
-        }
-
-        // convert a symbol to a Pyret string or a Pyret boolean
-        function makeLiteralFromSymbol(sym){
-          return '"'+sym.val+'"';
-        }
-
-        function makeStructFromMembers(constructor, elts, isQuoted){
-          var args = elts.map(function(e){
-            return (e instanceof Array)? makeStructFromMembers(constructor, e, isQuoted)
-              : (isQuoted && e instanceof symbolExpr)? makeLiteralFromSymbol(e)
-                : e.toPyretString();});
-                return "["+constructor+": "+args.join(",")+"]"
-        }
-
-        Char.prototype.toPyretString = function(){
-          var hexCode = (this.val.charCodeAt(0).toString(16).toUpperCase());
-          return (this.val.charCodeAt(0) < 128)? '"'+this.val+'"' : ('"\\u'+hexCode +'"');
-        }
-
-        ////////////////////////// DEFINITIONS AND EXPRESSIONS /////////////
-        // Function definition
-        // defFunc(name, args, body, stx)
-        defFunc.prototype.toPyretString = function(){
-          var str="fun "+this.name.toPyretString()+"("+this.args.map(toPyretString).join(",")+"):\n";
-          str+="  "+this.body.toPyretString()+"\nend";
-          return str;
-        };
-
-        // Variable definition
-        // defVar(name, expr, stx)
-        defVar.prototype.toPyretString = function(){
-          var str = this.name.toPyretString()+" = "+this.expr.toPyretString();
-          return str;
-        };
-        defVars.prototype.toPyretString = function(){
-          return "translation of defVars is not yet implemented";
-        };
-
-        // Structure definition
-        // defStruct(name, fields, stx)
-        defStruct.prototype.toPyretString = function(){
-          var str = "", name = this.name.toPyretString(),
-            typeName = name+"_"
-          str+="data "+typeName+": | "+name+"("+this.fields.map(toPyretString).join(", ")+")"+" end\n";
-
-          function makeStandaloneAccessorFunction(field){
-            str+="fun "+name+"-"+field.toPyretString()+"(_struct_): "
-            +"_struct_."+field.toPyretString()+" end\n";
-          }
-
-          // add accessor functions, constructor and predicate
-          this.fields.forEach(makeStandaloneAccessorFunction)
-          str+="fun "+name+"QUESTION(_struct_): "+"is-"+name+"(_struct_) end\n";
-          str+="fun make-"+name+"("+this.fields.map(toPyretString).join(",")+"): "
-          +name+"("+this.fields.map(toPyretString).join(",")+") end\n";
-          return str;
-        };
-
-        beginExpr.prototype.toPyretString = function(){
-          return "block: "+this.exprs.map(toPyretString)+" end";
-        };
-        whenUnlessExpr.prototype.toPyretString = function(){
-          // if it's "unless", change the predicate to not(pred) in racket
-          var pred = (this.stx.val==="unless")? "not("+this.predicate.toPyretString()+")"
-            : this.predicate.toPyretString(),
-            begin_exp = new beginExpr(this.exprs, this.stx);
-            return "when "+pred+":"+begin_exp.toPyretString()+" end"
-        };
-        localExpr.prototype.toPyretString = function(){
-          // if there are no defs, just translate the body
-          if(this.defs.length === 0) return this.body.toPyretString();
-          function makeBindingFromDefn(d){
-            return d.name.toPyretString()+" = "+((d instanceof defVar)? d.expr.toPyretString() :
-                                                 "lam("+d.args.map(toPyretString).join(", ")+"):\n"+d.body.toPyretString()+" end")
-          }
-          var bindings = this.defs.map(makeBindingFromDefn);
-          return "letrec "+bindings.join(", ")+": "+this.body.toPyretString()+" end";
-        };
-
-        letrecExpr.prototype.toPyretString = function(){
-          // if there are no defs, just translate the body
-          if(this.bindings.length === 0) return this.body.toPyretString();
-          function makeBindingFromCouple(c){
-            return c.first.toPyretString()+" = "+c.second.toPyretString();
-          }
-          var bindings = this.bindings.map(makeBindingFromCouple);
-          return "letrec "+bindings.join(", ")+": "+this.body.toPyretString()+" end";
-        };
-        // we make temp bindings first, to preserve scope behavior
-        letExpr.prototype.toPyretString = function(){
-          // if there are no defs, just translate the body
-          if(this.bindings.length === 0) return this.body.toPyretString();
-          var tmpIDs = this.bindings.map(function(c){return c.first.toPyretString()+"_tmp";}),
-            // bind the rhs to lhs_tmp (a_1 = 5, ...)
-            tmpBindings = this.bindings.map(function(c, i){return tmpIDs[i]+" = "+c.second.toPyretString();}),
-            // bind lhs_tmp to lhs (a = a_1, ...)
-            newBindings = this.bindings.map(function(c, i){return c.first.toPyretString()+" = "+tmpIDs[i];});
-          return "block:\n"+tmpBindings.join("\n")+"\n"+newBindings.join("\n")+"\n"+this.body.toPyretString()+" end";
-        };
-        letStarExpr.prototype.toPyretString = function(){
-          // if there are no defs, just translate the body
-          if(this.bindings.length === 0) return this.body.toPyretString();
-          var bindings = this.bindings.map(function(c){
-            return c.first.toPyretString()+" = "+c.second.toPyretString();
-          });
-          return "block:\n"+bindings.join("\n")+"\n"+this.body.toPyretString()+" end";
-        };
-        caseExpr.prototype.toPyretString = function(){
-          function convertClause(c){
-            return "| any(lam(elt): equal-always(_val,elt) end, "
-            + c.first.toPyretString() + ") then: " + c.second.toPyretString();
-          }
-          return "block: \n _val=" + this.expr.toPyretString() + "\n ask:"
-          + this.clauses.map(convertClause).join("\n") + "\n end \n end";
-        };
-
-        // Lambda expression
-        // lambdaExpr(args, body, stx)
-        lambdaExpr.prototype.toPyretString = function(){
-          var str = "";
-          str+="lam("+this.args.map(toPyretString).join(", ")+"):\n";
-          str+="  "+this.body.toPyretString()+"\nend";
-          return str;
-        };
-
-        // cond expression
-        // condExpr(clauses, stx)
-        condExpr.prototype.toPyretString = function(){
-          function convertClause(couple){
-            return " | "+((couple.first.toPyretString()=="else")? " otherwise: "
-              : couple.first.toPyretString() + " then: ")
-              + couple.second.toPyretString()+"\n";
-          }
-
-          var str = "ask:\n";
-          str+=this.clauses.map(convertClause)+"end";
-          return str;
-        };
-
-        // and expression
-        // andExpr(exprs, stx)
-        andExpr.prototype.toPyretString = function(){
-          return makeBinopTreeForInfixApplication("and", this.exprs);
-        };
-
-        // or expression
-        // orExpr(exprs, stx)
-        orExpr.prototype.toPyretString = function(){
-          return makeBinopTreeForInfixApplication("or", this.exprs);
-        };
-
-        // call expression
-        // callExpr(func, args, stx)
-        callExpr.prototype.toPyretString = function(){
-          var funcStr = this.func.toString();
-
-          // special-case for check-expect and EXAMPLE
-          if(["EXAMPLE", "check-expect"].indexOf(funcStr) > -1){
-            return "check:\n"+this.args[0].toPyretString()+" is "+this.args[1].toPyretString()+"\nend";
-          }
-
-          // special-case for infix operators
-          if(infix.indexOf(funcStr) > -1){
-            return makeBinopTreeForInfixApplication(this.func.toPyretString(), this.args);
-          }
-
-          // special-case for vector and list constructors
-          if(funcStr==="vector") return makeStructFromMembers("array", this.args);
-          if(funcStr==="list")   return makeStructFromMembers("list", this.args);
-
-          // special-case for big-bang
-          if(funcStr === "big-bang"){
-            var world_args = [this.args[0].toPyretString(), makeStructFromMembers("list", this.args.slice(1))];
-            return this.func.toPyretString() +"("+world_args.join(', ')+")";
-          }
-
-          // special-case for constructor functions
-          if(constructors[funcStr]){
-            return funcStr.substring(5)+"("+this.args.map(toPyretString).join(', ')+")";
-          }
-
-          // special-case for accessor functions
-          if(accessors[funcStr]){
-            return this.args[0].toPyretString()+"."+accessors[funcStr];
-          }
-
-          // special-case for struct-predicate functions
-          if(predicates[funcStr]){
-            return predicates[funcStr]+"("+this.args[0].toPyretString()+")";
-          }
-
-          // general case
-          return this.func.toPyretString() +"("+this.args.map(toPyretString).join(', ')+")";
-        };
-
-        // if expression
-        // ifExpr(predicate, consequence, alternate, stx)
-        ifExpr.prototype.toPyretString = function(){
-          var rawPredicate = ((this.predicate instanceof callExpr)
-                              && (this.predicate.func.val === "verify-boolean-branch-value"))?
-                                this.predicate.args[2] : this.predicate;
-                              var str = "";
-                              str+="if "+rawPredicate.toPyretString() + ":\n  ";
-                              str+=this.consequence.toPyretString() + "\nelse:\n  ";
-                              str+=this.alternative.toPyretString() + "\nend";
-                              return str;
-        };
-
-        // quotedExpr
-        // quotedExpr(val)
-        quotedExpr.prototype.toPyretString = function(){
-          if(this.val instanceof literal && this.val.val instanceof symbolExpr){
-            return makeLiteralFromSymbol(this.val);
-          } else if(this.val instanceof literal){
-            return this.val.toPyretString();
-          } else if(this.val instanceof symbolExpr){
-            return makeLiteralFromSymbol(this.val);
-          } else if (this.val instanceof Array){
-            return makeStructFromMembers("list", this.val, true);
-          } else {
-            throw "There is no translation for "+this.toString();
-          }
-        };
-        // we do the best we can to desugar and translate quasiquoted expressions
-        quasiquotedExpr.prototype.toPyretString = function(){
-          return this.desugar(_pinfo)[0].toPyretString();
-        };
-
-        // if a symbol already has a (different) name in Pyret, use that
-        // otherwise, clean it up so it's a valid Pyret identifier
-        symbolExpr.prototype.toPyretString = function(){
-          return (symbolMap[this.val])? symbolMap[this.val]
-            : this.val.length===1? this.val
-              : this.val.replace(/\//g,'SLASH').replace(/\?/g,'QUESTION').replace(/\!/g,'BANG').replace(/\+/g,'PLUS');
-        };
-
-              // literals
-              // literal(String|Char|Number)
-              literal.prototype.toPyretString = function(){
-                return this.val.toPyretString? this.val.toPyretString()
-                  : this.val.toWrittenString? this.val.toWrittenString()
-                  /* else */        : this.val.toString();
-              };
-
-              // require expression
-              // requireExpr(spec, stx)
-              requireExpr.prototype.toPyretString = function(){
-                return "translation of Require Expressions is not yet implemented";
-              };
-
-              /////////////////////
-              /* Export Bindings */
-              /////////////////////
-              plt.compiler.toPyretString = converttoPyretString;
-      })();
-
-      // Input 9
-
       /*
 
-         BSL AST -> Pyret AST
-         follows definition from XXXXX
+         BSL AST -> Pyret Source
+         follows definition from http://www.pyret.org/docs/latest/
+
          TODO:
-         - conversion of symbols, to account for common-but-invalid chars like '?', '!', etc.
-         - translation of boolean symbols/values
-         - desugar (case...), then translate it?
-         - collect check-expect and EXAMPLE, convert to toplevel where: clauses
-         - use pinfo to locate all accessor functions, convert to <Struct.Field>
-         - desugar quoted items?
-         - when implemented, use tuples and roughnums for define-values and #i
+         - insert accessor and predicate functions into source, to allow them to evaluate to functions?
+         - use those functions in the pyret source instead, simplifying callExpr translation?
+         - use binop form of all infix functions
+         - fix quoted symbols, so they print as strings
+         - translate append as a binop tree
+         - we must auto-insert data definition for posn, and functions for lists (first, append, etc) and boxes
        */
+                                  (function () {
+                                    'use strict';
 
-      (function () {
-        'use strict';
+                                    // import frequently-used bindings
+                                    var literal          = plt.compiler.literal;
+                                    var symbolExpr       = plt.compiler.symbolExpr;
+                                    var Program          = plt.compiler.Program;
+                                    var couple           = plt.compiler.couple;
+                                    var ifExpr           = plt.compiler.ifExpr;
+                                    var beginExpr        = plt.compiler.beginExpr;
+                                    var letExpr          = plt.compiler.letExpr;
+                                    var letStarExpr      = plt.compiler.letStarExpr;
+                                    var letrecExpr       = plt.compiler.letrecExpr;
+                                    var localExpr        = plt.compiler.localExpr;
+                                    var andExpr          = plt.compiler.andExpr;
+                                    var orExpr           = plt.compiler.orExpr;
+                                    var condExpr         = plt.compiler.condExpr;
+                                    var caseExpr         = plt.compiler.caseExpr;
+                                    var lambdaExpr       = plt.compiler.lambdaExpr;
+                                    var quotedExpr       = plt.compiler.quotedExpr;
+                                    var unquotedExpr     = plt.compiler.unquotedExpr;
+                                    var quasiquotedExpr  = plt.compiler.quasiquotedExpr;
+                                    var unquoteSplice    = plt.compiler.unquoteSplice;
+                                    var callExpr         = plt.compiler.callExpr;
+                                    var whenUnlessExpr   = plt.compiler.whenUnlessExpr;
+                                    var defFunc          = plt.compiler.defFunc;
+                                    var defVar           = plt.compiler.defVar;
+                                    var defVars          = plt.compiler.defVars;
+                                    var defStruct        = plt.compiler.defStruct;
+                                    var requireExpr      = plt.compiler.requireExpr;
+                                    var provideStatement = plt.compiler.provideStatement;
+                                    var unsupportedExpr  = plt.compiler.unsupportedExpr;
+                                    var throwError       = plt.compiler.throwError;
+                                    var structBinding    = plt.compiler.structBinding;
 
-        // import frequently-used bindings
-        var literal          = plt.compiler.literal;
-        var symbolExpr       = plt.compiler.symbolExpr;
-        var Program          = plt.compiler.Program;
-        var couple           = plt.compiler.couple;
-        var ifExpr           = plt.compiler.ifExpr;
-        var beginExpr        = plt.compiler.beginExpr;
-        var letExpr          = plt.compiler.letExpr;
-        var letStarExpr      = plt.compiler.letStarExpr;
-        var letrecExpr       = plt.compiler.letrecExpr;
-        var localExpr        = plt.compiler.localExpr;
-        var andExpr          = plt.compiler.andExpr;
-        var orExpr           = plt.compiler.orExpr;
-        var condExpr         = plt.compiler.condExpr;
-        var caseExpr         = plt.compiler.caseExpr;
-        var lambdaExpr       = plt.compiler.lambdaExpr;
-        var quotedExpr       = plt.compiler.quotedExpr;
-        var unquotedExpr     = plt.compiler.unquotedExpr;
-        var quasiquotedExpr  = plt.compiler.quasiquotedExpr;
-        var unquoteSplice    = plt.compiler.unquoteSplice;
-        var callExpr         = plt.compiler.callExpr;
-        var whenUnlessExpr   = plt.compiler.whenUnlessExpr;
-        var defFunc          = plt.compiler.defFunc;
-        var defVar           = plt.compiler.defVar;
-        var defVars          = plt.compiler.defVars;
-        var defStruct        = plt.compiler.defStruct;
-        var requireExpr      = plt.compiler.requireExpr;
-        var provideStatement = plt.compiler.provideStatement;
-        var unsupportedExpr  = plt.compiler.unsupportedExpr;
-        var throwError       = plt.compiler.throwError;
-        var structBinding    = plt.compiler.structBinding;
+                                    var _pinfo = null, constructors = {}, accessors = {}, predicates = {};
+                                    // add info about posns
+                                    constructors["make-posn"] = "posn";
+                                    accessors["posn-x"] = "x";
+                                    accessors["posn-y"] = "y";
+                                    predicates["posn?"] = "is-posn";
+                                    // add info about lists
+                                    accessors["rest"] = "rest";
+                                    accessors["first"] = "first";
+                                    accessors["length"] = "length";
+                                    predicates["posn?"] = "is-posn";
 
-        // empty location
-        var blankLoc = {"startRow": 1, "startCol": 0, "startChar": 1, "endRow": 1, "endCol": 0, "endChar": 1};
-        // Pyret syntax objects that were never actually part of the source
-        var lBrackStx = {name: "LBRACK",      value: "[",       key: "'LBRACK:[",     pos: blankLoc},
-          colonStx  = {name: "COLON",       value: ":",       key: "'COLON::",      pos: blankLoc},
-          commaStx  = {name: "COMMA",       value: ",",       key: "'COMMA:,",      pos: blankLoc},
-          rBrackStx = {name: "RBRACK",      value: "]",       key: "'RBRACK:]",     pos: blankLoc},
-          lParenStx = {name: "PARENNOSPACE", value: "(",      key: "'PARENNOSPACE:(", pos:blankLoc},
-          rParenStx = {name: "RPAREN",      value: ")",       key: "'RPAREN:)",      pos:blankLoc},
-          equalsStx = {name: "EQUALS",      value: "=",       key: "'EQUALS:=",     pos: blankLoc},
-          funStx    = {name: "FUN",         value: "fun",     key: "'FUN:fun",       pos: blankLoc},
-          endStx    = {name: "END",         value: "end",     key: "'END:end",       pos:blankLoc},
-          letStx    = {name: "let",         value: "let",     key: "'LET:let",       pos:blankLoc},
-          lamStx    = {name: "LAM",         value: "lam",     key: "'LAM:lam",      pos: blankLoc},
-          blockStx  = {name: "BLOCK",       value: "block",   key: "'BLOCK:block",  pos: blankLoc},
-          dataStx   = {name: "DATA",        value: "data",    key: "'DATA:data",    pos: blankLoc},
-          barStx    = {name: "BAR",         value: "|",       key: "'BAR:|",         pos:blankLoc},
-          ifStx     = {name: "IF",          value: "if",      key: "'IF:if",         pos: blankLoc},
-          elseStx   = {name: "ELSECOLON",   value: "else:",   key: "'ELSECOLON:else:", pos: blankLoc},
-          letrecStx = {name: "LETREC" ,     value: "lerec",   key: "'LETREC:letrec" ,  pos:blankLoc},
-          whenStx   = {name: "WHEN",        value: "when",    key: "'WHEN:when",      pos: blankLoc},
-          askStx    = {name: "ASKCOLON",    value: "ask:",    key: "'ASKCOLON:ask:",   pos:blankLoc},
-          thenStx   = {name: "THENCOLON",   value: "then:",   key: "'THENCOLON:then:", pos:blankLoc},
-          otherwiseStx={name:"OTHERWISE",   value: "otherwise:",key:"'OTHERWISE:otherwise:",pos:blankLoc};
+                                    // convertToPyretString : [listof Programs] pinfo -> Pyret String
+                                    // BSL-to-pyret translation for testing. ignores location information altogether
+                                    function converttoPyretString(programs, pinfo){
+                                      console.log('converttoPyretString of ' + programs);
+                                      _pinfo = pinfo;
+                                      // identify structs
+                                      var isStruct = function(b){return (b instanceof structBinding);},
+                                      accumulateStructInfo = function(b){
+                                        constructors[b.constructor] = b.name;
+                                        predicates[b.predicate] = "is-"+b.name;
+                                        b.accessors.forEach(function(a){accessors[a]=a.substring(b.name.length+1);});
+                                      },
+                                        isTestCase = function(p){
+                                          return (p instanceof callExpr)
+                                            && (p.func instanceof symbolExpr)
+                                            && (["check-expect", "EXAMPLE", "check-within"].indexOf(p.func.val) > -1);
+                                        },
+                                        defsAndExprs = programs.filter(function(p){return !isTestCase(p);}),
+                                          testCases = programs.filter(isTestCase);
+                                      _pinfo.definedNames.values().filter(isStruct).forEach(accumulateStructInfo);
 
-        // pinfo that is reset for each translation
-        var _pinfo = null;
+                                      return defsAndExprs.map(toPyretString, []).concat(testCases.map(toPyretString));
+                                    }
 
-        // convertToPyret : [listof Programs], pinfo -> JSON
-        // generate pyret parse tree, preserving location information
-        // follows http://www.pyret.org/docs/latest/s_program.html
-        // provide and import will never be used
-        function convertToPyret(programs, pinfo){
-          _pinfo = pinfo;
-          return { name: "program"
+                                    function toPyretString(p){return p.toPyretString(); }
+
+                                    ////////////////////////// FUNCTION MAPPINGS ///////////////////////
+                                    // pyret functions that are infix
+                                    var infix = ["+","-","*","/","=",">","<",">=","<=","and","or", "append", "string"];
+                                    // racket functions for which there is no known translation
+                                    var noTranslation = ["eval"];
+
+                                    // racket->pyret function name mapping
+                                    var symbolMap = {};
+                                    symbolMap["min"]    = "num-min";
+                                    symbolMap["max"]    = "num-max";
+                                    symbolMap["abs"]    = "num-abs";
+                                    symbolMap["sin"]    = "num-sin";
+                                    symbolMap["cos"]    = "num-cos";
+                                    symbolMap["tan"]    = "num-tan";
+                                    symbolMap["asin"]   = "num-asin";
+                                    symbolMap["acos"]   = "num-acos";
+                                    symbolMap["atan"]   = "num-atan";
+                                    symbolMap["modulo"] = "num-modulo";
+                                    symbolMap["sqrt"]   = "num-sqrt";
+                                    symbolMap["sqr"]    = "num-sqr";
+                                    symbolMap["ceiling"]= "num-ceiling";
+                                    symbolMap["floor"]  = "num-floor";
+                                    symbolMap["log"]    = "num-log";
+                                    symbolMap["expt"]   = "num-expr";
+                                    symbolMap["="]      = "==";
+                                    symbolMap["equal?"] = "equal-always";
+                                    symbolMap["image=?"] = "equal-always";
+                                    symbolMap["string=?"] = "equal-always";
+                                    symbolMap["ormap"]  = "any";
+                                    symbolMap["number->string"] = "num-tostring";
+                                    symbolMap["bitmap/url"] = "image-url";
+                                    symbolMap["empty?"] = "is-empty";
+                                    symbolMap["cons?"]  = "is-link";
+                                    symbolMap["cons"]   = "link";
+
+                                    symbolMap["angle"] = "num-angle";
+                                    symbolMap["conjugate"] = "num-conjugate";
+                                    symbolMap["exact?"] = "num-is-complexrational";
+                                    symbolMap["exp"] = "num-exp";
+                                    symbolMap["inexact?"] = "num-is-complexroughnum";
+                                    symbolMap["list?"] = "is-link";
+                                    symbolMap["magnitude"] = "num-magnitude";
+                                    symbolMap["number?"] = "is-number";
+                                    symbolMap["string?"] = "is-string";
+
+                                    function makeBinopTreeForInfixApplication(infixOperator, exprs){
+                                      function addExprToTree(tree, expr){
+                                        return "("+expr.toPyretString()+" "+infixOperator+" "+tree+")";
+                                      }
+                                      // starting with the first expr, build the binop-expr tree
+                                      var last = exprs[exprs.length-1], rest = exprs.slice(0, exprs.length-1);
+                                      return rest.reduceRight(addExprToTree, last.toPyretString());
+                                    }
+
+                                    // convert a symbol to a Pyret string or a Pyret boolean
+                                    function makeLiteralFromSymbol(sym){
+                                      return '"'+sym.val+'"';
+                                    }
+
+                                    function makeStructFromMembers(constructor, elts, isQuoted){
+                                      var args = elts.map(function(e){
+                                        return (e instanceof Array)? makeStructFromMembers(constructor, e, isQuoted)
+                                          : (isQuoted && e instanceof symbolExpr)? makeLiteralFromSymbol(e)
+                                            : e.toPyretString();});
+                                      return "["+constructor+": "+args.join(",")+"]"
+                                    }
+
+                                    Char.prototype.toPyretString = function(){
+                                      var hexCode = (this.val.charCodeAt(0).toString(16).toUpperCase());
+                                      return (this.val.charCodeAt(0) < 128)? '"'+this.val+'"' : ('"\\u'+hexCode +'"');
+                                    }
+
+                                    ////////////////////////// DEFINITIONS AND EXPRESSIONS /////////////
+                                    // Function definition
+                                    // defFunc(name, args, body, stx)
+                                    defFunc.prototype.toPyretString = function(){
+                                      var str="fun "+this.name.toPyretString()+"("+this.args.map(toPyretString).join(",")+"):\n";
+                                      str+="  "+this.body.toPyretString()+"\nend";
+                                      return str;
+                                    };
+
+                                    // Variable definition
+                                    // defVar(name, expr, stx)
+                                    defVar.prototype.toPyretString = function(){
+                                      var str = this.name.toPyretString()+" = "+this.expr.toPyretString();
+                                      return str;
+                                    };
+                                    defVars.prototype.toPyretString = function(){
+                                      return "translation of defVars is not yet implemented";
+                                    };
+
+                                    // Structure definition
+                                    // defStruct(name, fields, stx)
+                                    defStruct.prototype.toPyretString = function(){
+                                      var str = "", name = this.name.toPyretString(),
+                                      typeName = name+"_"
+                                        str+="data "+typeName+": | "+name+"("+this.fields.map(toPyretString).join(", ")+")"+" end\n";
+
+                                      function makeStandaloneAccessorFunction(field){
+                                        str+="fun "+name+"-"+field.toPyretString()+"(_struct_): "
+                                          +"_struct_."+field.toPyretString()+" end\n";
+                                      }
+
+                                      // add accessor functions, constructor and predicate
+                                      this.fields.forEach(makeStandaloneAccessorFunction)
+                                        str+="fun "+name+"QUESTION(_struct_): "+"is-"+name+"(_struct_) end\n";
+                                      str+="fun make-"+name+"("+this.fields.map(toPyretString).join(",")+"): "
+                                        +name+"("+this.fields.map(toPyretString).join(",")+") end\n";
+                                      return str;
+                                    };
+
+                                    beginExpr.prototype.toPyretString = function(){
+                                      return "block: "+this.exprs.map(toPyretString)+" end";
+                                    };
+                                    whenUnlessExpr.prototype.toPyretString = function(){
+                                      // if it's "unless", change the predicate to not(pred) in racket
+                                      var pred = (this.stx.val==="unless")? "not("+this.predicate.toPyretString()+")"
+                                        : this.predicate.toPyretString(),
+                                        begin_exp = new beginExpr(this.exprs, this.stx);
+                                      return "when "+pred+":"+begin_exp.toPyretString()+" end"
+                                    };
+                                    localExpr.prototype.toPyretString = function(){
+                                      // if there are no defs, just translate the body
+                                      if(this.defs.length === 0) return this.body.toPyretString();
+                                      function makeBindingFromDefn(d){
+                                        return d.name.toPyretString()+" = "+((d instanceof defVar)? d.expr.toPyretString() :
+                                            "lam("+d.args.map(toPyretString).join(", ")+"):\n"+d.body.toPyretString()+" end")
+                                      }
+                                      var bindings = this.defs.map(makeBindingFromDefn);
+                                      return "letrec "+bindings.join(", ")+": "+this.body.toPyretString()+" end";
+                                    };
+
+                                    letrecExpr.prototype.toPyretString = function(){
+                                      // if there are no defs, just translate the body
+                                      if(this.bindings.length === 0) return this.body.toPyretString();
+                                      function makeBindingFromCouple(c){
+                                        return c.first.toPyretString()+" = "+c.second.toPyretString();
+                                      }
+                                      var bindings = this.bindings.map(makeBindingFromCouple);
+                                      return "letrec "+bindings.join(", ")+": "+this.body.toPyretString()+" end";
+                                    };
+                                    // we make temp bindings first, to preserve scope behavior
+                                    letExpr.prototype.toPyretString = function(){
+                                      // if there are no defs, just translate the body
+                                      if(this.bindings.length === 0) return this.body.toPyretString();
+                                      var tmpIDs = this.bindings.map(function(c){return c.first.toPyretString()+"_tmp";}),
+                                        // bind the rhs to lhs_tmp (a_1 = 5, ...)
+                                        tmpBindings = this.bindings.map(function(c, i){return tmpIDs[i]+" = "+c.second.toPyretString();}),
+                                        // bind lhs_tmp to lhs (a = a_1, ...)
+                                        newBindings = this.bindings.map(function(c, i){return c.first.toPyretString()+" = "+tmpIDs[i];});
+                                      return "block:\n"+tmpBindings.join("\n")+"\n"+newBindings.join("\n")+"\n"+this.body.toPyretString()+" end";
+                                    };
+                                    letStarExpr.prototype.toPyretString = function(){
+                                      // if there are no defs, just translate the body
+                                      if(this.bindings.length === 0) return this.body.toPyretString();
+                                      var bindings = this.bindings.map(function(c){
+                                        return c.first.toPyretString()+" = "+c.second.toPyretString();
+                                      });
+                                      return "block:\n"+bindings.join("\n")+"\n"+this.body.toPyretString()+" end";
+                                    };
+                                    caseExpr.prototype.toPyretString = function(){
+                                      function convertClause(c){
+                                        return "| any(lam(elt): equal-always(_val,elt) end, "
+                                          + c.first.toPyretString() + ") then: " + c.second.toPyretString();
+                                      }
+                                      return "block: \n _val=" + this.expr.toPyretString() + "\n ask:"
+                                        + this.clauses.map(convertClause).join("\n") + "\n end \n end";
+                                    };
+
+                                    // Lambda expression
+                                    // lambdaExpr(args, body, stx)
+                                    lambdaExpr.prototype.toPyretString = function(){
+                                      var str = "";
+                                      str+="lam("+this.args.map(toPyretString).join(", ")+"):\n";
+                                      str+="  "+this.body.toPyretString()+"\nend";
+                                      return str;
+                                    };
+
+                                    // cond expression
+                                    // condExpr(clauses, stx)
+                                    condExpr.prototype.toPyretString = function(){
+                                      function convertClause(couple){
+                                        return " | "+((couple.first.toPyretString()=="else")? " otherwise: "
+                                          : couple.first.toPyretString() + " then: ")
+                                          + couple.second.toPyretString()+"\n";
+                                      }
+
+                                      var str = "ask:\n";
+                                      str+=this.clauses.map(convertClause)+"end";
+                                      return str;
+                                    };
+
+                                    // and expression
+                                    // andExpr(exprs, stx)
+                                    andExpr.prototype.toPyretString = function(){
+                                      return makeBinopTreeForInfixApplication("and", this.exprs);
+                                    };
+
+                                    // or expression
+                                    // orExpr(exprs, stx)
+                                    orExpr.prototype.toPyretString = function(){
+                                      return makeBinopTreeForInfixApplication("or", this.exprs);
+                                    };
+
+                                    // call expression
+                                    // callExpr(func, args, stx)
+                                    callExpr.prototype.toPyretString = function(){
+                                      var funcStr = this.func.toString();
+
+                                      // special-case for check-expect and EXAMPLE
+                                      if(["EXAMPLE", "check-expect"].indexOf(funcStr) > -1){
+                                        return "check:\n"+this.args[0].toPyretString()+" is "+this.args[1].toPyretString()+"\nend";
+                                      }
+
+                                      // special-case for infix operators
+                                      if(infix.indexOf(funcStr) > -1){
+                                        return makeBinopTreeForInfixApplication(this.func.toPyretString(), this.args);
+                                      }
+
+                                      // special-case for vector and list constructors
+                                      if(funcStr==="vector") return makeStructFromMembers("array", this.args);
+                                      if(funcStr==="list")   return makeStructFromMembers("list", this.args);
+
+                                      // special-case for big-bang
+                                      if(funcStr === "big-bang"){
+                                        var world_args = [this.args[0].toPyretString(), makeStructFromMembers("list", this.args.slice(1))];
+                                        return this.func.toPyretString() +"("+world_args.join(', ')+")";
+                                      }
+
+                                      // special-case for constructor functions
+                                      if(constructors[funcStr]){
+                                        return funcStr.substring(5)+"("+this.args.map(toPyretString).join(', ')+")";
+                                      }
+
+                                      // special-case for accessor functions
+                                      if(accessors[funcStr]){
+                                        return this.args[0].toPyretString()+"."+accessors[funcStr];
+                                      }
+
+                                      // special-case for struct-predicate functions
+                                      if(predicates[funcStr]){
+                                        return predicates[funcStr]+"("+this.args[0].toPyretString()+")";
+                                      }
+
+                                      // general case
+                                      return this.func.toPyretString() +"("+this.args.map(toPyretString).join(', ')+")";
+                                    };
+
+                                    // if expression
+                                    // ifExpr(predicate, consequence, alternate, stx)
+                                    ifExpr.prototype.toPyretString = function(){
+                                      var rawPredicate = ((this.predicate instanceof callExpr)
+                                          && (this.predicate.func.val === "verify-boolean-branch-value"))?
+                                        this.predicate.args[2] : this.predicate;
+                                      var str = "";
+                                      str+="if "+rawPredicate.toPyretString() + ":\n  ";
+                                      str+=this.consequence.toPyretString() + "\nelse:\n  ";
+                                      str+=this.alternative.toPyretString() + "\nend";
+                                      return str;
+                                    };
+
+                                    // quotedExpr
+                                    // quotedExpr(val)
+                                    quotedExpr.prototype.toPyretString = function(){
+                                      if(this.val instanceof literal && this.val.val instanceof symbolExpr){
+                                        return makeLiteralFromSymbol(this.val);
+                                      } else if(this.val instanceof literal){
+                                        return this.val.toPyretString();
+                                      } else if(this.val instanceof symbolExpr){
+                                        return makeLiteralFromSymbol(this.val);
+                                      } else if (this.val instanceof Array){
+                                        return makeStructFromMembers("list", this.val, true);
+                                      } else {
+                                        throw "There is no translation for "+this.toString();
+                                      }
+                                    };
+                                    // we do the best we can to desugar and translate quasiquoted expressions
+                                    quasiquotedExpr.prototype.toPyretString = function(){
+                                      return this.desugar(_pinfo)[0].toPyretString();
+                                    };
+
+                                    // if a symbol already has a (different) name in Pyret, use that
+                                    // otherwise, clean it up so it's a valid Pyret identifier
+                                    symbolExpr.prototype.toPyretString = function(){
+                                      return (symbolMap[this.val])? symbolMap[this.val]
+                                        : this.val.length===1? this.val
+                                          : this.val.replace(/\//g,'SLASH').replace(/\?/g,'QUESTION').replace(/\!/g,'BANG').replace(/\+/g,'PLUS');
+                                    };
+
+                                    // literals
+                                    // literal(String|Char|Number)
+                                    literal.prototype.toPyretString = function(){
+                                      return this.val.toPyretString? this.val.toPyretString()
+                                        : this.val.toWrittenString? this.val.toWrittenString()
+                                        /* else */        : this.val.toString();
+                                  };
+
+                                  // require expression
+                                  // requireExpr(spec, stx)
+                                  requireExpr.prototype.toPyretString = function(){
+                                    return "translation of Require Expressions is not yet implemented";
+                                  };
+
+                                  /////////////////////
+                                  /* Export Bindings */
+                                  /////////////////////
+                                  plt.compiler.toPyretString = converttoPyretString;
+    })();
+
+    // Input 9
+
+    /*
+
+       BSL AST -> Pyret AST
+       follows definition from XXXXX
+       TODO:
+       - conversion of symbols, to account for common-but-invalid chars like '?', '!', etc.
+       - translation of boolean symbols/values
+       - desugar (case...), then translate it?
+       - collect check-expect and EXAMPLE, convert to toplevel where: clauses
+       - use pinfo to locate all accessor functions, convert to <Struct.Field>
+       - desugar quoted items?
+       - when implemented, use tuples and roughnums for define-values and #i
+     */
+
+    (function () {
+      'use strict';
+
+      // import frequently-used bindings
+      var literal          = plt.compiler.literal;
+      var symbolExpr       = plt.compiler.symbolExpr;
+      var Program          = plt.compiler.Program;
+      var couple           = plt.compiler.couple;
+      var ifExpr           = plt.compiler.ifExpr;
+      var beginExpr        = plt.compiler.beginExpr;
+      var letExpr          = plt.compiler.letExpr;
+      var letStarExpr      = plt.compiler.letStarExpr;
+      var letrecExpr       = plt.compiler.letrecExpr;
+      var localExpr        = plt.compiler.localExpr;
+      var andExpr          = plt.compiler.andExpr;
+      var orExpr           = plt.compiler.orExpr;
+      var condExpr         = plt.compiler.condExpr;
+      var caseExpr         = plt.compiler.caseExpr;
+      var lambdaExpr       = plt.compiler.lambdaExpr;
+      var quotedExpr       = plt.compiler.quotedExpr;
+      var unquotedExpr     = plt.compiler.unquotedExpr;
+      var quasiquotedExpr  = plt.compiler.quasiquotedExpr;
+      var unquoteSplice    = plt.compiler.unquoteSplice;
+      var callExpr         = plt.compiler.callExpr;
+      var whenUnlessExpr   = plt.compiler.whenUnlessExpr;
+      var defFunc          = plt.compiler.defFunc;
+      var defVar           = plt.compiler.defVar;
+      var defVars          = plt.compiler.defVars;
+      var defStruct        = plt.compiler.defStruct;
+      var requireExpr      = plt.compiler.requireExpr;
+      var provideStatement = plt.compiler.provideStatement;
+      var unsupportedExpr  = plt.compiler.unsupportedExpr;
+      var throwError       = plt.compiler.throwError;
+      var structBinding    = plt.compiler.structBinding;
+
+      // empty location
+      var blankLoc = {"startRow": 1, "startCol": 0, "startChar": 1, "endRow": 1, "endCol": 0, "endChar": 1};
+      // Pyret syntax objects that were never actually part of the source
+      var lBrackStx = {name: "LBRACK",      value: "[",       key: "'LBRACK:[",     pos: blankLoc},
+        colonStx  = {name: "COLON",       value: ":",       key: "'COLON::",      pos: blankLoc},
+        commaStx  = {name: "COMMA",       value: ",",       key: "'COMMA:,",      pos: blankLoc},
+        rBrackStx = {name: "RBRACK",      value: "]",       key: "'RBRACK:]",     pos: blankLoc},
+        lParenStx = {name: "PARENNOSPACE", value: "(",      key: "'PARENNOSPACE:(", pos:blankLoc},
+        rParenStx = {name: "RPAREN",      value: ")",       key: "'RPAREN:)",      pos:blankLoc},
+        equalsStx = {name: "EQUALS",      value: "=",       key: "'EQUALS:=",     pos: blankLoc},
+        funStx    = {name: "FUN",         value: "fun",     key: "'FUN:fun",       pos: blankLoc},
+        endStx    = {name: "END",         value: "end",     key: "'END:end",       pos:blankLoc},
+        letStx    = {name: "let",         value: "let",     key: "'LET:let",       pos:blankLoc},
+        lamStx    = {name: "LAM",         value: "lam",     key: "'LAM:lam",      pos: blankLoc},
+        blockStx  = {name: "BLOCK",       value: "block",   key: "'BLOCK:block",  pos: blankLoc},
+        dataStx   = {name: "DATA",        value: "data",    key: "'DATA:data",    pos: blankLoc},
+        barStx    = {name: "BAR",         value: "|",       key: "'BAR:|",         pos:blankLoc},
+        ifStx     = {name: "IF",          value: "if",      key: "'IF:if",         pos: blankLoc},
+        elseStx   = {name: "ELSECOLON",   value: "else:",   key: "'ELSECOLON:else:", pos: blankLoc},
+        letrecStx = {name: "LETREC" ,     value: "lerec",   key: "'LETREC:letrec" ,  pos:blankLoc},
+        whenStx   = {name: "WHEN",        value: "when",    key: "'WHEN:when",      pos: blankLoc},
+        askStx    = {name: "ASKCOLON",    value: "ask:",    key: "'ASKCOLON:ask:",   pos:blankLoc},
+        thenStx   = {name: "THENCOLON",   value: "then:",   key: "'THENCOLON:then:", pos:blankLoc},
+        otherwiseStx={name:"OTHERWISE",   value: "otherwise:",key:"'OTHERWISE:otherwise:",pos:blankLoc};
+
+      // pinfo that is reset for each translation
+      var _pinfo = null;
+
+      // convertToPyret : [listof Programs], pinfo -> JSON
+      // generate pyret parse tree, preserving location information
+      // follows http://www.pyret.org/docs/latest/s_program.html
+      // provide and import will never be used
+      function convertToPyret(programs, pinfo){
+        _pinfo = pinfo;
+        return { name: "program"
              , kids: [ {name: "prelude"
                         , kids: [/* TBD */]
                         , pos: blankLoc}
@@ -6565,68 +6261,68 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                         , kids: programs.map(function(p){return {name:"stmt", kids:[p.toPyret()], pos: p.location};})
                         , pos: programs.location}]
              , pos: programs.location};
-        }
+      }
 
-        // makeLetExprFromCouple : Racket Couple -> Pyret let-expr
-        // used by Let, Let*, possibly others..
-        function makeLetExprFromCouple(couple){
-          return {name: "stmt"
+      // makeLetExprFromCouple : Racket Couple -> Pyret let-expr
+      // used by Let, Let*, possibly others..
+      function makeLetExprFromCouple(couple){
+        return {name: "stmt"
               , kids: [{name: "let-expr"
                        , kids: [makeBindingFromSymbol(couple.first)
                                 ,equalsStx
                                 ,couple.second.toPyret()]
                        , pos: couple.location}]
               , pos: couple.location};
-        }
+      }
 
-        // given a symbol, make a binding (used for let-expr, fun-expr, lam-expr...)
-        function makeBindingFromSymbol(sym){
-          var loc = sym.location;
-          return {name:"binding"
+      // given a symbol, make a binding (used for let-expr, fun-expr, lam-expr...)
+      function makeBindingFromSymbol(sym){
+        var loc = sym.location;
+        return {name:"binding"
               , kids: [{name:"NAME", value: sym.val, key:"'NAME:"+sym.val, pos:loc}]
               , pos: loc};
-        }
+      }
 
-        // translates (f e1 e2 e3...) into (e1 f (e2 f (e3 ...)))
-        // TODO: are some operators left-associative?
-        function makeBinopTreeForInfixApplication(infixOperator, exprs){
-          function addExprToTree(tree, expr){
-            return {name: "binop-expr"
+      // translates (f e1 e2 e3...) into (e1 f (e2 f (e3 ...)))
+      // TODO: are some operators left-associative?
+      function makeBinopTreeForInfixApplication(infixOperator, exprs){
+        function addExprToTree(tree, expr){
+          return {name: "binop-expr"
                 , kids: [expr.toPyret(), infixOperator, tree]
                 , pos: expr.location}
-          }
-          // starting with the firs expr, build the binop-expr tree
-          var last = exprs[exprs.length-1], rest = exprs.slice(0, exprs.length-1);
-          return rest.reduceRight(addExprToTree, last.toPyret());
         }
+        // starting with the firs expr, build the binop-expr tree
+        var last = exprs[exprs.length-1], rest = exprs.slice(0, exprs.length-1);
+        return rest.reduceRight(addExprToTree, last.toPyret());
+      }
 
-        // convert a symbol to a Pyret string or a Pyret boolean
-        function makeLiteralFromSymbol(sym){
-          var loc = sym.location, result, kid;
-          if(["true", "false", "#t", "#f"].indexOf(sym.val) > -1){
-            kid = (sym.val==="true" || sym.val==="#t")?
-              {name:"TRUE", value:"true", key:"'TRUE:true", pos: loc}
-                : {name:"FALSE", value:"false", key:"'FALSE", pos: loc};
-                result = {name:"bool-expr", kids:[kid], pos: loc};
-          } else {
-            kid = {name:"STRING", value:'"'+sym.val+'"', key:"'STRING:\""+sym.val+"\"", pos:loc};
-            result = {name:"string-expr", kids:[kid], pos: loc};
-          }
-          return {name:"expr", kids:[{name:"prim-expr", kids:[result], pos: loc}], pos: loc};
+      // convert a symbol to a Pyret string or a Pyret boolean
+      function makeLiteralFromSymbol(sym){
+        var loc = sym.location, result, kid;
+        if(["true", "false", "#t", "#f"].indexOf(sym.val) > -1){
+          kid = (sym.val==="true" || sym.val==="#t")?
+            {name:"TRUE", value:"true", key:"'TRUE:true", pos: loc}
+              : {name:"FALSE", value:"false", key:"'FALSE", pos: loc};
+              result = {name:"bool-expr", kids:[kid], pos: loc};
+        } else {
+          kid = {name:"STRING", value:'"'+sym.val+'"', key:"'STRING:\""+sym.val+"\"", pos:loc};
+          result = {name:"string-expr", kids:[kid], pos: loc};
         }
+        return {name:"expr", kids:[{name:"prim-expr", kids:[result], pos: loc}], pos: loc};
+      }
 
-        function makeStructFromMembers(constructor, elts, loc){
-          var fakeArrayCall = new symbolExpr(constructor),
-            makeListEltFromValue = function(val){
-            return {name: "list-elt" , kids: [val.toPyret(), commaStx], pos: val.location};
-          },
-          listElts = elts.slice(0, elts.length-1).map(makeListEltFromValue),
-            lastElt = (elts.length>1)? elts[elts.length-1].toPyret() : null;
-          // set the location of the constructor call, and add the last elt (if it exists)
-          fakeArrayCall.location = blankLoc;
-          listElts.push(lastElt);
-          // build the object
-          return {name:"expr"
+      function makeStructFromMembers(constructor, elts, loc){
+        var fakeArrayCall = new symbolExpr(constructor),
+          makeListEltFromValue = function(val){
+          return {name: "list-elt" , kids: [val.toPyret(), commaStx], pos: val.location};
+        },
+        listElts = elts.slice(0, elts.length-1).map(makeListEltFromValue),
+          lastElt = (elts.length>1)? elts[elts.length-1].toPyret() : null;
+        // set the location of the constructor call, and add the last elt (if it exists)
+        fakeArrayCall.location = blankLoc;
+        listElts.push(lastElt);
+        // build the object
+        return {name:"expr"
               , kids: [{name: "constructor-expr"
                         , kids: [lBrackStx
                                  , {name: "constructor-modifier", kids: [], pos: blankLoc}
@@ -6634,63 +6330,63 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                  , colonStx].concat(listElts, [rBrackStx])
                         , pos: blankLoc}]
               , pos:loc};
-        }
-        // Bytecode generation for jsnums types
-        jsnums.BigInteger.prototype.toPyret =
-          jsnums.Rational.prototype.toPyret =
-          jsnums.Roughnum.prototype.toPyret =
-          jsnums.ComplexRational.prototype.toPyret =
-          jsnums.ComplexRoughnum.prototype.toPyret =
-          function(){
-          var loc = this.location;
-          return {name: "num-expr"
+      }
+      // Bytecode generation for jsnums types
+      jsnums.BigInteger.prototype.toPyret =
+        jsnums.Rational.prototype.toPyret =
+        jsnums.Roughnum.prototype.toPyret =
+        jsnums.ComplexRational.prototype.toPyret =
+        jsnums.ComplexRoughnum.prototype.toPyret =
+        function(){
+        var loc = this.location;
+        return {name: "num-expr"
               , kids: [{value: this.stx
                        , key: "'NUMBER:"+this.stx
                        , name: "NUMBER"
                        , pos: loc}]
               , pos: loc};
-        };
+      };
 
-        Char.prototype.toPyret = function(){
-          return {name: "string-expr"
+      Char.prototype.toPyret = function(){
+        return {name: "string-expr"
                 , pos : this.location
                 , kids: [{key: "'STRING:"+this.val
                          , name: "STRING"
                          , value: this.val
                          , pos : this.location}]};
-        };
+      };
 
-        Program.prototype.toPyret = function(){ console.log(this); throw "no toPyret() method defined"; };
-        // literals
-        // literal(String|Char|Number|Vector)
-        // everything has a toPyret() method _except_ Strs,
-        // which are a hidden datatype for some reason
-        literal.prototype.toPyret = function(){
-          var loc = this.location,
-            that = this;
-          function convertString(){
-            return {name: "string-expr"
+      Program.prototype.toPyret = function(){ console.log(this); throw "no toPyret() method defined"; };
+      // literals
+      // literal(String|Char|Number|Vector)
+      // everything has a toPyret() method _except_ Strs,
+      // which are a hidden datatype for some reason
+      literal.prototype.toPyret = function(){
+        var loc = this.location,
+          that = this;
+        function convertString(){
+          return {name: "string-expr"
                 , pos : loc
                 , kids: [{key: "'STRING:"+that.val.toWrittenString()
                          , name: "STRING"
                          , value: that.val.toWrittenString()
                          , pos : loc}]};
-          }
-          function convertNumber(){
-            var str = (that.val.toString)? that.val.toString() : that.val;
-            return {name: "num-expr"
+        }
+        function convertNumber(){
+          var str = (that.val.toString)? that.val.toString() : that.val;
+          return {name: "num-expr"
                 , kids: [{name: "NUMBER"
                          , value: str
                          , key: "'NUMBER:"+str
                          , pos : loc}]
                 , pos : loc};
-          }
+        }
 
-          var val = (that.val.toPyret)? that.val.toPyret() :
-            isNaN(this)? convertString()  :
-            /* else */  convertNumber();
+        var val = (that.val.toPyret)? that.val.toPyret() :
+          isNaN(this)? convertString()  :
+          /* else */  convertNumber();
 
-          return  {name: "check-test"
+        return  {name: "check-test"
               , kids: [{name: "binop-expr"
                       , kids: [{name: "expr"
                                , kids: [{name: "prim-expr"
@@ -6699,13 +6395,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                , pos: loc}]
                       , pos: loc}]
               , pos: loc};
-        };
+      };
 
-        // Function definition
-        // defFunc(name, args, body, stx)
-        defFunc.prototype.toPyret = function(){
-          var loc = this.location;
-          return {name:"stmt"
+      // Function definition
+      // defFunc(name, args, body, stx)
+      defFunc.prototype.toPyret = function(){
+        var loc = this.location;
+        return {name:"stmt"
               , kids:[{name: "fun-expr"
                       , kids: [funStx
                                ,{name:"fun-header"
@@ -6732,45 +6428,45 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                 , pos: this.location.end()}]
                       , pos: loc}]
                 , pos: loc};
-        };
+      };
 
-        // Variable definition
-        // (define name expr) -> let name = expr
-        // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3alet-expr%29
-        // TODO: detect toplevel declarations?
-        defVar.prototype.toPyret = function(){
-          return {name: "let-expr"
+      // Variable definition
+      // (define name expr) -> let name = expr
+      // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3alet-expr%29
+      // TODO: detect toplevel declarations?
+      defVar.prototype.toPyret = function(){
+        return {name: "let-expr"
               ,kids:[letStx
                     ,{name: "toplevel-binding"
                      ,kids:[makeBindingFromSymbol(this.name)]
                      ,pos:this.name.location}
                     ,equalsStx].concat(this.expr.toPyret())
               , pos: this.location};
-        };
+      };
 
-        // Multi-Variable definition
-        // defVars(names, rhs, stx)
-        // maybe wait for tuples to be implemented?
-        defVars.prototype.toPyret = function(){
-          throw "translation of Multi-Variable Definitions is not yet implemented";
-        };
+      // Multi-Variable definition
+      // defVars(names, rhs, stx)
+      // maybe wait for tuples to be implemented?
+      defVars.prototype.toPyret = function(){
+        throw "translation of Multi-Variable Definitions is not yet implemented";
+      };
 
-        // Data Declaration
-        // (define-struct foo (x y)) -> data foo_: foo(x, y) end
-        // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3adata-expr%29
-        defStruct.prototype.toPyret = function(){
-          // makeListVariantMemberFromField : symbolExpr -> list-variant-member
-          function makeListVariantMemberFromField(field){
-            return {name: "list-variant-member"
+      // Data Declaration
+      // (define-struct foo (x y)) -> data foo_: foo(x, y) end
+      // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3adata-expr%29
+      defStruct.prototype.toPyret = function(){
+        // makeListVariantMemberFromField : symbolExpr -> list-variant-member
+        function makeListVariantMemberFromField(field){
+          return {name: "list-variant-member"
                 , kids: [{name: "variant-member"
                          , kids: [makeBindingFromSymbol(field)]
                          , pos: field.location}
                         , commaStx]
                 , pos:field.location};
-          }
+        }
 
-          var listVariantMembers = this.fields.map(makeListVariantMemberFromField);
-          return {name:"stmt"
+        var listVariantMembers = this.fields.map(makeListVariantMemberFromField);
+        return {name:"stmt"
               , kids: [{name: "data-expr"
                        , kids: [dataStx
                                 ,{name:"NAME"
@@ -6802,20 +6498,20 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                 , endStx]
                        , pos: this.location}]
               , pos: this.location}
-        };
+      };
 
-        // Begin expression
-        // beginExpr(exprs) -> block: exprs end
-        // translates to a block: http://www.pyret.org/docs/latest/Blocks.html
-        beginExpr.prototype.toPyret = function(){
-          var loc = this.location;
-          // given a single expr, convert to Pyret and wrap it inside a stmt
-          function makeStmtFromExpr(expr){
-            return {name:"stmt"
+      // Begin expression
+      // beginExpr(exprs) -> block: exprs end
+      // translates to a block: http://www.pyret.org/docs/latest/Blocks.html
+      beginExpr.prototype.toPyret = function(){
+        var loc = this.location;
+        // given a single expr, convert to Pyret and wrap it inside a stmt
+        function makeStmtFromExpr(expr){
+          return {name:"stmt"
                 , kids: [expr.toPyret()]
                 , pos: expr.location};
-          }
-          return {name: "expr"
+        }
+        return {name: "expr"
               , kids: [{name: "user-block-expr"
                        , kids: [blockStx
                                 ,{name: "block"
@@ -6824,13 +6520,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                 ,{name: "end", kids:[endStx], pos: loc}]
                        , pos: loc}]
               , pos: loc};
-        };
+      };
 
-        // Lambda expression
-        // lambdaExpr(args, body) -> lam(args): body end
-        lambdaExpr.prototype.toPyret = function(){
-          var loc = this.location;
-          return {name: "expr"
+      // Lambda expression
+      // lambdaExpr(args, body) -> lam(args): body end
+      lambdaExpr.prototype.toPyret = function(){
+        var loc = this.location;
+        return {name: "expr"
               , kids: [{name: "lambda-expr"
                        , kids:[lamStx
                                ,{name:"ty-params", kids:[], pos:loc}
@@ -6849,51 +6545,51 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                , {name:"end", kids:[endStx], pos: loc}]
                        , pos: this.location}]
               , pos: loc};
+      };
+
+      // Local becomes letrec
+      // First translate the racket node to letrec, then call toPyret()
+      localExpr.prototype.toPyret = function(){
+        function defToCouple(d){
+          var cpl = new couple(d.name, d.expr, d.stx);
+          cpl.location = d.location;
+          return cpl
         };
+        var racket_letrec = new letrecExpr(this.defs.map(defToCouple), this.body, this.stx);
+        racket_letrec.location = this.location;
+        return racket_letrec.toPyret();
+      };
 
-        // Local becomes letrec
-        // First translate the racket node to letrec, then call toPyret()
-        localExpr.prototype.toPyret = function(){
-          function defToCouple(d){
-            var cpl = new couple(d.name, d.expr, d.stx);
-            cpl.location = d.location;
-            return cpl
-          };
-          var racket_letrec = new letrecExpr(this.defs.map(defToCouple), this.body, this.stx);
-          racket_letrec.location = this.location;
-          return racket_letrec.toPyret();
-        };
+      // call expression
+      // callExpr(func, args, stx)
+      callExpr.prototype.toPyret = function(){
+        var loc = this.location;
+        // which functions are infix?
+        function getInfixForSym(sym){
+          if(!(sym instanceof symbolExpr)) return false;
+          var str = sym.val, loc = sym.location;
+          var infixOp = (str==="+")? {name:"PLUS",   value: "+",   key: "'PLUS: +",   pos: loc}
+            : (str==="-")?  {name:"DASH",   value: "-",   key: "'DASH: -",   pos: loc}
+              : (str==="*")?  {name:"STAR",   value: "*",   key: "'STAR: *",   pos: loc}
+                : (str==="/")?  {name:"SLASH",  value: "-",   key: "'SLASH: /",  pos: loc}
+                  : (str===">")?  {name:"GT",     value: ">",   key: "'GT: >",     pos: loc}
+                    : (str==="<")?  {name:"LT",     value: "<",   key: "'LT: -",     pos: loc}
+                      : (str===">=")? {name:"GEQ",    value: ">=",  key: "'GEQ: >=",    pos: loc}
+                        : (str==="<=")? {name:"LEQ",    value: "<=",  key: "LEQ: <=",     pos: loc}
+                          : (str==="=")?  {name:"EQUALEQUAL", value: "==", key: "'EQUALEQUAL: -", pos: loc}
+                            : false; // if the function isn't a binop, return false
+                            return { name: "binop", kids: [infixOp] };
+        }
 
-        // call expression
-        // callExpr(func, args, stx)
-        callExpr.prototype.toPyret = function(){
-          var loc = this.location;
-          // which functions are infix?
-          function getInfixForSym(sym){
-            if(!(sym instanceof symbolExpr)) return false;
-            var str = sym.val, loc = sym.location;
-            var infixOp = (str==="+")? {name:"PLUS",   value: "+",   key: "'PLUS: +",   pos: loc}
-              : (str==="-")?  {name:"DASH",   value: "-",   key: "'DASH: -",   pos: loc}
-                : (str==="*")?  {name:"STAR",   value: "*",   key: "'STAR: *",   pos: loc}
-                  : (str==="/")?  {name:"SLASH",  value: "-",   key: "'SLASH: /",  pos: loc}
-                    : (str===">")?  {name:"GT",     value: ">",   key: "'GT: >",     pos: loc}
-                      : (str==="<")?  {name:"LT",     value: "<",   key: "'LT: -",     pos: loc}
-                        : (str===">=")? {name:"GEQ",    value: ">=",  key: "'GEQ: >=",    pos: loc}
-                          : (str==="<=")? {name:"LEQ",    value: "<=",  key: "LEQ: <=",     pos: loc}
-                            : (str==="=")?  {name:"EQUALEQUAL", value: "==", key: "'EQUALEQUAL: -", pos: loc}
-                              : false; // if the function isn't a binop, return false
-            return { name: "binop", kids: [infixOp] };
-          }
+        // runtime calls to "vector" need to be processed specially
+        if(this.func.val === "vector") return makeStructFromMembers("array", this.args, this.location);
 
-          // runtime calls to "vector" need to be processed specially
-          if(this.func.val === "vector") return makeStructFromMembers("array", this.args, this.location);
-
-          // if the function is infix in Pyret, return the binop tree instead of a call-expr
-          var infixOperator = getInfixForSym(this.func);
-          if(infixOperator){
-            return makeBinopTreeForInfixApplication(infixOperator, this.args);
-          } else {
-            return {name:"app-expr"
+        // if the function is infix in Pyret, return the binop tree instead of a call-expr
+        var infixOperator = getInfixForSym(this.func);
+        if(infixOperator){
+          return makeBinopTreeForInfixApplication(infixOperator, this.args);
+        } else {
+          return {name:"app-expr"
                 , kids: [{name: "expr"
                           , kids: [{name: "id-expr"
                                   , kids: [{name: "NAME"
@@ -6907,13 +6603,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                 this.args.map(function(p){return p.toPyret()}), [rParenStx])
                                   , pos: this.func.location}]
               , pos: loc}
-          }
-        };
+        }
+      };
 
-        // if expression maps to if-expr
-        // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aif-expr%29
-        ifExpr.prototype.toPyret = function(){
-          return {name: "if-expr"
+      // if expression maps to if-expr
+      // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aif-expr%29
+      ifExpr.prototype.toPyret = function(){
+        return {name: "if-expr"
               , kids: [ifStx
                        ,this.predicate.toPyret()
                        ,colonStx
@@ -6930,78 +6626,78 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                         ,pos: this.alternative.location}
                        ,{name:"end", kids:[endStx], pos:this.location.end()}]
               , pos: this.location};
-        };
+      };
 
-        // when(pred, expr) translates to when(pred, expr)
-        // unless(pred, expr) translates to when(not(pred), expr)
-        // see: http://www.pyret.org/docs/latest/A_Tour_of_Pyret.html#%28part._.When_blocks%29
-        // TODO: do we need to wrap the expr in a block?
-        whenUnlessExpr.prototype.toPyret = function(){
-          var loc = this.location;
+      // when(pred, expr) translates to when(pred, expr)
+      // unless(pred, expr) translates to when(not(pred), expr)
+      // see: http://www.pyret.org/docs/latest/A_Tour_of_Pyret.html#%28part._.When_blocks%29
+      // TODO: do we need to wrap the expr in a block?
+      whenUnlessExpr.prototype.toPyret = function(){
+        var loc = this.location;
 
-          // if it's "unless", change the predicate to not(pred) in racket
-          if(this.stx.val==="unless"){
-            var notFn = new symbolExpr("not"),
-              notCall = new callExpr(notFn, [this.predicate]);
-            notFn.location = notCall.location = this.predicate.location;
-            this.predicate = notCall;
-          }
+        // if it's "unless", change the predicate to not(pred) in racket
+        if(this.stx.val==="unless"){
+          var notFn = new symbolExpr("not"),
+            notCall = new callExpr(notFn, [this.predicate]);
+          notFn.location = notCall.location = this.predicate.location;
+          this.predicate = notCall;
+        }
 
-          return {name: "when-expr"
+        return {name: "when-expr"
               , kids:[whenStx
                       ,this.predicate.toPyret()
                       ,colonStx
                       ,this.exprs.toPyret()
                       ,{name:"end", kids:[endStx], pos:this.location.end()}]
               , pos: loc};
-        };
+      };
 
-        // letrec becomes letrec
-        // the last binding becomes a let-expr,
-        // the rest become letrec-bindings,
-        // and the body becomes a block
-        letrecExpr.prototype.toPyret = function(){
-          function makeLetRecBindingExprFromCouple(couple){
-            return {name: "letrec-binding"
+      // letrec becomes letrec
+      // the last binding becomes a let-expr,
+      // the rest become letrec-bindings,
+      // and the body becomes a block
+      letrecExpr.prototype.toPyret = function(){
+        function makeLetRecBindingExprFromCouple(couple){
+          return {name: "letrec-binding"
                 , kids: [makeLetExprFromCouple(couple), commaStx]
                 , pos: couple.location};
-          }
-          var loc = this.location,
-            letrecBindings = this.bindings.slice(1).map(makeLetRecBindingExprFromCouple),
-            finalLet = makeLetExprFromCouple(this.bindings[this.bindings.length-1]).kids[0],
-            bodyBlock = {name:"block", kids:[this.body.toPyret()], pos: this.body.location};
-          return {name:"expr"
+        }
+        var loc = this.location,
+          letrecBindings = this.bindings.slice(1).map(makeLetRecBindingExprFromCouple),
+          finalLet = makeLetExprFromCouple(this.bindings[this.bindings.length-1]).kids[0],
+          bodyBlock = {name:"block", kids:[this.body.toPyret()], pos: this.body.location};
+        return {name:"expr"
               ,kids:[{name: "letrec-expr"
                       ,kids: [letrecStx].concat(letrecBindings, [finalLet, colonStx, bodyBlock, endStx])
                       ,pos:loc}]
               ,pos:loc};
-        };
+      };
 
-        // let -> blockful of let-exprs, BUT...
-        // in order to preserve semantics, we introduce temporary identifiers:
-        // (let [(a 5) (b a)] b) -> block: a_1 = 5 b_1 = a a = a_1 b = b_1 b end
-        // then we can safely convert
-        letExpr.prototype.toPyret = function(){
-          var loc = this.location;
-          var tmpIDs = [],
-            // bind the rhs to lhs_tmp (a_1 = 5, ...)
-            tmpBindings = this.bindings.map(function(c){
-            var tmpSym = new symbolExpr(c.first.val+"_tmp"),
-              tmpBinding = new couple(tmpSym, c.second);
-            tmpSym.location = c.first.location;
-            tmpBinding.location = c.location;
-            tmpIDs.push(tmpSym);
-            return tmpBinding;
-          }),
-          // bind lhs_tmp to lhs (a = a_1, ...)
-          newBindings = this.bindings.map(function(c, i){
-            var c2 = new couple(c.first, tmpIDs[i]);
-            c2.location = c.location;
-            return c2;
-          }),
-          stmts = tmpBindings.concat(newBindings).map(makeLetExprFromCouple);
-          stmts.push(this.body.toPyret());
-          return {name: "expr"
+      // let -> blockful of let-exprs, BUT...
+      // in order to preserve semantics, we introduce temporary identifiers:
+      // (let [(a 5) (b a)] b) -> block: a_1 = 5 b_1 = a a = a_1 b = b_1 b end
+      // then we can safely convert
+      letExpr.prototype.toPyret = function(){
+        var loc = this.location;
+        var tmpIDs = [],
+          // bind the rhs to lhs_tmp (a_1 = 5, ...)
+          tmpBindings = this.bindings.map(function(c){
+          var tmpSym = new symbolExpr(c.first.val+"_tmp"),
+            tmpBinding = new couple(tmpSym, c.second);
+          tmpSym.location = c.first.location;
+          tmpBinding.location = c.location;
+          tmpIDs.push(tmpSym);
+          return tmpBinding;
+        }),
+        // bind lhs_tmp to lhs (a = a_1, ...)
+        newBindings = this.bindings.map(function(c, i){
+          var c2 = new couple(c.first, tmpIDs[i]);
+          c2.location = c.location;
+          return c2;
+        }),
+        stmts = tmpBindings.concat(newBindings).map(makeLetExprFromCouple);
+        stmts.push(this.body.toPyret());
+        return {name: "expr"
               , kids: [{name: "user-block-expr"
                        , kids: [blockStx
                                 ,{name: "block", kids: stmts, pos: this.location}
@@ -7009,28 +6705,28 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                        , pos: loc}]
               , pos: loc};
 
-        };
+      };
 
-        // let* becomes a simple blockful of let-exprs
-        // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3alet-expr%29
-        letStarExpr.prototype.toPyret = function(){
-          var loc = this.location,
-            stmts = this.bindings.map(makeLetExprFromCouple);
-          stmts = stms.push(this.body.toPyret());
-          return {name: "expr"
+      // let* becomes a simple blockful of let-exprs
+      // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3alet-expr%29
+      letStarExpr.prototype.toPyret = function(){
+        var loc = this.location,
+          stmts = this.bindings.map(makeLetExprFromCouple);
+        stmts = stms.push(this.body.toPyret());
+        return {name: "expr"
               , kids: [{name: "user-block-expr"
                        , kids: [blockStx
                                 ,{name: "block", kids:stmts, pos: this.location}
                                 ,{name: "end", kids:[endStx], pos: loc}]
                        , pos: loc}]
               , pos: loc};
-        };
+      };
 
-        // cond -> ask
-        // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aask-expr%29
-        condExpr.prototype.toPyret = function(){
-          function makeIfPipeBranchfromClause(clause){
-            return {name: "if-pipe-branch"
+      // cond -> ask
+      // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aask-expr%29
+      condExpr.prototype.toPyret = function(){
+        function makeIfPipeBranchfromClause(clause){
+          return {name: "if-pipe-branch"
                 , kids: [barStx
                          ,clause.first.toPyret()
                          ,thenStx
@@ -7038,84 +6734,84 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                           ,kids: [clause.second.toPyret()]
                           ,pos: clause.second.location}]
                 , pos: clause.location};
-          }
+        }
 
-          // make an ifPipe for each non-else clause
-          var lastClause  = this.clauses[this.clauses.length-1],
-            hasElse     = (lastClause.first.stx && lastClause.first.stx==="else"),
-            ifClauses   = hasElse? this.clauses.slice(this.clauses.length-2) : this.clauses,
-            branches = ifClauses.map(makeIfPipeBranchfromClause);
+        // make an ifPipe for each non-else clause
+        var lastClause  = this.clauses[this.clauses.length-1],
+          hasElse     = (lastClause.first.stx && lastClause.first.stx==="else"),
+          ifClauses   = hasElse? this.clauses.slice(this.clauses.length-2) : this.clauses,
+          branches = ifClauses.map(makeIfPipeBranchfromClause);
 
-          // if there's an else clause, turn it into a block and add it and it's syntax to the list of branches
-          if(hasElse){
-            var elseClause =  this.clauses[this.clauses.length-1],
-              otherwiseBlock = {name: "block", kids: [elseClause.second.toPyret()], pos: elseClause.second.location};
-            branches = branches.concat([otherwiseStx, otherwiseBlock]);
-          }
+        // if there's an else clause, turn it into a block and add it and it's syntax to the list of branches
+        if(hasElse){
+          var elseClause =  this.clauses[this.clauses.length-1],
+            otherwiseBlock = {name: "block", kids: [elseClause.second.toPyret()], pos: elseClause.second.location};
+          branches = branches.concat([otherwiseStx, otherwiseBlock]);
+        }
 
-          return {name:"expr"
+        return {name:"expr"
               , kids: [{name: "if-pipe-expr"
                         , kids: [askStx].concat(branches, [{name: "end", kids:[endStx], pos:blankLoc}])
                         , pos: this.location}]
               , pos: this.location};
-        };
+      };
 
-        // case -> cases
-        // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3acases-expr%29
-        caseExpr.prototype.toPyret = function(){
-          throw "translation of case expressions is not yet implemented";
-        };
+      // case -> cases
+      // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3acases-expr%29
+      caseExpr.prototype.toPyret = function(){
+        throw "translation of case expressions is not yet implemented";
+      };
 
-        // and -> and
-        // convert to nested, binary ands
-        andExpr.prototype.toPyret = function(){
-          var loc = this.stx.location,
-            infixOperator = {name:"AND", value: "and", key: "'AND:and", pos: loc};
-          return makeBinopTreeForInfixApplication(infixOperator, this.exprs);
-        };
+      // and -> and
+      // convert to nested, binary ands
+      andExpr.prototype.toPyret = function(){
+        var loc = this.stx.location,
+          infixOperator = {name:"AND", value: "and", key: "'AND:and", pos: loc};
+        return makeBinopTreeForInfixApplication(infixOperator, this.exprs);
+      };
 
-        // or -> or
-        // convert to nested, binary ors
-        orExpr.prototype.toPyret = function(){
-          var loc = this.stx.location,
-            infixOperator = {name:"OR", value: "or", key: "'OR:or", pos: loc};
-          return makeBinopTreeForInfixApplication(infixOperator, this.exprs);
-        };
+      // or -> or
+      // convert to nested, binary ors
+      orExpr.prototype.toPyret = function(){
+        var loc = this.stx.location,
+          infixOperator = {name:"OR", value: "or", key: "'OR:or", pos: loc};
+        return makeBinopTreeForInfixApplication(infixOperator, this.exprs);
+      };
 
-        /*
-           Pyret lacks any notion of quoting,
-           so this is a *partially-supported approximation*!!!
+      /*
+         Pyret lacks any notion of quoting,
+         so this is a *partially-supported approximation*!!!
 
-           quasiquoted expressions could be desugared into mostly-valid
-           expressions, but cond, case, and & or would desugar into invalid
-           code. Therefore, we throw errors for everything but quoated
-           expressions, and we translate those using loose Pyret equivalents
-         */
+         quasiquoted expressions could be desugared into mostly-valid
+         expressions, but cond, case, and & or would desugar into invalid
+         code. Therefore, we throw errors for everything but quoated
+         expressions, and we translate those using loose Pyret equivalents
+       */
 
-        // quoted literals translate to themselves
-        // quoted symbols translate to strings
-        // quoted lists evaluate to lists
-        quotedExpr.prototype.toPyret = function(){
-          if(this.val instanceof literal){
-            return this.val.toPyret();
-          } else if(this.val instanceof symbolExpr){
-            return makeLiteralFromSymbol(this.val);
-          } else if (this.val instanceof Array){
-            return makeStructFromMembers("list", this.val, this.val.location);
-          } else {
-            throw "There is no translation for "+this.toString();
-          }
-        };
+      // quoted literals translate to themselves
+      // quoted symbols translate to strings
+      // quoted lists evaluate to lists
+      quotedExpr.prototype.toPyret = function(){
+        if(this.val instanceof literal){
+          return this.val.toPyret();
+        } else if(this.val instanceof symbolExpr){
+          return makeLiteralFromSymbol(this.val);
+        } else if (this.val instanceof Array){
+          return makeStructFromMembers("list", this.val, this.val.location);
+        } else {
+          throw "There is no translation for "+this.toString();
+        }
+      };
 
-        quasiquotedExpr.prototype.toPyret = function(){
-          return this.desugar(_pinfo)[0].toPyretString();
-        };
+      quasiquotedExpr.prototype.toPyret = function(){
+        return this.desugar(_pinfo)[0].toPyretString();
+      };
 
-        // symbol expression
-        // symbolExpr(val)
-        symbolExpr.prototype.toPyret = function(){
-          var loc = this.location;
-          return {name: "expr"
+      // symbol expression
+      // symbolExpr(val)
+      symbolExpr.prototype.toPyret = function(){
+        var loc = this.location;
+        return {name: "expr"
              , kids: [{name: "id-expr"
                       , kids: [{name: "NAME"
                                , value: this.val
@@ -7123,54 +6819,54 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                , pos: loc}]
                       , pos: loc}]
              , pos: loc};
-        }
-
-        /////////////////////
-        /* Export Bindings */
-        /////////////////////
-        plt.compiler.toPyretAST = convertToPyret;
-      })();
-
-      function schemeToPyretAST(runtime, code) {
-        console.log("code is " + code);
-        var debug = false;
-        var sexp = plt.compiler.lex(code, undefined, debug);
-        console.log("sexp is " + sexp);
-        var ast = plt.compiler.parse(sexp, debug)
-        console.log("ast is " + ast);
-        var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
-        var program = astAndPinfo[0];
-        var pinfo = plt.compiler.analyze(program, debug);
-        var pstring = plt.compiler.toPyretString(ast, pinfo);
-        console.log("pyretstring is " + pstring);
-        var jast = plt.compiler.toPyretAST(ast, pinfo);
-        console.log('jast is ' + jast);
-        return runtime.ffi.makeList([jast]);
       }
 
-      function schemeToPyretString(code) {
-        // is runtime param needed hn
-        //console.log("code is " + code);
-        var debug = false;
-        var sexp = plt.compiler.lex(code, undefined, debug);
-        //console.log("sexp is " + sexp);
-        var ast = plt.compiler.parse(sexp, debug)
-        //console.log("ast is " + ast);
-        var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
-        var program = astAndPinfo[0];
-        var pinfo = plt.compiler.analyze(program, debug);
-        var pstring = plt.compiler.toPyretString(ast, pinfo);
-        //console.log("pyretstring is " + pstring);
-        // separate toplevel programs by newline because pyret can't
-        // tolerate programs strung together on same line
-        //return pstring.join('\n');
-        return pstring;
-      }
+      /////////////////////
+      /* Export Bindings */
+      /////////////////////
+      plt.compiler.toPyretAST = convertToPyret;
+    })();
 
-      return {
-        //schemeToPyretAST: schemeToPyretAST,
-        schemeToPyretString: schemeToPyretString,
-        types: types
-      }
+    function schemeToPyretAST(runtime, code) {
+      console.log("code is " + code);
+      var debug = false;
+      var sexp = plt.compiler.lex(code, undefined, debug);
+      console.log("sexp is " + sexp);
+      var ast = plt.compiler.parse(sexp, debug)
+      console.log("ast is " + ast);
+      var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
+      var program = astAndPinfo[0];
+      var pinfo = plt.compiler.analyze(program, debug);
+      var pstring = plt.compiler.toPyretString(ast, pinfo);
+      console.log("pyretstring is " + pstring);
+      var jast = plt.compiler.toPyretAST(ast, pinfo);
+      console.log('jast is ' + jast);
+      return runtime.ffi.makeList([jast]);
+    }
 
-    });
+    function schemeToPyretString(code) {
+      // is runtime param needed hn
+      //console.log("code is " + code);
+      var debug = false;
+      var sexp = plt.compiler.lex(code, undefined, debug);
+      //console.log("sexp is " + sexp);
+      var ast = plt.compiler.parse(sexp, debug)
+      //console.log("ast is " + ast);
+      var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
+      var program = astAndPinfo[0];
+      var pinfo = plt.compiler.analyze(program, debug);
+      var pstring = plt.compiler.toPyretString(ast, pinfo);
+      //console.log("pyretstring is " + pstring);
+      // separate toplevel programs by newline because pyret can't
+      // tolerate programs strung together on same line
+      //return pstring.join('\n');
+      return pstring;
+    }
+
+    return {
+      //schemeToPyretAST: schemeToPyretAST,
+      schemeToPyretString: schemeToPyretString,
+      types: types
+    }
+
+  });
