@@ -50,13 +50,11 @@ function createProgramCollectionAPI(clientId, apiKey, collectionName, immediate)
       request.execute(function(result) {
         d.resolve(result);
       });
+      if(skipAuth) {
+        gapi.auth.setToken(oldAccess);
+      }
       return d.promise;
     }));
-    if(skipAuth) {
-      ret.fin(function() {
-        gapi.auth.setToken({access_token: oldAccess});
-      });
-    }
     return ret;
   }
 
