@@ -5861,7 +5861,10 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
                                     ////////////////////////// FUNCTION MAPPINGS ///////////////////////
                                     // pyret functions that are infix
+                                    /*
                                     var infix = ["+","-","*","/","=",">","<",">=","<=","and","or", "append", "string"];
+                                    */
+                                    var infix = ["and","or", "append", "string"];
                                     // racket functions for which there is no known translation
                                     var noTranslation = ["eval"];
 
@@ -5883,7 +5886,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["floor"]  = "num-floor";
                                     symbolMap["log"]    = "num-log";
                                     symbolMap["expt"]   = "num-expr";
-                                    symbolMap["="]      = "==";
+                                    //symbolMap["="]      = "==";
                                     symbolMap["equal?"] = "equal-always";
                                     symbolMap["image=?"] = "equal-always";
                                     symbolMap["string=?"] = "equal-always";
@@ -5903,6 +5906,15 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["magnitude"] = "num-magnitude";
                                     symbolMap["number?"] = "is-number";
                                     symbolMap["string?"] = "is-string";
+                                    symbolMap["+"] = "_plus";
+                                    symbolMap["-"] = "_minus";
+                                    symbolMap["*"] = "_times";
+                                    symbolMap["/"] = "_divide";
+                                    symbolMap["<"] = "_lessthan";
+                                    symbolMap[">"] = "_greaterthan";
+                                    symbolMap["<="] = "_lessequal";
+                                    symbolMap[">="] = "_greaterequal";
+                                    symbolMap["="] = "num-equal";
 
                                     function makeBinopTreeForInfixApplication(infixOperator, exprs){
                                       function addExprToTree(tree, expr){
@@ -6568,6 +6580,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         function getInfixForSym(sym){
           if(!(sym instanceof symbolExpr)) return false;
           var str = sym.val, loc = sym.location;
+          /*
           var infixOp = (str==="+")? {name:"PLUS",   value: "+",   key: "'PLUS: +",   pos: loc}
             : (str==="-")?  {name:"DASH",   value: "-",   key: "'DASH: -",   pos: loc}
               : (str==="*")?  {name:"STAR",   value: "*",   key: "'STAR: *",   pos: loc}
@@ -6578,6 +6591,9 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                         : (str==="<=")? {name:"LEQ",    value: "<=",  key: "LEQ: <=",     pos: loc}
                           : (str==="=")?  {name:"EQUALEQUAL", value: "==", key: "'EQUALEQUAL: -", pos: loc}
                             : false; // if the function isn't a binop, return false
+                            return { name: "binop", kids: [infixOp] };
+                            */
+                           var infixOp = false;
                             return { name: "binop", kids: [infixOp] };
         }
 
