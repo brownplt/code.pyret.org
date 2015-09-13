@@ -658,9 +658,9 @@ function flashError(message) {
 }
 function flashMessage(message) {
   clearFlash();
-  var err = $("<div>").addClass("active").text(message);
-  $(".notificationArea").prepend(err);
-  err.fadeOut(7000);
+  var msg = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(msg);
+  msg.fadeOut(7000);
 }
 function stickMessage(message) {
   clearFlash();

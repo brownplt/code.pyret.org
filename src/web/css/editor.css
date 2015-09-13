@@ -362,6 +362,7 @@ body {
   height:100%
 }
 .notificationArea {
+  z-index: 12000;
   width: 35%;
   font-family: sans-serif;
   position:fixed;
