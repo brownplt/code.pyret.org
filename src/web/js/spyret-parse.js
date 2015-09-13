@@ -5897,24 +5897,35 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["cons?"]  = "is-link";
                                     symbolMap["cons"]   = "link";
 
+                                    symbolMap["*"] = "_times";
+                                    symbolMap["+"] = "_plus";
+                                    symbolMap["-"] = "_minus";
+                                    symbolMap["/"] = "_divide";
+                                    symbolMap["<"] = "_lessthan";
+                                    symbolMap["<="] = "_lessequal";
+                                    symbolMap["="] = "num-equal";
+                                    symbolMap[">"] = "_greaterthan";
+                                    symbolMap[">="] = "_greaterequal";
                                     symbolMap["angle"] = "num-angle";
                                     symbolMap["conjugate"] = "num-conjugate";
+                                    symbolMap["exact->inexact"] = "num-to-complexroughnum";
                                     symbolMap["exact?"] = "num-is-complexrational";
                                     symbolMap["exp"] = "num-exp";
+                                    symbolMap["imag-part"] = "num-imagpart";
+                                    symbolMap["inexact->exact"] = "num-to-complexrational";
                                     symbolMap["inexact?"] = "num-is-complexroughnum";
                                     symbolMap["list?"] = "is-link";
                                     symbolMap["magnitude"] = "num-magnitude";
                                     symbolMap["number?"] = "is-number";
+                                    symbolMap["real-part"] = "num-realpart";
+                                    symbolMap["round"] = "num-round";
+                                    symbolMap["string->number"] = "string-tonumber";
+                                    symbolMap["string-downcase"] = "string-tolower";
+                                    symbolMap["string-ref"] = "string-char-at";
+                                    symbolMap["string-upcase"] = "string-toupper";
+                                    symbolMap["string=?"] = "string-equal";
                                     symbolMap["string?"] = "is-string";
-                                    symbolMap["+"] = "_plus";
-                                    symbolMap["-"] = "_minus";
-                                    symbolMap["*"] = "_times";
-                                    symbolMap["/"] = "_divide";
-                                    symbolMap["<"] = "_lessthan";
-                                    symbolMap[">"] = "_greaterthan";
-                                    symbolMap["<="] = "_lessequal";
-                                    symbolMap[">="] = "_greaterequal";
-                                    symbolMap["="] = "num-equal";
+                                    symbolMap["truncate"] = "num-truncate";
 
                                     function makeBinopTreeForInfixApplication(infixOperator, exprs){
                                       function addExprToTree(tree, expr){
