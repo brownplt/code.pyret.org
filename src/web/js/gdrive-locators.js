@@ -409,7 +409,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.api.getFileById(id);
+          return storage.api.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
