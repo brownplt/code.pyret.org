@@ -5889,7 +5889,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     //symbolMap["="]      = "==";
                                     symbolMap["equal?"] = "equal-always";
                                     symbolMap["image=?"] = "equal-always";
-                                    symbolMap["string=?"] = "equal-always";
+                                    //symbolMap["string=?"] = "equal-always";
                                     symbolMap["ormap"]  = "any";
                                     symbolMap["number->string"] = "num-tostring";
                                     symbolMap["bitmap/url"] = "image-url";
@@ -5908,12 +5908,15 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap[">="] = "_greaterequal";
                                     symbolMap["angle"] = "num-angle";
                                     symbolMap["conjugate"] = "num-conjugate";
+                                    symbolMap["eq?"] = "identical";
+                                    symbolMap["eqv?"] = "identical";
                                     symbolMap["exact->inexact"] = "num-to-complexroughnum";
                                     symbolMap["exact?"] = "num-is-complexrational";
                                     symbolMap["exp"] = "num-exp";
                                     symbolMap["imag-part"] = "num-imagpart";
                                     symbolMap["inexact->exact"] = "num-to-complexrational";
                                     symbolMap["inexact?"] = "num-is-complexroughnum";
+                                    symbolMap["list->vector"] = "array-from-list";
                                     symbolMap["list?"] = "is-link";
                                     symbolMap["magnitude"] = "num-magnitude";
                                     symbolMap["number?"] = "is-number";
@@ -5923,9 +5926,18 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["string-downcase"] = "string-tolower";
                                     symbolMap["string-ref"] = "string-char-at";
                                     symbolMap["string-upcase"] = "string-toupper";
+                                    symbolMap["string<=?"] = "string-less-equal";
+                                    symbolMap["string<?"] = "string-less";
                                     symbolMap["string=?"] = "string-equal";
+                                    symbolMap["string>=?"] = "string-greater-equal";
+                                    symbolMap["string>?"] = "string-greater";
                                     symbolMap["string?"] = "is-string";
                                     symbolMap["truncate"] = "num-truncate";
+                                    symbolMap["vector->list"] = "array-to-list-now";
+                                    symbolMap["vector-length"] = "array-length";
+                                    symbolMap["vector-ref"] = "array-get-now";
+                                    symbolMap["vector-set!"] = "array-set-now";
+                                    symbolMap["vector?"] = "is-array";
 
                                     function makeBinopTreeForInfixApplication(infixOperator, exprs){
                                       function addExprToTree(tree, expr){
