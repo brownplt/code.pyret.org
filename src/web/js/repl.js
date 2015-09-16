@@ -169,15 +169,12 @@ $(function() {
         }));
 
       return runtime.safeCall(function() {
-        console.log('calling make-repl-definitions-locator');
         return gmf(replSupport, "make-repl-definitions-locator").app(
           "definitions",
           "definitions",
           runtime.makeFunction(function() {
             var sstring = editor.cm.getValue();
-            console.log('raw string (frm repl) is ' + sstring);
             var pstrings = spyretParse.schemeToPyretString(sstring);
-            console.log('pyretstrings (frm repl): ' + pstrings);
             return pstrings.join('\n');
           }),
           gmf(compileStructs, "standard-globals"));
@@ -188,7 +185,6 @@ $(function() {
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
             restartInteractions: function(ignoredStr, typeCheck) {
-              console.log('restartInteractions called/ ' + ignoredStr + ' ' + typeCheck);
               var ret = Q.defer();
               setTimeout(function() {
                 runtime.runThunk(function() {
@@ -205,13 +201,11 @@ $(function() {
                 runtime.runThunk(function() {
                   return runtime.safeCall(
                     function() {
-                      console.log('calling make-repl-interaction-locator');
                       return gmf(replSupport,
                       "make-repl-interaction-locator").app(
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          console.log('raw string (frm repl) is ' + str);
                           var pstrings = spyretParse.schemeToPyretString(str);
                           if (pstrings.length > 1) {
                             var errmsg = 'Well-formedness: more than 1 WeScheme expression on a line';
@@ -219,7 +213,6 @@ $(function() {
                             throw spyretParse.types.schemeError(errmsg);
                           }
                           var pstring = pstrings[0].toString();
-                          console.log('pyretstring (frm repl) is ' + pstring);
                           return pstring;
                         }),
                         repl);
