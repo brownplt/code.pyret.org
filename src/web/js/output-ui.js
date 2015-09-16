@@ -686,12 +686,25 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
       else if (runtime.ffi.isVSStr(val)) { container.append(runtime.unwrap(runtime.getField(val, "s"))); }
       else if (runtime.ffi.isVSCollection(val)) {
-        container.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
+        var name = runtime.unwrap(runtime.getField(val, "name"));
+        if (name === "list" || name === "array") {
+          if (name === "list") {
+            container.append($("<span>").text("("));
+          } else {
+            container.append($("<span>").text("#("));
+          }
+        } else {
+          container.append($("<span>").text("[" + name + ": "));
+        }
         var ul = $("<ul>").addClass("inlineCollection");
         container.append(ul);
         var items = runtime.ffi.toArray(runtime.getField(val, "items"));
         groupItems(ul, items, values, 0, items.length);
-        container.append($("<span>").text("]"));
+        if (name === "list" || name === "array") {
+          container.append($("<span>").text(")"));
+        } else {
+          container.append($("<span>").text("]"));
+        }
         container.click(function(e) {
           ul.each(makeInline);
           e.stopPropagation();
