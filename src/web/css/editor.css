@@ -40,7 +40,6 @@ div.CodeMirror span.CodeMirror-matchingbracket {
     color: #111;
 }
 
-
 div.CodeMirror span.CodeMirror-nonmatchingbracket {
     font-weight: bold;
     background-color: #fdd;
@@ -61,8 +60,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
-   
-
 #output {
   font-family : monospace;
 }
@@ -82,7 +79,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   overflow-x: auto;
   height: auto;
 }
-
 
 .replMain .CodeMirror {
   height: 100%;
@@ -187,7 +183,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 .steppedGutter {
     width: 25px;
 }
-
 
 .progressContainer {
     width: 90%;
@@ -503,7 +498,7 @@ div#font-label:hover{
 .replOutput:not(.expanded) > dl > .expanded:not(.replOutput),
 .replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
 
-.replOutput.expanded > dl { 
+.replOutput.expanded > dl {
    border: 1px solid gray;
 }
 
@@ -517,24 +512,24 @@ div#font-label:hover{
    padding-right: 0.5em;
 }
 .replOutput > dl > dt { display: inline; }
-.replOutput.expanded dt { 
-   float: left; 
-   clear: left; 
+.replOutput.expanded dt {
+   float: left;
+   clear: left;
    padding: 0 1em;
 }
 .replOutput > dl > dd { display: inline-block; }
 .replOutput.expanded > dl > dd {
    float: left;
 }
-.replOutput > dl > dd:not(:last-of-type):after { 
-   content: ","; 
+.replOutput > dl > dd:not(:last-of-type):after {
+   content: ",";
    padding-right: 0.5em;
 }
 
 /* expandable lists for collections */
 ul.collection { margin: 0; }
-ul.collection > li { 
-   margin-left: 1em; 
+ul.collection > li {
+   margin-left: 1em;
    clear: both;
 }
 ul.collection > li > span.label {
@@ -544,30 +539,28 @@ ul.collection > li > span.label {
 ul.collection > li > span.label:before { padding-left: 0.5em; }
 ul.collection > li > span.label:after { content: ":"; padding-right: 0.5em; }
 ul.collection > li > span.label.expandable:before { content: "\025B8"; }
-ul.collection > li > span.contents { 
-   display: none; 
+ul.collection > li > span.contents {
+   display: none;
    float: left;
 }
 ul.collection > li.expanded > span.contents { display: inline; }
 ul.collection > li.expanded > span.label.expandable:before { content: "\025BE"; }
 
-ul.inlineCollection { 
-  display: inline; 
+ul.inlineCollection {
+  display: inline;
   margin: 0;
 }
-ul.inlineCollection > li { 
-  display: inline; 
+ul.inlineCollection > li {
+  display: inline;
 }
 ul.inlineCollection > li:not(:last-of-type):after {
-  content: ", ";
+  /* content: ", "; Scheme doesn't use comma separators */
+  content: " ";
 }
 ul.inlineCollection > li, ul.inlineCollection ul > li { display: inline; }
 ul.inlineCollection > li > span.label {
    display: none;
  }
-
-
-
 
 .replOutputPassed {
   padding-top: 0;
@@ -621,7 +614,7 @@ span.rationalRepeat {
    cursor: pointer;
    display: initial;
 }
-   
+
 .error-highlight {
   background-color: #fcc;
   border-bottom: 2px solid #F33;
