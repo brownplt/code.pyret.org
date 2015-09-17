@@ -691,7 +691,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
           if (name === "list") {
             container.append($("<span>").text("(list "));
           } else {
-            container.append($("<span>").text("#("));
+            container.append($("<span>").text("(vector "));
           }
         } else {
           container.append($("<span>").text("[" + name + ": "));
