@@ -5922,6 +5922,11 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["real-part"] = "num-realpart";
                                     symbolMap["round"] = "num-round";
                                     symbolMap["string->number"] = "string-tonumber";
+                                    symbolMap["string-ci<=?"] = "string-ci-less-equal";
+                                    symbolMap["string-ci<?"] = "string-ci-less";
+                                    symbolMap["string-ci=?"] = "string-ci-equal";
+                                    symbolMap["string-ci>=?"] = "string-ci-greater-equal";
+                                    symbolMap["string-ci>?"] = "string-ci-greater";
                                     symbolMap["string-downcase"] = "string-tolower";
                                     symbolMap["string-ref"] = "string-char-at";
                                     symbolMap["string-upcase"] = "string-toupper";
