@@ -5828,9 +5828,9 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     accessors["posn-y"] = "y";
                                     predicates["posn?"] = "is-posn";
                                     // add info about lists
-                                    accessors["rest"] = "rest";
-                                    accessors["first"] = "first";
-                                    accessors["length"] = "length";
+                                    //accessors["rest"] = "rest";
+                                    //accessors["first"] = "first";
+                                    //accessors["length"] = "length";
                                     predicates["posn?"] = "is-posn";
 
                                     // convertToPyretString : [listof Programs] pinfo -> Pyret String
@@ -5906,20 +5906,26 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap[">"] = "_greaterthan";
                                     symbolMap[">="] = "_greaterequal";
                                     symbolMap["angle"] = "num-angle";
+                                    symbolMap["car"] = "list-first";
+                                    symbolMap["cdr"] = "list-rest";
                                     symbolMap["conjugate"] = "num-conjugate";
                                     symbolMap["eq?"] = "identical";
                                     symbolMap["eqv?"] = "identical";
                                     symbolMap["exact->inexact"] = "num-to-complexroughnum";
                                     symbolMap["exact?"] = "num-is-complexrational";
                                     symbolMap["exp"] = "num-exp";
+                                    symbolMap["first"] = "list-first";
                                     symbolMap["imag-part"] = "num-imagpart";
                                     symbolMap["inexact->exact"] = "num-to-complexrational";
                                     symbolMap["inexact?"] = "num-is-complexroughnum";
+                                    symbolMap["length"] = "list-length";
                                     symbolMap["list->vector"] = "array-from-list";
                                     symbolMap["list?"] = "is-link";
                                     symbolMap["magnitude"] = "num-magnitude";
+                                    symbolMap["member"] = "list-member";
                                     symbolMap["number?"] = "is-number";
                                     symbolMap["real-part"] = "num-realpart";
+                                    symbolMap["rest"] = "list-rest";
                                     symbolMap["round"] = "num-round";
                                     symbolMap["string->number"] = "string-tonumber";
                                     symbolMap["string-ci<=?"] = "string-ci-less-equal";
