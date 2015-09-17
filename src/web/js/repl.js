@@ -175,6 +175,7 @@ $(function() {
           runtime.makeFunction(function() {
             var sstring = editor.cm.getValue();
             var pstrings = spyretParse.schemeToPyretString(sstring);
+            console.log('pyretstrings = ' + pstrings);
             return pstrings.join('\n');
           }),
           gmf(compileStructs, "standard-globals"));
@@ -213,6 +214,7 @@ $(function() {
                             throw spyretParse.types.schemeError(errmsg);
                           }
                           var pstring = pstrings[0].toString();
+                          console.log('pyretstring = ' + pstring);
                           return pstring;
                         }),
                         repl);
