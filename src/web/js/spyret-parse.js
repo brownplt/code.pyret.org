@@ -6016,7 +6016,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     };
 
                                     beginExpr.prototype.toPyretString = function(){
-                                      return "block: "+this.exprs.map(toPyretString)+" end";
+                                      return "block: "+this.exprs.map(toPyretString).join('\n')+" end";
                                     };
                                     whenUnlessExpr.prototype.toPyretString = function(){
                                       // if it's "unless", change the predicate to not(pred) in racket
