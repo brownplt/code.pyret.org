@@ -178,6 +178,13 @@ $(function() {
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
             restartInteractions: function(ignoredStr) {
+              Object.keys(runtime.modules).forEach(function(k) {
+                var isRawBuiltin = k.indexOf("$") === -1; // builtin like string-dict
+                var isSrcBuiltin = k.indexOf("$src") === 0; // builtin like value-skeleton
+                if(!(isRawBuiltin || isSrcBuiltin)) {
+                  delete runtime.modules[k];
+                }
+              });
               var ret = Q.defer();
               setTimeout(function() {
                 runtime.runThunk(function() {
