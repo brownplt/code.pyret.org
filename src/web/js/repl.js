@@ -178,6 +178,8 @@ $(function() {
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
             restartInteractions: function(ignoredStr) {
+              // NOTE(joe Sept 2015): This is a hack to avoid
+              // compiled-js-modules failing to refresh themselves
               Object.keys(runtime.modules).forEach(function(k) {
                 var isRawBuiltin = k.indexOf("$") === -1; // builtin like string-dict
                 var isSrcBuiltin = k.indexOf("$src") === 0; // builtin like value-skeleton
