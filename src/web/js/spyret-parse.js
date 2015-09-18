@@ -5905,6 +5905,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["="] = "num-equal";
                                     symbolMap[">"] = "_greaterthan";
                                     symbolMap[">="] = "_greaterequal";
+                                    symbolMap["add1"] = "num-add1";
                                     symbolMap["angle"] = "num-angle";
                                     symbolMap["car"] = "list-first";
                                     symbolMap["cdr"] = "list-rest";
@@ -5942,6 +5943,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     symbolMap["string>=?"] = "string-greater-equal";
                                     symbolMap["string>?"] = "string-greater";
                                     symbolMap["string?"] = "is-string";
+                                    symbolMap["sub1"] = "num-sub1";
                                     symbolMap["truncate"] = "num-truncate";
                                     symbolMap["vector->list"] = "array-to-list-now";
                                     symbolMap["vector-length"] = "array-length";
