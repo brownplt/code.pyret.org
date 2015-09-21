@@ -175,6 +175,8 @@ $(function() {
           runtime.makeFunction(function() {
             var sstring = editor.cm.getValue();
             var pstrings = spyretParse.schemeToPyretString(sstring);
+            pstrings.unshift('include world');
+            pstrings.unshift('include image');
             console.log('pyretstrings = ' + pstrings);
             return pstrings.join('\n');
           }),
