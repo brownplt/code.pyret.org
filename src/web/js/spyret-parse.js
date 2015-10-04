@@ -6893,7 +6893,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                     { name: "NAME",
                       pos: blankLoc,
                       value: "image",
-                      key: "'NAME:" + fileName } ] } ] } ] } }
+                      key: "'NAME:" + fileName } ] } ] } ] }
       }
 
       /////////////////////
@@ -6917,8 +6917,8 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
       var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
-      var preimports = [makeImportSnippet('image'),
-        makeImportSnippet('world')];
+      var preimports = [plt.compiler.makeImportSnippet('image'),
+        plt.compiler.makeImportSnippet('world')];
       ws_ast.kids[0].kids[0] = preimports;
       var ws_ast_j = JSON.stringify(ws_ast);
       console.log('ws_ast_j = ' + ws_ast_j);
@@ -6945,10 +6945,6 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         console.error(errmsg);
         throw types.schemeError(errmsg);
       }
-      //console.log("pyretstring is " + pstring);
-      // separate toplevel programs by newline because pyret can't
-      // tolerate programs strung together on same line
-      //return pstring.join('\n');
       return p_strs;
     }
 
