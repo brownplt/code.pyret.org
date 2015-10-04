@@ -172,7 +172,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       this.exprs  = exprs;
       this.stx    = stx;
       this.toString = function(){
-        return "(begin "+this.exprs.join(" ")+")";
+        return "(begin "+this.exprs.join("\n    ")+")";
       };
     };
     beginExpr.prototype = heir(Program.prototype);
@@ -302,6 +302,89 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       };
     };
     whenUnlessExpr.prototype = heir(Program.prototype);
+
+    var symbolMap = {};
+    symbolMap["min"]    = "num-min";
+    symbolMap["max"]    = "num-max";
+    symbolMap["abs"]    = "num-abs";
+    symbolMap["sin"]    = "num-sin";
+    symbolMap["cos"]    = "num-cos";
+    symbolMap["tan"]    = "num-tan";
+    symbolMap["asin"]   = "num-asin";
+    symbolMap["acos"]   = "num-acos";
+    symbolMap["atan"]   = "num-atan";
+    symbolMap["modulo"] = "num-modulo";
+    symbolMap["sqrt"]   = "num-sqrt";
+    symbolMap["sqr"]    = "num-sqr";
+    symbolMap["ceiling"]= "num-ceiling";
+    symbolMap["floor"]  = "num-floor";
+    symbolMap["log"]    = "num-log";
+    symbolMap["expt"]   = "num-expr";
+    //symbolMap["="]      = "==";
+    symbolMap["equal?"] = "equal-always";
+    symbolMap["image=?"] = "equal-always";
+    //symbolMap["string=?"] = "equal-always";
+    symbolMap["ormap"]  = "any";
+    symbolMap["number->string"] = "num-tostring";
+    symbolMap["bitmap/url"] = "image-url";
+    symbolMap["empty?"] = "is-empty";
+    symbolMap["cons?"]  = "is-link";
+    symbolMap["cons"]   = "link";
+
+    symbolMap["*"] = "_times";
+    symbolMap["+"] = "_plus";
+    symbolMap["-"] = "_minus";
+    symbolMap["/"] = "_divide";
+    symbolMap["<"] = "_lessthan";
+    symbolMap["<="] = "_lessequal";
+    symbolMap["="] = "num-equal";
+    symbolMap[">"] = "_greaterthan";
+    symbolMap[">="] = "_greaterequal";
+    symbolMap["add1"] = "num-add1";
+    symbolMap["angle"] = "num-angle";
+    symbolMap["car"] = "list-first";
+    symbolMap["cdr"] = "list-rest";
+    symbolMap["conjugate"] = "num-conjugate";
+    symbolMap["eq?"] = "identical";
+    symbolMap["eqv?"] = "identical";
+    symbolMap["exact->inexact"] = "num-to-complexroughnum";
+    symbolMap["exact?"] = "num-is-complexrational";
+    symbolMap["exp"] = "num-exp";
+    symbolMap["first"] = "list-first";
+    symbolMap["imag-part"] = "num-imagpart";
+    symbolMap["inexact->exact"] = "num-to-complexrational";
+    symbolMap["inexact?"] = "num-is-complexroughnum";
+    symbolMap["length"] = "list-length";
+    symbolMap["list->vector"] = "array-from-list";
+    symbolMap["list?"] = "is-link";
+    symbolMap["magnitude"] = "num-magnitude";
+    symbolMap["member"] = "list-member";
+    symbolMap["number?"] = "is-number";
+    symbolMap["real-part"] = "num-realpart";
+    symbolMap["rest"] = "list-rest";
+    symbolMap["round"] = "num-round";
+    symbolMap["string->number"] = "string-tonumber";
+    symbolMap["string-ci<=?"] = "string-ci-less-equal";
+    symbolMap["string-ci<?"] = "string-ci-less";
+    symbolMap["string-ci=?"] = "string-ci-equal";
+    symbolMap["string-ci>=?"] = "string-ci-greater-equal";
+    symbolMap["string-ci>?"] = "string-ci-greater";
+    symbolMap["string-downcase"] = "string-tolower";
+    symbolMap["string-ref"] = "string-char-at";
+    symbolMap["string-upcase"] = "string-toupper";
+    symbolMap["string<=?"] = "string-less-equal";
+    symbolMap["string<?"] = "string-less";
+    symbolMap["string=?"] = "string-equal";
+    symbolMap["string>=?"] = "string-greater-equal";
+    symbolMap["string>?"] = "string-greater";
+    symbolMap["string?"] = "is-string";
+    symbolMap["sub1"] = "num-sub1";
+    symbolMap["truncate"] = "num-truncate";
+    symbolMap["vector->list"] = "array-to-list-now";
+    symbolMap["vector-length"] = "array-length";
+    symbolMap["vector-ref"] = "array-get-now";
+    symbolMap["vector-set!"] = "array-set-now";
+    symbolMap["vector?"] = "is-array";
 
     // symbol expression (ID)
     function symbolExpr(val, stx) {
@@ -953,6 +1036,8 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                           plt.compiler.requireExpr   = requireExpr;
                                           plt.compiler.provideStatement = provideStatement;
                                           plt.compiler.unsupportedExpr= unsupportedExpr;
+
+                                          plt.compiler.symbolMap   = symbolMap;
 
                                           plt.compiler.pinfo       = pinfo;
                                           plt.compiler.getBasePinfo= getBasePinfo;
@@ -5818,6 +5903,9 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     var requireExpr      = plt.compiler.requireExpr;
                                     var provideStatement = plt.compiler.provideStatement;
                                     var unsupportedExpr  = plt.compiler.unsupportedExpr;
+
+                                    var symbolMap        = plt.compiler.symbolMap;
+
                                     var throwError       = plt.compiler.throwError;
                                     var structBinding    = plt.compiler.structBinding;
 
@@ -5868,88 +5956,6 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                     var noTranslation = ["eval"];
 
                                     // racket->pyret function name mapping
-                                    var symbolMap = {};
-                                    symbolMap["min"]    = "num-min";
-                                    symbolMap["max"]    = "num-max";
-                                    symbolMap["abs"]    = "num-abs";
-                                    symbolMap["sin"]    = "num-sin";
-                                    symbolMap["cos"]    = "num-cos";
-                                    symbolMap["tan"]    = "num-tan";
-                                    symbolMap["asin"]   = "num-asin";
-                                    symbolMap["acos"]   = "num-acos";
-                                    symbolMap["atan"]   = "num-atan";
-                                    symbolMap["modulo"] = "num-modulo";
-                                    symbolMap["sqrt"]   = "num-sqrt";
-                                    symbolMap["sqr"]    = "num-sqr";
-                                    symbolMap["ceiling"]= "num-ceiling";
-                                    symbolMap["floor"]  = "num-floor";
-                                    symbolMap["log"]    = "num-log";
-                                    symbolMap["expt"]   = "num-expr";
-                                    //symbolMap["="]      = "==";
-                                    symbolMap["equal?"] = "equal-always";
-                                    symbolMap["image=?"] = "equal-always";
-                                    //symbolMap["string=?"] = "equal-always";
-                                    symbolMap["ormap"]  = "any";
-                                    symbolMap["number->string"] = "num-tostring";
-                                    symbolMap["bitmap/url"] = "image-url";
-                                    symbolMap["empty?"] = "is-empty";
-                                    symbolMap["cons?"]  = "is-link";
-                                    symbolMap["cons"]   = "link";
-
-                                    symbolMap["*"] = "_times";
-                                    symbolMap["+"] = "_plus";
-                                    symbolMap["-"] = "_minus";
-                                    symbolMap["/"] = "_divide";
-                                    symbolMap["<"] = "_lessthan";
-                                    symbolMap["<="] = "_lessequal";
-                                    symbolMap["="] = "num-equal";
-                                    symbolMap[">"] = "_greaterthan";
-                                    symbolMap[">="] = "_greaterequal";
-                                    symbolMap["add1"] = "num-add1";
-                                    symbolMap["angle"] = "num-angle";
-                                    symbolMap["car"] = "list-first";
-                                    symbolMap["cdr"] = "list-rest";
-                                    symbolMap["conjugate"] = "num-conjugate";
-                                    symbolMap["eq?"] = "identical";
-                                    symbolMap["eqv?"] = "identical";
-                                    symbolMap["exact->inexact"] = "num-to-complexroughnum";
-                                    symbolMap["exact?"] = "num-is-complexrational";
-                                    symbolMap["exp"] = "num-exp";
-                                    symbolMap["first"] = "list-first";
-                                    symbolMap["imag-part"] = "num-imagpart";
-                                    symbolMap["inexact->exact"] = "num-to-complexrational";
-                                    symbolMap["inexact?"] = "num-is-complexroughnum";
-                                    symbolMap["length"] = "list-length";
-                                    symbolMap["list->vector"] = "array-from-list";
-                                    symbolMap["list?"] = "is-link";
-                                    symbolMap["magnitude"] = "num-magnitude";
-                                    symbolMap["member"] = "list-member";
-                                    symbolMap["number?"] = "is-number";
-                                    symbolMap["real-part"] = "num-realpart";
-                                    symbolMap["rest"] = "list-rest";
-                                    symbolMap["round"] = "num-round";
-                                    symbolMap["string->number"] = "string-tonumber";
-                                    symbolMap["string-ci<=?"] = "string-ci-less-equal";
-                                    symbolMap["string-ci<?"] = "string-ci-less";
-                                    symbolMap["string-ci=?"] = "string-ci-equal";
-                                    symbolMap["string-ci>=?"] = "string-ci-greater-equal";
-                                    symbolMap["string-ci>?"] = "string-ci-greater";
-                                    symbolMap["string-downcase"] = "string-tolower";
-                                    symbolMap["string-ref"] = "string-char-at";
-                                    symbolMap["string-upcase"] = "string-toupper";
-                                    symbolMap["string<=?"] = "string-less-equal";
-                                    symbolMap["string<?"] = "string-less";
-                                    symbolMap["string=?"] = "string-equal";
-                                    symbolMap["string>=?"] = "string-greater-equal";
-                                    symbolMap["string>?"] = "string-greater";
-                                    symbolMap["string?"] = "is-string";
-                                    symbolMap["sub1"] = "num-sub1";
-                                    symbolMap["truncate"] = "num-truncate";
-                                    symbolMap["vector->list"] = "array-to-list-now";
-                                    symbolMap["vector-length"] = "array-length";
-                                    symbolMap["vector-ref"] = "array-get-now";
-                                    symbolMap["vector-set!"] = "array-set-now";
-                                    symbolMap["vector?"] = "is-array";
 
                                     function makeBinopTreeForInfixApplication(infixOperator, exprs){
                                       function addExprToTree(tree, expr){
@@ -6262,6 +6268,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var defStruct        = plt.compiler.defStruct;
       var requireExpr      = plt.compiler.requireExpr;
       var provideStatement = plt.compiler.provideStatement;
+      var symbolMap        = plt.compiler.symbolMap;
       var unsupportedExpr  = plt.compiler.unsupportedExpr;
       var throwError       = plt.compiler.throwError;
       var structBinding    = plt.compiler.structBinding;
@@ -6294,18 +6301,18 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // pinfo that is reset for each translation
       var _pinfo = null;
 
-      // convertToPyret : [listof Programs], pinfo -> JSON
+      // convertToPyretAST : [listof Programs], pinfo -> JSON
       // generate pyret parse tree, preserving location information
       // follows http://www.pyret.org/docs/latest/s_program.html
       // provide and import will never be used
-      function convertToPyret(programs, pinfo){
+      function convertToPyretAST(programs, pinfo){
         _pinfo = pinfo;
         return { name: "program"
              , kids: [ {name: "prelude"
                         , kids: [/* TBD */]
                         , pos: blankLoc}
                       , {name: "block"
-                        , kids: programs.map(function(p){return {name:"stmt", kids:[p.toPyret()], pos: p.location};})
+                        , kids: programs.map(function(p){return {name:"stmt", kids:[p.toPyretAST()], pos: p.location};})
                         , pos: programs.location}]
              , pos: programs.location};
       }
@@ -6317,7 +6324,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
               , kids: [{name: "let-expr"
                        , kids: [makeBindingFromSymbol(couple.first)
                                 ,equalsStx
-                                ,couple.second.toPyret()]
+                                ,couple.second.toPyretAST()]
                        , pos: couple.location}]
               , pos: couple.location};
       }
@@ -6335,12 +6342,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       function makeBinopTreeForInfixApplication(infixOperator, exprs){
         function addExprToTree(tree, expr){
           return {name: "binop-expr"
-                , kids: [expr.toPyret(), infixOperator, tree]
+                , kids: [expr.toPyretAST(), infixOperator, tree]
                 , pos: expr.location}
         }
         // starting with the firs expr, build the binop-expr tree
         var last = exprs[exprs.length-1], rest = exprs.slice(0, exprs.length-1);
-        return rest.reduceRight(addExprToTree, last.toPyret());
+        return rest.reduceRight(addExprToTree, last.toPyretAST());
       }
 
       // convert a symbol to a Pyret string or a Pyret boolean
@@ -6361,10 +6368,10 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       function makeStructFromMembers(constructor, elts, loc){
         var fakeArrayCall = new symbolExpr(constructor),
           makeListEltFromValue = function(val){
-          return {name: "list-elt" , kids: [val.toPyret(), commaStx], pos: val.location};
+          return {name: "list-elt" , kids: [val.toPyretAST(), commaStx], pos: val.location};
         },
         listElts = elts.slice(0, elts.length-1).map(makeListEltFromValue),
-          lastElt = (elts.length>1)? elts[elts.length-1].toPyret() : null;
+          lastElt = (elts.length>1)? elts[elts.length-1].toPyretAST() : null;
         // set the location of the constructor call, and add the last elt (if it exists)
         fakeArrayCall.location = blankLoc;
         listElts.push(lastElt);
@@ -6373,17 +6380,17 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
               , kids: [{name: "constructor-expr"
                         , kids: [lBrackStx
                                  , {name: "constructor-modifier", kids: [], pos: blankLoc}
-                                 , fakeArrayCall.toPyret()
+                                 , fakeArrayCall.toPyretAST()
                                  , colonStx].concat(listElts, [rBrackStx])
                         , pos: blankLoc}]
               , pos:loc};
       }
       // Bytecode generation for jsnums types
-      jsnums.BigInteger.prototype.toPyret =
-        jsnums.Rational.prototype.toPyret =
-        jsnums.Roughnum.prototype.toPyret =
-        jsnums.ComplexRational.prototype.toPyret =
-        jsnums.ComplexRoughnum.prototype.toPyret =
+      jsnums.BigInteger.prototype.toPyretAST =
+        jsnums.Rational.prototype.toPyretAST =
+        jsnums.Roughnum.prototype.toPyretAST =
+        jsnums.ComplexRational.prototype.toPyretAST =
+        jsnums.ComplexRoughnum.prototype.toPyretAST =
         function(){
         var loc = this.location;
         return {name: "num-expr"
@@ -6394,7 +6401,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
               , pos: loc};
       };
 
-      Char.prototype.toPyret = function(){
+      Char.prototype.toPyretAST = function(){
         return {name: "string-expr"
                 , pos : this.location
                 , kids: [{key: "'STRING:"+this.val
@@ -6403,12 +6410,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                          , pos : this.location}]};
       };
 
-      Program.prototype.toPyret = function(){ console.log(this); throw "no toPyret() method defined"; };
+      Program.prototype.toPyretAST = function(){ console.log(this); throw "no toPyretAST() method defined"; };
       // literals
       // literal(String|Char|Number|Vector)
-      // everything has a toPyret() method _except_ Strs,
+      // everything has a toPyretAST() method _except_ Strs,
       // which are a hidden datatype for some reason
-      literal.prototype.toPyret = function(){
+      literal.prototype.toPyretAST = function(){
         var loc = this.location,
           that = this;
         function convertString(){
@@ -6429,7 +6436,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                 , pos : loc};
         }
 
-        var val = (that.val.toPyret)? that.val.toPyret() :
+        var val = (that.val.toPyretAST)? that.val.toPyretAST() :
           isNaN(this)? convertString()  :
           /* else */  convertNumber();
 
@@ -6446,7 +6453,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // Function definition
       // defFunc(name, args, body, stx)
-      defFunc.prototype.toPyret = function(){
+      defFunc.prototype.toPyretAST = function(){
         var loc = this.location;
         return {name:"stmt"
               , kids:[{name: "fun-expr"
@@ -6468,7 +6475,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                                 , pos: this.stx[1].location}
                                ,colonStx
                                ,{name:"doc-string", kids: [], pos: blankLoc}
-                               ,{name:"block", kids: [this.body.toPyret()], pos: this.body.location}
+                               ,{name:"block", kids: [this.body.toPyretAST()], pos: this.body.location}
                                ,{name:"where-clause", kids:  [], pos: blankLoc}
                                ,{name:"end"
                                 , kids: [endStx]
@@ -6481,27 +6488,27 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // (define name expr) -> let name = expr
       // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3alet-expr%29
       // TODO: detect toplevel declarations?
-      defVar.prototype.toPyret = function(){
+      defVar.prototype.toPyretAST = function(){
         return {name: "let-expr"
               ,kids:[letStx
                     ,{name: "toplevel-binding"
                      ,kids:[makeBindingFromSymbol(this.name)]
                      ,pos:this.name.location}
-                    ,equalsStx].concat(this.expr.toPyret())
+                    ,equalsStx].concat(this.expr.toPyretAST())
               , pos: this.location};
       };
 
       // Multi-Variable definition
       // defVars(names, rhs, stx)
       // maybe wait for tuples to be implemented?
-      defVars.prototype.toPyret = function(){
+      defVars.prototype.toPyretAST = function(){
         throw "translation of Multi-Variable Definitions is not yet implemented";
       };
 
       // Data Declaration
       // (define-struct foo (x y)) -> data foo_: foo(x, y) end
       // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3adata-expr%29
-      defStruct.prototype.toPyret = function(){
+      defStruct.prototype.toPyretAST = function(){
         // makeListVariantMemberFromField : symbolExpr -> list-variant-member
         function makeListVariantMemberFromField(field){
           return {name: "list-variant-member"
@@ -6550,19 +6557,19 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // Begin expression
       // beginExpr(exprs) -> block: exprs end
       // translates to a block: http://www.pyret.org/docs/latest/Blocks.html
-      beginExpr.prototype.toPyret = function(){
+      beginExpr.prototype.toPyretAST = function(){
         var loc = this.location;
         // given a single expr, convert to Pyret and wrap it inside a stmt
         function makeStmtFromExpr(expr){
           return {name:"stmt"
-                , kids: [expr.toPyret()]
+                , kids: [expr.toPyretAST()]
                 , pos: expr.location};
         }
         return {name: "expr"
               , kids: [{name: "user-block-expr"
                        , kids: [blockStx
                                 ,{name: "block"
-                                 , kids:[this.exprs.map(makeStmtFromExpr)]
+                                 , kids:this.exprs.map(makeStmtFromExpr)
                                  , pos: this.location}
                                 ,{name: "end", kids:[endStx], pos: loc}]
                        , pos: loc}]
@@ -6571,22 +6578,25 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // Lambda expression
       // lambdaExpr(args, body) -> lam(args): body end
-      lambdaExpr.prototype.toPyret = function(){
+      lambdaExpr.prototype.toPyretAST = function(){
         var loc = this.location;
         return {name: "expr"
               , kids: [{name: "lambda-expr"
                        , kids:[lamStx
-                               ,{name:"ty-params", kids:[], pos:loc}
+                               , {name:"fun-header"
+                                 , kids: [
+                               {name:"ty-params", kids:[], pos:loc}
                                ,{name:"args"
                                 , kids: [lParenStx].concat(
                               this.args.map(makeBindingFromSymbol)
                                           ,[rParenStx])
                                 , pos: this.args.location}
-                               , {name: "return-ann", kids: [], pos: loc}
+                               , {name: "return-ann", kids: [], pos: loc}]
+                               ,pos:loc}
                                , colonStx
                                , {name:"doc-string", kids:[], pos: loc}
                                , {name:"block"
-                                , kids:[this.body.toPyret()]
+                                , kids:[this.body.toPyretAST()]
                                 , pos: this.body.location}
                                , {name:"where-clause", kids:[], pos: loc}
                                , {name:"end", kids:[endStx], pos: loc}]
@@ -6595,8 +6605,8 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       };
 
       // Local becomes letrec
-      // First translate the racket node to letrec, then call toPyret()
-      localExpr.prototype.toPyret = function(){
+      // First translate the racket node to letrec, then call toPyretAST()
+      localExpr.prototype.toPyretAST = function(){
         function defToCouple(d){
           var cpl = new couple(d.name, d.expr, d.stx);
           cpl.location = d.location;
@@ -6604,32 +6614,16 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         };
         var racket_letrec = new letrecExpr(this.defs.map(defToCouple), this.body, this.stx);
         racket_letrec.location = this.location;
-        return racket_letrec.toPyret();
+        return racket_letrec.toPyretAST();
       };
 
       // call expression
       // callExpr(func, args, stx)
-      callExpr.prototype.toPyret = function(){
+      callExpr.prototype.toPyretAST = function(){
         var loc = this.location;
         // which functions are infix?
         function getInfixForSym(sym){
-          if(!(sym instanceof symbolExpr)) return false;
-          var str = sym.val, loc = sym.location;
-          /*
-          var infixOp = (str==="+")? {name:"PLUS",   value: "+",   key: "'PLUS: +",   pos: loc}
-            : (str==="-")?  {name:"DASH",   value: "-",   key: "'DASH: -",   pos: loc}
-              : (str==="*")?  {name:"STAR",   value: "*",   key: "'STAR: *",   pos: loc}
-                : (str==="/")?  {name:"SLASH",  value: "-",   key: "'SLASH: /",  pos: loc}
-                  : (str===">")?  {name:"GT",     value: ">",   key: "'GT: >",     pos: loc}
-                    : (str==="<")?  {name:"LT",     value: "<",   key: "'LT: -",     pos: loc}
-                      : (str===">=")? {name:"GEQ",    value: ">=",  key: "'GEQ: >=",    pos: loc}
-                        : (str==="<=")? {name:"LEQ",    value: "<=",  key: "LEQ: <=",     pos: loc}
-                          : (str==="=")?  {name:"EQUALEQUAL", value: "==", key: "'EQUALEQUAL: -", pos: loc}
-                            : false; // if the function isn't a binop, return false
-                            return { name: "binop", kids: [infixOp] };
-                            */
-                           var infixOp = false;
-                            return { name: "binop", kids: [infixOp] };
+          return false;
         }
 
         // runtime calls to "vector" need to be processed specially
@@ -6638,41 +6632,40 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         // if the function is infix in Pyret, return the binop tree instead of a call-expr
         var infixOperator = getInfixForSym(this.func);
         if(infixOperator){
+          console.log('uh oh: infix');
           return makeBinopTreeForInfixApplication(infixOperator, this.args);
         } else {
-          return {name:"app-expr"
+          var ret = {name:"app-expr"
                 , kids: [{name: "expr"
-                          , kids: [{name: "id-expr"
-                                  , kids: [{name: "NAME"
-                                           , value: this.func.val
-                                           , key: "'NAME:"+this.func.val
-                                           , pos: this.func.location}]
-                                  , pos: this.func.location}]
+                          , kids: [this.func.toPyretAST()]
                           , pos: this.func.location}
                          ,{name: "app-args"
                                   , kids: [lParenStx].concat(
-                                this.args.map(function(p){return p.toPyret()}), [rParenStx])
+                                this.args.map(function(p){return p.toPyretAST()}), [rParenStx])
                                   , pos: this.func.location}]
-              , pos: loc}
+              , pos: loc};
+            return ret;
+
         }
       };
 
       // if expression maps to if-expr
       // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aif-expr%29
-      ifExpr.prototype.toPyret = function(){
+      ifExpr.prototype.toPyretAST = function(){
+        console.log('if this.consequence = ' , this.consequence);
         return {name: "if-expr"
               , kids: [ifStx
-                       ,this.predicate.toPyret()
+                       ,this.predicate.toPyretAST()
                        ,colonStx
                        ,{name:"block"
                         ,kids:[{name:"stmt"
-                               , kids:[this.consequence.toPyret()]
+                               , kids:[this.consequence.toPyretAST()]
                                , pos: this.consequence.location}]
                         ,pos: this.consequence.location}
                        ,elseStx
                        ,{name:"block"
                         ,kids:[{name:"stmt"
-                               , kids:[this.alternative.toPyret()]
+                               , kids:[this.alternative.toPyretAST()]
                                , pos: this.alternative.location}]
                         ,pos: this.alternative.location}
                        ,{name:"end", kids:[endStx], pos:this.location.end()}]
@@ -6683,7 +6676,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // unless(pred, expr) translates to when(not(pred), expr)
       // see: http://www.pyret.org/docs/latest/A_Tour_of_Pyret.html#%28part._.When_blocks%29
       // TODO: do we need to wrap the expr in a block?
-      whenUnlessExpr.prototype.toPyret = function(){
+      whenUnlessExpr.prototype.toPyretAST = function(){
         var loc = this.location;
 
         // if it's "unless", change the predicate to not(pred) in racket
@@ -6696,9 +6689,15 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
         return {name: "when-expr"
               , kids:[whenStx
-                      ,this.predicate.toPyret()
+                      ,this.predicate.toPyretAST()
                       ,colonStx
-                      ,this.exprs.toPyret()
+                      ,{name: "block"
+                        ,kids: this.exprs.map(function(expr) {
+                                               return {name: "stmt"
+                                                       ,kids: [expr.toPyretAST()]
+                                                       ,pos: expr.loc}
+                                                })
+                        ,pos: this.location}
                       ,{name:"end", kids:[endStx], pos:this.location.end()}]
               , pos: loc};
       };
@@ -6707,7 +6706,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // the last binding becomes a let-expr,
       // the rest become letrec-bindings,
       // and the body becomes a block
-      letrecExpr.prototype.toPyret = function(){
+      letrecExpr.prototype.toPyretAST = function(){
         function makeLetRecBindingExprFromCouple(couple){
           return {name: "letrec-binding"
                 , kids: [makeLetExprFromCouple(couple), commaStx]
@@ -6716,7 +6715,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         var loc = this.location,
           letrecBindings = this.bindings.slice(1).map(makeLetRecBindingExprFromCouple),
           finalLet = makeLetExprFromCouple(this.bindings[this.bindings.length-1]).kids[0],
-          bodyBlock = {name:"block", kids:[this.body.toPyret()], pos: this.body.location};
+          bodyBlock = {name:"block", kids:[this.body.toPyretAST()], pos: this.body.location};
         return {name:"expr"
               ,kids:[{name: "letrec-expr"
                       ,kids: [letrecStx].concat(letrecBindings, [finalLet, colonStx, bodyBlock, endStx])
@@ -6728,7 +6727,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // in order to preserve semantics, we introduce temporary identifiers:
       // (let [(a 5) (b a)] b) -> block: a_1 = 5 b_1 = a a = a_1 b = b_1 b end
       // then we can safely convert
-      letExpr.prototype.toPyret = function(){
+      letExpr.prototype.toPyretAST = function(){
         var loc = this.location;
         var tmpIDs = [],
           // bind the rhs to lhs_tmp (a_1 = 5, ...)
@@ -6747,7 +6746,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
           return c2;
         }),
         stmts = tmpBindings.concat(newBindings).map(makeLetExprFromCouple);
-        stmts.push(this.body.toPyret());
+        stmts.push(this.body.toPyretAST());
         return {name: "expr"
               , kids: [{name: "user-block-expr"
                        , kids: [blockStx
@@ -6760,10 +6759,10 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // let* becomes a simple blockful of let-exprs
       // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3alet-expr%29
-      letStarExpr.prototype.toPyret = function(){
+      letStarExpr.prototype.toPyretAST = function(){
         var loc = this.location,
           stmts = this.bindings.map(makeLetExprFromCouple);
-        stmts = stms.push(this.body.toPyret());
+        stmts = stms.push(this.body.toPyretAST());
         return {name: "expr"
               , kids: [{name: "user-block-expr"
                        , kids: [blockStx
@@ -6775,14 +6774,14 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // cond -> ask
       // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aask-expr%29
-      condExpr.prototype.toPyret = function(){
+      condExpr.prototype.toPyretAST = function(){
         function makeIfPipeBranchfromClause(clause){
           return {name: "if-pipe-branch"
                 , kids: [barStx
-                         ,clause.first.toPyret()
+                         ,clause.first.toPyretAST()
                          ,thenStx
                          ,{name: "block"
-                          ,kids: [clause.second.toPyret()]
+                          ,kids: [clause.second.toPyretAST()]
                           ,pos: clause.second.location}]
                 , pos: clause.location};
         }
@@ -6796,7 +6795,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         // if there's an else clause, turn it into a block and add it and it's syntax to the list of branches
         if(hasElse){
           var elseClause =  this.clauses[this.clauses.length-1],
-            otherwiseBlock = {name: "block", kids: [elseClause.second.toPyret()], pos: elseClause.second.location};
+            otherwiseBlock = {name: "block", kids: [elseClause.second.toPyretAST()], pos: elseClause.second.location};
           branches = branches.concat([otherwiseStx, otherwiseBlock]);
         }
 
@@ -6809,13 +6808,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // case -> cases
       // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3acases-expr%29
-      caseExpr.prototype.toPyret = function(){
+      caseExpr.prototype.toPyretAST = function(){
         throw "translation of case expressions is not yet implemented";
       };
 
       // and -> and
       // convert to nested, binary ands
-      andExpr.prototype.toPyret = function(){
+      andExpr.prototype.toPyretAST = function(){
         var loc = this.stx.location,
           infixOperator = {name:"AND", value: "and", key: "'AND:and", pos: loc};
         return makeBinopTreeForInfixApplication(infixOperator, this.exprs);
@@ -6823,7 +6822,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // or -> or
       // convert to nested, binary ors
-      orExpr.prototype.toPyret = function(){
+      orExpr.prototype.toPyretAST = function(){
         var loc = this.stx.location,
           infixOperator = {name:"OR", value: "or", key: "'OR:or", pos: loc};
         return makeBinopTreeForInfixApplication(infixOperator, this.exprs);
@@ -6842,9 +6841,9 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // quoted literals translate to themselves
       // quoted symbols translate to strings
       // quoted lists evaluate to lists
-      quotedExpr.prototype.toPyret = function(){
+      quotedExpr.prototype.toPyretAST = function(){
         if(this.val instanceof literal){
-          return this.val.toPyret();
+          return this.val.toPyretAST();
         } else if(this.val instanceof symbolExpr){
           return makeLiteralFromSymbol(this.val);
         } else if (this.val instanceof Array){
@@ -6854,48 +6853,79 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         }
       };
 
-      quasiquotedExpr.prototype.toPyret = function(){
-        return this.desugar(_pinfo)[0].toPyretString();
+      quasiquotedExpr.prototype.toPyretAST = function(){
+        return this.desugar(_pinfo)[0].toPyretAST();
       };
 
       // symbol expression
       // symbolExpr(val)
-      symbolExpr.prototype.toPyret = function(){
+      symbolExpr.prototype.toPyretAST = function(){
         var loc = this.location;
+        var sval = this.val;
+        var val_pyret_name = symbolMap[sval];
+        if (val_pyret_name) sval = val_pyret_name;
         return {name: "expr"
              , kids: [{name: "id-expr"
                       , kids: [{name: "NAME"
-                               , value: this.val
-                               , key: "'NAME:"+this.val
+                               , value: sval
+                               , key: "'NAME:"+sval
                                , pos: loc}]
                       , pos: loc}]
              , pos: loc};
       }
 
+      function makeImportSnippet(fileName) {
+        return {
+          name: "import-stmt",
+          pos: blankLoc,
+          kids: [
+            { name: "INCLUDE",
+              pos: blankLoc,
+              value: "include",
+              key: "'INCLUDE:include }
+              ,
+            { name: "import-source",
+              pos: blankLoc,
+              kids: [
+                { name: "import-name",
+                  pos: blankLoc,
+                  kids: [
+                    { name: "NAME",
+                      pos: blankLoc,
+                      value: "image",
+                      key: "'NAME:" + fileName } ] } ] } ] } }
+      }
+
       /////////////////////
       /* Export Bindings */
       /////////////////////
-      plt.compiler.toPyretAST = convertToPyret;
+      plt.compiler.makeImportSnippet = makeImportSnippet;
+      plt.compiler.toPyretAST = convertToPyretAST;
     })();
 
-    function schemeToPyretAST(runtime, code) {
-      console.log("code is " + code);
+    function schemeToPyretAST(code, single) {
+      console.log('schemeToPyretAST ' + code);
       var debug = false;
       var sexp = plt.compiler.lex(code, undefined, debug);
-      console.log("sexp is " + sexp);
       var ast = plt.compiler.parse(sexp, debug)
-      console.log("ast is " + ast);
+      if (single && ast.length > 1) {
+        var errmsg = "Well-formedness: more than one WeScheme expression on a line";
+        console.error(errmsg);
+        throw types.schemeError(errmsg);
+      }
       var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
-      var pstring = plt.compiler.toPyretString(ast, pinfo);
-      console.log("pyretstring is " + pstring);
-      var jast = plt.compiler.toPyretAST(ast, pinfo);
-      console.log('jast is ' + jast);
-      return runtime.ffi.makeList([jast]);
+      var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
+      var preimports = [makeImportSnippet('image'),
+        makeImportSnippet('world')];
+      ws_ast.kids[0].kids[0] = preimports;
+      var ws_ast_j = JSON.stringify(ws_ast);
+      console.log('ws_ast_j = ' + ws_ast_j);
+      return ws_ast_j;
     }
 
-    function schemeToPyretString(code) {
+    function schemeToPyretString(code, single) {
       // is runtime param needed hn
       //console.log("code is " + code);
       var debug = false;
@@ -6906,16 +6936,24 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
-      var pstring = plt.compiler.toPyretString(ast, pinfo);
+      var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
+      var ws_ast_j = JSON.stringify(ws_ast);
+      console.log('ws_ast_j = ' + ws_ast_j);
+      var p_strs = plt.compiler.toPyretString(ast, pinfo);
+      if (single && p_strs.length > 1) {
+        var errmsg = "Well-formedness: more than one WeScheme expression on a line";
+        console.error(errmsg);
+        throw types.schemeError(errmsg);
+      }
       //console.log("pyretstring is " + pstring);
       // separate toplevel programs by newline because pyret can't
       // tolerate programs strung together on same line
       //return pstring.join('\n');
-      return pstring;
+      return p_strs;
     }
 
     return {
-      //schemeToPyretAST: schemeToPyretAST,
+      schemeToPyretAST: schemeToPyretAST,
       schemeToPyretString: schemeToPyretString,
       types: types
     }
