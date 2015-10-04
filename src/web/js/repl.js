@@ -159,6 +159,8 @@ $(function() {
            });
         }
 
+        var usingASTp = true;
+
       // NOTE(joe): This line is "cheating" by mixing runtime levels,
       // and uses the same runtime for the compiler and running code.
       // Usually you can only get a new Runtime by calling create, but
@@ -169,16 +171,22 @@ $(function() {
         }));
 
       return runtime.safeCall(function() {
-        return gmf(replSupport, "make-repl-definitions-locator").app(
+        return gmf(replSupport,
+                   (usingASTp ?  "make-wescheme-repl-definitions-locator" : "make-repl-definitions-locator")
+                  ).app(
           "definitions",
           "definitions",
           runtime.makeFunction(function() {
-            var sstring = editor.cm.getValue();
-            var pstrings = spyretParse.schemeToPyretString(sstring);
-            pstrings.unshift('include world');
-            pstrings.unshift('include image');
-            console.log('pyretstrings = ' + pstrings);
-            return pstrings.join('\n');
+            var ws_str = editor.cm.getValue();
+            if (usingASTp) {
+              var ws_ast = spyretParse.schemeToPyretAST(ws_str);
+              return ws_ast;
+            } else {
+              var p_strs = spyretParse.schemeToPyretString(ws_str);
+              p_strs.unshift('include world');
+              p_strs.unshift('include image');
+              return p_strs.join('\n');
+            }
           }),
           gmf(compileStructs, "standard-globals"));
       }, function(locator) {
@@ -205,19 +213,18 @@ $(function() {
                   return runtime.safeCall(
                     function() {
                       return gmf(replSupport,
-                      "make-repl-interaction-locator").app(
+                                 (usingASTp ?  "make-wescheme-repl-interaction-locator" : "make-repl-interaction-locator")
+                                ).app(
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          var pstrings = spyretParse.schemeToPyretString(str);
-                          if (pstrings.length > 1) {
-                            var errmsg = 'Well-formedness: more than 1 WeScheme expression on a line';
-                            console.error(errmsg);
-                            throw spyretParse.types.schemeError(errmsg);
+                          if (usingASTp) {
+                            var ws_ast = spyretParse.schemeToPyretAST(str, true);
+                            return ws_ast;
+                          } else {
+                            var p_str = spyretParse.schemeToPyretString(str, true);
+                            return p_str;
                           }
-                          var pstring = pstrings[0].toString();
-                          console.log('pyretstring = ' + pstring);
-                          return pstring;
                         }),
                         repl);
                     },
@@ -261,7 +268,8 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            editor.cm.setValue("(print (string-append \"Ahoy, \" \"world\"))");
+            //editor.cm.setValue("(print (string-append \"Ahoy, \" \"world\"))");
+            editor.cm.setValue("(print (+ 22 33))");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
