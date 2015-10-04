@@ -6882,7 +6882,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
             { name: "INCLUDE",
               pos: blankLoc,
               value: "include",
-              key: "'INCLUDE:include }
+              key: "'INCLUDE:include" }
               ,
             { name: "import-source",
               pos: blankLoc,
