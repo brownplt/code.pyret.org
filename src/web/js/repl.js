@@ -178,13 +178,14 @@ $(function() {
           "definitions",
           runtime.makeFunction(function() {
             var ws_str = editor.cm.getValue();
+            console.log('calling schemeToPyretAST of ' + ws_str);
             if (usingASTp) {
               var ws_ast = spyretParse.schemeToPyretAST(ws_str);
               return ws_ast;
             } else {
               var p_strs = spyretParse.schemeToPyretString(ws_str);
-              p_strs.unshift('include world');
-              p_strs.unshift('include image');
+              //p_strs.unshift('include world');
+              //p_strs.unshift('include image');
               return p_strs.join('\n');
             }
           }),
@@ -218,6 +219,7 @@ $(function() {
                         name,
                         name,
                         runtime.makeFunction(function() {
+                          console.log('calling schemeToPyretAST of ' + str);
                           if (usingASTp) {
                             var ws_ast = spyretParse.schemeToPyretAST(str, true);
                             return ws_ast;

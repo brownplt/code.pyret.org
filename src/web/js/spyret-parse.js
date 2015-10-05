@@ -6917,11 +6917,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
       var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
-      var preimports = [plt.compiler.makeImportSnippet('image'),
+      if (!single) {
+      var preimports = [//plt.compiler.makeImportSnippet('image'),
         plt.compiler.makeImportSnippet('world')];
-      ws_ast.kids[0].kids[0] = preimports;
+      ws_ast.kids[0].kids = preimports;
+      }
       var ws_ast_j = JSON.stringify(ws_ast);
-      console.log('ws_ast_j = ' + ws_ast_j);
+      //console.log('ws_ast_j = ' + ws_ast_j);
       return ws_ast_j;
     }
 
@@ -6936,14 +6938,18 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
-      var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
-      var ws_ast_j = JSON.stringify(ws_ast);
-      console.log('ws_ast_j = ' + ws_ast_j);
+      //var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
+      //var ws_ast_j = JSON.stringify(ws_ast);
+      //console.log('ws_ast_j = ' + ws_ast_j);
       var p_strs = plt.compiler.toPyretString(ast, pinfo);
       if (single && p_strs.length > 1) {
         var errmsg = "Well-formedness: more than one WeScheme expression on a line";
         console.error(errmsg);
         throw types.schemeError(errmsg);
+      }
+      if (!single) {
+        p_strs.unshift('include world');
+        p_strs.unshift('include image');
       }
       return p_strs;
     }
