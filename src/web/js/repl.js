@@ -273,7 +273,8 @@ $(function() {
           });
           interactionsReady.then(function(result) {
             //editor.cm.setValue("(print (string-append \"Ahoy, \" \"world\"))");
-            editor.cm.setValue("(print (+ 22 33))");
+            //editor.cm.setValue("(print (+ 22 33))");
+            editor.cm.setValue("(print \"Spyret (WeScheme directly to Pyret AST)\")");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
