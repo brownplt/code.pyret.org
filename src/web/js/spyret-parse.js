@@ -6377,9 +6377,9 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         listElts.push(lastElt);
         // build the object
         return {name:"expr"
-              , kids: [{name: "constructor-expr"
+              , kids: [{name: "construct-expr"
                         , kids: [lBrackStx
-                                 , {name: "constructor-modifier", kids: [], pos: blankLoc}
+                                 , {name: "construct-modifier", kids: [], pos: blankLoc}
                                  , fakeArrayCall.toPyretAST()
                                  , colonStx].concat(listElts, [rBrackStx])
                         , pos: blankLoc}]
@@ -6451,11 +6451,15 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
                       , pos: loc}]
               , pos: loc};
             */
-          return  {name: "expr"
-                               , kids: [{name: "prim-expr"
-                                          , kids: [val]
-                                          , pos: loc}]
-                               , pos: loc};
+
+          return {name: "binop-expr"
+                 ,kids: [{name: "expr"
+                         ,kids: [{name: "prim-expr"
+                                 ,kids: [val]
+                                 ,pos: loc}]
+                         ,pos: loc}]
+                 ,pos: loc};
+
       };
 
       // Function definition
@@ -6628,21 +6632,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       // callExpr(func, args, stx)
       callExpr.prototype.toPyretAST = function(){
         var loc = this.location;
-        // which functions are infix?
-        function getInfixForSym(sym){
-          return false;
-        }
 
         // runtime calls to "vector" need to be processed specially
         if(this.func.val === "vector") return makeStructFromMembers("array", this.args, this.location);
+        if (this.func.val === "list") return makeStructFromMembers("list", this.args, this.location);
 
-        // if the function is infix in Pyret, return the binop tree instead of a call-expr
-        var infixOperator = getInfixForSym(this.func);
-        if(infixOperator){
-          console.log('uh oh: infix');
-          return makeBinopTreeForInfixApplication(infixOperator, this.args);
-        } else {
-          var ret = {name:"app-expr"
+        var ret = {name:"app-expr"
                 , kids: [{name: "expr"
                           , kids: [this.func.toPyretAST()]
                           , pos: this.func.location}
@@ -6653,13 +6648,11 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
               , pos: loc};
             return ret;
 
-        }
       };
 
       // if expression maps to if-expr
       // see: http://www.pyret.org/docs/latest/Expressions.html#%28part._s~3aif-expr%29
       ifExpr.prototype.toPyretAST = function(){
-        console.log('if this.consequence = ' , this.consequence);
         return {name: "if-expr"
               , kids: [ifStx
                        ,this.predicate.toPyretAST()
@@ -6932,6 +6925,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       ws_ast.kids[0].kids = preimports;
       }
       var ws_ast_j = JSON.stringify(ws_ast);
+
+      /*
+      //debug
+      console.log('ws_ast_j = ' + ws_ast_j);
+       */
+
       return ws_ast_j;
     }
 
@@ -6942,6 +6941,13 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
+
+      /*
+      //debug
+      var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
+      var ws_ast_j = JSON.stringify(ws_ast);
+      console.log('ws_ast_j wdve been = ' + ws_ast_j);
+       */
 
       var p_strs = plt.compiler.toPyretString(ast, pinfo);
       if (single && p_strs.length > 1) {
