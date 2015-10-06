@@ -6469,12 +6469,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
         return {name:"stmt"
               , kids:[{name: "fun-expr"
                       , kids: [funStx
+                               ,{name:"NAME"
+                                  , value: this.name.stx
+                                  , key:"'NAME:"+this.name.stx
+                                  , pos: this.name.location}
                                ,{name:"fun-header"
                                , kids: [{name:"ty-params", kids:[], pos: blankLoc}
-                                        ,{name:"NAME"
-                                          , value: this.name.stx
-                                          , key:"'NAME:"+this.name.stx
-                                          , pos: this.name.location}
                                         ,{name:"args"
                                           , kids: [].concat([lParenStx]
                                                             , this.args.map(makeBindingFromSymbol)
@@ -6926,10 +6926,8 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       }
       var ws_ast_j = JSON.stringify(ws_ast);
 
-      /*
       //debug
-      console.log('ws_ast_j = ' + ws_ast_j);
-       */
+      //console.log('ws_ast_j = ' + ws_ast_j);
 
       return ws_ast_j;
     }
@@ -6942,12 +6940,12 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
       var program = astAndPinfo[0];
       var pinfo = plt.compiler.analyze(program, debug);
 
-      /*
       //debug
+      /*
       var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
       var ws_ast_j = JSON.stringify(ws_ast);
       console.log('ws_ast_j wdve been = ' + ws_ast_j);
-       */
+     */
 
       var p_strs = plt.compiler.toPyretString(ast, pinfo);
       if (single && p_strs.length > 1) {
