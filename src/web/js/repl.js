@@ -272,9 +272,14 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
+            var init_str;
+            if (usingASTp)
+              init_str = "(print \"Spyret (WeScheme directly to Pyret AST)\")";
+            else
+              init_str = "(print \"Spyret (WeScheme to Pyret string to AST)\")";
             //editor.cm.setValue("(print (string-append \"Ahoy, \" \"world\"))");
             //editor.cm.setValue("(print (+ 22 33))");
-            editor.cm.setValue("(print \"Spyret (WeScheme directly to Pyret AST)\")");
+            editor.cm.setValue(init_str);
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
