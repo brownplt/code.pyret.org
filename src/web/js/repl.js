@@ -63,6 +63,10 @@ $(function() {
   }
 });
 
+/* set usingASTp to true to convert WeScheme to AST directly.
+   set to false to convert to Pyret and thence to AST
+ */
+
 var usingASTp = true;
 
 $(function() {
@@ -184,8 +188,6 @@ $(function() {
               return ws_ast;
             } else {
               var p_strs = spyretParse.schemeToPyretString(ws_str);
-              //p_strs.unshift('include world');
-              //p_strs.unshift('include image');
               return p_strs.join('\n');
             }
           }),
