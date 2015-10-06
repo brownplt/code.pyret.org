@@ -63,8 +63,6 @@ $(function() {
   }
 });
 
-var usingASTp = true;
-
 $(function() {
   define("repl-main", ["/js/repl-ui.js", "js/runtime-anf",
   "/js/guess-gas.js",
@@ -172,22 +170,14 @@ $(function() {
 
       return runtime.safeCall(function() {
         return gmf(replSupport,
-                   (usingASTp ?  "make-wescheme-repl-definitions-locator" : "make-repl-definitions-locator")
+                   "make-wescheme-repl-definitions-locator"
                   ).app(
           "definitions",
           "definitions",
           runtime.makeFunction(function() {
             var ws_str = editor.cm.getValue();
-            //console.log('calling schemeToPyretAST of ' + ws_str);
-            if (usingASTp) {
-              var ws_ast = spyretParse.schemeToPyretAST(ws_str);
-              return ws_ast;
-            } else {
-              var p_strs = spyretParse.schemeToPyretString(ws_str);
-              //p_strs.unshift('include world');
-              //p_strs.unshift('include image');
-              return p_strs.join('\n');
-            }
+            var ws_ast = spyretParse.schemeToPyretAST(ws_str);
+            return ws_ast;
           }),
           gmf(compileStructs, "standard-globals"));
       }, function(locator) {
@@ -214,19 +204,13 @@ $(function() {
                   return runtime.safeCall(
                     function() {
                       return gmf(replSupport,
-                                 (usingASTp ?  "make-wescheme-repl-interaction-locator" : "make-repl-interaction-locator")
+                                 "make-wescheme-repl-interaction-locator"
                                 ).app(
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          //console.log('calling schemeToPyretAST of ' + str);
-                          if (usingASTp) {
-                            var ws_ast = spyretParse.schemeToPyretAST(str, true);
-                            return ws_ast;
-                          } else {
-                            var p_strs = spyretParse.schemeToPyretString(str, true);
-                            return p_strs.join('\n');
-                          }
+                          var ws_ast = spyretParse.schemeToPyretAST(str, true);
+                          return ws_ast;
                         }),
                         repl);
                     },
