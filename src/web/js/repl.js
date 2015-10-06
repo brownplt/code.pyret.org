@@ -63,6 +63,8 @@ $(function() {
   }
 });
 
+var usingASTp = true;
+
 $(function() {
   define("repl-main", ["/js/repl-ui.js", "js/runtime-anf",
   "/js/guess-gas.js",
@@ -159,8 +161,6 @@ $(function() {
            });
         }
 
-        var usingASTp = true;
-
       // NOTE(joe): This line is "cheating" by mixing runtime levels,
       // and uses the same runtime for the compiler and running code.
       // Usually you can only get a new Runtime by calling create, but
@@ -178,7 +178,7 @@ $(function() {
           "definitions",
           runtime.makeFunction(function() {
             var ws_str = editor.cm.getValue();
-            console.log('calling schemeToPyretAST of ' + ws_str);
+            //console.log('calling schemeToPyretAST of ' + ws_str);
             if (usingASTp) {
               var ws_ast = spyretParse.schemeToPyretAST(ws_str);
               return ws_ast;
@@ -219,13 +219,13 @@ $(function() {
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          console.log('calling schemeToPyretAST of ' + str);
+                          //console.log('calling schemeToPyretAST of ' + str);
                           if (usingASTp) {
                             var ws_ast = spyretParse.schemeToPyretAST(str, true);
                             return ws_ast;
                           } else {
-                            var p_str = spyretParse.schemeToPyretString(str, true);
-                            return p_str;
+                            var p_strs = spyretParse.schemeToPyretString(str, true);
+                            return p_strs.join('\n');
                           }
                         }),
                         repl);
