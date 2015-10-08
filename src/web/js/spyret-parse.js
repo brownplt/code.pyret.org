@@ -4,7 +4,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
                        , spystring
            ) {
 
-             //comment out spystring load-and-use if relying solely on the toAST converter
+             //comment out spystring above if relying solely on the toAST converter
 
   var types = sup.types
   var Vector = sup.Vector
@@ -6577,8 +6577,8 @@ define(["./wescheme-support.js", 'js/js-numbers'
 
     return {
       schemeToPyretAST: schemeToPyretAST,
-      // following not needed if relying on toPyretAST
-      schemeToPyretString: spystring.makeSchemeToPyretString(plt),
+      schemeToPyretString:
+        (typeof spystring === 'undefined' ? undefined : spystring.makeSchemeToPyretString(plt)),
       types: types
     }
 
