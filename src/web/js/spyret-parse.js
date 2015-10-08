@@ -6575,43 +6575,10 @@ define(["./wescheme-support.js", 'js/js-numbers'
       return ws_ast_j;
     }
 
-    var schemeToPyretString;
-
-    // comment out next 2 stmts if not using toPyretString
-
-    spystring.makeSpyretToPyretString(plt);
-
-    schemeToPyretString = function(code, single) {
-      var debug = false;
-      var sexp = plt.compiler.lex(code, undefined, debug);
-      var ast = plt.compiler.parse(sexp, debug)
-      var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
-      var program = astAndPinfo[0];
-      var pinfo = plt.compiler.analyze(program, debug);
-
-      //debug
-      /*
-      var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
-      var ws_ast_j = JSON.stringify(ws_ast);
-      console.log('ws_ast_j wdve been = ' + ws_ast_j);
-     */
-
-      var p_strs = plt.compiler.toPyretString(ast, pinfo);
-      if (single && p_strs.length > 1) {
-        var errmsg = "Well-formedness: more than one WeScheme expression on a line";
-        console.error(errmsg);
-        throw types.schemeError(errmsg);
-      }
-      if (!single) {
-        p_strs.unshift('include world');
-        p_strs.unshift('include image');
-      }
-      return p_strs;
-    };
-
     return {
       schemeToPyretAST: schemeToPyretAST,
-      schemeToPyretString: schemeToPyretString,
+      // following not needed if relying on toPyretAST
+      schemeToPyretString: spystring.makeSchemeToPyretString(plt),
       types: types
     }
 

@@ -14,7 +14,7 @@ define([], function() {
      - translate append as a binop tree
      - we must auto-insert data definition for posn, and functions for lists (first, append, etc) and boxes
    */
-  function makeSpyretToPyretString(plt) {
+  function makeSchemeToPyretString(plt) {
     'use strict';
 
     // import frequently-used bindings
@@ -362,9 +362,39 @@ define([], function() {
     /* Export Bindings */
     /////////////////////
     plt.compiler.toPyretString = converttoPyretString;
+
+    function schemeToPyretString(code, single) {
+      var debug = false;
+      var sexp = plt.compiler.lex(code, undefined, debug);
+      var ast = plt.compiler.parse(sexp, debug)
+      var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
+      var program = astAndPinfo[0];
+      var pinfo = plt.compiler.analyze(program, debug);
+
+      //debug
+      /*
+      var ws_ast = plt.compiler.toPyretAST(ast, pinfo);
+      var ws_ast_j = JSON.stringify(ws_ast);
+      console.log('ws_ast_j wdve been = ' + ws_ast_j);
+     */
+
+      var p_strs = plt.compiler.toPyretString(ast, pinfo);
+      if (single && p_strs.length > 1) {
+        var errmsg = "Well-formedness: more than one WeScheme expression on a line";
+        console.error(errmsg);
+        throw types.schemeError(errmsg);
+      }
+      if (!single) {
+        p_strs.unshift('include world');
+        p_strs.unshift('include image');
+      }
+      return p_strs;
+    };
+
+    return schemeToPyretString;
   }
 
   return {
-    makeSpyretToPyretString: makeSpyretToPyretString
+    makeSchemeToPyretString: makeSchemeToPyretString
   }
 });
