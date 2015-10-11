@@ -52,9 +52,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
     z-index: 4000;
 }
 
-.replTextOutput .CodeMirror {
+.replTextOutput {
   border: none;
   background-color: transparent;
+  white-space: pre;
 }
 
 .replToggle {
