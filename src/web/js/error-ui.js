@@ -35,17 +35,43 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawCompileErrors(exception.exn);
       } else if(runtime.isPyretException(exception)) {
         drawPyretException(exception);
+      } else if (typeof(exception) === 'string') {
+
+        var eo = JSON.parse(exception);
+        if (eo.type === 'spyret-parse-failure') {
+          console.log('doing spyret-parse-failure')
+          var loc
+          var eoloc = eo.loc
+          if (eoloc) {
+            loc = get(srcloc, "srcloc").app(eoloc.source,
+                                            eoloc.startRow, eoloc.startCol, eoloc.startChar,
+                                            eoloc.endRow, eoloc.endCol, eoloc.endChar)
+          } else {
+            loc = get(srcloc, "srcloc").app('<no-location>', 0, 0, 0, 0, 0, 0)
+          }
+          drawSpyretParseError(eo.msg, loc)
+        } else {
+          drawUnknownException(eo)
+        }
+
       } else {
         drawUnknownException(exception);
       }
 
-
       function singleHover(dom, loc) {
-        if (loc === undefined) { 
+        if (loc === undefined) {
           console.error("Given an undefined location to highlight, at", (new Error()).stack);
           return;
         }
         outputUI.hoverLink(editors, runtime, srcloc, dom, loc, "error-highlight");
+      }
+
+      function drawSpyretParseError(msg, loc) {
+        var dom = $("<div>").addClass("parse-error");
+        var srcElem = outputUI.drawSrcloc(editors, runtime, loc);
+        dom.append($("<p>").text(msg));
+        singleHover(srcElem, loc);
+        container.append(dom);
       }
 
       function drawCompileErrors(e) {
@@ -155,7 +181,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           p.append(".");
           dom.append(p);
           singleHover(srcElem, newLoc);
-          
 
           cases(get(srcloc, "Srcloc"), "Srcloc", oldLoc, {
             "builtin": function(_) {
@@ -267,7 +292,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             });
           };
         }
-
 
         function drawCompileError(e) {
         /*
@@ -855,7 +879,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               .append(valContainer);
             var failuresArr = ffi.toArray(fieldFailures);
 
-
             container.append(dom);
 
           };
@@ -944,7 +967,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       function drawUnknownException(e) {
         container.append($("<div>").text("An unexpected error occurred: " + String(e)));
       }
-
 
     });
   }
