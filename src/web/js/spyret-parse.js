@@ -39,6 +39,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
      *
      **************************************************************************/
     // encode the msg and location as a JSON error
+    /*
     function throwError(msg, loc, errorClass) {
       loc.source = loc.source || "<unknown>"; // FIXME -- we should have the source populated
       // rewrite a ColoredPart to match the format expected by the runtime
@@ -90,6 +91,17 @@ define(["./wescheme-support.js", 'js/js-numbers'
         , "structured-error": JSON.stringify({message: (errorClass? false : msg.args), location: loc.toString() })
       };
       throw JSON.stringify(json);
+    }
+    */
+
+    function throwError(msg, loc, errorClass) {
+      var spyretErrObj = {
+        type: "spyret-parse-failure",
+        msg: msg.args.join(''),
+        loc: loc,
+        errorClass: errorClass
+      }
+      throw JSON.stringify(spyretErrObj)
     }
 
     // couple = pair
@@ -6553,8 +6565,9 @@ define(["./wescheme-support.js", 'js/js-numbers'
       var ast = plt.compiler.parse(sexp, debug)
       if (single && ast.length > 1) {
         var errmsg = "Well-formedness: more than one WeScheme expression on a line";
-        console.error(errmsg);
-        throw types.schemeError(errmsg);
+        plt.compiler.throwError(new types.Message([errmsg]))
+        //console.error(errmsg);
+        //throw types.schemeError(errmsg);
       }
       var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
       var program = astAndPinfo[0];
@@ -6570,7 +6583,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
       var ws_ast_j = JSON.stringify(ws_ast);
 
       //debug
-      //console.log('ws_ast_j = ' + ws_ast_j);
+      console.log('ws_ast_j = ' + ws_ast_j);
 
       return ws_ast_j;
     }
