@@ -107,7 +107,8 @@ $(function() {
         "equality",
         "valueskeleton",
         "plot",
-        "graph"
+        "graph",
+        "particle"
     ];
 
     runtime.loadModulesNew(runtime.namespace,
