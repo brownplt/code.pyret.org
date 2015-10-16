@@ -108,7 +108,8 @@ $(function() {
         "valueskeleton",
         "plot",
         "graph",
-        "particle"
+        "particle",
+        "json"
     ];
 
     runtime.loadModulesNew(runtime.namespace,
