@@ -434,6 +434,9 @@ $(function() {
 
           $( "#REPL" ).on( "resizestop", toPercent);
 
+          var rightResizePct = 50;
+          var leftResizePct = 50;
+
           function toPercent(event, ui) {
             rightResizePct = (ui.size.width / window.innerWidth) * 100
             leftResizePct = 100 - rightResizePct
