@@ -7,7 +7,7 @@
     "lodash": "~2.4.1",
     "q": "~1.0.1",
     "s-expression": "~2.2.0",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#master",
     "CodeMirror": "git://github.com/jpolitz/CodeMirror",
     "requirejs": "2.1.14",
     "node-static": "^0.7.3",
