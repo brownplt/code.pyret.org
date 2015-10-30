@@ -6583,7 +6583,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
       var ws_ast_j = JSON.stringify(ws_ast);
 
       //debug
-      console.log('ws_ast_j = ' + ws_ast_j);
+      //console.log('ws_ast_j = ' + ws_ast_j);
 
       return ws_ast_j;
     }
