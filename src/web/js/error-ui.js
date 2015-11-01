@@ -683,7 +683,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var dom = $("<div>").addClass("compile-error");
           var val1C = $("<div>");
           var val2C = $("<div>");
-          dom.append([$("<p>").append(["Invalid use of ", $("<code>").text(opname), " for these values: "]),
+          dom.append([$("<p>").append(["ppp Invalid use of ", $("<code>").text(opname), " for these values: "]),
             val1C,
             val2C,
             $("<p>").text("Either:"),
