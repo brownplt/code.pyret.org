@@ -420,20 +420,29 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       this.val = val;
       this.toString = function() {
         // racket prints booleans using #t and #f
-        if (this.val === true) return "#t";
-        if (this.val === false) return "#f";
+        //if (this.val === true) return "#t";
+        if (this.val === true) return "true";
+        //if (this.val === false) return "#f";
+        if (this.val === false) return "false";
         // racket prints special chars using their names
         if (this.val instanceof Char) {
           var c = this.val.val;
+          return this.val.toWrittenString();
+          /*
           return c === '\b' ? '#\\backspace' :
             c === '\t' ? '#\\tab' :
             c === '\n' ? '#\\newline' :
             c === ' ' ? '#\\space' :
             c === '\v' ? '#\\vtab' :
-            /* else */
+            // else
             this.val.toWrittenString();
+          */
         }
-        return types.toWrittenString(this.val);
+        var ret = types.toWrittenString(this.val);
+        console.log('ret is of type ' + (typeof ret))
+        console.log('literal() returning ' + ret);
+        return ret;
+        //return types.toWrittenString(this.val);
       }
     };
     literal.prototype = heir(Program.prototype);
@@ -6374,7 +6383,10 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       var loc = this.location,
         that = this;
 
+      console.log('literal-topyretast that = ' + JSON.stringify(that));
+
       function convertString() {
+        console.log('doing convertString at loc ' + JSON.stringify(loc));
         return {
           name: "string-expr",
           pos: loc,
@@ -6388,6 +6400,7 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       }
 
       function convertNumber() {
+        console.log('doing convertNumber at loc ' + JSON.stringify(loc));
         var str = (that.val.toString) ? that.val.toString() : that.val;
         return {
           name: "num-expr",
@@ -6401,7 +6414,26 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
         };
       }
 
+      function convertBoolean() {
+        console.log('doing convertBoolean at loc ' + JSON.stringify(loc))
+        var bul = that.val.toString()
+        return {
+          name: "bool-expr",
+          kids: [{
+            name: (that.val ? "TRUE" : "FALSE"),
+            value: bul,
+            key: (that.val ? "'TRUE:true" : "'FALSE"),
+            pos: loc
+          }],
+          pos: loc
+        }
+      }
+
+      console.log('this is really = ' + JSON.stringify(this))
+      console.log('isnan(this) = ' + isNaN(this))
+
       var val = (that.val.toPyretAST) ? that.val.toPyretAST() :
+        (that.val===true || that.val===false) ? convertBoolean() :
         isNaN(this) ? convertString() :
         /* else */
         convertNumber();
@@ -7062,7 +7094,7 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    //console.log('ws_ast_j = ' + ws_ast_j);
+    console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }
