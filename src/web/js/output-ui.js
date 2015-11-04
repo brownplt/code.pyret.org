@@ -585,8 +585,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       }, 0);
       return echo;
     };
-    renderers["boolean"] = function(val) { return renderers.renderText("boolean", val); };
-    renderers["string"] = function(val) { return renderers.renderText("string", val); };
+    renderers["boolean"] = function(val) {
+      return renderers.renderText("boolean", (val ? "#t" : "#f"));
+    };
+    renderers["string"] = function(val) {
+      return renderers.renderText("string", val);
+    };
     renderers["method"] = function(val) { return renderers.renderText("method", val); };
     renderers["function"] = function(val) { return renderers.renderText("function", val); };
     renderers["ref"] = function(val, implicit, pushTodo) {
