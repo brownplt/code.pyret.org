@@ -438,11 +438,7 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
             this.val.toWrittenString();
           */
         }
-        var ret = types.toWrittenString(this.val);
-        console.log('ret is of type ' + (typeof ret))
-        console.log('literal() returning ' + ret);
-        return ret;
-        //return types.toWrittenString(this.val);
+        return types.toWrittenString(this.val);
       }
     };
     literal.prototype = heir(Program.prototype);
@@ -6383,10 +6379,7 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       var loc = this.location,
         that = this;
 
-      console.log('literal-topyretast that = ' + JSON.stringify(that));
-
       function convertString() {
-        console.log('doing convertString at loc ' + JSON.stringify(loc));
         return {
           name: "string-expr",
           pos: loc,
@@ -6400,7 +6393,6 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       }
 
       function convertNumber() {
-        console.log('doing convertNumber at loc ' + JSON.stringify(loc));
         var str = (that.val.toString) ? that.val.toString() : that.val;
         return {
           name: "num-expr",
@@ -6415,7 +6407,6 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       }
 
       function convertBoolean() {
-        console.log('doing convertBoolean at loc ' + JSON.stringify(loc))
         var bul = that.val.toString()
         return {
           name: "bool-expr",
@@ -6428,9 +6419,6 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
           pos: loc
         }
       }
-
-      console.log('this is really = ' + JSON.stringify(this))
-      console.log('isnan(this) = ' + isNaN(this))
 
       var val = (that.val.toPyretAST) ? that.val.toPyretAST() :
         (that.val===true || that.val===false) ? convertBoolean() :
