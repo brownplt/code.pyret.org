@@ -184,8 +184,8 @@ $(function() {
             var ws_str = editor.cm.getValue();
             //console.log('calling schemeToPyretAST of ' + ws_str);
             if (usingASTp) {
-              var ws_ast = spyretParse.schemeToPyretAST(ws_str);
-              return ws_ast;
+              var ws_ast_j = spyretParse.schemeToPyretAST(ws_str);
+              return ws_ast_j;
             } else {
               var p_strs = spyretParse.schemeToPyretString(ws_str);
               return p_strs.join('\n');
@@ -221,10 +221,13 @@ $(function() {
                         name,
                         name,
                         runtime.makeFunction(function() {
-                          //console.log('calling schemeToPyretAST of ' + str);
+                          //debug
+                          console.log('calling schemeToPyretAST of ' + str);
                           if (usingASTp) {
-                            var ws_ast = spyretParse.schemeToPyretAST(str, true);
-                            return ws_ast;
+                            var ws_ast_j = spyretParse.schemeToPyretAST(str, true);
+                            //debug
+                            console.log('ws_ast_j generated')
+                            return ws_ast_j;
                           } else {
                             var p_strs = spyretParse.schemeToPyretString(str, true);
                             return p_strs.join('\n');

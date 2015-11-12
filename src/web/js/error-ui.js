@@ -32,8 +32,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawCompileErrors(exception);
       }
       if(exception.exn instanceof Array) {
+        console.log('doing "compile error"')
         drawCompileErrors(exception.exn);
       } else if(runtime.isPyretException(exception)) {
+        console.log('doing pyret exception' + JSON.stringify(exception))
         drawPyretException(exception);
       } else if (typeof(exception) === 'string') {
 
