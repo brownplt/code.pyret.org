@@ -89,7 +89,6 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
   }
 
   function displayResult(output, callingRuntime, resultRuntime, isMain) {
-    console.log('displayResult"s 1st arg is ' + JSON.stringify(output))
     var runtime = callingRuntime;
     var rr = resultRuntime;
     return function(result) {
@@ -103,6 +102,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
           ffi.cases(ffi.isEither, "Either", result,
             {
               left: function(compileResultErrors) {
+                console.log('compileResultErrors are ' + JSON.stringify(compileResultErrors))
                 closeAnimationIfOpen();
                 var errs = [];
                 var results = ffi.toArray(compileResultErrors);
