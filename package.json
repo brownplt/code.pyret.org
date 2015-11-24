@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "A simple IDE for Pyret",
   "main": "index.js",
+  "engines": {
+    "npm": "2.1.x"
+  },
   "dependencies": {
     "lodash": "~2.4.1",
     "q": "~1.0.1",
