@@ -29,73 +29,13 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       this.str = str;
     }
 
-    /**************************************************************************
-     *
-     *    CONVERT LOCAL COMPILER ERRORS INTO WESCHEME ERRORS
-     *
-     **************************************************************************/
-    // encode the msg and location as a JSON error
-    /*
-    function throwError(msg, loc, errorClass) {
-      loc.source = loc.source || "<unknown>"; // FIXME -- we should have the source populated
-      // rewrite a ColoredPart to match the format expected by the runtime
-      function rewritePart(part){
-        if(typeof(part) === 'string'){
-          return part;
-        } else if(part instanceof symbolExpr){
-          return '["span", [["class", "SchemeValue-Symbol"]], '+part.val+']';
-          return part.val;
-        } else if(part.location !== undefined){
-          return {text: part.text, type: 'ColoredPart', loc: part.location.toString()
-              , toString: function(){return part.text;}};
-        } else if(part.locations !== undefined){
-          return {text: part.text, type: 'MultiPart', solid: part.solid
-              , locs: part.locations.map(function(l){return l.toString()})
-              , toString: function(){return part.text;}};
-        }
-      }
-
-      msg.args = msg.args.map(rewritePart);
-
-      var json = {type: "moby-failure"
-        , "dom-message": ["span"
-        ,[["class", "Error"]]
-        ,["span"
-        , [["class", (errorClass || "Message")]]].concat(
-      (errorClass? [["span"
-        , [["class", "Error.reason"]]
-        , msg.toString()]
-        , ["span", [["class", ((errorClass || "message")
-      +((errorClass === "Error-GenericReadError")?
-        ".locations"
-          :".otherLocations"))]]]]
-            : msg.args.map(function(x){return x.toString();})))
-        ,["br", [], ""]
-        ,["span"
-        , [["class", "Error.location"]]
-        , ["span"
-        , [["class", "location-reference"]
-        , ["style", "display:none"]]
-        , ["span", [["class", "location-offset"]], (loc.startChar+1).toString()]
-        , ["span", [["class", "location-line"]]  , loc.startRow.toString()]
-        , ["span", [["class", "location-column"]], loc.startCol.toString()]
-        , ["span", [["class", "location-span"]]  , loc.span.toString()]
-        , ["span", [["class", "location-id"]]    , loc.source.toString()]
-        ]
-        ]
-        ]
-        , "structured-error": JSON.stringify({message: (errorClass? false : msg.args), location: loc.toString() })
-      };
-      throw JSON.stringify(json);
-    }
-    */
-
     function throwError(msg, loc, errorClass) {
       var spyretErrObj = {
         type: "spyret-parse-failure",
         msg: msg.args.join(''),
         loc: loc,
-        errorClass: errorClass
+        errorClass: "parse-error-next-token"
+        // errorClass || "spyret-parse-error"
       }
       throw JSON.stringify(spyretErrObj)
     }
@@ -1720,11 +1660,22 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
           return datum;
         } else {
           // match every valid (or *almost-valid*) sequence of characters, or the empty string
-          var poundChunk = new RegExp("^(hasheq|hash|fl|fx|\\d+|[tfeibdox]|\\<\\<|[\\\\\\\"\\%\\:\\&\\|\\;\\!\\`\\,\\']|)", 'i'),
+          var poundChunk = new RegExp("^(false|true|hasheq|hash|fl|fx|\\d+|[tfeibdox]|\\<\\<|[\\\\\\\"\\%\\:\\&\\|\\;\\!\\`\\,\\']|)", 'i'),
             chunk = poundChunk.exec(str.slice(i))[0],
             // match the next character
             nextChar = str.charAt(i + chunk.length);
           // grab the first non-whitespace character
+          var big_bool_found = 0
+          if (chunk === 'false' || chunk === 'true') {
+            if (!matchUntilDelim.exec(nextChar)) {
+              datum = new literal(chunk === 'true')
+              var n = (chunk === 'false' ? 5 : 4)
+              i += n
+              column += n
+              big_bool_found = 1
+            }
+          }
+          if (!big_bool_found) {
           var p = chunk.charAt(0).toLowerCase();
           switch (p) {
             // CHARACTERS
@@ -1814,6 +1765,7 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
               var msg = new types.Message([source, ":", line.toString(), ":", (column - 1).toString(), ": read: bad syntax `#", (chunk + nextChar), "'"]);
               throwError(msg, new Location(startCol, startRow, iStart, (chunk + nextChar).length + 1), "Error-GenericReadError");
           }
+        }
         }
         // only reached if # is the end of the string...
       } else {
@@ -7058,9 +7010,10 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
     plt.compiler.toPyretAST = convertToPyretAST;
   })();
 
-  function schemeToPyretAST(code, single) {
+  function schemeToPyretAST(code, name, single) {
     var debug = false;
-    var sexp = plt.compiler.lex(code, undefined, debug);
+    // 2nd arg below should be source (== name)
+    var sexp = plt.compiler.lex(code, name, debug);
     var ast = plt.compiler.parse(sexp, debug)
     if (single && ast.length > 1) {
       var errmsg = "Well-formedness: more than one WeScheme expression on a line";
