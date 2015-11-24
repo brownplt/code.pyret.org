@@ -95,6 +95,9 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
         console.log("Result is: ", result);
         if(callingRuntime.isFailureResult(result)) {
+          // is this always a spyret-parse-failure?
+          console.log('this must be a spyret-parse-failure!')
+          console.log('failureresult is ' + JSON.stringify(result))
           errorUI.drawError(output, editors, callingRuntime, result.exn);
         }
         else if(callingRuntime.isSuccessResult(result)) {
@@ -109,6 +112,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                 results.forEach(function(r) {
                   errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
                 });
+                console.log('aka ' + JSON.stringify(errs))
                 errorUI.drawError(output, editors, runtime, {exn: errs});
               },
               right: function(v) {
