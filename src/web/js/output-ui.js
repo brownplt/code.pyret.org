@@ -254,6 +254,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     // http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
+    console.log('hoverLink <- loc is ' + JSON.stringify(loc))
     if(!runtime.hasField(loc, "source")) {
       var module = runtime.unwrap(get(loc, "module-name"));
       dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(module) + " if you want more information.");
