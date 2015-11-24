@@ -45,7 +45,10 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       tabSize: 2,
       viewportMargin: Infinity,
       lineNumbers: useLineNumbers,
+      matchKeywords: true,
       matchBrackets: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
       lineWrapping: true
     };
 
