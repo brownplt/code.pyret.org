@@ -21,6 +21,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         });
       }
 
+      function pyretizeSpyretLoc(spyretLoc) {
+        return runtime.makeSrcloc([spyretLoc.source,
+          spyretLoc.startRow, spyretLoc.startCol, spyretLoc.startChar,
+          spyretLoc.endRow, spyretLoc.endCol, spyretLoc.endChar
+        ])
+      }
+
       // Exception will be one of:
       // - an Array of compileErrors (this is legacy, but useful for old versions),
       // - a PyretException with a list of compileErrors
@@ -40,18 +47,24 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       } else if (typeof(exception) === 'string') {
 
         var spexn = JSON.parse(exception);
-        if (spexn.type === 'spyret-parse-failure') {
-          console.log('doing spyret-parse-failure')
-          var spyretLoc = spexn.loc
-          var pyretLoc = runtime.makeSrcloc([spyretLoc.source,
-              spyretLoc.startRow, spyretLoc.startCol, spyretLoc.startChar,
-              spyretLoc.endRow, spyretLoc.endCol, spyretLoc.endChar
-            ])
+        if (spexn.type === 'spyret-parse-error') {
+          console.log('doing spyret-parse-error')
+            var pyretLoc = pyretizeSpyretLoc(spexn.loc)
+            var pyretErrorType = spexn.type
+            var pyretWeSchemeMessage = spexn.msg
+            var pyretErrorPacket = spexn.errorPacket
+            var pyretErrorMessage
+            if (pyretErrorPacket) {
+              pyretErrorMessage = pyretErrorPacket.errorMessage
+            }
+            if (!pyretErrorMessage) {
+              pyretErrorMessage = pyretWeSchemeMessage
+            }
+            //var pyretErrorType = spexn.errorPacket.errorType // specialize 'spyret-parse-error'?
             // make a PyretFailException and call drawPyretException on it
           console.log('making the corresp pyret exn')
-          var pyexn = runtime.makePyretFailException(get(error, spexn.errorClass).app(pyretLoc, ""))
+          var pyexn = runtime.makePyretFailException(get(error, pyretErrorType).app(pyretLoc, pyretErrorMessage))
           console.log('corresp pyret exception is ' + JSON.stringify(pyexn))
-            //drawSpyretParseError(eo.msg, loc)
           drawPyretException(pyexn)
         } else {
           drawUnknownException(spexn)

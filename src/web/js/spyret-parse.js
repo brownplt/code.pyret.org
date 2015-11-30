@@ -1,6 +1,8 @@
-define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js'], function(sup, jsnums, spystring) {
+define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
-  //comment out spystring above if relying solely on the toAST converter
+  // if going the long route from wescheme -> pyretstring -> pyretast, replace above with
+  // define(..., './spyret-to-pyret-string.js'), function(..., spystring) ...
+  // and uncomment LONGROUTE below
 
   var types = sup.types
   var Vector = sup.Vector
@@ -29,13 +31,13 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       this.str = str;
     }
 
-    function throwError(msg, loc, errorClass) {
+    function throwError(msg, loc, errorClass, errorPacket) {
       var spyretErrObj = {
-        type: "spyret-parse-failure",
+        type: "spyret-parse-error",
         msg: msg.args.join(''),
         loc: loc,
-        errorClass: "parse-error-next-token"
-        // errorClass || "spyret-parse-error"
+        errorClass: errorClass || 'spyret-parse-error',
+        errorPacket: errorPacket
       }
       throw JSON.stringify(spyretErrObj)
     }
@@ -1441,7 +1443,12 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
             new Location(startCol, startRow, iStart, 1))
         ]);
         // throw an error
-        throwError(msg, errorLocation);
+        throwError(msg, errorLocation, undefined,
+        {
+          errorType: 'missing-closing-delimiter',
+          errorMessage1: 'Expected a ' + otherDelim(openingDelim) + ' to close ' + openingDelim + '.'
+        }
+        );
       }
       // if we reached the end of an otherwise-successful list and it's the wrong closing delim...
       if (!matchingDelims(openingDelim, str.charAt(i))) {
@@ -1453,7 +1460,13 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
           new types.ColoredPart(str.charAt(i).toString(),
             new Location(column, line, i, 1))
         ]);
-        throwError(msg, new Location(column, line, i, 1));
+        throwError(msg, new Location(column, line, i, 1),
+        undefined,
+        {
+          errorType: 'wrong-closing-delimiter',
+          errorMessage1: 'Expected a ' + otherDelim(openingDelim) + ' to close ' + openingDelim +
+          ' but found ' + str.charAt(i) + '.'
+        });
       }
 
       column++;
@@ -1560,7 +1573,11 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       // if the next char after iStart+openquote+greedy isn't a closing quote, it's an unclosed string
       if (!closedString) {
         endOfError = iStart + greedy.length; // remember where we are, so readList can pick up reading
-        throwError(new types.Message([source, ":", startRow.toString(), ":", startCol.toString(), ": read: expected a closing \'\"\'"]), new Location(startCol, startRow, iStart, 1), "Error-GenericReadError");
+        throwError(new types.Message([source, ":", startRow.toString(), ":", startCol.toString(), ": read: expected a closing \'\"\'"]), new Location(startCol, startRow, iStart, 1), "Error-GenericReadError",
+        {
+          errorType: 'missing-closing-doublequote',
+          errorMessage1: 'Expected a closing ".'
+        });
       }
       var strng = new literal(new types.string(datum));
       i++;
@@ -1651,7 +1668,12 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
               elts.length + " value" + ((elts.length > 1) ? "s" : ""),
               " provided"
             ]);
-            throwError(msg, new Location(startCol, startRow, iStart, vectorTest[0].length));
+            throwError(msg, new Location(startCol, startRow, iStart, vectorTest[0].length),
+            undefined,
+            {
+              errorType: 'vector-length-too-small',
+              errorMessage1: 'Vector length ' + len + ' is too small; ' + elts.length + ' provided.'
+            });
           }
 
           i += elts.location.span;
@@ -1894,7 +1916,11 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
       if (i + 1 >= str.length) {
         endOfError = i; // remember where we are, so readList can pick up reading
         throwError(new types.Message([source, ":", startRow.toString(), ":", (startCol - 1).toString(), ": read: expected a commented-out element for `#;' (found end-of-file)"]), new Location(startCol - 1, startRow, i - 2, 2) // back up the startChar before #;, make the span include only those 2
-          , "Error-GenericReadError");
+          , "Error-GenericReadError",
+          {
+            errorType: 'eof-after-hash-semicolon',
+            errorMessage1: 'Expected a commented-out element for #; but found eof.'
+          });
       }
       // if we're here, then we read a proper s-expr
       var atom = new Comment("(" + nextSExp.toString() + ")");
@@ -2335,7 +2361,12 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
           });
           // is it just (define (<name> <args>))?
           if (sexp.length < 3) {
-            throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression for the function body, but nothing's there"]), sexp.location);
+            throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression for the function body, but nothing's there"]),
+            sexp.location, undefined,
+            {
+              errorType: 'empty-function-body',
+              errorMessage1: 'Expected an expression for the function body, but nothing\'s there.'
+            });
           }
           // too many parts?
           if (sexp.length > 3) {
@@ -2343,7 +2374,12 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
                 return sexp.location;
               }),
               wording = extraLocs.length + " extra " + ((extraLocs.length === 1) ? "part" : "parts");
-            throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected only one expression for the function body" + ", but found ", new types.MultiPart(wording, extraLocs, false)]), sexp.location);
+            throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected only one expression for the function body" + ", but found ", new types.MultiPart(wording, extraLocs, false)]),
+            sexp.location, undefined,
+            {
+              errorType: 'too-many-expressions-in-function-body',
+              errorMessage1: 'Expected only expression for the funciton body, but found ' + extraLocs.length + ' more.'
+            });
           }
           var args = rest(sexp[1]).map(parseIdExpr);
           args.location = sexp[1].location;
@@ -2353,7 +2389,13 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
         if (sexp[1] instanceof symbolExpr) {
           // is it just (define x)?
           if (sexp.length < 3) {
-            throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression after the variable ", new types.ColoredPart(sexp[1].val, sexp[1].location), " but nothing's there"]), sexp.location);
+            throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression after the variable ", new types.ColoredPart(sexp[1].val, sexp[1].location), " but nothing's there"]),
+            sexp.location, undefined,
+            {
+              errorType: 'missing-expression-after-variable',
+              errorMessage1: 'Expected an expression after variable, but nothing\'s there.'
+            }
+            );
           }
           // too many parts?
           if (sexp.length > 3) {
@@ -2425,7 +2467,11 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
         // is it just (lambda (x))?
         if (sexp.length === 2) {
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression for the function body, but nothing's there"]),
-            sexp.location);
+            sexp.location, undefined,
+            {
+              errorType: 'empty-function-body',
+              errorMessage1: 'Expected an expression for the function body, but nothing\'s there.'
+            });
         }
         // too many expressions?
         if (sexp.length > 3) {
@@ -2434,7 +2480,11 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
             }),
             wording = extraLocs.length + " extra " + ((extraLocs.length === 1) ? "part" : "parts"),
             msg = new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected only one expression for the function body, but found ", new types.MultiPart(wording, extraLocs, false)]);
-          throwError(msg, sexp.location);
+          throwError(msg, sexp.location, undefined,
+          {
+              errorType: 'too-many-expressions-in-function-body',
+              errorMessage1: 'Expected only expression for the funciton body, but found ' + extraLocs.length + ' more.'
+          });
         }
         var args = sexp[1].map(parseIdExpr);
         args.location = sexp[1].location;
@@ -7042,7 +7092,8 @@ define(["./wescheme-support.js", 'js/js-numbers', './spyret-to-pyret-string.js']
 
   return {
     schemeToPyretAST: schemeToPyretAST,
-    schemeToPyretString: (typeof spystring === 'undefined' ? undefined : spystring.makeSchemeToPyretString(plt)),
+    //LONGROUTE
+    //schemeToPyretString: (typeof spystring === 'undefined' ? undefined : spystring.makeSchemeToPyretString(plt)),
     types: types
   }
 
