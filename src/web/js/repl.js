@@ -68,6 +68,7 @@ $(function() {
  */
 
 var usingASTp = true;
+//var usingASTp = false;
 
 $(function() {
   define("repl-main", ["/js/repl-ui.js", "js/runtime-anf",
@@ -222,13 +223,14 @@ $(function() {
                         name,
                         runtime.makeFunction(function() {
                           //debug
-                          console.log('calling schemeToPyretAST of ' + str);
                           if (usingASTp) {
+                          console.log('calling schemeToPyretAST of ' + str);
                             var ws_ast_j = spyretParse.schemeToPyretAST(str, name, true);
                             //debug
-                            console.log('ws_ast_j generated')
+                            console.log('ws_ast_j generated = ' + ws_ast_j)
                             return ws_ast_j;
                           } else {
+                          console.log('calling schemeToPyretString of ' + str);
                             var p_strs = spyretParse.schemeToPyretString(str, true);
                             return p_strs.join('\n');
                           }
