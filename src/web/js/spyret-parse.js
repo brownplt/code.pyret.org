@@ -1,8 +1,8 @@
 define(["./wescheme-support.js", 'js/js-numbers'
-, './spyret-to-pyret-string.js'
-], function(sup, jsnums
-, spystring
-) {
+      //, './spyret-to-pyret-string.js' // uncomment if taking LONGROUTE
+    ], function(sup, jsnums
+      //, spystring // LONGROUTE
+    ) {
 
   var types = sup.types
   var Vector = sup.Vector
@@ -6308,7 +6308,6 @@ define(["./wescheme-support.js", 'js/js-numbers'
     }
 
     function makeStructFromMembers(constructor, elts, loc) {
-      console.log('doing makeStructFromMembers ' + constructor + ', ' + elts)
       var fakeArrayCall = new symbolExpr(constructor),
         makeListEltFromValue = function(val) {
           return {
@@ -6318,9 +6317,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
           };
         }
         var listElts = elts.slice(0, elts.length - 1).map(makeListEltFromValue)
-        console.log('listElts = ' + listElts)
         var lastElt = (elts.length >= 1) ? elts[elts.length - 1].toPyretAST() : null
-      console.log('lastElt = ' + lastElt)
       // set the location of the constructor call, and add the last elt (if it exists)
       fakeArrayCall.location = blankLoc;
       listElts.push(lastElt);
@@ -6712,7 +6709,6 @@ define(["./wescheme-support.js", 'js/js-numbers'
       // runtime calls to "vector" need to be processed specially
       if (this.func.val === "vector") return makeStructFromMembers("array", this.args, this.location);
       if (this.func.val === "list") {
-        console.log('doing list')
         return makeStructFromMembers("list", this.args, this.location);
       }
 
