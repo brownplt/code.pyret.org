@@ -334,8 +334,10 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
 
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
       function help(errorDisp) {
+        console.log('doing renderErrorDisplay -> help of ' + JSON.stringify(errorDisp))
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) {
+            console.log('doing v-sequence')
             var result = $("<div>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -360,6 +362,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
             return result;
           },
           "h-sequence": function(seq, separator) {
+            console.log('doing h-sequence')
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
