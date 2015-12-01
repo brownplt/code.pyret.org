@@ -1,8 +1,8 @@
-define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
-
-  // if going the long route from wescheme -> pyretstring -> pyretast, replace above with
-  // define(..., './spyret-to-pyret-string.js'), function(..., spystring) ...
-  // and uncomment LONGROUTE below
+define(["./wescheme-support.js", 'js/js-numbers'
+, './spyret-to-pyret-string.js'
+], function(sup, jsnums
+, spystring
+) {
 
   var types = sup.types
   var Vector = sup.Vector
@@ -6708,7 +6708,10 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
       // runtime calls to "vector" need to be processed specially
       if (this.func.val === "vector") return makeStructFromMembers("array", this.args, this.location);
-      if (this.func.val === "list") return makeStructFromMembers("list", this.args, this.location);
+      if (this.func.val === "list") {
+        console.log('doing list')
+        return makeStructFromMembers("list", this.args, this.location);
+      }
 
       var ret = {
         name: "app-expr",
@@ -7092,8 +7095,7 @@ define(["./wescheme-support.js", 'js/js-numbers'], function(sup, jsnums) {
 
   return {
     schemeToPyretAST: schemeToPyretAST,
-    //LONGROUTE
-    //schemeToPyretString: (typeof spystring === 'undefined' ? undefined : spystring.makeSchemeToPyretString(plt)),
+    schemeToPyretString: (typeof spystring === 'undefined' ? undefined : spystring.makeSchemeToPyretString(plt)),
     types: types
   }
 
