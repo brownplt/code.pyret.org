@@ -6308,6 +6308,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
     }
 
     function makeStructFromMembers(constructor, elts, loc) {
+      console.log('doing makeStructFromMembers ' + constructor + ', ' + elts)
       var fakeArrayCall = new symbolExpr(constructor),
         makeListEltFromValue = function(val) {
           return {
@@ -6315,9 +6316,11 @@ define(["./wescheme-support.js", 'js/js-numbers'
             kids: [val.toPyretAST(), commaStx],
             pos: val.location
           };
-        },
-        listElts = elts.slice(0, elts.length - 1).map(makeListEltFromValue),
-        lastElt = (elts.length > 1) ? elts[elts.length - 1].toPyretAST() : null;
+        }
+        var listElts = elts.slice(0, elts.length - 1).map(makeListEltFromValue)
+        console.log('listElts = ' + listElts)
+        var lastElt = (elts.length >= 1) ? elts[elts.length - 1].toPyretAST() : null
+      console.log('lastElt = ' + lastElt)
       // set the location of the constructor call, and add the last elt (if it exists)
       fakeArrayCall.location = blankLoc;
       listElts.push(lastElt);
