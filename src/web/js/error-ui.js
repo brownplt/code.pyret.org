@@ -943,6 +943,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretParseError() {
+          console.log('doing drawPyretParseError')
           /*
           cases(get(error, "ParseError"), "ParseError", e.exn, {
               "parse-error-next-token": drawParseErrorNextToken,
@@ -967,9 +968,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             });
         }
         if(!runtime.isObject(e.exn)) {
+          console.log('not isObject(e.exn)')
           drawRuntimeErrorToString(e)();
         }
         else if(isContractError(e.exn)) {
+          console.log('contract err')
           drawPyretContractFailure(e.exn);
         }
         else if(mkPred("RuntimeError")(e.exn)) {
@@ -977,8 +980,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           drawPyretRuntimeError();
         }
         else if(mkPred("ParseError")(e.exn)) {
+          console.log('calling drawPyretParseError')
           drawPyretParseError();
         } else {
+          console.log('no other case fit')
           drawRuntimeErrorToString(e)();
         }
       }
