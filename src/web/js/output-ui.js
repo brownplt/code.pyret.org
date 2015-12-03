@@ -328,13 +328,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
   }
 
   function renderErrorDisplay(editors, runtime, errorDisp, stack) {
+    console.log('doing renderErrorDisplay of ' + JSON.stringify(errorDisp))
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
 
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
       function help(errorDisp) {
-        console.log('doing renderErrorDisplay -> help of ' + JSON.stringify(errorDisp))
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) {
             console.log('doing v-sequence')
