@@ -31,13 +31,13 @@ define(["./wescheme-support.js", 'js/js-numbers'
       this.str = str;
     }
 
-    function throwError(msg, loc, errorClass, errorPacket) {
+    function throwError(msg, loc, errClass, errPkt) {
       var spyretErrObj = {
         type: "spyret-parse-error",
         msg: msg.args.join(''),
         loc: loc,
-        errorClass: errorClass || 'spyret-parse-error',
-        errorPacket: errorPacket
+        errClass: errClass || 'spyret-parse-error',
+        errPkt: errPkt
       }
       throw JSON.stringify(spyretErrObj)
     }
@@ -2364,8 +2364,8 @@ define(["./wescheme-support.js", 'js/js-numbers'
             throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression for the function body, but nothing's there"]),
             sexp.location, undefined,
             {
-              errorType: 'empty-function-body',
-              errorMessage1: 'Expected an expression for the function body, but nothing\'s there.'
+              errMsg: ",,: expected an expression for the function body, but nothing's there",
+              errArgLocs: [[sexp[0].val, sexp[0].location]]
             });
           }
           // too many parts?
@@ -2377,8 +2377,11 @@ define(["./wescheme-support.js", 'js/js-numbers'
             throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected only one expression for the function body" + ", but found ", new types.MultiPart(wording, extraLocs, false)]),
             sexp.location, undefined,
             {
-              errorType: 'too-many-expressions-in-function-body',
-              errorMessage1: 'Expected only expression for the funciton body, but found ' + extraLocs.length + ' more.'
+              errMsg: ",,: expected only one expression for the function body, but found ,,",
+                errArgLocs: [
+                  [sexp[0].val, sexp[0].location],
+                  [wording, extraLocs[0]]
+                ]
             });
           }
           var args = rest(sexp[1]).map(parseIdExpr);
@@ -2455,13 +2458,27 @@ define(["./wescheme-support.js", 'js/js-numbers'
         // is it just (lambda <not-list>)?
         if (!(sexp[1] instanceof Array)) {
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected at least one variable (in parentheses) after lambda, but found ", new types.ColoredPart("something else", sexp[1].location)]),
-            sexp.location);
+            sexp.location, undefined,
+            {
+              errMsg: ",,: expected at least one variable (in parentheses) after lambda, but found ,,",
+                errArgLocs: [
+                  [sexp[0].val, sexp[0].location],
+                  ["something else", sexp[1].location]
+                ]
+            });
         }
         // is it a list of not-all-symbols?
         sexp[1].forEach(function(arg) {
           if (!(arg instanceof symbolExpr)) {
             var msg = new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected a list of variables after lambda, but found ", new types.ColoredPart("something else", arg.location)]);
-            throwError(msg, sexp.location);
+            throwError(msg, sexp.location, undefined,
+            {
+              errMsg: ",,: expected a list of variables after lambda, but found ,,",
+                errArgLocs: [
+                  [sexp[0].val, sexp[0].location],
+                  ["something else", arg.location]
+                ]
+            });
           }
         });
         // is it just (lambda (x))?
@@ -2469,8 +2486,8 @@ define(["./wescheme-support.js", 'js/js-numbers'
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected an expression for the function body, but nothing's there"]),
             sexp.location, undefined,
             {
-              errorType: 'empty-function-body',
-              errorMessage1: 'Expected an expression for the function body, but nothing\'s there.'
+              errMsg: ",,: expected an expression for the function body, but nothing's there",
+              errArgLocs: [[sexp[0].val, sexp[0].location]]
             });
         }
         // too many expressions?
@@ -2482,8 +2499,11 @@ define(["./wescheme-support.js", 'js/js-numbers'
             msg = new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected only one expression for the function body, but found ", new types.MultiPart(wording, extraLocs, false)]);
           throwError(msg, sexp.location, undefined,
           {
-              errorType: 'too-many-expressions-in-function-body',
-              errorMessage1: 'Expected only expression for the funciton body, but found ' + extraLocs.length + ' more.'
+              errMsg: ",,: expected only one expression for the function body, but found ,,",
+                errArgLocs: [
+                  [sexp[0].val, sexp[0].location],
+                  [wording, extraLocs[0]]
+                ]
           });
         }
         var args = sexp[1].map(parseIdExpr);
