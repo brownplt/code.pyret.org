@@ -254,7 +254,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     // http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript
     var cases = runtime.ffi.cases;
     var get = runtime.getField;
-    console.log('hoverLink <- loc is ' + JSON.stringify(loc))
     if(!runtime.hasField(loc, "source")) {
       var module = runtime.unwrap(get(loc, "module-name"));
       dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(module) + " if you want more information.");
@@ -328,7 +327,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
   }
 
   function renderErrorDisplay(editors, runtime, errorDisp, stack) {
-    console.log('doing renderErrorDisplay of ' + JSON.stringify(errorDisp))
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
@@ -337,7 +335,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       function help(errorDisp) {
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) {
-            console.log('doing v-sequence')
             var result = $("<div>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -362,7 +359,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
             return result;
           },
           "h-sequence": function(seq, separator) {
-            console.log('doing h-sequence')
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {

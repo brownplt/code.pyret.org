@@ -39,16 +39,13 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawCompileErrors(exception);
       }
       if(exception.exn instanceof Array) {
-        console.log('doing "compile error"')
         drawCompileErrors(exception.exn);
       } else if(runtime.isPyretException(exception)) {
-        console.log('doing pyret exception ' + JSON.stringify(exception))
         drawPyretException(exception);
       } else if (typeof(exception) === 'string') {
 
         var spyretExn = JSON.parse(exception);
         if (spyretExn.type === 'spyret-parse-error') {
-          console.log('doing spyret-parse-error')
           var pyretLoc = pyretizeSpyretLoc(spyretExn.loc)
           var spyretErrType = spyretExn.type
           var spyretOrigMsg = spyretExn.msg
@@ -76,12 +73,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             */
           }
           // make a PyretFailException and call drawPyretException on it
-          console.log('making the corresp pyret exn')
           var spyretErrArgsList = runtime.ffi.makeList(spyretErrArgs)
           var spyretErrLocsList = runtime.ffi.makeList(spyretErrLocs)
           var spyretParseExn = get(error, spyretErrType).app(pyretLoc, spyretErrMsg, spyretErrArgsList, spyretErrLocsList)
           var pyretExn = runtime.makePyretFailException(spyretParseExn)
-          console.log('corresp pyret exception is ' + JSON.stringify(pyretExn))
           drawPyretException(pyretExn)
 
         } else {
@@ -403,7 +398,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         return probablyErrorLocation;
       }
       function drawPyretException(e) {
-        console.log('doing drawPyretException')
         function drawRuntimeErrorToString(e) {
           return function() {
             var dom = $("<div>");
@@ -695,7 +689,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPlusError(val1, val2) {
-          console.log('doing cpos drawpluserror')
           var dom = $("<div>").addClass("compile-error");
           var val1C = $("<div>");
           var val2C = $("<div>");
@@ -734,7 +727,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretRuntimeError() {
-          console.log('drawPyretRuntimeError called')
           /*
           cases(get(error, "RuntimeError"), "RuntimeError", e.exn, {
               "message-exception": drawMessageException,
@@ -962,7 +954,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretParseError() {
-          console.log('doing drawPyretParseError')
           /*
           cases(get(error, "ParseError"), "ParseError", e.exn, {
               "parse-error-next-token": drawParseErrorNextToken,
@@ -987,22 +978,17 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             });
         }
         if(!runtime.isObject(e.exn)) {
-          console.log('not isObject(e.exn)')
           drawRuntimeErrorToString(e)();
         }
         else if(isContractError(e.exn)) {
-          console.log('contract err')
           drawPyretContractFailure(e.exn);
         }
         else if(mkPred("RuntimeError")(e.exn)) {
-          console.log('e.exn is ' + JSON.stringify(e.exn))
           drawPyretRuntimeError();
         }
         else if(mkPred("ParseError")(e.exn)) {
-          console.log('calling drawPyretParseError')
           drawPyretParseError();
         } else {
-          console.log('no other case fit')
           drawRuntimeErrorToString(e)();
         }
       }
