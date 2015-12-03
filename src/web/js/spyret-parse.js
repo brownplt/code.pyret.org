@@ -1575,8 +1575,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
         endOfError = iStart + greedy.length; // remember where we are, so readList can pick up reading
         throwError(new types.Message([source, ":", startRow.toString(), ":", startCol.toString(), ": read: expected a closing \'\"\'"]), new Location(startCol, startRow, iStart, 1), "Error-GenericReadError",
         {
-          errorType: 'missing-closing-doublequote',
-          errorMessage1: 'Expected a closing ".'
+          errMsg: "read: expected a closing \""
         });
       }
       var strng = new literal(new types.string(datum));
@@ -1671,8 +1670,8 @@ define(["./wescheme-support.js", 'js/js-numbers'
             throwError(msg, new Location(startCol, startRow, iStart, vectorTest[0].length),
             undefined,
             {
-              errorType: 'vector-length-too-small',
-              errorMessage1: 'Vector length ' + len + ' is too small; ' + elts.length + ' provided.'
+              errMsg: "read: vector length " + len + " is too small, " +
+                elts.length + " value" + ((elts.length > 1) ? "s" : "") + " provided"
             });
           }
 
@@ -2144,6 +2143,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
       return sexp;
     };
     plt.compiler.sexpToString = sexpToString;
+    plt.compiler.Location = Location;
   })();
 
   // Input 3
@@ -2341,7 +2341,14 @@ define(["./wescheme-support.js", 'js/js-numbers'
       function parseDef(sexp) {
         // is it just (define)?
         if (sexp.length < 2) {
-          throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected a variable, or a function name and its variables " + "(in parentheses), after define, but nothing's there"]), sexp.location);
+          throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected a variable, or a function name and its variables " + "(in parentheses), after define, but nothing's there"]), sexp.location, undefined,
+          {
+            errMsg: ",,: expected a variable, or a function name and its variables (in parentheses), after define, " +
+              "but nothing's there",
+              errArgLocs: [
+                [sexp[0].val, sexp[0].location]
+              ]
+          });
         }
         // If it's (define (...)...)
         if (sexp[1] instanceof Array) {
@@ -7089,7 +7096,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
     var ast = plt.compiler.parse(sexp, debug)
     if (single && ast.length > 1) {
       var errmsg = "Well-formedness: more than one WeScheme expression on a line";
-      plt.compiler.throwError(new types.Message([errmsg]))
+      plt.compiler.throwError(new types.Message([errmsg]), new plt.compiler.Location(0,0,0,0))
         //console.error(errmsg);
         //throw types.schemeError(errmsg);
     }
