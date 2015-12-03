@@ -185,7 +185,7 @@ $(function() {
             var ws_str = editor.cm.getValue();
             //console.log('calling schemeToPyretAST of ' + ws_str);
             if (usingASTp) {
-              var ws_ast_j = spyretParse.schemeToPyretAST(ws_str); // name arg? --ds26gte
+              var ws_ast_j = spyretParse.schemeToPyretAST(ws_str, "definitions");
               return ws_ast_j;
             } else {
               var p_strs = spyretParse.schemeToPyretString(ws_str);
