@@ -46,28 +46,46 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         drawPyretException(exception);
       } else if (typeof(exception) === 'string') {
 
-        var spexn = JSON.parse(exception);
-        if (spexn.type === 'spyret-parse-error') {
+        var spyretExn = JSON.parse(exception);
+        if (spyretExn.type === 'spyret-parse-error') {
           console.log('doing spyret-parse-error')
-            var pyretLoc = pyretizeSpyretLoc(spexn.loc)
-            var pyretErrorType = spexn.type
-            var pyretWeSchemeMessage = spexn.msg
-            var pyretErrorPacket = spexn.errorPacket
-            var pyretErrorMessage
-            if (pyretErrorPacket) {
-              pyretErrorMessage = pyretErrorPacket.errorMessage
+          var pyretLoc = pyretizeSpyretLoc(spyretExn.loc)
+          var spyretErrType = spyretExn.type
+          var spyretOrigMsg = spyretExn.msg
+          var spyretErrPkt = spyretExn.errPkt
+          var spyretErrMsg = spyretOrigMsg
+          var spyretErrArgLocs = []
+          if (spyretErrPkt) {
+            spyretErrMsg = spyretErrPkt.errMsg || spyretOrigMsg
+            spyretErrArgLocs = spyretErrPkt.errArgLocs || []
+          }
+          var spyretErrArgs = []
+          var spyretErrLocs = []
+          var it
+          for (var i = 0; i < spyretErrArgLocs.length; i++) {
+            it = spyretErrArgLocs[i]
+            spyretErrArgs.push(it[0])
+            spyretErrLocs.push(pyretizeSpyretLoc(it[1]))
+            /*
+            if (it.length > 2) {
+              for (i = 2; i < it.length; i++) {
+                spyretErrArgs.push('❧')
+                spyretErrLocs.push(pyretizeSpyretLoc(it[i]))
+              }
             }
-            if (!pyretErrorMessage) {
-              pyretErrorMessage = pyretWeSchemeMessage
-            }
-            //var pyretErrorType = spexn.errorPacket.errorType // specialize 'spyret-parse-error'?
-            // make a PyretFailException and call drawPyretException on it
+            */
+          }
+          // make a PyretFailException and call drawPyretException on it
           console.log('making the corresp pyret exn')
-          var pyexn = runtime.makePyretFailException(get(error, pyretErrorType).app(pyretLoc, pyretErrorMessage))
-          console.log('corresp pyret exception is ' + JSON.stringify(pyexn))
-          drawPyretException(pyexn)
+          var spyretErrArgsList = runtime.ffi.makeList(spyretErrArgs)
+          var spyretErrLocsList = runtime.ffi.makeList(spyretErrLocs)
+          var spyretParseExn = get(error, spyretErrType).app(pyretLoc, spyretErrMsg, spyretErrArgsList, spyretErrLocsList)
+          var pyretExn = runtime.makePyretFailException(spyretParseExn)
+          console.log('corresp pyret exception is ' + JSON.stringify(pyretExn))
+          drawPyretException(pyretExn)
+
         } else {
-          drawUnknownException(spexn)
+          drawUnknownException(spyretExn)
         }
 
       } else {
@@ -385,6 +403,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         return probablyErrorLocation;
       }
       function drawPyretException(e) {
+        console.log('doing drawPyretException')
         function drawRuntimeErrorToString(e) {
           return function() {
             var dom = $("<div>");
