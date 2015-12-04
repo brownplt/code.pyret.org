@@ -2691,7 +2691,19 @@ define(["./wescheme-support.js", 'js/js-numbers'
         if (sexp.length < 3) {
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected at least 2 arguments, but given ", (sexp.length === 1) ? "0" : new types.ColoredPart((sexp.length - 1).toString(),
               sexp[1].location)]),
-            sexp.location);
+            sexp.location, undefined,
+            (sexp.length === 1) ? {
+              errMsg: ",,: expected at least 2 arguments, but given none",
+              errArgLocs: [
+                [sexp[0].val, sexp[0].location]
+              ]
+            } : {
+              errMsg: ",,: expected at least 2 arguments, but given ,,",
+              errArgLocs: [
+                [sexp[0].val, sexp[0].location],
+                ["just one", sexp[1].location]
+              ]
+            });
         }
         return new andExpr(rest(sexp).map(parseExpr), sexp[0]);
       }
@@ -2701,7 +2713,19 @@ define(["./wescheme-support.js", 'js/js-numbers'
         if (sexp.length < 3) {
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected at least 2 arguments, but given ", (sexp.length === 1) ? "0" : new types.ColoredPart((sexp.length - 1).toString(),
               sexp[1].location)]),
-            sexp.location);
+            sexp.location, undefined,
+            (sexp.length === 1) ? {
+              errMsg: ",,: expected at least 2 arguments, but given none",
+              errArgLocs: [
+                [sexp[0].val, sexp[0].location]
+              ]
+            } : {
+              errMsg: ",,: expected at least 2 arguments, but given ,,",
+              errArgLocs: [
+                [sexp[0].val, sexp[0].location],
+                ["just one", sexp[1].location]
+              ]
+            });
         }
         var orEx = new orExpr(rest(sexp).map(parseExpr), sexp[0]);
         return orEx;
@@ -2716,14 +2740,24 @@ define(["./wescheme-support.js", 'js/js-numbers'
         // quote must have exactly one argument
         if (sexp.length < 2) {
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected a single argument, but did not find one."]),
-            sexp.location);
+            sexp.location, undefined,
+            {
+              errMsg: ",,: expected a single argument, but didn't find it",
+              errArgLocs: [[sexp[0].val, sexp[0].location]]
+            });
         }
         if (sexp.length > 2) {
           var extraLocs = sexp.slice(1).map(function(sexp) {
             return sexp.location;
           });
           throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected a single argument, but found ", new types.MultiPart("more than one.", extraLocs, false)]),
-            sexp.location);
+            sexp.location, undefined,
+            {
+              errMsg: ",,: expected a single argument, but found ,,",
+              errArgLocs: [[sexp[0].val, sexp[0].location],
+              ["more than one", extraLocs[0]]
+              ]
+            });
         }
         return new quotedExpr(parseQuotedItem(sexp[1]));
       }
@@ -2758,8 +2792,12 @@ define(["./wescheme-support.js", 'js/js-numbers'
     function parseWhenUnlessExpr(sexp) {
       // is it just (when)?
       if (sexp.length < 3) {
-        throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected at a test and at least one result after " + sexp[0] + ", but nothing's there"]),
-          sexp.location);
+        throwError(new types.Message([new types.ColoredPart(sexp[0].val, sexp[0].location), ": expected a test and at least one result after " + sexp[0] + ", but nothing's there"]),
+          sexp.location, undefined,
+          {
+            errMsg: ",,: expected a test and at least one result after " + sexp[0] + ", but nothing's there",
+            errArgLocs: [[sexp[0].val, sexp[0].location]]
+          });
       }
       var exprs = sexp.slice(2),
         result = new whenUnlessExpr(parseExpr(sexp[1]), parse(exprs), sexp[0]);
@@ -2828,7 +2866,14 @@ define(["./wescheme-support.js", 'js/js-numbers'
       rest(sexp).forEach(function(couple, idx) {
         if (isElseClause(couple) && (idx < (numClauses - 1))) {
           throwError(new types.Message([new types.MultiPart("cond", condLocs, true), ": ", "found an ", new types.ColoredPart("else clause", couple.location), " that isn't the last clause in its cond expression; there is ", new types.ColoredPart("another clause", sexp[idx + 2].location), " after it"]),
-            couple.location);
+            couple.location, undefined,
+            {
+              errMsg: ",,: found an ,, that isn't the last clause in its cond expression; there is ,, after it",
+              errArgLocs: [["cond", condLocs[0]],
+              ["else clause", couple.location],
+              ["another clause", sexp[idx+2].location]
+              ]
+            });
         }
       });
       return new condExpr(parsedClauses, sexp[0]);
@@ -4369,13 +4414,23 @@ define(["./wescheme-support.js", 'js/js-numbers'
       if (!this.isClause && (this.val === "else")) {
         var loc = (this.parent && this.parent[0] === this) ? this.parent.location : this.location;
         throwError(new types.Message([new types.ColoredPart(this.val, loc), ": not allowed ", new types.ColoredPart("here", loc), ", because this is not a question in a clause"]),
-          loc);
+          loc, undefined,
+          {
+            errMsg: ",,: not allowed ,, because this is not a question in a clause",
+            errArgLocs: [[this.val, loc],
+            ["here", loc]]
+          });
       }
       // if this is a define without a parent, or if it's not the first child of the parent
       if ((this.parent && this.parent[0] !== this) && (this.val === "define")) {
         var msg = new types.Message([new types.ColoredPart(this.val, this.location), ": not allowed inside an expression"]);
-        throwError(msg, this.location);
-      }
+        throwError(msg, this.location, undefined, {
+          errMsg: ",,: not allowed inside an expression",
+          errArgLocs: [
+            [this.val, this.location]
+          ]
+        });
+        }
       // if this is a keyword without a parent, or if it's not the first child of the parent
       if (!this.parent &&
         (plt.compiler.keywords.indexOf(this.val) > -1) && (this.val !== "else")) {
