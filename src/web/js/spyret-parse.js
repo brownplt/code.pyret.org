@@ -6389,20 +6389,34 @@ define(["./wescheme-support.js", 'js/js-numbers'
       };
     }
 
-    function makeStructFromMembers(constructor, elts, loc) {
-      var fakeArrayCall = new symbolExpr(constructor),
-        makeListEltFromValue = function(val) {
-          return {
-            name: "list-elt",
-            kids: [val.toPyretAST(), commaStx],
-            pos: val.location
-          };
+    function makeStructFromMembers(constructor, elts, loc, quoted) {
+      var fakeArrayCall = new symbolExpr(constructor)
+      var makeListEltFromValue = function(val) {
+        var k
+        if (val instanceof symbolExpr) {
+          if (quoted) {
+            k = makeLiteralFromSymbol(val)
+          } else {
+            k = val.toPyretAST()
+          }
+        } else if (val instanceof Array) {
+          k = makeStructFromMembers("list", val, loc, quoted)
+        } else {
+          k = val.toPyretAST()
         }
-        var listElts = elts.slice(0, elts.length - 1).map(makeListEltFromValue)
-        var lastElt = (elts.length >= 1) ? elts[elts.length - 1].toPyretAST() : null
-      // set the location of the constructor call, and add the last elt (if it exists)
+        return {
+          name: "list-elt",
+          kids: [k, commaStx],
+          pos: val.location
+        };
+      }
+      var listElts = elts.slice(0, elts.length - 1).map(makeListEltFromValue)
+      var lastElt = (elts.length >= 1) ? makeListEltFromValue(elts[elts.length - 1]) : null
+        // set the location of the constructor call, and add the last elt (if it exists)
       fakeArrayCall.location = blankLoc;
-      listElts.push(lastElt);
+      if (lastElt) {
+        listElts.push(lastElt);
+      }
       // build the object
       return {
         name: "expr",
@@ -7078,7 +7092,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
       } else if (this.val instanceof symbolExpr) {
         return makeLiteralFromSymbol(this.val);
       } else if (this.val instanceof Array) {
-        return makeStructFromMembers("list", this.val, this.val.location);
+        return makeStructFromMembers("list", this.val, this.val.location, true);
       } else {
         throw "There is no translation for " + this.toString();
       }
