@@ -6392,6 +6392,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
     function makeStructFromMembers(constructor, elts, loc, quoted) {
       var fakeArrayCall = new symbolExpr(constructor)
       var makeListEltFromValue = function(val) {
+        //val can be circular!
         var k
         if (val instanceof symbolExpr) {
           if (quoted) {
@@ -6418,7 +6419,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
         listElts.push(lastElt);
       }
       // build the object
-      return {
+      var result = {
         name: "expr",
         kids: [{
           name: "construct-expr",
@@ -6431,6 +6432,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
         }],
         pos: loc
       };
+      return result
     }
     // Bytecode generation for jsnums types
     jsnums.BigInteger.prototype.toPyretAST =
@@ -6803,7 +6805,9 @@ define(["./wescheme-support.js", 'js/js-numbers'
       var loc = this.location;
 
       // runtime calls to "vector" need to be processed specially
-      if (this.func.val === "vector") return makeStructFromMembers("array", this.args, this.location);
+      if (this.func.val === "vector") {
+        return makeStructFromMembers("array", this.args, this.location);
+      }
       if (this.func.val === "list") {
         return makeStructFromMembers("list", this.args, this.location);
       }
@@ -6824,6 +6828,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
         }],
         pos: loc
       };
+
       return ret;
 
     };
@@ -7087,6 +7092,9 @@ define(["./wescheme-support.js", 'js/js-numbers'
     // quoted symbols translate to strings
     // quoted lists evaluate to lists
     quotedExpr.prototype.toPyretAST = function() {
+      if (!this.val.location) { // seems necessary --ds26gte
+        this.val.location = this.location
+      }
       if (this.val instanceof literal) {
         return this.val.toPyretAST();
       } else if (this.val instanceof symbolExpr) {
@@ -7099,7 +7107,10 @@ define(["./wescheme-support.js", 'js/js-numbers'
     };
 
     quasiquotedExpr.prototype.toPyretAST = function() {
-      return this.desugar(_pinfo)[0].toPyretAST();
+      //return this.desugar(_pinfo)[0].toPyretAST();
+      var dsqq = this.desugar(_pinfo)[0]
+      var res = dsqq.toPyretAST()
+      return res
     };
 
     // symbol expression
