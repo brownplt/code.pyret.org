@@ -63,12 +63,9 @@ $(function() {
   }
 });
 
-/* set usingASTp to true to convert WeScheme to AST directly.
-   set to false to convert to Pyret and thence to AST
- */
-
 var usingASTp = true;
-//var usingASTp = false;
+
+//usingASTp = false; // uncomment if taking LONGROUTE
 
 $(function() {
   define("repl-main", ["/js/repl-ui.js", "js/runtime-anf",
@@ -183,7 +180,7 @@ $(function() {
           "definitions",
           runtime.makeFunction(function() {
             var ws_str = editor.cm.getValue();
-            //console.log('calling schemeToPyretAST of ' + ws_str);
+            //console.log('calling schemeToPyret... of ' + ws_str);
             if (usingASTp) {
               var ws_ast_j = spyretParse.schemeToPyretAST(ws_str, "definitions");
               return ws_ast_j;
@@ -223,6 +220,7 @@ $(function() {
                         name,
                         runtime.makeFunction(function() {
                           //debug
+                          //console.log('calling schemeToPyret... of ' + str);
                           if (usingASTp) {
                             var ws_ast_j = spyretParse.schemeToPyretAST(str, name, true);
                             //debug
