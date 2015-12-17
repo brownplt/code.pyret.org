@@ -1,7 +1,7 @@
 define(["./wescheme-support.js", 'js/js-numbers'
-      //, './spyret-to-pyret-string.js' // uncomment if taking LONGROUTE
+      , './spyret-to-pyret-string.js' // comment if LONGROUTE not needed
     ], function(sup, jsnums
-      //, spystring // LONGROUTE
+      , spystring // comment if LONGROUTE not needed
     ) {
 
   var types = sup.types
@@ -7194,7 +7194,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    //console.log('ws_ast_j = ' + ws_ast_j);
+    console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }
