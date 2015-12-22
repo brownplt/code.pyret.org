@@ -6276,27 +6276,45 @@ define(["./wescheme-support.js", 'js/js-numbers'
     // generate pyret parse tree, preserving location information
     // follows http://www.pyret.org/docs/latest/s_program.html
     // provide and import will never be used
+
     function convertToPyretAST(programs, pinfo) {
       _pinfo = pinfo;
+      var kiddos = programs.map(function(p) {
+        return {
+          name: "stmt",
+          pos: p.location,
+          kids: [p.toPyretAST()]
+        }
+      })
+      var it = undefined
+      // if there's only one kiddo, and it is a stmt containing a single block,
+      // then let final block be that block
+      // (this allows define-struct defines to bubble to the toplevel, so they're
+      // viable)
+      if (kiddos.length === 1) {
+        var kk = kiddos[0].kids
+        if (kk.length === 1 && kk[0].name === 'block') {
+          it = kk[0]
+        }
+      }
+      // if not, wrap an new block around the kiddo(s)
+      if (it === undefined) {
+         it = {
+          name: 'block',
+          pos: programs.location,
+          kids: kiddos
+        }
+      }
+
       return {
         name: "program",
+        pos: programs.location,
         kids: [{
           name: "prelude",
-          kids: [ /* TBD */ ],
-          pos: blankLoc
-        }, {
-          name: "block",
-          kids: programs.map(function(p) {
-            return {
-              name: "stmt",
-              kids: [p.toPyretAST()],
-              pos: p.location
-            };
-          }),
-          pos: programs.location
-        }],
-        pos: programs.location
-      };
+          pos: blankLoc,
+          kids: []
+        }, it]
+      }
     }
 
     // makeLetExprFromCouple : Racket Couple -> Pyret let-expr
@@ -6632,23 +6650,40 @@ define(["./wescheme-support.js", 'js/js-numbers'
     // Data Declaration
     // (define-struct foo (x y)) -> data foo_: foo(x, y) end
     // see: http://www.pyret.org/docs/latest/Statements.html#%28part._s~3adata-expr%29
+
     defStruct.prototype.toPyretAST = function() {
-      // makeListVariantMemberFromField : symbolExpr -> list-variant-member
-      function makeListVariantMemberFromField(field) {
+
+      function foo_variant_member_help(field) {
         return {
-          name: "list-variant-member",
-          kids: [{
-            name: "variant-member",
-            kids: [makeBindingFromSymbol(field)],
-            pos: field.location
-          }, commaStx],
-          pos: field.location
-        };
+          name: "variant-member",
+          pos: field.location,
+          kids: [makeBindingFromSymbol(field)]
+        }
       }
 
-      var listVariantMembers = this.fields.map(makeListVariantMemberFromField);
-      return {
+      function foo_variant_members(fields) {
+        if (fields.length === 0) {
+          return []
+        } else if (fields.length === 1) {
+          return [foo_variant_member_help(fields[0])]
+        } else {
+          var result = []
+          for (var i = 0; i < fields.length - 1; i++) {
+            var field = fields[i]
+            result.push({
+              name: "list-variant-member",
+              pos: field.position,
+              kids: [foo_variant_member_help(field), commaStx]
+            })
+          }
+          result.push(foo_variant_member_help(fields[fields.length - 1]))
+          return result
+        }
+      }
+
+      var foo_ = {
         name: "stmt",
+        pos: this.location,
         kids: [{
           name: "data-expr",
           kids: [dataStx, {
@@ -6667,7 +6702,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
                 ,
               pos: this.stx[0].location
             }, colonStx, {
-              name: "first-data-variant",
+              name: "data-variant",
               kids: [barStx, {
                 name: "variant-constructor",
                 kids: [{
@@ -6677,7 +6712,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
                   pos: this.stx[1].location
                 }, {
                   name: "variant-members",
-                  kids: [lParenStx].concat(listVariantMembers, [rParenStx]),
+                  kids: [lParenStx].concat(foo_variant_members(this.fields), [rParenStx]),
                   pos: this.stx[2].location
                 }],
                 pos: this.stx[1].location
@@ -6701,9 +6736,369 @@ define(["./wescheme-support.js", 'js/js-numbers'
             endStx
           ],
           pos: this.location
-        }],
-        pos: this.location
+        }]
       }
+
+      var foo_name = this.name
+
+      function create_foo_a(field) {
+        return {
+          name: "stmt",
+          pos: field.location,
+          kids: [{
+            name: "fun-expr",
+            kids: [
+              funStx, {
+                name: "NAME",
+                value: foo_name + '-' + field.val,
+                key: "'NAME:" + foo_name + '-' + field.val,
+                pos: field.location
+              }, {
+                name: "fun-header",
+                kids: [{
+                  name: "ty-params",
+                  kids: [],
+                  pos: field.location
+                }, {
+                  name: "args",
+                  kids: [
+                    lParenStx, {
+                      name: "binding",
+                      kids: [{
+                        name: "NAME",
+                        value: "_struct_",
+                        key: "'NAME:_struct_",
+                        pos: field.location
+                      }],
+                      pos: field.location
+                    },
+                    rParenStx
+                  ],
+                  pos: field.location
+                }, {
+                  name: "return-ann",
+                  kids: [],
+                  pos: field.location
+                }],
+                pos: field.location
+              },
+              colonStx, {
+                name: "doc-string",
+                kids: [],
+                pos: blankLoc
+              }, {
+                name: "block",
+                kids: [{
+                  name: "stmt",
+                  kids: [{
+                    name: "check-test",
+                    kids: [{
+                      name: "binop-expr",
+                      kids: [{
+                        name: "expr",
+                        kids: [{
+                          name: "dot-expr",
+                          kids: [{
+                            name: "expr",
+                            kids: [{
+                              name: "id-expr",
+                              kids: [{
+                                name: "NAME",
+                                value: "_struct_",
+                                key: "'NAME:_struct_",
+                                pos: field.location
+                              }],
+                              pos: field.location
+                            }],
+                            pos: field.location
+                          }, {
+                            name: "DOT",
+                            value: ".",
+                            key: "'DOT:.",
+                            pos: field.location
+                          }, {
+                            name: "NAME",
+                            value: field.val,
+                            key: "'NAME:" + field.val,
+                            pos: field.location
+                          }],
+                          pos: field.location
+                        }],
+                        pos: field.location
+                      }],
+                      pos: field.location
+                    }],
+                    pos: field.location
+                  }],
+                  pos: field.location
+                }],
+                pos: field.location
+              }, {
+                name: "where-clause",
+                kids: [],
+                pos: blankLoc
+              }, {
+                name: "end",
+                kids: [endStx],
+                pos: field.location.end()
+              }
+            ],
+            pos: field.location
+          }]
+        }
+      }
+
+      var foo_predicate = {
+        name: "stmt",
+        pos: this.location,
+        kids: [{
+          name: "fun-expr",
+          kids: [funStx, {
+            name: "NAME",
+            value: this.name + "ƎQUESTION",
+            key: "'NAME:" + this.name + "ƎQUESTION",
+            pos: this.location
+          }, {
+            name: "fun-header",
+            kids: [{
+              name: "ty-params",
+              kids: [],
+              pos: this.location
+            }, {
+              name: "args",
+              kids: [lParenStx, {
+                name: "binding",
+                kids: [{
+                  name: "NAME",
+                  value: "_struct_",
+                  key: "'NAME:_struct_",
+                  pos: this.location
+                }],
+                pos: this.location
+              }, rParenStx],
+              pos: this.location
+            }, {
+              name: "return-ann",
+              kids: [],
+              pos: this.location
+            }],
+            pos: this.location
+          }, colonStx, {
+            name: "doc-string",
+            kids: [],
+            pos: this.location
+          }, {
+            name: "block",
+            kids: [{
+              name: "stmt",
+              kids: [{
+                name: "check-test",
+                kids: [{
+                  name: "binop-expr",
+                  kids: [{
+                    name: "expr",
+                    kids: [{
+                      name: "app-expr",
+                      kids: [{
+                        name: "expr",
+                        kids: [{
+                          name: "id-expr",
+                          kids: [{
+                            name: "NAME",
+                            value: "is-" + this.name,
+                            key: "'NAME:is-" + this.name,
+                            pos: this.location
+                          }],
+                          pos: this.location
+                        }],
+                        pos: this.location
+                      }, {
+                        name: "app-args",
+                        kids: [lParenStx, {
+                          name: "binop-expr",
+                          kids: [{
+                            name: "expr",
+                            kids: [{
+                              name: "id-expr",
+                              kids: [{
+                                name: "NAME",
+                                value: "_struct_",
+                                key: "'NAME:_struct_",
+                                pos: this.location
+                              }],
+                              pos: this.location
+                            }],
+                            pos: this.location
+                          }],
+                          pos: this.location
+                        }, rParenStx],
+                        pos: this.location
+                      }],
+                      pos: this.location
+                    }],
+                    pos: this.location
+                  }],
+                  pos: this.location
+                }],
+                pos: this.location
+              }],
+              pos: this.location
+            }],
+            pos: this.location
+          }, {
+            name: "where-clause",
+            kids: [],
+            pos: blankLoc
+          }, {
+            name: "end",
+            kids: [endStx],
+            pos: this.location
+          }],
+          pos: this.location
+        }]
+      }
+
+      function make_foo_app_arg(field) {
+        return {
+          name: "binop-expr",
+          pos: field.location,
+          kids: [{
+            name: "expr",
+            pos: field.location,
+            kids: [{
+              name: "id-expr",
+              pos: field.location,
+              kids: [{
+                name: "NAME",
+                pos: field.location,
+                value: field.val,
+                key: "'NAME:" + field.val
+              }]
+            }]
+          }]
+        }
+      }
+
+      function make_foo_app_args(fields) {
+        if (fields.length === 0) {
+          return []
+        } else if (fields.length === 1) {
+          return [make_foo_app_arg(fields[0])]
+        } else {
+          var result = []
+          for (var i = 0; i < fields.length - 1; i++) {
+            var field = fields[i]
+            result.push({
+              name: 'app-arg-elt',
+              pos: field.position,
+              kids: [make_foo_app_arg(field), commaStx]
+            })
+          }
+          result.push(make_foo_app_arg(fields[fields.length - 1]))
+          return result
+        }
+      }
+
+      var make_foo = {
+        name: "stmt",
+        pos: this.location,
+        kids:  [{
+          name: "fun-expr",
+          pos: this.location,
+          kids: [{
+              name: "FUN",
+              pos: this.location,
+              value: "fun",
+              key: "'FUN:fun"
+            }, {
+              name: "NAME",
+              pos: this.location,
+              value: "make-" + foo_name,
+              key: "'NAME:make-" + foo_name
+            },  {
+              name: "fun-header",
+              pos: this.location,
+              kids: [{
+                name: "ty-params",
+                pos: this.location,
+                kids: []
+              }, {
+                name: "args",
+                pos: this.location,
+                // the first one is list-arg-elt(binding), the rest are just binding's
+                kids: [].concat([lParenStx], this.fields.map(makeBindingFromSymbol), [rParenStx])
+              }, {
+                name: "return-ann",
+                pos: this.location,
+                kids: []
+              }]
+            } , colonStx,
+            {
+              name: "doc-string",
+              pos: this.location,
+              kids: []
+            },  {
+              name: "block",
+              pos: this.location,
+              kids: [{
+                name: "stmt",
+                pos: this.location,
+                kids: [{
+                  name: "check-test",
+                  pos: this.location,
+                  kids: [{
+                    name: "binop-expr",
+                    pos: this.location,
+                    kids: [{
+                      name: "expr",
+                      pos: this.location,
+                      kids: [{
+                        name: "app-expr",
+                        pos: this.location,
+                        kids: [ {
+                          name: "expr",
+                          pos: this.location,
+                          kids: [{
+                            name: "id-expr",
+                            pos: this.location,
+                            kids: [{
+                              name: "NAME",
+                              pos: this.location,
+                              value: "" + foo_name,
+                              key: "'NAME:" + foo_name
+                            } ]
+                          }]
+                        },  {
+                          name: "app-args",
+                          pos: this.location,
+                          kids: [lParenStx].concat(make_foo_app_args(this.fields), [rParenStx])
+                        } ]
+                      }]
+                    }]
+                  }]
+                }]
+              }]
+            } , {
+              name: "where-clause",
+              pos: this.location,
+              kids: []
+            }, {
+              name: "end",
+              pos: this.location,
+              kids: [endStx]
+            }
+          ]
+        }]
+      }
+
+      var kiddos = [].concat([foo_], this.fields.map(create_foo_a), [foo_predicate, make_foo])
+
+      var resu =  {
+        name: "block",
+        pos: this.location,
+        kids: kiddos
+      }
+      return resu
     };
 
     // Begin expression
@@ -7117,9 +7512,18 @@ define(["./wescheme-support.js", 'js/js-numbers'
     // symbolExpr(val)
     symbolExpr.prototype.toPyretAST = function() {
       var loc = this.location;
-      var sval = this.val;
+      var sval
       var val_pyret_name = symbolMap[sval];
-      if (val_pyret_name) sval = val_pyret_name;
+      if (val_pyret_name) {
+        sval = val_pyret_name;
+      } else if (this.val.length === 1) {
+        sval = this.val
+      } else {
+        sval = this.val.replace(/\//g, 'SLASH').
+        replace(/\?/g, 'ƎQUESTION').
+        replace(/!/g, 'ƎBANG').
+        replace(/\+/g, 'ƎPLUS')
+      }
       return {
         name: "expr",
         kids: [{
@@ -7171,14 +7575,12 @@ define(["./wescheme-support.js", 'js/js-numbers'
 
   function schemeToPyretAST(code, name, single) {
     var debug = false;
-    // 2nd arg below should be source (== name)
     var sexp = plt.compiler.lex(code, name, debug);
     var ast = plt.compiler.parse(sexp, debug)
-    if (single && ast.length > 1) {
+    if (true && single && ast.length > 1) {
       var errmsg = "Well-formedness: more than one WeScheme expression on a line";
-      plt.compiler.throwError(new types.Message([errmsg]), new plt.compiler.Location(0,0,0,0))
-        //console.error(errmsg);
-        //throw types.schemeError(errmsg);
+      console.log(errmsg)
+      //plt.compiler.throwError(new types.Message([errmsg]), new plt.compiler.Location(0,0,0,0))
     }
     var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
     var program = astAndPinfo[0];
@@ -7189,12 +7591,14 @@ define(["./wescheme-support.js", 'js/js-numbers'
         plt.compiler.makeImportSnippet('image'),
         plt.compiler.makeImportSnippet('world')
       ];
-      ws_ast.kids[0].kids = preimports;
+      //ws_ast.kids[0].kids = preimports;
+      ws_ast.kids[0].unshift(preimports[1])
+      ws_ast.kids[0].unshift(preimports[0])
     }
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    console.log('ws_ast_j = ' + ws_ast_j);
+    //console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }
