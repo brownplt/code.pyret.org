@@ -63,9 +63,10 @@ $(function() {
   }
 });
 
-var usingASTp = true;
+var usingASTp = true
 
-//usingASTp = false; // uncomment if taking LONGROUTE
+//uncomment follg if taking LONGROUTE
+//usingASTp = false
 
 $(function() {
   define("repl-main", ["/js/repl-ui.js", "js/runtime-anf",
