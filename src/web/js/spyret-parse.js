@@ -7110,28 +7110,40 @@ define(["./wescheme-support.js", 'js/js-numbers'
       function makeStmtFromExpr(expr) {
         return {
           name: "stmt",
-          kids: [expr.toPyretAST()],
-          pos: expr.location
-        };
+          pos: expr.location,
+          kids: [{
+            name: "check-test",
+            pos: expr.location,
+            kids: [expr.toPyretAST()]
+          }]
+        }
       }
       return {
-        name: "expr",
+        name: "check-test",
+        pos: loc,
         kids: [{
-          name: "user-block-expr",
-          kids: [blockStx, {
-            name: "block",
-            kids: this.exprs.map(makeStmtFromExpr),
-            pos: this.location
-          }, {
-            name: "end",
-            kids: [endStx],
-            pos: loc
-          }],
-          pos: loc
-        }],
-        pos: loc
-      };
-    };
+          name: "binop-expr",
+          pos: loc,
+          kids: [{
+            name: "expr",
+            pos: loc,
+            kids: [{
+              name: "user-block-expr",
+              pos: loc,
+              kids: [blockStx, {
+                name: "block",
+                pos: loc,
+                kids: this.exprs.map(makeStmtFromExpr)
+              }, {
+                name: "end",
+                pos: loc,
+                kids: [endStx]
+              }]
+            }]
+          }]
+        }]
+      }
+    }
 
     // Lambda expression
     // lambdaExpr(args, body) -> lam(args): body end
@@ -7513,7 +7525,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
     symbolExpr.prototype.toPyretAST = function() {
       var loc = this.location;
       var sval
-      var val_pyret_name = symbolMap[sval];
+      var val_pyret_name = symbolMap[this.val];
       if (val_pyret_name) {
         sval = val_pyret_name;
       } else if (this.val.length === 1) {
@@ -7598,13 +7610,14 @@ define(["./wescheme-support.js", 'js/js-numbers'
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    //console.log('ws_ast_j = ' + ws_ast_j);
+    console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }
 
   return {
     schemeToPyretAST: schemeToPyretAST,
+    // comment follg if LONGROUTE not needed
     schemeToPyretString: (typeof spystring === 'undefined' ? undefined : spystring.makeSchemeToPyretString(plt)),
     types: types
   }
