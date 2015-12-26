@@ -175,7 +175,7 @@ $(function() {
 
       return runtime.safeCall(function() {
         return gmf(replSupport,
-                   (usingASTp ?  "make-wescheme-repl-definitions-locator" : "make-repl-definitions-locator")
+                   (usingASTp ?  "make-spyret-repl-definitions-locator" : "make-repl-definitions-locator")
                   ).app(
           "definitions",
           "definitions",
@@ -215,7 +215,7 @@ $(function() {
                   return runtime.safeCall(
                     function() {
                       return gmf(replSupport,
-                                 (usingASTp ?  "make-wescheme-repl-interaction-locator" : "make-repl-interaction-locator")
+                                 (usingASTp ?  "make-spyret-repl-interaction-locator" : "make-repl-interaction-locator")
                                 ).app(
                         name,
                         name,
