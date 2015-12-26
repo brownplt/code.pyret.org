@@ -500,6 +500,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         return renderers.renderText("opaque", val);
       }
     };
+    renderers["cyclic"] = function renderCyclic(val) {
+      return renderers.renderText("cyclic", val);
+    };
     renderers.renderImage = function renderImage(img) {
       var container = $("<span>").addClass('replOutput');
       var imageDom;
@@ -580,7 +583,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       var echo = $("<span>").addClass("replTextOutput");
       echo.text(renderers.__proto__[valType](val));
       setTimeout(function() {
-        CodeMirror.runMode(echo.text(), "pyret", echo);
+        CodeMirror.runMode(echo.text(), "pyret", echo[0]);
         echo.addClass("cm-s-default");
       }, 0);
       return echo;
