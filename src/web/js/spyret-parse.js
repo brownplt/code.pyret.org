@@ -294,7 +294,7 @@ define(["./wescheme-support.js", 'js/js-numbers'
     symbolMap["cons"] = "link";
 
     symbolMap["*"] = "_times";
-    symbolMap["+"] = "_plus";
+    symbolMap["+"] = "_plusnumeric";
     symbolMap["-"] = "_minus";
     symbolMap["/"] = "_divide";
     symbolMap["<"] = "_lessthan";
@@ -7534,7 +7534,8 @@ define(["./wescheme-support.js", 'js/js-numbers'
         sval = this.val.replace(/\//g, 'SLASH').
         replace(/\?/g, 'ƎQUESTION').
         replace(/!/g, 'ƎBANG').
-        replace(/\+/g, 'ƎPLUS')
+        replace(/\+/g, 'ƎPLUS').
+        replace(/^_/, 'ƎUNDERSCORE')
       }
       return {
         name: "expr",
