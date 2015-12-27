@@ -10,7 +10,7 @@
     "lodash": "~2.4.1",
     "q": "~1.0.1",
     "s-expression": "~2.2.0",
-    "pyret-lang": "git://github.com/ds26gte/pyret-lang.git#spyret",
+    "pyret-lang": "git://github.com/ds26gte/pyret-lang.git#dual-lang",
     "CodeMirror": "git://github.com/jpolitz/CodeMirror",
     "requirejs": "2.1.14",
     "node-static": "^0.7.3",
