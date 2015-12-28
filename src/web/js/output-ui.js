@@ -1,4 +1,4 @@
-define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], function(jsnums,share,srclocLib, errordisplayLib) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/js/gdrive-locators.js"], function(jsnums,share,srclocLib,errordisplayLib,gdriveLocators) {
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
