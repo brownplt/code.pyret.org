@@ -21,16 +21,69 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       // - something internal and JavaScripty, which we don't want
       //   users to see but will have a hard time ruling out
       if(exception instanceof Array) {
-        drawCompileErrors(exception);
+        exception.forEach(renderReason("compile-error", false));
       }
+      
       if(exception.exn instanceof Array) {
-        drawCompileErrors(exception.exn);
-      } else if(runtime.isPyretException(exception)) {
-        drawPyretException(exception);
-      } else {
-        drawUnknownException(exception);
+        exception.exn.forEach(renderReason("compile-error", false));
+      } 
+      else if(runtime.isPyretException(exception)) {
+        if(!runtime.isObject(e.exn)) {
+          drawRuntimeErrorToString(e)();
+        }
+        else if(isContractError(e.exn)) {
+          renderReason("parse-error", true);
+        }
+        else if(mkPred("RuntimeError")(e.exn)) {
+          renderReason("compile-error", true);
+        }
+        else if(mkPred("ParseError")(e.exn)) {
+          renderReason("parse-error", false);
+        } 
+        else {
+          drawRuntimeErrorToString(e)();
+        }
       }
-
+      else {
+        container.append($("<div>").text("An unexpected error occurred: " + String(e)));
+      }
+      
+      function drawRuntimeErrorToString(e) {
+        return function() {
+          var dom = $("<div>");
+          var exnstringContainer = $("<div>");
+          dom
+            .addClass("compile-error")
+            .append($("<p>").text("Error: "))
+            .append(exnstringContainer)
+            .append($("<p>"))
+            .append(drawExpandableStackTrace(e));
+          container.append(dom);
+          if(runtime.isPyretVal(e.exn)) {
+            outputUI.renderPyretValue(exnstringContainer, runtime, e.exn);
+          }
+          else {
+            exnstringContainer.text(String(e.exn));
+          }
+        }
+      }
+      
+      function renderReason(domClass, showStackTrace) {
+        runtime.runThunk(
+          function() { return get(e.exn, "render-reason").app(); },
+          function(errorDisp) {
+            if (runtime.isSuccessResult(errorDisp)) {
+              var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
+              container.append(domClass);
+              if(showStackTrace) { dom.append(drawExpandableStackTrace(e)); }
+            }
+            else {
+              container.append($("<span>").addClass(domClass)
+                               .text("An error occurred rendering the reason for this error; details logged to the console"));
+              console.log(errorDisp.exn);
+            }
+          });
+      }
 
       function singleHover(dom, loc) {
         if (loc === undefined) { 
@@ -38,26 +91,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           return;
         }
         outputUI.hoverLink(editors, runtime, srcloc, dom, loc, "error-highlight");
-      }
-
-      function drawCompileErrors(e) {
-        function drawCompileError(e) {
-          runtime.runThunk(
-            function() {
-              return get(e, "render-reason").app(); },
-            function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
-                dom.addClass("compile-error");
-                container.append(dom);
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.log(errorDisp.exn);
-              }
-            });
-        }
-        e.forEach(drawCompileError);
       }
 
       function drawExpandableStackTrace(e) {
@@ -79,100 +112,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           return container;
         }
       }
-
-      function drawPyretException(e) {
-        function drawRuntimeErrorToString(e) {
-          return function() {
-            var dom = $("<div>");
-            var exnstringContainer = $("<div>");
-            dom
-              .addClass("compile-error")
-              .append($("<p>").text("Error: "))
-              .append(exnstringContainer)
-              .append($("<p>"))
-              .append(drawExpandableStackTrace(e));
-            container.append(dom);
-            if(runtime.isPyretVal(e.exn)) {
-              outputUI.renderPyretValue(exnstringContainer, runtime, e.exn);
-            }
-            else {
-              exnstringContainer.text(String(e.exn));
-            }
-          }
-        }
-
-        function drawPyretRuntimeError() {
-          runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(); },
-            function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
-                dom.addClass("compile-error");
-                container.append(dom);
-                dom.append(drawExpandableStackTrace(e));
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.log(errorDisp.exn);
-              }
-            });
-        }
-
-        function drawPyretContractFailure(err) {
-          var isArg = ffi.isFailArg(err);
-          var loc = get(err, "loc");
-          var reason = get(err, "reason");
-          runtime.runThunk(
-            function() { return get(err, "render-reason").app(); },
-            function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
-                dom.addClass("parse-error");
-                container.append(dom);
-                dom.append(drawExpandableStackTrace(e));
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.log(errorDisp.exn);
-              }
-            });
-        }
-
-        function drawPyretParseError() {
-          runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(); },
-            function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
-                dom.addClass("parse-error");
-                container.append(dom);
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.log(errorDisp.exn);
-              }
-            });
-        }
-        if(!runtime.isObject(e.exn)) {
-          drawRuntimeErrorToString(e)();
-        }
-        else if(isContractError(e.exn)) {
-          drawPyretContractFailure(e.exn);
-        }
-        else if(mkPred("RuntimeError")(e.exn)) {
-          drawPyretRuntimeError();
-        }
-        else if(mkPred("ParseError")(e.exn)) {
-          drawPyretParseError();
-        } else {
-          drawRuntimeErrorToString(e)();
-        }
-      }
-
-      function drawUnknownException(e) {
-        container.append($("<div>").text("An unexpected error occurred: " + String(e)));
-      }
-
 
     });
   }
