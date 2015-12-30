@@ -128,6 +128,18 @@ redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
 `.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
 
+You will also need to point CPO at an active Redis server.  You can install a
+local copy of Redis, or use a service like Redis Cloud (which has a free
+tier).  You will need a connection URL that contains both your password and
+the host to put in `.env`; if using Redis Cloud, it will look like, for
+example:
+
+```
+REDISCLOUD_URL="redis://rediscloud:<password>@pub-redis-<number>.garantiadata.com:14490"
+```
+
+(code.pyret.org uses a Redis Cloud instance).
+
 
 ## Setting up your own remote version of code.pyret.org with Heroku:
 
