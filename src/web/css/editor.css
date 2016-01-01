@@ -627,6 +627,30 @@ span.rationalRepeat {
   border-bottom: 2px solid #F33;
 }
 
+.loc-anchor {
+  border-bottom: 2px solid currentColor;
+}
+
+.loc-anchor-color-1 {
+  background-color:    hsl(100, 100%, 80%);
+  border-bottom-color: hsl(100, 100%, 50%);}
+.loc-anchor-color-1:hover {
+  background-color:    hsl(100, 100%, 60%);}
+
+.loc-anchor-color-2 {
+  background-color:    hsl(200, 100%, 80%);
+  border-bottom-color: hsl(200, 100%, 50%);}
+.loc-anchor-color-2:hover {
+  background-color:    hsl(200, 100%, 60%);}
+  
+.loc-anchor-color-3 {
+  background-color:    hsl(300, 100%, 80%);
+  border-bottom-color: hsl(300, 100%, 50%);}
+.loc-anchor-color-3:hover {
+  background-color:    hsl(300, 100%, 60%);}
+  
+
+
 .check-highlight {
  background-color: #CCF;
  border-bottom: 2px solid #33F;
