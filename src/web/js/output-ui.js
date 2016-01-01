@@ -1,4 +1,4 @@
-define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/js/gdrive-locators.js"], function(jsnums,share,srclocLib,errordisplayLib,gdriveLocators) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/js/gdrive-locators.js", "compiler/compile-structs.arr", "compiler/compile-lib.arr", "trove/parse-pyret"], function(jsnums,share,srclocLib,errordisplayLib,gdriveLocators, compileLib, compileStructs, parsePyret) {
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
@@ -325,6 +325,93 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     }
     return srcElem;
   }
+  
+  function cmPosFromSrcloc(runtime, srcloc, loc) {
+    return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+      "builtin": function(_) {
+         throw new Error("Cannot get CodeMirror loc from builtin location");
+      },
+      "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+        var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
+        return {
+          source: source,
+          start: { line: startL - 1, ch: startC },
+          end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
+        };
+      }
+    });
+  }
+  
+  function astFromText(runtime, source, filename) {
+    return runtime.loadModules(runtime.namespace, [parsePyret], function(PP) {
+      return runtime.unwrap(runtime.getField(PP, "surface-parse").app(source, filename));
+    });
+  }
+  
+  function locToSrc(runtime, editors, srcloc) {
+    return runtime.makeFunction(function(loc) {
+      return getSourceContent(editors, runtime, srcloc, loc);
+    });
+  }
+  
+  function locToAST(runtime, editors, srcloc) {
+    return runtime.makeFunction(function(loc) {
+      var source = getSourceContent(editors, runtime, srcloc, loc);
+      var prelude = ""
+      //var start_line = runtime.getField(loc,"start-line");
+      //var start_col = runtime.getField(loc,"start-column");
+      //for(var i=0; i < start_line; i++) { prelude += "\n"; }
+      //for(var i=0; i < start_col; i++) { prelude += " "; }
+      return astFromText(runtime,prelude + source, runtime.getField(loc,"source"));
+    });
+  }
+  
+  function getSourceContent(editors, runtime, srcloc, loc) {
+    console.log("start-getSourceContent");
+    cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    if(editors.hasOwnProperty(cmLoc.source)) {
+      return editors[cmLoc.source].getRange(cmLoc.start, cmLoc.end);
+    }
+    else {
+      var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
+      console.log(constructors);
+      if(isSharedImport(src)) {
+        var sharedId = getSharedId(src);
+        var srcUrl = shareAPI.makeShareUrl(sharedId);
+        return srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isGDriveImport(src)) {
+        var MyDriveId = getMyDriveId(src);
+        var srcUrl = makeMyDriveUrl(MyDriveId);
+        srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isJSImport(src)) {
+        /* NOTE(joe): No special handling here, since it's opaque code */
+      }
+    }
+    console.log("end-getSourceContent");
+    /*
+    var get = runtime.getField;
+    var src = runtime.unwrap(get(s, "source"));
+    console.log(src);
+    if(!editors.hasOwnProperty(src)) {
+      if(isSharedImport(src)) {
+        console.log("isSharedImport");
+        var sharedId = getSharedId(src);
+        var srcUrl = shareAPI.makeShareUrl(sharedId);
+        console.log(srcUrl);
+      }
+      else if(isGDriveImport(src)) {
+        console.log("isGDriveImport");
+        var MyDriveId = getMyDriveId(src);
+        var srcUrl = makeMyDriveUrl(MyDriveId);
+        console.log(srcUrl);
+      }
+      else if(isJSImport(src)) {
+      }
+    }
+    console.log(editors);*/
+  }
 
   function renderErrorDisplay(editors, runtime, errorDisp, stack) {
     var get = runtime.getField;
@@ -451,12 +538,20 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               return help(contentsWithoutLoc);
             }
           },
-          "loc": function(loc) { 
+          "loc": function(loc) {
+            var source = getSourceContent(editors, runtime, srcloc, loc);
+            console.log(source);
+            console.log(astFromText(runtime, source, "poop"));
             return drawSrcloc(editors, runtime, loc);
           },
           "loc-display": function(loc, style, contents) {
             var inner = help(contents);
             hoverLink(editors, runtime, srcloc, inner, loc, style);
+            return inner;
+          },
+          "loc-referenced": function(loc, contents) {
+            var inner = help(contents);
+            hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
             return inner;
           }
         });
@@ -767,7 +862,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     hoverLink: hoverLink,
     renderErrorDisplay: renderErrorDisplay,
     drawSrcloc: drawSrcloc,
-    expandableMore: expandableMore
+    expandableMore: expandableMore,
+    locToAST: locToAST,
+    locToSrc: locToSrc
   };
 
 })
