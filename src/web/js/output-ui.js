@@ -46,11 +46,71 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var probablyErrorLocation = userLocs[ix];
     return probablyErrorLocation;
   }
-
+  
+  function hoverSrclocAnchor(runtime, editors, srcloc, elt, loc) {
+    var warnDesired = 0;
+    var warnWait = 250;
+    var warnDuration = 5000;
+    var fadeAmt = 0.5;
+      
+    var editor = editors[runtime.getField(loc, "source")];
+    if(!editor) { return; }
+    cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    
+    function setWarningState(obj) {
+      var opacity = Number(obj.css("opacity"));
+      if (warnDesired !== opacity) {
+        // Only act if the warning is all the way in or out.  The '1'
+        // in the following test is because the initial state is
+        // opacity = 1, though the element is not visible.
+        if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
+          if (warnDesired === fadeAmt) {
+            obj.fadeTo("fast", fadeAmt, function() {
+              setTimeout(function() {
+                obj.fadeTo("slow", 0.0);
+                warnDesired = 0;
+              }, warnDuration) });
+          } else {
+            obj.fadeTo("fast", 0.0);
+          }
+        }
+      }
+    }
+    
+    elt.on("mouseenter", function() {
+      var view = editor.getScrollInfo();
+      var charCh = editor.charCoords(cmLoc.start, "local");
+      if (view.top > charCh.top) {
+        warnDesired = fadeAmt;
+        var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
+        setTimeout(function() {setWarningState(warningUpper);}, warnWait);
+      } else if (view.top + view.clientHeight < charCh.bottom) {
+        warnDesired = fadeAmt;
+        var warningLower = jQuery(editor.getWrapperElement()).find(".warning-lower");
+        setTimeout(function() {setWarningState(warningLower);}, warnWait);
+      }
+    });
+    
+    elt.on("mouseleave", function() {
+      warnDesired = 0;
+      setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
+                 warnWait);
+      setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
+                 warnWait);
+    });
+    
+    elt.on("click", function() {
+      warnDesired = 0;
+      jQuery(".warning-upper").fadeOut("fast");
+      jQuery(".warning-lower").fadeOut("fast");
+      editor.scrollIntoView(cmLoc.start, 100)
+    });
+  }
+  
   function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
-    if (cls === "error-highlight") { return; }
     var get = runtime.getField;
     var cases = runtime.ffi.cases;
+
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
     function cmPosFromSrcloc(s) {
@@ -67,11 +127,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           };
         }
       });
-    }/*
+    }
     function highlightSrcloc(s, cls, withMarker) {
       return runtime.safeCall(function() {
         return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-          "builtin": function(_) {  },
+          "builtin": function(_) { /* no-op */ },
           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
             var cmLoc = cmPosFromSrcloc(s);
             var editor = editors[source];
@@ -86,7 +146,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           }
         });
       }, withMarker);
-    }*/
+    }
 
     // There are warnings to show indicating whether the check output
     // is from a check that is currently off screen.  The problem is
@@ -163,13 +223,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           }
         });
       }
-      //mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
-      //  marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
-      //});
-    });
-    
-    mapK(locs, function(l, k) { console.log(cls); highlightSrcloc(runtime, editors, srcloc, l, cls); }, function(ms) {
-      marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
+      mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
+        marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
+      });
     });
     elt.on("mouseleave", function() {
       warnDesired = 0;
@@ -178,8 +234,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
                  warnWait);
 
-      //marks.forEach(function(m) { return m && m.clear(); })
-      //marks = [];
+      marks.forEach(function(m) { return m && m.clear(); })
+      marks = [];
     });
     var locIndex = 0;
     if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
@@ -205,7 +261,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       });
     }
   }
-
+ 
   function basename(str) {
      var base = new String(str).substring(str.lastIndexOf('/') + 1);
      if(base.lastIndexOf(".") != -1)
@@ -586,8 +642,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var colorClass = pickColor(loc);
             inner.addClass("loc-anchor");
             inner.addClass(colorClass);
-            hoverLocs(editors, runtime, srcloc, inner, [loc], colorClass);
-            //highlightSrcloc(runtime, editors, srcloc, loc, colorClass);
+            highlightSrcloc(runtime, editors, srcloc, loc, colorClass);
+            hoverSrclocAnchor(runtime, editors, srcloc, inner, loc);
             return inner;
           },
           "loc-display": function(loc, style, contents) {
