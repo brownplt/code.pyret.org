@@ -48,9 +48,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   }
 
   function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
+    if (cls === "error-highlight") { return; }
     var get = runtime.getField;
     var cases = runtime.ffi.cases;
-
      // Produces a Code Mirror position from a Pyret location.  Note
      // that Code Mirror seems to use zero-based lines.
     function cmPosFromSrcloc(s) {
@@ -67,11 +67,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           };
         }
       });
-    }
+    }/*
     function highlightSrcloc(s, cls, withMarker) {
       return runtime.safeCall(function() {
         return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-          "builtin": function(_) { /* no-op */ },
+          "builtin": function(_) {  },
           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
             var cmLoc = cmPosFromSrcloc(s);
             var editor = editors[source];
@@ -86,7 +86,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           }
         });
       }, withMarker);
-    }
+    }*/
 
     // There are warnings to show indicating whether the check output
     // is from a check that is currently off screen.  The problem is
@@ -163,9 +163,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           }
         });
       }
-      mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
-        marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
-      });
+      //mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
+      //  marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
+      //});
+    });
+    
+    mapK(locs, function(l, k) { console.log(cls); highlightSrcloc(runtime, editors, srcloc, l, cls); }, function(ms) {
+      marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
     });
     elt.on("mouseleave", function() {
       warnDesired = 0;
@@ -174,8 +178,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
                  warnWait);
 
-      marks.forEach(function(m) { return m && m.clear(); })
-      marks = [];
+      //marks.forEach(function(m) { return m && m.clear(); })
+      //marks = [];
     });
     var locIndex = 0;
     if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
@@ -358,10 +362,10 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     return runtime.makeFunction(function(loc) {
       var source = getSourceContent(editors, runtime, srcloc, loc);
       var prelude = ""
-      //var start_line = runtime.getField(loc,"start-line");
-      //var start_col = runtime.getField(loc,"start-column");
-      //for(var i=0; i < start_line; i++) { prelude += "\n"; }
-      //for(var i=0; i < start_col; i++) { prelude += " "; }
+      var start_line = runtime.getField(loc,"start-line");
+      var start_col = runtime.getField(loc,"start-column");
+      for(var i=1; i < start_line; i++) { prelude += "\n"; }
+      for(var i=0; i < start_col; i++) { prelude += " "; }
       return astFromText(runtime,prelude + source, runtime.getField(loc,"source"));
     });
   }
@@ -412,13 +416,46 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     }
     console.log(editors);*/
   }
+  
+  function highlightSrcloc(runtime, editors, srcloc, loc, cls) {
+    return runtime.safeCall(function() {
+      return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+        "builtin": function(_) { /* no-op */ },
+        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+          var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+          var editor = editors[source];
+          if(editor) {
+            return editor.markText(
+              cmLoc.start,
+              cmLoc.end,
+              { className: cls });
+          } else {
+            return null;
+          }
+        }
+      });
+    }, function(marker){return marker;});
+  }
 
   function renderErrorDisplay(editors, runtime, errorDisp, stack) {
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
+    
+    function makeColorPicker() {
+      var colors = 1;
+      var pallet = {};
+      return function(loc) {
+        key = runtime.getField(loc,"format").app(true);
+        if (!pallet.hasOwnProperty(key)) {
+          pallet[key] = colors++;
+        }
+        return "loc-anchor-color-" + pallet[key];
+      };
+    }
 
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
+      var pickColor = makeColorPicker();
       function help(errorDisp) {
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) { 
@@ -544,12 +581,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             console.log(astFromText(runtime, source, "poop"));
             return drawSrcloc(editors, runtime, loc);
           },
-          "loc-display": function(loc, style, contents) {
+          "loc-anchor": function(contents, loc) {
             var inner = help(contents);
-            hoverLink(editors, runtime, srcloc, inner, loc, style);
+            var colorClass = pickColor(loc);
+            inner.addClass("loc-anchor");
+            inner.addClass(colorClass);
+            hoverLocs(editors, runtime, srcloc, inner, [loc], colorClass);
+            //highlightSrcloc(runtime, editors, srcloc, loc, colorClass);
             return inner;
           },
-          "loc-referenced": function(loc, contents) {
+          "loc-display": function(loc, style, contents) {
             var inner = help(contents);
             hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
             return inner;
