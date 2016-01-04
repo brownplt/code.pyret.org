@@ -678,7 +678,10 @@ $(function() {
 
           $("#saveButton").click(save);
 
-          Q.all([programLoaded, interactionsReady]).fin(function() { $("#loader").hide(); });
+          Q.all([programLoaded, interactionsReady]).fin(function() {
+            clearInterval($("#loader").data("intervalID"));
+            $("#loader").hide();
+          });
           editor.focus();
         });
         done.fail(function(err) {
