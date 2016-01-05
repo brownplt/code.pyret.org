@@ -631,6 +631,16 @@ span.rationalRepeat {
   border-bottom: 2px solid currentColor;
 }
 
+.compile-error {
+  line-height: 1.5;
+}
+
+.compile-error > p > code:only-child {
+  margin-left: 1.5em;
+}
+
+.highlight { color: #000 !important}
+
 .loc-highlight-color-1 {
   background-color:        hsl(100, 100%, 80%);
   border-bottom: 2px solid hsl(100, 100%, 60%);}
@@ -651,7 +661,15 @@ span.rationalRepeat {
 .loc-highlight-color-3:hover,
 .loc-highlight-color-3.hover {
   background-color:        hsl(300, 100%, 60%);}
-.underline { background-color: initial;}
+
+.loc-highlight-color-4 {
+  background-color:        hsl(250, 100%, 80%);
+  border-bottom: 2px solid hsl(250, 100%, 60%);}
+.loc-highlight-color-4:hover,
+.loc-highlight-color-4.hover {
+  background-color:        hsl(250, 100%, 60%);}  
+  
+.underline:not(:hover) { background-color: initial;}
 
 
 .check-highlight {

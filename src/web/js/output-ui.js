@@ -556,29 +556,27 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   }
   
   function highlightSrcloc(runtime, editors, srcloc, loc, cls) {
-    return runtime.safeCall(function() {
-      var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
-      return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
-        "builtin": function(_) { /* no-op */ },
-        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-          var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-          var editor = editors[source];
-          if(editor) {
-            // Don't add duplicate markers
-            if(editor.getWrapperElement().getElementsByClassName(locKey).length > 0) {
-              return editor.findMarks(cmLoc.start, cmLoc.end)[0];
-            } else {
-              return editor.markText(
-                cmLoc.start,
-                cmLoc.end,
-                { className: cls + " " + locKey });
-            }
+    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
+    return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+      "builtin": function(_) { /* no-op */ },
+      "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+        var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+        var editor = editors[source];
+        if(editor) {
+          // Don't add duplicate markers
+          if(editor.getWrapperElement().getElementsByClassName(locKey).length > 0) {
+            return editor.findMarks(cmLoc.start, cmLoc.end)[0];
           } else {
-            return null;
+            return editor.markText(
+              cmLoc.start,
+              cmLoc.end,
+              { className: cls + " " + locKey });
           }
+        } else {
+          return null;
         }
-      });
-    }, function(marker){return marker;});
+      }
+    });
   }
 
   function renderErrorDisplay(editors, runtime, errorDisp, stack) {
@@ -633,7 +631,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               if (i != 0 && separator !== "") result.append(separator);
               result.append(help(contents[i]));
             }
-            return result.children();
+            return result.contents();
           },
           "paragraph": function(seq) { 
             var separator = "";
@@ -750,10 +748,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             anchor.addClass(colorClass);
             
             var locs = ffi.toArray(locs)
-            var locClasses = locs.map(function(l){
-              cssSanitize(runtime.getField(l,"format").app(true));});
+            var locClasses = locs.map(
+              function(l){
+                return cssSanitize(runtime.getField(l,"format").app(true));
+              });
             
             for (var i = 0; i < locs.length; i++) {
+              console.log(locClasses[i]);
               anchor.addClass(locClasses[i]);
               highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
             }
@@ -788,6 +789,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var locs = ffi.toArray(locs)
             var locClasses = locs.map(function(l){
               cssSanitize(runtime.getField(l,"format").app(true));});
+              
+            var marks = new Array();
             
             for (var i = 0; i < locs.length; i++) {
               anchor.addClass(locClasses[i]);
@@ -795,7 +798,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             }
               
             anchor.on("mouseenter", function() {
+              marks = new Array();
               for (var i = 0; i < locClasses.length; i++) {
+                var mark = highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
+                console.log(mark);
+                marks.push(mark);
                 hintLoc(runtime, editors, srcloc, locs[i]);
                 $("."+locClasses[i]).addClass("hover");
               }
@@ -803,9 +810,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             
             anchor.on("mouseleave", function() {
               for (var i = 0; i < locClasses.length; i++) {
+                marks[i].clear();
                 unhintLoc(runtime, editors, srcloc, locs[i]);
                 $("."+locClasses[i]).removeClass("hover");
               }
+              marks = new Array();
             });
             
             anchor.on("click", function() {
