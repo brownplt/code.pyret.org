@@ -623,32 +623,35 @@ span.rationalRepeat {
 }
    
 .error-highlight {
-  background-color: #fcc;
-  border-bottom: 2px solid #F33;
+  background-color: #fcc !important;
+  border-bottom: 2px solid #F33 !important;
 }
 
 .loc-anchor {
   border-bottom: 2px solid currentColor;
 }
 
-.loc-anchor-color-1 {
-  background-color:    hsl(100, 100%, 80%);
-  border-bottom-color: hsl(100, 100%, 50%);}
-.loc-anchor-color-1:hover {
-  background-color:    hsl(100, 100%, 60%);}
+.loc-highlight-color-1 {
+  background-color:        hsl(100, 100%, 80%);
+  border-bottom: 2px solid hsl(100, 100%, 60%);}
+.loc-highlight-color-1:hover,
+.loc-highlight-color-1.hover {
+  background-color:        hsl(100, 100%, 60%);}
 
-.loc-anchor-color-2 {
-  background-color:    hsl(200, 100%, 80%);
-  border-bottom-color: hsl(200, 100%, 50%);}
-.loc-anchor-color-2:hover {
-  background-color:    hsl(200, 100%, 60%);}
+.loc-highlight-color-2 {
+  background-color:        hsl(200, 100%, 80%);
+  border-bottom: 2px solid hsl(200, 100%, 60%);}
+.loc-highlight-color-2:hover,
+.loc-highlight-color-2.hover {
+  background-color:        hsl(200, 100%, 60%);}
   
-.loc-anchor-color-3 {
-  background-color:    hsl(300, 100%, 80%);
-  border-bottom-color: hsl(300, 100%, 50%);}
-.loc-anchor-color-3:hover {
-  background-color:    hsl(300, 100%, 60%);}
-  
+.loc-highlight-color-3 {
+  background-color:        hsl(300, 100%, 80%);
+  border-bottom: 2px solid hsl(300, 100%, 60%);}
+.loc-highlight-color-3:hover,
+.loc-highlight-color-3.hover {
+  background-color:        hsl(300, 100%, 60%);}
+.underline { background-color: initial;}
 
 
 .check-highlight {

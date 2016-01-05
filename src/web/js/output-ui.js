@@ -32,6 +32,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     lessLink.hide();
     return container;
   }
+  
+  //http://stackoverflow.com/a/7627603
+  function cssSanitize(name) {
+    return name.replace(/[^a-z0-9]/g, function(s) {
+        var c = s.charCodeAt(0);
+        if (c == 32) return '-';
+        if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
+        return '__' + ('000' + c.toString(16)).slice(-4);
+    });
+  }
 
   function getLastUserLocation(runtime, srcloc, e, ix) {
     var srclocStack = e.map(runtime.makeSrcloc);
@@ -47,6 +57,73 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     return probablyErrorLocation;
   }
   
+  var warnDesired = 0;
+  var warnWait = 250;
+  var warnDuration = 5000;
+  var fadeAmt = 0.5;
+  
+  function setWarningState(obj) {
+    var opacity = Number(obj.css("opacity"));
+    if (warnDesired !== opacity) {
+      // Only act if the warning is all the way in or out.  The '1'
+      // in the following test is because the initial state is
+      // opacity = 1, though the element is not visible.
+      if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
+        if (warnDesired === fadeAmt) {
+          obj.fadeTo("fast", fadeAmt, function() {
+            setTimeout(function() {
+              obj.fadeTo("slow", 0.0);
+              warnDesired = 0;
+            }, warnDuration) });
+        } else {
+          obj.fadeTo("fast", 0.0);
+        }
+      }
+    }
+  }
+  
+  function hintLoc(runtime, editors, srcloc, loc) {
+    var editor = editors[runtime.getField(loc, "source")];
+    if(!editor) { return; }
+    var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
+    var view = editor.getScrollInfo();
+    var charCh = editor.charCoords(cmLoc.start, "local");
+    $("."+locKey).addClass("hover");
+    if (view.top > charCh.top) {
+      warnDesired = fadeAmt;
+      var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
+      setTimeout(function() {setWarningState(warningUpper);}, warnWait);
+    } else if (view.top + view.clientHeight < charCh.bottom) {
+      warnDesired = fadeAmt;
+      var warningLower = jQuery(editor.getWrapperElement()).find(".warning-lower");
+      setTimeout(function() {setWarningState(warningLower);}, warnWait);
+    }
+  }
+  
+  function unhintLoc(runtime, editors, srcloc, loc) {
+    var editor = editors[runtime.getField(loc, "source")];
+    if(!editor) { return; }
+    var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
+    $("."+locKey).removeClass("hover");
+    warnDesired = 0;
+    setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
+               warnWait);
+    setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
+               warnWait);
+  }
+  
+  function gotoLoc(runtime, editors, srcloc, loc) {
+    var editor = editors[runtime.getField(loc, "source")];
+    if(!editor) { return; }
+    var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    warnDesired = 0;
+    jQuery(".warning-upper").fadeOut("fast");
+    jQuery(".warning-lower").fadeOut("fast");
+    editor.scrollIntoView(cmLoc.start, 100)
+  }
+  
   function hoverSrclocAnchor(runtime, editors, srcloc, elt, loc) {
     var warnDesired = 0;
     var warnWait = 250;
@@ -56,7 +133,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var editor = editors[runtime.getField(loc, "source")];
     if(!editor) { return; }
     cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-    
+    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
     function setWarningState(obj) {
       var opacity = Number(obj.css("opacity"));
       if (warnDesired !== opacity) {
@@ -80,6 +157,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     elt.on("mouseenter", function() {
       var view = editor.getScrollInfo();
       var charCh = editor.charCoords(cmLoc.start, "local");
+      $("."+locKey).addClass("hover");
       if (view.top > charCh.top) {
         warnDesired = fadeAmt;
         var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
@@ -92,6 +170,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     });
     
     elt.on("mouseleave", function() {
+      $("."+locKey).removeClass("hover");
       warnDesired = 0;
       setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
                  warnWait);
@@ -128,6 +207,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         }
       });
     }
+    // not this one
     function highlightSrcloc(s, cls, withMarker) {
       return runtime.safeCall(function() {
         return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
@@ -401,7 +481,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       }
     });
   }
-  
+
   function astFromText(runtime, source, filename) {
     return runtime.loadModules(runtime.namespace, [parsePyret], function(PP) {
       return runtime.unwrap(runtime.getField(PP, "surface-parse").app(source, filename));
@@ -429,10 +509,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   function getSourceContent(editors, runtime, srcloc, loc) {
     console.log("start-getSourceContent");
     cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    console.log(cmLoc.source);
     if(editors.hasOwnProperty(cmLoc.source)) {
       return editors[cmLoc.source].getRange(cmLoc.start, cmLoc.end);
     }
     else {
+      var src = cmLoc.source;
       var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
       console.log(constructors);
       if(isSharedImport(src)) {
@@ -475,16 +557,22 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function highlightSrcloc(runtime, editors, srcloc, loc, cls) {
     return runtime.safeCall(function() {
+      var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
       return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
         "builtin": function(_) { /* no-op */ },
         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
           var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
           var editor = editors[source];
           if(editor) {
-            return editor.markText(
-              cmLoc.start,
-              cmLoc.end,
-              { className: cls });
+            // Don't add duplicate markers
+            if(editor.getWrapperElement().getElementsByClassName(locKey).length > 0) {
+              return editor.findMarks(cmLoc.start, cmLoc.end)[0];
+            } else {
+              return editor.markText(
+                cmLoc.start,
+                cmLoc.end,
+                { className: cls + " " + locKey });
+            }
           } else {
             return null;
           }
@@ -506,7 +594,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         if (!pallet.hasOwnProperty(key)) {
           pallet[key] = colors++;
         }
-        return "loc-anchor-color-" + pallet[key];
+        return "loc-highlight-color-" + pallet[key];
       };
     }
 
@@ -539,6 +627,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return result;
           },
           "h-sequence": function(seq, separator) { 
+            var result = $("<p>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              if (i != 0 && separator !== "") result.append(separator);
+              result.append(help(contents[i]));
+            }
+            return result.children();
+          },
+          "paragraph": function(seq) { 
+            var separator = "";
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
@@ -633,19 +731,90 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           },
           "loc": function(loc) {
             var source = getSourceContent(editors, runtime, srcloc, loc);
-            console.log(source);
-            console.log(astFromText(runtime, source, "poop"));
             return drawSrcloc(editors, runtime, loc);
           },
           "loc-anchor": function(contents, loc) {
             var inner = help(contents);
             var colorClass = pickColor(loc);
-            inner.addClass("loc-anchor");
+            var locClass = cssSanitize(runtime.getField(loc,"format").app(true));
             inner.addClass(colorClass);
+            inner.addClass(locClass);
             highlightSrcloc(runtime, editors, srcloc, loc, colorClass);
-            hoverSrclocAnchor(runtime, editors, srcloc, inner, loc);
+            hoverSrclocAnchor(runtime, editors, srcloc, inner, loc, colorClass);
             return inner;
           },
+          "highlight": function(contents, locs, color) {
+            var anchor = $("<a>").append(help(contents));
+            var colorClass = "loc-highlight-color-" + color;
+            anchor.addClass("highlight");
+            anchor.addClass(colorClass);
+            
+            var locs = ffi.toArray(locs)
+            var locClasses = locs.map(function(l){
+              cssSanitize(runtime.getField(l,"format").app(true));});
+            
+            for (var i = 0; i < locs.length; i++) {
+              anchor.addClass(locClasses[i]);
+              highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
+            }
+              
+            anchor.on("mouseenter", function() {
+              for (var i = 0; i < locClasses.length; i++) {
+                hintLoc(runtime, editors, srcloc, locs[i]);
+                $("."+locClasses[i]).addClass("hover");
+              }
+            });
+            
+            anchor.on("mouseleave", function() {
+              for (var i = 0; i < locClasses.length; i++) {
+                unhintLoc(runtime, editors, srcloc, locs[i]);
+                $("."+locClasses[i]).removeClass("hover");
+              }
+            });
+            
+            anchor.on("click", function() {
+              gotoLoc(runtime, editors, srcloc, locs[0]);
+            });
+            
+            return anchor;
+          },
+          
+          "underline": function(contents, locs, color) {
+            var anchor = $("<a>").append(help(contents));
+            var colorClass = "loc-highlight-color-" + color;
+            anchor.addClass("underline");
+            anchor.addClass(colorClass);
+            
+            var locs = ffi.toArray(locs)
+            var locClasses = locs.map(function(l){
+              cssSanitize(runtime.getField(l,"format").app(true));});
+            
+            for (var i = 0; i < locs.length; i++) {
+              anchor.addClass(locClasses[i]);
+              highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
+            }
+              
+            anchor.on("mouseenter", function() {
+              for (var i = 0; i < locClasses.length; i++) {
+                hintLoc(runtime, editors, srcloc, locs[i]);
+                $("."+locClasses[i]).addClass("hover");
+              }
+            });
+            
+            anchor.on("mouseleave", function() {
+              for (var i = 0; i < locClasses.length; i++) {
+                unhintLoc(runtime, editors, srcloc, locs[i]);
+                $("."+locClasses[i]).removeClass("hover");
+              }
+            });
+            
+            anchor.on("click", function() {
+              gotoLoc(runtime, editors, srcloc, locs[0]);
+            });
+            
+            return anchor;
+          },
+          
           "loc-display": function(loc, style, contents) {
             var inner = help(contents);
             hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
