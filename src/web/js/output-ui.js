@@ -484,16 +484,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function randomHue() {
     // avoid yellow
-    return (Math.random() * 290) + 90) % 360;
+    return ((Math.random() * 290) + 90) % 360;
   }
   
   function makePallet(runtime) {
     return runtime.makeFunction(function(numColors) {
       var pallet = new Array();
-      for(var i=0; i < num_colors; i++) {
+      for(var i=0; i < numColors; i++) {
         pallet.push(randomHue());
       }
-      return ffi.makeList(pallet);
+      return runtime.ffi.makeList(pallet);
     });
   }
 
@@ -585,7 +585,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return editor.markText(
               cmLoc.start,
               cmLoc.end,
-              { className: cls + " " + locKey });
+              { className: locKey});
           }
         } else {
           return null;
@@ -758,9 +758,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           },
           "highlight": function(contents, locs, color) {
             var anchor = $("<a>").append(help(contents));
-            var colorClass = "loc-highlight-color-" + color;
+            var cssColor = "hsl("+color+",100%,80%)";
             anchor.addClass("highlight");
-            anchor.addClass(colorClass);
+            anchor.css('background-color', cssColor);
             
             var locs = ffi.toArray(locs)
             var locClasses = locs.map(
@@ -771,7 +771,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             for (var i = 0; i < locs.length; i++) {
               console.log(locClasses[i]);
               anchor.addClass(locClasses[i]);
-              highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
+              highlightSrcloc(runtime, editors, srcloc, locs[i], cssColor);
+              $("."+locClasses[i]).css('background-color', cssColor);
             }
               
             anchor.on("mouseenter", function() {

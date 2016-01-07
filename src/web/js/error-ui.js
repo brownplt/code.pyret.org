@@ -41,6 +41,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       function drawCompileErrors(e) {
+        console.log(outputUI.makePallet);
         var mkPallet = outputUI.makePallet(runtime);
         function drawCompileError(e) {
           runtime.runThunk(
