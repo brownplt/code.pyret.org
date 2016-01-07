@@ -481,6 +481,21 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       }
     });
   }
+  
+  function randomHue() {
+    // avoid yellow
+    return (Math.random() * 290) + 90) % 360;
+  }
+  
+  function makePallet(runtime) {
+    return runtime.makeFunction(function(numColors) {
+      var pallet = new Array();
+      for(var i=0; i < num_colors; i++) {
+        pallet.push(randomHue());
+      }
+      return ffi.makeList(pallet);
+    });
+  }
 
   function astFromText(runtime, source, filename) {
     return runtime.loadModules(runtime.namespace, [parsePyret], function(PP) {
@@ -1139,7 +1154,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     drawSrcloc: drawSrcloc,
     expandableMore: expandableMore,
     locToAST: locToAST,
-    locToSrc: locToSrc
+    locToSrc: locToSrc,
+    makePallet: makePallet
   };
 
 })

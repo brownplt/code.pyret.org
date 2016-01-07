@@ -41,13 +41,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       function drawCompileErrors(e) {
+        var mkPallet = outputUI.makePallet(runtime);
         function drawCompileError(e) {
-          console.log("asdf");
-          var identity = runtime.makeFunction(function(x){return x;})
-          console.log("b", identity);
           runtime.runThunk(
             function() {
-              return get(e, "render-reason").app(identity); },
+              return get(e, "render-reason").app(mkPallet); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
@@ -124,9 +122,9 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawPyretRuntimeError() {
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
-          var mkSrcloc = runtime.getField(srcloc, "srcloc");
+          var mkPallet = outputUI.makePallet(runtime);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc, mkSrcloc); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc, mkPallet); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
