@@ -640,6 +640,18 @@ span.rationalRepeat {
 }
 
 .highlight { color: #000 !important}
+.highlight.hover:not(:hover) { 
+  animation: pulse 0.5s infinite;
+  animation-direction: alternate;
+}
+
+@keyframes pulse {
+  from {
+  }
+  to {
+    background-color: transparent;
+  }
+}
   
 .underline:not(:hover) { background-color: initial;}
 
