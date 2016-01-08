@@ -294,6 +294,10 @@ $(function() {
             });
 
           function doRunAction(src) {
+            var marks = editor.cm.getAllMarks();
+            for(var i = 0; i < marks.length; i++) {
+              marks[i].clear();
+            }
             switch (currentAction) {
               case "run":
                 replWidget.runCode(src, {check: true, cm: editor.cm});
