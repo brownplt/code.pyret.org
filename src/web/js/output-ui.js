@@ -489,9 +489,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function makePallet(runtime) {
     return runtime.makeFunction(function(numColors) {
+      var start = randomHue();
+      var separation = 270/numColors;
       var pallet = new Array();
       for(var i=0; i < numColors; i++) {
-        pallet.push(randomHue());
+        pallet.push(start + (i * separation));
       }
       return runtime.ffi.makeList(pallet);
     });
@@ -585,7 +587,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return editor.markText(
               cmLoc.start,
               cmLoc.end,
-              { className: locKey});
+              { className: locKey + " " + "highlight", css: "background-color: " + cls });
           }
         } else {
           return null;
@@ -772,7 +774,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               console.log(locClasses[i]);
               anchor.addClass(locClasses[i]);
               highlightSrcloc(runtime, editors, srcloc, locs[i], cssColor);
-              $("."+locClasses[i]).css('background-color', cssColor);
+              //$("."+locClasses[i]).css('background-color', cssColor);
             }
               
             anchor.on("mouseenter", function() {
