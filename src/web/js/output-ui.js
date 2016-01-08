@@ -482,18 +482,14 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     });
   }
   
-  function randomHue() {
-    // avoid yellow
-    return ((Math.random() * 290) + 90) % 360;
-  }
-  
   function makePallet(runtime) {
     return runtime.makeFunction(function(numColors) {
-      var start = randomHue();
-      var separation = 270/numColors;
+      var start = Math.random() * 290;
+      var separation = 290/numColors;
       var pallet = new Array();
       for(var i=0; i < numColors; i++) {
-        pallet.push(start + (i * separation));
+        var hue = (((start + (i * separation)) % 290) + 90) % 360;
+        pallet.push(hue);
       }
       return runtime.ffi.makeList(pallet);
     });
