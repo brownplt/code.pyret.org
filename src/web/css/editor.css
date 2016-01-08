@@ -640,34 +640,6 @@ span.rationalRepeat {
 }
 
 .highlight { color: #000 !important}
-
-.loc-highlight-color-1 {
-  background-color:        hsl(100, 100%, 80%);
-  border-bottom: 2px solid hsl(100, 100%, 60%);}
-.loc-highlight-color-1:hover,
-.loc-highlight-color-1.hover {
-  background-color:        hsl(100, 100%, 60%);}
-
-.loc-highlight-color-2 {
-  background-color:        hsl(200, 100%, 80%);
-  border-bottom: 2px solid hsl(200, 100%, 60%);}
-.loc-highlight-color-2:hover,
-.loc-highlight-color-2.hover {
-  background-color:        hsl(200, 100%, 60%);}
-  
-.loc-highlight-color-3 {
-  background-color:        hsl(300, 100%, 80%);
-  border-bottom: 2px solid hsl(300, 100%, 60%);}
-.loc-highlight-color-3:hover,
-.loc-highlight-color-3.hover {
-  background-color:        hsl(300, 100%, 60%);}
-
-.loc-highlight-color-4 {
-  background-color:        hsl(250, 100%, 80%);
-  border-bottom: 2px solid hsl(250, 100%, 60%);}
-.loc-highlight-color-4:hover,
-.loc-highlight-color-4.hover {
-  background-color:        hsl(250, 100%, 60%);}  
   
 .underline:not(:hover) { background-color: initial;}
 
