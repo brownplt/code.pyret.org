@@ -675,7 +675,9 @@ span.rationalRepeat {
   }
 }
   
-.underline:not(:hover) { background-color: initial;}
+.underline:not(:hover) { 
+  background-color: initial;
+}
 
 
 .check-highlight {
