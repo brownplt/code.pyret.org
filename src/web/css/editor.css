@@ -5,7 +5,7 @@
   border-bottom: none;
 }
 .repl .CodeMirror {
-  background-color: #f8f8f8;
+  background-color: hsl(0,0%,95%);
   line-height: 1.3;
   border: none;
   padding: 0;
@@ -646,10 +646,32 @@ span.rationalRepeat {
 }
 
 @keyframes pulse {
+  from {}
+  to {background-color: transparent;}
+}
+
+.highlight.emphasize:not(:hover)::after { 
+  content : '';
+  position: absolute;
+  height: 1em;
+  width: 1em;
+  background: white;
+  opacity: 0;
+  border-radius: 100%;
+  animation: emphasize 0.5s 1;
+  animation-direction: alternate;
+}
+
+@keyframes emphasize {
   from {
+    display: block;
+    transform: scale(0);
+    opacity: 1.0;
   }
   to {
-    background-color: transparent;
+    display: block;
+    transform: scale(10);
+    opacity: 0;
   }
 }
   

@@ -780,6 +780,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               }
             });
             
+            anchor.on("click", function() {
+              for (var i = 0; i < locClasses.length; i++) {
+                var els = document.getElementsByClassName(locClasses[i]);
+                $(els).addClass("emphasize");
+                setTimeout(function() {
+                  $(els).removeClass("emphasize");
+                }, 500);
+              }
+            });
+            
             anchor.on("mouseleave", function() {
               for (var i = 0; i < locClasses.length; i++) {
                 unhintLoc(runtime, editors, srcloc, locs[i]);
