@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI) {
+define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js", "trove/parse-pyret", "trove/ast"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI, parsePyret, astLib) {
 
  function drawCheckResults(container, editors, runtime, checkResults) {
    var ffi = ffiLib(runtime, runtime.namespace);
@@ -8,7 +8,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
 
    var checkResultsArr = ffi.toArray(checkResults);
 
-   runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib], function(option, srcloc, ED) {
+   runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib, parsePyret, astLib], function(option, srcloc, ED, PP, AST) {
 
      // These counters keep cumulative statistics for all the check blocks.
      var checkTotalAll = 0;
@@ -65,7 +65,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
 
          if (!ffi.isTestSuccess(tr)) {
            runtime.runThunk(
-             function() { return get(tr, "render-reason").app(); },
+             function() { return get(tr, "render-fancy-reason").app(PP, AST, outputUI.makePallet(runtime)); },
              function(out) {
                addPreToTest("replOutputFailed", 
                             "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
