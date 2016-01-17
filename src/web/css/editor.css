@@ -656,7 +656,7 @@ span.rationalRepeat {
 
 .compile-error > code,
 .compile-error > .replTextOutput,
-.parse-error > code
+.parse-error > code,
 .parse-error > .replTextOutput {
   margin-left:2em;
 }
