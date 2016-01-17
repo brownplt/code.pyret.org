@@ -630,7 +630,8 @@ span.rationalRepeat {
 .loc-anchor {
   border-bottom: 2px solid currentColor;
 }
-.compile-error > br {
+.compile-error > br,
+.parse-error > br {
   display:none;
   
 }
@@ -653,7 +654,10 @@ span.rationalRepeat {
   to {background-color: transparent;}
 }
 
-.compile-error > code {
+.compile-error > code,
+.compile-error > .replTextOutput,
+.parse-error > code
+.parse-error > .replTextOutput {
   margin-left:2em;
 }
 
