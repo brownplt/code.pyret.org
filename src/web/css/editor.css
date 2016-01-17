@@ -630,7 +630,10 @@ span.rationalRepeat {
 .loc-anchor {
   border-bottom: 2px solid currentColor;
 }
-
+.compile-error > br {
+  display:none;
+  
+}
 .compile-error {
   line-height: 1.5;
 }
@@ -648,6 +651,14 @@ span.rationalRepeat {
 @keyframes pulse {
   from {}
   to {background-color: transparent;}
+}
+
+.compile-error > code {
+  margin-left:2em;
+}
+
+code div {
+  display:inline;
 }
 
 .highlight.emphasize:not(:hover)::before { 
