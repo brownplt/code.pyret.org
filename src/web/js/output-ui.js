@@ -617,6 +617,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var result = $("<div>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
+              if (i != 0) result.append($("<br>"));
               result.append(help(contents[i]));
             }
             return result;

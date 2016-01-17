@@ -46,7 +46,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawCompileError(e) {
           runtime.runThunk(
             function() {
-              return get(e, "render-reason").app(mkPallet); },
+              return get(e, "render-fancy-reason").app(mkPallet); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
@@ -140,11 +140,14 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretContractFailure(err) {
+          var locToAST = outputUI.locToAST(runtime, editors, srcloc);
+          var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
+          var mkPallet = outputUI.makePallet(runtime);
           var isArg = ffi.isFailArg(err);
           var loc = get(err, "loc");
           var reason = get(err, "reason");
           runtime.runThunk(
-            function() { return get(err, "render-reason").app(); },
+            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc, mkPallet); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
@@ -160,8 +163,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         }
 
         function drawPyretParseError() {
+          var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
+          var mkPallet = outputUI.makePallet(runtime);
           runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToSrc, mkPallet); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);

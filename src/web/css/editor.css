@@ -650,12 +650,13 @@ span.rationalRepeat {
   to {background-color: transparent;}
 }
 
-.highlight.emphasize:not(:hover)::after { 
+.highlight.emphasize:not(:hover)::before { 
   content : '';
   position: absolute;
+  margin-left: 1em;
   height: 1em;
   width: 1em;
-  background: white;
+  box-shadow:0 0 200px 1em black;
   opacity: 0;
   border-radius: 100%;
   animation: emphasize 0.5s 1;
