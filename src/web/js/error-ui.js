@@ -102,23 +102,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             }
           }
         }
-        
-        function oldRuntimeError() {
-          runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(); },
-            function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
-                dom.addClass("compile-error");
-                container.append(dom);
-                dom.append(drawExpandableStackTrace(e));
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.log(errorDisp.exn);
-              }
-            });
-        }
 
         function drawPyretRuntimeError() {
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
@@ -134,7 +117,6 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
                 dom.append(drawExpandableStackTrace(e));
               } else {
                   console.log(errorDisp.exn);
-                  oldRuntimeError();
               }
             });
         }
