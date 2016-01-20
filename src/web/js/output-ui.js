@@ -1,10 +1,9 @@
+"use strict";
 define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/js/gdrive-locators.js", "compiler/compile-structs.arr", "compiler/compile-lib.arr", "trove/parse-pyret"], function(jsnums,share,srclocLib,errordisplayLib,gdriveLocators, compileLib, compileStructs, parsePyret) {
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
   var shareAPI = makeShareAPI("");
-  Math.LN10 = Math.LN10 || Math.log(10);
-  Math.log10 = Math.log10 || function log10(n) { return Math.log(n) / Math.LN10; };
   
   function mapK(inList, f, k, outList) {
     if (inList.length === 0) { k(outList || []); }
@@ -521,7 +520,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function getSourceContent(editors, runtime, srcloc, loc) {
     console.log("start-getSourceContent");
-    cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    let cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
     console.log(cmLoc.source);
     if(editors.hasOwnProperty(cmLoc.source)) {
       return editors[cmLoc.source].getRange(cmLoc.start, cmLoc.end);
@@ -756,99 +755,66 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return inner;
           },
           "highlight": function(contents, locs, color) {
-            var anchor = $("<a>").append(help(contents));
-            var cssColor = "hsl("+color+",100%,80%)";
+            let anchor = $("<a>").append(help(contents));
+            let cssColor = "hsl("+color+",100%,80%)";
             anchor.addClass("highlight");
             anchor.css('background-color', cssColor);
             
-            var locs = ffi.toArray(locs)
-            var locClasses = locs.map(
+            let locArray = ffi.toArray(locs)
+            let locClasses = locArray.map(
               function(l){
                 return cssSanitize(runtime.getField(l,"format").app(true));
               });
+            let cmLocs = locArray.map(
+              function(l){
+                return cmPosFromSrcloc(runtime, srcloc, l);
+              });
             
-            for (var i = 0; i < locs.length; i++) {
-              console.log(locClasses[i]);
+            for (let i = 0; i < locArray.length; i++) {
               anchor.addClass(locClasses[i]);
-              highlightSrcloc(runtime, editors, srcloc, locs[i], cssColor);
+              highlightSrcloc(runtime, editors, srcloc, locArray[i], cssColor);
               //$("."+locClasses[i]).css('background-color', cssColor);
             }
               
             anchor.on("mouseenter", function() {
-              for (var i = 0; i < locClasses.length; i++) {
-                hintLoc(runtime, editors, srcloc, locs[i]);
+              for (let i = 0; i < locClasses.length; i++) {
+                hintLoc(runtime, editors, srcloc, locArray[i]);
                 $("."+locClasses[i]).addClass("hover");
               }
             });
             
             anchor.on("click", function() {
-              for (var i = 0; i < locClasses.length; i++) {
-                var els = document.getElementsByClassName(locClasses[i]);
+              for (let i = 0; i < locClasses.length; i++) {
+                let cmloc = cmLocs[i];
+                let els = document.getElementsByClassName(locClasses[i]);
                 $(els).addClass("emphasize");
+                
+                for(let j = cmloc.start.line; j <= cmLocs[i].end.line; j++) {
+                  editors[cmloc.source].addLineClass(j, "background", "emphasize-line");
+                }
+                
                 setTimeout(function() {
                   $(els).removeClass("emphasize");
+                  for(let k = cmloc.start.line; k <= cmLocs[i].end.line; k++) {
+                    editors[cmloc.source].removeLineClass(k, "background", "emphasize-line");
+                  }
                 }, 500);
               }
             });
             
             anchor.on("mouseleave", function() {
-              for (var i = 0; i < locClasses.length; i++) {
-                unhintLoc(runtime, editors, srcloc, locs[i]);
+              for (let i = 0; i < locClasses.length; i++) {
+                unhintLoc(runtime, editors, srcloc, locArray[i]);
                 $("."+locClasses[i]).removeClass("hover");
               }
             });
             
             anchor.on("click", function() {
-              gotoLoc(runtime, editors, srcloc, locs[0]);
+              gotoLoc(runtime, editors, srcloc, locArray[0]);
             });
             
             return anchor;
           },
-          
-          "underline": function(contents, locs, color) {
-            var anchor = $("<a>").append(help(contents));
-            var colorClass = "loc-highlight-color-" + color;
-            anchor.addClass("underline");
-            anchor.addClass(colorClass);
-            
-            var locs = ffi.toArray(locs)
-            var locClasses = locs.map(function(l){
-              cssSanitize(runtime.getField(l,"format").app(true));});
-              
-            var marks = new Array();
-            
-            for (var i = 0; i < locs.length; i++) {
-              anchor.addClass(locClasses[i]);
-              highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
-            }
-              
-            anchor.on("mouseenter", function() {
-              marks = new Array();
-              for (var i = 0; i < locClasses.length; i++) {
-                var mark = highlightSrcloc(runtime, editors, srcloc, locs[i], colorClass);
-                console.log(mark);
-                marks.push(mark);
-                hintLoc(runtime, editors, srcloc, locs[i]);
-                $("."+locClasses[i]).addClass("hover");
-              }
-            });
-            
-            anchor.on("mouseleave", function() {
-              for (var i = 0; i < locClasses.length; i++) {
-                marks[i].clear();
-                unhintLoc(runtime, editors, srcloc, locs[i]);
-                $("."+locClasses[i]).removeClass("hover");
-              }
-              marks = new Array();
-            });
-            
-            anchor.on("click", function() {
-              gotoLoc(runtime, editors, srcloc, locs[0]);
-            });
-            
-            return anchor;
-          },
-          
           "loc-display": function(loc, style, contents) {
             var inner = help(contents);
             hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
@@ -976,7 +942,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       var echo = $("<span>").addClass("replTextOutput");
       echo.text(renderers.__proto__[valType](val));
       setTimeout(function() {
-        CodeMirror.runMode(echo.text(), "pyret", echo);
+        //CodeMirror.runMode(echo.text(), "pyret", echo);
         echo.addClass("cm-s-default");
       }, 0);
       return echo;

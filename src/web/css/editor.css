@@ -690,7 +690,22 @@ code div {
     opacity: 0;
   }
 }
-  
+
+.emphasize-line { 
+  background: black;
+  opacity: 1;
+  animation: emphasize-line 0.5s;
+}
+
+@keyframes emphasize-line {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .underline:not(:hover) { 
   background-color: initial;
 }
