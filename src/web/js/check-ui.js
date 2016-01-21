@@ -23,11 +23,32 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
 
        var eachContainer = $("<div>").addClass("check-block");
        var testContainer = $("<div>").addClass("check-block-collapsible");
-
+       
+       eachContainer.attr("id", "check-" + outputUI.cssSanitize(runtime.getField(get(cr,"loc"),"format").app(true)));
+       
        function addPreToDom(cssClass, txt, loc) {
          var dom = $("<pre>").addClass(cssClass).text(txt);
-         outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
          eachContainer.append(dom);
+       }
+       
+       function editorMessage(cssClass, loc, msg) {
+         var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
+         editors[cmloc.source].widgets.push(
+           editors[cmloc.source].addLineWidget(cmloc.start.line,
+             function(){ 
+               var marker = document.createElement("div");
+               var checkID = "check-" + outputUI.cssSanitize(runtime.getField(loc,"format").app(true));
+               $(marker).addClass("editor-check-block-message").addClass(cssClass)
+                 .text(msg)
+                 .on("click", function(){
+                   var errorel = document.getElementById(checkID)
+                   $(errorel).toggleClass("emphasize-error").on("animationend", function(){
+                    $(this).removeClass("emphasize-error");});
+                   errorel.scrollIntoView(true);
+                 });
+               return marker;
+             }(),
+             {coverGutter: false, noHScroll: true, above: true}));
        }
 
        // Counters for cumulative stats within a check block.
@@ -65,7 +86,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
 
          if (!ffi.isTestSuccess(tr)) {
            runtime.runThunk(
-             function() { return get(tr, "render-fancy-reason").app(PP, AST, outputUI.makePallet(runtime)); },
+             function() { return get(tr, "render-fancy-reason").app(PP, AST, outputUI.makePalette(runtime)); },
              function(out) {
                addPreToTest("replOutputFailed", 
                             "  test (" + get(tr, "code") + "): failed, reason:", get(tr, "loc"));
@@ -109,7 +130,12 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
          if(get(option, "is-some").app(error)) {
            thisCheckBlockErrored = true;
            checkBlocksErrored = checkBlocksErrored + 1;
-           addPreToDom("replOutputFailed", "  Check block " + name + " ended in an error (all tests may not have run):", get(cr, "loc"));
+           var loc = get(cr, "loc");
+           addPreToDom("replOutputFailed", "  Check block " + name + " ended in an error (all tests may not have run):", loc);
+
+           editorMessage("editor-check-block-error", loc,
+             "Unexpected error caused check-block to fail!");
+
            var errorDiv = $("<div>").addClass("check-block-error");
            errorDiv.hover(function(event) {event.stopPropagation();})
            eachContainer.append(errorDiv);
@@ -125,19 +151,27 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
              addPreToDom("replOutputPassed", "  All " + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
              eachContainer.addClass("check-block-success");
              testContainer.hide();
+             editorMessage("editor-check-block-success", get(cr, "loc"),
+               "All tests passed!");
            } else {
             addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
             eachContainer.addClass("check-block-failed");
             testContainer.hide();
+            editorMessage("editor-check-block-failed", get(cr, "loc"),
+               "" + checkPassed + "/" + checkTotal + " tests passed.");
           }
          } else if (checkTotal == 1 && checkPassed == 1) {
            addPreToDom("replOutputPassed", "  The test passed.", get(cr, "loc"));
            eachContainer.addClass("check-block-success");
            testContainer.hide();
+           editorMessage("editor-check-block-success", get(cr, "loc"),
+               "All tests passed!");
          } else if (checkTotal == 1 && checkPassed == 0) {
            addPreToDom("replOutputFailed", "  The test failed.", get(cr, "loc"));
           eachContainer.addClass("check-block-failed");
           testContainer.hide();
+          editorMessage("editor-check-block-failed", get(cr, "loc"),
+               "All tests failed!");
          }
        }
        checkContainer.append(eachContainer);

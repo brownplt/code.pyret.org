@@ -298,6 +298,9 @@ $(function() {
             for(var i = 0; i < marks.length; i++) {
               marks[i].clear();
             }
+            for(var i = 0; i < editor.cm.widgets.length; i++) {
+              editor.cm.widgets[i].clear();
+            }
             switch (currentAction) {
               case "run":
                 replWidget.runCode(src, {check: true, cm: editor.cm});

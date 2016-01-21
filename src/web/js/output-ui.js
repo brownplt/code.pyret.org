@@ -189,30 +189,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var get = runtime.getField;
     var cases = runtime.ffi.cases;
 
-     // Produces a Code Mirror position from a Pyret location.  Note
-     // that Code Mirror seems to use zero-based lines.
-    function cmPosFromSrcloc(s) {
-      return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
-        "builtin": function(_) {
-           throw new Error("Cannot get CodeMirror loc from builtin location");
-        },
-
-        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-          var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
-          return {
-            start: { line: startL - 1, ch: startC },
-            end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
-          };
-        }
-      });
-    }
-    // not this one
     function highlightSrcloc(s, cls, withMarker) {
       return runtime.safeCall(function() {
         return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
           "builtin": function(_) { /* no-op */ },
           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-            var cmLoc = cmPosFromSrcloc(s);
+            var cmLoc = cmPosFromSrcloc(runtime, srcloc, s);
             var editor = editors[source];
             if(editor) {
               return editor.markText(
@@ -285,7 +267,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
           "builtin": function(_) { },
           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-            var charCh = editor.charCoords(cmPosFromSrcloc(curLoc).start, "local");
+            var charCh = editor.charCoords(cmPosFromSrcloc(runtime, srcloc, curLoc).start, "local");
             if (view.top > charCh.top) {
               warnDesired = fadeAmt;
               // We set a timeout so that a quick pass through the area
@@ -331,7 +313,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           return cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
             "builtin": function(_) { rotateLoc(); gotoNextLoc(); },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-              editor.scrollIntoView(cmPosFromSrcloc(curLoc).start, 100);
+              editor.scrollIntoView(cmPosFromSrcloc(runtime, srcloc, curLoc).start, 100);
               rotateLoc();
             }
           });
@@ -481,16 +463,26 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     });
   }
   
-  function makePallet(runtime) {
+  function emphasizeLine(editors, cmloc) {
+    var editor = editors[cmloc.source];
+    for(var i = cmloc.start.line; i <= cmloc.end.line; i++) {
+      setTimeout(
+        function(){editor.removeLineClass(this, "background", "emphasize-line");}
+          .bind(editor.addLineClass(i, "background", "emphasize-line")),
+        500);
+    }
+  }
+  
+  function makePalette(runtime) {
     return runtime.makeFunction(function(numColors) {
       var start = Math.random() * 290;
       var separation = 290/numColors;
-      var pallet = new Array();
+      var palette = new Array();
       for(var i=0; i < numColors; i++) {
         var hue = (((start + (i * separation)) % 290) + 90) % 360;
-        pallet.push(hue);
+        palette.push(hue);
       }
-      return runtime.ffi.makeList(pallet);
+      return runtime.ffi.makeList(palette);
     });
   }
 
@@ -520,7 +512,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function getSourceContent(editors, runtime, srcloc, loc) {
     console.log("start-getSourceContent");
-    let cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+    var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
     console.log(cmLoc.source);
     if(editors.hasOwnProperty(cmLoc.source)) {
       return editors[cmLoc.source].getRange(cmLoc.start, cmLoc.end);
@@ -598,13 +590,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     
     function makeColorPicker() {
       var colors = 1;
-      var pallet = {};
+      var palette = {};
       return function(loc) {
         key = runtime.getField(loc,"format").app(true);
-        if (!pallet.hasOwnProperty(key)) {
-          pallet[key] = colors++;
+        if (!palette.hasOwnProperty(key)) {
+          palette[key] = colors++;
         }
-        return "loc-highlight-color-" + pallet[key];
+        return "loc-highlight-color-" + palette[key];
       };
     }
 
@@ -755,55 +747,43 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return inner;
           },
           "highlight": function(contents, locs, color) {
-            let anchor = $("<a>").append(help(contents));
-            let cssColor = "hsl("+color+",100%,80%)";
+            var anchor = $("<a>").append(help(contents));
+            var cssColor = "hsl("+color+",100%,80%)";
             anchor.addClass("highlight");
             anchor.css('background-color', cssColor);
             
-            let locArray = ffi.toArray(locs)
-            let locClasses = locArray.map(
-              function(l){
-                return cssSanitize(runtime.getField(l,"format").app(true));
-              });
-            let cmLocs = locArray.map(
-              function(l){
-                return cmPosFromSrcloc(runtime, srcloc, l);
-              });
+            var locArray = ffi.toArray(locs);
             
-            for (let i = 0; i < locArray.length; i++) {
-              anchor.addClass(locClasses[i]);
-              highlightSrcloc(runtime, editors, srcloc, locArray[i], cssColor);
-              //$("."+locClasses[i]).css('background-color', cssColor);
+            var locClasses = locArray.map(
+              function(l){return cssSanitize(runtime.getField(l,"format").app(true))});
+              
+            var cmLocs = locArray.map(
+              function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
+              
+            for (var h = 0; h < locArray.length; h++) {
+              anchor.addClass(locClasses[h]);
+              highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor);
             }
               
             anchor.on("mouseenter", function() {
-              for (let i = 0; i < locClasses.length; i++) {
+              for (var i = 0; i < locClasses.length; i++) {
                 hintLoc(runtime, editors, srcloc, locArray[i]);
                 $("."+locClasses[i]).addClass("hover");
               }
             });
             
             anchor.on("click", function() {
-              for (let i = 0; i < locClasses.length; i++) {
-                let cmloc = cmLocs[i];
-                let els = document.getElementsByClassName(locClasses[i]);
+              for (var z = 0; z < locClasses.length; z++) {
+                var cmloc = cmLocs[z];
+                var els = document.getElementsByClassName(locClasses[z]);
                 $(els).addClass("emphasize");
-                
-                for(let j = cmloc.start.line; j <= cmLocs[i].end.line; j++) {
-                  editors[cmloc.source].addLineClass(j, "background", "emphasize-line");
-                }
-                
-                setTimeout(function() {
-                  $(els).removeClass("emphasize");
-                  for(let k = cmloc.start.line; k <= cmLocs[i].end.line; k++) {
-                    editors[cmloc.source].removeLineClass(k, "background", "emphasize-line");
-                  }
-                }, 500);
+                setTimeout(function() {$(els).removeClass("emphasize");}, 500);
+                emphasizeLine(editors, cmloc);
               }
             });
             
             anchor.on("mouseleave", function() {
-              for (let i = 0; i < locClasses.length; i++) {
+              for (var i = 0; i < locClasses.length; i++) {
                 unhintLoc(runtime, editors, srcloc, locArray[i]);
                 $("."+locClasses[i]).removeClass("hover");
               }
@@ -1127,11 +1107,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     hoverLocs: hoverLocs,
     hoverLink: hoverLink,
     renderErrorDisplay: renderErrorDisplay,
+    cmPosFromSrcloc: cmPosFromSrcloc,
     drawSrcloc: drawSrcloc,
     expandableMore: expandableMore,
+    cssSanitize: cssSanitize,
     locToAST: locToAST,
     locToSrc: locToSrc,
-    makePallet: makePallet
+    makePalette: makePalette
   };
 
 })

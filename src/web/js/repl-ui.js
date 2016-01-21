@@ -46,7 +46,8 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       viewportMargin: Infinity,
       lineNumbers: useLineNumbers,
       matchBrackets: true,
-      lineWrapping: true
+      lineWrapping: true,
+      gutters : ["CodeMirror-linenumbers", "pyret"]
     };
 
     cmOptions = merge(cmOptions, options.cmOptions || {});
@@ -64,6 +65,8 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
+    
+    CM.widgets = new Array();
 
     return {
       cm: CM,

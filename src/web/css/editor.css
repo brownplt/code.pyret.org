@@ -643,15 +643,16 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-.highlight { color: #000 !important}
-.highlight.hover:not(:hover) { 
-  animation: pulse 0.5s infinite;
+.highlight { color: #000 !important;
+}
+.highlight.hover {
+  animation: pulse 0.4s infinite;
   animation-direction: alternate;
 }
 
 @keyframes pulse {
   from {}
-  to {background-color: transparent;}
+  to {background-color:transparent;}
 }
 
 .compile-error > code,
@@ -691,8 +692,8 @@ code div {
   }
 }
 
-.emphasize-line { 
-  background: black;
+.emphasize-line {
+  background-color:#BBB;
   opacity: 1;
   animation: emphasize-line 0.5s;
 }
@@ -987,3 +988,46 @@ code div {
   padding: 5px;
   background-color: #eeeeee;
 }
+
+.CodeMirror-linewidget {
+  width: 100%!important;
+  overflow: visible;
+}
+
+.editor-check-block-message:hover{
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.editor-check-block-message {
+  text-align: center;
+  overflow: none;
+}
+
+.editor-check-block-success {
+  background: hsl(88, 50%, 87%);
+  box-shadow: 0 1em 11px 2px hsl(88, 50%, 87%);
+}
+
+.editor-check-block-failed {
+  background: hsl(45, 100%, 90%);
+  box-shadow: 0 1em 11px 2px hsl(45, 100%, 90%);
+}
+
+.editor-check-block-error {
+  background: hsl(0, 100%, 90%);
+  box-shadow: 0 1em 11px 2px hsl(0, 100%, 90%);
+}
+
+.emphasize-error {
+  animation-name: emphasize-error;
+  animation-duration: 1s;
+  animation-iteration-count: 1;
+}
+
+@keyframes emphasize-error {
+  from {background-color: transparent;}
+  to {}
+}
+
+
