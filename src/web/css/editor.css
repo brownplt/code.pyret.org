@@ -643,12 +643,7 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-.highlight { color: #000 !important;
-}
-.highlight.hover {
-  animation: pulse 0.4s infinite;
-  animation-direction: alternate;
-}
+.highlight { color: #000 !important;}
 
 @keyframes pulse {
   from {}
@@ -676,7 +671,6 @@ code div {
   opacity: 0;
   border-radius: 100%;
   animation: emphasize 0.5s 1;
-  animation-direction: alternate;
 }
 
 @keyframes emphasize {

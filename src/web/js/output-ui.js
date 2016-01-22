@@ -755,7 +755,10 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var locArray = ffi.toArray(locs);
             
             var locClasses = locArray.map(
-              function(l){return cssSanitize(runtime.getField(l,"format").app(true))});
+              function(l){return cssSanitize(runtime.getField(l,"format").app(true));});
+              
+            anchor.attr('title',
+              "Click to scroll source location into view.");
               
             var cmLocs = locArray.map(
               function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
@@ -768,7 +771,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             anchor.on("mouseenter", function() {
               for (var i = 0; i < locClasses.length; i++) {
                 hintLoc(runtime, editors, srcloc, locArray[i]);
-                $("."+locClasses[i]).addClass("hover");
+                $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
               }
             });
             
@@ -776,8 +779,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               for (var z = 0; z < locClasses.length; z++) {
                 var cmloc = cmLocs[z];
                 var els = document.getElementsByClassName(locClasses[z]);
-                $(els).addClass("emphasize");
-                setTimeout(function() {$(els).removeClass("emphasize");}, 500);
                 emphasizeLine(editors, cmloc);
               }
             });
@@ -785,7 +786,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             anchor.on("mouseleave", function() {
               for (var i = 0; i < locClasses.length; i++) {
                 unhintLoc(runtime, editors, srcloc, locArray[i]);
-                $("."+locClasses[i]).removeClass("hover");
+                $("."+locClasses[i]).css("animation", "");
               }
             });
             
