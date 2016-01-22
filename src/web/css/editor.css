@@ -717,10 +717,6 @@ code div {
  border-bottom: 2px solid #33F;
 }
 
-.check-block-error {
-  padding-left: 2em;
-}
-
 .compile-error {
   font-family: sans-serif;
   border: 1px dashed #FF3131;
@@ -1025,12 +1021,6 @@ code div {
 .editor-check-block-error {
   background: hsl(0, 100%, 90%);
   box-shadow: 0 1em 11px 2px hsl(0, 100%, 90%);
-}
-
-.emphasize-error {
-  animation-name: emphasize-error;
-  animation-duration: 1s;
-  animation-iteration-count: 1;
 }
 
 @keyframes emphasize-error {

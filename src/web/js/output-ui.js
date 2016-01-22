@@ -670,7 +670,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               replace(replacement);
               return placeholder;
             }
-            var tryRenderReason = function() { return runtime.getField(val, "render-reason").app(); }
+            var tryRenderReason = function() { return runtime.getField(val, "render-fancy-reason").app(); }
             var processTryRenderReason = function(out) {
               if (runtime.isSuccessResult(out)) {
                 var replacement = help(out.result);
@@ -681,7 +681,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               }
               return placeholder;
             }
-            if (runtime.isObject(val) && runtime.hasField(val, "render-reason")) {
+            if (runtime.isObject(val) && runtime.hasField(val, "render-fancy-reason")) {
               runtime.runThunk(tryRenderReason, processTryRenderReason);
               return placeholder;
             } else {
@@ -1028,6 +1028,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
       else if (runtime.ffi.isVSStr(val)) { container.append(runtime.unwrap(runtime.getField(val, "s"))); }
       else if (runtime.ffi.isVSCollection(val)) {
+        container.addClass("replToggle");
         container.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
         var ul = $("<ul>").addClass("inlineCollection");
         container.append(ul);
@@ -1079,7 +1080,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       // }
     }
     renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
-      var container = $("<span>").addClass("replToggle replOutput");
+      var container = $("<span>").addClass("replOutput");
       return helper(container, top.extra.skeleton, top.done);
     };
   }

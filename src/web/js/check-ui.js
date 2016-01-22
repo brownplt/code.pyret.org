@@ -42,8 +42,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                  .text(msg)
                  .on("click", function(){
                    var errorel = document.getElementById(checkID)
-                   $(errorel).toggleClass("emphasize-error").on("animationend", function(){
-                    $(this).removeClass("emphasize-error");});
+                   errorel.style.animation = "emphasize-error 1s 1";
+                   $(errorel).on("animationend", function(){this.style.animation = "";});
                    errorel.scrollIntoView(true);
                  });
                return marker;
