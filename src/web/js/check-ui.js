@@ -78,10 +78,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
          }
 
          function addReasonToTest(cssClass, errorDisp, loc) {
-           var dom = $("<div>").addClass(cssClass);
+           var dom = $(outputUI.renderErrorDisplay(editors, runtime, errorDisp, [])).addClass(cssClass);
            outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
            eachTest.append(dom);
-           dom.append(outputUI.renderErrorDisplay(editors, runtime, errorDisp, []));
          }
 
          if (!ffi.isTestSuccess(tr)) {

@@ -61,12 +61,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
-   
-
-#output {
-  font-family : monospace;
-}
-
 .inlineExample {
     font-family: monospace;
     padding: 0 2px;
@@ -630,11 +624,20 @@ span.rationalRepeat {
 .loc-anchor {
   border-bottom: 2px solid currentColor;
 }
+
+.replOutputReason {
+  color: black;
+}
+
+.replOutputReason > br,
 .compile-error > br,
 .parse-error > br {
   display:none;
   
 }
+
+.replOutputReason,
+.parse-error,
 .compile-error {
   line-height: 1.5;
 }
@@ -643,16 +646,29 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-.highlight { color: #000 !important;}
-
-@keyframes pulse {
-  from {}
-  to {background-color:transparent;}
+.highlight { 
+  color: #000 !important;
+  border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
 }
 
+@keyframes pulse {
+  from {
+    border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
+  }
+  to {
+    background-color:transparent;
+    border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
+  }
+}
+
+.replOutputReason > code,
+.replOutputReason > .replOutput,
+.replOutputReason > .replTextOutput,
 .compile-error > code,
+.compile-error > .replOutput,
 .compile-error > .replTextOutput,
 .parse-error > code,
+.parse-error > .replOutput,
 .parse-error > .replTextOutput {
   margin-left:2em;
 }
@@ -766,10 +782,6 @@ code div {
 .parse-error a {
   color: #469ad4;
   cursor: pointer;
-}
-
-.parse-error a:hover {
-  text-decoration: underline;
 }
 
 .parse-error ul, .compile-error ul {
