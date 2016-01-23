@@ -577,7 +577,7 @@ ul.inlineCollection > li > span.label {
 
 .replOutputReason, .nestedReason {
  padding-top: 0;
- padding-left: 3.0em;
+ padding-left: 1em;
  color: #af1180;
 }
 

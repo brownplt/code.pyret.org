@@ -147,13 +147,13 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
        if(!thisCheckBlockErrored) {
          if (checkTotal > 1) {
            if (checkPassed == checkTotal) {
-             addPreToDom("replOutputPassed", "  All " + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+             addPreToDom("replOutputPassed", "  All " + checkTotal + " tests passed", get(cr, "loc"));
              eachContainer.addClass("check-block-success");
              testContainer.hide();
              editorMessage("editor-check-block-success", get(cr, "loc"),
                "All tests passed!");
            } else {
-            addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed in check block: " + name, get(cr, "loc"));
+            addPreToDom("replOutput", "  " + checkPassed + "/" + checkTotal + " tests passed", get(cr, "loc"));
             eachContainer.addClass("check-block-failed");
             testContainer.hide();
             editorMessage("editor-check-block-failed", get(cr, "loc"),
