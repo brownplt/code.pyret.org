@@ -268,10 +268,19 @@ $(function() {
           $("#main").prepend(codeContainer);
 
           
-          var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
-              breakButton: $("#breakButton"),
-              runButton: runButton
-            });
+          var replWidget;
+          runtime.runThunk(function() {
+              return replUI.makeRepl(replContainer, repl, runtime, {
+                breakButton: $("#breakButton"),
+                runButton: runButton
+              });
+          }, function(ans) {
+            if (runtime.isSuccessResult(ans)) {
+              replWidget = ans.result;
+            } else {
+              console.error("MakeRepl failed: ", ans);
+            }
+          });
           // NOTE(joe): assigned on window for debuggability
           window.RUN_CODE = function(src, uiOpts, replOpts) {
             doRunAction(src);
