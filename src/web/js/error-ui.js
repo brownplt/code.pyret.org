@@ -1,11 +1,10 @@
-define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js", "/js/share.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
+define(["trove/srcloc", "trove/error", "trove/contracts", "./output-ui.js", "/js/share.js"], function(srclocLib, errorLib, contractsLib, outputUI) {
 
   var shareAPI = makeShareAPI("");
   function drawError(container, editors, runtime, exception) {
-    var ffi = ffiLib(runtime, runtime.namespace);
-    var image = imageLib(runtime, runtime.namespace);
+    var ffi = runtime.ffi;
     var cases = ffi.cases;
-    runtime.loadModules(runtime.namespace, [srclocLib, errorLib, csLib, contractsLib], function(srcloc, error, cs, contracts) {
+    runtime.loadModules(runtime.namespace, [srclocLib, errorLib, contractsLib], function(srcloc, error, contracts) {
       var get = runtime.getField;
       function mkPred(pyretFunName) {
         return function(val) { return get(error, pyretFunName).app(val); }

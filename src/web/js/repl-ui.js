@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib"], function(ffi, util, imageLib, checkUI, errorUI, outputUI, worldLib) {
+define(["js/runtime-util", "trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib"], function(util, imageLib, checkUI, errorUI, outputUI, worldLib) {
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -93,21 +93,20 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     var runtime = callingRuntime;
     var rr = resultRuntime;
     return function(result) {
-      runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
         console.log("Result is: ", result);
         if(callingRuntime.isFailureResult(result)) {
           errorUI.drawError(output, editors, callingRuntime, result.exn);
         }
         else if(callingRuntime.isSuccessResult(result)) {
           result = result.result;
-          ffi.cases(ffi.isEither, "Either", result,
+          runtime.ffi.cases(runtime.ffi.isEither, "Either", result,
             {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
                 var errs = [];
-                var results = ffi.toArray(compileResultErrors);
+                var results = runtime.ffi.toArray(compileResultErrors);
                 results.forEach(function(r) {
-                  errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
+                  errs = errs.concat(runtime.ffi.toArray(runtime.getField(r, "problems")));
                 });
                 errorUI.drawError(output, editors, runtime, {exn: errs});
               },
@@ -141,9 +140,8 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         }
         else {
           console.error("Bad result: ", result);
-          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
+          errorUI.drawError(output, editors, callingRuntime, runtime.ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
         }
-      });
     }
   }
 
