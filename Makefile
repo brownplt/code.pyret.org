@@ -107,13 +107,10 @@ build/web/js/matchkw.js: src/web/js/codemirror/matchkw.js
 build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 	cp $< $@
 
-build/web/js/emacs.js: src/web/js/codemirror/emacs.js
-	cp $< $@
-
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
           build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
-          build/web/js/seedrandom.js build/web/js/emacs.js \
+          build/web/js/seedrandom.js \
           build/web/js/pyret-fold.js \
           build/web/js/matchkw.js
 

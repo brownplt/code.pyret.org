@@ -464,7 +464,6 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         else ls.curClosed.fn++;
         ls.deferedOpened.fn++;
         ls.tokens.push("WANTCOLON", "NEEDSOMETHING");
-        ls.subkwParent = ["if"];
         ls.delimType = pyret_delimiter_type.SUBKEYWORD;
       }
     } else if (state.lastToken === "else") {
@@ -474,7 +473,6 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         else ls.curClosed.fn++;
         ls.deferedOpened.fn++;
         ls.tokens.push("WANTCOLON");
-        ls.subkwParent = ["if"];
         ls.delimType = pyret_delimiter_type.SUBKEYWORD;
       }
     } else if (state.lastToken === "|") {
@@ -501,7 +499,6 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.tokens.push("PROVIDE");
     } else if (state.lastToken === "sharing") {
       ls.curClosed.d++; ls.deferedOpened.s++;
-      ls.subkwParent = ["data"];
       ls.delimType = pyret_delimiter_type.SUBKEYWORD;
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         ls.tokens.pop(); ls.tokens.pop();
@@ -519,13 +516,10 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.curClosed.d++; ls.deferedOpened.s++;
       } else if (hasTop(ls.tokens, "DATA")) {
         ls.curClosed.d++; ls.deferedOpened.s++;
-        ls.subkwParent = ["data"];
       } else if (hasTop(ls.tokens, "FUN")) {
         ls.curClosed.f++; ls.deferedOpened.s++;
-        ls.subkwParent = ["fun", "method"];
       } else if (hasTop(ls.tokens, "SHARED")) {
         ls.curClosed.s++; ls.deferedOpened.s++;
-        ls.subkwParent = ["data"];
       }
       ls.tokens.pop();
       ls.tokens.push("CHECK", "WANTCOLON");
