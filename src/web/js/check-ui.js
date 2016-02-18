@@ -1,7 +1,7 @@
-define(["trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js"], function(optionLib, srclocLib, errordisplayLib, outputUI, errorUI) {
+define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI) {
 
  function drawCheckResults(container, editors, runtime, checkResults) {
-   var ffi = runtime.ffi
+   var ffi = ffiLib(runtime, runtime.namespace);
    var cases = ffi.cases;
    var get = runtime.getField;
    var inspect = runtime.getFields;
