@@ -331,141 +331,137 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     var ffi = runtime.ffi;
     installRenderers(runtime);
 
-    return runtime.runThunk(function() {
-      return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
-        function help(errorDisp) {
-          return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
-            "v-sequence": function(seq) { 
-              var result = $("<div>");
-              var contents = ffi.toArray(seq);
-              for (var i = 0; i < contents.length; i++) {
-                result.append(help(contents[i]));
+    return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
+      function help(errorDisp) {
+        return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+          "v-sequence": function(seq) { 
+            var result = $("<div>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append(help(contents[i]));
+            }
+            return result;
+          },
+          "numbered-sequence": function(seq) { 
+            var result = $("<ol>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append($("<li>").append(help(contents[i])));
+            }
+            return result;
+          },
+          "bulleted-sequence": function(seq) { 
+            var result = $("<ul>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              result.append($("<li>").append(help(contents[i])));
+            }
+            return result;
+          },
+          "h-sequence": function(seq, separator) { 
+            var result = $("<p>");
+            var contents = ffi.toArray(seq);
+            for (var i = 0; i < contents.length; i++) {
+              if (i != 0 && separator !== "") result.append(separator);
+              result.append(help(contents[i]));
+            }
+            return result;
+          },
+          "embed": function(val) {
+            var placeholder = $("<span>").text("Rendering...");
+            var replace = function(replacement) {
+              if ($.contains(document.documentElement, placeholder[0])) {
+                placeholder.replaceWith(replacement);
+              } else {
+                placeholder = replacement;
               }
-              return result;
-            },
-            "numbered-sequence": function(seq) { 
-              var result = $("<ol>");
-              var contents = ffi.toArray(seq);
-              for (var i = 0; i < contents.length; i++) {
-                result.append($("<li>").append(help(contents[i])));
+            }
+            var tryTorepr = function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); }
+            var processTryTorepr = function(out) {
+              var replacement;
+              if (runtime.isSuccessResult(out)) {
+                replacement = out.result;
+              } else {
+                replacement = $("<span>").addClass("output-failed")
+                  .text("<error rendering embedded value; details logged to console>");
+                console.log(out.exn);
               }
-              return result;
-            },
-            "bulleted-sequence": function(seq) { 
-              var result = $("<ul>");
-              var contents = ffi.toArray(seq);
-              for (var i = 0; i < contents.length; i++) {
-                result.append($("<li>").append(help(contents[i])));
-              }
-              return result;
-            },
-            "h-sequence": function(seq, separator) { 
-              var result = $("<p>");
-              var contents = ffi.toArray(seq);
-              for (var i = 0; i < contents.length; i++) {
-                if (i != 0 && separator !== "") result.append(separator);
-                result.append(help(contents[i]));
-              }
-              return result;
-            },
-            "embed": function(val) {
-              var placeholder = $("<span>").text("Rendering...");
-              var replace = function(replacement) {
-                if ($.contains(document.documentElement, placeholder[0])) {
-                  placeholder.replaceWith(replacement);
-                } else {
-                  placeholder = replacement;
-                }
-              }
-              var tryTorepr = function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); }
-              var processTryTorepr = function(out) {
-                var replacement;
-                if (runtime.isSuccessResult(out)) {
-                  replacement = out.result;
-                } else {
-                  replacement = $("<span>").addClass("output-failed")
-                    .text("<error rendering embedded value; details logged to console>");
-                  console.log(out.exn);
-                }
+              replace(replacement);
+              return placeholder;
+            }
+            var tryRenderReason = function() { return runtime.getField(val, "render-reason").app(); }
+            var processTryRenderReason = function(out) {
+              if (runtime.isSuccessResult(out)) {
+                var replacement = help(out.result);
+                $(replacement).addClass("nestedReason");
                 replace(replacement);
-                return placeholder;
-              }
-              var tryRenderReason = function() { return runtime.getField(val, "render-reason").app(); }
-              var processTryRenderReason = function(out) {
-                if (runtime.isSuccessResult(out)) {
-                  var replacement = help(out.result);
-                  $(replacement).addClass("nestedReason");
-                  replace(replacement);
-                } else {
-                  runtime.runThunk(tryTorepr, processTryTorepr);
-                }
-                return placeholder;
-              }
-              if (runtime.isObject(val) && runtime.hasField(val, "render-reason")) {
-                runtime.runThunk(tryRenderReason, processTryRenderReason);
-                return placeholder;
               } else {
                 runtime.runThunk(tryTorepr, processTryTorepr);
-                return placeholder;
               }
-            },
-            "optional": function(contents) {
-              return expandableMore(help(contents));
-            },
-            "text": function(txt) { 
-              return $("<span>").text(txt);
-            },
-            "code": function(contents) {
-              return $("<code>").append(help(contents));
-            },
-            "styled": function(contents, style) {
-              return help(contents).addClass(style);
-            },
-            "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
-              var probablyErrorLocation;
-              if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
-              else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
-              else { probablyErrorLocation = false; }
-              if (probablyErrorLocation) {
-                var placeholder = $("<span>").text("Rendering...");
-                runtime.runThunk(
-                  function() { return contentsWithLoc.app(probablyErrorLocation); },
-                  function(out) {
-                    if (runtime.isSuccessResult(out)) {
-                      var rendered = help(out.result);
-                      if ($.contains(document.documentElement, placeholder[0])) {
-                        placeholder.replaceWith(rendered);
-                      }
-                      else { 
-                        placeholder = rendered;
-                      }
-                      return rendered;
-                    } else {
-                      var msg = $("<span>").addClass("output-failed")
-                        .text("<error rendering embedded contents; details logged to console>");
-                      console.log(out.exn);
-                      return msg;
-                    }
-                  });
-                return placeholder;
-              } else {
-                return help(contentsWithoutLoc);
-              }
-            },
-            "loc": function(loc) { 
-              return drawSrcloc(editors, runtime, loc);
-            },
-            "loc-display": function(loc, style, contents) {
-              var inner = help(contents);
-              hoverLink(editors, runtime, srcloc, inner, loc, style);
-              return inner;
+              return placeholder;
             }
-          });
-        }
-        return help(errorDisp);
-      });
-    }, function(result) {
-    
+            if (runtime.isObject(val) && runtime.hasField(val, "render-reason")) {
+              runtime.runThunk(tryRenderReason, processTryRenderReason);
+              return placeholder;
+            } else {
+              runtime.runThunk(tryTorepr, processTryTorepr);
+              return placeholder;
+            }
+          },
+          "optional": function(contents) {
+            return expandableMore(help(contents));
+          },
+          "text": function(txt) { 
+            return $("<span>").text(txt);
+          },
+          "code": function(contents) {
+            return $("<code>").append(help(contents));
+          },
+          "styled": function(contents, style) {
+            return help(contents).addClass(style);
+          },
+          "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
+            var probablyErrorLocation;
+            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+            else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
+            else { probablyErrorLocation = false; }
+            if (probablyErrorLocation) {
+              var placeholder = $("<span>").text("Rendering...");
+              runtime.runThunk(
+                function() { return contentsWithLoc.app(probablyErrorLocation); },
+                function(out) {
+                  if (runtime.isSuccessResult(out)) {
+                    var rendered = help(out.result);
+                    if ($.contains(document.documentElement, placeholder[0])) {
+                      placeholder.replaceWith(rendered);
+                    }
+                    else { 
+                      placeholder = rendered;
+                    }
+                    return rendered;
+                  } else {
+                    var msg = $("<span>").addClass("output-failed")
+                      .text("<error rendering embedded contents; details logged to console>");
+                    console.log(out.exn);
+                    return msg;
+                  }
+                });
+              return placeholder;
+            } else {
+              return help(contentsWithoutLoc);
+            }
+          },
+          "loc": function(loc) { 
+            return drawSrcloc(editors, runtime, loc);
+          },
+          "loc-display": function(loc, style, contents) {
+            var inner = help(contents);
+            hoverLink(editors, runtime, srcloc, inner, loc, style);
+            return inner;
+          }
+        });
+      }
+      return help(errorDisp);
     });
   }
 
