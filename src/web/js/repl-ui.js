@@ -35,11 +35,19 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
 
     var useLineNumbers = !options.simpleEditor;
 
+    function reindentAllLines(cm) {
+      var last = cm.lineCount();
+      cm.operation(function() {
+        for (var i = 0; i < last; ++i) cm.indentLine(i);
+      });
+    }
+
     var cmOptions = {
       extraKeys: {
         "Shift-Enter": function(cm) { runFun(cm.getValue()); },
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
-        "Tab": "indentAuto"
+        "Tab": "indentAuto",
+        "Ctrl-I": reindentAllLines
       },
       indentUnit: 2,
       tabSize: 2,
