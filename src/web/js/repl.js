@@ -301,6 +301,10 @@ $(function() {
             for(var i = 0; i < editor.cm.widgets.length; i++) {
               editor.cm.widgets[i].clear();
             }
+            var sheet = document.getElementById("highlight-styles").sheet;
+            for(var i=0; i< sheet.rules.length; i++) {
+              sheet.deleteRule(i);
+            }
             switch (currentAction) {
               case "run":
                 replWidget.runCode(src, {check: true, cm: editor.cm});

@@ -1,7 +1,7 @@
 define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js", "/js/share.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
 
   var shareAPI = makeShareAPI("");
-  function drawError(container, editors, runtime, exception) {
+  function drawError(container, editors, runtime, exception, context) {
     var ffi = ffiLib(runtime, runtime.namespace);
     var image = imageLib(runtime, runtime.namespace);
     var cases = ffi.cases;
@@ -49,7 +49,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               return get(e, "render-fancy-reason").app(mkPalette); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], context);
                 dom.addClass("compile-error");
                 container.append(dom); 
               } else {
@@ -111,7 +111,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc, mkPalette); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context);
                 dom.addClass("compile-error");
                 container.append(dom);
                 dom.append(drawExpandableStackTrace(e));
@@ -132,7 +132,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc, mkPalette); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context);
                 dom.addClass("parse-error");
                 container.append(dom);
                 dom.append(drawExpandableStackTrace(e));

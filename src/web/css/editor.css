@@ -61,6 +61,70 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
+.replOutputReason > .highlightToggle {
+  display: none;
+}
+
+.highlightToggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  pointer-events: all;
+  padding-right: 1em;
+  padding-left: 1em;
+  background: hsl(204, 100%, 94%);
+  border-style: dashed;
+  border-color: hsl(0, 100%, 60%);
+  border-width: 0 0 1px 1px;
+  border-bottom-left-radius: 5px;
+  z-index: 100;
+}
+
+.check-block-error.highlights-active .highlightToggle:before,
+.check-block-test.highlights-active .highlightToggle:before {
+  content: 'Highlighted';
+  color:white;
+}
+
+.check-block-error:not(.highlights-active) .highlight,
+.check-block-test:not(.highlights-active) .highlight {
+    background: initial!important;
+}
+
+
+.highlightToggle:before {
+  content:"Highlight this!";
+  position: relative;
+  z-index: 100;
+  color: hsl(204, 74%, 27%);
+}
+
+.highlightToggle:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background: hsl(204, 100%, 74%);
+  transform: scaleX(0);
+  width: 100%;
+  height: 100%;
+  transition: transform .15s ease-in;
+  transform-origin: left;
+}
+
+.check-block-error.highlights-active .highlightToggle:after,
+.check-block-test.highlights-active .highlightToggle:after,
+.highlightToggle:hover:after {
+  transform: scaleX(1);
+}
+
+.highlightToggle:hover:before {
+  color:white;
+}
+
 .inlineExample {
     font-family: monospace;
     padding: 0 2px;
@@ -126,21 +190,18 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor:default;
 }
 
-.check-block-collapsible{
-  margin: 0px -5px;
-  background: rgba(255, 255, 255, 0.6);
+.check-block-test-container,.check-block-error{
+  margin: .5em;
+  margin-top: 1em;
 }
 
-.check-block-collapsible > div:nth-child(1){
-  border-top: 1px solid rgba(0,0,0,0.3);
-}
 
 .check-block-failed {
   background-color: #FFECB3;
 }
 
 .check-block-errored {
-  background-color: #FFECB3;
+  background-color: hsl(0, 100%, 90%);
   margin: 5px;
 }
 
@@ -149,16 +210,37 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   margin: 5px;
 }
 
-.check-block-summary{
+.check-block-summary {
+  font-style: italic;
+}
+
+.testing-summary{
   background-color: #CDDEE7;
   border: 1px solid #1A237E;
 }
 
 .check-block-test{
-  border-bottom: 1px solid rgba(0,0,0,0.3);
-  margin: 5px 0px;
+  position: relative;
   padding: 5px 0px;
 }
+
+.check-block-test:not(:last-child) {
+  border-bottom: 1px solid rgba(0,0,0,0.3);
+}
+
+.check-block-test:first-child {
+    background-image: linear-gradient(180deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
+    background-size: 100% .3em;
+    background-repeat: no-repeat;
+}
+
+.check-block-test:last-child {
+    background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
+    background-size: 100% .3em;
+    background-position:bottom;
+    background-repeat: no-repeat;
+}
+
 
 .check-title{
   padding: 5px;
@@ -639,6 +721,7 @@ span.rationalRepeat {
 .replOutputReason,
 .parse-error,
 .compile-error {
+  position: relative;
   line-height: 1.5;
 }
 
@@ -646,10 +729,7 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-.highlight { 
-  color: #000 !important;
-  border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
-}
+.highlight {color: #000 !important;}
 
 @keyframes pulse {
   from {
@@ -1029,9 +1109,51 @@ code div {
   box-shadow: 0 1em 11px 2px hsl(0, 100%, 90%);
 }
 
+.check-block-error {
+  position: relative;
+}
+
 @keyframes emphasize-error {
-  from {background-color: transparent;}
+  from {background-color: white;}
   to {}
 }
 
+.check-block-test.failing-test {background-color: hsl(45, 100%, 94%);}
+.check-block-test.passing-test {background-color: hsl(90,  50%, 91%);}
 
+.check-block-error.highlights-active .compile-error,
+.check-block-test.highlights-active {
+  background-color: hsla(0,0%,100%,0.9);
+  box-shadow: 0 0 1em;
+  z-index: 101;
+}
+
+.check-block{counter-reset:check-block-tests;}
+.check-block-test{counter-increment: check-block-tests;}
+.check-block-test:before {
+    padding-left:.5em;
+    content: "Test " counter(check-block-tests) ": " attr(data-result);
+    display: inline-block;
+}
+
+.check-block-test .CodeMirror {
+    background:rgba(255,255,255,0.5);
+}
+
+    background-color: hsl(0, 100%, 90%);
+    color: hsl(0, 60%, 33%);
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.erroredTestMarker {background-color: hsl(0, 100%, 90%);} 
+.failedTestMarker {background-color: hsl(45, 100%, 85%);}
+
+.failedTestMarker,
+.erroredTestMarker {
+  cursor: pointer;
+  color: #822;
+  text-decoration: underline;
+  font-weight: bold;
+}

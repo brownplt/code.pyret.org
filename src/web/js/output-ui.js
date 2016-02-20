@@ -32,6 +32,24 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     return container;
   }
   
+  
+  function expandable(dom, name) {
+    var container = $("<div>");
+    var moreLink = $("<a>").text("(Show "+name+"...)");
+    var lessLink = $("<a>").text("(Hide "+name+"...)");
+    function toggle() {
+      dom.toggle();
+      lessLink.toggle();
+      moreLink.toggle();
+    }
+    moreLink.on("click", toggle);
+    lessLink.on("click", toggle);
+    container.append(moreLink).append(lessLink).append(dom);
+    dom.hide();
+    lessLink.hide();
+    return container;
+  }
+  
   //http://stackoverflow.com/a/7627603
   function cssSanitize(name) {
     return name.replace(/[^a-z0-9]/g, function(s) {
@@ -68,12 +86,17 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       // in the following test is because the initial state is
       // opacity = 1, though the element is not visible.
       if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
+        if (warnDesired === 0) {
+          obj[0].style.pointerEvents = "none";
+        } else {
+          obj[0].style.pointerEvents = "all";
+        }
         if (warnDesired === fadeAmt) {
           obj.fadeTo("fast", fadeAmt, function() {
             setTimeout(function() {
               obj.fadeTo("slow", 0.0);
               warnDesired = 0;
-            }, warnDuration) });
+            }, warnDuration);});
         } else {
           obj.fadeTo("fast", 0.0);
         }
@@ -473,14 +496,26 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     }
   }
   
+  var converter = $.colorspaces.converter('CIELAB', 'hex');
+  
+  function hueToRGB(hue) {
+    var a = 40*Math.cos(hue);
+    var b = 40*Math.sin(hue)
+    return converter([74, a, b]);
+  }
+  
+  var goldenAngle = 2.39996322972865332;
+  var lastHue = 0;
+  
   function makePalette(runtime) {
     return runtime.makeFunction(function(numColors) {
       var start = Math.random() * 290;
       var separation = 290/numColors;
       var palette = new Array();
       for(var i=0; i < numColors; i++) {
-        var hue = (((start + (i * separation)) % 290) + 90) % 360;
-        palette.push(hue);
+        ///var hue = (((start + (i * separation)) % 290) + 90) % 360;
+        palette.push(lastHue);
+        lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
       }
       return runtime.ffi.makeList(palette);
     });
@@ -559,7 +594,10 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     console.log(editors);*/
   }
   
-  function highlightSrcloc(runtime, editors, srcloc, loc, cls) {
+  var highlightCounter = 0;
+  
+  function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context) {
+    var styles = document.getElementById("highlight-styles").sheet;
     var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
     return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
       "builtin": function(_) { /* no-op */ },
@@ -567,14 +605,17 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
         var editor = editors[source];
         if(editor) {
-          // Don't add duplicate markers
+          styles.insertRule(
+                ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
+                + " ." + locKey + " { background-color:" + cssColor + 
+                ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}", styles.cssRules.length);
           if(editor.getWrapperElement().getElementsByClassName(locKey).length > 0) {
             return editor.findMarks(cmLoc.start, cmLoc.end)[0];
           } else {
             return editor.markText(
               cmLoc.start,
               cmLoc.end,
-              { className: locKey + " " + "highlight", css: "background-color: " + cls });
+             {className: locKey + " highlight"});
           }
         } else {
           return null;
@@ -582,26 +623,84 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       }
     });
   }
+  
+  function renderStackTrace(runtime, editors, srcloc, error) {
+    var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
+    var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+    var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
+    var container = $("<div>");
+    if(userLocs.length > 0) {
+      container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
+      userLocs.forEach(function(ul) {
+        var slContainer = $("<div>");
+        var sl = drawSrcloc(editors, runtime, ul);
+        slContainer.append(sl);
+        hoverLink(editors, runtime, srcloc, sl, ul, "error-highlight");
+        container.append(slContainer);
+      });
+      return expandable(container, "program execution trace");
+    } else {
+      return container;
+    }
+  }
+  
+  // Returns highlights of an error, excluding those in embedded messages.
+  function errorHighlights(runtime, errorDisp) {
+    var get = runtime.getField;
+    var ffi = runtime.ffi;
+    var highlights = new Array();
+    return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
+      function seqHighlights(seq) {
+        var contents = ffi.toArray(seq);
+        for (var i=0; i < contents.length; i++)
+          highlights.push(help(contents[i]));
+      }
+      function help(errorDisp) {
+        return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+          "v-sequence": seqHighlights,
+          "numbered-sequence": seqHighlights,
+          "bulleted-sequence": seqHighlights,
+          "h-sequence": seqHighlights,
+          "paragraph": seqHighlights,
+          "embed": function(){},
+          "text":  function(){},
+          "optional": help,
+          "code": help,
+          "styled": help,
+          "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
+            var probablyErrorLocation;
+            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+            else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
+            else { probablyErrorLocation = false; }
+            if (probablyErrorLocation) {
+              runtime.runThunk(
+                function() { return contentsWithLoc.app(probablyErrorLocation); },
+                function(out) {
+                  if (runtime.isSuccessResult(out)) {
+                    help(out.result);
+                  }});
+            } else {
+              help(contentsWithoutLoc);
+            }
+          },
+          "loc":         function(){/*TODO?*/},
+          "loc-display": function(){/*TODO?*/},
+          "highlight": function(contents, locs, color) {
+            highlights.push({
+              locs : ffi.toArray(locs).map(
+                function(l){return cmPosFromSrcloc(runtime, srcloc, l);}),
+              color: "hsl("+color+",100%,70%)"});}
+        });
+      }
+      return highlights;
+    });
+  }
 
-  function renderErrorDisplay(editors, runtime, errorDisp, stack) {
+  function renderErrorDisplay(editors, runtime, errorDisp, stack, context) {
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
-    
-    function makeColorPicker() {
-      var colors = 1;
-      var palette = {};
-      return function(loc) {
-        key = runtime.getField(loc,"format").app(true);
-        if (!palette.hasOwnProperty(key)) {
-          palette[key] = colors++;
-        }
-        return "loc-highlight-color-" + palette[key];
-      };
-    }
-
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
-      var pickColor = makeColorPicker();
       function help(errorDisp) {
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) { 
@@ -670,19 +769,59 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               replace(replacement);
               return placeholder;
             }
-            var tryRenderReason = function() { return runtime.getField(val, "render-fancy-reason").app(); }
+            var tryRenderReason = function() { return runtime.getField(val, "render-fancy-reason").app(
+              locToAST(runtime, editors, srcloc),
+              locToSrc(runtime, editors, srcloc),
+              makePalette(runtime));};
             var processTryRenderReason = function(out) {
               if (runtime.isSuccessResult(out)) {
                 var replacement = help(out.result);
-                $(replacement).addClass("nestedReason");
+                $(replacement).addClass("compile-error");
                 replace(replacement);
               } else {
                 runtime.runThunk(tryTorepr, processTryTorepr);
               }
               return placeholder;
             }
-            if (runtime.isObject(val) && runtime.hasField(val, "render-fancy-reason")) {
-              runtime.runThunk(tryRenderReason, processTryRenderReason);
+            
+            function drawExpandableStackTrace(e) {
+              var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
+              var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+              var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
+              var container = $("<div>");
+              if(userLocs.length > 0) {
+                container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
+                userLocs.forEach(function(ul) {
+                  var slContainer = $("<div>");
+                  var sl = drawSrcloc(editors, runtime, ul);
+                  slContainer.append(sl);
+                  hoverLink(editors, runtime, srcloc, sl, ul, "error-highlight");
+                  container.append(slContainer);
+                });
+                return expandable(container, "program execution trace");
+              } else {
+                return container;
+              }
+            }
+            
+            if (runtime.isPyretException(val.val)) {
+              var e = val.val;
+              var container = $("<div>").addClass("compile-error");
+              runtime.runThunk(
+                function() { return get(e.exn, "render-fancy-reason").app(
+                  locToAST(runtime, editors, srcloc),
+                  locToSrc(runtime, editors, srcloc),
+                  makePalette(runtime)); },
+                function(errorDisp) {
+                  if (runtime.isSuccessResult(errorDisp)) {
+                    container = $(renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context))
+                                  .addClass("compile-error");
+                    container.append(drawExpandableStackTrace(e));
+                  } else {
+                      console.log(errorDisp.exn);
+                  }
+                });
+              replace(container);
               return placeholder;
             } else {
               runtime.runThunk(tryTorepr, processTryTorepr);
@@ -736,21 +875,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var source = getSourceContent(editors, runtime, srcloc, loc);
             return drawSrcloc(editors, runtime, loc);
           },
-          "loc-anchor": function(contents, loc) {
-            var inner = help(contents);
-            var colorClass = pickColor(loc);
-            var locClass = cssSanitize(runtime.getField(loc,"format").app(true));
-            inner.addClass(colorClass);
-            inner.addClass(locClass);
-            highlightSrcloc(runtime, editors, srcloc, loc, colorClass);
-            hoverSrclocAnchor(runtime, editors, srcloc, inner, loc, colorClass);
-            return inner;
-          },
           "highlight": function(contents, locs, color) {
-            var anchor = $("<a>").append(help(contents));
-            var cssColor = "hsl("+color+",100%,80%)";
-            anchor.addClass("highlight");
-            anchor.css('background-color', cssColor);
+            var anchor = $("<a>").append(help(contents)).addClass("highlight");
+            var cssColor = hueToRGB(color);
+            //anchor.addClass("highlight");
+            //anchor.css('background-color', cssColor);
             
             var locArray = ffi.toArray(locs);
             
@@ -765,7 +894,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
-              highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor);
+              highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context);
             }
               
             anchor.on("mouseenter", function() {
@@ -803,6 +932,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           }
         });
       }
+      
       return help(errorDisp);
     });
   }
@@ -1108,6 +1238,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     renderPyretValue: renderPyretValue,
     hoverLocs: hoverLocs,
     hoverLink: hoverLink,
+    highlightSrcloc: highlightSrcloc,
+    gotoLoc: gotoLoc,
+    hintLoc: hintLoc,
+    unhintLoc: unhintLoc,
+    emphasizeLine: emphasizeLine,
     renderErrorDisplay: renderErrorDisplay,
     cmPosFromSrcloc: cmPosFromSrcloc,
     drawSrcloc: drawSrcloc,

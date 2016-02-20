@@ -47,7 +47,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lineNumbers: useLineNumbers,
       matchBrackets: true,
       lineWrapping: true,
-      gutters : ["CodeMirror-linenumbers", "pyret"]
+      gutters : ["CodeMirror-linenumbers"]
     };
 
     cmOptions = merge(cmOptions, options.cmOptions || {});
@@ -282,7 +282,8 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       doneRendering.fin(afterRun(false));
     };
 
-    var runner = function(code) {
+    var runner = function(code) {      
+      document.getElementById("main").dataset.highlights = "";
       items.unshift(code);
       pointer = -1;
       var echoContainer = $("<div class='echo-container'>");
