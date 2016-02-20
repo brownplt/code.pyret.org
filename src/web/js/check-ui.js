@@ -157,16 +157,20 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               $(thisTest.children(".highlightToggle")[0]).trigger( "click" );
             });
             var gutterHandle = cm.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
-            cm.on("change",function(cm, change) {
+            var onChange = function(cm, change) {
               var gutterLine = doc.getLineNumber(gutterHandle);
-              var markerLine = textMarker.find().from.line;
+              var markerLoc  = textMarker.find();
+              if(markerLoc === undefined)
+                return;
+              var markerLine = markerLoc.from.line;
               marker.innerHTML = markerLine + 1;
               if(gutterLine != markerLine) {
                 cm.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
                 cm.refresh();
                 gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
               }
-            });
+            };
+            cm.on("change",onChange);
             
             eachTest.append(dom);
             eachTest.attr('data-result', "Failed");

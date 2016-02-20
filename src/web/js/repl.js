@@ -294,6 +294,7 @@ $(function() {
             });
 
           function doRunAction(src) {
+            editor.cm.clearGutter("CodeMirror-linenumber");
             var marks = editor.cm.getAllMarks();
             for(var i = 0; i < marks.length; i++) {
               marks[i].clear();
