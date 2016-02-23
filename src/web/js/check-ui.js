@@ -20,28 +20,26 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
   
       // Sort through all the check blocks.
       checkResultsArr.reverse().forEach(function(cr) {
-  
         var eachContainer = $("<div>").addClass("check-block");
         var testContainer = $("<div>").addClass("check-block-test-container");
+        var checkLoc      = get(cr,"loc");
+        var checkCMLoc    = outputUI.cmPosFromSrcloc(runtime, srcloc, checkLoc);
+        var checkCSS      = outputUI.cmlocToCSSClass(checkCMLoc);
+        var checkCSSID    = "check-" + checkCSS;    
+        eachContainer.attr("id", checkCSSID);
         
-        eachContainer.attr("id", "check-" + outputUI.cssSanitize(runtime.getField(get(cr,"loc"),"format").app(true)));
-        
-        function addPreToDom(cssClass, txt, loc) {
-          var dom = $("<pre>").addClass(cssClass).text(txt);
-          eachContainer.append(dom);
-        }
-        
-        function editorMessage(cssClass, loc, msg) {
-          var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
-          editors[cmloc.source].widgets.push(
-            editors[cmloc.source].addLineWidget(cmloc.start.line,
+        function editorMessage(cssClass, msg) {
+          editors[checkCMLoc.source].widgets.push(
+            editors[checkCMLoc.source].addLineWidget(checkCMLoc.start.line,
               function(){ 
                 var marker = document.createElement("div");
-                var checkID = "check-" + outputUI.cssSanitize(runtime.getField(loc,"format").app(true));
-                $(marker).addClass("editor-check-block-message").addClass(cssClass)
+                $(marker)
+                  .addClass("editor-check-block-message")
+                  .addClass(cssClass)
+                  .attr('id',"check-marker" + checkCSS)
                   .text(msg)
                   .on("click", function(){
-                    var errorel = document.getElementById(checkID);
+                    var errorel = document.getElementById(checkCSSID);
                     errorel.style.animation = "emphasize-error 1s 1";
                     $(errorel).on("animationend", function(){this.style.animation = "";});
                     errorel.scrollIntoView(true);
@@ -55,21 +53,11 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         var checkTotal = 0;
         var checkPassed = 0;
   
-  
-        var loc  = get(cr,"loc");
+        // Check block header
         var name = $("<a>").text(get(cr, "name"))
-          .addClass("highlight")
-          .addClass(outputUI.cssSanitize(get(loc,"format").app(true)));
-        var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
-        name.on("click", function(){
-          outputUI.emphasizeLine(editors, cmloc);
-          outputUI.gotoLoc(runtime, editors, srcloc, loc);});
-        name.on("mouseenter", function(){
-          outputUI.hintLoc(runtime, editors, srcloc, loc);});
-        name.on("mouseleave", function() {
-          outputUI.unhintLoc(runtime, editors, srcloc, loc);});
-        outputUI.hoverLink(editors, runtime, srcloc, name, loc, "error-highlight");
-        
+          .addClass("hinted-highlight")
+          .addClass(checkCSS);
+          
         var trArr = ffi.toArray(get(cr, "test-results"));
         
         eachContainer
@@ -77,11 +65,45 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             .text("Testing Report: ")
             .append(name));
         
-        //addPreToDom("replOutput check-title expandElement", "Check block: " + name, get(cr, "loc"));
         expandButton = $("<pre>").addClass("expandElement expandText").text("Show Details");
         eachContainer.append(expandButton);
         eachContainer.addClass("expandElement");
         var testEditors = new Array();
+        
+        var testNumber = 1;
+        function testTitle(loc, passed) {
+          testNumber++;
+          var header = $("<header>")
+            .addClass("hinted-highlight")
+            .text(
+              "Test " + testNumber + ": " +
+              (passed ? "Passed"
+                      : "Failed"))
+            .attr('alt',"Click to scroll editor to test.");
+          var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
+          var testContext = outputUI.cmlocToCSSClass(cmloc);
+          // Highlight the whole test on hover
+          var testMarker = outputUI.highlightSrcloc(runtime, editors, srcloc, loc, 
+            (passed ? "hsl(88, 50%, 76%)" : "hsl(45, 100%, 85%)"), testContext, false);
+          var currentHighlight = "";
+          var contextManager = document.getElementById("main").dataset;
+          header.on("click", function(e){
+            outputUI.emphasizeLine(editors, cmloc);
+            outputUI.gotoLoc(runtime, editors, srcloc, loc);
+            e.stopPropagation();});
+          header.on("mouseenter", function(e){
+            if(header.parent().hasClass("highlights-active")) return;
+            currentHighlight = contextManager.highlights;
+            contextManager.highlights = testContext;
+            outputUI.hintLoc(runtime, editors, srcloc, loc);
+            e.stopPropagation();});
+          header.on("mouseleave", function(e) {
+            if(header.parent().hasClass("highlights-active")) return;
+            contextManager.highlights = currentHighlight;
+            outputUI.unhintLoc(runtime, editors, srcloc, loc);
+            e.stopPropagation();});
+          return header;
+        }
   
         // Sort through the collection of test results within a check
         // block.
@@ -100,6 +122,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           function addPassToTest(loc) {
             eachTest.attr('data-result', "Passed");
             eachTest.addClass("passing-test");
+            eachTest.prepend(testTitle(loc, true));
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
             var editor = editors[cmloc.source];
             var mainDoc = editors[cmloc.source].getDoc();
@@ -134,9 +157,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           
           function addReasonToTest(cssClass, errorDisp, loc) {
             var dom = $(outputUI.renderErrorDisplay(editors, runtime, errorDisp, [], "eg-"+me)).addClass(cssClass);
-            var reasonID = "reason-" + outputUI.cssSanitize(runtime.getField(loc,"format").app(true));
-            dom.attr('id',reasonID);
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
+            var reasonID = "reason-" + outputUI.cmlocToCSSClass(cmloc);
+            dom.attr('id',reasonID);
             var cm = editors[cmloc.source];
             var doc = cm.getDoc();
             var textMarker = doc.markText(cmloc.start, cmloc.end,
@@ -171,7 +194,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               }
             };
             cm.on("change",onChange);
-            
+            eachTest.append(testTitle(loc, false));
             eachTest.append(dom);
             eachTest.attr('data-result', "Failed");
             eachTest.addClass('failing-test');
@@ -253,13 +276,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           if(get(option, "is-some").app(error)) {
             thisCheckBlockErrored = true;
             checkBlocksErrored = checkBlocksErrored + 1;
-            var loc = get(cr, "loc");
-            var cmloc = get(cr, "loc");
             var errorDiv = $("<div>").addClass("check-block-error");
-            errorDiv.hover(function(event) {event.stopPropagation();})
             errorDiv.text("The unexpected error:");
             eachContainer.append(errorDiv);
-            eachContainer.append("<br/>");
             var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val, "eg-"+me);
             var toggle = $("<div>").addClass("highlightToggle");
             toggle.on('click', function(e){
@@ -272,7 +291,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             errorDiv.children().first().prepend(toggle);
             eachContainer.addClass("check-block-errored");
             summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
-            editorMessage("editor-check-block-error", loc, "Unexpected Error");
+            editorMessage("editor-check-block-error", "Unexpected Error");
             if(checkTotal > 0) {
               testContainer.prepend(
                 "Before the unexpected error, "
@@ -303,47 +322,69 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           summary.text(message);
           editorMessage(((checkTotal == checkPassed) ?
             "editor-check-block-success"
-            : "editor-check-block-failed"), get(cr, "loc"), message);
+            : "editor-check-block-failed"), message);
         }
+        
+        // Highlight the test block name appropriately
+        var nameMarker = outputUI.highlightSrcloc(runtime, editors, srcloc, checkLoc, 
+           eachContainer.hasClass("check-block-success") ? "hsl(88, 50%, 76%)"
+         : eachContainer.hasClass("check-block-failed")  ? "hsl(45, 100%, 85%)"
+         : eachContainer.hasClass("check-block-errored") ? "hsl(0, 100%, 90%)":""
+         , checkCSS, false);
+        var currentHighlight = "";
+        var contextManager = document.getElementById("main").dataset;
+        name.on("click", function(e){
+          outputUI.emphasizeLine(editors, checkCMLoc);
+          outputUI.gotoLoc(runtime, editors, srcloc, checkLoc);
+          e.stopPropagation();});
+        name.on("mouseenter", function(e){
+          currentHighlight = contextManager.highlights;
+          contextManager.highlights = checkCSS;
+          outputUI.hintLoc(runtime, editors, srcloc, checkLoc);
+          e.stopPropagation();});
+        name.on("mouseleave", function(e) {
+          contextManager.highlights = currentHighlight;
+          outputUI.unhintLoc(runtime, editors, srcloc, checkLoc);
+          e.stopPropagation();});
+       
         testContainer.hide();
         name.after(summary);
         checkContainer.append(eachContainer);
       });
   
-      
+      var summary = $("<div>").addClass("check-block testing-summary");
+      var errored;
       // If there was more than one check block, print a message about
       // the grand total of checks and passes.
       if (checkPassedAll == checkTotalAll && checkBlocksErrored === 0) {
         if (checkTotalAll > 0) {
           if (checkTotalAll == 1) {
-            var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, your test passed, mate!");
+            summary.text("Looks shipshape, your test passed, mate!");
           } else if (checkTotalAll == 2) {
-            var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, both tests passed, mate!");
+            summary.text("Looks shipshape, both tests passed, mate!");
           } else {
-            var outerDom = $("<pre>").addClass("replOutput").text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+            summary.text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
           }
         }
-        container.append(outerDom);
       } else {
+        var testsFailedAll = (checkTotalAll - checkPassedAll);
+        function TESTS(n){return n == 1 ? "TEST" : "TESTS";}
+        summary.append(
+          $("<div>").addClass("summary-bits")
+            .append($("<div>").addClass("summary-bit summary-passed").html("<span class='summary-count'>" + checkPassedAll + "</span> " + TESTS(checkPassedAll) + " PASSED"))
+            .append($("<div>").addClass("summary-bit summary-failed").html("<span class='summary-count'>" + testsFailedAll + "</span> " + TESTS(testsFailedAll) + " FAILED")));
+            
         if (checkBlocksErrored > 0) {
-          var sumDiv = $('<div>').addClass("check-block testing-summary");
-          var count = $("<pre>").addClass("replOutput").text(checkPassedAll + " tests passed and " + (checkTotalAll - checkPassedAll) + " failed in all check blocks.");
-          var however = $("<pre>").addClass("replOutputFailed").text("HOWEVER " + checkBlocksErrored + " check block(s) ended in error, so some tests may not have run.");
-          var so = $("<pre>").addClass("replOutputFailed").text("Check the output above to see what errors occured.");
-          sumDiv.append([count, however, so]);
-          checkContainer.append(sumDiv);
-  
+          summary.append($("<div>").addClass("summary-errored")
+            .append($("<span class='summary-count'>").text(checkBlocksErrored))
+            .append($("<span class='summary-text'>")
+              .html(" ended in an unexpected error, and <b>some tests in "
+                + (checkBlocksErrored == 1 ? "this block":"these blocks")
+                + " may not have run</b>.")
+              .prepend($("<code>").text(checkBlocksErrored == 1 ? "check-block":"check-blocks"))));
         }
-        else {
-          if(checkBlockCount > 1) {
-            var outerDom = $("<pre>").addClass("replOutput").text(checkPassedAll + "/" + checkTotalAll + " tests passed in all check blocks");
-            var sumDiv = $('<div>').addClass("check-block testing-summary");
-            sumDiv.append(outerDom);
-            checkContainer.append(sumDiv);
-          }
-        }
-        container.append(checkContainer);
       }
+      container.append(checkContainer.append(summary));
   
     });
   

@@ -393,6 +393,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var id = basename(path);
     return id;
   }
+  
+  function cmlocToCSSClass(cmloc) {
+    return cssSanitize(
+      "hl-" + cmloc.source 
+      + "-" + cmloc.start.line
+      + "-" + cmloc.start.ch
+      + "-" + cmloc.end.line
+      + "-" + cmloc.end.ch);
+  }
 
   function hoverLink(editors, runtime, srcloc, dom, loc, className) {
     // http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript
@@ -593,30 +602,26 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     }
     console.log(editors);*/
   }
-  
-  var highlightCounter = 0;
-  
-  function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context) {
+    
+  function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context, underline) {
+    if (underline === undefined) underline = true;
     var styles = document.getElementById("highlight-styles").sheet;
-    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
     return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
       "builtin": function(_) { /* no-op */ },
       "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
         var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+        var locKey = cmlocToCSSClass(cmLoc);
         var editor = editors[source];
         if(editor) {
           styles.insertRule(
                 ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
                 + " ." + locKey + " { background-color:" + cssColor + 
-                ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}", styles.cssRules.length);
-          if(editor.getWrapperElement().getElementsByClassName(locKey).length > 0) {
-            return editor.findMarks(cmLoc.start, cmLoc.end)[0];
-          } else {
+                (underline ? ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid" : "") + ";}", 
+                styles.cssRules.length);
             return editor.markText(
               cmLoc.start,
               cmLoc.end,
              {className: locKey + " highlight"});
-          }
         } else {
           return null;
         }
@@ -625,8 +630,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   }
   
   function renderStackTrace(runtime, editors, srcloc, error) {
-    var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
-    var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
+    var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
+    var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
     var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
     var container = $("<div>");
     if(userLocs.length > 0) {
@@ -644,64 +649,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     }
   }
   
-  // Returns highlights of an error, excluding those in embedded messages.
-  function errorHighlights(runtime, errorDisp) {
-    var get = runtime.getField;
-    var ffi = runtime.ffi;
-    var highlights = new Array();
-    return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
-      function seqHighlights(seq) {
-        var contents = ffi.toArray(seq);
-        for (var i=0; i < contents.length; i++)
-          highlights.push(help(contents[i]));
-      }
-      function help(errorDisp) {
-        return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
-          "v-sequence": seqHighlights,
-          "numbered-sequence": seqHighlights,
-          "bulleted-sequence": seqHighlights,
-          "h-sequence": seqHighlights,
-          "paragraph": seqHighlights,
-          "embed": function(){},
-          "text":  function(){},
-          "optional": help,
-          "code": help,
-          "styled": help,
-          "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
-            var probablyErrorLocation;
-            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
-            else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
-            else { probablyErrorLocation = false; }
-            if (probablyErrorLocation) {
-              runtime.runThunk(
-                function() { return contentsWithLoc.app(probablyErrorLocation); },
-                function(out) {
-                  if (runtime.isSuccessResult(out)) {
-                    help(out.result);
-                  }});
-            } else {
-              help(contentsWithoutLoc);
-            }
-          },
-          "loc":         function(){/*TODO?*/},
-          "loc-display": function(){/*TODO?*/},
-          "highlight": function(contents, locs, color) {
-            highlights.push({
-              locs : ffi.toArray(locs).map(
-                function(l){return cmPosFromSrcloc(runtime, srcloc, l);}),
-              color: "hsl("+color+",100%,70%)"});}
-        });
-      }
-      return highlights;
-    });
-  }
-
   function renderErrorDisplay(editors, runtime, errorDisp, stack, context) {
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
+    var highlights = new Map();
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
-      function help(errorDisp) {
+      function help(errorDisp, stack) {
         return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) { 
             var result = $("<div>");
@@ -784,26 +738,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               return placeholder;
             }
             
-            function drawExpandableStackTrace(e) {
-              var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
-              var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
-              var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
-              var container = $("<div>");
-              if(userLocs.length > 0) {
-                container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
-                userLocs.forEach(function(ul) {
-                  var slContainer = $("<div>");
-                  var sl = drawSrcloc(editors, runtime, ul);
-                  slContainer.append(sl);
-                  hoverLink(editors, runtime, srcloc, sl, ul, "error-highlight");
-                  container.append(slContainer);
-                });
-                return expandable(container, "program execution trace");
-              } else {
-                return container;
-              }
-            }
-            
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
               var container = $("<div>").addClass("compile-error");
@@ -814,9 +748,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
                   makePalette(runtime)); },
                 function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
-                    container = $(renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context))
+                    container = help(errorDisp.result, e.pyretStack)
                                   .addClass("compile-error");
-                    container.append(drawExpandableStackTrace(e));
+                    container.append(renderStackTrace(runtime,editors, srcloc, e));
                   } else {
                       console.log(errorDisp.exn);
                   }
@@ -878,11 +812,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           "highlight": function(contents, locs, color) {
             var anchor = $("<a>").append(help(contents)).addClass("highlight");
             var cssColor = hueToRGB(color);
+            
             //anchor.addClass("highlight");
             //anchor.css('background-color', cssColor);
             
             var locArray = ffi.toArray(locs);
-            
+
             var locClasses = locArray.map(
               function(l){return cssSanitize(runtime.getField(l,"format").app(true));});
               
@@ -894,7 +829,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
-              highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context);
+              
+              var highlight = highlights.get({l:cmLocs[h],color});
+              if(highlight == undefined) {
+                highlights.set({l:cmLocs[h],color},
+                  highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context));
+              }
             }
               
             anchor.on("mouseenter", function() {
@@ -933,7 +873,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         });
       }
       
-      return help(errorDisp);
+      return help(errorDisp, stack);
     });
   }
 
@@ -1248,6 +1188,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     drawSrcloc: drawSrcloc,
     expandableMore: expandableMore,
     cssSanitize: cssSanitize,
+    cmlocToCSSClass: cmlocToCSSClass,
     locToAST: locToAST,
     locToSrc: locToSrc,
     makePalette: makePalette
