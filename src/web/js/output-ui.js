@@ -108,7 +108,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var editor = editors[runtime.getField(loc, "source")];
     if(!editor) { return; }
     var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
+    var locKey = cmlocToCSSClass(cmLoc);
     var view = editor.getScrollInfo();
     var charCh = editor.charCoords(cmLoc.start, "local");
     $("."+locKey).addClass("hover");
@@ -127,7 +127,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var editor = editors[runtime.getField(loc, "source")];
     if(!editor) { return; }
     var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
+    var locKey = cmlocToCSSClass(cmLoc);
     $("."+locKey).removeClass("hover");
     warnDesired = 0;
     setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
@@ -155,7 +155,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var editor = editors[runtime.getField(loc, "source")];
     if(!editor) { return; }
     cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-    var locKey = cssSanitize(runtime.getField(loc,"format").app(true));
+    var locKey = cmlocToCSSClass(cmLoc);
     function setWarningState(obj) {
       var opacity = Number(obj.css("opacity"));
       if (warnDesired !== opacity) {
@@ -396,7 +396,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function cmlocToCSSClass(cmloc) {
     return cssSanitize(
-      "hl-" + cmloc.source 
+      "" + cmloc.source 
       + "-" + cmloc.start.line
       + "-" + cmloc.start.ch
       + "-" + cmloc.end.line
@@ -817,15 +817,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             //anchor.css('background-color', cssColor);
             
             var locArray = ffi.toArray(locs);
-
-            var locClasses = locArray.map(
-              function(l){return cssSanitize(runtime.getField(l,"format").app(true));});
               
             anchor.attr('title',
               "Click to scroll source location into view.");
               
             var cmLocs = locArray.map(
               function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
+            
+            var locClasses = cmLocs.map(
+              function(l){return cmlocToCSSClass(l);});
               
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
@@ -872,8 +872,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           }
         });
       }
-      
-      return help(errorDisp, stack);
+      var rendering = help(errorDisp, stack);
+      if(context===undefined) rendering.addClass("highlights-active");
+      return rendering;
     });
   }
 
