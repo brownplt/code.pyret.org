@@ -149,200 +149,200 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
 
   //: -> (code -> printing it on the repl)
   function makeRepl(container, repl, runtime, options) {
-    
-    var Jsworld = worldLib(runtime, runtime.namespace);
-    var items = [];
-    var pointer = -1;
-    var current = "";
-    function loadItem() {
-      CM.setValue(items[pointer]);
-    }
-    function saveItem() {
-      items.unshift(CM.getValue());
-    }
-    function prevItem() {
-      if (pointer === -1) {
-        current = CM.getValue();
+    return runtime.loadModulesNew(runtime.namespace, [worldLib], function(Jsworld) {
+      var items = [];
+      var pointer = -1;
+      var current = "";
+      function loadItem() {
+        CM.setValue(items[pointer]);
       }
-      if (pointer < items.length - 1) {
-        pointer++;
-        loadItem();
+      function saveItem() {
+        items.unshift(CM.getValue());
       }
-    }
-    function nextItem() {
-      if (pointer >= 1) {
-        pointer--;
-        loadItem();
-      } else if (pointer === 0) {
-        CM.setValue(current);
-        pointer--;
+      function prevItem() {
+        if (pointer === -1) {
+          current = CM.getValue();
+        }
+        if (pointer < items.length - 1) {
+          pointer++;
+          loadItem();
+        }
       }
-    }
+      function nextItem() {
+        if (pointer >= 1) {
+          pointer--;
+          loadItem();
+        } else if (pointer === 0) {
+          CM.setValue(current);
+          pointer--;
+        }
+      }
 
-    var promptContainer = jQuery("<div class='prompt-container'>");
-    var promptArrow = drawPromptArrow();
-    var prompt = jQuery("<span>").addClass("repl-prompt");
-    function showPrompt() {
-      promptContainer.hide();
-      promptContainer.fadeIn(100);
-      CM.setValue("");
-      CM.focus();
-      CM.refresh();
-    }
-    promptContainer.append(promptArrow).append(prompt);
-
-    container.on("click", function(e) {
-      if($(CM.getTextArea()).parent().offset().top < e.pageY) {
+      var promptContainer = jQuery("<div class='prompt-container'>");
+      var promptArrow = drawPromptArrow();
+      var prompt = jQuery("<span>").addClass("repl-prompt");
+      function showPrompt() {
+        promptContainer.hide();
+        promptContainer.fadeIn(100);
+        CM.setValue("");
         CM.focus();
+        CM.refresh();
       }
-    });
+      promptContainer.append(promptArrow).append(prompt);
 
-    var output = jQuery("<div id='output' class='cm-s-default'>");
-    runtime.setStdout(function(str) {
-        ct_log(str);
-        output.append($("<pre>").addClass("replPrint").text(str));
-      });
-    runtime.setParam("current-animation-port", function(dom) {
-        animationDiv = $("<div>").css({"z-index": 10000});
-        output.append(animationDiv);
-        function onClose() {
-          Jsworld.shutdown({ cleanShutdown: true });
-          showPrompt();
+      container.on("click", function(e) {
+        if($(CM.getTextArea()).parent().offset().top < e.pageY) {
+          CM.focus();
         }
-        animationDiv.dialog({
-          title: 'big-bang',
-          position: ["left", "top"],
-			    bgiframe : true,
-			    modal : true,
-			    overlay : { opacity: 0.5, background: 'black'},
-			    //buttons : { "Save" : closeDialog },
-          width : "auto",
-          height : "auto",
-          close : onClose,
-          closeOnEscape : true
+      });
+
+      var output = jQuery("<div id='output' class='cm-s-default'>");
+      runtime.setStdout(function(str) {
+          ct_log(str);
+          output.append($("<pre>").addClass("replPrint").text(str));
         });
-        animationDiv.append(dom);
-      });
-
-    var breakButton = options.breakButton;
-    container.append(output).append(promptContainer);
-
-    var img = $("<img>").attr({
-      "src": "/img/pyret-spin.gif",
-      "width": "25px",
-    }).css({
-      "vertical-align": "middle"
-    });
-    var runContents;
-    function afterRun(cm) {
-      return function() {
-        options.runButton.empty();
-        options.runButton.append(runContents);
-        options.runButton.attr("disabled", false);
-        breakButton.attr("disabled", true);
-        if(cm) {
-          cm.setValue("");
-          cm.setOption("readonly", false);
-          cm.getDoc().eachLine(function (line) {
-            cm.removeLineClass(line, 'background', 'cptteach-fixed');
+      runtime.setParam("current-animation-port", function(dom) {
+          animationDiv = $("<div>").css({"z-index": 10000});
+          output.append(animationDiv);
+          function onClose() {
+            Jsworld.shutdown({ cleanShutdown: true });
+            showPrompt();
+          }
+          animationDiv.dialog({
+            title: 'big-bang',
+            position: ["left", "top"],
+  			    bgiframe : true,
+  			    modal : true,
+  			    overlay : { opacity: 0.5, background: 'black'},
+  			    //buttons : { "Save" : closeDialog },
+            width : "auto",
+            height : "auto",
+            close : onClose,
+            closeOnEscape : true
           });
-        }
-        output.get(0).scrollTop = output.get(0).scrollHeight;
-        showPrompt();
-      }
-    }
-    function setWhileRunning() {
-      runContents = options.runButton.contents();
-      options.runButton.empty();
-      var text = $("<span>").text("Running...");
-      text.css({
+          animationDiv.append(dom);
+        });
+
+      var breakButton = options.breakButton;
+      container.append(output).append(promptContainer);
+
+      var img = $("<img>").attr({
+        "src": "/img/pyret-spin.gif",
+        "width": "25px",
+      }).css({
         "vertical-align": "middle"
       });
-      options.runButton.append([img, text]);
-      options.runButton.attr("disabled", true);
-    }
-
-    var runMainCode = function(src, uiOptions) {
-      breakButton.attr("disabled", false);
-      output.empty();
-      promptContainer.hide();
-      lastEditorRun = uiOptions.cm || null;
-      setWhileRunning();
-
-      editors = {};
-      editors["definitions"] = uiOptions.cm;
-      interactionsCount = 0;
-      var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
-      var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
-        console.error("Error displaying result: ", err);
-      });
-      doneRendering.fin(afterRun(false));
-    };
-
-    var runner = function(code) {
-      items.unshift(code);
-      pointer = -1;
-      var echoContainer = $("<div class='echo-container'>");
-      var echoSpan = $("<span>").addClass("repl-echo");
-      var echo = $("<textarea>");
-      echoSpan.append(echo);
-      echoContainer.append(drawPromptArrow()).append(echoSpan);
-      write(echoContainer);
-      var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
-      echoCM.setValue(code);
-      breakButton.attr("disabled", false);
-      CM.setValue("");
-      promptContainer.hide();
-      setWhileRunning();
-      interactionsCount++;
-      var thisName = 'interactions' + interactionsCount;
-      editors[thisName] = echoCM;
-      var replResult = repl.run(code, thisName);
-      var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
-        console.error("Error displaying result: ", err);
-      });
-      doneRendering.fin(afterRun(CM));
-    };
-
-    var CM = makeEditor(prompt, runtime, {
-      simpleEditor: true,
-      run: runner,
-      initial: "",
-      cmOptions: {
-        extraKeys: {
-          'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
-          'Shift-Enter': "newlineAndIndent",
-          'Up': prevItem,
-          'Down': nextItem,
-          'Ctrl-Up': "goLineUp",
-          'Ctrl-Alt-Up': "goLineUp",
-          'Ctrl-Down': "goLineDown",
-          'Ctrl-Alt-Down': "goLineDown"
+      var runContents;
+      function afterRun(cm) {
+        return function() {
+          options.runButton.empty();
+          options.runButton.append(runContents);
+          options.runButton.attr("disabled", false);
+          breakButton.attr("disabled", true);
+          if(cm) {
+            cm.setValue("");
+            cm.setOption("readonly", false);
+            cm.getDoc().eachLine(function (line) {
+              cm.removeLineClass(line, 'background', 'cptteach-fixed');
+            });
+          }
+          output.get(0).scrollTop = output.get(0).scrollHeight;
+          showPrompt();
         }
       }
-    }).cm;
+      function setWhileRunning() {
+        runContents = options.runButton.contents();
+        options.runButton.empty();
+        var text = $("<span>").text("Running...");
+        text.css({
+          "vertical-align": "middle"
+        });
+        options.runButton.append([img, text]);
+        options.runButton.attr("disabled", true);
+      }
 
-    var lastNameRun = 'interactions';
-    var lastEditorRun = null;
+      var runMainCode = function(src, uiOptions) {
+        breakButton.attr("disabled", false);
+        output.empty();
+        promptContainer.hide();
+        lastEditorRun = uiOptions.cm || null;
+        setWhileRunning();
 
-    var write = function(dom) {
-      output.append(dom);
-    };
+        editors = {};
+        editors["definitions"] = uiOptions.cm;
+        interactionsCount = 0;
+        var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
+        var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+          console.error("Error displaying result: ", err);
+        });
+        doneRendering.fin(afterRun(false));
+      };
 
-    var onBreak = function() {
+      var runner = function(code) {
+        items.unshift(code);
+        pointer = -1;
+        var echoContainer = $("<div class='echo-container'>");
+        var echoSpan = $("<span>").addClass("repl-echo");
+        var echo = $("<textarea>");
+        echoSpan.append(echo);
+        echoContainer.append(drawPromptArrow()).append(echoSpan);
+        write(echoContainer);
+        var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
+        echoCM.setValue(code);
+        breakButton.attr("disabled", false);
+        CM.setValue("");
+        promptContainer.hide();
+        setWhileRunning();
+        interactionsCount++;
+        var thisName = 'interactions' + interactionsCount;
+        editors[thisName] = echoCM;
+        var replResult = repl.run(code, thisName);
+        var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+          console.error("Error displaying result: ", err);
+        });
+        doneRendering.fin(afterRun(CM));
+      };
+
+      var CM = makeEditor(prompt, runtime, {
+        simpleEditor: true,
+        run: runner,
+        initial: "",
+        cmOptions: {
+          extraKeys: {
+            'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
+            'Shift-Enter': "newlineAndIndent",
+            'Up': prevItem,
+            'Down': nextItem,
+            'Ctrl-Up': "goLineUp",
+            'Ctrl-Alt-Up': "goLineUp",
+            'Ctrl-Down': "goLineDown",
+            'Ctrl-Alt-Down': "goLineDown"
+          }
+        }
+      }).cm;
+
+      var lastNameRun = 'interactions';
+      var lastEditorRun = null;
+
+      var write = function(dom) {
+        output.append(dom);
+      };
+
+      var onBreak = function() {
+        breakButton.attr("disabled", true);
+        repl.stop();
+        closeAnimationIfOpen();
+        Jsworld.shutdown({ cleanShutdown: true });
+        showPrompt();
+      };
+
       breakButton.attr("disabled", true);
-      repl.stop();
-      closeAnimationIfOpen();
-      Jsworld.shutdown({ cleanShutdown: true });
-      showPrompt();
-    };
+      breakButton.click(onBreak);
 
-    breakButton.attr("disabled", true);
-    breakButton.click(onBreak);
-
-    return {
-      runCode: runMainCode,
-      focus: function() { CM.focus(); }
+      return {
+        runCode: runMainCode,
+        focus: function() { CM.focus(); }
+      };
     };
   }
 
