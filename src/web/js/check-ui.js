@@ -365,6 +365,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           } else {
             summary.text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
           }
+          container.append(checkContainer.append(summary));
         }
       } else {
         var testsFailedAll = (checkTotalAll - checkPassedAll);
@@ -383,11 +384,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                 + " may not have run</b>.")
               .prepend($("<code>").text(checkBlocksErrored == 1 ? "check-block":"check-blocks"))));
         }
+        container.append(checkContainer.append(summary));
       }
-      container.append(checkContainer.append(summary));
-  
     });
-  
   }
   
   return {
