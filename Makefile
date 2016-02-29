@@ -103,13 +103,25 @@ build/web/js/runmode.js: $(CM)/addon/runmode/runmode.js
 build/web/js/matchbrackets.js: $(CM)/addon/edit/matchbrackets.js
 	cp $< $@
 
+build/web/js/pyret-fold.js: $(CM)/addon/fold/pyret-fold.js
+	cp $< $@
+
+build/web/js/matchkw.js: $(CM)/addon/edit/matchkw.js
+	cp $< $@
+
 build/web/js/pyret-mode.js: $(CM)/mode/pyret/pyret.js
 	cp $< $@
 
 build/web/js/emacs.js: $(CM)/keymap/emacs.js
 	cp $< $@
 
-MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js build/web/js/codemirror.js build/web/js/runmode.js build/web/js/matchbrackets.js build/web/js/pyret-mode.js build/web/js/s-expression-lib.js build/web/js/seedrandom.js build/web/js/emacs.js
+MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
+          build/web/js/codemirror.js build/web/js/matchbrackets.js \
+          build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
+          build/web/js/seedrandom.js build/web/js/emacs.js \
+          build/web/js/pyret-fold.js \
+          build/web/js/matchkw.js \
+	  build/web/js/runmode.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
@@ -146,9 +158,7 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
-
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF)  build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
 clean:
 	rm -rf build/

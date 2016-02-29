@@ -24,12 +24,11 @@
     <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
     <div id="docs"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
     <div class="loginOnly" id="drive-view"><a target="_blank" href="javascript:void(0)">View Files in Drive</a></div>
-    <div id="font"><div id="font-plus">+</div><div id="font-label">Font</div><div id="font-minus">-</div></div>
+    <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
     <div id="issues"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
     <div id="discuss"><a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a></div>
     <div id="logout"><a href="/logout">Log out</a></div>
   </div>
-  <span id="notification" class="notificationArea"></span>
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
     <span id="runDropdown" class="dropdown rhs">↴</span>
@@ -43,6 +42,7 @@
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
+<div id="notification" class="notificationArea"></div>
 <div id="REPL" class="replContainer">
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
@@ -76,9 +76,11 @@
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/runmode.js"></script>
-<script src="/js/matchbrackets.js"></script>
-<script src="/js/draw.js"></script>
 <script src="/js/pyret-mode.js"></script>
+<script src="/js/matchbrackets.js"></script>
+<script src="/js/pyret-fold.js"></script>
+<script src="/js/matchkw.js"></script>
+<script src="/js/draw.js"></script>
 <script src="/js/require.js"></script>
 <script>
   window.module = {};
