@@ -699,15 +699,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         });
       } else if (runtime.ffi.isVSConstr(val)) {
         container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
-        var items = runtime.ffi.toArray(runtime.getField(val, "items"));
-        for (var i = items.length - 1; i >= 0; i--) {
+        var items = runtime.ffi.toArray(runtime.getField(val, "args"));
+        for (var i = 0; i < items.length; i++) {
+          if (i > 0) { container.append($("<span>").text(", ")); }
           helper(container, items[i], values);
-          if (i != 0) { container.append($("<span>").text(", ")); }
         }
         container.append($("<span>").text(")"));
       } else {
         var items = runtime.ffi.toArray(runtime.getField(val, "items"));
-        for (var i = items.length - 1; i >= 0; i--) {
+        for (var i = 0; i < items.length; i++) {
           helper(container, items[i], values);
         }
       }
