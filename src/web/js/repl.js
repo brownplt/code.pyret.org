@@ -259,7 +259,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            editor.cm.setValue("print('Ahoy, world!')");
+            //editor.cm.setValue("print('Ahoy, world!')");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
@@ -583,34 +583,53 @@ $(function() {
           }
 
           window.saveJSFile = function() {
+            var progName = $("#program-name").val() + ".js";
+            function createFile(text) {
+              storageAPI.then(function(api) {
+                var jsfile = api.createFile(progName);
+                jsfile.then(function(f) {
+                  f.save(text).
+                    then(function(f) {
+                      return f.makeShareCopy();
+                    }).
+                    then(function(copied) {
+                      console.log(makeImportText(progName, copied.getUniqueId()));
+                    });
+                });
+              });
+            }
             function makeImportText(name, id) {
-              return "import gdrive-js(\"" + name + "\", \"" + id + "\") as G";
+              return "import compiled-gdrive-js(\"" + name + "\", \"" + id + "\") as G";
             }
             var str = editor.cm.getValue();
-            require(["js/eval-lib", "compiler/compile-structs.arr"], function(e, cs) {
-              runtime.loadModules(runtime.namespace, [cs],
-                function(mod) {
-                  var progName = $("#program-name").val() + ".js";
-                  e.runCompileSrcPyret(runtime, str, {name: "gdrive-js/" + progName}, function(result) {
-                    storageAPI.then(function(api) {
-                      var jsfile = api.createFile(progName);
-                      jsfile.then(function(f) {
-                        if(!runtime.isSuccessResult(result)) {
-                          console.error("Failed to create JS file", result);
-                        }
-                        else {
-                          f.save(result.result).
-                            then(function(f) {
-                              return f.makeShareCopy();
-                            }).
-                            then(function(copied) {
-                              console.log(makeImportText(progName, copied.getUniqueId()));
-                            });
-                        }
-                      });
+            require([ 
+              "compiler/compile-lib.arr",
+              "compiler/compile-structs.arr",
+              "compiler/repl-support.arr"], function(cl, cs, rs) {
+              runtime.runThunk(function(_, __) {
+                return runtime.loadModulesNew(runtime.namespace, [cl, cs, rs],
+                  function(cl, mod, rs) {
+                    return runtime.safeCall(function() {
+                      return gmf(cl, "compile-to-js-string").app(
+                        runtime.makeFunction(globals.findModule),
+                        editor.cm.getValue(),
+                        progName,
+                        runtime.nothing,
+                        gmf(mod, "default-compile-options")
+                      );
+                    }, 
+                    function(string) {
+                      return string;
                     });
-                  });
-                });
+                 });
+              }, function(result) {
+                if(runtime.isSuccessResult(result)) {
+                  createFile(result.result);
+                }
+                else {
+                  console.error("Error: ", result);
+                }
+              });
             });
           };
 
@@ -732,9 +751,9 @@ function flashError(message) {
 }
 function flashMessage(message) {
   clearFlash();
-  var err = $("<div>").addClass("active").text(message);
-  $(".notificationArea").prepend(err);
-  err.fadeOut(7000);
+  var msg = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(msg);
+  msg.fadeOut(7000);
 }
 function stickMessage(message) {
   clearFlash();

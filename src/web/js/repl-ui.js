@@ -35,17 +35,28 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
 
     var useLineNumbers = !options.simpleEditor;
 
+    function reindentAllLines(cm) {
+      var last = cm.lineCount();
+      cm.operation(function() {
+        for (var i = 0; i < last; ++i) cm.indentLine(i);
+      });
+    }
+
     var cmOptions = {
       extraKeys: {
         "Shift-Enter": function(cm) { runFun(cm.getValue()); },
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
-        "Tab": "indentAuto"
+        "Tab": "indentAuto",
+        "Ctrl-I": reindentAllLines
       },
       indentUnit: 2,
       tabSize: 2,
       viewportMargin: Infinity,
       lineNumbers: useLineNumbers,
+      matchKeywords: true,
       matchBrackets: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
       lineWrapping: true
     };
 
@@ -94,7 +105,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     var rr = resultRuntime;
     return function(result) {
       runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
-        console.log("Result is: ", result);
+        console.log("Management/compile run stats:", JSON.stringify(result.stats));
         if(callingRuntime.isFailureResult(result)) {
           errorUI.drawError(output, editors, callingRuntime, result.exn);
         }
@@ -117,6 +128,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                   "repl-ui",
                   function(loadLib) {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
+                    console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       if(!isMain) {
                         var answer = rr.getColonField(runResult.result, "answer");
@@ -129,7 +141,6 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                       checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
                       scroll(output);
 
-                      console.log(JSON.stringify(runResult.stats));
                       return true;
                     
                     } else {
