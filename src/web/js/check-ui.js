@@ -179,6 +179,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               thisTest[0].scrollIntoView(true);
               $(thisTest.children(".highlightToggle")[0]).trigger( "click" );
             });
+            
             var gutterHandle = cm.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
             var onChange = function(cm, change) {
               var gutterLine = doc.getLineNumber(gutterHandle);
@@ -202,7 +203,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           
           if (!ffi.isTestSuccess(tr)) {
             runtime.runThunk(
-              function() { return get(tr, "render-fancy-reason").app(PP, AST, outputUI.makePalette(runtime)); },
+              function() { return get(tr, "render-fancy-reason").app(PP, AST); },
               function(out) {
                 if (runtime.isSuccessResult(out)) {
                     var toggle = $("<div>").addClass("highlightToggle");
@@ -301,6 +302,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             var errorLoc = runtime.makeSrcloc(get(get(cr, "maybe-err"), "value").val.pyretStack[0]);
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
             var editor = editors[cmloc.source];
+            var textMarker = editor.markText(cmloc.start, cmloc.end,
+                            {inclusiveLeft:false, inclusiveRight:false});
             var thisContainer = eachContainer;
             var marker = document.createElement("div");
             marker.innerHTML = cmloc.start.line + 1;

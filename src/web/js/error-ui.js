@@ -41,12 +41,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       function drawCompileErrors(e) {
-        console.log(outputUI.makePalette);
-        var mkPalette = outputUI.makePalette(runtime);
         function drawCompileError(e) {
           runtime.runThunk(
             function() {
-              return get(e, "render-fancy-reason").app(mkPalette); },
+              return get(e, "render-fancy-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], context);
@@ -106,9 +104,8 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawPyretRuntimeError() {
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
-          var mkPalette = outputUI.makePalette(runtime);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc, mkPalette); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context);
@@ -124,12 +121,11 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawPyretContractFailure(err) {
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
-          var mkPalette = outputUI.makePalette(runtime);
           var isArg = ffi.isFailArg(err);
           var loc = get(err, "loc");
           var reason = get(err, "reason");
           runtime.runThunk(
-            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc, mkPalette); },
+            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context);
@@ -146,9 +142,8 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
         function drawPyretParseError() {
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
-          var mkPalette = outputUI.makePalette(runtime);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(locToSrc, mkPalette); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);

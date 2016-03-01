@@ -515,20 +515,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   var goldenAngle = 2.39996322972865332;
   var lastHue = 0;
-  
-  function makePalette(runtime) {
-    return runtime.makeFunction(function(numColors) {
-      var start = Math.random() * 290;
-      var separation = 290/numColors;
-      var palette = new Array();
-      for(var i=0; i < numColors; i++) {
-        ///var hue = (((start + (i * separation)) % 290) + 90) % 360;
-        palette.push(lastHue);
-        lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-      }
-      return runtime.ffi.makeList(palette);
-    });
-  }
 
   function astFromText(runtime, source, filename) {
     return runtime.loadModules(runtime.namespace, [parsePyret], function(PP) {
@@ -653,6 +639,18 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var get = runtime.getField;
     var ffi = runtime.ffi;
     installRenderers(runtime);
+    
+    var makePalette = function(){
+      var palette = new Array();
+      return function(n){
+        if(palette[n] === undefined) {
+          lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+          palette[n] = lastHue;
+        }
+        return palette[n];
+      };};
+      
+    var palette = makePalette();
     var highlights = new Map();
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
       function help(errorDisp, stack) {
@@ -718,15 +716,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               } else {
                 replacement = $("<span>").addClass("output-failed")
                   .text("<error rendering embedded value; details logged to console>");
-                console.log(out.exn);
+                console.error(out.exn);
               }
               replace(replacement);
               return placeholder;
             }
-            var tryRenderReason = function() { return runtime.getField(val, "render-fancy-reason").app(
-              locToAST(runtime, editors, srcloc),
-              locToSrc(runtime, editors, srcloc),
-              makePalette(runtime));};
+            var tryRenderReason = function() { 
+              return runtime.getField(val, "render-fancy-reason").app(
+                locToAST(runtime, editors, srcloc),
+                locToSrc(runtime, editors, srcloc));};
             var processTryRenderReason = function(out) {
               if (runtime.isSuccessResult(out)) {
                 var replacement = help(out.result);
@@ -744,8 +742,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               runtime.runThunk(
                 function() { return get(e.exn, "render-fancy-reason").app(
                   locToAST(runtime, editors, srcloc),
-                  locToSrc(runtime, editors, srcloc),
-                  makePalette(runtime)); },
+                  locToSrc(runtime, editors, srcloc));},
                 function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
                     container = help(errorDisp.result, e.pyretStack)
@@ -811,10 +808,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           },
           "highlight": function(contents, locs, color) {
             var anchor = $("<a>").append(help(contents)).addClass("highlight");
-            var cssColor = hueToRGB(color);
-            
-            //anchor.addClass("highlight");
-            //anchor.css('background-color', cssColor);
+            var cssColor = hueToRGB(palette(color));
             
             var locArray = ffi.toArray(locs);
               
@@ -829,10 +823,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
-              
-              var highlight = highlights.get({l:cmLocs[h],color});
+              var highlight = highlights.get({l:cmLocs[h],c:palette(color)});
               if(highlight == undefined) {
-                highlights.set({l:cmLocs[h],color},
+                highlights.set({l:cmLocs[h],c:palette(color)},
                   highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context));
               }
             }
@@ -971,7 +964,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
         var decimalString = decimal[0].toString() + "." + decimal[1].toString();
 
-        outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction").text(num.toString());
+        var outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction").text(num.toString());
 
         outText.toggleFrac(num.toString(), decimalString, decimal[2]);
 
@@ -1192,7 +1185,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     cmlocToCSSClass: cmlocToCSSClass,
     locToAST: locToAST,
     locToSrc: locToSrc,
-    makePalette: makePalette
   };
 
 })
