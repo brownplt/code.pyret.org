@@ -22,7 +22,7 @@ node_js:
 - 4.3.1
 install:
 - npm install --ignore-scripts
-- make web-local
+- make web
 before_script:
 - node src/run.js &
 - sleep 3
