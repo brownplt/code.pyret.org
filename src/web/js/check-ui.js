@@ -70,7 +70,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         eachContainer.addClass("expandElement");
         var testEditors = new Array();
         
-        var testNumber = 1;
+        var testNumber = 0;
         function testTitle(loc, passed) {
           testNumber++;
           var header = $("<header>")
@@ -79,7 +79,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               "Test " + testNumber + ": " +
               (passed ? "Passed"
                       : "Failed"))
-            .attr('alt',"Click to scroll editor to test.");
+            .attr('title',"Click to scroll editor to test.");
           var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
           var testContext = outputUI.cmlocToCSSClass(cmloc);
           // Highlight the whole test on hover
@@ -127,7 +127,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             var editor = editors[cmloc.source];
             var mainDoc = editors[cmloc.source].getDoc();
             var handle = mainDoc.markText(cmloc.start, cmloc.end,
-                            {inclusiveLeft:false, inclusiveRight:false});
+                            {inclusiveLeft:false, inclusiveRight:false});     
             var cmLinked = CodeMirror(eachTest[0], {
               readOnly: true,
               indentUnit: 2,
@@ -169,7 +169,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             
             var marker = document.createElement("div");
             marker.innerHTML = cmloc.start.line + 1;
-            marker.alt = "Test failed! Click to see why.";
+            marker.title = "Test failed! Click to see why.";
             marker.classList.add("failedTestMarker");
             marker.classList.add("CodeMirror-linenumber");
             $(marker).on("click", function(){
@@ -298,6 +298,36 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                 + checkTotal + ((checkTotal > 1) ? " tests " : " test ")
                 + "in this block ran (" + checkPassed + " passed):");
             }
+            var errorLoc = runtime.makeSrcloc(get(get(cr, "maybe-err"), "value").val.pyretStack[0]);
+            var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
+            var editor = editors[cmloc.source];
+            var thisContainer = eachContainer;
+            var marker = document.createElement("div");
+            marker.innerHTML = cmloc.start.line + 1;
+            marker.title = "Check block ended with an unexpected error here. Click to see why.";
+            marker.classList.add("erroredTestMarker");
+            marker.classList.add("CodeMirror-linenumber");
+            $(marker).on("click", function(){
+              thisContainer.on("animationend", function(){this.style.animation = "";});
+              thisContainer[0].style.animation = "emphasize-error 1s 1";
+              toggle[0].scrollIntoView(true);
+              toggle.trigger( "click" );
+            });
+            var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
+            var onChange = function(cm, change) {
+              var gutterLine = editor.getLineNumber(gutterHandle);
+              var markerLoc  = textMarker.find();
+              if(markerLoc === undefined)
+                return;
+              var markerLine = markerLoc.from.line;
+              marker.innerHTML = markerLine + 1;
+              if(gutterLine != markerLine) {
+                editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
+                editor.refresh();
+                gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
+              }
+            };
+            editor.on("change",onChange);
           }
         }
   
