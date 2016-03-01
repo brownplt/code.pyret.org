@@ -509,7 +509,8 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.tokens.push("SHARED", "WANTCOLON");
       }
     } else if (state.lastToken === "where" || (state.lastToken === "examples" && ls.tokens.length > 0)) {
-      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.delimType = (state.lastToken === "where") ? pyret_delimiter_type.SUBKEYWORD
+                                                   : pyret_delimiter_type.OPENING;
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         ls.tokens.pop();
         // ls.curClosed.o++; 
