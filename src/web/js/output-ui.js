@@ -1181,6 +1181,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     cmPosFromSrcloc: cmPosFromSrcloc,
     drawSrcloc: drawSrcloc,
     expandableMore: expandableMore,
+    getLastUserLocation: getLastUserLocation,
     cssSanitize: cssSanitize,
     cmlocToCSSClass: cmlocToCSSClass,
     locToAST: locToAST,

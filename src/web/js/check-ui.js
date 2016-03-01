@@ -299,7 +299,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                 + checkTotal + ((checkTotal > 1) ? " tests " : " test ")
                 + "in this block ran (" + checkPassed + " passed):");
             }
-            var errorLoc = runtime.makeSrcloc(get(get(cr, "maybe-err"), "value").val.pyretStack[0]);
+            var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, 
+                  get(get(cr, "maybe-err"), "value").val.pyretStack, 0);
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
             var editor = editors[cmloc.source];
             var textMarker = editor.markText(cmloc.start, cmloc.end,
