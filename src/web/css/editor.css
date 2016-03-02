@@ -345,6 +345,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   display: inline-block;
 }
 
+.repl-echo > .CodeMirror {
+  overflow: visible;
+}
+
 .repl-echo .CodeMirror-cursors {
   display: none;
 }
@@ -835,9 +839,6 @@ code div {
   cursor: pointer;
 }
 
-.compile-error a:hover {
-  background-color: #fcc;
-}
 
 .parse-error {
   font-family: sans-serif;

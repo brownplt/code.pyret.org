@@ -615,6 +615,33 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     });
   }
   
+  
+  function srclocHighlight(runtime, editors, srcloc, loc, cssColor, context, underline) {
+    if (underline === undefined) underline = true;
+    var styles = document.getElementById("highlight-styles").sheet;
+    return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+      "builtin": function(_) { /* no-op */ },
+      "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+        var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
+        var locKey = cmlocToCSSClass(cmLoc);
+        var editor = editors[source];
+        if(editor) {
+          styles.insertRule(
+                ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
+                + " ." + locKey + " { background-color:" + cssColor + 
+                (underline ? ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid" : "") + ";}", 
+                styles.cssRules.length);
+            return editor.markText(
+              cmLoc.start,
+              cmLoc.end,
+             {className: locKey + " highlight", shared: true});
+        } else {
+          return null;
+        }
+      }
+    });
+  }
+  
   function renderStackTrace(runtime, editors, srcloc, error) {
     var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
     var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
@@ -643,6 +670,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var makePalette = function(){
       var palette = new Array();
       return function(n){
+        if(highlightMode == "scsh" || highlightMode == "scmh")
+          return 0;
         if(palette[n] === undefined) {
           lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
           palette[n] = lastHue;
@@ -861,15 +890,28 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var locClasses = cmLocs.map(
               function(l){return cmlocToCSSClass(l);});
               
-            for (var h = 0; h < locArray.length; h++) {
-              anchor.addClass(locClasses[h]);
-              var highlight = highlights.get({l:cmLocs[h],c:palette(color)});
-              if(highlight == undefined) {
-                highlights.set({l:cmLocs[h],c:palette(color)},
-                  highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context));
+            if(highlightMode == "scmh" || highlightMode == "mcmh") {
+              for (var h = 0; h < locArray.length; h++) {
+                anchor.addClass(locClasses[h]);
+                var highlight = highlights.get({l:cmLocs[h],c:palette(color)});
+                if(highlight == undefined) {
+                  highlights.set({l:cmLocs[h],c:palette(color)},
+                    highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
+                }
+              }
+            } else {
+              for (var h = 0; h < locArray.length; h++) {
+                anchor.addClass(locClasses[h]);
+                var highlight = highlights.get({l:cmLocs[h],c:palette(color)});
+                if(highlight == undefined) {
+                  highlights.set({l:cmLocs[h],c:palette(color)},
+                    highlightSrcloc(runtime, editors, srcloc, locArray[h], "transparent", context, false));
+                }
               }
             }
-              
+            
+            
+            if(highlightMode == "scmh" || highlightMode == "mcmh")  
             anchor.on("mouseenter", function() {
               for (var i = 0; i < locClasses.length; i++) {
                 hintLoc(runtime, editors, srcloc, locArray[i]);
@@ -884,7 +926,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
                 emphasizeLine(editors, cmloc);
               }
             });
-            
+            if(highlightMode == "scmh" || highlightMode == "mcmh")
             anchor.on("mouseleave", function() {
               for (var i = 0; i < locClasses.length; i++) {
                 unhintLoc(runtime, editors, srcloc, locArray[i]);
@@ -907,6 +949,12 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       }
       var rendering = help(errorDisp, stack);
       if(context===undefined) rendering.addClass("highlights-active");
+      
+      var highlightLoc = getLastUserLocation(runtime, srcloc, stack, 0);
+      if(highlightMode === "scsh" && highlightLoc != undefined) {
+        highlightSrcloc(runtime, editors, srcloc, highlightLoc, hueToRGB(0), context);
+        var highlightClass = cmlocToCSSClass(cmPosFromSrcloc(runtime,srcloc,highlightLoc));
+      }
       return rendering;
     });
   }

@@ -11,7 +11,7 @@ function ct_error(/* varargs */) {
 }
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
-
+var highlightMode = "scsh";
 $(function() {
   var key = "firefox-warning-has-been-shown";
   var shownBefore = window.localStorage.getItem(key);
@@ -284,6 +284,13 @@ $(function() {
             doRunAction(editor.cm.getValue());
             $("#run-dropdown-content").hide();
           });
+          
+          $("#select-scsh").click(function() {
+            highlightMode = "scsh"; $("#run-dropdown-content").hide();});
+          $("#select-scmh").click(function() {
+            highlightMode = "scmh"; $("#run-dropdown-content").hide();});
+          $("#select-mcmh").click(function() {
+            highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
 
           editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
