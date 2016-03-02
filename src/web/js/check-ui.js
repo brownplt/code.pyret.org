@@ -8,7 +8,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
   
     var checkResultsArr = ffi.toArray(checkResults);
   
-    runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib, parsePyret, astLib], function(option, srcloc, ED, PP, AST) {
+    runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib], function(option, srcloc, ED) {
   
       // These counters keep cumulative statistics for all the check blocks.
       var checkTotalAll = 0;
@@ -202,8 +202,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           }
           
           if (!ffi.isTestSuccess(tr)) {
+            var locToAST = outputUI.locToAST(runtime, editors, srcloc);
             runtime.runThunk(
-              function() { return get(tr, "render-fancy-reason").app(PP, AST); },
+              function() { return get(tr, "render-fancy-reason").app(locToAST); },
               function(out) {
                 if (runtime.isSuccessResult(out)) {
                     var toggle = $("<div>").addClass("highlightToggle");
@@ -240,6 +241,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               for(var i=0; i<testEditors.length; i++) {
                 testEditors[i].refresh();
               }
+              $(".cm-future-snippet").each(function(){this.freeze();});
               firstClick = false;
             },100);
           }

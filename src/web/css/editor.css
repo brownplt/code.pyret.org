@@ -1199,3 +1199,11 @@ code div {
   border-left: 1px hsl(0, 100%, 100%) solid;
   padding-left: .5em;
 }
+
+.highlight-irrelevant {
+    opacity: 0.2;
+}
+
+.cm-snippet {
+  pointer-events: none;
+}

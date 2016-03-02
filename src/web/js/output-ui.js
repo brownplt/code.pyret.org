@@ -607,7 +607,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return editor.markText(
               cmLoc.start,
               cmLoc.end,
-             {className: locKey + " highlight"});
+             {className: locKey + " highlight", shared: true});
         } else {
           return null;
         }
@@ -770,6 +770,46 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           },
           "styled": function(contents, style) {
             return help(contents).addClass(style);
+          },
+          "cmcode": function(loc) {
+            var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
+            var cmsrc  = editors[cmloc.source];
+            var endch = cmsrc.getLine(cmloc.end.line).length;
+            var snippetWrapper = document.createElement("div");
+            snippetWrapper.classList.add("cm-future-snippet");
+            snippetWrapper.freeze = function() {
+              var handle = cmsrc.markText(cmloc.start, cmloc.end,
+                    {inclusiveLeft:false, inclusiveRight:false}); 
+              var cmSnippet = CodeMirror(snippetWrapper,{
+                readOnly: true, indentUnit: 2, lineWrapping: false,
+                lineNumbers: true, viewportMargin: 0,
+                lineNumberFormatter: function(line){
+                  var handleLoc = handle.find();
+                  return (handleLoc === undefined) ? " ": handleLoc.from.line + 1;
+                }});
+              cmSnippet.getDoc().setValue(cmsrc.getRange(
+                {line: cmloc.start.line, ch: 0},
+                {line: cmloc.end.line, ch: endch}));
+              cmSnippet.getDoc().markText(
+                {line: 0, ch: 0}, {line: 0, ch: cmloc.start.ch},
+                {className: "highlight-irrelevant"});
+              cmSnippet.getDoc().markText(
+                {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
+                {line: cmloc.end.line - cmloc.start.line, ch: endch},
+                {className: "highlight-irrelevant"});
+              highlights.forEach(function(value,key){
+                cmSnippet.markText(
+                  {line: key.l.start.line - cmloc.start.line, ch: key.l.start.ch},
+                  {line: key.l.end.line - cmloc.start.line, ch: key.l.end.ch},
+                  {className:"highlight " + cmlocToCSSClass(key.l)});
+              });
+              cmsrc.on("change", function(cm, change) {
+                cmSnippet.setOption("firstLineNumber",0);
+                cmSnippet.setOption("firstLineNumber",1);});
+              snippetWrapper.classList.remove("cm-future-snippet");
+              snippetWrapper.classList.remove("cm-snippet");
+            };
+            return $(snippetWrapper);
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
