@@ -21,7 +21,7 @@ node_js:
 - 0.10.26
 install:
 - npm install --ignore-scripts
-- make web-local
+- make web
 before_script:
 - node src/run.js &
 - sleep 3
