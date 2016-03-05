@@ -91,6 +91,15 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
        500
     );
   }
+  
+  var makeErrorContext = (function () {
+    var counter = 0;
+    var makeNew = function () {
+      makeNew.current = "eg-" + counter++
+      return makeNew.current;
+    }
+    return makeNew;
+  })();
 
   function displayResult(output, callingRuntime, resultRuntime, isMain) {
     var runtime = callingRuntime;
@@ -99,7 +108,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
         console.log("Result is: ", result);
         if(callingRuntime.isFailureResult(result)) {
-          errorUI.drawError(output, editors, callingRuntime, result.exn);
+          errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
         }
         else if(callingRuntime.isSuccessResult(result)) {
           result = result.result;
@@ -112,7 +121,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                 results.forEach(function(r) {
                   errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
                 });
-                errorUI.drawError(output, editors, runtime, {exn: errs});
+                errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
               },
               right: function(v) {
                 rr.loadBuiltinModules(
@@ -129,14 +138,13 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                         }
                       }
 
-                      checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
+                      checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
                       scroll(output);
-
                       console.log(JSON.stringify(runResult.stats));
                       return true;
                     
                     } else {
-                      errorUI.drawError(output, editors, rr, runResult.exn);
+                      errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
                   });
               }
@@ -144,8 +152,9 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         }
         else {
           console.error("Bad result: ", result);
-          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
+          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
         }
+        $(".check-block-error .cm-future-snippet").each(function(){this.freeze();});
       });
     }
   }

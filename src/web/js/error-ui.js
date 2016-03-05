@@ -1,7 +1,7 @@
 define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js", "/js/share.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
 
   var shareAPI = makeShareAPI("");
-  function drawError(container, editors, runtime, exception, context) {
+  function drawError(container, editors, runtime, exception, contextFactory) {
     var ffi = ffiLib(runtime, runtime.namespace);
     var image = imageLib(runtime, runtime.namespace);
     var cases = ffi.cases;
@@ -41,13 +41,15 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       }
 
       function drawCompileErrors(e) {
+        var errorID;
         function drawCompileError(e) {
           runtime.runThunk(
             function() {
               return get(e, "render-fancy-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], context);
+                errorID = contextFactory();
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
                 dom.addClass("compile-error");
                 container.append(dom); 
               } else {
@@ -58,26 +60,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             });
         }
         e.forEach(drawCompileError);
-      }
-
-      function drawExpandableStackTrace(e) {
-        var srclocStack = e.pyretStack.map(runtime.makeSrcloc);
-        var isSrcloc = function(s) { return runtime.unwrap(get(srcloc, "is-srcloc").app(s)); }
-        var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
-        var container = $("<div>");
-        if(userLocs.length > 0) {
-          container.append($("<p>").text("Evaluation in progress when the error occurred:"));
-          userLocs.forEach(function(ul) {
-            var slContainer = $("<div>");
-            var srcloc = outputUI.drawSrcloc(editors, runtime, ul);
-            slContainer.append(srcloc);
-            singleHover(srcloc, ul);
-            container.append(slContainer);
-          });
-          return outputUI.expandableMore(container);
-        } else {
-          return container;
-        }
+        document.getElementById("main").dataset.highlights = errorID;
       }
 
       function drawPyretException(e) {
@@ -90,7 +73,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
               .append($("<p>").text("Error: "))
               .append(exnstringContainer)
               .append($("<p>"))
-              .append(drawExpandableStackTrace(e));
+              .append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
             container.append(dom);
             if(runtime.isPyretVal(e.exn)) {
               outputUI.renderPyretValue(exnstringContainer, runtime, e.exn);
@@ -108,10 +91,17 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context);
+                var errorID = contextFactory();
+                var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, e.pyretStack,
+                      e.exn.$name == "arity-mismatch" ? 1 : 0);
+                if(highlightMode === "scsh" && highlightLoc != undefined) {
+                  outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
+                }
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
+                dom.children().first(".highlightToggle").trigger('click');
                 dom.addClass("compile-error");
                 container.append(dom);
-                dom.append(drawExpandableStackTrace(e));
+                dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
               } else {
                   console.log(errorDisp.exn);
               }
@@ -128,10 +118,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
             function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, context);
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
                 dom.addClass("parse-error");
                 container.append(dom);
-                dom.append(drawExpandableStackTrace(e));
+                dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));

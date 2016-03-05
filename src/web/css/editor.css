@@ -61,7 +61,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
-.replOutputReason > .highlightToggle {
+.test-reason > .highlightToggle {
   display: none;
 }
 
@@ -80,14 +80,13 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   z-index: 100;
 }
 
-.check-block-error.highlights-active .highlightToggle:before,
-.check-block-test.highlights-active .highlightToggle:before {
+.highlightToggle.highlights-active:before {
   content: 'Highlighted';
   color:white;
 }
 
-.check-block-error:not(.highlights-active) .highlight,
-.check-block-test:not(.highlights-active) .highlight {
+#output > .compile-error:not(.highlights-active) .highlight,
+.test-reason:not(.highlights-active) .highlight {
     background: initial!important;
 }
 
@@ -115,8 +114,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   transform-origin: left;
 }
 
-.check-block-error.highlights-active .highlightToggle:after,
-.check-block-test.highlights-active .highlightToggle:after,
+.highlightToggle.highlights-active:after,
 .highlightToggle:hover:after {
   transform: scaleX(1);
 }
@@ -221,7 +219,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 .check-block-test{
   position: relative;
-  padding: 5px 0px;
+  padding: 1em 0px;
 }
 
 .check-block-test:not(:last-child) {
@@ -661,9 +659,8 @@ ul.inlineCollection > li > span.label {
   color: #af1180;
 }
 
-.replOutputReason, .nestedReason {
+.test-reason, .nestedReason {
  padding-top: 0;
- padding-left: 1em;
  color: #af1180;
 }
 
@@ -711,18 +708,19 @@ span.rationalRepeat {
   border-bottom: 2px solid currentColor;
 }
 
-.replOutputReason {
+.test-reason {
+  padding: 0 1em;
   color: black;
 }
 
-.replOutputReason > br,
+.test-reason > br,
 .compile-error > br,
 .parse-error > br {
   display:none;
   
 }
 
-.replOutputReason,
+.test-reason,
 .parse-error,
 .compile-error {
   display: block;
@@ -749,9 +747,9 @@ span.rationalRepeat {
   }
 }
 
-.replOutputReason > code,
-.replOutputReason > .replOutput,
-.replOutputReason > .replTextOutput,
+.test-reason > code,
+.test-reason > .replOutput,
+.test-reason > .replTextOutput,
 .compile-error > code,
 .compile-error > .replOutput,
 .compile-error > .replTextOutput,
@@ -1206,5 +1204,40 @@ code div {
 }
 
 .cm-snippet {
-  pointer-events: none;
+  border: 1px hsl(0, 0%, 50%) dashed;
+}
+
+.stacktrace > div {
+  cursor:pointer;
+  margin-left: 1em;
+  margin-bottom: 0.5em;
+  overflow:visible;
+}
+
+#main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
+  background-color: rgba(0,0,0,0.13);
+  transition: .2s background-color linear .3s;
+}
+
+.stacktrace > div .CodeMirror-linenumber {
+  text-decoration: underline;
+}
+
+.stacktrace > div .CodeMirror-vscrollbar {
+  display:none!important;
+}
+
+.stacktrace > div:hover {
+  box-shadow:0 0 1em rgba(0,0,0,0.4);
+}
+
+.stacktrace > div > div {
+  pointer-events:none;
+}
+
+.stacktrace > div:not(:last-of-type):after {
+    content: '⤤';
+    margin-top: -0.5em;
+    margin-left: -1em;
+    position: absolute;
 }

@@ -1,6 +1,6 @@
 define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js", "trove/parse-pyret", "trove/ast"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI, parsePyret, astLib) {
   var highlightCounter = 0;
-  function drawCheckResults(container, editors, runtime, checkResults) {
+  function drawCheckResults(container, editors, runtime, checkResults, contextFactory) {
     var ffi = ffiLib(runtime, runtime.namespace);
     var cases = ffi.cases;
     var get = runtime.getField;
@@ -108,7 +108,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         // Sort through the collection of test results within a check
         // block.
         trArr.reverse().forEach(function(tr) {
-          var me = highlightCounter++;
+          var errorID = contextFactory();
           checkTotal = checkTotal + 1;
           checkTotalAll = checkTotalAll + 1;
   
@@ -156,7 +156,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           }
           
           function addReasonToTest(cssClass, errorDisp, loc) {
-            var dom = $(outputUI.renderErrorDisplay(editors, runtime, errorDisp, [], "eg-"+me)).addClass(cssClass);
+            var dom = $(outputUI.renderErrorDisplay(editors, runtime, errorDisp, [], errorID)).addClass(cssClass);
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
             var reasonID = "reason-" + outputUI.cmlocToCSSClass(cmloc);
             dom.attr('id',reasonID);
@@ -166,7 +166,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                             {inclusiveLeft:false, inclusiveRight:false});
             var thisTest = eachTest;
             var thisContainer = testContainer;
-            
+            outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 94%)", errorID);
             var marker = document.createElement("div");
             marker.innerHTML = cmloc.start.line + 1;
             marker.title = "Test failed! Click to see why.";
@@ -199,6 +199,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             eachTest.append(dom);
             eachTest.attr('data-result', "Failed");
             eachTest.addClass('failing-test');
+            return dom;
           }
           
           if (!ffi.isTestSuccess(tr)) {
@@ -207,16 +208,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               function() { return get(tr, "render-fancy-reason").app(locToAST); },
               function(out) {
                 if (runtime.isSuccessResult(out)) {
-                    var toggle = $("<div>").addClass("highlightToggle");
-                    toggle.on('click', function(e){
-                      var prev = document.querySelector(".highlights-active");
-                      if (prev != null) prev.classList.remove("highlights-active");
-                      document.getElementById("main").dataset.highlights = "eg-" + me;
-                      eachTest.addClass("highlights-active");
-                      e.stopPropagation();
-                    });
-                  addReasonToTest("replOutputReason", out.result, get(tr, "loc"));
-                  eachTest.prepend(toggle);
+                  var reason = addReasonToTest("test-reason", out.result, get(tr, "loc"));
+                  reason.children(".highlightToggle")
+                    .detach().prependTo(eachTest);
                 } else {
                   addPreToTest("replOutputReason", "<error rendering result; details logged to console>", get(tr, "loc"));
                   console.log(out.exn);
@@ -271,7 +265,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           });
           
         var summary = $("<div>").addClass("check-block-summary");
-        var me = highlightCounter++;
         var thisCheckBlockErrored = false;
         // Necessary check because this field was not present in older versions
         if (runtime.hasField(cr, "maybe-err")) {
@@ -282,16 +275,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             var errorDiv = $("<div>").addClass("check-block-error");
             errorDiv.text("The unexpected error:");
             eachContainer.append(errorDiv);
-            var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val, "eg-"+me);
-            var toggle = $("<div>").addClass("highlightToggle");
-            toggle.on('click', function(e){
-              var prev = document.querySelector(".highlights-active");
-              if (prev != null) prev.classList.remove("highlights-active");
-              document.getElementById("main").dataset.highlights = "eg-" + me;
-              errorDiv.addClass("highlights-active");
-              e.stopPropagation();
-              });
-            errorDiv.children().first().prepend(toggle);
+            var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val, contextFactory);
             eachContainer.addClass("check-block-errored");
             summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
             editorMessage("editor-check-block-error", "Unexpected Error");
@@ -304,6 +288,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, 
                   get(get(cr, "maybe-err"), "value").val.pyretStack, 0);
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
+            outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
             var editor = editors[cmloc.source];
             var textMarker = editor.markText(cmloc.start, cmloc.end,
                             {inclusiveLeft:false, inclusiveRight:false});
@@ -316,8 +301,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             $(marker).on("click", function(){
               thisContainer.on("animationend", function(){this.style.animation = "";});
               thisContainer[0].style.animation = "emphasize-error 1s 1";
-              toggle[0].scrollIntoView(true);
-              toggle.trigger( "click" );
+              errorDiv[0].scrollIntoView(true);
+              errorDiv.find(".highlightToggle").trigger("click");
             });
             var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
             var onChange = function(cm, change) {
