@@ -892,14 +892,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return help(contents).addClass(style);
           },
           "cmcode": function(loc) {
-            var cmSnippet = snippet(editors, cmPosFromSrcloc(runtime, srcloc, loc));
+            var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
+            var cmSnippet = snippet(editors, cmloc);
             highlights.forEach(function(value,key){
                 cmSnippet.editor.markText(
                   {line: key.l.start.line - cmloc.start.line, ch: key.l.start.ch},
                   {line: key.l.end.line - cmloc.start.line, ch: key.l.end.ch},
                   {className:"highlight " + cmlocToCSSClass(key.l)});
               });
-            return cmSnippet.wrapper.addClass("cm-snippet-future");
+            return cmSnippet.wrapper.addClass("cm-future-snippet");
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
