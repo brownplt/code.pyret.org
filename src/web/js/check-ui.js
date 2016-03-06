@@ -124,34 +124,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             eachTest.addClass("passing-test");
             eachTest.prepend(testTitle(loc, true));
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
-            var editor = editors[cmloc.source];
-            var mainDoc = editors[cmloc.source].getDoc();
-            var handle = mainDoc.markText(cmloc.start, cmloc.end,
-                            {inclusiveLeft:false, inclusiveRight:false});     
-            var cmLinked = CodeMirror(eachTest[0], {
-              readOnly: true,
-              indentUnit: 2,
-              tabSize: 2,
-              viewportMargin: Infinity,
-              lineNumbers: true,
-              lineWrapping: true,
-              lineNumberFormatter: function(line){
-                return (handle.find() === undefined)
-                  ? " "
-                  : "" + line;
-                }
-            });
-            content = mainDoc.getRange(cmloc.start, cmloc.end);
-            cmLinked.getDoc().setValue(content);
-            cmLinked.setOption("firstLineNumber",handle.find().from.line+1); 
-            editor.on("change",function(cm, change) {
-              var handleloc = handle.find();
-              if(handleloc != undefined) {
-                cmLinked.setOption("firstLineNumber",handleloc.from.line+1);
-              } else {
-                cmLinked.setOption("firstLineNumber",0);
-              }
-            });
+            outputUI.snippet(editors, cmloc);
             testEditors.push(cmLinked);
           }
           
@@ -235,7 +208,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               for(var i=0; i<testEditors.length; i++) {
                 testEditors[i].refresh();
               }
-              $(".cm-future-snippet").each(function(){this.freeze();});
+              $(".cm-future-snippet").each(function(){this.children[0].CodeMirror.refresh();});
               firstClick = false;
             },100);
           }
