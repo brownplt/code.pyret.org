@@ -1214,8 +1214,9 @@ code div {
   overflow:visible;
 }
 
+#main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
 #main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
-  background-color: rgba(0,0,0,0.13);
+  background-color: rgba(0,0,0,0.3);
   transition: .2s background-color linear .3s;
 }
 
@@ -1229,10 +1230,6 @@ code div {
 
 .stacktrace > div:hover {
   box-shadow:0 0 1em rgba(0,0,0,0.4);
-}
-
-.stacktrace > div > div {
-  pointer-events:none;
 }
 
 .stacktrace > div:not(:last-of-type):after {

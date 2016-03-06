@@ -639,8 +639,80 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     });
   }
   
-  function renderStackTrace(runtime, editors, srcloc, error) {
+  function spotlight(editors, cmloc) {
+    if(!(cmloc.source in editors))
+      throw new Error("Cannot spotlight a location not shown in the editor.");
     var styles = document.getElementById("highlight-styles").sheet;
+    var lockey = "spotlight-" + cmlocToCSSClass(cmloc);
+    var handle = editors[cmloc.source].markText(cmloc.start, cmloc.end,
+     {className: lockey, 
+      inclusiveLeft: false, 
+      inclusiveRight:false,
+      shared: false,
+      clearWhenEmpty: true,
+      addToHistory: false});
+    var editorSelector = (cmloc.source == "definitions" 
+      ? " > div.replMain " 
+      : " .repl-echo ");
+    styles.insertRule(
+      "#main[data-highlights=" + lockey + "]"
+      + editorSelector + " div.CodeMirror > div > pre > span > span:not(."
+      + lockey + "){opacity:0.4;}", 0);
+    styles.insertRule(
+      "#main[data-highlights=" + lockey + "]"
+      + editorSelector + " span." + lockey + "{background:white!important;}", 0);
+    return {marker: handle, key: lockey};
+  }
+  
+  function snippet(editors, featured){
+    var cmloc = featured;
+    if(!(cmloc.source in editors))
+      throw new Error("Cannot snippet a location not shown in the editor.");
+    var cmsrc = editors[featured.source];
+    var lockey = "snippet-" + cmlocToCSSClass(cmloc);
+    var handle = cmsrc.markText(cmloc.start, cmloc.end,
+     {className: lockey, 
+      inclusiveLeft: false,
+      inclusiveRight:false,
+      shared: false,
+      clearWhenEmpty: true,
+      addToHistory: false});
+    var snippetWrapper = $("<div>").addClass("cm-snippet");
+    var cmSnippet = CodeMirror(snippetWrapper[0],{
+      readOnly: true, 
+      indentUnit: 2, 
+      lineWrapping: false,
+      lineNumbers: true, 
+      viewportMargin: 1, 
+      scrollbarStyle: "null",
+      lineNumberFormatter: function(line){
+        var handleLoc = handle.find();
+        return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
+      }});
+    // Copy relevant part of document.  
+    var endch = cmsrc.getLine(cmloc.end.line).length;
+    cmSnippet.getDoc().setValue(cmsrc.getRange(
+      {line: cmloc.start.line, ch: 0},
+      {line: cmloc.end.line, ch: endch}));
+    // Fade areas outside featured range
+    cmSnippet.getDoc().markText(
+      {line: 0, ch: 0}, 
+      {line: 0, ch: cmloc.start.ch},
+      {className: "highlight-irrelevant"});
+    cmSnippet.getDoc().markText(
+      {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
+      {line: cmloc.end.line - cmloc.start.line, ch: endch},
+      {className: "highlight-irrelevant"});
+    // Refresh the gutters when a change is made to the source document
+    var refresh = function(cm, change) {
+      cmSnippet.setOption("firstLineNumber",0);
+      cmSnippet.setOption("firstLineNumber",1);};
+    cmsrc.on("change", refresh);
+    handle.on("clear", function(){cmsrc.off("change", refresh);});
+    return {wrapper: snippetWrapper, editor: cmSnippet};
+  }
+  
+  function renderStackTrace(runtime, editors, srcloc, error) {
     var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
     var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
     var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
@@ -660,55 +732,23 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     if(userLocs.length > 0) {
       container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
       userLocs.forEach(function(ul) {
-        var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
         var slContainer = $("<div>");
-        var sl = drawSrcloc(editors, runtime, ul);
-        var locKey = "spotlight-" + cmlocToCSSClass(cmLoc);
-        slContainer.append(sl);
-        if(editors[cmLoc.source] === undefined)
-          return;
-        var handle = editors[cmLoc.source].markText(cmLoc.start,cmLoc.end,
-             {className: locKey, inclusiveLeft:false, inclusiveRight:false, shared: false});
-        var cmsrc  = editors[cmLoc.source];
-        var endch = cmsrc.getLine(cmLoc.end.line).length;
-        var snippetWrapper = slContainer;
-        snippetWrapper.html("");
-        snippetWrapper.addClass("cm-snippet");
-        var cmSnippet = CodeMirror(snippetWrapper[0],{
-            readOnly: true, indentUnit: 2, lineWrapping: false,
-            lineNumbers: true, viewportMargin: 1, scrollbarStyle: "null",
-            lineNumberFormatter: function(line){
-              var handleLoc = handle.find();
-              return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
-            }});
-        snippets.push(cmSnippet);
-        cmSnippet.getWrapperElement().style.height = 
-          (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-        cmSnippet.getDoc().setValue(cmsrc.getRange(
-            {line: cmLoc.start.line, ch: 0},
-            {line: cmLoc.end.line, ch: endch}));
-        cmSnippet.getDoc().markText(
-            {line: 0, ch: 0}, {line: 0, ch: cmLoc.start.ch},
-            {className: "highlight-irrelevant"});
-        cmSnippet.getDoc().markText(
-            {line: cmLoc.end.line - cmLoc.start.line, ch: cmLoc.end.ch},
-            {line: cmLoc.end.line - cmLoc.start.line, ch: endch},
-            {className: "highlight-irrelevant"});
-        cmsrc.on("change", function(cm, change) {
-            cmSnippet.setOption("firstLineNumber",0);
-            cmSnippet.setOption("firstLineNumber",1);});   
-        styles.insertRule(
-          "#main[data-highlights=" + locKey + "]"
-          + " .replMain div.CodeMirror-code > div > pre > span > span:not(."
-          + locKey + "){opacity:0.4;}", 0);
-        styles.insertRule(
-          "#main[data-highlights=" + locKey + "]"
-          + " .replMain div.CodeMirror-code > div > pre > span > span."
-          + locKey + "{background:white;}", 0);
-        snippetWrapper.on("mouseenter", function(e){
-          gotoLoc(runtime, editors, srcloc, ul);
-          contextManager.highlights = locKey;
-        });
+        var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+        if(editors[cmLoc.source] === undefined) {
+          var sl = drawSrcloc(editors, runtime, ul);
+          slContainer.append(sl);
+        } else {
+          var lockey = spotlight(editors, cmLoc).key;
+          var cmSnippet = snippet(editors, cmLoc);
+          snippets.push(cmSnippet.editor);
+          cmSnippet.editor.getWrapperElement().style.height = 
+            (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+          cmSnippet.wrapper.on("mouseenter", function(e){
+            gotoLoc(runtime, editors, srcloc, ul);
+            contextManager.highlights = lockey;
+          });
+          slContainer.append(cmSnippet.wrapper);
+        }
         container.append(slContainer);
       });
       return expandable(container, "program execution trace")
@@ -750,21 +790,11 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             }
             return result;
           },
-          "numbered-sequence": function(seq) { 
-            var result = $("<ol>");
-            var contents = ffi.toArray(seq);
-            for (var i = 0; i < contents.length; i++) {
-              result.append($("<li>").append(help(contents[i])));
-            }
-            return result;
-          },
           "bulleted-sequence": function(seq) { 
-            var result = $("<ul>");
-            var contents = ffi.toArray(seq);
-            for (var i = 0; i < contents.length; i++) {
-              result.append($("<li>").append(help(contents[i])));
-            }
-            return result;
+            return $("<ul>").append(ffi.toArray(seq).map(
+              function(i){
+                return $("<li>").append(help(i));
+              }));
           },
           "h-sequence": function(seq, separator) { 
             var result = $("<p>");
@@ -776,11 +806,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return result.contents();
           },
           "paragraph": function(seq) { 
-            var separator = "";
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
-              if (i != 0 && separator !== "") result.append(separator);
               result.append(help(contents[i]));
             }
             return result;
@@ -864,44 +892,14 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             return help(contents).addClass(style);
           },
           "cmcode": function(loc) {
-            var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-            var cmsrc  = editors[cmloc.source];
-            var endch = cmsrc.getLine(cmloc.end.line).length;
-            var snippetWrapper = document.createElement("div");
-            snippetWrapper.classList.add("cm-snippet");
-            snippetWrapper.classList.add("cm-future-snippet");
-            snippetWrapper.freeze = function() {
-              var handle = cmsrc.markText(cmloc.start, cmloc.end,
-                    {inclusiveLeft:false, inclusiveRight:false}); 
-              var cmSnippet = CodeMirror(snippetWrapper,{
-                readOnly: true, indentUnit: 2, lineWrapping: false,
-                lineNumbers: true, viewportMargin: 0,
-                lineNumberFormatter: function(line){
-                  var handleLoc = handle.find();
-                  return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
-                }});
-              cmSnippet.getDoc().setValue(cmsrc.getRange(
-                {line: cmloc.start.line, ch: 0},
-                {line: cmloc.end.line, ch: endch}));
-              cmSnippet.getDoc().markText(
-                {line: 0, ch: 0}, {line: 0, ch: cmloc.start.ch},
-                {className: "highlight-irrelevant"});
-              cmSnippet.getDoc().markText(
-                {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
-                {line: cmloc.end.line - cmloc.start.line, ch: endch},
-                {className: "highlight-irrelevant"});
-              highlights.forEach(function(value,key){
-                cmSnippet.markText(
+            var cmSnippet = snippet(editors, cmPosFromSrcloc(runtime, srcloc, loc));
+            highlights.forEach(function(value,key){
+                cmSnippet.editor.markText(
                   {line: key.l.start.line - cmloc.start.line, ch: key.l.start.ch},
                   {line: key.l.end.line - cmloc.start.line, ch: key.l.end.ch},
                   {className:"highlight " + cmlocToCSSClass(key.l)});
               });
-              cmsrc.on("change", function(cm, change) {
-                cmSnippet.setOption("firstLineNumber",0);
-                cmSnippet.setOption("firstLineNumber",1);});
-              snippetWrapper.classList.remove("cm-future-snippet");
-            };
-            return $(snippetWrapper);
+            return cmSnippet.wrapper.addClass("cm-snippet-future");
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;

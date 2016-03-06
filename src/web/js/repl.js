@@ -11,7 +11,7 @@ function ct_error(/* varargs */) {
 }
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
-var highlightMode = "scsh";
+var highlightMode = "mcmh";
 $(function() {
   var key = "firefox-warning-has-been-shown";
   var shownBefore = window.localStorage.getItem(key);

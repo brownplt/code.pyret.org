@@ -155,6 +155,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
           errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
         }
         $(".check-block-error .cm-future-snippet").each(function(){this.freeze();});
+        $(".compile-error .cm-snippet-future").each(function(){this.children[0].CodeMirror.refresh();});
       });
     }
   }
