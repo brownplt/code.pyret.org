@@ -148,14 +148,19 @@ function start(config, onServerReady) {
     var googleLink = decodeURIComponent(parsed.query.slice(0));
     var googleParsed = url.parse(googleLink);
     var gReq = request({url: googleLink, encoding: 'binary'}, function(error, imgResponse, body) {
-      var h = imgResponse.headers;
-      var ct = h['content-type']
-      if(ct.indexOf('image/') !== 0) {
-        response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
-        return;
+      if(error) {
+        response.status(400).send({type: "image-load-failure", error: "Unable to load image " + String(error)});
       }
-      response.set('content-type', ct);
-      response.end(body, 'binary');
+      else {
+        var h = imgResponse.headers;
+        var ct = h['content-type']
+        if(ct.indexOf('image/') !== 0) {
+          response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
+          return;
+        }
+        response.set('content-type', ct);
+        response.end(body, 'binary');
+      }
     });
   });
 
