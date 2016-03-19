@@ -590,6 +590,27 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     renderers["string"] = function(val) { return renderers.renderText("string", val); };
     renderers["method"] = function(val) { return renderers.renderText("method", val); };
     renderers["function"] = function(val) { return renderers.renderText("function", val); };
+    renderers["render-array"] = function(top) {
+      var container = $("<span>").addClass("replToggle replOutput");
+      // inlining the code for the VSCollection case of helper() below, without having to create the extra array
+      // this means we don't get grouping behavior yet, but since that's commented out right now anyway, it's ok
+      container.append($("<span>").text("[raw-array: "));
+      var ul = $("<ul>").addClass("inlineCollection");
+      container.append(ul);
+      var maxIdx = top.done.length;
+      for (var i = maxIdx - 1; i >= 0; i--) {
+        var li = $("<li>").addClass("expanded");
+        var title = $("<span>").addClass("label").text("Item " + (maxIdx - 1 - i));
+        var contents = $("<span>").addClass("contents");
+        ul.append(li.append(title).append(contents.append(top.done[i])));
+      }
+      container.append($("<span>").text("]"));
+      container.click(function(e) {
+        ul.each(makeInline);
+        e.stopPropagation();
+      });
+      return container;
+    };
     renderers["ref"] = function(val, implicit, pushTodo) {
       pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
     };
