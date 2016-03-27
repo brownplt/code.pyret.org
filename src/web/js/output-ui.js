@@ -489,6 +489,19 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
     }
     return this;
   }
+  // A function to use the class of a container to toggle
+  // between the two representations of a string.  The
+  // three arguments are a string with Unicode escapes, and a string without
+  $.fn.toggleEscaped = function(escaped, unescaped) {
+    if (this.hasClass("escaped")) {
+      this.text(unescaped);
+      this.removeClass("escaped");
+    } else {
+      this.text(escaped);
+      this.addClass("escaped");
+    }
+    return this;
+  }
 
   function installRenderers(runtime) {
     if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
@@ -558,7 +571,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
         var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
         var decimalString = decimal[0].toString() + "." + decimal[1].toString();
 
-        outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction").text(num.toString());
+        var outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
+          .text(num.toString());
 
         outText.toggleFrac(num.toString(), decimalString, decimal[2]);
 
@@ -587,7 +601,52 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display"], f
       return echo;
     };
     renderers["boolean"] = function(val) { return renderers.renderText("boolean", val); };
-    renderers["string"] = function(val) { return renderers.renderText("string", val); };
+    renderers["string"] = function(val) { 
+      var outText = $("<span>").addClass("replTextOutput escaped");
+      var escapedUnicode = '"' + replaceUnprintableStringChars(val, true) + '"';
+      var unescapedUnicode = '"' + replaceUnprintableStringChars(val, false) + '"';
+      outText.text(unescapedUnicode);
+      if (escapedUnicode !== unescapedUnicode) {
+        outText.addClass("replToggle");
+        outText.toggleEscaped(escapedUnicode, unescapedUnicode);
+        outText.click(function(e) {
+          $(this).toggleEscaped(escapedUnicode, unescapedUnicode);
+          e.stopPropagation();
+        });
+      }
+      return outText;
+    };
+    // Copied from runtime-anf, and tweaked.  Probably should be exported from runtime-anf instad
+    var replaceUnprintableStringChars = function (s, toggleUnicode) {
+      var ret = [], i;
+      for (i = 0; i < s.length; i++) {
+        var val = s.charCodeAt(i);
+        switch(val) {
+          case 7: ret.push('\\a'); break;
+          case 8: ret.push('\\b'); break;
+          case 9: ret.push('\\t'); break;
+          case 10: ret.push('\\n'); break;
+          case 11: ret.push('\\v'); break;
+          case 12: ret.push('\\f'); break;
+          case 13: ret.push('\\r'); break;
+          case 34: ret.push('\\"'); break;
+          case 92: ret.push('\\\\'); break;
+          default:
+            if ((val >= 32 && val <= 126) || !toggleUnicode) {
+              ret.push( s.charAt(i) );
+            }
+            else {
+              var numStr = val.toString(16).toUpperCase();
+              while (numStr.length < 4) {
+                numStr = '0' + numStr;
+              }
+              ret.push('\\u' + numStr);
+            }
+            break;
+        }
+      }
+      return ret.join('');
+    };
     renderers["method"] = function(val) { return renderers.renderText("method", val); };
     renderers["function"] = function(val) { return renderers.renderText("function", val); };
     renderers["render-array"] = function(top) {
