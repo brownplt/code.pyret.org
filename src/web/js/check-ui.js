@@ -124,7 +124,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             eachTest.addClass("passing-test");
             eachTest.prepend(testTitle(loc, true));
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
-            outputUI.snippet(editors, cmloc);
+            var cmLinked = outputUI.snippet(editors, cmloc);
+            eachTest.append(cmLinked.wrapper);
             testEditors.push(cmLinked);
           }
           
@@ -139,7 +140,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                             {inclusiveLeft:false, inclusiveRight:false});
             var thisTest = eachTest;
             var thisContainer = testContainer;
-            outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 94%)", errorID);
+            outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 85%)", errorID);
             var marker = document.createElement("div");
             marker.innerHTML = cmloc.start.line + 1;
             marker.title = "Test failed! Click to see why.";
@@ -206,7 +207,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           if (firstClick) {
             setTimeout(function(){
               for(var i=0; i<testEditors.length; i++) {
-                testEditors[i].refresh();
+                testEditors[i].editor.refresh();
               }
               $(".cm-future-snippet").each(function(){this.children[0].CodeMirror.refresh();});
               firstClick = false;
@@ -228,7 +229,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             if (firstClick) {
               setTimeout(function(){
                 for(var i=0; i<testEditors.length; i++) {
-                  testEditors[i].refresh();
+                  testEditors[i].editor.refresh();
                 }
                 firstClick = false;
               },100);

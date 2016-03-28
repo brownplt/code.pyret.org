@@ -1321,6 +1321,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     highlightSrcloc: highlightSrcloc,
     highlightLines: highlightLines,
     gotoLoc: gotoLoc,
+    snippet: snippet,
     hintLoc: hintLoc,
     unhintLoc: unhintLoc,
     emphasizeLine: emphasizeLine,
