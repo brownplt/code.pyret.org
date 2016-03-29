@@ -323,6 +323,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   padding-top: 5px;
 }
 .echo-container {
+  overflow: hidden;
   padding-top: 5px;
 }
 
