@@ -11,7 +11,7 @@
     "q": "~1.0.1",
     "s-expression": "~2.2.0",
     "pyret-lang": "git://github.com/jswrenn/pyret-lang.git#errors",
-    "CodeMirror": "git://github.com/jpolitz/CodeMirror#master",
+    "codemirror": "git://github.com/jpolitz/CodeMirror",
     "requirejs": "2.1.14",
     "node-static": "^0.7.3",
     "express": "^4.1.1",
