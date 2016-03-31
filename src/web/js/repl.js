@@ -506,6 +506,9 @@ $(function() {
               programLoad = api.getFileById(params["get"]["program"]);
               programLoad.then(function(p) { showShareContainer(p); });
             }
+            if(params["get"] && params["get"]["programurl"]) {
+              programLoad = api.getFileByURL(params["get"]["programurl"]);
+            }
             if(params["get"] && params["get"]["share"]) {
               programLoad = api.getSharedFileById(params["get"]["share"]);
               $("#saveButton").text("Save a Copy");
@@ -637,8 +640,8 @@ $(function() {
                 .then(function(p) {
                   $("#program-name").val(p.getName());
                   $("#saveButton").text("Save");
-                  history.pushState(null, null, "#program=" + p.getUniqueId());
-                  window.location.hash = "#program=" + p.getUniqueId();
+                  history.pushState(null, null, p.getFragment());
+                  window.location.hash = p.getFragment();
                   flashMessage("Program saved as " + p.getName());
                   setTitle(p.getName());
                   return p;
