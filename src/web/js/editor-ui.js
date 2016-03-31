@@ -376,7 +376,7 @@ require(["/js/repl-ui.js"], function(replUI) {
 
     $("#saveButton").click(save);
 
-    var doWithReplAndRuntime = function(repl, runtime) {
+    var doWithReplAndRuntime = function(repl, runtime, replWidget) {
       window.saveJSFile = function() {
         var progName = $("#program-name").val() + ".js";
         function createFile(text) {
@@ -454,20 +454,21 @@ require(["/js/repl-ui.js"], function(replUI) {
             break;
           }
         };
-
+        var replMade = Q();
         runtime.runThunk(function() {
-          return replUI.makeRepl(replContainer, repl, runtime, {
+          replMade = replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
             runButton: runButton
           });
+          return replMade;
         }, function(ans) {
           if (runtime.isSuccessResult(ans)) {
-            replWidget = ans.result;
+            ans.result.done(function(repl) { replWidget = repl; });
           } else {
             console.error("MakeRepl failed: ", ans);
           }
         });
-        Q.all([programLoaded, interactionsReady]).fin(function() {
+        Q.all([programLoaded, interactionsReady, replMade]).fin(function() {
           clearInterval($("#loader").data("intervalID"));
           $("#loader").hide();
           $("#REPL").append(replContainer);

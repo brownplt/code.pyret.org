@@ -90,7 +90,7 @@ define([],function(){
   var doMakeRepl = null;
   function makeRepl(container, repl, runtime, options) {
     if (doMakeRepl) {
-      doMakeRepl(container, repl, runtime, options);
+      Q(doMakeRepl(container, repl, runtime, options));
     }
     else {
       var initMakeRepl = Q.defer();
@@ -373,7 +373,7 @@ define([],function(){
         };
         initMakeRepl.resolve(doMakeRepl)
       });
-      makeReplLoaded.done(
+      return makeReplLoaded.then(
         // onSuccess
         function(makeRepl) {
           return doMakeRepl(container, repl, runtime, options);
