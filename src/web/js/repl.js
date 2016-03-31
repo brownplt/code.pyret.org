@@ -75,7 +75,7 @@ $(function() {
   pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin, gdriveLocators, compileStructs) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var replContainer = $("<div>").addClass("repl");
-    $("#REPL").append(replContainer);
+    //$("#REPL").append(replContainer);
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
     runtime.setParam("imgUrlProxy", function(s) {
       return APP_BASE_URL + "/downloadImg?" + s;
@@ -119,7 +119,7 @@ $(function() {
       var ret = Q.defer();
 
       setTimeout(function(){
-        $("#REPL .repl").hide();
+        //replContainer.hide();
         var runButton = $("#runButton");
         var codeContainer = $("<div>").addClass("replMain");
         var replWidget;
@@ -577,7 +577,8 @@ $(function() {
             Q.all([programLoaded, interactionsReady]).fin(function() {
               clearInterval($("#loader").data("intervalID"));
               $("#loader").hide();
-              $("#REPL .repl").show();
+              $("#REPL").append(replContainer);
+              //replContainer.show();
             });
           });
           done.fail(function(err) {
