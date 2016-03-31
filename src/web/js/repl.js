@@ -133,7 +133,7 @@ $(function() {
           doRunAction(src);
         };
 
-        editor = replUI.makeEditor(codeContainer, runtime, {
+        editor = replUI.makeEditor(codeContainer, {
           runButton: $("#runButton"),
           simpleEditor: false,
           initial: "",

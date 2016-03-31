@@ -19,7 +19,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
   }
   var editors = {};
   var interactionsCount = 0;
-  function makeEditor(container, runtime, options) {
+  function makeEditor(container, options) {
     var initial = "";
     if (options.hasOwnProperty("initial")) {
       initial = options.initial;
@@ -315,7 +315,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       doneRendering.fin(afterRun(CM));
     };
 
-    var CM = makeEditor(prompt, runtime, {
+    var CM = makeEditor(prompt, {
       simpleEditor: true,
       run: runner,
       initial: "",
