@@ -124,10 +124,7 @@ $(function() {
                   if(okImports.indexOf(name) === -1) {
                     throw runtime.throwMessageException("Unknown module: " + name);
                   }
-                  return gmf(compileLib, "located").app(
-                    gmf(builtin, "make-builtin-locator").app(name),
-                    runtime.nothing
-                    );
+                  return gmf(builtin, "make-builtin-locator").app(name);
                 },
                 dependency: function(protocol, args) {
                   var arr = runtime.ffi.toArray(args);
