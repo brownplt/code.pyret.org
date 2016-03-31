@@ -70,9 +70,11 @@ $(function() {
   "/js/http-imports.js", "compiler/compile-lib.arr", "trove/repl",
   "trove/runtime-lib", "compiler/repl-support.arr",
   "compiler/locators/builtin.arr", "/js/cpo-builtins.js", "/js/gdrive-locators.js",
-  "compiler/compile-structs.arr"],
+  "compiler/compile-structs.arr", "js/ffi-helpers",
+                       "trove/image-lib"],
   function(replUI, rtLib, guessGas, http, compileLib,
-  pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin, gdriveLocators, compileStructs) {
+           pyRepl, runtimeLib, replSupport, builtin, cpoBuiltin,
+           gdriveLocators, compileStructs, ffi, imageLib) {
     makeHoverMenu($("#menu"), $("#menuContents"), false, function() {});
     var runtime = rtLib.makeRuntime({stdout: function(str) { console.log(str); } });
     runtime.setParam("imgUrlProxy", function(s) {
