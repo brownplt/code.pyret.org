@@ -376,7 +376,7 @@ require(["/js/repl-ui.js"], function(replUI) {
 
     $("#saveButton").click(save);
 
-    var doWithReplAndRuntime = function(repl, runtime, replWidget) {
+    var doWithReplAndRuntime = function(repl, runtime) {
       window.saveJSFile = function() {
         var progName = $("#program-name").val() + ".js";
         function createFile(text) {
