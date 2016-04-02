@@ -22,6 +22,7 @@ var res = Q.fcall(function(db) {
     development: process.env["NODE_ENV"] !== "production",
     baseUrl: process.env["BASE_URL"],
     port: process.env["PORT"],
+    enableCompression: process.env["DISABLE_COMPRESSION"] === undefined,
     sessionSecret: process.env["SESSION_SECRET"],
     db: storage.makeStorage(client),
     google: {
