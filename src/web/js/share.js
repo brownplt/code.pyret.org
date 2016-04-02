@@ -38,7 +38,6 @@ function makeShareAPI(pyretVersion) {
     };
     menuElt.on("click", function(evt) {
       evt.stopPropagation();
-      return false;
     });
     triggerElt.on("click", function(e) {
       if(!showing) { show(); e.stopPropagation(); }
