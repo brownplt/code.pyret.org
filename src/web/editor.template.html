@@ -40,10 +40,11 @@
   </ul>
 </div>
 <div id="toolbar"></div>
-<div id="loader"><p>Raising the masts...</p></div>
+
 <div id="main">
 <div id="notification" class="notificationArea"></div>
 <div id="REPL" class="replContainer">
+  <div id="loader"><p>Raising the masts...</p></div>
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
 <div id="help-keys">
@@ -114,6 +115,7 @@ function handleGoogLoad() {
 }
 </script>
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script src="/js/editor-ui.js"></script>
 <script id="loadVersion">
 // Figure out what version of Pyret we should be using, if not the current default
 var APP_BASE_URL = "{{{ BASE_URL }}}";

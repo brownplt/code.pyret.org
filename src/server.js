@@ -3,6 +3,7 @@ var gapi = require('googleapis');
 
 function start(config, onServerReady) {
   var express = require('express');
+  var compression = require('compression');
   var cookieSession = require('cookie-session');
   var cookieParser = require('cookie-parser');
   var csrf = require('csurf');
@@ -60,6 +61,14 @@ function start(config, onServerReady) {
   }));
   app.use(cookieParser());
   app.use(csrf());
+
+  if (config.enableCompression) {
+    console.log("Compression: Enabled");
+    app.use(compression());
+  }
+  else {
+    console.log("Compression: Disabled");
+  }
 
   var auth = googleAuth.makeAuth(config);
   var db = config.db;

@@ -8,14 +8,13 @@ em {
 }
 
 #loader {
-  position: fixed;
+  position: relative;
   left: 0px;
-  top: 40px;
   width: 100%;
   height: 100%;
-  z-index: 8700;
   background: url('/img/pyret-spin.gif') 50% 40px no-repeat rgb(249,249,249);
   background-size: 250px 250px;
+  overflow: hidden;
 }
 
 #help-keys {
