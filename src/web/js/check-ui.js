@@ -209,7 +209,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               for(var i=0; i<testEditors.length; i++) {
                 testEditors[i].editor.refresh();
               }
-              $(".cm-future-snippet").each(function(){this.children[0].CodeMirror.refresh();});
+              $(".cm-snippet > .CodeMirror").each(function(){this.CodeMirror.refresh();});
               firstClick = false;
             },100);
           }

@@ -1123,7 +1123,12 @@ code div {
 }
 
 .check-block-test.failing-test:not(.highlights-active) {background-color: hsl(45, 100%, 94%);overflow: hidden;}
-.check-block-test.passing-test {background-color: hsl(90,  50%, 91%);}
+.check-block-test.passing-test {
+  background-color: hsl(90,  50%, 91%);}
+  
+.check-block-test.passing-test .cm-snippet {
+  margin: 0.5em;
+}
 
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
@@ -1236,6 +1241,10 @@ code div {
   cursor: pointer;
 }
 
+.stacktrace .cm-snippet > .CodeMirror {
+  pointer-events: none;
+}
+
 #main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
 #main[data-highlights|="spotlight"] .repl,
 #main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
@@ -1243,9 +1252,15 @@ code div {
   background-color: rgb(150,150,150);
   transition: .1s background-color linear .3s;
 }
-#main[data-highlights|="spotlight"] .compile-error:not(:hover) {
+#main[data-highlights|="spotlight"] .compile-error:not(:hover),
+#main[data-highlights|="spotlight"] .check-block-test:not(:hover),
+#main[data-highlights|="spotlight"] .check-block:not(:hover) {
   opacity:0.25;
   transition: .1s opacity linear .3s;
+}
+#main[data-highlights|="spotlight"] .check-block:hover {
+  transition: .1s background-color linear .3s;
+  background-color: hsl(45, 9%, 66%);
 }
 
 .stacktrace > div .CodeMirror-linenumber {
