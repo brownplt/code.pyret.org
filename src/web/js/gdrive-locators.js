@@ -73,6 +73,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
                 getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
               });
               contentsP.then(function(pyretString) {
+                sessionStorage.setItem(uri,pyretString);
                 var ret = gmf(compileLib, "pyret-string").app(pyretString);
                 getModRestart.resume(ret);
               });
@@ -190,6 +191,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
                 getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
               });
               contentsP.then(function(pyretString) {
+                sessionStorage.setItem(uri,pyretString);
                 var ret = gmf(compileLib, "pyret-string").app(pyretString);
                 getModRestart.resume(ret);
               });

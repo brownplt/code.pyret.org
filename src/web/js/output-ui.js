@@ -43,6 +43,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       moreLink.toggle();
     }
     moreLink.on("click", toggle);
+    moreLink.one("click", function(){
+      dom.find(".CodeMirror").each(function(){this.CodeMirror.refresh();});});
     lessLink.on("click", toggle);
     container.append(moreLink).append(lessLink).append(dom);
     dom.hide();
@@ -353,8 +355,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
      return base;
   }
 
-  var sharedPrefix = "@shared-gdrive";
-  var mydrivePrefix = "@my-gdrive";
+  var sharedPrefix = "shared-gdrive";
+  var mydrivePrefix = "my-gdrive";
   var jsdrivePrefix = "gdrive-js";
 
   function isSharedImport(filename) {
@@ -369,9 +371,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   }
 
   function getMyDriveId(filename) {
-    var path = filename.slice(mydrivePrefix.length);
-    var id = basename(path);
-    return id;
+    return filename.slice(filename.lastIndexOf(":")+1);
   }
 
   function makeMyDriveUrl(id){
@@ -452,6 +452,23 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     dom.tooltip();
     return dom;
   }
+  
+  function drawCMloc(editors, cmloc) {
+    var srcElem = $("<a>").addClass("srcloc").text(cmloc.source);
+    if(editors.hasOwnProperty(cmloc.source)) {
+      return srcElem;
+    } else if(isSharedImport(cmloc.source)) {
+      var sharedId = getSharedId(cmloc.source);
+      var srcUrl = shareAPI.makeShareUrl(sharedId);
+      return srcElem.attr({href: srcUrl, target: "_blank"});
+    } else if(isGDriveImport(cmloc.source)) {
+      var MyDriveId = getMyDriveId(cmloc.source);
+      var srcUrl = makeMyDriveUrl(MyDriveId);
+      return srcElem.attr({href: srcUrl, target: "_blank"});
+    } else if(isJSImport(cmloc.source)) {
+        /* NOTE(joe): No special handling here, since it's opaque code */
+    }
+  }
 
   function drawSrcloc(editors, runtime, s) {
     if (!s) { return $("<span>"); }
@@ -524,69 +541,45 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function locToSrc(runtime, editors, srcloc) {
     return runtime.makeFunction(function(loc) {
-      return getSourceContent(editors, runtime, srcloc, loc);
+      var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
+      return getSourceContent(editors, cmloc, true);
     });
   }
   
   function locToAST(runtime, editors, srcloc) {
     return runtime.makeFunction(function(loc) {
-      var source = getSourceContent(editors, runtime, srcloc, loc);
+      var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
+      var source = getSourceContent(editors, cmloc, true);
       var prelude = ""
       var start_line = runtime.getField(loc,"start-line");
       var start_col = runtime.getField(loc,"start-column");
       for(var i=1; i < start_line; i++) { prelude += "\n"; }
       for(var i=0; i < start_col; i++) { prelude += " "; }
-      return astFromText(runtime,prelude + source, runtime.getField(loc,"source"));
+      return astFromText(runtime,prelude + source, cmloc.source);
     });
   }
   
-  function getSourceContent(editors, runtime, srcloc, loc) {
-    console.log("start-getSourceContent");
-    var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-    console.log(cmLoc.source);
-    if(editors.hasOwnProperty(cmLoc.source)) {
-      return editors[cmLoc.source].getRange(cmLoc.start, cmLoc.end);
+  function getSourceContent(editors, cmloc, tight) {
+    if(editors.hasOwnProperty(cmloc.source)) {
+      if(!tight) {
+        cmloc = 
+          {start:{
+            line: cmloc.start.line,
+            ch: 0},
+           end:{
+            line: cmloc.end.line,
+            ch: editors[cmloc.source].getLine(cmloc.end.line).length}};
+      }
+      return editors[cmloc.source].getRange(cmloc.start, cmloc.end);
+    } else {
+      var source = sessionStorage.getItem(cmloc.source);
+      var lines = source.split("\n").slice(cmloc.start.line, cmloc.end.line + 1);
+      if(tight) {
+        lines[lines.length - 1] = lines[lines.length - 1].substr(0, cmloc.end.ch);
+        lines[0] = lines[0].substr(cmloc.start.ch);
+      }
+      return lines.join("\n");
     }
-    else {
-      var src = cmLoc.source;
-      var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
-      console.log(constructors);
-      if(isSharedImport(src)) {
-        var sharedId = getSharedId(src);
-        var srcUrl = shareAPI.makeShareUrl(sharedId);
-        return srcElem.attr({href: srcUrl, target: "_blank"});
-      }
-      else if(isGDriveImport(src)) {
-        var MyDriveId = getMyDriveId(src);
-        var srcUrl = makeMyDriveUrl(MyDriveId);
-        srcElem.attr({href: srcUrl, target: "_blank"});
-      }
-      else if(isJSImport(src)) {
-        /* NOTE(joe): No special handling here, since it's opaque code */
-      }
-    }
-    console.log("end-getSourceContent");
-    /*
-    var get = runtime.getField;
-    var src = runtime.unwrap(get(s, "source"));
-    console.log(src);
-    if(!editors.hasOwnProperty(src)) {
-      if(isSharedImport(src)) {
-        console.log("isSharedImport");
-        var sharedId = getSharedId(src);
-        var srcUrl = shareAPI.makeShareUrl(sharedId);
-        console.log(srcUrl);
-      }
-      else if(isGDriveImport(src)) {
-        console.log("isGDriveImport");
-        var MyDriveId = getMyDriveId(src);
-        var srcUrl = makeMyDriveUrl(MyDriveId);
-        console.log(srcUrl);
-      }
-      else if(isJSImport(src)) {
-      }
-    }
-    console.log(editors);*/
   }
     
   function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context, underline) {
@@ -666,17 +659,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
   
   function snippet(editors, featured){
     var cmloc = featured;
-    if(!(cmloc.source in editors))
-      throw new Error("Cannot snippet a location not shown in the editor.");
-    var cmsrc = editors[featured.source];
     var lockey = "snippet-" + cmlocToCSSClass(cmloc);
-    var handle = cmsrc.markText(cmloc.start, cmloc.end,
-     {className: lockey, 
-      inclusiveLeft: false,
-      inclusiveRight:false,
-      shared: false,
-      clearWhenEmpty: true,
-      addToHistory: false});
     var snippetWrapper = $("<div>").addClass("cm-snippet");
     var cmSnippet = CodeMirror(snippetWrapper[0],{
       readOnly: true, 
@@ -684,16 +667,40 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       lineWrapping: false,
       lineNumbers: true, 
       viewportMargin: 1, 
-      scrollbarStyle: "null",
-      lineNumberFormatter: function(line){
-        var handleLoc = handle.find();
-        return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
-      }});
-    // Copy relevant part of document.  
-    var endch = cmsrc.getLine(cmloc.end.line).length;
-    cmSnippet.getDoc().setValue(cmsrc.getRange(
-      {line: cmloc.start.line, ch: 0},
-      {line: cmloc.end.line, ch: endch}));
+      scrollbarStyle: "null"});
+    var endch;
+    if(cmloc.source in editors) {
+      var cmsrc = editors[featured.source];
+      var handle = cmsrc.markText(cmloc.start, cmloc.end,
+       {className: lockey, 
+        inclusiveLeft: false,
+        inclusiveRight:false,
+        shared: false,
+        clearWhenEmpty: true,
+        addToHistory: false});
+      if(cmloc.source.startsWith("interactions")) {
+        cmSnippet.setOption("lineNumberFormatter",
+          function(line) {
+            return ">";
+          });
+      } else {
+        cmSnippet.setOption("lineNumberFormatter",
+          function(line) {
+            var handleLoc = handle.find();
+            return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
+          });
+      }
+      // Copy relevant part of document.  
+      endch = cmsrc.getLine(cmloc.end.line).length;
+      cmSnippet.getDoc().setValue(cmsrc.getRange(
+        {line: cmloc.start.line, ch: 0},
+        {line: cmloc.end.line, ch: endch}));
+    } else {
+      cmSnippet.setOption("firstLineNumber", cmloc.start.line);
+      cmSnippet.getDoc().setValue(getSourceContent(editors, cmloc, false));
+      endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
+    }
+    
     // Fade areas outside featured range
     cmSnippet.getDoc().markText(
       {line: 0, ch: 0}, 
@@ -703,12 +710,20 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
       {line: cmloc.end.line - cmloc.start.line, ch: endch},
       {className: "highlight-irrelevant"});
-    // Refresh the gutters when a change is made to the source document
-    var refresh = function(cm, change) {
-      cmSnippet.setOption("firstLineNumber",0);
-      cmSnippet.setOption("firstLineNumber",1);};
-    cmsrc.on("change", refresh);
-    handle.on("clear", function(){cmsrc.off("change", refresh);});
+      
+    if(cmloc.source in editors) {
+      // Refresh the gutters when a change is made to the source document
+      var refresh = function(cm, change) {
+        cmSnippet.setOption("firstLineNumber",0);
+        cmSnippet.setOption("firstLineNumber",1);};
+      cmsrc.on("change", refresh);
+      handle.on("clear", function(){cmsrc.off("change", refresh);});
+    }
+    
+    // render header
+    snippetWrapper.prepend(
+      $("<header>").append(drawCMloc(editors, cmloc)));
+    snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
     return {wrapper: snippetWrapper, editor: cmSnippet};
   }
   
@@ -734,26 +749,29 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       userLocs.forEach(function(ul) {
         var slContainer = $("<div>");
         var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+        var cmSnippet = snippet(editors, cmLoc);
+        snippets.push(cmSnippet.editor);
+        cmSnippet.editor.getWrapperElement().style.height = 
+          (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
         if(editors[cmLoc.source] === undefined) {
-          var sl = drawSrcloc(editors, runtime, ul);
-          slContainer.append(sl);
+          cmSnippet.wrapper.on("mouseenter", function(e){
+            contextManager.highlights = "spotlight-external";
+            flashMessage("This code isn't in this editor.")
+          });
+          cmSnippet.wrapper.on("mouseleave", function(e){
+            clearFlash();
+          });
         } else {
           var lockey = spotlight(editors, cmLoc).key;
-          var cmSnippet = snippet(editors, cmLoc);
-          snippets.push(cmSnippet.editor);
-          cmSnippet.editor.getWrapperElement().style.height = 
-            (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
           cmSnippet.wrapper.on("mouseenter", function(e){
             gotoLoc(runtime, editors, srcloc, ul);
             contextManager.highlights = lockey;
           });
-          slContainer.append(cmSnippet.wrapper);
         }
+        slContainer.append(cmSnippet.wrapper);
         container.append(slContainer);
       });
-      return expandable(container, "program execution trace")
-        .one('click', function(){
-          snippets.forEach(function(snippet){snippet.refresh();})});
+      return expandable(container, "program execution trace");
     } else {
       return container;
     }
@@ -765,15 +783,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     installRenderers(runtime);
     
     var makePalette = function(){
-      var palette = new Array();
+      var palette = new Map();
       return function(n){
         if(highlightMode == "scsh" || highlightMode == "scmh")
           return 0;
-        if(palette[n] === undefined) {
+        if(!palette.has(n)) {
           lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-          palette[n] = lastHue;
+          palette.set(n, lastHue);
         }
-        return palette[n];
+        return palette.get(n);
       };};
       
     var palette = makePalette();
@@ -934,16 +952,15 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             }
           },
           "loc": function(loc) {
-            var source = getSourceContent(editors, runtime, srcloc, loc);
             return drawSrcloc(editors, runtime, loc);
           },
           "highlight": function(contents, locs, color) {
             if(highlightMode == "scsh") return help(contents);
             
             var anchor = $("<a>").append(help(contents)).addClass("highlight");
-            var cssColor = hueToRGB(palette(color));
             
             var locArray = ffi.toArray(locs);
+            
               
             anchor.attr('title',
               "Click to scroll source location into view.");
@@ -951,12 +968,14 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             var cmLocs = locArray.map(
               function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
             
+            var cssColor = hueToRGB(palette(locs));
+            
             var locClasses = cmLocs.map(
               function(l){return cmlocToCSSClass(l);});
               
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
-              var highlight = highlights.get({l:cmLocs[h],c:palette(color)});
+              var highlight = highlights.get({l:cmLocs[h],c:cssColor});
               if(highlight == undefined) {
                 highlights.set({l:cmLocs[h],c:palette(color)},
                   highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
@@ -1006,6 +1025,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
             $(".highlights-active").removeClass("highlights-active");
             document.getElementById("main").dataset.highlights = context;
             this.classList.add("highlights-active");
+            this.parentElement.classList.add("highlights-active");
             rendering.addClass("highlights-active");
             e.stopPropagation();
           }));

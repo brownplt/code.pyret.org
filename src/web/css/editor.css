@@ -31,25 +31,25 @@
 .cptteach-fixed { line-height: 1.5; background: #ddd; }
 
 div.CodeMirror span.CodeMirror-matchingbracket-region {
-    background-color: #cdf;
+  background-color: #cdf;
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket {
-    font-weight: bold;
-    background-color: #ddd;
-    color: #111;
+  font-weight: bold;
+  background-color: #ddd;
+  color: #111;
 }
 
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket {
-    font-weight: bold;
-    background-color: #fdd;
-    color: #e11;
+  font-weight: bold;
+  background-color: #fdd;
+  color: #e11;
 }
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
-    background-color: #fdc;
-    z-index: 4000;
+  background-color: #fdc;
+  z-index: 4000;
 }
 
 .replTextOutput .CodeMirror {
@@ -70,6 +70,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   top: 0;
   right: 0;
   pointer-events: all;
+  cursor: pointer;
   padding-right: 1em;
   padding-left: 1em;
   background: hsl(204, 100%, 94%);
@@ -87,7 +88,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 #output > .compile-error:not(.highlights-active) .highlight,
 .test-reason:not(.highlights-active) .highlight {
-    background: initial!important;
+  background: initial!important;
 }
 
 
@@ -124,8 +125,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .inlineExample {
-    font-family: monospace;
-    padding: 0 2px;
+  font-family: monospace;
+  padding: 0 2px;
 }
 
 /* from http://codemirror.net/demo/resize.html */
@@ -180,8 +181,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 .check-block {
   border: none;
   border-radius: 3px;
-  margin: 10px 5px;
-  padding: 5px;
+  margin: .5em;
+  margin-bottom: 1em;
+  padding: .5em;
   box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
   background: #E1F5FE;
   position:relative;
@@ -189,8 +191,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .check-block-test-container,.check-block-error{
-  margin: .5em;
-  margin-top: 1em;
+  margin-top: .5em;
 }
 
 
@@ -219,24 +220,19 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 .check-block-test{
   position: relative;
-  padding: 1em 0px;
+  overflow: hidden;
+  padding-bottom: .5em;
 }
 
 .check-block-test:not(:last-child) {
-  border-bottom: 1px solid rgba(0,0,0,0.3);
+  margin-bottom: 0.75em;
 }
 
-.check-block-test:first-child:not(.highlights-active) {
-    background-image: linear-gradient(180deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
-    background-size: 100% .3em;
-    background-repeat: no-repeat;
-}
-
-.check-block-test:last-child:not(.highlights-active) {
-    background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
-    background-size: 100% .3em;
-    background-position:bottom;
-    background-repeat: no-repeat;
+.check-block-test {
+  background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
+  background-size: 100% .3em;
+  background-position:bottom;
+  background-repeat: no-repeat;
 }
 
 
@@ -246,11 +242,12 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .expandText{
-  color:rgba(0,0,0,0.3);
-  position:absolute;
-  top: 5px;
-  right: 5px;
+  position: absolute;
+  top: 0;
+  right: 0;
   cursor: pointer;
+  margin: .5em;
+  text-decoration: underline;
 }
 
 .repl-output {
@@ -259,64 +256,64 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .steppedGutter {
-    width: 25px;
+  width: 25px;
 }
 
 
 .progressContainer {
-    width: 90%;
-    height: 2em;
-    padding: 5px;
-    text-align: center;
+  width: 90%;
+  height: 2em;
+  padding: 5px;
+  text-align: center;
 }
 
 .progressStep {
-    display: inline-block;
-    vertical-align: top;
-    height: 10px;
-    border: 1px solid black;
+  display: inline-block;
+  vertical-align: top;
+  height: 10px;
+  border: 1px solid black;
 }
 
 .progressStep.done {
-    background-color: green;
+  background-color: green;
 }
 
 .progressDone {
-    color: green;
-    font-style: italic;
-    text-align: center;
-    width: 50%;
-    margin: auto;
+  color: green;
+  font-style: italic;
+  text-align: center;
+  width: 50%;
+  margin: auto;
 }
 
 .steppedGutterPart {
-    width: 25px;
-    padding-right: 3px;
+  width: 25px;
+  padding-right: 3px;
 }
 
 .instructionsWidget {
-    background-color: #fcf;
-    border: 1px dotted #c0c;
-    color: #111;
-    padding: 3px;
-    margin: 5px;
-    cursor: pointer;
-    margin: 5px 5px 5px auto;
+  background-color: #fcf;
+  border: 1px dotted #c0c;
+  color: #111;
+  padding: 3px;
+  margin: 5px;
+  cursor: pointer;
+  margin: 5px 5px 5px auto;
 }
 
 .instructionsWidget.hidden {
-    width: 90px;
+  width: 90px;
 }
 
 .instructionsWidget .instructionsContent {
-    font-family: serif;
+  font-family: serif;
 }
 
 .instructionsWidget .toggleInstructions {
-    color: #666;
-    float: right;
-    font-size: 0.8em;
-    padding: 3px;
+  color: #666;
+  float: right;
+  font-size: 0.8em;
+  padding: 3px;
 }
 
 .prompt-container {
@@ -526,8 +523,8 @@ div#font:hover{
   font-family:sans-serif;
   -webkit-touch-callout: none;
   -webkit-user-select: none; /* Webkit */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* IE 10  */
+  -moz-user-select: none;  /* Firefox */
+  -ms-user-select: none;   /* IE 10  */
   -o-user-select: none;
   user-select: none;
 }
@@ -710,7 +707,7 @@ span.rationalRepeat {
 }
 
 .test-reason {
-  padding: 0 1em;
+  padding: 0.5em;
   color: black;
 }
 
@@ -732,7 +729,13 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-.highlight {color: #000 !important;}
+.highlight {
+  color: #000 !important;
+}
+
+#output .compile-error {
+  cursor: pointer;
+}
 
 .hinted-highlight {
   cursor: pointer;
@@ -743,7 +746,7 @@ span.rationalRepeat {
   from {
   }
   to {
-    background-color:transparent;
+  background-color:transparent;
   }
 }
 
@@ -777,14 +780,14 @@ code div {
 
 @keyframes emphasize {
   from {
-    display: block;
-    transform: scale(0);
-    opacity: 1.0;
+  display: block;
+  transform: scale(0);
+  opacity: 1.0;
   }
   to {
-    display: block;
-    transform: scale(10);
-    opacity: 0;
+  display: block;
+  transform: scale(10);
+  opacity: 0;
   }
 }
 
@@ -796,10 +799,10 @@ code div {
 
 @keyframes emphasize-line {
   from {
-    opacity: 1;
+  opacity: 1;
   }
   to {
-    opacity: 0;
+  opacity: 0;
   }
 }
 
@@ -1105,7 +1108,7 @@ code div {
 
 .editor-check-block-failed {
   background: hsl(45, 100%, 85%);
-  box-shadow: 0 1em 11px 2px hsl(45, 100%, 85%);
+  box-shadow: 0 0.5em 11px 3px hsl(45, 100%, 85%);
 }
 
 .editor-check-block-error {
@@ -1122,27 +1125,29 @@ code div {
   to {}
 }
 
-.check-block-test.failing-test {background-color: hsl(45, 100%, 94%);}
+.check-block-test.failing-test:not(.highlights-active) {background-color: hsl(45, 100%, 94%);overflow: hidden;}
 .check-block-test.passing-test {background-color: hsl(90,  50%, 91%);}
 
-.check-block-error.highlights-active .compile-error,
+.check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
-  background-color: hsla(0,0%,100%,0.9);
+  border: 0.3em hsl(204, 100%, 74%) solid;
   box-shadow: 0 0 1em;
-  z-index: 101;
+  background: hsla(0,0%,100%,.9);
 }
 
 
 .check-block-test > header {
-  width: fit-content;
-  margin-left:.5em;
+  width: 100%;
+  padding: 0.5em;
   line-height: 0.9;
-  height: 1em;
-  margin-bottom: .5em;
+}
+
+.check-block-test.failing-test.highlights-active > header {
+  background-color: hsl(45, 100%, 85%);
 }
 
 .check-block-test .CodeMirror {
-    background:rgba(255,255,255,0.5);
+  background:rgba(255,255,255,0.5);
 }
 
 .erroredTestMarker {background-color: hsl(0, 100%, 90%);} 
@@ -1169,16 +1174,16 @@ code div {
 }
 
 .summary-count {
-    display: block;
-    font-size: 20px;
+  display: block;
+  font-size: 20px;
 }
 
 .summary-bit.summary-passed {
-    background: hsl(88, 51%, 76%);
+  background: hsl(88, 51%, 76%);
 }
 
 .summary-bit.summary-failed {
-    background: hsl(45, 100%, 85%);
+  background: hsl(45, 100%, 85%);
 }
 
 .summary-errored > .summary-count {
@@ -1187,12 +1192,12 @@ code div {
 }
 
 .summary-errored {
-    background: hsla(0,100%,73%,1);
-    color: white;
-    padding: .5em;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
+  background: hsla(0,100%,73%,1);
+  color: white;
+  padding: .5em;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .summary-text {
@@ -1201,11 +1206,26 @@ code div {
 }
 
 .highlight-irrelevant {
-    opacity: 0.2;
+  opacity: 0.2;
 }
 
 .cm-snippet {
   border: 1px hsl(0, 0%, 50%) dashed;
+  overflow: hidden;
+  cursor: default;
+  border-top-left-radius: .5em;
+  border-top-right-radius: .5em;
+}
+
+.cm-snippet header {
+  font-size: .7em;
+  background: hsl(0, 0%, 97%);
+  padding: 0 .5em;
+  box-shadow: 0 0 3px hsla(0,0%,0%,0.5);
+  z-index: 100;
+  position: relative;
+  border-bottom: 1px hsl(0, 0%, 60%) solid;
+  text-align: right;
 }
 
 .stacktrace > div {
@@ -1215,9 +1235,15 @@ code div {
   overflow:visible;
 }
 
+.stacktrace .cm-snippet {
+  cursor: pointer;
+}
+
 #main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
+#main[data-highlights|="spotlight"] .repl,
+#main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
 #main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
-  background-color: rgba(0,0,0,0.3);
+  background-color: rgb(150,150,150);
   transition: .2s background-color linear .3s;
 }
 
@@ -1234,8 +1260,8 @@ code div {
 }
 
 .stacktrace > div:not(:last-of-type):after {
-    content: '⤤';
-    margin-top: -0.5em;
-    margin-left: -1em;
-    position: absolute;
+  content: '⤤';
+  margin-top: -0.5em;
+  margin-left: -1em;
+  position: absolute;
 }

@@ -62,8 +62,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         
         eachContainer
           .append($("<div>").addClass("check-block-header")
-            .text("Testing Report: ")
-            .append(name));
+            .append(name.append(": ")));
         
         expandButton = $("<pre>").addClass("expandElement expandText").text("Show Details");
         eachContainer.append(expandButton);
@@ -73,10 +72,10 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         var testNumber = 0;
         function testTitle(loc, passed) {
           testNumber++;
+          var testName = $("<a class='hinted-highlight'>").text("Test " + testNumber);
           var header = $("<header>")
-            .addClass("hinted-highlight")
-            .text(
-              "Test " + testNumber + ": " +
+            .append(testName)
+            .append(": " +
               (passed ? "Passed"
                       : "Failed"))
             .attr('title',"Click to scroll editor to test.");
@@ -87,17 +86,17 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             (passed ? "hsl(88, 50%, 76%)" : "hsl(45, 100%, 85%)"), testContext, false);
           var currentHighlight = "";
           var contextManager = document.getElementById("main").dataset;
-          header.on("click", function(e){
+          testName.on("click", function(e){
             outputUI.emphasizeLine(editors, cmloc);
             outputUI.gotoLoc(runtime, editors, srcloc, loc);
             e.stopPropagation();});
-          header.on("mouseenter", function(e){
+          testName.on("mouseenter", function(e){
             if(header.parent().hasClass("highlights-active")) return;
             currentHighlight = contextManager.highlights;
             contextManager.highlights = testContext;
             outputUI.hintLoc(runtime, editors, srcloc, loc);
             e.stopPropagation();});
-          header.on("mouseleave", function(e) {
+          testName.on("mouseleave", function(e) {
             if(header.parent().hasClass("highlights-active")) return;
             contextManager.highlights = currentHighlight;
             outputUI.unhintLoc(runtime, editors, srcloc, loc);
@@ -140,7 +139,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                             {inclusiveLeft:false, inclusiveRight:false});
             var thisTest = eachTest;
             var thisContainer = testContainer;
-            outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 85%)", errorID);
+            if(highlightMode === "scsh")
+              outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 85%)", errorID);
             var marker = document.createElement("div");
             marker.innerHTML = cmloc.start.line + 1;
             marker.title = "Test failed! Click to see why.";
