@@ -180,14 +180,17 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       if (pointer < items.length - 1) {
         pointer++;
         loadItem();
+        CM.refresh();
       }
     }
     function nextItem() {
       if (pointer >= 1) {
         pointer--;
         loadItem();
+        CM.refresh();
       } else if (pointer === 0) {
         CM.setValue(current);
+        CM.refresh();
         pointer--;
       }
     }

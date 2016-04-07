@@ -10,6 +10,7 @@
   border: none;
   padding: 0;
   margin: 0;
+  padding-bottom:2px;
 }
 .repl .CodeMirror-lines {
   padding: 0;
@@ -339,10 +340,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 .repl-echo {
   width: 90%;
   display: inline-block;
-}
-
-.repl-echo > .CodeMirror {
-  overflow: visible;
 }
 
 .repl-echo .CodeMirror-cursors {
@@ -733,7 +730,7 @@ span.rationalRepeat {
   color: #000 !important;
 }
 
-#output .compile-error {
+#output .highlight {
   cursor: pointer;
 }
 
@@ -1244,7 +1241,11 @@ code div {
 #main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
 #main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
   background-color: rgb(150,150,150);
-  transition: .2s background-color linear .3s;
+  transition: .1s background-color linear .3s;
+}
+#main[data-highlights|="spotlight"] .compile-error:not(:hover) {
+  opacity:0.25;
+  transition: .1s opacity linear .3s;
 }
 
 .stacktrace > div .CodeMirror-linenumber {

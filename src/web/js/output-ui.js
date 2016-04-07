@@ -467,6 +467,13 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       return srcElem.attr({href: srcUrl, target: "_blank"});
     } else if(isJSImport(cmloc.source)) {
         /* NOTE(joe): No special handling here, since it's opaque code */
+    } else {
+      // TODO: something better here.
+      var srcUrl = "https://github.com/brownplt/pyret-lang/blob/horizon/"
+                 + cmloc.source
+                 + "#L" + (cmloc.start.line + 1) + "-"
+                 + "#L" + (cmloc.end.line + 1);
+      return srcElem.attr({href: srcUrl, target: "_blank"});
     }
   }
 
@@ -573,6 +580,10 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       return editors[cmloc.source].getRange(cmloc.start, cmloc.end);
     } else {
       var source = sessionStorage.getItem(cmloc.source);
+      if(!source) {
+        $.ajax("./arr/base/lists.arr",{async:false}).success(
+          function(s){source = s});
+      }
       var lines = source.split("\n").slice(cmloc.start.line, cmloc.end.line + 1);
       if(tight) {
         lines[lines.length - 1] = lines[lines.length - 1].substr(0, cmloc.end.ch);
@@ -662,7 +673,8 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     var lockey = "snippet-" + cmlocToCSSClass(cmloc);
     var snippetWrapper = $("<div>").addClass("cm-snippet");
     var cmSnippet = CodeMirror(snippetWrapper[0],{
-      readOnly: true, 
+      readOnly: "nocursor", 
+      disableInput: true,
       indentUnit: 2, 
       lineWrapping: false,
       lineNumbers: true, 
@@ -724,7 +736,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     snippetWrapper.prepend(
       $("<header>").append(drawCMloc(editors, cmloc)));
     snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
-    return {wrapper: snippetWrapper, editor: cmSnippet};
+    return {wrapper: snippetWrapper, editor: cmSnippet, featured: featured};
   }
   
   function renderStackTrace(runtime, editors, srcloc, error) {
@@ -795,6 +807,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
       };};
       
     var palette = makePalette();
+    var snippets = new Array();
     var highlights = new Map();
     return runtime.loadModules(runtime.namespace, [srclocLib, errordisplayLib], function(srcloc, ED) {
       function help(errorDisp, stack) {
@@ -911,14 +924,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
           },
           "cmcode": function(loc) {
             var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-            var cmSnippet = snippet(editors, cmloc);
-            highlights.forEach(function(value,key){
-                cmSnippet.editor.markText(
-                  {line: key.l.start.line - cmloc.start.line, ch: key.l.start.ch},
-                  {line: key.l.end.line - cmloc.start.line, ch: key.l.end.ch},
-                  {className:"highlight " + cmlocToCSSClass(key.l)});
-              });
-            return cmSnippet.wrapper.addClass("cm-future-snippet");
+            var s = snippet(editors, cmloc);
+            snippets.push(s);
+            return s.wrapper.addClass("cm-future-snippet");
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
@@ -975,9 +983,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
               
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
-              var highlight = highlights.get({l:cmLocs[h],c:cssColor});
+              var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
               if(highlight == undefined) {
-                highlights.set({l:cmLocs[h],c:palette(color)},
+                highlights.set({pl:locArray[h],l:cmLocs[h],c:palette(color)},
                   highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
               }
             }
@@ -1018,6 +1026,33 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
         });
       }
       var rendering = help(errorDisp, stack);
+      
+      snippets.forEach(function(s){
+        highlights.forEach(function(value,key){
+            s.editor.markText(
+              {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
+              {line: key.l.end.line - s.featured.start.line, ch: key.l.end.ch},
+              {className:"highlight " + cmlocToCSSClass(key.l),
+               handleMouseEvents: false, atomic: true});
+            var updated = false;
+            s.editor.on("update", function() {
+              if(updated) return;
+              updated = true;
+              $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseenter", function() {
+                hintLoc(runtime, editors, srcloc, key.pl);
+                $("."+cmlocToCSSClass(key.l)).css("animation", "pulse 0.4s infinite alternate");
+              });
+              $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("click", function() {
+                emphasizeLine(editors, key.l);
+                gotoLoc(runtime, editors, srcloc, key.pl);
+              });
+              $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseleave", function() {
+                unhintLoc(runtime, editors, srcloc, key.pl);
+                $("."+cmlocToCSSClass(key.l)).css("animation", "");
+              });});
+          })});
+      
+      
       if(context===undefined) rendering.addClass("highlights-active");
       if(context != undefined) {
         rendering.prepend($("<div>").addClass("highlightToggle")

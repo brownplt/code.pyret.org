@@ -119,12 +119,18 @@ MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/i
 build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
+COPY_ARR := $(patsubst node_modules/pyret-lang/src/arr/base/%.arr,build/web/arr/base/%.arr,$(wildcard node_modules/pyret-lang/src/arr/base/*.arr))
+
+build/web/arr/base/%: node_modules/pyret-lang/src/arr/base/%
+	cp $< $@
+
 
 WEB = build/web
 WEBV = build/web/views
 WEBJS = build/web/js
 WEBCSS = build/web/css
 WEBIMG = build/web/img
+WEBARR = build/web/arr/base
 NEWCSS = build/web/neweditor/css
 NEWJS = build/web/neweditor/js
 
@@ -143,12 +149,15 @@ $(WEBCSS):
 $(WEBIMG):
 	@$(call MKDIR,$(WEBIMG))
 
+$(WEBARR):
+	@$(call MKDIR,$(WEBARR))
+
 $(NEWCSS):
 	@$(call MKDIR,$(NEWCSS))
 
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
