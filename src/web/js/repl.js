@@ -112,124 +112,136 @@ $(function() {
         "json"
     ];
 
-    runtime.loadModulesNew(runtime.namespace,
-      [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
-      function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
-        var replNS = runtime.namespace;
-        var replEnv = gmf(compileStructs, "standard-builtins");
-        var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
-        function findModule(contextIgnored, dependency) {
+    runtime.runThunk(function() {
+      return runtime.loadModulesNew(runtime.namespace,
+        [compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs],
+        function(compileLib, pyRepl, runtimeLib, replSupport, builtin, compileStructs) {
+          var replNS = runtime.namespace;
+          var replEnv = gmf(compileStructs, "standard-builtins");
+          var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs);
+          function findModule(contextIgnored, dependency) {
+            return runtime.safeCall(function() {
+              return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
+                {
+                  builtin: function(name) {
+                    if (cpoBuiltin.knownCpoModule(name)) {
+                      return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
+                    }
+                    else if(okImports.indexOf(name) === -1) {
+                      throw runtime.throwMessageException("Unknown module: " + name);
+                    } else {
+                      return gmf(compileLib, "located").app(
+                        gmf(builtin, "make-builtin-locator").app(name),
+                        runtime.nothing
+                      );
+                    }
+                  },
+                  dependency: function(protocol, args) {
+                    var arr = runtime.ffi.toArray(args);
+                    if (protocol === "my-gdrive") {
+                      return constructors.makeMyGDriveLocator(arr[0]);
+                    }
+                    else if (protocol === "shared-gdrive") {
+                      return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                    }
+                    else if (protocol === "js-http") {
+                      // TODO: THIS IS WRONG with the new locator system
+                      return http.getHttpImport(runtime, args[0]);
+                    }
+                    else if (protocol === "gdrive-js") {
+                      return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                    }
+                    else {
+                      console.error("Unknown import: ", dependency);
+                    }
+                  }
+                });
+             }, function(l) {
+                return gmf(compileLib, "located").app(l, runtime.nothing); 
+             });
+          }
+
+          // NOTE(joe): This line is "cheating" by mixing runtime levels,
+          // and uses the same runtime for the compiler and running code.
+          // Usually you can only get a new Runtime by calling create, but
+          // here we magic the current runtime into one.
+          var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+            runtime.makeObject({
+              "runtime": runtime.makeOpaque(runtime)
+            }));
+
           return runtime.safeCall(function() {
-            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
-              {
-                builtin: function(name) {
-                  if (cpoBuiltin.knownCpoModule(name)) {
-                    return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
-                  }
-                  else if(okImports.indexOf(name) === -1) {
-                    throw runtime.throwMessageException("Unknown module: " + name);
-                  } else {
-                    return gmf(compileLib, "located").app(
-                      gmf(builtin, "make-builtin-locator").app(name),
-                      runtime.nothing
-                    );
-                  }
-                },
-                dependency: function(protocol, args) {
-                  var arr = runtime.ffi.toArray(args);
-                  if (protocol === "my-gdrive") {
-                    return constructors.makeMyGDriveLocator(arr[0]);
-                  }
-                  else if (protocol === "shared-gdrive") {
-                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
-                  }
-                  else if (protocol === "js-http") {
-                    // TODO: THIS IS WRONG with the new locator system
-                    return http.getHttpImport(runtime, args[0]);
-                  }
-                  else if (protocol === "gdrive-js") {
-                    return constructors.makeGDriveJSLocator(arr[0], arr[1]);
-                  }
-                  else {
-                    console.error("Unknown import: ", dependency);
-                  }
-                }
-              });
-           }, function(l) {
-              return gmf(compileLib, "located").app(l, runtime.nothing); 
-           });
-        }
-
-      // NOTE(joe): This line is "cheating" by mixing runtime levels,
-      // and uses the same runtime for the compiler and running code.
-      // Usually you can only get a new Runtime by calling create, but
-      // here we magic the current runtime into one.
-      var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
-        runtime.makeObject({
-          "runtime": runtime.makeOpaque(runtime)
-        }));
-
-      return runtime.safeCall(function() {
-        return gmf(replSupport, "make-repl-definitions-locator").app(
-          "definitions",
-          "definitions",
-          runtime.makeFunction(function() {
-            return editor.cm.getValue();
-          }),
-          gmf(compileStructs, "standard-globals"));
-      }, function(locator) {
-        return runtime.safeCall(function() {
-          return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
-        }, function(repl) {
-          var jsRepl = {
-            runtime: runtime.getField(pyRuntime, "runtime").val,
-            restartInteractions: function(ignoredStr, typeCheck) {
-              var ret = Q.defer();
-              setTimeout(function() {
-                runtime.runThunk(function() {
-                  return gf(repl, "restart-interactions").app(typeCheck);
-                }, function(result) {
-                  ret.resolve(result);
-                });
-              }, 0);
-              return ret.promise;
-            },
-            run: function(str, name) {
-              var ret = Q.defer();
-              setTimeout(function() {
-                runtime.runThunk(function() {
-                  return runtime.safeCall(
-                    function() {
-                      return gmf(replSupport,
-                      "make-repl-interaction-locator").app(
-                        name,
-                        name,
-                        runtime.makeFunction(function() { return str; }),
-                        repl);
-                    },
-                    function(locator) {
-                      return gf(repl, "run-interaction").app(locator); 
+            return gmf(replSupport, "make-repl-definitions-locator").app(
+              "definitions",
+              "definitions",
+              runtime.makeFunction(function() {
+                return editor.cm.getValue();
+              }),
+              gmf(compileStructs, "standard-globals"));
+          }, function(locator) {
+            return runtime.safeCall(function() {
+              return gmf(pyRepl, "make-repl").app(pyRuntime, locator, runtime.nothing, runtime.makeFunction(findModule));
+            }, function(repl) {
+              var jsRepl = {
+                runtime: runtime.getField(pyRuntime, "runtime").val,
+                restartInteractions: function(ignoredStr, typeCheck) {
+                  var ret = Q.defer();
+                  setTimeout(function() {
+                    runtime.runThunk(function() {
+                      return gf(repl, "restart-interactions").app(typeCheck);
+                    }, function(result) {
+                      ret.resolve(result);
                     });
-                }, function(result) {
-                  ret.resolve(result);
-                });
-              }, 0);
-              return ret.promise;
-            },
-            pause: function(afterPause) {
-              runtime.schedulePause(function(resumer) {
-                afterPause(resumer);
-              });
-            },
-            stop: function() {
-              runtime.breakAll();
-            },
-            runtime: runtime
-          };
-          doWithRepl(jsRepl);
+                  }, 0);
+                  return ret.promise;
+                },
+                run: function(str, name) {
+                  var ret = Q.defer();
+                  setTimeout(function() {
+                    runtime.runThunk(function() {
+                      return runtime.safeCall(
+                        function() {
+                          return gmf(replSupport,
+                          "make-repl-interaction-locator").app(
+                            name,
+                            name,
+                            runtime.makeFunction(function() { return str; }),
+                            repl);
+                        },
+                        function(locator) {
+                          return gf(repl, "run-interaction").app(locator); 
+                        });
+                    }, function(result) {
+                      ret.resolve(result);
+                    });
+                  }, 0);
+                  return ret.promise;
+                },
+                pause: function(afterPause) {
+                  runtime.schedulePause(function(resumer) {
+                    afterPause(resumer);
+                  });
+                },
+                stop: function() {
+                  runtime.breakAll();
+                },
+                runtime: runtime
+              };
+              return jsRepl;
+            });
           });
         });
-      });
+    }, function(jsRepl) {
+      if(runtime.isSuccessResult(jsRepl)) {
+        doWithRepl(jsRepl.result);
+      }
+      else {
+        console.error("Error loading REPL: ", jsRepl);
+      }
+      
+      /* intentional no-op - continuation in doWithRepl above does the next
+       * thing */
+    });
 
       var editor;
 
@@ -247,7 +259,7 @@ $(function() {
             console.error("Couldn't start REPL: ", err);
           });
           interactionsReady.then(function(result) {
-            editor.cm.setValue("print('Ahoy, world!')");
+            //editor.cm.setValue("print('Ahoy, world!')");
             console.log("REPL ready.");
           });
           var runButton = $("#runButton");
@@ -256,10 +268,19 @@ $(function() {
           $("#main").prepend(codeContainer);
 
           
-          var replWidget = replUI.makeRepl(replContainer, repl, runtime, {
-              breakButton: $("#breakButton"),
-              runButton: runButton
-            });
+          var replWidget;
+          runtime.runThunk(function() {
+              return replUI.makeRepl(replContainer, repl, runtime, {
+                breakButton: $("#breakButton"),
+                runButton: runButton
+              });
+          }, function(ans) {
+            if (runtime.isSuccessResult(ans)) {
+              replWidget = ans.result;
+            } else {
+              console.error("MakeRepl failed: ", ans);
+            }
+          });
           // NOTE(joe): assigned on window for debuggability
           window.RUN_CODE = function(src, uiOpts, replOpts) {
             doRunAction(src);
@@ -584,34 +605,53 @@ $(function() {
           }
 
           window.saveJSFile = function() {
+            var progName = $("#program-name").val() + ".js";
+            function createFile(text) {
+              storageAPI.then(function(api) {
+                var jsfile = api.createFile(progName);
+                jsfile.then(function(f) {
+                  f.save(text).
+                    then(function(f) {
+                      return f.makeShareCopy();
+                    }).
+                    then(function(copied) {
+                      console.log(makeImportText(progName, copied.getUniqueId()));
+                    });
+                });
+              });
+            }
             function makeImportText(name, id) {
-              return "import gdrive-js(\"" + name + "\", \"" + id + "\") as G";
+              return "import compiled-gdrive-js(\"" + name + "\", \"" + id + "\") as G";
             }
             var str = editor.cm.getValue();
-            require(["js/eval-lib", "compiler/compile-structs.arr"], function(e, cs) {
-              runtime.loadModules(runtime.namespace, [cs],
-                function(mod) {
-                  var progName = $("#program-name").val() + ".js";
-                  e.runCompileSrcPyret(runtime, str, {name: "gdrive-js/" + progName}, function(result) {
-                    storageAPI.then(function(api) {
-                      var jsfile = api.createFile(progName);
-                      jsfile.then(function(f) {
-                        if(!runtime.isSuccessResult(result)) {
-                          console.error("Failed to create JS file", result);
-                        }
-                        else {
-                          f.save(result.result).
-                            then(function(f) {
-                              return f.makeShareCopy();
-                            }).
-                            then(function(copied) {
-                              console.log(makeImportText(progName, copied.getUniqueId()));
-                            });
-                        }
-                      });
+            require([ 
+              "compiler/compile-lib.arr",
+              "compiler/compile-structs.arr",
+              "compiler/repl-support.arr"], function(cl, cs, rs) {
+              runtime.runThunk(function(_, __) {
+                return runtime.loadModulesNew(runtime.namespace, [cl, cs, rs],
+                  function(cl, mod, rs) {
+                    return runtime.safeCall(function() {
+                      return gmf(cl, "compile-to-js-string").app(
+                        runtime.makeFunction(globals.findModule),
+                        editor.cm.getValue(),
+                        progName,
+                        runtime.nothing,
+                        gmf(mod, "default-compile-options")
+                      );
+                    }, 
+                    function(string) {
+                      return string;
                     });
-                  });
-                });
+                 });
+              }, function(result) {
+                if(runtime.isSuccessResult(result)) {
+                  createFile(result.result);
+                }
+                else {
+                  console.error("Error: ", result);
+                }
+              });
             });
           };
 
@@ -733,9 +773,9 @@ function flashError(message) {
 }
 function flashMessage(message) {
   clearFlash();
-  var err = $("<div>").addClass("active").text(message);
-  $(".notificationArea").prepend(err);
-  err.fadeOut(7000);
+  var msg = $("<div>").addClass("active").text(message);
+  $(".notificationArea").prepend(msg);
+  msg.fadeOut(7000);
 }
 function stickMessage(message) {
   clearFlash();

@@ -6,7 +6,7 @@ describe("Running world programs", function() {
 
   var worldTestsBase = "./test-util/pyret-programs/world/";
   tester.doForEachPyretFile(it, "world", worldTestsBase, function(programText, testObj) {
-    tester.checkWorldProgramRunsCleanly(programText, testObj.browser, testObj.test, 180000);
-  }, 180000);
+    tester.checkWorldProgramRunsCleanly(programText, testObj.browser, testObj.test, 900000);
+  }, 900000);
 
 });

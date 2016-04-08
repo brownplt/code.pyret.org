@@ -53,9 +53,14 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   z-index: 4000;
 }
 
-.replTextOutput .CodeMirror {
+.replTextOutput {
   border: none;
   background-color: transparent;
+  white-space: pre;
+}
+
+.replToggle {
+  cursor: pointer;
 }
 
 .replToggle {
@@ -431,6 +436,7 @@ body {
   height:100%
 }
 .notificationArea {
+  z-index: 12000;
   width: 35%;
   font-family: sans-serif;
   position:fixed;
