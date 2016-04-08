@@ -165,7 +165,7 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
