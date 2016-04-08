@@ -581,7 +581,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/
     } else {
       var source = sessionStorage.getItem(cmloc.source);
       if(!source) {
-        $.ajax("./arr/base/lists.arr",{async:false}).success(
+        $.ajax(cmloc.source.slice(4),{async:false}).success(
           function(s){source = s});
       }
       var lines = source.split("\n").slice(cmloc.start.line, cmloc.end.line + 1);
