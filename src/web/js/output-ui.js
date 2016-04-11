@@ -1,5 +1,6 @@
 "use strict";
-define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "/js/gdrive-locators.js", "compiler/compile-structs.arr", "compiler/compile-lib.arr", "trove/parse-pyret"], function(jsnums,share,srclocLib,errordisplayLib,gdriveLocators, compileLib, compileStructs, parsePyret) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "trove/parse-pyret"], function(jsnums,share,srclocLib,errordisplayLib, parsePyret) {
+
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
   // version or something else?
