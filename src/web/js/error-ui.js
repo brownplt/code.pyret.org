@@ -52,6 +52,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
                 dom.addClass("compile-error");
                 container.append(dom); 
+                dom.children().first(".highlightToggle").trigger('click');
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
