@@ -216,7 +216,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           if (testContainer.is(":visible")) {
             eachContainer.addClass("expandElement");
             this.textContent = "Show Details";
-            var prev = testContainer.children(".highlights-active");
+            var prev = testContainer.find(".highlights-active");
             if(!eachContainer.hasClass("check-block-error")) {
               if (prev.length != 0)
                 prev.removeClass("highlights-active");
