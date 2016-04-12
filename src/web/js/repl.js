@@ -11,7 +11,7 @@ function ct_error(/* varargs */) {
 }
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
-
+var highlightMode = "mcmh";
 $(function() {
   var key = "firefox-warning-has-been-shown";
   var shownBefore = window.localStorage.getItem(key);
@@ -305,6 +305,13 @@ $(function() {
             doRunAction(editor.cm.getValue());
             $("#run-dropdown-content").hide();
           });
+          
+          $("#select-scsh").click(function() {
+            highlightMode = "scsh"; $("#run-dropdown-content").hide();});
+          $("#select-scmh").click(function() {
+            highlightMode = "scmh"; $("#run-dropdown-content").hide();});
+          $("#select-mcmh").click(function() {
+            highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
 
           editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
@@ -315,6 +322,21 @@ $(function() {
             });
 
           function doRunAction(src) {
+            editor.cm.clearGutter("CodeMirror-linenumbers");
+            var marks = editor.cm.getAllMarks();
+            document.getElementById("main").dataset.highlights = "";
+            editor.cm.eachLine(function(lh){
+              editor.cm.removeLineClass(lh, "background");});
+            for(var i = 0; i < marks.length; i++) {
+              marks[i].clear();
+            }
+            for(var i = 0; i < editor.cm.widgets.length; i++) {
+              editor.cm.widgets[i].clear();
+            }
+            var sheet = document.getElementById("highlight-styles").sheet;
+            for(var i=0; i< sheet.rules.length; i++) {
+              sheet.deleteRule(i);
+            }
             switch (currentAction) {
               case "run":
                 replWidget.runCode(src, {check: true, cm: editor.cm});

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/css/shared.css"></link>
   <link rel="stylesheet" href="/css/editor.css"></link>
   <link rel="icon" type="image/png" href="/img/pyret-icon.png">
+  <style id="highlight-styles"></style>
 </head>
 <body>
 <div id="header">
@@ -37,6 +38,10 @@
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
     <li id="select-tc-run">Type-check and run</li>
+    <li>Highlight Mode:</li>
+    <li id="select-scsh"><input type="radio" id="select-scsh-radio" name="error-display-strategy" value="SCSH"/><label for="select-scsh-radio">SCSH</label></li>
+    <li id="select-scmh"><input type="radio" id="select-scmh-radio" name="error-display-strategy" value="SCMH"/><label for="select-scmh-radio">SCMH</label></li>
+    <li id="select-mcmh"><input type="radio" id="select-mcmh-radio" name="error-display-strategy" value="MCMH" checked/><label for="select-mcmh-radio">MCMH</label></li>
   </ul>
 </div>
 <div id="toolbar"></div>
@@ -73,6 +78,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/js/loader.js"></script>
 <script src="/js/url.js"></script>
+<script src="/js/colorspaces.js"></script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/runmode.js"></script>
