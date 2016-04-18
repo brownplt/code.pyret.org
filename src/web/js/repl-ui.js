@@ -55,6 +55,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lineNumbers: useLineNumbers,
       matchKeywords: true,
       matchBrackets: true,
+      styleSelectedText: true,
       foldGutter: true,
       gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
       lineWrapping: true

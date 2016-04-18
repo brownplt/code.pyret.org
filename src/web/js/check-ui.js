@@ -14,9 +14,12 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
       var checkTotalAll = 0;
       var checkPassedAll = 0;
       var checkBlockCount = checkResultsArr.length;
-      var checkBlocksErrored = 0;
+      var checkBlocksErrored = checkResultsArr.reduce(
+        function(n, test) {
+          return n + get(option, "is-some").app(get(test, "maybe-err"));
+        }, 0);
   
-      var checkContainer = $("<div>");
+      var checkContainer = $("<div>").addClass("test-results");
   
       // Sort through all the check blocks.
       checkResultsArr.reverse().forEach(function(cr) {
@@ -26,6 +29,20 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         var checkCMLoc    = outputUI.cmPosFromSrcloc(runtime, srcloc, checkLoc);
         var checkCSS      = outputUI.cmlocToCSSClass(checkCMLoc);
         var checkCSSID    = "check-" + checkCSS;    
+        
+        // Counters for cumulative stats within a check block.
+        var trArr = ffi.toArray(get(cr, "test-results"));
+        
+        var testsInBlock = trArr.length;
+        var testsPassingInBlock = trArr.reduce(
+          function(n, test) {
+            return n + ffi.isTestSuccess(test);
+          }, 0);
+        checkTotalAll += testsInBlock;
+        checkPassedAll += testsPassingInBlock;
+        
+        var checkTotal = 0;
+        var checkPassed = 0;
         eachContainer.attr("id", checkCSSID);
         
         function editorMessage(cssClass, msg) {
@@ -41,6 +58,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                   .on("click", function(){
                     var errorel = document.getElementById(checkCSSID);
                     errorel.style.animation = "emphasize-error 1s 1";
+                    $(errorel).children(".check-block-header").click();
                     $(errorel).on("animationend", function(){this.style.animation = "";});
                     errorel.scrollIntoView(true);
                   });
@@ -49,24 +67,17 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               {coverGutter: false, noHScroll: true, above: true}));
         }
   
-        // Counters for cumulative stats within a check block.
-        var checkTotal = 0;
-        var checkPassed = 0;
-  
         // Check block header
         var name = $("<a>").text(get(cr, "name"))
           .addClass("hinted-highlight")
           .addClass(checkCSS);
           
-        var trArr = ffi.toArray(get(cr, "test-results"));
+        
         
         eachContainer
           .append($("<div>").addClass("check-block-header")
             .append(name.append(": ")));
         
-        expandButton = $("<pre>").addClass("expandElement expandText").text("Show Details");
-        eachContainer.append(expandButton);
-        eachContainer.addClass("expandElement");
         var testEditors = new Array();
         
         var testNumber = 0;
@@ -108,8 +119,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         // block.
         trArr.reverse().forEach(function(tr) {
           var errorID = contextFactory();
-          checkTotal = checkTotal + 1;
-          checkTotalAll = checkTotalAll + 1;
   
           var eachTest = $("<div>").addClass("check-block-test");
           function addPreToTest(cssClass, txt, loc) {
@@ -138,7 +147,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             var textMarker = doc.markText(cmloc.start, cmloc.end,
                             {inclusiveLeft:false, inclusiveRight:false});
             var thisTest = eachTest;
-            var thisContainer = testContainer;
+            var thisContainer = eachContainer;
             if(highlightMode === "scsh")
               outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 85%)", errorID);
             var marker = document.createElement("div");
@@ -147,7 +156,8 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             marker.classList.add("failedTestMarker");
             marker.classList.add("CodeMirror-linenumber");
             $(marker).on("click", function(){
-              thisContainer.parent(".check-block.expandElement").children(".expandText").trigger("click");
+              if(!thisContainer.hasClass("expanded"))
+                thisContainer.children(".check-block-header").click();
               thisTest.on("animationend", function(){this.style.animation = "";});
               thisTest[0].style.animation = "emphasize-error 1s 1";
               thisTest[0].scrollIntoView(true);
@@ -169,6 +179,9 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
               }
             };
             cm.on("change",onChange);
+            eachTest.on("click", function() {
+                $(this).children(".highlightToggle").click();
+              });
             eachTest.append(testTitle(loc, false));
             eachTest.append(dom);
             eachTest.attr('data-result', "Failed");
@@ -196,128 +209,120 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             checkPassed = checkPassed + 1;
             checkPassedAll = checkPassedAll + 1;
             addPassToTest(get(tr, "loc"));
-            //addPreToTest("replOutputPassed", "  test (" + get(tr, "code") + "): ok", get(tr, "loc"));
           }
           testContainer.append(eachTest);
         });
         eachContainer.append(testContainer);
-        var firstClick = true;
-        $(eachContainer).on("click", ".expandElement", function(e) {
-          e.stopPropagation();
-          if (firstClick) {
-            setTimeout(function(){
-              for(var i=0; i<testEditors.length; i++) {
-                testEditors[i].editor.refresh();
-              }
-              $(".cm-snippet > .CodeMirror").each(function(){this.CodeMirror.refresh();});
-              firstClick = false;
-            },100);
-          }
-          if (testContainer.is(":visible")) {
-            eachContainer.addClass("expandElement");
-            this.textContent = "Show Details";
-            var prev = testContainer.find(".highlights-active");
-            if(!eachContainer.hasClass("check-block-error")) {
-              if (prev.length != 0)
-                prev.removeClass("highlights-active");
-              document.getElementById("main").dataset.highlights = "";
+        
+        /* Expand check block results when their header is clicked */
+        $(eachContainer).on("click", ".check-block-header", function(e) {
+            // Collapse the currently expanded check block, if any
+            $(eachContainer).siblings(".expanded").children(".check-block-header").click();
+            // Clear the current highlight
+            document.getElementById("main").dataset.highlights = "";
+            // Expand/Collapse the clicked check block results
+            $(eachContainer).toggleClass("expanded");
+            // If the block results have just been expanded, highlight the first thing available.
+            if($(eachContainer).hasClass("expanded")) {
+              $(eachContainer).find(".highlightToggle").first().click();
             }
-          }
-          else {
-            eachContainer.removeClass("expandElement");
-            this.textContent = "Hide Details";
-            if (firstClick) {
-              setTimeout(function(){
-                for(var i=0; i<testEditors.length; i++) {
-                  testEditors[i].editor.refresh();
-                }
-                firstClick = false;
-              },100);
-            }
-          }
-          testContainer.toggle();
           });
           
+        /* on the first expansion, refresh the CodeMirror snippets */
+        $(eachContainer).one("click", ".check-block-header", function(){
+            $(eachContainer).find(".cm-future-snippet").each(
+              function(){this.cmrefresh();});
+          });
+
         var summary = $("<div>").addClass("check-block-summary");
-        var thisCheckBlockErrored = false;
+        
+        
+        var thisCheckBlockErrored =
+          get(option, "is-some").app(get(cr, "maybe-err"));
+        
+        eachContainer.addClass(
+            thisCheckBlockErrored               ? "check-block-errored"
+          : testsInBlock == testsPassingInBlock ? "check-block-success"
+          :                                       "check-block-failed");
+        
         // Necessary check because this field was not present in older versions
-        if (runtime.hasField(cr, "maybe-err")) {
-          var error = get(cr, "maybe-err");
-          if(get(option, "is-some").app(error)) {
-            thisCheckBlockErrored = true;
-            checkBlocksErrored = checkBlocksErrored + 1;
-            var errorDiv = $("<div>").addClass("check-block-error");
-            errorDiv.text("The unexpected error:");
-            eachContainer.append(errorDiv);
-            var errorDom = errorUI.drawError(errorDiv, editors, runtime, get(error, "value").val, contextFactory);
-            eachContainer.addClass("check-block-errored");
-            summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
-            editorMessage("editor-check-block-error", "Unexpected Error");
-            if(checkTotal > 0) {
-              testContainer.prepend(
-                "Before the unexpected error, "
-                + checkTotal + ((checkTotal > 1) ? " tests " : " test ")
-                + "in this block ran (" + checkPassed + " passed):");
-            }
-            var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, 
-                  get(get(cr, "maybe-err"), "value").val.pyretStack, 0);
-            var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
-            outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
-            var editor = editors[cmloc.source];
-            var textMarker = editor.markText(cmloc.start, cmloc.end,
-                            {inclusiveLeft:false, inclusiveRight:false});
-            var thisContainer = eachContainer;
-            var marker = document.createElement("div");
-            marker.innerHTML = cmloc.start.line + 1;
-            marker.title = "Check block ended with an unexpected error here. Click to see why.";
-            marker.classList.add("erroredTestMarker");
-            marker.classList.add("CodeMirror-linenumber");
-            $(marker).on("click", function(){
-              thisContainer.on("animationend", function(){this.style.animation = "";});
-              thisContainer[0].style.animation = "emphasize-error 1s 1";
-              errorDiv[0].scrollIntoView(true);
-              errorDiv.find(".highlightToggle").trigger("click");
-            });
-            var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
-            var onChange = function(cm, change) {
-              var gutterLine = editor.getLineNumber(gutterHandle);
-              var markerLoc  = textMarker.find();
-              if(markerLoc === undefined)
-                return;
-              var markerLine = markerLoc.from.line;
-              marker.innerHTML = markerLine + 1;
-              if(gutterLine != markerLine) {
-                editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
-                editor.refresh();
-                gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
-              }
-            };
-            editor.on("change",onChange);
+        if (thisCheckBlockErrored) {
+          var errorDiv = $("<div>")
+            .addClass("check-block-error")
+            .text("The unexpected error:");
+          errorUI.drawError(errorDiv, editors, runtime, get(get(cr, "maybe-err"), "value").val, contextFactory);
+          eachContainer.append(errorDiv);
+          summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
+          editorMessage("editor-check-block-error", "Unexpected Error");
+          
+          if(testsInBlock > 0) {
+            testContainer.prepend(
+              "Before the unexpected error, "
+              + testsInBlock + ((testsInBlock > 1) ? " tests " : " test ")
+              + "in this block ran (" + testsPassingInBlock + " passed):");
           }
+          
+          // Highlight the point the check block errored at.
+          var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, 
+                get(get(cr, "maybe-err"), "value").val.pyretStack, 0);
+          outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
+          var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
+          var editor = editors[cmloc.source];
+          var textMarker = editor.markText(cmloc.start, cmloc.end,
+                          {inclusiveLeft:false, inclusiveRight:false});
+          var thisContainer = eachContainer;
+          var marker = document.createElement("div");
+          marker.innerHTML = cmloc.start.line + 1;
+          marker.title = "Check block ended with an unexpected error here. Click to see why.";
+          marker.classList.add("erroredTestMarker");
+          marker.classList.add("CodeMirror-linenumber");
+          $(marker).on("click", function(){
+            thisContainer.on("animationend", function(){this.style.animation = "";});
+            thisContainer[0].style.animation = "emphasize-error 1s 1";
+            errorDiv[0].scrollIntoView(true);
+            errorDiv.find(".highlightToggle").trigger("click");
+          });
+          var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
+          var onChange = function(cm, change) {
+            var gutterLine = editor.getLineNumber(gutterHandle);
+            var markerLoc  = textMarker.find();
+            if(markerLoc === undefined)
+              return;
+            var markerLine = markerLoc.from.line;
+            marker.innerHTML = markerLine + 1;
+            if(gutterLine != markerLine) {
+              editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
+              editor.refresh();
+              gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
+            }
+          };
+          editor.on("change",onChange);
         }
-  
+         
         if(!thisCheckBlockErrored) {
-          var message = "";
-          if(checkTotal == checkPassed) {
-            eachContainer.addClass("check-block-success");
-          } else {
-            eachContainer.addClass("check-block-failed");
-          }
-          if (checkTotal > 1) {
-            if (checkPassed == checkTotal) {
-              message = "All " + checkTotal + " tests in this block passed.";
-            } else {
-              message = "" + checkPassed + " out of " + checkTotal + " tests passed in this block.";
-            }
-          } else if (checkTotal == 1 && checkPassed == 1) {
-            message = "The test in this block passed.";
-          } else if (checkTotal == 1 && checkPassed == 0) {
-            message = "The test in this block failed.";
-          }
+          var message = 
+              // Only one test in block; it passes.
+              (testsInBlock == 1 && testsPassingInBlock == 1)
+                ? "The test in this block passed."
+              // Only one test in block; it fails
+            : (testsInBlock == 1 && testsPassingInBlock == 0)
+                ? "The test in this block failed."
+            : (testsInBlock == testsPassingInBlock)
+              //  More than one test; all pass.
+                ? "All " + checkTotal + " tests in this block passed."
+              //  More than one test; some pass
+                : testsPassingInBlock + " out of " + testsInBlock + " tests passed in this block.";
           summary.text(message);
-          editorMessage(((checkTotal == checkPassed) ?
-            "editor-check-block-success"
-            : "editor-check-block-failed"), message);
+          
+          editorMessage(
+            testsInBlock == testsPassingInBlock
+              ? "editor-check-block-success"
+              : "editor-check-block-failed", 
+            message);
+            
+        } else {
+        
+        
         }
         
         // Highlight the test block name appropriately
@@ -342,7 +347,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
           outputUI.unhintLoc(runtime, editors, srcloc, checkLoc);
           e.stopPropagation();});
        
-        testContainer.hide();
         name.after(summary);
         checkContainer.append(eachContainer);
       });

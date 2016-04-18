@@ -738,7 +738,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
     snippetWrapper.prepend(
       $("<header>").append(drawCMloc(editors, cmloc)));
     snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
-    return {wrapper: snippetWrapper, editor: cmSnippet, featured: featured};
+    return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
   }
   
   function renderStackTrace(runtime, editors, srcloc, error) {
@@ -928,7 +928,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
             var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
             var s = snippet(editors, cmloc);
             snippets.push(s);
-            return s.wrapper.addClass("cm-future-snippet");
+            return s.wrapper;
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;

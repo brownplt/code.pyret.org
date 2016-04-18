@@ -31,14 +31,47 @@
 .cm-s-default .cm-type { color: #111; }
 .cptteach-fixed { line-height: 1.5; background: #ddd; }
 
+div.CodeMirror-selected,
+span.CodeMirror-selectedtext {
+  background-color: #ccc!important;
+}
+
+.CodeMirror-matchingbracket { 
+  position: relative; 
+}
+
+.CodeMirror-matchingbracket::before {
+  content: ""; 
+  position: absolute; 
+  height: 100%; 
+  width: 100%;
+  border: 0px solid rgb(90, 149, 217); 
+  z-index: 1000; 
+  border-radius: 0.4ex; 
+}
+
+.CodeMirror-matchingbracket.open::before {
+  border-width: 0.3ex 0px 0px 0.3ex; 
+  margin: -0.3ex; 
+}
+
+.CodeMirror-matchingbracket.close::before { 
+  border-width: 0px 0.3ex 0.3ex 0px; 
+  margin: 0.3ex;
+}
+
+
+
+
 div.CodeMirror span.CodeMirror-matchingbracket-region {
-  background-color: #cdf;
+  position: relative;
+  background-color: hsl(220, 100%, 95%);
+  box-shadow: 0 0 1em 2px hsl(220, 100%, 95%);
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket {
-  font-weight: bold;
-  background-color: #ddd;
-  color: #111;
+  font-weight: 600;
+  color: initial;
 }
 
 
@@ -121,13 +154,56 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   transform-origin: left;
 }
 
+.check-block-test:not(.highlights-active):hover > .highlightToggle:after,
 .highlightToggle.highlights-active:after,
 .highlightToggle:hover:after {
   transform: scaleX(1);
 }
-
+.check-block-test:not(.highlights-active):hover > .highlightToggle:before,
 .highlightToggle:hover:before {
   color:white;
+}
+
+.check-block-test.failing-test:not(.highlights-active):hover {
+    box-shadow: 0 0 2em hsl(204, 100%, 80%);
+    transform: scale(1.01);
+    backface-visibility: hidden;
+    transition: scale(1.01) .2s linear;
+    border-image-outset: 5px;
+}
+
+.check-block-test.failing-test:not(.highlights-active):hover::after{
+    content:'';
+    position:absolute;
+    height:100%;
+    width:100%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.0) 0%,
+        rgba(255, 255, 255, 0.2) 37%,
+        rgba(255, 255, 255, 0.8) 45%,
+        rgba(255, 255, 255, 0.0) 50%);
+    top:0;
+    background-size: cover;
+    cursor: pointer;
+    background-position: 100em;
+    background-origin: padding-box;
+    background-repeat: no-repeat;
+    animation: 0.7s shine linear 1;
+}
+
+@keyframes shine {
+  from {background-position:0%;}
+  to   {background-position:100em;}
+}
+
+.check-block-test.failing-test:not(.highlights-active) .test-reason {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.check-block-header {
+    cursor: pointer;
 }
 
 .inlineExample {
@@ -1141,6 +1217,26 @@ code div {
   border: 0.3em hsl(204, 100%, 74%) solid;
   box-shadow: 0 0 1em;
   background: hsla(0,0%,100%,.9);
+}
+
+.check-block:not(.expanded) > .check-block-test-container {
+  display: none;
+}
+
+.check-block-header:after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0.5em;
+  text-decoration: underline;
+}
+
+.check-block.expanded > .check-block-header::after {
+  content: 'Hide Details';
+}
+
+.check-block:not(.expanded) > .check-block-header::after {
+  content: 'Show Details';
 }
 
 

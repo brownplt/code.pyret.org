@@ -99,6 +99,9 @@ build/web/js/require.js: node_modules/requirejs/require.js
 
 build/web/js/codemirror.js: $(CM)/lib/codemirror.js
 	cp $< $@
+	
+build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
+	cp $< $@
 
 build/web/js/runmode.js: $(CM)/addon/runmode/runmode.js
 	cp $< $@
@@ -114,6 +117,7 @@ build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
+          build/web/js/mark-selection.js \
           build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
           build/web/js/seedrandom.js \
           build/web/js/pyret-fold.js \
