@@ -31,7 +31,9 @@ function init() {
         var tree = root;
         log.forEach(function(event) {
             if (event.type == "CALL") {
-                var child = { parent: tree, call_string: event.data };
+                var call_string = event.func + "(" +
+                    event.args.join(", ") + ")"
+                var child = { parent: tree, call_string: call_string };
                 if (tree.children) {
                     tree.children.push(child);
                 } else {
@@ -39,12 +41,12 @@ function init() {
                 }
                 tree = child;
             } else if (event.type == "RETURN") {
-                tree.return_string = event.data;
-                tree.label = tree.call_string + " -> " + tree.return_string;
+                tree.label = tree.call_string +
+                    " -> " + event.value +
+                    "(" + event.id + ")"
                 var parent = tree.parent;
                 delete tree.parent;
                 delete tree.call_string;
-                delete tree.return_string;
                 tree = parent;
             } else {
                 throw "Tracer: invalid tracing log";

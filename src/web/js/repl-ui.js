@@ -1,4 +1,4 @@
-define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib"], function(ffi, util, imageLib, checkUI, errorUI, outputUI, worldLib) {
+define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib", "trove/tracer-lib"], function(ffi, util, imageLib, checkUI, errorUI, outputUI, worldLib, tracerLib) {
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -245,7 +245,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       "vertical-align": "middle"
     });
     var runContents;
-    function afterRun(cm) {
+    function afterRun(cm, uiOptions) {
       return function() {
         options.runButton.empty();
         options.runButton.append(runContents);
@@ -260,6 +260,12 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         }
         output.get(0).scrollTop = output.get(0).scrollHeight;
         showPrompt();
+        if (uiOptions && uiOptions.trace) {
+          runtime.loadJSModules(runtime.namespace, [tracerLib], function(tracer) {
+            console.log("SHOWING TRACE"); // TODO: remove
+            runtime.getField(runtime.getField(tracer, "provide"), "show-trace").app();
+          });
+        }
       }
     }
     function setWhileRunning() {
@@ -287,7 +293,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
         console.error("Error displaying result: ", err);
       });
-      doneRendering.fin(afterRun(false));
+      doneRendering.fin(afterRun(false, uiOptions));
     };
 
     var runner = function(code) {
@@ -312,7 +318,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
         console.error("Error displaying result: ", err);
       });
-      doneRendering.fin(afterRun(CM));
+      doneRendering.fin(afterRun(CM, false));
     };
 
     var CM = makeEditor(prompt, runtime, {

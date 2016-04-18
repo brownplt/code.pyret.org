@@ -110,7 +110,7 @@ $(function() {
         "graph",
         "particle",
         "json",
-        "tracerlib"
+        "tracer-lib"
     ];
 
     runtime.runThunk(function() {
