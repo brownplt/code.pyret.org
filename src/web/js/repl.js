@@ -109,7 +109,8 @@ $(function() {
         "plot",
         "graph",
         "particle",
-        "json"
+        "json",
+        "tracerlib"
     ];
 
     runtime.runThunk(function() {
@@ -184,11 +185,11 @@ $(function() {
             }, function(repl) {
               var jsRepl = {
                 runtime: runtime.getField(pyRuntime, "runtime").val,
-                restartInteractions: function(ignoredStr, typeCheck) {
+                restartInteractions: function(ignoredStr, options) {
                   var ret = Q.defer();
                   setTimeout(function() {
                     runtime.runThunk(function() {
-                      return gf(repl, "restart-interactions").app(typeCheck);
+                      return gf(repl, "restart-interactions").app(options);
                     }, function(result) {
                       ret.resolve(result);
                     });
@@ -306,6 +307,13 @@ $(function() {
             $("#run-dropdown-content").hide();
           });
 
+          $("#select-trace").click(function() {
+            runButton.text("Trace");
+            currentAction = "trace";
+            doRunAction(editor.cm.getValue());
+            $("#run-dropdown-content").hide();
+          });
+
           editor = replUI.makeEditor(codeContainer, runtime, {
               runButton: $("#runButton"),
               simpleEditor: false,
@@ -317,10 +325,25 @@ $(function() {
           function doRunAction(src) {
             switch (currentAction) {
               case "run":
-                replWidget.runCode(src, {check: true, cm: editor.cm});
+                replWidget.runCode(src, {
+                    "cm": editor.cm,
+                    "check": true,
+                    "type-check": false,
+                    "trace": false});
                 break;
               case "tc-and-run":
-                replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
+                replWidget.runCode(src, {
+                    "cm": editor.cm,
+                    "check": true,
+                    "type-check": true,
+                    "trace": false});
+                break;
+              case "trace":
+                replWidget.runCode(src, {
+                    "cm": editor.cm,
+                    "check": true,
+                    "type-check": false,
+                    "trace": true});
                 break;
             }
           }

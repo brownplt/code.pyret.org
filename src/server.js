@@ -388,6 +388,10 @@ function start(config, onServerReady) {
     res.render("editor.html");
   });
 
+  app.get("/tracer", function(req, res) {
+    res.render("tracer.html");
+  });
+  
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
   });

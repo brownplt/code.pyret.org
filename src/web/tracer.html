@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- A simple call-graph viewer. -->
+<!-- Licensed under GPL3 -->
+<!-- Derivative of: https://bl.ocks.org/mbostock/4339083 -->
+<!-- Authored by: Justin Pombrio (2016) -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style>
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+.container {
+  height: 100vh;
+  width: 100vw;
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+</style>
+<body>
+  <!-- load the d3.js library -->
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <!-- load the tracer -->
+  <script src="/js/tracer.js"></script>
+</body>
