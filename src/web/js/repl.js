@@ -334,7 +334,7 @@ $(function() {
               editor.cm.widgets[i].clear();
             }
             var sheet = document.getElementById("highlight-styles").sheet;
-            for(var i=0; i< sheet.rules.length; i++) {
+            for(var i=0; i< sheet.cssRules.length; i++) {
               sheet.deleteRule(i);
             }
             switch (currentAction) {
