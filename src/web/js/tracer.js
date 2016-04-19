@@ -29,25 +29,36 @@ function init() {
 
     function log_to_tree(root, log) {
         var tree = root;
+        
+        function inject_child(child) {
+            child._parent = tree;
+            if (tree.children) {
+                tree.children.push(child);
+            } else {
+                tree.children = [child];
+            }
+            tree = child;
+        }
+
+        function withdraw_to_parent() {
+            var parent = tree._parent;
+            delete tree._parent;
+            tree = parent;
+        }
+        
         log.forEach(function(event) {
             if (event.type == "CALL") {
-                var call_string = event.func + "(" +
-                    event.args.join(", ") + ")"
-                var child = { parent: tree, call_string: call_string };
-                if (tree.children) {
-                    tree.children.push(child);
-                } else {
-                    tree.children = [child];
-                }
-                tree = child;
+                var label = event.func + "(" + event.args.join(", ") + ")";
+                inject_child({"call_string": label});
             } else if (event.type == "RETURN") {
                 tree.label = tree.call_string +
-                    " -> " + event.value +
-                    "(" + event.id + ")"
-                var parent = tree.parent;
-                delete tree.parent;
+                    " -> " + event.value + "(" + event.id + ")"
                 delete tree.call_string;
-                tree = parent;
+                withdraw_to_parent();
+            } else if (event.type == "ENTER") {
+                inject_child({"label": event.loc});
+            } else if (event.type == "EXIT") {
+                withdraw_to_parent();
             } else {
                 throw "Tracer: invalid tracing log";
             }
