@@ -50,7 +50,7 @@
       }
       var regionStyle = wordStyle + "-region";
       cm.state.failedKeywordMatch = !match.matches;
-      cm.state.keywordMarks.push(cm.markText(hit.from, hit.to, {className: wordStyle}));
+      cm.state.keywordMarks.push(cm.markText(hit.from, hit.to, {className: wordStyle + " " + (match.at == 'open' ? 'open' : 'close')}));
       match.extra.forEach(function(tok){
         cm.state.keywordMarks.push(cm.markText(tok.from, tok.to, {className: wordStyle}));
       });
@@ -58,7 +58,7 @@
         cm.state.keywordMarks.push(cm.markText(tok.from, tok.to, {className: "CodeMirror-nonmatchingbracket"}));
       });
       if (other) {
-        cm.state.keywordMarks.push(cm.markText(other.from, other.to, {className: wordStyle}));
+        cm.state.keywordMarks.push(cm.markText(other.from, other.to, {className: wordStyle + " " + (match.at == 'close' ? 'open' : 'close')}));
         cm.state.keywordMarks.push(cm.markText(match.open.from, match.close.to, {className: regionStyle}));
       }
     });

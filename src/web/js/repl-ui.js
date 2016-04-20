@@ -55,6 +55,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lineNumbers: useLineNumbers,
       matchKeywords: true,
       matchBrackets: true,
+      styleSelectedText: true,
       foldGutter: true,
       gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
       lineWrapping: true
@@ -75,6 +76,8 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
+    
+    CM.widgets = new Array();
 
     return {
       cm: CM,
@@ -99,6 +102,15 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
        500
     );
   }
+  
+  var makeErrorContext = (function () {
+    var counter = 0;
+    var makeNew = function () {
+      makeNew.current = "eg-" + counter++
+      return makeNew.current;
+    }
+    return makeNew;
+  })();
 
   function displayResult(output, callingRuntime, resultRuntime, isMain) {
     var runtime = callingRuntime;
@@ -107,7 +119,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
         console.log("Management/compile run stats:", JSON.stringify(result.stats));
         if(callingRuntime.isFailureResult(result)) {
-          errorUI.drawError(output, editors, callingRuntime, result.exn);
+          errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
         }
         else if(callingRuntime.isSuccessResult(result)) {
           result = result.result;
@@ -120,7 +132,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                 results.forEach(function(r) {
                   errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
                 });
-                errorUI.drawError(output, editors, runtime, {exn: errs});
+                errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
               },
               right: function(v) {
                 rr.loadBuiltinModules(
@@ -138,13 +150,12 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                         }
                       }
 
-                      checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
+                      checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
                       scroll(output);
-
                       return true;
                     
                     } else {
-                      errorUI.drawError(output, editors, rr, runResult.exn);
+                      errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
                   });
               }
@@ -152,8 +163,10 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         }
         else {
           console.error("Bad result: ", result);
-          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
+          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
         }
+        $(".check-block-error .cm-future-snippet").each(function(){this.cmrefresh();});
+        $(".compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
       });
     }
   }
@@ -178,14 +191,17 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       if (pointer < items.length - 1) {
         pointer++;
         loadItem();
+        CM.refresh();
       }
     }
     function nextItem() {
       if (pointer >= 1) {
         pointer--;
         loadItem();
+        CM.refresh();
       } else if (pointer === 0) {
         CM.setValue(current);
+        CM.refresh();
         pointer--;
       }
     }
@@ -296,7 +312,8 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       doneRendering.fin(afterRun(false, uiOptions));
     };
 
-    var runner = function(code) {
+    var runner = function(code) {      
+      document.getElementById("main").dataset.highlights = "";
       items.unshift(code);
       pointer = -1;
       var echoContainer = $("<div class='echo-container'>");
