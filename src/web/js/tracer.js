@@ -30,8 +30,10 @@ function init() {
     function log_to_tree(root, log) {
         var tree = root;
         
-        function inject_child(child) {
-            child._parent = tree;
+        function enter(event) {
+            var child = {"enter_event": event,
+                         "id": event.id,
+                         "parent": tree};
             if (tree.children) {
                 tree.children.push(child);
             } else {
@@ -40,29 +42,59 @@ function init() {
             tree = child;
         }
 
-        function withdraw_to_parent() {
-            var parent = tree._parent;
-            delete tree._parent;
-            tree = parent;
-        }
-        
-        log.forEach(function(event) {
-            if (event.type == "CALL") {
-                var label = event.func + "(" + event.args.join(", ") + ")";
-                inject_child({"call_string": label});
-            } else if (event.type == "RETURN") {
-                tree.label = tree.call_string +
-                    " -> " + event.value + "(" + event.id + ")"
-                delete tree.call_string;
-                withdraw_to_parent();
-            } else if (event.type == "ENTER") {
-                inject_child({"label": event.loc});
-            } else if (event.type == "EXIT") {
-                withdraw_to_parent();
-            } else {
+        function exit(event) {
+            var enter_id = tree.id;
+            var exit_id  = event.id;
+            tree.exit_event = event;
+            var parent   = tree.parent;
+            if (!parent) {
                 throw "Tracer: invalid tracing log";
             }
-        });
+            tree = parent;
+            if (enter_id != exit_id) {
+                exit(event);
+            }
+        }
+
+        function process_log(log) {
+            log.forEach(function(event) {
+                switch (event.type) {
+                case "ENTER":  enter(event); break;
+                case "EXIT":   exit(event); break;
+                case "CALL":   enter(event); break;
+                case "RETURN": exit(event); break;
+                default: throw "Tracer: invalid tracing log";
+                }
+            });
+        }
+
+        function label_tree(tree) {
+            if (tree.children) {
+                tree.children.forEach(function(child) {
+                    var e1 = child.enter_event;
+                    var e2 = child.exit_event;
+                    switch (e1.type) {
+                    case "ENTER":
+                        child.label = e1.loc;
+                        break;
+                    case "CALL":
+                        var call_str =
+                            e1.func + "(" + e1.args.join(", ") + ")";
+                        var ret_str =
+                            e2.type === "RETURN" ?
+                            e2.value :
+                            "EXN!";
+                        child.label = call_str + " -> " + ret_str;
+                        break;
+                    default: throw "Tracer: Internal error";
+                    }
+                    label_tree(child);
+                });
+            }
+        }
+
+        process_log(log);
+        label_tree(root);
         return root;
     }
 
