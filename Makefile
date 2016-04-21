@@ -88,6 +88,9 @@ build/web/js/s-expression-lib.js: node_modules/s-expression/index.js
 build/web/js/colorspaces.js: node_modules/colorspaces/colorspaces.js
 	cp $< $@
 
+build/web/js/es6-shim.js: node_modules/es6-shim/es6-shim.min.js
+	cp $< $@
+
 build/web/js/seedrandom.js: node_modules/seedrandom/seedrandom.js
 	cp $< $@
 
@@ -123,6 +126,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/pyret-fold.js \
           build/web/js/matchkw.js \
           build/web/js/colorspaces.js \
+          build/web/js/es6-shim.js \
           build/web/js/runmode.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
