@@ -366,9 +366,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
   }
 
   function getSharedId(filename) {
-    var path = filename.slice(sharedPrefix.length);
-    var id = basename(path);
-    return id;
+    return filename.slice(filename.lastIndexOf(":")+1);
   }
 
   function getMyDriveId(filename) {
