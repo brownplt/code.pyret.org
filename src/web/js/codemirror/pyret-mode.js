@@ -15,7 +15,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_closing_tokens =
         pyret_closing_keywords.map(toToken("keyword")).concat(
           pyret_closing_builtins.map(toToken("builtin")));
-  const pyret_opening_keywords_colon = ["try", "ask", "ref-graph", "block"];
+  const pyret_opening_keywords_colon = ["try", "ask", "ref-graph", "block", "inspect"];
   const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let",
                                           "cases", "data", "shared", "check",
                                           "except", "letrec", "lam", "method",
@@ -33,7 +33,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     wordRegexp(["provide-types", "type-let", "does-not-raise", "raises-violates", 
                 "raises-satisfies", "raises-other-than", "is-not==", "is-not=~", "is-not<=>", "is-not"]);
   const pyret_keywords_colon = 
-    wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where"]));
+    wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where", "project"]));
   const pyret_single_punctuation = 
     new RegExp("^([" + [":", ".", "<", ">", ",", "^", "!",
                         ";", "|", "=", "+", "*", "/", "\\\\", // NOTE: No minus
@@ -64,7 +64,8 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   // Subkeywords each token can have
   const pyret_subkeywords = {
     "if": ["else if", "else"], "fun": ["where"],
-    "data": ["sharing", "where"], "method": ["where"]
+    "data": ["sharing", "where"], "method": ["where"],
+    "inspect": ["where", "project"],
   };
 
   // Subkeywords which cannot be followed by any other keywords
