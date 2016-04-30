@@ -41,8 +41,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         checkTotalAll += testsInBlock;
         checkPassedAll += testsPassingInBlock;
         
-        var checkTotal = 0;
-        var checkPassed = 0;
         eachContainer.attr("id", checkCSSID);
         
         function editorMessage(cssClass, msg) {
@@ -206,8 +204,6 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             );
           } else {
             // If you're here, the test passed, all is well.
-            checkPassed = checkPassed + 1;
-            checkPassedAll = checkPassedAll + 1;
             addPassToTest(get(tr, "loc"));
           }
           testContainer.append(eachTest);
@@ -309,7 +305,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
                 ? "The test in this block failed."
             : (testsInBlock == testsPassingInBlock)
               //  More than one test; all pass.
-                ? "All " + checkTotal + " tests in this block passed."
+                ? "All " + testsInBlock + " tests in this block passed."
               //  More than one test; some pass
                 : testsPassingInBlock + " out of " + testsInBlock + " tests passed in this block.";
           summary.text(message);
