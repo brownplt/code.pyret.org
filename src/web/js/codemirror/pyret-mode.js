@@ -19,7 +19,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let",
                                           "cases", "data", "shared", "check",
                                           "except", "letrec", "lam", "method",
-                                          "examples"];
+                                          "examples", "do"];
   const pyret_opening_keywords = pyret_opening_keywords_colon.concat(pyret_opening_keywords_nocolon);
   const pyret_opening_tokens = pyret_opening_keywords.map(toToken("keyword"));
   const pyret_keywords = 
@@ -33,7 +33,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     wordRegexp(["provide-types", "type-let", "does-not-raise", "raises-violates", 
                 "raises-satisfies", "raises-other-than", "is-not==", "is-not=~", "is-not<=>", "is-not"]);
   const pyret_keywords_colon = 
-    wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where", "project"]));
+    wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where", "do", "project"]));
   const pyret_single_punctuation = 
     new RegExp("^([" + [":", ".", "<", ">", ",", "^", "!",
                         ";", "|", "=", "+", "*", "/", "\\\\", // NOTE: No minus
@@ -65,7 +65,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_subkeywords = {
     "if": ["else if", "else"], "fun": ["where"],
     "data": ["sharing", "where"], "method": ["where"],
-    "inspect": ["where", "project"],
+    "inspect": ["where", "project"], "for": ["do"]
   };
 
   // Subkeywords which cannot be followed by any other keywords
@@ -437,6 +437,14 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // when indents like functions
       ls.tokens.push("WHEN", "WANTCOLON");
+    } else if (state.lastToken === "do") {
+      if (hasTop(ls.tokens, "DO"))
+        if (ls.curOpened.fn > 0) ls.curOpened.fn--;
+        else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
+        else ls.curClosed.fn++;
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++; // do indents like functions
+      ls.tokens.push("DO", "WANTCOLON");
     } else if (state.lastToken === "for") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // for-loops indent like functions
@@ -609,6 +617,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         //ls.curClosed.o++;
         ls.tokens.pop();
+      } else if (hasTop(ls.tokens, ["DO"])) {
+        //ls.curClosed.o++;
+        ls.tokens.pop();
       }
       var top = peek(ls.tokens);
       var is_semi, which_to_close;
@@ -642,7 +653,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           else which_to_close.v++;
         } 
         // Things that are counted, and closable by end:
-        else if (top === "FUN" || top === "WHEN" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET") {
+        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET") {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
           else which_to_close.fn++;
