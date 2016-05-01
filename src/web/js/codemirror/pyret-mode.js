@@ -438,13 +438,14 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.deferedOpened.fn++; // when indents like functions
       ls.tokens.push("WHEN", "WANTCOLON");
     } else if (state.lastToken === "do") {
-      if (hasTop(ls.tokens, "DO"))
+      if (hasTop(ls.tokens, "DO")) {
         if (ls.curOpened.fn > 0) ls.curOpened.fn--;
         else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
         else ls.curClosed.fn++;
-      ls.delimType = pyret_delimiter_type.OPENING;
-      ls.deferedOpened.fn++; // do indents like functions
-      ls.tokens.push("DO", "WANTCOLON");
+        ls.deferedOpened.fn++;
+        ls.tokens.push("WHEN", "WANTCOLON");
+        ls.delimType = pyret_delimiter_type.SUBKEYWORD;
+      }
     } else if (state.lastToken === "for") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // for-loops indent like functions
@@ -615,9 +616,6 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "end" || state.lastToken === ";") {
       ls.delimType = pyret_delimiter_type.CLOSING;
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
-        //ls.curClosed.o++;
-        ls.tokens.pop();
-      } else if (hasTop(ls.tokens, ["DO"])) {
         //ls.curClosed.o++;
         ls.tokens.pop();
       }
