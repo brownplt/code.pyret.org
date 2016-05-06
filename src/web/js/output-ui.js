@@ -1,5 +1,5 @@
 "use strict";
-define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "trove/parse-pyret"], function(jsnums,share,srclocLib,errordisplayLib, parsePyret) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "trove/parse-pyret", "trove/tables"], function(jsnums,share,srclocLib,errordisplayLib, parsePyret, tableLib) {
 
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
@@ -1112,6 +1112,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
   function installRenderers(runtime) {
     if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
     var renderers = runtime.ReprMethods["$cpo"];
+
     renderers["opaque"] = function renderPOpaque(val) {
       if (runtime.imageLib.isImage(val.val)) {
         return renderers.renderImage(val.val);
@@ -1122,6 +1123,32 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
     renderers["cyclic"] = function renderCyclic(val) {
       return renderers.renderText("cyclic", val);
     };
+    renderers.renderTable = function renderTable(val) {
+      debugger;
+      var table = document.createElement("table");
+      table.classList.add('replOutput');
+      var rows = runtime.ffi.toArray(val.dict.rows);
+      var cols = val.dict.headers;
+      var header = document.createElement("tr");
+      for(var i = 0; i < rows.length; i++) {
+        var col = document.createElement("th");
+        col.textContent = cols[i];
+        header.appendChild(col);
+      }
+      table.appendChild(header);
+      for(var i = 0; i < rows.length; i++) {
+        var rowv  = rows[i]
+        var rowel = document.createElement("tr");
+        for(var j = 0; j < cols.length; j++) {
+          var cellel = document.createElement("td");
+          renderPyretValue(cell, runtime, rowv[j]);
+          rowel.appendChild(cellel);
+        }
+        table.appendChild(rowel);
+      }
+      return table;
+    };
+    
     renderers.renderImage = function renderImage(img) {
       var container = $("<span>").addClass('replOutput');
       var imageDom;
@@ -1429,24 +1456,56 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
       return helper(container, top.extra.skeleton, top.done);
     };
   }
+  
+  function renderTable(runtime, val) {
+    var table = document.createElement("table");
+    table.classList.add('replOutput');
+    var rows = runtime.ffi.toArray(val.dict['internal-rows']);
+    var cols = val.dict['headers'];
+    var header = document.createElement("tr");
+    for(var i = 0; i < cols.length; i++) {
+      var col = document.createElement("th");
+      col.textContent = cols[i];
+      header.appendChild(col);
+    }
+    table.appendChild(header);
+    for(var i = 0; i < rows.length; i++) {
+      var rowv  = rows[i]
+      var rowel = document.createElement("tr");
+      for(var j = 0; j < cols.length; j++) {
+        var cellel = document.createElement("td");
+        renderPyretValue(cellel, runtime, rowv[j]);
+        rowel.appendChild(cellel);
+      }
+      table.appendChild(rowel);
+    }
+    return table;
+  }
   // Because some finicky functions (like images and CodeMirrors), require
   // extra events to happen for them to show up, we provide this as an
   // imperative API: the DOM node created will be appended to the output
   // and also returned
   function renderPyretValue(output, runtime, answer) {
     installRenderers(runtime);
-    runtime.runThunk(function() {
-      return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
-    }, function(container) {
-      if(runtime.isSuccessResult(container)) {
-        $(output).append(container.result);
-      }
-      else {
-        $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
-        console.log(container.exn);
-      }
-      return container;
-    });
+    return runtime.loadModules(runtime.namespace, [tableLib], function(tableLib) {
+      if(runtime.getField(tableLib, "is-table").app(answer)) {
+        $(output).append(renderTable(runtime, answer));
+      } else {
+        return runtime.runThunk(function() {
+          return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
+        }, function(container) {
+          if(runtime.isSuccessResult(container)) {
+            $(output).append(container.result);
+          }
+          else {
+            $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
+            console.log(container.exn);
+          }
+          return container;
+        });
+      }});
+      
+    
   }
   return {
     renderPyretValue: renderPyretValue,

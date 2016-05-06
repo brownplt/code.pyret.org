@@ -118,6 +118,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     return function(result) {
       runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
         console.log("Management/compile run stats:", JSON.stringify(result.stats));
+        console.log("Result", result);
         if(callingRuntime.isFailureResult(result)) {
           errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
         }

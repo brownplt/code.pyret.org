@@ -1383,3 +1383,29 @@ code div {
   margin-left: -1em;
   position: absolute;
 }
+
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: auto;
+    display: table!important;
+    border:1px black solid;
+    border-radius:1em;
+    overflow:hidden;
+    background:#eee;;
+}
+
+th {
+    background: #ddd;
+}
+
+th, td {
+    text-align: left;
+    padding: 1em;
+    width: auto;
+    border-right:1px white solid;
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+
