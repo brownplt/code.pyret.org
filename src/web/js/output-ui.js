@@ -1367,7 +1367,6 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
       // Assuming this was made by groupItems below, replace all instances of .collection with .inlineCollection
       $(this).toggleClass("collection");
       $(this).toggleClass("inlineCollection");
-      $(this).children("li").children("span.contents").children("ul").each(makeInline);
     }
     function helper(container, val, values) {
       if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
@@ -1403,9 +1402,9 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
     function groupItems(ul, items, values, minIdx, maxIdx) {
       // The grouping behavior isn't visually clean yet, so commenting out for now...
       // if (Math.log10(maxIdx - minIdx) <= 1) {
-        for (var i = maxIdx - 1; i >= minIdx; i--) {
+        for (var i = minIdx; i < maxIdx; i++) {
           var li = $("<li>").addClass("expanded");
-          var title = $("<span>").addClass("label").text("Item " + (minIdx + maxIdx - 1 - i));
+          var title = $("<span>").addClass("label").text("Item " + i);
           var contents = $("<span>").addClass("contents");
           ul.append(li.append(title).append(contents));
           helper(contents, items[i], values);
