@@ -107,6 +107,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background-color: #fdc;
+  border-top: 0.1em solid #fdd;
+  border-bottom: 0.1em solid #fdd;
   z-index: 4000;
 }
 
