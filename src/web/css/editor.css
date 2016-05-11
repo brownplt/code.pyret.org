@@ -20,15 +20,19 @@
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
-.cm-s-default.CodeMirror { color: #111; }
-.cm-s-default .cm-comment { color: #39f; }
+.cm-s-default.CodeMirror { color: black; }
+.cm-s-default .cm-comment { color: #cd7054; }
+.cm-s-default .cm-boolean { color: darkred; }
 .cm-s-default .cm-builtin { color: #555; }
-.cm-s-default .cm-function-name { color: #111; }
-.cm-s-default .cm-variable { color: #111; }
-.cm-s-default .cm-keyword { color: #636; }
-.cm-s-default .cm-number { color: #164; }
-.cm-s-default .cm-string { color: #164; }
-.cm-s-default .cm-type { color: #111; }
+.cm-s-default .cm-function-name { color: #374049; }
+.cm-s-default .cm-variable { color: #4d5966; }
+.cm-s-default .cm-keyword { color: black; font-weight: bold; }
+.cm-s-default .cm-number { color: navy; }
+.cm-s-default .cm-roughnum { color: blue; }
+.cm-s-default .cm-bad-number { color: red; font-weight: bold; }
+.cm-s-default .cm-string { color: forestgreen; }
+.cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
+.cm-s-default .cm-type { color: #374049; }
 .cptteach-fixed { line-height: 1.5; background: #ddd; }
 
 div.CodeMirror-selected,

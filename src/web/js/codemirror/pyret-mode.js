@@ -83,6 +83,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     return style;
   }
 
+
   function tokenBase(stream, state) { 
     if (stream.eatSpace())
       return "IGNORED-SPACE";
@@ -101,9 +102,20 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         return ret(state, "COMMENT", state.lastContent, 'comment');
       }
     }
+
     // Handle Number Literals
-    if (stream.match(/^[0-9]+(\.[0-9]+)?/))
+    const number = new RegExp("^[-+]?[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+    const badNumber = new RegExp("^~?[+-]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?");
+    const roughnum = new RegExp("^~[-+]?[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+    const rational = new RegExp("^[-+]?[0-9]+/[0-9]+");
+    if (stream.match(roughnum))
+      return ret(state, 'number', stream.current(), 'roughnum');
+    else if (stream.match(rational))
       return ret(state, 'number', stream.current(), 'number');
+    else if (stream.match(number))
+      return ret(state, 'number', stream.current(), 'number');
+    else if (stream.match(badNumber))
+      return ret(state, 'number', stream.current(), 'bad-number');
     
     // if (ch === '"') {
     //   state.tokenizer = tokenStringDouble;
