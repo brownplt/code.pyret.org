@@ -47,16 +47,17 @@ span.CodeMirror-selectedtext {
   width: 100%;
   border: 0px solid rgb(90, 149, 217); 
   z-index: 1000; 
-  border-radius: 0.4ex; 
 }
 
 .CodeMirror-matchingbracket.open::before {
   border-width: 0.3ex 0px 0px 0.3ex; 
+  border-top-left-radius: 0.4ex; 
   margin: -0.3ex; 
 }
 
 .CodeMirror-matchingbracket.close::before { 
   border-width: 0px 0.3ex 0.3ex 0px; 
+  border-bottom-right-radius: 0.4ex; 
   margin: 0.3ex;
 }
 
@@ -66,7 +67,30 @@ span.CodeMirror-selectedtext {
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
   background-color: hsl(220, 100%, 95%);
-  box-shadow: 0 0 1em 2px hsl(220, 100%, 95%);
+  border-top: 0.1em solid hsl(220, 100%, 95%);
+  border-bottom: 0.1em solid hsl(220, 100%, 95%);
+}
+
+div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+    box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open {
+  box-shadow: -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+  box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%), -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close {
+  box-shadow: 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+  box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.3ex 0 0.3ex hsl(220, 100%, 95%);
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket {
