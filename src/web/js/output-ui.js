@@ -1419,11 +1419,37 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
           helper(container, items[i], values);
         }
         container.append($("<span>").text(")"));
-      } else {
+      } else if (runtime.ffi.isVSSeq(val)) {
         var items = runtime.ffi.toArray(runtime.getField(val, "items"));
         for (var i = 0; i < items.length; i++) {
           helper(container, items[i], values);
         }
+      } else if (runtime.ffi.isVSTable(val)) {
+        var table = document.createElement("table");
+        var cols = runtime.getField(val, "headers")
+        var headers = document.createElement("thead");
+        var header = document.createElement("tr");
+        for(var i = 0; i < cols.length; i++) {
+          var col = document.createElement("th");
+          helper($(col), cols[i], values);
+          header.appendChild(col);
+        }
+        headers.appendChild(header);
+        table.appendChild(headers);
+        var body = document.createElement("tbody");
+        var rows = runtime.getField(val, "rows")
+        for(var i = 0; i < rows.length; i++) {
+          var rowv  = rows[i]
+          var rowel = document.createElement("tr");
+          for(var j = 0; j < cols.length; j++) {
+            var cellel = document.createElement("td");
+            helper($(cellel), rowv[j], values);
+            rowel.appendChild(cellel);
+          }
+          body.appendChild(rowel);
+        }
+        table.appendChild(body);
+        container.append(table);
       }
       return container;
     }
@@ -1457,30 +1483,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
     };
   }
   
-  function renderTable(runtime, val) {
-    var table = document.createElement("table");
-    table.classList.add('replOutput');
-    var rows = runtime.ffi.toArray(val.dict['internal-rows']);
-    var cols = val.dict['headers'];
-    var header = document.createElement("tr");
-    for(var i = 0; i < cols.length; i++) {
-      var col = document.createElement("th");
-      col.textContent = cols[i];
-      header.appendChild(col);
-    }
-    table.appendChild(header);
-    for(var i = 0; i < rows.length; i++) {
-      var rowv  = rows[i]
-      var rowel = document.createElement("tr");
-      for(var j = 0; j < cols.length; j++) {
-        var cellel = document.createElement("td");
-        renderPyretValue(cellel, runtime, rowv[j]);
-        rowel.appendChild(cellel);
-      }
-      table.appendChild(rowel);
-    }
-    return table;
-  }
+  
   // Because some finicky functions (like images and CodeMirrors), require
   // extra events to happen for them to show up, we provide this as an
   // imperative API: the DOM node created will be appended to the output
@@ -1488,25 +1491,21 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
   function renderPyretValue(output, runtime, answer) {
     installRenderers(runtime);
     return runtime.loadModules(runtime.namespace, [tableLib], function(tableLib) {
-      if(runtime.getField(tableLib, "is-table").app(answer)) {
-        $(output).append(renderTable(runtime, answer));
-      } else {
-        return runtime.runThunk(function() {
-          return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
-        }, function(container) {
-          if(runtime.isSuccessResult(container)) {
-            $(output).append(container.result);
-          }
-          else {
-            $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
-            console.log(container.exn);
-          }
-          return container;
-        });
-      }});
-      
-    
+      return runtime.runThunk(function() {
+        return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
+      }, function(container) {
+        if(runtime.isSuccessResult(container)) {
+          $(output).append(container.result);
+        }
+        else {
+          $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
+          console.log(container.exn);
+        }
+        return container;
+      });
+    });
   }
+  
   return {
     renderPyretValue: renderPyretValue,
     renderStackTrace: renderStackTrace,

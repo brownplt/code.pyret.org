@@ -110,7 +110,7 @@ $(function() {
         "graph",
         "particle",
         "json",
-        "tables"
+        "table"
     ];
 
     runtime.runThunk(function() {
