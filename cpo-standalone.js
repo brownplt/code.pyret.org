@@ -1,4 +1,3 @@
-require = require("requirejs");
 require(["pyret-base/js/runtime", "program"], function(runtimeLib, program) {
 
   var staticModules = program.staticModules;
@@ -8,11 +7,11 @@ require(["pyret-base/js/runtime", "program"], function(runtimeLib, program) {
   var main = toLoad[toLoad.length - 1];
 
   var runtime = runtimeLib.makeRuntime({
-    stdout: function(s) { process.stdout.write(s); },
-    stderr: function(s) { process.stderr.write(s); } 
+    stdout: function(s) { console.log(s); },
+    stderr: function(s) { console.error(s); } 
   });
 
-  runtime.setParam("command-line-arguments", process.argv.slice(1));
+  runtime.setParam("command-line-arguments", []);
 
   var postLoadHooks = {
     "builtin://srcloc": function(srcloc) {
@@ -55,8 +54,8 @@ require(["pyret-base/js/runtime", "program"], function(runtimeLib, program) {
       return toCall.app(checks, getStackP);
     }, function(printedCheckResult) {
       if(runtime.isString(printedCheckResult)) {
-        process.stdout.write(printedCheckResult);
-        process.stdout.write("\n");
+        console.log(printedCheckResult);
+        console.log("\n");
       }
     });
   };
@@ -108,6 +107,8 @@ require(["pyret-base/js/runtime", "program"], function(runtimeLib, program) {
       renderErrorMessage(runtime, result);
       console.error(result.exn.stack);
     }
+//    $("#loader").hide();
+    console.log(window.performance.now());
   }
 
   return runtime.runThunk(function() {

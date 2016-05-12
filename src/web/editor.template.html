@@ -121,58 +121,9 @@ function handleGoogLoad() {
 }
 </script>
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
-<script id="loadVersion">
-// Figure out what version of Pyret we should be using, if not the current default
-var APP_BASE_URL = "{{{ BASE_URL }}}";
-var initialParams = url.parse(document.location.href);
-var params = url.parse("/?" + initialParams["hash"]);
-if(params.get && params.get["v"]) {
-  VERSION = params.get["v"];
-}
-else {
-  VERSION = "{{{ CURRENT_PYRET_RELEASE }}}";
-}
-if(VERSION !== "") { VERSION = VERSION + "/"; }
-var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
-function start() {
-  var start = document.createElement("script");
-  start.src = "/js/repl.js";
-  document.body.appendChild(start);
-}
-if({{{ USE_STANDALONE_PYRET }}}) {
-  var script = document.createElement("script");
-  script.src = BASE + "pyret.js"
-  document.body.insertBefore(script, document.getElementById("loadVersion"));
-  script.addEventListener("load", function() { start(); });
-  setTimeout(function() {
-    requirejs.config({
-      paths: {
-        "q": "/js/q",
-        "s-expression": "/js/s-expression",
-        "fs": "/js/fsstub"
-      },
-      waitSeconds: 0
-    });
-  });
-} else {
-  var phase1Base = BASE + "phase1/";
-  requirejs.config({
-    paths: {
-      "js": phase1Base + "js",
-      "compiler": phase1Base + "arr/compiler",
-      "arr": phase1Base + "arr",
-      "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
-      "trove": phase1Base + "trove",
-      "q": "/js/q",
-      "s-expression": "/js/s-expression",
-      "fs": "/js/fsstub"
-    },
-    waitSeconds: 0
-  });
-  start();
-}
-
-</script>
+<script>console.log(window.performance.now())</script>
+<script src="js/beforePyret.js"></script>
+<script>var PYRETSRC = "{{ PYRET }}"</script>
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 </body>
