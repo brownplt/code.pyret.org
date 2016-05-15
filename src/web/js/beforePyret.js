@@ -320,9 +320,11 @@ $(function() {
   });
 
   programLoaded.fin(function() {
-    var pyretLoad = 
-      "<script id='loadVersion' src='" + PYRETSRC + "'</script>";
-    $(document.body).append($(pyretLoad));
+    var pyretLoad = document.createElement('script');
+    console.log(PYRETSRC);
+    pyretLoad.src = PYRETSRC;
+    pyretLoad.type = "text/javascript";
+    document.body.appendChild(pyretLoad);
     CPO.editor.focus();
   });
 

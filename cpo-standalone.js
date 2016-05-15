@@ -1,4 +1,4 @@
-require(["pyret-base/js/runtime", "program"], function(runtimeLib, program) {
+require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, program, cpoBuiltinModules) {
 
   var staticModules = program.staticModules;
   var depMap = program.depMap;
@@ -6,12 +6,15 @@ require(["pyret-base/js/runtime", "program"], function(runtimeLib, program) {
 
   var main = toLoad[toLoad.length - 1];
 
+  cpoBuiltinModules.setStaticModules(program.staticModules);
+
   var runtime = runtimeLib.makeRuntime({
     stdout: function(s) { console.log(s); },
     stderr: function(s) { console.error(s); } 
   });
 
   runtime.setParam("command-line-arguments", []);
+  runtime.setParam("staticModules", program.staticModules);
 
   var postLoadHooks = {
     "builtin://srcloc": function(srcloc) {
