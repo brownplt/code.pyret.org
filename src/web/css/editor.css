@@ -838,6 +838,10 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
+a.highlight {
+  color: #000 !important;
+}
+
 #output .highlight {
   cursor: pointer;
 }
