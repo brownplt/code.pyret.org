@@ -817,14 +817,14 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
               if (i != 0) result.append($("<br>"));
-              result.append(help(contents[i]));
+              result.append(help(contents[i], stack));
             }
             return result;
           },
           "bulleted-sequence": function(seq) { 
             return $("<ul>").append(ffi.toArray(seq).map(
               function(i){
-                return $("<li>").append(help(i));
+                return $("<li>").append(help(i, stack));
               }));
           },
           "h-sequence": function(seq, separator) { 
@@ -832,7 +832,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
               if (i != 0 && separator !== "") result.append(separator);
-              result.append(help(contents[i]));
+              result.append(help(contents[i], stack));
             }
             return result.contents();
           },
@@ -840,7 +840,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             for (var i = 0; i < contents.length; i++) {
-              result.append(help(contents[i]));
+              result.append(help(contents[i], stack));
             }
             return result;
           },
@@ -872,7 +872,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
                 locToSrc(runtime, editors, srcloc));};
             var processTryRenderReason = function(out) {
               if (runtime.isSuccessResult(out)) {
-                var replacement = help(out.result);
+                var replacement = help(out.result, stack);
                 $(replacement).addClass("compile-error");
                 replace(replacement);
               } else {
@@ -911,16 +911,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
             }
           },
           "optional": function(contents) {
-            return expandableMore(help(contents));
+            return expandableMore(help(contents, stack));
           },
           "text": function(txt) { 
             return $("<span>").text(txt);
           },
           "code": function(contents) {
-            return $("<code>").append(help(contents));
+            return $("<code>").append(help(contents, stack));
           },
           "styled": function(contents, style) {
-            return help(contents).addClass(style);
+            return help(contents, stack).addClass(style);
           },
           "cmcode": function(loc) {
             var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
@@ -939,7 +939,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
                 function() { return contentsWithLoc.app(probablyErrorLocation); },
                 function(out) {
                   if (runtime.isSuccessResult(out)) {
-                    var rendered = help(out.result);
+                    var rendered = help(out.result,stack);
                     if ($.contains(document.documentElement, placeholder[0])) {
                       placeholder.replaceWith(rendered);
                     }
@@ -956,16 +956,16 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
                 });
               return placeholder;
             } else {
-              return help(contentsWithoutLoc);
+              return help(contentsWithoutLoc,stack);
             }
           },
           "loc": function(loc) {
             return drawSrcloc(editors, runtime, loc);
           },
           "highlight": function(contents, locs, color) {
-            if(highlightMode == "scsh") return help(contents);
+            if(highlightMode == "scsh") return help(contents,stack);
             
-            var anchor = $("<a>").append(help(contents)).addClass("highlight");
+            var anchor = $("<a>").append(help(contents,stack)).addClass("highlight");
             
             var locArray = ffi.toArray(locs);
             
@@ -1019,7 +1019,7 @@ define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "t
             return anchor;
           },
           "loc-display": function(loc, style, contents) {
-            var inner = help(contents);
+            var inner = help(contents,stack);
             hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
             return inner;
           }
