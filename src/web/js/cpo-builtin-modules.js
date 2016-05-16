@@ -1,6 +1,7 @@
 define(["pyret-base/js/type-util"], function(t) {
   // Set via callback
   var staticModules = {};
+  var savedRealm = {};
 
   function getBuiltinLoadableName(RUNTIME, name) {
     var uri = "builtin://" + name;
@@ -97,6 +98,12 @@ define(["pyret-base/js/type-util"], function(t) {
   }
 
   return {
+    setRealm: function(realm) {
+      savedRealm = realm;
+    },
+    getRealm: function() {
+      return savedRealm;
+    },
     setStaticModules: function(sms) {
       staticModules = sms;
     },

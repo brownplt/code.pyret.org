@@ -6,6 +6,8 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
 
   var main = toLoad[toLoad.length - 1];
 
+  var realm = {};
+
   cpoBuiltinModules.setStaticModules(program.staticModules);
 
   var runtime = runtimeLib.makeRuntime({
@@ -101,6 +103,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
   }
 
   function onComplete(result) {
+    cpoBuiltinModules.setRealm(realm);
     if(runtime.isSuccessResult(result)) {
       //console.log("The program completed successfully");
       //console.log(result);
@@ -115,7 +118,8 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
   }
 
   return runtime.runThunk(function() {
-    return runtime.runStandalone(staticModules, depMap, toLoad, postLoadHooks);
+    runtime.modules = realm;
+    return runtime.runStandalone(staticModules, realm, depMap, toLoad, postLoadHooks);
   }, onComplete);
 
 /*

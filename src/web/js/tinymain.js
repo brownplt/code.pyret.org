@@ -18,6 +18,9 @@
     },
     { "import-type": "builtin",
       name: "runtime-lib"
+    },
+    { "import-type": "builtin",
+      name: "load-lib"
     }
   ],
   nativeRequires: [
@@ -31,7 +34,7 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
-                      compileLib, compileStructs, pyRepl, cpo, runtimeLib,
+                      compileLib, compileStructs, pyRepl, cpo, runtimeLib, loadLib,
                       replUI, cpoBuiltin, gdriveLocators, http, guessGas, cpoModules,
                       rtLib) {
 
@@ -48,7 +51,6 @@
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
-
 
     var replEnv = gmf(compileStructs, "standard-builtins");
     function findModule(contextIgnored, dependency) {
@@ -115,6 +117,8 @@
       runtime.makeObject({
         "runtime": runtime.makeOpaque(runtime)
       }));
+    var pyRealm = gf(loadLib, "internal").makeRealm(cpoModules.getRealm());
+
 
     var builtins = [];
     Object.keys(runtime.getParam("staticModules")).forEach(function(k) {
@@ -135,6 +139,7 @@
               return CPO.editor.cm.getValue();
             }),
             pyRuntime,
+            pyRealm,
             runtime.makeFunction(findModule));
       }, function(repl) {
         var jsRepl = {
