@@ -177,5 +177,8 @@ web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEW
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
+tinymain.jarr: src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json tinymain.arr
+	time node pyret/build/phaseA/pyret.jarr --builtin-js-dir pyret/src/js/trove/ --builtin-arr-dir pyret/src/arr/trove/ --require-config cpo-config.json  --build-runnable tinymain.arr --standalone-file cpo-standalone.js  --outfile tinymain.jarr 
+
 clean:
 	rm -rf build/
