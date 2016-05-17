@@ -40,7 +40,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     "builtin://checker": function(checker) {
       checker = runtime.getField(runtime.getField(checker, "provide-plus-types"), "values");
       // NOTE(joe): This is the place to add checkAll
-      var currentChecker = runtime.getField(checker, "make-check-context").app(runtime.makeString(main), false);
+      var currentChecker = runtime.getField(checker, "make-check-context").app(runtime.makeString(main), true);
       runtime.setParam("current-checker", currentChecker);
     }
   };

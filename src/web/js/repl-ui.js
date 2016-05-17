@@ -30,9 +30,6 @@
                       loadLib,
                       util) {
     var ffi = runtime.ffi;
-    checkUI = checkUI.jsmod;
-    errorUI = errorUI.jsmod;
-    outputUI = outputUI.jsmod;
 
     function merge(obj, extension) {
       var newobj = {};
@@ -261,7 +258,7 @@
         setWhileRunning();
 
         editors = {};
-        editors["definitions"] = uiOptions.cm;
+        editors["definitions://"] = uiOptions.cm;
         interactionsCount = 0;
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
@@ -287,7 +284,7 @@
         promptContainer.hide();
         setWhileRunning();
         interactionsCount++;
-        var thisName = 'interactions' + interactionsCount;
+        var thisName = 'interactions://' + interactionsCount;
         editors[thisName] = echoCM;
         var replResult = repl.run(code, thisName);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
