@@ -452,7 +452,7 @@
         }
         else if(e.keyCode === 13) { // "Ctrl-Enter"
           doRunAction(editor.cm.getValue());
-          autoSave();
+          CPO.autoSave();
           e.stopImmediatePropagation();
           e.preventDefault();
         } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"

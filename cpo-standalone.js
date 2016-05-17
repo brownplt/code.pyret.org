@@ -23,6 +23,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
       runtime.srcloc = runtime.getField(runtime.getField(srcloc, "provide-plus-types"), "values");
     },
     "builtin://ffi": function(ffi) {
+      cpoBuiltinModules.setRealm(realm);
       ffi = ffi.jsmod;
       runtime.ffi = ffi;
       runtime["throwMessageException"] = ffi.throwMessageException;
@@ -103,7 +104,6 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
   }
 
   function onComplete(result) {
-    cpoBuiltinModules.setRealm(realm);
     if(runtime.isSuccessResult(result)) {
       //console.log("The program completed successfully");
       //console.log(result);
