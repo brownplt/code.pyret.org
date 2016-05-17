@@ -67,7 +67,7 @@ $(function() {
       animationDiv = null;
     }
   }
-  function makeEditor(container, runtime, options) {
+  CPO.makeEditor = function(container, options) {
     var initial = "";
     if (options.hasOwnProperty("initial")) {
       initial = options.initial;
@@ -249,6 +249,13 @@ $(function() {
   function nameOrUntitled() {
     return $("#program-name").val() || "Untitled";
   }
+  function autoSave() {
+    programToSave.then(function(p) {
+      if(p !== null && !copyOnSave) { save(); }
+    });
+  }
+  CPO.autoSave = autoSave;
+
   function save() {
     stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
@@ -287,6 +294,7 @@ $(function() {
       console.error(err);
     });
   }
+  CPO.save = save;
   $("#runButton").click(CPO.autoSave);
   $("#saveButton").click(save);
 
@@ -294,7 +302,7 @@ $(function() {
     var codeContainer = $("<div>").addClass("replMain");
     $("#main").prepend(codeContainer);
 
-    CPO.editor = makeEditor(codeContainer, {}, {
+    CPO.editor = CPO.makeEditor(codeContainer, {}, {
       runButton: $("#runButton"),
       simpleEditor: false,
       initial: c,
@@ -310,7 +318,7 @@ $(function() {
     var codeContainer = $("<div>").addClass("replMain");
     $("#main").prepend(codeContainer);
 
-    CPO.editor = makeEditor(codeContainer, {}, {
+    CPO.editor = CPO.makeEditor(codeContainer, {}, {
       runButton: $("#runButton"),
       simpleEditor: false,
       initial: c,
