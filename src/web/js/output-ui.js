@@ -5,14 +5,17 @@
     { "import-type": "builtin",
       name: "error-display" },
     { "import-type": "builtin",
-      name: "srcloc" }
+      name: "srcloc" },
+    { "import-type": "dependency",
+      "protocol": "js-file",
+      "args": ["./image-lib"] }
   ],
   provides: {},
   nativeRequires: [
     "pyret-base/js/js-numbers",
     "cpo/share"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, jsnums, share) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
@@ -1126,7 +1129,7 @@
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {
-        if (runtime.imageLib.isImage(val.val)) {
+        if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
         } else {
           return renderers.renderText("opaque", val);

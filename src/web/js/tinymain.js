@@ -165,8 +165,8 @@
               runtime.runThunk(function() {
                 return runtime.safeCall(
                   function() {
-                    return gmf(repl,
-                    "make-repl-interaction-locator").app(
+                    return gf(repl,
+                    "make-interaction-locator").app(
                       runtime.makeFunction(function() { return str; }))
                   },
                   function(locator) {
