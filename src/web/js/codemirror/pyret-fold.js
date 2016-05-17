@@ -186,12 +186,6 @@
   var delimrx = new RegExp("(" + DELIMS.join("|") + "|" +
                            ENDDELIM.join("|") + "|\\(|\\)|\\[|\\]|{|})", "g");
 
-  // Encapsulates parent->sub-keyword relationship
-  var SUBKEYWORDS = {
-    "if": ["else if", "else"], "fun": ["where"],
-    "data": ["sharing", "where"], "method": ["where"]
-  };
-
   // Represents subkeywords which cannot be followed
   // by any other keywords
   var LASTSUBKEYWORDS = pyretMode.delimiters.lastSubkeywords;
@@ -751,7 +745,7 @@
               matches: !other.fail,
               extra: other.subs,
               extraBad: other.badSubs};
-    } else if (Object.keys(INV_SUBKEYWORDS).indexOf(start.string) != -1) {
+    } else if (Object.keys(INV_SUBKEYWORDS).indexOf(start.string) != -1 && startType !== DELIMTYPES.OPENING) {
       var parent = ttape.findMatchingParent(start);
       if (parent.fail) {
         return {open: parent.token,
