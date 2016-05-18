@@ -587,7 +587,7 @@
       // EOF
       if (!next) return new IterResult(null, failIfNoMatch, kw ? subs[kw] : []);
       // Handle Subkeyword case
-      if (stackEmpty()) {
+      if (stackEmpty() && (next.state.lineState.delimType === DELIMTYPES.SUBKEYWORD)) {
         // Optimize for forward case
         if (forward) {
           var matchingSubs = SUBKEYWORDS[kw];
