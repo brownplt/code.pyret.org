@@ -118,6 +118,9 @@ build/web/js/matchkw.js: src/web/js/codemirror/matchkw.js
 build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 	cp $< $@
 
+build/web/js/gapps.js: node_modules/pyret-gapps/lib/lib.js
+	cp $< $@
+
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
           build/web/js/mark-selection.js \
@@ -127,7 +130,8 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/matchkw.js \
           build/web/js/colorspaces.js \
           build/web/js/es6-shim.js \
-          build/web/js/runmode.js
+          build/web/js/runmode.js \
+          build/web/js/gapps.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
@@ -176,6 +180,7 @@ $(NEWJS):
 web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+	cd node_modules/pyret-gapps && ./bin/deploy-pyret-gapps -e prod
 
 clean:
 	rm -rf build/

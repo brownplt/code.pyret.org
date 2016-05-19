@@ -12,6 +12,14 @@ function makeAuth(config) {
           config.baseUrl + config.google.redirect
         );
 
+  var OAUTH_SCOPES = ['email',
+                      'https://spreadsheets.google.com/feeds',
+                      'https://www.googleapis.com/auth/drive.file',
+                      'https://www.googleapis.com/auth/drive.install',
+                      'https://www.googleapis.com/auth/script.scriptapp',
+                      'https://www.googleapis.com/auth/spreadsheets',
+                      'https://www.googleapis.com/auth/userinfo.email']
+
   return {
     refreshAccess: function(refreshToken, callback) {
       var oauth2Client =
@@ -36,10 +44,7 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: "email "
-             + "https://spreadsheets.google.com/feeds "
-             + "https://www.googleapis.com/auth/drive.file "
-             + "https://www.googleapis.com/auth/drive.install",
+        scope: OAUTH_SCOPES.join(' '),
         state: afterUrl
       });
     },

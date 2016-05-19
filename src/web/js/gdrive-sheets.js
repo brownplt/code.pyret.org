@@ -1285,6 +1285,23 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
             });
         });
       }
+
+      function countSpreadsheets() {
+        if (arguments.length !== 0) { var $a=new Array(arguments.length); for (var $i=0;$i<arguments.length;$i++) { $a[$i]=arguments[$i]; } throw runtime.ffi.throwArityErrorC(['count-spreadsheets'], 0, $a); }
+        runtime.pauseStack(function(resumer) {
+          scriptAPI.then(function(api) {
+            return api.countSheets();
+          })
+            .then(function(resp) {
+              var numSheets = resp.response.result;
+              resumer.resume(runtime.makeNumber(numSheets));
+            })
+            .catch(function(err) {
+              if (runtime.isPyretException(err)) { resumer.error(err); }
+              else { resumer.error(runtime.ffi.makeMessageException(String(err))); }
+            });
+        });
+      }
         
       return O({
         "provide-plus-types": O({
@@ -1296,6 +1313,7 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
             "new-spreadsheet": F(newSpreadsheet),
             "public": runtime.makeString("public"),
             "private": runtime.makeString("private"),
+            "count-spreadsheets": F(countSpreadsheets)
           })
         }),
         "answer": runtime.nothing

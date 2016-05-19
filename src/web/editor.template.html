@@ -112,6 +112,7 @@ var makeShareLink = shareAPI.makeShareLink;
 var makeHoverMenu = shareAPI.makeHoverMenu;
 </script>
 <script src="/js/programs.js"></script>
+<script src="/js/gapps.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "";
@@ -119,6 +120,9 @@ var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
   handleClientLoad(clientId, apiKey);
 }
+</script>
+<script>
+var appFileId = "{{ GOOGLE_SCRIPT_ID }}";
 </script>
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
 <script id="loadVersion">
