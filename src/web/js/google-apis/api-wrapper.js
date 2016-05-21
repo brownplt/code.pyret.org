@@ -296,9 +296,9 @@ function loadAPIWrapper(immediate) {
         });
       }
 
-      if (Object.keys(_GWRAP_APIS).includes(key)) {
+      if (key in _GWRAP_APIS) {
         // Do nothing
-        return null;
+        return _GWRAP_APIS[key];
       }
       var api = gapi.client[key];
       _GWRAP_APIS[key] = {};
@@ -344,6 +344,7 @@ function loadAPIWrapper(immediate) {
       this.AuthenticationError = AuthenticationError;
       this.APIResponseError = APIResponseError;
       this.load = loadAPI;
+      this.withAuth = function(f) {return failCheck(authCheck(f));};
       this.request = (function(params, skipAuth) {
         return gQ(gapi.client.request(params), skipAuth);
       });
