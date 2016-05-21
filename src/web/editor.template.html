@@ -73,6 +73,7 @@
 </div>
 </div>
 <div id="footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -111,7 +112,8 @@ var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
 var makeShareLink = shareAPI.makeShareLink;
 var makeHoverMenu = shareAPI.makeHoverMenu;
 </script>
-<script src="/js/programs.js"></script>
+<script src="/js/google-apis/api-wrapper.js"></script>
+<script src="/js/google-apis/drive.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "";

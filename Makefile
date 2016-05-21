@@ -79,6 +79,11 @@ COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.
 build/web/js/%.js: src/web/js/%.js
 	cp $< $@
 
+COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-apis/%.js,$(wildcard src/web/js/google-apis/*.js))
+
+build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
+	cp $< $@
+
 build/web/js/q.js: node_modules/q/q.js
 	cp $< $@
 
@@ -173,9 +178,9 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
 clean:
 	rm -rf build/
