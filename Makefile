@@ -148,6 +148,7 @@ build/web/arr/base/%: node_modules/pyret-lang/src/arr/base/%
 WEB = build/web
 WEBV = build/web/views
 WEBJS = build/web/js
+WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
 WEBIMG = build/web/img
 WEBARR = build/web/arr/base
@@ -162,6 +163,9 @@ $(WEB):
 
 $(WEBJS):
 	@$(call MKDIR,$(WEBJS))
+
+$(WEBJSGOOG):
+	@$(call MKDIR,$(WEBJSGOOG))
 
 $(WEBCSS):
 	@$(call MKDIR,$(WEBCSS))
