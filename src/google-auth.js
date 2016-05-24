@@ -5,6 +5,14 @@ var OAuth2 = gapi.auth.OAuth2;
 // Relevant README/docs at https://github.com/google/google-api-nodejs-client/
 
 function makeAuth(config) {
+  var OAUTH_SCOPES = ["email",
+                      "https://www.googleapis.com/auth/spreadsheets",
+                      // The `drive` scope allows us to open files
+                      // (particularly spreadsheets)made outside of
+                      // the Pyret ecosystem.
+                      "https://www.googleapis.com/auth/drive",
+                      "https://www.googleapis.com/auth/drive.file",
+                      "https://www.googleapis.com/auth/drive.install"];
   var oauth2Client =
       new OAuth2(
           config.google.clientId,
@@ -36,10 +44,7 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: "email "
-             + "https://spreadsheets.google.com/feeds "
-             + "https://www.googleapis.com/auth/drive.file "
-             + "https://www.googleapis.com/auth/drive.install",
+        scope: OAUTH_SCOPES.join(' '),
         state: afterUrl
       });
     },

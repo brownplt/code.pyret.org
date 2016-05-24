@@ -3,3 +3,4 @@ node_modules
 src/web/teachpacks
 build/
 *.swp
+**/.tern-port
