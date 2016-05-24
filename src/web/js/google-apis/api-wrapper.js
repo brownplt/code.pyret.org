@@ -130,7 +130,8 @@ function loadAPIWrapper(immediate) {
       // Need to do a login to get a cookie for this user; do it in a popup
       var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
       window.addEventListener('message', function(e) {
-        if (e.domain === document.location.origin) {
+        // e.domain appears to not be defined in Firefox
+        if ((e.domain || e.origin) === document.location.origin) {
           d.resolve(reauth(true));
         } else {
           d.resolve(null);
@@ -243,7 +244,7 @@ function loadAPIWrapper(immediate) {
     return ret;
   }
 
-  
+  var cachedAPIS = [];
 
   /**
    * Loads the Google API denoted by the given parameters
@@ -273,6 +274,14 @@ function loadAPIWrapper(immediate) {
             });
         });
       return reloaded.promise;
+    }
+    for (var i = 0; i < cachedAPIS.length; ++i) {
+      var cached = cachedAPIS[i];
+      if (params.name && (cached.query.name === params.name)) {
+        return cached.api;
+      } else if (params.url && (cached.query.url === params.url)){
+        return cached.api;
+      }
     }
     var preKeys = Object.keys(gapi.client);
 
@@ -308,12 +317,24 @@ function loadAPIWrapper(immediate) {
 
     function processDelta() {
       var newKeys = Object.keys(gapi.client)
-          .filter(function(k) {return !preKeys.includes(k);});
+            .filter(function(k) {return !preKeys.includes(k);});
+      var ret;
       if (newKeys.length > 1) {
-        return newKeys.map(processKey);
+        ret = newKeys.map(processKey);
+      } else if (params.name && newKeys.length === 0) {
+        // Hack to make drive-loading happy on login
+        if (gapi.client[params.name]) {
+          ret = processKey(params.name);
+        }
       } else {
-        return processKey(newKeys[0]);
-      }  
+        ret = processKey(newKeys[0]);
+      }
+      if (!ret) {
+        console.warn("loadAPI: Nothing to return!");
+      } else {
+        cachedAPIS.push({query: params, api: ret});
+      }
+      return ret;
     }
 
     var name = params.name || params.url;
