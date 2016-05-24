@@ -19,6 +19,7 @@
     <input id="program-name" type="text" placeholder="Program Name"></input>
   </div>
   <button id="saveButton" class="blueButton loginOnly">Save</button>
+  <button id="openFile" class="blueButton loginOnly">Open</button>
   <div id="shareContainer"></div>
   <div id="menu"><button class="blueButton">More ▾</a></div>
   <div id="menuContents" style="display: none; z-index: 8990;">
@@ -47,6 +48,32 @@
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
+<!-- MODAL PROMPT (Adapted from W3Schools' example) -->
+<div id="promptModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Select Import Style</h3>
+    </div>
+    <div class="modal-body">
+      <table id="choiceContainer">
+        <!--<tbody>
+          <tr>
+            <td class="pyret-modal-option-radio">
+              <input id="r0" type="radio">
+            </td>
+            <td class="pyret-modal-option-message">
+              <label for="r0">Foo</label>
+            </td>
+          </tr>
+        </tbody>-->
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="submit blueButton">Submit</span>
+      <button class="close blueButton">Close</span>
+    </div>
+  </div>
+</div>
 <div id="notification" class="notificationArea"></div>
 <div id="REPL" class="replContainer">
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
@@ -113,6 +140,7 @@ var makeHoverMenu = shareAPI.makeHoverMenu;
 </script>
 <script src="/js/google-apis/api-wrapper.js"></script>
 <script src="/js/google-apis/drive.js"></script>
+<script src="/js/google-apis/picker.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "";
@@ -121,7 +149,11 @@ function handleGoogLoad() {
   handleClientLoad(clientId, apiKey);
 }
 </script>
+<!-- Google API Loader (For picker) -->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<!-- GAPI Client -->
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+
 <script id="loadVersion">
 // Figure out what version of Pyret we should be using, if not the current default
 var APP_BASE_URL = "{{{ BASE_URL }}}";
