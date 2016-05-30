@@ -31,7 +31,8 @@
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="/js/q.js"></script>
-<script src="/js/programs.js"></script>
+<script src="/js/google-apis/api-wrapper.js"></script>
+<script src="/js/google-apis/drive.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "";
@@ -58,7 +59,7 @@ gdriveCollection.then(function(c) {
 gdriveCollection.fail(function(err) {
   $("#left").click(function() {
     $("#left").attr("disabled", "disabled");
-    storageAPI = createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false);
+    storageAPI = createProgramCollectionAPI("code.pyret.org", false);
     storageAPI.then(function(api) {
       $("#left").off("click");
       showMyPrograms(api);
