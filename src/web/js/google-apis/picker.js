@@ -25,7 +25,6 @@ function FilePicker(options) {
 
 FilePicker.prototype.init = function(drive, picker) {
   this.open = this.initOpen(drive, picker);
-  console.log("Initializing File Picker");
   // this.openOn does not need initialization
 };
 
@@ -102,7 +101,7 @@ FilePicker.prototype.initOpen = function(drive, picker) {
       this.pickerInstance = new picker.PickerBuilder()
         //.enableFeature(picker.Feature.NAV_HIDDEN)
         .enableFeature(picker.Feature.MULTISELECT_ENABLED)
-        .setTitle("Select a Pyret File or Image")
+        .setTitle("Select a Pyret document or an image from Google Drive")
         .addView(pyretView)
         .addView(imageView)
         .setAppId(clientId)
