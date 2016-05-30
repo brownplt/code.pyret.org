@@ -407,7 +407,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.deferedClosed.i++;
     } else if (state.lastToken === ":") {
       if (inOpening)
-        ls.delimType = pyret_delimiter_type.OPEN_COTD;
+        ls.delimType = pyret_delimiter_type.OPEN_CONTD;
       else if (inSubkw)
         ls.delimType = pyret_delimiter_type.SUB_CONTD;
       if (hasTop(ls.tokens, "WANTCOLON") 
@@ -504,12 +504,16 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.delimType = pyret_delimiter_type.SUBKEYWORD;
       }
     } else if (state.lastToken === "row") {
-      if (hasTop(ls.tokens, "TABLE")) {
+      if (hasTop(ls.tokens, "TABLEROW")) {
         if (ls.curOpened.fn > 0) ls.curOpened.fn--;
         else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
         else ls.curClosed.fn++;
         ls.deferedOpened.fn++;
         ls.tokens.push("WANTCOLON");
+        ls.delimType = pyret_delimiter_type.SUBKEYWORD;
+      } else if (hasTop(ls.tokens, "TABLE")) {
+        ls.deferedOpened.fn++;
+        ls.tokens.push("TABLEROW", "WANTCOLON");
         ls.delimType = pyret_delimiter_type.SUBKEYWORD;
       }
     } else if (state.lastToken === "|") {
@@ -672,6 +676,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         //ls.curClosed.o++;
         ls.tokens.pop();
+      } else if (hasTop(ls.tokens, ["TABLEROW", "TABLE"])) {
+        ls.tokens.pop();
+        ls.curClosed.o++;
       }
       var top = peek(ls.tokens);
       var stillUnclosed = true;
@@ -697,7 +704,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           else ls.curClosed.v++;
         } 
         // Things that are counted, and closable by end:
-        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET" || top === "TABLE" || top === "SELECT" || top === "EXTEND" || top === "SIEVE" || top === "ORDER") {
+        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET" || top === "TABLE" || top === "TABLECONT" || top === "SELECT" || top === "EXTEND" || top === "SIEVE" || top === "ORDER") {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
           else ls.curClosed.fn++;
