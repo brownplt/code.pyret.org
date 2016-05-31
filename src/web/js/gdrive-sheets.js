@@ -113,14 +113,20 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
             var k = 0;
             var curChar = String.fromCharCode(65 + j);
             var suffix = '';
-            colNames = Array.apply(null, Array(cols)).map(function (_, i) {
+            colNames = Array.apply(null, Array(26)).map(function (_, i) {
                          return String.fromCharCode(65 + i);});
+            var startOff = 0;
+            var startLen = 26;
             // Convoluted way of generating ['A', 'B', ..., 'AA', 'AB', ...]
             while(++i <= cols) {
-              if (k >= colNames.length) {
-                k = 0;
+              if (k >= startLen) {
                 ++j;
                 j = j % 26
+                if (j === 0) {
+                  startOff += startLen;
+                  startLen *= 26;
+                }
+                k = startOff;
                 curChar = String.fromCharCode(65 + j);
               }
               colNames.push(curChar + colNames[k]);
