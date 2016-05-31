@@ -171,6 +171,9 @@ function createProgramCollectionAPI(collectionName, immediate) {
           return "https://drive.google.com/drive/u/0/folders/" + bc.id;
         });
       },
+      getCollectionFolderId: function() {
+        return baseCollection.then(function(bc) { return bc.id; });
+      },
       getFileById: function(id) {
         return drive.files.get({fileId: id}).then(fileBuilder);
       },
