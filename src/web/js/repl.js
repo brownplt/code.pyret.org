@@ -110,7 +110,8 @@ $(function() {
         "graph",
         "particle",
         "json",
-        "table"
+        "table",
+        "gdrive-sheets"
     ];
 
     runtime.runThunk(function() {

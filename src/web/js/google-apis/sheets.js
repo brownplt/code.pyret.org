@@ -31,7 +31,7 @@ function createSheetsAPI(immediate) {
         // http://stackoverflow.com/questions/181596/how-to-convert-a-column-number-eg-127-into-an-excel-column-eg-aa
         var out = '';
         while(col > 0) {
-          var modulo = (col - (_COLUMNS_ONE_INDEXED ? 1 : 0));
+          var modulo = (col - (_COLUMNS_ONE_INDEXED ? 1 : 0)) % 26;
           out = String.fromCharCode(65 + modulo) + out;
           col = Math.floor((col - modulo) / 26);
         }
@@ -240,8 +240,8 @@ function createSheetsAPI(immediate) {
     function Worksheet(spreadsheet, data) {
       this.id = data.properties.sheetId;
       this.title = data.properties.title;
-      this.rows = data.properties.rows;
-      this.cols = data.properties.cols;
+      this.rows = data.properties.gridProperties.rowCount;
+      this.cols = data.properties.gridProperties.columnCount;
       this.index = data.properties.index;
       this.spreadsheet = spreadsheet;
     }
@@ -369,7 +369,13 @@ function createSheetsAPI(immediate) {
       loadSpreadsheetByName: function(name) {
         return storageAPI.then(function(api) {
                  return api.getFileByName(name);
-               }).then(Spreadsheet.loadFile)
+               }).then(function(res) {
+                 if (res.length === 0) {
+                   throw new SheetsError("No spreadsheet named \"" + name + "\" found.");
+                 } else {
+                   return res[0];
+                 }
+               }).then(Spreadsheet.fromFile)
       },
       loadSpreadsheetById: function(id) {
         return Spreadsheet.fromId(id);
