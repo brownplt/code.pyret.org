@@ -58,7 +58,7 @@ fun make-builtin-js-locator(builtin-name, raw):
       raw-array-to-list(natives).map(CS.requirejs)
     end,
     get-globals(_):
-      raise("Should never get compile-env for builtin module " + builtin-name)
+      CS.standard-globals
     end,
     get-namespace(_, some-runtime):
       nothing
