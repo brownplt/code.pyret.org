@@ -23,7 +23,7 @@ node_js:
 install:
 - npm install --ignore-scripts
 - make web
-- make build/web/js/cpo-main.jarr
+#- make build/web/js/cpo-main.jarr
 #before_script:
 #- node src/run.js &
 #- sleep 3
@@ -37,7 +37,7 @@ deploy:
   provider: s3
   access_key_id: AKIAIFY44WM3LGA4OQSQ
   secret_access_key:
-    secure: "d99Tlr8DCIauEBzMi7Z+wymF7QqkZU1jkmIpWVTaxM1/fCrNFdWdTzS+7pFMw2uP/dTsyoJo9/hldNTWH1mhD9ao/qr1fhf6FwR0kKCZiDeTZ52vP1wMKUNRijR3jj8CSpWehFF2cvI+sr0ayULkF1RXGRvhvTb6w+jfAD/N9XQyUOYkJX/TGR448L2dbh3oEwDcmEMKt7UxZFC6HUQ7wDyw2yQKLacioeZ+cdBdsR8YU2QkziWDiwfUs+0RQcSWj7Tto94DdLWBJlhhep9WMuKNZZp0qFjXg8A0yGav8cBeLqpizXQLIxSGlqe4AipO1HTEEPxPWeVL+7yDv5373+sIRvysKTX8ZaJreLA5JKk53k8tE9xHuDF6Ct2fNiZBOfz+7iKvr+x1ubCnBAiEPqLlj5V5s/LMoKz1Rq/gJSuUjWBN28pQHYZxi9+pvtvSHPkSvT51IE8Kj7TOKuKxAbPhi8s+9f+uT1NvQBrZOsyvkhbXewuq3+DeU9DdFkZd6pI2lg+7wRrnxHuDp7gDBUPpthW+2+5jyQ+LbLWsLtnS76GLwM6XHOT/IGcF56A4HDNfbp9O7vLwocqZSKEVo1uCnPAfvV+18PeThcCeHvUFru93bqEJ9pGAuU4W2IOaBshL7WG5m7FdySlbZQHkxidALJcmCfdHy50j94l8sNo="
+    secure: "kqqBFy3k5Dpz2KXsXHSjdrCiONabMNvWPv/GMhnqEMB4GFlO9QitztlprL/UE4mEX+SRlkSCwBErqRvQkSXobgTrGDpY8nGGYtTf8491rloUyj3sfBmnkzUhWFJUhz6luC1yoik+pC1aP27s5tm8x3A09ddU0eqiDUUet2QxzVsHxgfqENUdjvUL+75ieABf/tVs1tK/RSMbbZ7kqA4SOkdyv0135V6m+LlvjWB3RKHTHRhxOmA4BN+0zSagOyhhQAVsFdBikzK+uzjjdFknYo4Fmubz/epV+ZIYbbxKtAA23A6iKZtyVVplgxdQ9zU+5+MS6wCIRAribUxf18zKSGLQ7HAUxCrbGu42bxHIIbJez4yUKMFFChah5L7wj8FnZh9+HwHlaVVLSWqBfqtK676fXQB5nowXYufFEZlfIneLTBQWppOq89eWBoVYNy3iMNtWWuZkygsXTQG8a/BDE1tzm5CGax0SHtxEoBt5suxgDM/I46wKY8cL9+R+VQSx52GM+lEELBGpqRVvAvzhvoo8o7Q5semqFLhpdj81OT2vOxq928JY+onMQkYs/8TR/VyGEzJp0wyar5S2xgcoLfC47vaK0UsWqt/uQun9KVYwsr49gC7WQHjmYmbH+TW8QdiQP/FzD4mLOUXAxS/MZKlEMz9mXL5YgbtjoZKmkkU"
   bucket: 'pyret-horizon'
   local-dir: build/web/js
   upload-dir: new-horizons
