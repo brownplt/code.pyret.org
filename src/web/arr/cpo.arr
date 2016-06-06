@@ -1,9 +1,9 @@
 provide *
 import string-dict as SD
-import file("../../../pyret/src/arr/compiler/compile-structs.arr") as CS
-import file("../../../pyret/src/arr/compiler/compile-lib.arr") as CL
-import file("../../../pyret/src/arr/compiler/repl.arr") as R
-import file("../../../pyret/src/arr/compiler/js-of-pyret.arr") as JSP
+import file("../../../node_modules/pyret-lang/src/arr/compiler/compile-structs.arr") as CS
+import file("../../../node_modules/pyret-lang/src/arr/compiler/compile-lib.arr") as CL
+import file("../../../node_modules/pyret-lang/src/arr/compiler/repl.arr") as R
+import file("../../../node_modules/pyret-lang/src/arr/compiler/js-of-pyret.arr") as JSP
 
 fun make-dep(raw-dep):
  if raw-dep.import-type == "builtin":
@@ -43,13 +43,13 @@ fun make-builtin-js-locator(builtin-name, raw):
     get-options(self, options):
       options.{ check-mode: false }
     end,
-    get-module(_): 
+    get-module(_):
       raise("Should never fetch source for builtin module " + builtin-name)
     end,
     get-extra-imports(self):
       CS.standard-imports
     end,
-    get-dependencies(_): 
+    get-dependencies(_):
       deps = raw.get-raw-dependencies()
       raw-array-to-list(deps).map(make-dep)
     end,
@@ -90,4 +90,3 @@ fun make-repl(builtin-mods, get-defs, runtime, realm, finder):
   repl = R.make-repl(runtime, modules, realm, locator, "cpo-context-currently-unused", finder)
   repl
 end
-
