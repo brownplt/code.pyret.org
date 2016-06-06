@@ -23,6 +23,7 @@ node_js:
 install:
 - npm install --ignore-scripts
 - make web
+- make build/web/js/cpo-main.jarr
 before_script:
 - node src/run.js &
 - sleep 3
