@@ -125,7 +125,7 @@ $(function() {
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
-    
+
     CM.widgets = new Array();
 
     return {
@@ -138,7 +138,7 @@ $(function() {
     };
   }
   CPO.RUN_CODE = function() {
-    
+
   }
 
   storageAPI.then(function(api) {
@@ -159,7 +159,7 @@ $(function() {
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");
     $("#connectButton").attr("disabled", "disabled");
-    storageAPI = createProgramCollectionAPI(clientId, apiKey, "code.pyret.org", false);
+    storageAPI = createProgramCollectionAPI("code.pyret.org", false);
     storageAPI.then(function(api) {
       api.collection.then(function() {
         $(".loginOnly").show();
