@@ -113,7 +113,7 @@ FilePicker.prototype.initOpen = function(drive, picker) {
       $(".picker").css("z-index", 9000);
     }).bind(this);
 
-    drive.getCollectionFolderId().then(buildInstance);
+    return drive.getCollectionFolderId().then(buildInstance);
   }).bind(this);
 
   
