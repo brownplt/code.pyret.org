@@ -24,13 +24,15 @@ install:
 - npm install --ignore-scripts
 - make web
 - make build/web/js/cpo-main.jarr
-before_script:
-- node src/run.js &
-- sleep 3
+#before_script:
+#- node src/run.js &
+#- sleep 3
 #script:
 #- mocha --harmony
-addons:
-  sauce_connect: true
+script:
+- echo "skipping tests"
+#addons:
+#  sauce_connect: true
 deploy:
   provider: s3
   access_key_id: AKIAIFY44WM3LGA4OQSQ
