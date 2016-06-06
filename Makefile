@@ -186,8 +186,8 @@ web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
-tinymain.jarr: src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json tinymain.arr
-	time node pyret/build/phaseA/pyret.jarr --builtin-js-dir pyret/src/js/trove/ --builtin-arr-dir pyret/src/arr/trove/ --require-config cpo-config.json  --build-runnable tinymain.arr --standalone-file cpo-standalone.js  --outfile tinymain.jarr 
+build/web/js/cpo-main.jarr: $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr
+	time node pyret/build/phaseA/pyret.jarr --builtin-js-dir pyret/src/js/trove/ --builtin-arr-dir pyret/src/arr/trove/ --require-config cpo-config.json  --build-runnable src/web/arr/cpo-main.arr --standalone-file cpo-standalone.js  --outfile build/web/js/cpo-main.jarr 
 
 clean:
 	rm -rf build/
