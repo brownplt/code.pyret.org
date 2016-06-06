@@ -10,6 +10,7 @@ env:
     - SESSION_SECRET=not-so-secret-for-testing
     - USE_STANDALONE_PYRET=true
     - PYRET_RELEASE_BASE="https://s3.amazonaws.com/pyret-horizon/current"
+    - PYRET="https://s3.amazonaws.com/pyret-horizon/new-horizons/cpo-main.jarr"
     - CURRENT_PYRET_RELEASE=""
     - PORT=5000
     - SAUCE_TEST_TARGET="http://localhost:5000"
@@ -29,3 +30,17 @@ script:
 - mocha --harmony
 addons:
   sauce_connect: true
+deploy:
+  provider: s3
+  access_key_id: AKIAIFY44WM3LGA4OQSQ
+  secret_access_key:
+    secure: "d99Tlr8DCIauEBzMi7Z+wymF7QqkZU1jkmIpWVTaxM1/fCrNFdWdTzS+7pFMw2uP/dTsyoJo9/hldNTWH1mhD9ao/qr1fhf6FwR0kKCZiDeTZ52vP1wMKUNRijR3jj8CSpWehFF2cvI+sr0ayULkF1RXGRvhvTb6w+jfAD/N9XQyUOYkJX/TGR448L2dbh3oEwDcmEMKt7UxZFC6HUQ7wDyw2yQKLacioeZ+cdBdsR8YU2QkziWDiwfUs+0RQcSWj7Tto94DdLWBJlhhep9WMuKNZZp0qFjXg8A0yGav8cBeLqpizXQLIxSGlqe4AipO1HTEEPxPWeVL+7yDv5373+sIRvysKTX8ZaJreLA5JKk53k8tE9xHuDF6Ct2fNiZBOfz+7iKvr+x1ubCnBAiEPqLlj5V5s/LMoKz1Rq/gJSuUjWBN28pQHYZxi9+pvtvSHPkSvT51IE8Kj7TOKuKxAbPhi8s+9f+uT1NvQBrZOsyvkhbXewuq3+DeU9DdFkZd6pI2lg+7wRrnxHuDp7gDBUPpthW+2+5jyQ+LbLWsLtnS76GLwM6XHOT/IGcF56A4HDNfbp9O7vLwocqZSKEVo1uCnPAfvV+18PeThcCeHvUFru93bqEJ9pGAuU4W2IOaBshL7WG5m7FdySlbZQHkxidALJcmCfdHy50j94l8sNo="
+  bucket: 'pyret-horizon'
+  local-dir: build/web/js
+  upload-dir: new-horizons
+  acl: public_read
+  skip_cleanup: true
+  detect_encoding: true
+  on:
+    repo: brownplt/code.pyret.org
+    branch: new-horizons
