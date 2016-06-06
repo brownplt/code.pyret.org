@@ -1,5 +1,6 @@
 var mustache = require('mustache');
 var file = require('fs');
+require('dotenv').config();
 
 var config = process.env;
 
