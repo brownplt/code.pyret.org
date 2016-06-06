@@ -25,6 +25,9 @@
     },
     { "import-type": "builtin",
       name: "load-lib"
+    },
+    { "import-type": "builtin",
+      name: "builtin-modules"
     }
   ],
   nativeRequires: [
@@ -38,11 +41,11 @@
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
-                      runtimeLib, loadLib,
+                      runtimeLib, loadLib, builtinModules,
                       cpoBuiltin, gdriveLocators, http, guessGas, cpoModules,
                       rtLib) {
 
-    
+
 
 
     var replContainer = $("<div>").addClass("repl");
@@ -56,10 +59,12 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules);
+
     var replEnv = gmf(compileStructs, "standard-builtins");
     function findModule(contextIgnored, dependency) {
       return runtime.safeCall(function() {
-        return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency, 
+        return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
           {
             builtin: function(name) {
               var raw = cpoModules.getBuiltinLoadableName(runtime, name);
@@ -84,10 +89,6 @@
               */
             },
             dependency: function(protocol, args) {
-              console.error("Unknown import: ", dependency);
-              throw runtime.throwMessageException("Unknown protocol: " + protocol);
-
-            /*
               var arr = runtime.ffi.toArray(args);
               if (protocol === "my-gdrive") {
                 return constructors.makeMyGDriveLocator(arr[0]);
@@ -95,6 +96,7 @@
               else if (protocol === "shared-gdrive") {
                 return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
               }
+              /*
               else if (protocol === "js-http") {
                 // TODO: THIS IS WRONG with the new locator system
                 return http.getHttpImport(runtime, args[0]);
@@ -102,14 +104,15 @@
               else if (protocol === "gdrive-js") {
                 return constructors.makeGDriveJSLocator(arr[0], arr[1]);
               }
+              */
               else {
                 console.error("Unknown import: ", dependency);
               }
-            */
+
             }
           });
        }, function(l) {
-          return gmf(compileLib, "located").app(l, runtime.nothing); 
+          return gmf(compileLib, "located").app(l, runtime.nothing);
        });
     }
 
@@ -170,7 +173,7 @@
                       runtime.makeFunction(function() { return str; }))
                   },
                   function(locator) {
-                    return gf(repl, "run-interaction").app(locator); 
+                    return gf(repl, "run-interaction").app(locator);
                   });
               }, function(result) {
                 ret.resolve(result);
@@ -209,7 +212,7 @@
 
     var codeContainer = $("<div>").addClass("replMain");
     $("#main").prepend(codeContainer);
-    
+
     var replWidget;
     runtime.runThunk(function() {
         return replUI.makeRepl(replContainer, repl, runtime, {
@@ -249,7 +252,7 @@
       doRunAction(editor.cm.getValue());
       $("#run-dropdown-content").hide();
     });
-    
+
     $("#select-scsh").click(function() {
       highlightMode = "scsh"; $("#run-dropdown-content").hide();});
     $("#select-scmh").click(function() {

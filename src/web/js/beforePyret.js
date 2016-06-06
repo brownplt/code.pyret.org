@@ -303,7 +303,7 @@ $(function() {
     var codeContainer = $("<div>").addClass("replMain");
     $("#main").prepend(codeContainer);
 
-    CPO.editor = CPO.makeEditor(codeContainer, {}, {
+    CPO.editor = CPO.makeEditor(codeContainer, {
       runButton: $("#runButton"),
       simpleEditor: false,
       initial: c,
@@ -319,10 +319,9 @@ $(function() {
     var codeContainer = $("<div>").addClass("replMain");
     $("#main").prepend(codeContainer);
 
-    CPO.editor = CPO.makeEditor(codeContainer, {}, {
+    CPO.editor = CPO.makeEditor(codeContainer, {
       runButton: $("#runButton"),
       simpleEditor: false,
-      initial: c,
       run: CPO.RUN_CODE,
       initialGas: 100
     });
