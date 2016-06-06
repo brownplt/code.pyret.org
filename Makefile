@@ -189,7 +189,7 @@ web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS
 
 $(CPOMAIN): $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr
 	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
-	time node node_modules/pyret-lang/build/phase0/pyret.jarr --builtin-js-dir node_modules/pyret-lang/src/js/trove/ --builtin-arr-dir node_modules/pyret-lang/src/arr/trove/ --require-config cpo-config.json  --build-runnable src/web/arr/cpo-main.arr --standalone-file cpo-standalone.js  --outfile $(CPOMAIN)
+	node node_modules/pyret-lang/build/phase0/pyret.jarr --builtin-js-dir node_modules/pyret-lang/src/js/trove/ --builtin-arr-dir node_modules/pyret-lang/src/arr/trove/ --require-config cpo-config.json  --build-runnable src/web/arr/cpo-main.arr --standalone-file cpo-standalone.js  --outfile $(CPOMAIN)
 
 clean:
 	rm -rf build/
