@@ -3,8 +3,8 @@
   "optimize": "none",
   "paths": {
       "cpo": "./src/web/js/",
-      "pyret-base": "./pyret/build/phaseA/",
-      "jglr": "./pyret/lib/jglr",
+      "pyret-base": "./node_modules/pyret-lang/build/phaseA/",
+      "jglr": "./node_modules/pyret-lang/lib/jglr",
       "crypto": "empty:",
       "path": "src/web/js/pathstub",
       "q": "build/web/js/q",
