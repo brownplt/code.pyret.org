@@ -32,7 +32,7 @@ deploy:
     secure: X50U/xTxW1OOBL5rQ6k764xAitKS77+NZfzAGgOKbk/0REUJEg3BHCYCqhr6/AtThh42HKBNNuG029Xu/0wQYOJq9JNWms61g25/1ig6HbeeaJbbpRLdRDWp59UAeB8tUQmPgI34DxREe2zcJJpNErepbkQ0XXx2tULF3HWBLD7PPOv4Ylb78bfhteIGKNX8+Ipag0gCGmJiTr9OPp6FCQh7kWzG1DBfT8t6gZJM9rhvE1y0Myv1OmcT2zs5ZCvd/uJWz7iiGjs4VvOJVTTFYs733B1NX3Inv3vlbgNny46JT7vT5M0RMgulb8ypkkzLham43yuQyn3eIGKVLd3AcTUtdNTB1TP4be50wT/FAoj195Ec1JAsO9LCKz79JPbUvoxdh9C+k+H0B0SHbL+VXqIhZGWLYq0GE/LZfBESYKAeNq/WfoNtfFXIv1VO0rgbX2FU/jxoM7uROagDhfeLBdmYhQVj3O4rXpcUDHcebBEycXlmC5zOaqmANZ37Pc3QIoR1is2+hkNzeP1/NV4huYOmJFlrD7dADKXIsh6vSyp6uZ49tabMfqSe9oKbl41Yc+uHEBm2vPXUF9vmm0SLOZScjFNyvd04EOXxTCBCww+qlFeIeHTyw9NgEIsOgUWUX44ZNZJATLnxCE9EZ+Sp5MHGDH7Wz5ceR5tZh68P7kw=
   bucket: 'pyret-horizon'
   local-dir: build/web/js
-  upload-dir: current
+  upload-dir: new-horizons
   acl: public_read
   skip_cleanup: true
   detect_encoding: true
