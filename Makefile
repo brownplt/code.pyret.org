@@ -193,3 +193,4 @@ $(CPOMAIN): $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-con
 
 clean:
 	rm -rf build/
+	rm -rf compiled/
