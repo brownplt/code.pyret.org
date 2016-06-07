@@ -1,5 +1,5 @@
 "use strict";
-define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "trove/parse-pyret", "trove/tables"], function(jsnums,share,srclocLib,errordisplayLib, parsePyret, tableLib) {
+define(["js/js-numbers","/js/share.js","trove/srcloc", "trove/error-display", "trove/parse-pyret", "trove/table"], function(jsnums,share,srclocLib,errordisplayLib, parsePyret, tableLib) {
 
 
   // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
