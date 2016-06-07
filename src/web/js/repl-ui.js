@@ -9,13 +9,20 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     });
     return newobj;
   }
-  var animationDiv = null;
+  var animationDivs = [];
   function closeAnimationIfOpen() {
-    if(animationDiv) {
+    animationDivs.forEach(function(animationDiv) {
       animationDiv.empty();
       animationDiv.dialog("destroy");
-      animationDiv = null;
-    }
+      animationDiv.remove();
+    });
+    animationDivs = [];
+  }
+  function closeTopAnimationIfOpen() {
+    var animationDiv = animationDivs.pop();
+    animationDiv.empty();
+    animationDiv.dialog("destroy");
+    animationDiv.remove();
   }
   var editors = {};
   var interactionsCount = 0;
@@ -76,7 +83,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
-    
+
     CM.widgets = new Array();
 
     return {
@@ -96,13 +103,13 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
   // NOTE(joe): sadly depends on the page and hard to figure out how to make
   // this less global
   function scroll(output) {
-    $(".repl").animate({ 
+    $(".repl").animate({
          scrollTop: output.height(),
        },
        500
     );
   }
-  
+
   var makeErrorContext = (function () {
     var counter = 0;
     var makeNew = function () {
@@ -154,7 +161,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                       checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
                       scroll(output);
                       return true;
-                    
+
                     } else {
                       errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
@@ -174,7 +181,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
 
   //: -> (code -> printing it on the repl)
   function makeRepl(container, repl, runtime, options) {
-    
+
     var Jsworld = worldLib(runtime, runtime.namespace);
     var items = [];
     var pointer = -1;
@@ -230,13 +237,16 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         ct_log(str);
         output.append($("<pre>").addClass("replPrint").text(str));
       });
-    runtime.setParam("current-animation-port", function(dom) {
-        animationDiv = $("<div>").css({"z-index": 10000});
+    var currentZIndex = 15000;
+    runtime.setParam("current-animation-port", function(dom, closeCallback) {
+        var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+        animationDivs.push(animationDiv);
         output.append(animationDiv);
         function onClose() {
-          Jsworld.shutdown({ cleanShutdown: true });
-          showPrompt();
+          Jsworld.shutdownSingle({ cleanShutdown: true });
+          closeTopAnimationIfOpen();
         }
+        closeCallback(closeTopAnimationIfOpen);
         animationDiv.dialog({
           title: 'big-bang',
           position: ["left", "top"],
@@ -250,6 +260,10 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
           closeOnEscape : true
         });
         animationDiv.append(dom);
+        var dialogMain = animationDiv.parent();
+        dialogMain.css({"z-index": currentZIndex + 1});
+        dialogMain.prev().css({"z-index": currentZIndex});
+        currentZIndex += 2;
       });
 
     var breakButton = options.breakButton;
@@ -307,7 +321,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       doneRendering.fin(afterRun(false));
     };
 
-    var runner = function(code) {      
+    var runner = function(code) {
       document.getElementById("main").dataset.highlights = "";
       items.unshift(code);
       pointer = -1;
