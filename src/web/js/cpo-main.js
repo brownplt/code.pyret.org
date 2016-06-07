@@ -2,15 +2,15 @@
   requires: [
     { "import-type": "dependency",
       protocol: "file",
-      args: ["../../../node_modules/pyret-lang/src/arr/compiler/compile-lib.arr"]
+      args: ["../../../pyret/src/arr/compiler/compile-lib.arr"]
     },
     { "import-type": "dependency",
       protocol: "file",
-      args: ["../../../node_modules/pyret-lang/src/arr/compiler/compile-structs.arr"]
+      args: ["../../../pyret/src/arr/compiler/compile-structs.arr"]
     },
     { "import-type": "dependency",
       protocol: "file",
-      args: ["../../../node_modules/pyret-lang/src/arr/compiler/repl.arr"]
+      args: ["../../../pyret/src/arr/compiler/repl.arr"]
     },
     { "import-type": "dependency",
       protocol: "file",

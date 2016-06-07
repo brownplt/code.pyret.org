@@ -1,9 +1,9 @@
 provide *
 import string-dict as SD
-import file("../../../node_modules/pyret-lang/src/arr/compiler/compile-structs.arr") as CS
-import file("../../../node_modules/pyret-lang/src/arr/compiler/compile-lib.arr") as CL
-import file("../../../node_modules/pyret-lang/src/arr/compiler/repl.arr") as R
-import file("../../../node_modules/pyret-lang/src/arr/compiler/js-of-pyret.arr") as JSP
+import file("../../../pyret/src/arr/compiler/compile-structs.arr") as CS
+import file("../../../pyret/src/arr/compiler/compile-lib.arr") as CL
+import file("../../../pyret/src/arr/compiler/repl.arr") as R
+import file("../../../pyret/src/arr/compiler/js-of-pyret.arr") as JSP
 
 fun make-dep(raw-dep):
  if raw-dep.import-type == "builtin":

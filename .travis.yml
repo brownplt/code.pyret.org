@@ -23,7 +23,7 @@ node_js:
 install:
 - npm install --ignore-scripts
 - make web
-- make build/web/js/cpo-main.jarr
+- make deploy-cpo-main
 script:
 - echo "skipping tests"
 deploy:
