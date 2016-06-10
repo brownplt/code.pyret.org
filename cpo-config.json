@@ -1,0 +1,16 @@
+{
+  "baseUrl": "./",
+  "optimize": "none",
+  "paths": {
+      "cpo": "./src/web/js/",
+      "pyret-base": "./node_modules/pyret-lang/build/phaseA/",
+      "jglr": "./node_modules/pyret-lang/lib/jglr",
+      "crypto": "empty:",
+      "path": "src/web/js/pathstub",
+      "q": "build/web/js/q",
+      "s-expression": "build/web/js/s-expression",
+      "fs": "build/web/js/fsstub",
+      "requirejs": "empty:",
+      "seedrandom": "empty:"
+    }
+}

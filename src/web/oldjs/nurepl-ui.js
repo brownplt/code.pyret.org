@@ -1,36 +1,27 @@
-({
+{
   requires: [
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./check-ui"]
-    },
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./output-ui"]
-    },
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./error-ui"]
-    },
-    // TODO(joe): does this need to be built-in?
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./world-lib"]
-    },
-    { "import-type": "builtin",
-      name: "load-lib"
-    }
-  ],
-  nativeRequires: [
-    "pyret-base/js/runtime-util"
-  ],
-  provides: {},
-  theModule: function(runtime, _, uri,
-                      checkUI, outputUI, errorUI, worldLib,
-                      loadLib,
-                      util) {
-    var ffi = runtime.ffi;
+    { "import-type": "builtin", name: "ffi" },
+    // Should image and world be some local-to-CPO thing?
+    { "import-type": "builtin", name: "image" },
+    { "import-type": "builtin", name: "world" },
 
+    { "import-type": "dependency",
+      "protocol": "jsfile",
+      "args": ["./check-ui.js"] },
+
+    { "import-type": "dependency",
+      "protocol": "jsfile",
+      "args": ["./error-ui.js"] },
+
+    { "import-type": "dependency",
+      "protocol": "jsfile",
+      "args": ["./output-ui.js"] },
+  ],
+  nativeRequires: [],
+  provides: {},
+  function(runtime, namespace, uri,
+           ffi, imageLib, worldLib,
+           checkUi, errorUI, outputUI) {
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -51,6 +42,75 @@
     }
     var editors = {};
     var interactionsCount = 0;
+    function makeEditor(container, runtime, options) {
+      var initial = "";
+      if (options.hasOwnProperty("initial")) {
+        initial = options.initial;
+      }
+
+      var textarea = jQuery("<textarea>");
+      textarea.val(initial);
+      container.append(textarea);
+
+      var runFun = function (code, replOptions) {
+        options.run(code, {cm: CM}, replOptions);
+      }
+
+      var useLineNumbers = !options.simpleEditor;
+
+      function reindentAllLines(cm) {
+        var last = cm.lineCount();
+        cm.operation(function() {
+          for (var i = 0; i < last; ++i) cm.indentLine(i);
+        });
+      }
+
+      var cmOptions = {
+        extraKeys: {
+          "Shift-Enter": function(cm) { runFun(cm.getValue()); },
+          "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
+          "Tab": "indentAuto",
+          "Ctrl-I": reindentAllLines
+        },
+        indentUnit: 2,
+        tabSize: 2,
+        viewportMargin: Infinity,
+        lineNumbers: useLineNumbers,
+        matchKeywords: true,
+        matchBrackets: true,
+        styleSelectedText: true,
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        lineWrapping: true
+      };
+
+      cmOptions = merge(cmOptions, options.cmOptions || {});
+
+      var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
+
+
+      if (useLineNumbers) {
+        var upperWarning = jQuery("<div>").addClass("warning-upper");
+        var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/img/up-arrow.png");
+        upperWarning.append(upperArrow);
+        CM.display.wrapper.appendChild(upperWarning.get(0));
+        var lowerWarning = jQuery("<div>").addClass("warning-lower");
+        var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/img/down-arrow.png");
+        lowerWarning.append(lowerArrow);
+        CM.display.wrapper.appendChild(lowerWarning.get(0));
+      }
+      
+      CM.widgets = new Array();
+
+      return {
+        cm: CM,
+        refresh: function() { CM.refresh(); },
+        run: function() {
+          runFun(CM.getValue());
+        },
+        focus: function() { CM.focus(); }
+      };
+    }
 
     function formatCode(container, src) {
       CodeMirror.runMode(src, "pyret", container);
@@ -79,63 +139,65 @@
       var runtime = callingRuntime;
       var rr = resultRuntime;
       return function(result) {
-        console.log("Management/compile run stats:", JSON.stringify(result.stats));
-        if(callingRuntime.isFailureResult(result)) {
-          errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
-        }
-        else if(callingRuntime.isSuccessResult(result)) {
-          result = result.result;
-          ffi.cases(ffi.isEither, "Either", result,
-            {
-              left: function(compileResultErrors) {
-                closeAnimationIfOpen();
-                var errs = [];
-                var results = ffi.toArray(compileResultErrors);
-                results.forEach(function(r) {
-                  errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
-                });
-                errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
-              },
-              right: function(v) {
-                // TODO(joe): This is a place to consider which runtime level
-                // to use if we have separate compile/run runtimes.  I think
-                // that loadLib will be instantiated with callingRuntime, and
-                // I think that's correct.
-                var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
-                console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
-                if(rr.isSuccessResult(runResult)) {
-                  if(!isMain) {
-                    var answer = rr.getColonField(runResult.result, "answer");
-                    if(!rr.isNothing(answer)) {
-                      outputUI.renderPyretValue(output, rr, answer);
-                      scroll(output);
-                    }
-                  }
+        runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
+          console.log("Management/compile run stats:", JSON.stringify(result.stats));
+          if(callingRuntime.isFailureResult(result)) {
+            errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+          }
+          else if(callingRuntime.isSuccessResult(result)) {
+            result = result.result;
+            ffi.cases(ffi.isEither, "Either", result,
+              {
+                left: function(compileResultErrors) {
+                  closeAnimationIfOpen();
+                  var errs = [];
+                  var results = ffi.toArray(compileResultErrors);
+                  results.forEach(function(r) {
+                    errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
+                  });
+                  errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
+                },
+                right: function(v) {
+                  rr.loadBuiltinModules(
+                    [util.modBuiltin("load-lib")],
+                    "repl-ui",
+                    function(loadLib) {
+                      var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
+                      console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
+                      if(rr.isSuccessResult(runResult)) {
+                        if(!isMain) {
+                          var answer = rr.getColonField(runResult.result, "answer");
+                          if(!rr.isNothing(answer)) {
+                            outputUI.renderPyretValue(output, rr, answer);
+                            scroll(output);
+                          }
+                        }
 
-                  checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
-                  scroll(output);
-                  return true;
-                
-                } else {
-                  errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
+                        checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
+                        scroll(output);
+                        return true;
+                      
+                      } else {
+                        errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
+                      }
+                    });
                 }
-              }
-            });
-        }
-        else {
-          console.error("Bad result: ", result);
-          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
-        }
-        $(".check-block-error .cm-future-snippet").each(function(){this.cmrefresh();});
-        $(".compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
-
+              });
+          }
+          else {
+            console.error("Bad result: ", result);
+            errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
+          }
+          $(".check-block-error .cm-future-snippet").each(function(){this.cmrefresh();});
+          $(".compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
+        });
       }
     }
 
     //: -> (code -> printing it on the repl)
     function makeRepl(container, repl, runtime, options) {
       
-      var Jsworld = worldLib.jsmod;
+      var Jsworld = worldLib(runtime, runtime.namespace);
       var items = [];
       var pointer = -1;
       var current = "";
@@ -258,7 +320,7 @@
         setWhileRunning();
 
         editors = {};
-        editors["definitions://"] = uiOptions.cm;
+        editors["definitions"] = uiOptions.cm;
         interactionsCount = 0;
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
@@ -284,7 +346,7 @@
         promptContainer.hide();
         setWhileRunning();
         interactionsCount++;
-        var thisName = 'interactions://' + interactionsCount;
+        var thisName = 'interactions' + interactionsCount;
         editors[thisName] = echoCM;
         var replResult = repl.run(code, thisName);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
@@ -293,7 +355,7 @@
         doneRendering.fin(afterRun(CM));
       };
 
-      var CM = CPO.makeEditor(prompt, {
+      var CM = makeEditor(prompt, runtime, {
         simpleEditor: true,
         run: runner,
         initial: "",
@@ -335,10 +397,9 @@
       };
     }
 
-    return runtime.makeJSModuleReturn({
+    return {
       makeRepl: makeRepl,
-      makeEditor: CPO.makeEditor
-    });
-
-  }
-})
+      makeEditor: makeEditor
+    };
+  });
+}

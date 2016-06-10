@@ -1,36 +1,11 @@
-({
-  requires: [
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./output-ui"]
-    },
-    // TODO(joe): does this need to be built-in?
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./image-lib"]
-    },
-    { "import-type": "builtin",
-      name: "srcloc"
-    },
-    { "import-type": "builtin",
-      name: "error"
-    },
-    { "import-type": "builtin",
-      name: "contracts"
-    }
-  ],
-  provides: {},
-  nativeRequires: [ ],
-  theModule: function(runtime, _, uri, outputUI, image, srclocLib, errorLib, contractsLib) {
-    var srcloc = runtime.getField(srclocLib, "values");
-    var error = runtime.getField(errorLib, "values");
-    var contracts = runtime.getField(contractsLib, "values");
+define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js", "/js/share.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
 
-    var ffi = runtime.ffi;
+  var shareAPI = makeShareAPI("");
+  function drawError(container, editors, runtime, exception, contextFactory) {
+    var ffi = ffiLib(runtime, runtime.namespace);
+    var image = imageLib(runtime, runtime.namespace);
     var cases = ffi.cases;
-
-    function drawError(container, editors, runtime, exception, contextFactory) {
-      var cases = ffi.cases;
+    runtime.loadModules(runtime.namespace, [srclocLib, errorLib, csLib, contractsLib], function(srcloc, error, cs, contracts) {
       var get = runtime.getField;
 
       function mkPred(pyretFunName) {
@@ -70,9 +45,7 @@
         function drawCompileError(e) {
           runtime.runThunk(
             function() {
-              return get(e, "render-reason").app(); },
-              // TODO(joe): re-enable once merge is complete
-              //return get(e, "render-fancy-reason").app(); },
+              return get(e, "render-fancy-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 errorID = contextFactory();
@@ -116,7 +89,7 @@
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
           runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(locToAST, locToSrc); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var errorID = contextFactory();
@@ -143,7 +116,7 @@
           var loc = get(err, "loc");
           var reason = get(err, "reason");
           runtime.runThunk(
-            function() { return get(err, "render-reason").app(locToAST, locToSrc); },
+            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
@@ -161,7 +134,7 @@
         function drawPyretParseError() {
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
           runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(locToSrc); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
@@ -193,10 +166,13 @@
       function drawUnknownException(e) {
         container.append($("<div>").text("An unexpected error occurred: " + String(e)));
       }
-    }
 
-    return runtime.makeJSModuleReturn({
-      drawError: drawError
+
     });
   }
-})
+
+  return {
+    drawError: drawError
+  }
+
+});

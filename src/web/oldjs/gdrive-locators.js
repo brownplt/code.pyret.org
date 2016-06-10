@@ -1,16 +1,10 @@
-
-define([], function() {
-  function makeLocatorConstructors(
-      storageAPI,
-      runtime,
-      compileLib,
-      compileStructs,
-      builtinModules) {
+define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
+  function makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     function fileRequestFailure(failure, filename) {
       var message = "";
-      var defaultMessage = "There was an error fetching file with name " + filename +
+      var defaultMessage = "There was an error fetching file with name " + filename + 
             " (labelled " + filename + ") from Google Drive.";
       if(failure.message === "Authentication failure") {
         message = "Couldn't access the file named " + filename +
@@ -24,7 +18,7 @@ define([], function() {
             " on Google Drive.";
         }
         else if(failure.err.message) {
-          message = "There was an error fetching file named " + filename +
+          message = "There was an error fetching file named " + filename + 
             " from Google Drive: " + failure.err.message;
         }
         else {
@@ -55,7 +49,7 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.getFileByName(filename);
+          return storage.api.getFileByName(filename);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -121,11 +115,7 @@ define([], function() {
           function getNamespace(_, otherRuntime) {
             return gmf(compileLib, "make-base-namespace").app(otherRuntime);
           }
-
-          function getModifiedTime(_) { return 0; }
-          function getOptions(_, options) { return options; }
-          function getNativeModules(_) { return runtime.ffi.makeList([]); }
-
+          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -135,9 +125,6 @@ define([], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
-            "get-modified-time": m0(getModifiedTime),
-            "get-options": m1(getOptions),
-            "get-native-modules": m0(getNativeModules),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
@@ -180,7 +167,7 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.getSharedFileById(id);
+          return storage.api.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -246,22 +233,16 @@ define([], function() {
           function getNamespace(_, otherRuntime) {
             return gmf(compileLib, "make-base-namespace").app(otherRuntime);
           }
-
+          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
-          function getModifiedTime(_) { return 0; }
-          function getOptions(_, options) { return options; }
-          function getNativeModules(_) { return runtime.ffi.makeList([]); }
 
           var m0 = runtime.makeMethod0;
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
-            "get-modified-time": m0(getModifiedTime),
-            "get-options": m1(getOptions),
-            "get-native-modules": m0(getNativeModules),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
@@ -304,7 +285,7 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.getFileById(id);
+          return storage.api.getFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -371,7 +352,7 @@ define([], function() {
           function getNamespace(_, otherRuntime) {
             return gmf(compileLib, "make-base-namespace").app(otherRuntime);
           }
-
+          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -411,7 +392,7 @@ define([], function() {
           }));
         });
       });
-
+      
     }
     function makeCompiledGDriveJSLocator(filename, id) {
       function checkFileResponse(file, filename, restarter) {
@@ -430,7 +411,7 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.getSharedFileById(id);
+          return storage.api.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -508,7 +489,7 @@ define([], function() {
           function getNamespace(_, otherRuntime) {
             return gmf(compileLib, "make-base-namespace").app(otherRuntime);
           }
-
+          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -555,7 +536,7 @@ define([], function() {
           }));
         });
       });
-
+      
     }
     return {
       makeMyGDriveLocator: makeMyGDriveLocator,
