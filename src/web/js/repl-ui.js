@@ -9,13 +9,20 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
     });
     return newobj;
   }
-  var animationDiv = null;
+  var animationDivs = [];
   function closeAnimationIfOpen() {
-    if(animationDiv) {
+    animationDivs.forEach(function(animationDiv) {
       animationDiv.empty();
       animationDiv.dialog("destroy");
-      animationDiv = null;
-    }
+      animationDiv.remove();
+    });
+    animationDivs = [];
+  }
+  function closeTopAnimationIfOpen() {
+    var animationDiv = animationDivs.pop();
+    animationDiv.empty();
+    animationDiv.dialog("destroy");
+    animationDiv.remove();
   }
   var editors = {};
   var interactionsCount = 0;
@@ -76,7 +83,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       lowerWarning.append(lowerArrow);
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
-    
+
     CM.widgets = new Array();
 
     return {
@@ -96,13 +103,13 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
   // NOTE(joe): sadly depends on the page and hard to figure out how to make
   // this less global
   function scroll(output) {
-    $(".repl").animate({ 
+    $(".repl").animate({
          scrollTop: output.height(),
        },
        500
     );
   }
-  
+
   var makeErrorContext = (function () {
     var counter = 0;
     var makeNew = function () {
@@ -154,7 +161,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                       checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
                       scroll(output);
                       return true;
-                    
+
                     } else {
                       errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
@@ -174,7 +181,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
 
   //: -> (code -> printing it on the repl)
   function makeRepl(container, repl, runtime, options) {
-    
+
     var Jsworld = worldLib(runtime, runtime.namespace);
     var items = [];
     var pointer = -1;
@@ -230,27 +237,78 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         ct_log(str);
         output.append($("<pre>").addClass("replPrint").text(str));
       });
+    var currentZIndex = 15000;
     runtime.setParam("current-animation-port", function(dom) {
-        animationDiv = $("<div>").css({"z-index": 10000});
-        output.append(animationDiv);
-        function onClose() {
-          Jsworld.shutdown({ cleanShutdown: true });
-          showPrompt();
-        }
-        animationDiv.dialog({
-          title: 'big-bang',
-          position: ["left", "top"],
-			    bgiframe : true,
-			    modal : true,
-			    overlay : { opacity: 0.5, background: 'black'},
-			    //buttons : { "Save" : closeDialog },
-          width : "auto",
-          height : "auto",
-          close : onClose,
-          closeOnEscape : true
-        });
-        animationDiv.append(dom);
+      var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+      animationDivs.push(animationDiv);
+      output.append(animationDiv);
+      function onClose() {
+        Jsworld.shutdown({ cleanShutdown: true });
+        closeTopAnimationIfOpen();
+      }
+      animationDiv.dialog({
+        title: 'big-bang',
+        position: ["left", "top"],
+        bgiframe : true,
+        modal : true,
+        overlay : { opacity: 0.5, background: 'black'},
+        //buttons : { "Save" : closeDialog },
+        width : "auto",
+        height : "auto",
+        close : onClose,
+        closeOnEscape : true
       });
+      animationDiv.append(dom);
+      var dialogMain = animationDiv.parent();
+      dialogMain.css({"z-index": currentZIndex + 1});
+      dialogMain.prev().css({"z-index": currentZIndex});
+      currentZIndex += 2;
+    });
+    runtime.setParam("d3-port", function(dom, width, height, onExit, closeButton) {
+      // duplicate the code for now
+      var animationDiv = $("<div>");
+      animationDivs.push(animationDiv);
+      output.append(animationDiv);
+      function onClose() {
+        onExit();
+        closeTopAnimationIfOpen();
+      }
+      animationDiv.dialog({
+        position: ["left", "top"],
+        bgiframe : true,
+        modal : true,
+        overlay : { opacity: 0.5, background: 'black'},
+        //buttons : { "Save" : closeDialog },
+        width : width || "auto",
+        height : height || "auto",
+        open : function() {
+          var t = $(this).parent(), w = $(window);
+          t.offset({
+            top: (w.height() / 2) - (t.height() / 2),
+            left: (w.width() / 2) - (t.width() / 2)
+          });
+        },
+        close : onClose,
+        closeOnEscape : true
+      });
+      closeButton(function() {
+        animationDiv.dialog('close');
+        // this will call onClose automatically
+      });
+      animationDiv.append(dom);
+      var dialogMain = animationDiv.parent();
+      dialogMain.css({"z-index": currentZIndex + 1});
+      dialogMain.prev().css({"z-index": currentZIndex});
+      currentZIndex += 2;
+
+      dialogMain.find('.ui-dialog-titlebar').css({display: 'none'});
+    });
+    runtime.setParam("remove-d3-port", function() {
+      closeTopAnimationIfOpen();
+      // don't call .dialog('close'); because that would trigger onClose and thus onExit.
+      // We don't want that to happen.
+    });
+
 
     var breakButton = options.breakButton;
     container.append(output).append(promptContainer);
@@ -307,7 +365,7 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
       doneRendering.fin(afterRun(false));
     };
 
-    var runner = function(code) {      
+    var runner = function(code) {
       document.getElementById("main").dataset.highlights = "";
       items.unshift(code);
       pointer = -1;
