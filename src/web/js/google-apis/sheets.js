@@ -57,7 +57,7 @@ function createSheetsAPI(immediate) {
         }
         return colNum - (_COLUMNS_ONE_INDEXED ? 1 : 0);
       } else if (!isNaN(col)) {
-        throw new SheetsError("Invalid column: " + (col ? col.toString : col))
+        throw new SheetsError("Invalid column: " + (col ? col.toString : col));
       } else {
         return col;
       }
@@ -196,11 +196,11 @@ function createSheetsAPI(immediate) {
       .fail(function(err) {
                if (err.message && /sheet with ID.*does not exist/.test(err.message)) {
                  throw new SheetsError("A sheet with ID \"" + id + "\" "
-                                      + "does not exist in this spreadsheet.")
+                                       + "does not exist in this spreadsheet.");
                } else {
                  throw err;
                }
-             })
+      });
     };
 
     /**
@@ -217,7 +217,7 @@ function createSheetsAPI(immediate) {
              } else {
                throw err;
              }
-           })
+        });
     };
 
     /**
@@ -358,7 +358,7 @@ function createSheetsAPI(immediate) {
           .then(function(file) {
             return spreadsheets.get({
               spreadsheetId: file.getUniqueId()
-            })
+            });
           })
           .then(function(data) {
             ret.resolve(new Spreadsheet(data));
@@ -375,7 +375,7 @@ function createSheetsAPI(immediate) {
                  } else {
                    return res[0];
                  }
-               }).then(Spreadsheet.fromFile)
+               }).then(Spreadsheet.fromFile);
       },
       loadSpreadsheetById: function(id) {
         return Spreadsheet.fromId(id);
@@ -389,7 +389,7 @@ function createSheetsAPI(immediate) {
                 immediate: immediate
               },
               callback: function(sheets) {
-                ret.resolve(createAPI(sheets.spreadsheets))
+                ret.resolve(createAPI(sheets.spreadsheets));
               }});
   return ret.promise;
 }
