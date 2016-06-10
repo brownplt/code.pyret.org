@@ -7,10 +7,6 @@
     "npm": "2.1.x"
   },
   "dependencies": {
-    "lodash": "~2.4.1",
-    "q": "~1.0.1",
-    "s-expression": "~2.2.0",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
     "codemirror": "~5.11.0",
     "colorspaces": "0.1.4",
     "cookie-parser": "^1.0.1",

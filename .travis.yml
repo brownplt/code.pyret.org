@@ -39,4 +39,4 @@ deploy:
   detect_encoding: true
   on:
     repo: brownplt/code.pyret.org
-    branch: new-horizons
+    branch: horizon
