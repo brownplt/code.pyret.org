@@ -31,8 +31,6 @@ install:
 - npm install --ignore-scripts
 - make web
 - make deploy-cpo-main
-script:
-- echo "skipping tests"
 deploy:
   provider: s3
   access_key_id: AKIAIFY44WM3LGA4OQSQ
