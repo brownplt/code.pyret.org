@@ -194,9 +194,6 @@ link-pyret:
 deploy-cpo-main: link-pyret $(CPOMAIN)
 
 $(CPOMAIN): $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr
-	pwd;
-	ls -l pyret;
-	ls -l pyret/build;
 	ls -l pyret/build/phase0;
 	node pyret/build/phase0/pyret.jarr --builtin-js-dir pyret/src/js/trove/ --builtin-arr-dir pyret/src/arr/trove/ --require-config cpo-config.json  --build-runnable src/web/arr/cpo-main.arr --standalone-file cpo-standalone.js  --outfile $(CPOMAIN) -no-check-mode
 
