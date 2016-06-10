@@ -19,7 +19,7 @@ env:
   matrix:
   - SAUCE_BROWSER="chrome"
 node_js:
-- 4.3.1
+- 6.2.1
 install:
 - npm install --ignore-scripts
 - make web
