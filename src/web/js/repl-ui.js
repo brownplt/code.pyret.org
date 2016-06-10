@@ -238,33 +238,77 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
         output.append($("<pre>").addClass("replPrint").text(str));
       });
     var currentZIndex = 15000;
-    runtime.setParam("current-animation-port", function(dom, closeCallback) {
-        var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
-        animationDivs.push(animationDiv);
-        output.append(animationDiv);
-        function onClose() {
-          Jsworld.shutdownSingle({ cleanShutdown: true });
-          closeTopAnimationIfOpen();
-        }
-        closeCallback(closeTopAnimationIfOpen);
-        animationDiv.dialog({
-          title: 'big-bang',
-          position: ["left", "top"],
-			    bgiframe : true,
-			    modal : true,
-			    overlay : { opacity: 0.5, background: 'black'},
-			    //buttons : { "Save" : closeDialog },
-          width : "auto",
-          height : "auto",
-          close : onClose,
-          closeOnEscape : true
-        });
-        animationDiv.append(dom);
-        var dialogMain = animationDiv.parent();
-        dialogMain.css({"z-index": currentZIndex + 1});
-        dialogMain.prev().css({"z-index": currentZIndex});
-        currentZIndex += 2;
+    runtime.setParam("current-animation-port", function(dom) {
+      var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+      animationDivs.push(animationDiv);
+      output.append(animationDiv);
+      function onClose() {
+        Jsworld.shutdown({ cleanShutdown: true });
+        closeTopAnimationIfOpen();
+      }
+      animationDiv.dialog({
+        title: 'big-bang',
+        position: ["left", "top"],
+        bgiframe : true,
+        modal : true,
+        overlay : { opacity: 0.5, background: 'black'},
+        //buttons : { "Save" : closeDialog },
+        width : "auto",
+        height : "auto",
+        close : onClose,
+        closeOnEscape : true
       });
+      animationDiv.append(dom);
+      var dialogMain = animationDiv.parent();
+      dialogMain.css({"z-index": currentZIndex + 1});
+      dialogMain.prev().css({"z-index": currentZIndex});
+      currentZIndex += 2;
+    });
+    runtime.setParam("d3-port", function(dom, width, height, onExit, closeButton) {
+      // duplicate the code for now
+      var animationDiv = $("<div>");
+      animationDivs.push(animationDiv);
+      output.append(animationDiv);
+      function onClose() {
+        onExit();
+        closeTopAnimationIfOpen();
+      }
+      animationDiv.dialog({
+        position: ["left", "top"],
+        bgiframe : true,
+        modal : true,
+        overlay : { opacity: 0.5, background: 'black'},
+        //buttons : { "Save" : closeDialog },
+        width : width || "auto",
+        height : height || "auto",
+        open : function() {
+          var t = $(this).parent(), w = $(window);
+          t.offset({
+            top: (w.height() / 2) - (t.height() / 2),
+            left: (w.width() / 2) - (t.width() / 2)
+          });
+        },
+        close : onClose,
+        closeOnEscape : true
+      });
+      closeButton(function() {
+        animationDiv.dialog('close');
+        // this will call onClose automatically
+      });
+      animationDiv.append(dom);
+      var dialogMain = animationDiv.parent();
+      dialogMain.css({"z-index": currentZIndex + 1});
+      dialogMain.prev().css({"z-index": currentZIndex});
+      currentZIndex += 2;
+
+      dialogMain.find('.ui-dialog-titlebar').css({display: 'none'});
+    });
+    runtime.setParam("remove-d3-port", function() {
+      closeTopAnimationIfOpen();
+      // don't call .dialog('close'); because that would trigger onClose and thus onExit.
+      // We don't want that to happen.
+    });
+
 
     var breakButton = options.breakButton;
     container.append(output).append(promptContainer);
