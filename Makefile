@@ -189,6 +189,8 @@ web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
+	ls -l pyret;
+	ls -l pyret/build;
 	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
 
 deploy-cpo-main: link-pyret $(CPOMAIN)
