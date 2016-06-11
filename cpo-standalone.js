@@ -15,6 +15,13 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     stderr: function(s) { console.error(s); }
   });
 
+  var EXIT_SUCCESS = 0;
+  var EXIT_ERROR = 1;
+  var EXIT_ERROR_RENDERING_ERROR = 2;
+  var EXIT_ERROR_DISPLAYING_ERROR = 3;
+  var EXIT_ERROR_JS = 4;
+  var EXIT_ERROR_UNKNOWN = 5;
+
   runtime.setParam("command-line-arguments", []);
   runtime.setParam("staticModules", program.staticModules);
 
@@ -71,40 +78,59 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
   };
 
   function renderErrorMessage(execRt, res) {
-    var rendererrorMod = execRt.modules["builtin://render-error-display"];
-    var rendererror = execRt.getField(rendererrorMod, "provide-plus-types");
-    var gf = execRt.getField;
-    return execRt.runThunk(function() {
-      if(execRt.isPyretVal(res.exn.exn)
-         && execRt.isObject(res.exn.exn)
-         && execRt.hasField(res.exn.exn, "render-reason")) {
-        return execRt.safeCall(
-          function() {
-            return execRt.getColonField(res.exn.exn, "render-reason").full_meth(res.exn.exn);
-          }, function(reason) {
-            return execRt.safeCall(
+    if (execRt.isPyretException(res.exn)) {
+      var rendererrorMod = execRt.modules["builtin://render-error-display"];
+      var rendererror = execRt.getField(rendererrorMod, "provide-plus-types");
+      var gf = execRt.getField;
+      var exnStack = res.exn.stack;
+      var pyretStack = res.exn.pyretStack;
+      execRt.runThunk(
+        function() {
+          if (execRt.isPyretVal(res.exn.exn) && execRt.hasField(res.exn.exn, "render-reason")) {
+            return execRt.getColonField(res.exn.exn, "render-reason");
+          } else {
+            return execRt.ffi.edEmbed(res.exn.exn);
+          }
+        },
+        function (reasonResult) {
+          if (execRt.isFailureResult(reasonResult)) {
+            console.error("While trying to report that Pyret terminated with an error:\n" + JSON.stringify(res)
+                          + "\nPyret encountered an error rendering that error:\n" + JSON.stringify(reasonResult));
+            console.error("Stack:\n" + JSON.stringify(exnStack));
+            console.error("Pyret stack:\n" + execRt.printPyretStack(pyretStack, true));
+            // process.exit(EXIT_ERROR_RENDERING_ERROR);
+          } else {            
+            execRt.runThunk(
               function() {
                 return gf(gf(rendererror, "values"), "display-to-string").app(
-                  reason,
+                  reasonResult.result,
                   execRt.namespace.get("torepr"),
                   execRt.ffi.makeList(res.exn.pyretStack.map(execRt.makeSrcloc)));
-              }, function(str) {
-                return execRt.string_append(
-                  str,
-                  execRt.makeString("\nStack trace:\n" +
-                                    execRt.printPyretStack(res.exn.pyretStack)));
+              }, 
+              function(printResult) {
+                if (execRt.isSuccessResult(printResult)) {
+                  console.error(printResult.result);
+                  console.error("Stack trace:\n" + execRt.printPyretStack(res.exn.pyretStack));
+                  // process.exit(EXIT_ERROR);
+                } else {
+                  console.error(
+                    "While trying to report that Pyret terminated with an error:\n" + JSON.stringify(res)
+                      + "\ndisplaying that error produced another error:\n" + JSON.stringify(printResult));
+                  console.error("Stack:\n" + JSON.stringify(exnStack));
+                  console.error("Pyret stack:\n" + execRt.printPyretStack(pyretStack, true));
+                  // process.exit(EXIT_ERROR_DISPLAYING_ERROR);
+                }                  
               }, "errordisplay->to-string");
-          }, "error->display");
-      } else {
-        return String(res.exn + "\n" + res.exn.stack);
-      }
-    }, function(v) {
-      if(execRt.isSuccessResult(v)) {
-        console.log(v.result);
-      } else {
-        console.error("There was an exception while rendering the exception: ", v.exn);
-      }
-    });
+          }
+        }, "error->display");
+    } else if (res.exn && res.exn.stack) {
+      console.error("Abstraction breaking: Uncaught JavaScript error:\n", res.exn);
+      console.error("Stack trace:\n", res.exn.stack);
+      // process.exit(EXIT_ERROR_JS);
+    } else {
+      console.error("Unknown error result: ", res.exn);
+      // process.exit(EXIT_ERROR_UNKNOWN);
+    }
   }
 
   function onComplete(result) {
@@ -126,9 +152,4 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     return runtime.runStandalone(staticModules, realm, depMap, toLoad, postLoadHooks);
   }, onComplete);
 
-/*
-  loadModulesNew(thisRuntime.namespace, [require("trove/image-lib")], function(i) {
-    thisRuntime["imageLib"] = getField(i, "internal");
-  });
-*/
 });
