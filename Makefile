@@ -197,6 +197,7 @@ TROVE_JS := $(wildcard src/web/js/trove/*.js)
 
 $(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr
 	cd pyret && $(MAKE) phaseA;
+	mkdir -p compiled/;
 	cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
     --builtin-js-dir src/web/js/trove/ \
