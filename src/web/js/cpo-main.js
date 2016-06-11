@@ -28,10 +28,12 @@
     },
     { "import-type": "builtin",
       name: "builtin-modules"
+    },
+    { "import-type": "builtin",
+      name: "cpo-builtins"
     }
   ],
   nativeRequires: [
-    "cpo/cpo-builtins",
     "cpo/gdrive-locators",
     "cpo/http-imports",
     "cpo/guess-gas",
@@ -41,8 +43,8 @@
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
-                      runtimeLib, loadLib, builtinModules,
-                      cpoBuiltin, gdriveLocators, http, guessGas, cpoModules,
+                      runtimeLib, loadLib, builtinModules, cpoBuiltins,
+                      gdriveLocators, http, guessGas, cpoModules,
                       rtLib) {
 
 

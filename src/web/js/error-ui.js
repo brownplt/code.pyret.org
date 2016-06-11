@@ -4,10 +4,8 @@
       protocol: "js-file",
       args: ["./output-ui"]
     },
-    // TODO(joe): does this need to be built-in?
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./image-lib"]
+    { "import-type": "builtin",
+      name: "image-lib"
     },
     { "import-type": "builtin",
       name: "srcloc"
@@ -36,7 +34,7 @@
       function mkPred(pyretFunName) {
         return function(val) { return get(error, pyretFunName).app(val); }
       }
-      
+
       var isContractError = get(contracts, "ContractResult").app;
 
       // Exception will be one of:
@@ -58,7 +56,7 @@
 
 
       function singleHover(dom, loc) {
-        if (loc === undefined) { 
+        if (loc === undefined) {
           console.error("Given an undefined location to highlight, at", (new Error()).stack);
           return;
         }
@@ -78,7 +76,7 @@
                 errorID = contextFactory();
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
                 dom.addClass("compile-error");
-                container.append(dom); 
+                container.append(dom);
                 dom.children().first(".highlightToggle").trigger('click');
               } else {
                 container.append($("<span>").addClass("compile-error")

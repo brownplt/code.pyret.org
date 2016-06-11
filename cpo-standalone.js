@@ -12,7 +12,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
 
   var runtime = runtimeLib.makeRuntime({
     stdout: function(s) { console.log(s); },
-    stderr: function(s) { console.error(s); } 
+    stderr: function(s) { console.error(s); }
   });
 
   runtime.setParam("command-line-arguments", []);
@@ -23,7 +23,6 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
       runtime.srcloc = runtime.getField(runtime.getField(srcloc, "provide-plus-types"), "values");
     },
     "builtin://ffi": function(ffi) {
-      cpoBuiltinModules.setRealm(realm);
       ffi = ffi.jsmod;
       runtime.ffi = ffi;
       runtime["throwMessageException"] = ffi.throwMessageException;
@@ -42,6 +41,11 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
       // NOTE(joe): This is the place to add checkAll
       var currentChecker = runtime.getField(checker, "make-check-context").app(runtime.makeString(main), true);
       runtime.setParam("current-checker", currentChecker);
+    },
+    "builtin://cpo-builtins": function(_) {
+      // NOTE(joe): At this point, all the builtin modules are for sure loaded
+      // (like image, world, etc)
+      cpoBuiltinModules.setRealm(realm);
     }
   };
   postLoadHooks[main] = function(answer) {
@@ -71,18 +75,18 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     var rendererror = execRt.getField(rendererrorMod, "provide-plus-types");
     var gf = execRt.getField;
     return execRt.runThunk(function() {
-      if(execRt.isPyretVal(res.exn.exn) 
-         && execRt.isObject(res.exn.exn) 
+      if(execRt.isPyretVal(res.exn.exn)
+         && execRt.isObject(res.exn.exn)
          && execRt.hasField(res.exn.exn, "render-reason")) {
         return execRt.safeCall(
-          function() { 
+          function() {
             return execRt.getColonField(res.exn.exn, "render-reason").full_meth(res.exn.exn);
           }, function(reason) {
             return execRt.safeCall(
-              function() { 
+              function() {
                 return gf(gf(rendererror, "values"), "display-to-string").app(
-                  reason, 
-                  execRt.namespace.get("torepr"), 
+                  reason,
+                  execRt.namespace.get("torepr"),
                   execRt.ffi.makeList(res.exn.pyretStack.map(execRt.makeSrcloc)));
               }, function(str) {
                 return execRt.string_append(

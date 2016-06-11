@@ -90,7 +90,7 @@ build/web/js/q.js: node_modules/q/q.js
 
 build/web/js/s-expression-lib.js: node_modules/s-expression/index.js
 	cp $< $@
-	
+
 build/web/js/colorspaces.js: node_modules/colorspaces/colorspaces.js
 	cp $< $@
 
@@ -108,7 +108,7 @@ build/web/js/require.js: node_modules/requirejs/require.js
 
 build/web/js/codemirror.js: $(CM)/lib/codemirror.js
 	cp $< $@
-	
+
 build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
 	cp $< $@
 
@@ -193,9 +193,21 @@ link-pyret:
 
 deploy-cpo-main: link-pyret $(CPOMAIN)
 
-$(CPOMAIN): $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr
-	ls -l pyret/build/phase0;
-	node pyret/build/phase0/pyret.jarr --builtin-js-dir pyret/src/js/trove/ --builtin-arr-dir pyret/src/arr/trove/ --require-config cpo-config.json  --build-runnable src/web/arr/cpo-main.arr --standalone-file cpo-standalone.js  --outfile $(CPOMAIN) -no-check-mode
+TROVE_JS := $(wildcard src/web/js/trove/*.js)
+
+$(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr
+	cd pyret && $(MAKE) phaseA;
+	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	node pyret/build/phaseA/pyret.jarr \
+    --builtin-js-dir src/web/js/trove/ \
+    --builtin-js-dir pyret/src/js/trove/ \
+    -allow-builtin-overrides \
+    --builtin-arr-dir pyret/src/arr/trove/ \
+    --require-config cpo-config.json \
+    --build-runnable src/web/arr/cpo-main.arr \
+    --standalone-file cpo-standalone.js \
+    --compiled-dir ./compiled \
+    --outfile $(CPOMAIN) -no-check-mode
 
 clean:
 	rm -rf build/

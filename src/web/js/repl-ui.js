@@ -12,10 +12,8 @@
       protocol: "js-file",
       args: ["./error-ui"]
     },
-    // TODO(joe): does this need to be built-in?
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./world-lib"]
+    { "import-type": "builtin",
+      name: "world-lib"
     },
     { "import-type": "builtin",
       name: "load-lib"
@@ -26,8 +24,8 @@
   ],
   provides: {},
   theModule: function(runtime, _, uri,
-                      checkUI, outputUI, errorUI, worldLib,
-                      loadLib,
+                      checkUI, outputUI, errorUI,
+                      worldLib, loadLib,
                       util) {
     var ffi = runtime.ffi;
 
@@ -59,13 +57,13 @@
     // NOTE(joe): sadly depends on the page and hard to figure out how to make
     // this less global
     function scroll(output) {
-      $(".repl").animate({ 
+      $(".repl").animate({
            scrollTop: output.height(),
          },
          500
       );
     }
-    
+
     var makeErrorContext = (function () {
       var counter = 0;
       var makeNew = function () {
@@ -115,7 +113,7 @@
                   checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
                   scroll(output);
                   return true;
-                
+
                 } else {
                   errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                 }
@@ -134,8 +132,8 @@
 
     //: -> (code -> printing it on the repl)
     function makeRepl(container, repl, runtime, options) {
-      
-      var Jsworld = worldLib.jsmod;
+
+      var Jsworld = worldLib;
       var items = [];
       var pointer = -1;
       var current = "";
@@ -267,7 +265,7 @@
         doneRendering.fin(afterRun(false));
       };
 
-      var runner = function(code) {      
+      var runner = function(code) {
         document.getElementById("main").dataset.highlights = "";
         items.unshift(code);
         pointer = -1;
