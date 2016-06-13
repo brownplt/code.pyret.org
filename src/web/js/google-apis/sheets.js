@@ -168,12 +168,16 @@ function createSheetsAPI(immediate) {
       }
 
       // Unzips the results of processValue
-      function extractRowSchema(row) {
-        return row.reduce(function(acc, cur){
+      function extractRowSchema(row, rowNum) {
+        return row.reduce(function(acc, cur, idx){
           acc.values.push(cur.value);
-          acc.schema.push({ type: cur.type, isOption: (cur.type === VALUE_TYPES.NONE) });
+          acc.schema.push(
+            { type: cur.type,
+              isOption: (cur.type === VALUE_TYPES.NONE),
+              trueRow: rowNum,
+              trueCol: idx });
           return acc;
-        }, { values: [], schema: [] });
+        }, { values: [], schema: []});
       }
 
       // Type -> String
@@ -197,8 +201,9 @@ function createSheetsAPI(immediate) {
       // schema1 = accumulated
       function unifySchemas(schema1, schema2, row, index) {
         function logFail() {
-          var trueRow = row + startRow;
-          var trueCol = index + startCol;
+          var trueRow = schema2.trueRow;
+          var trueCol = schema2.trueCol;
+
           var data = rowData[row][index];
           // Surround in quotes for error message clarity
           if (typeof data === "string") {
@@ -206,9 +211,9 @@ function createSheetsAPI(immediate) {
           }
           errors.push("All items in every column must have the same type. "
                       + "We expected to find a " + typeName(schema1.type)
-                      + " at cell " + colAsString(trueCol) + trueRow
+                      + " at cell " + colAsString(trueCol + 1) + (trueRow + 1)
                       + ", but we instead found this " + typeName(schema2.type)
-                      + ": " + rowData[row][index]);
+                      + ": " + data);
         }
         if (!schema1) { // (T-INTROS)
           return schema2;
@@ -246,7 +251,7 @@ function createSheetsAPI(immediate) {
             && (row.values.length > 0)
             && (row.values.some(function(v){return v.effectiveValue !== undefined;}))) {
           foundFirstRow = true;
-          var extracted = extractRowSchema(row.values.map(processValue));
+          var extracted = extractRowSchema(row.values.map(processValue), rowNum);
           row.values = extracted.values;
           rowSchemas.push(extracted.schema);
           return row.values;
