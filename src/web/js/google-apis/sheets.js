@@ -204,7 +204,7 @@ function createSheetsAPI(immediate) {
           if (typeof data === "string") {
             data = '"' + data + '"';
           }
-          errors.push("All items in every must have the same type. "
+          errors.push("All items in every column must have the same type. "
                       + "We expected to find a " + typeName(schema1.type)
                       + " at cell " + colAsString(trueCol) + trueRow
                       + ", but we instead found this " + typeName(schema2.type)
