@@ -1,7 +1,7 @@
-define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q, loader, util, t, table) {
+define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q, loader, util, t) {
   var List = function(thing) { 
     return t.tyapp(t.libName("lists", "List"), [thing]);
-  }
+  };
   // Tables not yet in the Typechecker, AFAIK
   var TableT = t.any;
   var SpreadsheetT = t.record({
@@ -28,6 +28,11 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
       table = runtime.getField(table, "values");
       var F = runtime.makeFunction;
       var O = runtime.makeObject;
+
+      var None = runtime.ffi.makeNone;
+      var Some = runtime.ffi.makeSome;
+
+      var SHEET_TYPES;
 
       function loadWorksheet(loader) {
         function doLoadWorksheet() {
@@ -121,7 +126,7 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
             while(++i <= cols) {
               if (k >= startLen) {
                 ++j;
-                j = j % 26
+                j = j % 26;
                 if (j === 0) {
                   startOff += startLen;
                   startLen *= 26;
@@ -134,16 +139,97 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
             }
           }
         }
-        return ws.getAllCells().then(function(values) {
-          return function() {
-            // Since `cols` can overshoot, we check again
-            var maxWidth = 0;
-            values = values.map(function(row) {
-              maxWidth = Math.max(maxWidth, row.length);
-              return row.map(runtime.makeString);
+        function applyArray(arr) {
+          return function(v, i) {
+            return arr[i](v);
+          };
+        }
+        function schemaToConstructor(schema) {
+          if (schema.isOption) {
+            var typeConstructor = schemaToConstructor({
+              type: schema.type, isOption: false
             });
-            colNames = colNames.slice(0, maxWidth);
-            return runtime.getField(table, "makeTable")(colNames, values);
+            return function(v) {
+              if (v === null) {
+                return None();
+              } else {
+                return Some(typeConstructor(v));
+              }
+            };
+          } else {
+            switch (schema.type) {
+            case SHEET_TYPES.STRING:
+              return runtime.makeString;
+            case SHEET_TYPES.NUMBER:
+              return runtime.makeNumber;
+            case SHEET_TYPES.BOOL:
+              return runtime.makeBoolean;
+            case SHEET_TYPES.NONE:
+            default:
+              return function(v) {
+                if (v !== null) {
+                  throw new Error(
+                    "Unknown type for sheet value " + v.toString());
+                } else {
+                  return None();
+                }
+              };
+            }
+          }
+        }
+        return ws.getAllCells().then(function(data) {
+          if (ws.typeErrors && (ws.typeErrors.length > 0)) {
+            throw new Error(ws.typeErrors[0]);
+          } else if (data.length === 0) {
+            return function() { runtime.getField(table, "makeTable")([], []); };
+          } else {
+            var constructors = ws.schema.map(schemaToConstructor);
+            var width = data[0].length;
+            data.forEach(function(row) {
+              if (row.length !== width) {
+                throw new Error(
+                  "Internal Error: Expected row of length " + width.toString()
+                    + ", but found row of length " + row.length.toString()
+                    + ". Please report this error to the developers.");
+              }
+            });
+            colNames = colNames.slice(ws.startCol, ws.startCol + width);
+            return function() {
+              // First, we change the data values into Pyret values
+              for (var i = 0; i < data.length; ++i) {
+                // Should be entirely unneccesary, but let's be
+                // cautious with the stack
+                var curIdx = -1;
+                function buildHelp() {
+                  while (++curIdx < width) {
+                    // This line is why a simple raw_array_map doesn't work
+                    data[i][curIdx] = constructors[curIdx](data[i][curIdx]);
+                  }
+                }
+                function buildFun($ar) {
+                  try {
+                    if (runtime.isActivationRecord($ar)) {
+                      data[i][curIdx] = $ar.ans;
+                    }
+                    return buildHelp();
+                  } catch($e) {
+                    if (runtime.isCont($e)) {
+                      $e.stack[runtime.EXN_STACKHEIGHT++] = runtime.makeActivationRecord(
+                        ["load-spreadsheet"],
+                        buildFun,
+                        0,
+                        [], []);
+                    }
+                    if (runtime.isPyretException($e)) {
+                      $e.pyretStack.push(["load-spreadsheet"]);
+                    }
+                    throw $e;
+                  }
+                }
+                buildFun();
+              }
+              return runtime.getField(table, "makeTable")(colNames, data);
+            };
           }
         });
       }
@@ -215,6 +301,7 @@ define(["q", "js/secure-loader", "js/runtime-util", "js/type-util"], function(q,
         
         runtime.pauseStack(function(resumer) {
           sheetsAPI.then(function(api) {
+            SHEET_TYPES = api.TYPES;
             return loader(api);
           })
           .then(makePyretSpreadsheet)

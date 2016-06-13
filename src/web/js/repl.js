@@ -80,6 +80,9 @@ $(function() {
       return APP_BASE_URL + "/downloadImg?" + s;
     });
 
+    var saveEvent = document.createEvent('UIEvents');
+    saveEvent.initEvent('pyret-save', true, true);
+
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
@@ -896,6 +899,8 @@ $(function() {
               stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
               console.error(err);
             });
+            // Run hook listeners
+            window.dispatchEvent(saveEvent);
           }
           $("#runButton").click(autoSave);
 

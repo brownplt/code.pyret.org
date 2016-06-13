@@ -7,16 +7,37 @@ function createSheetsAPI(immediate) {
 
     // Easy toggling
     var _COLUMNS_ONE_INDEXED = true;
+
+    const SHEET_REQ_FIELDS = (function(){
+      var sheetData = "data(";
+      // Worksheet data
+      sheetData += "rowData(values(effectiveFormat/numberFormat,effectiveValue,formattedValue))";
+      // Wishful thinking
+      sheetData += ",startColumn,startRow)";
+      var sheetProperties = "properties(";
+      // Grid Properties
+      sheetProperties += "gridProperties(columnCount,frozenColumnCount,frozenRowCount,rowCount)";
+      // Worksheet title, etc.
+      sheetProperties += ",index,sheetId,title)";
+      var sheets = "sheets(" + [sheetData,sheetProperties].join(",") + ")";
+      return ["properties(defaultFormat,title)",
+              sheets,
+              "spreadsheetId"].join(',');
+    })();
     
     /**
      * Creates a new Google Sheets Error
      * @constructor
      * @param {*} [message] - The contents of this error
+     * @param {*} [extra] - Record of extra data to associate with this error
      */
-    function SheetsError(message) {
-      Error.captureStackTrace(this, this.constructor);
+    function SheetsError(message, extra) {
+      if (typeof Error.captureStackTrace === 'function') {
+        Error.captureStackTrace(this, this.constructor);
+      }
       this.name = this.constructor.name;
       this.message = message || "";
+      this.extra = extra || {};
     }
     SheetsError.prototype = Object.create(Error.prototype);
     SheetsError.prototype.name = "SheetsError";
@@ -37,7 +58,7 @@ function createSheetsAPI(immediate) {
         }
         return out;
       } else if (typeof col !== 'string'){
-        throw new SheetsError("Invalid column: " + (col ? col.toString : col));
+        throw new SheetsError("Invalid column: " + (col ? col.toString() : col));
       } else {
         return col;
       }
@@ -56,8 +77,8 @@ function createSheetsAPI(immediate) {
           power *= 26;
         }
         return colNum - (_COLUMNS_ONE_INDEXED ? 1 : 0);
-      } else if (!isNaN(col)) {
-        throw new SheetsError("Invalid column: " + (col ? col.toString : col));
+      } else if (isNaN(col)) {
+        throw new SheetsError("Invalid column: " + (col ? col.toString() : col));
       } else {
         return col;
       }
@@ -77,6 +98,198 @@ function createSheetsAPI(immediate) {
       return title + "!" + fromCol + fromRow + ":" + toCol + toRow;
     }
 
+    const VALUE_TYPES = {
+      STRING: 1,
+      NUMBER: 2,
+      BOOL: 3,
+      NONE: 4
+    };
+
+    /**
+     * Reads in the raw row data from the spreadsheet and
+     * returns it such that types match up (i.e. everything
+     * in each column has the same type or is null).
+     *
+     * For an in-depth explanation of the inference rules
+     * used here, refer to http://belph.github.io/docs/sheet-infer.pdf
+     * (if link is dead, contact Philip (belph)).
+     *
+     * @param rowData - The raw data to process
+     */
+    function unifyRows(rowData) {
+      var errors = [];
+      // Schemas of individual rows
+      var rowSchemas = [];
+      // Unified table schema
+      var schema = [];
+      // What column does the data start at?
+      var startCol = Infinity;
+      var endCol = 0;
+      var startRow = 0;
+
+      function processValue(v, idx) {
+        if (!v) {
+          throw new SheetsError("Internal Error: unifyRows called with no value");
+        } else if (!v.effectiveValue) {
+          // Empty entry
+          return { value: null, type: VALUE_TYPES.NONE };
+        }
+
+        // We have an entry; update the start column if needed
+        startCol = Math.min(startCol, idx);
+        endCol = Math.max(endCol, idx);
+
+        if (v.effectiveValue.numberValue) {
+          var format = v.effectiveFormat
+                && v.effectiveFormat.numberFormat
+                && v.effectiveFormat.numberFormat.type;
+          var asStr = v.formattedValue
+                || v.effectiveValue.numberValue.toString();
+
+          switch(format) {
+          // For these formats, use string representation for now.
+            // TODO: Make a datetime type for these 
+          case "TEXT":
+          case "DATE":
+          case "TIME":
+          case "DATE_TIME":
+            return { value: asStr, type: VALUE_TYPES.STRING };
+          default:
+            return { value: v.effectiveValue.numberValue, type: VALUE_TYPES.NUMBER };
+          }
+        } else if (v.effectiveValue.boolValue !== undefined) {
+          return { value: v.effectiveValue.boolValue, type: VALUE_TYPES.BOOL };
+        } else if (v.effectiveValue.errorValue) {
+          errors.push("Google Sheets Error: " + v.effectiveValue.errorValue);
+          return { value: null, type: VALUE_TYPES.NONE };
+        } else {
+          return { value: v.formattedValue, type: VALUE_TYPES.STRING };
+        }
+      }
+
+      // Unzips the results of processValue
+      function extractRowSchema(row) {
+        return row.reduce(function(acc, cur){
+          acc.values.push(cur.value);
+          acc.schema.push({ type: cur.type, isOption: (cur.type === VALUE_TYPES.NONE) });
+          return acc;
+        }, { values: [], schema: [] });
+      }
+
+      // Type -> String
+      function typeName(t) {
+        switch(t) {
+        case VALUE_TYPES.STRING:
+          return "String";
+          break;
+        case VALUE_TYPES.NUMBER:
+          return "Number";
+          break;
+        case VALUE_TYPES.BOOL:
+          return "Bool";
+          break;
+        case VALUE_TYPES.NONE:
+        default: // <- to make linters be quiet
+          return "Option";
+        }
+      }
+
+      // schema1 = accumulated
+      function unifySchemas(schema1, schema2, row, index) {
+        function logFail() {
+          var trueRow = row + startRow;
+          var trueCol = index + startCol;
+          var data = rowData[row][index];
+          // Surround in quotes for error message clarity
+          if (typeof data === "string") {
+            data = '"' + data + '"';
+          }
+          errors.push("All items in every must have the same type. "
+                      + "We expected to find a " + typeName(schema1.type)
+                      + " at cell " + colAsString(trueCol) + trueRow
+                      + ", but we instead found this " + typeName(schema2.type)
+                      + ": " + rowData[row][index]);
+        }
+        if (!schema1) { // (T-INTROS)
+          return schema2;
+        } else if (schema1.type === VALUE_TYPES.NONE) {
+          if (schema2.type === VALUE_TYPES.NONE) { // (T-NONE)
+            return schema1;
+          } else { // (T-OPTION-1)
+            schema2.isOption = true;
+            return schema2;
+          }
+        } else if (schema1.isOption) { // (T-OPTION-3)
+          if (schema2.type === VALUE_TYPES.NONE || schema2.type === schema1.type) {
+            return schema1;
+          } else { // (T-ERROR-1)
+            logFail();
+            // Continue to expect accumulated schema
+            return schema1;
+          }
+        } else if (schema2.type === VALUE_TYPES.NONE) { // (T-OPTION-2)
+          schema1.isOption = true;
+          return schema1;
+        } else if (schema1.type === schema2.type) { // (T-CHECK)
+          return schema1;
+        } else { // (T-ERROR-2)
+          logFail();
+          // Continue to expect accumulated schema
+          return schema1;
+        }
+      }
+
+      var foundFirstRow = false;
+      var emptyRows = [];
+      rowData = rowData.map(function(row, rowNum) {
+        if (row.values
+            && (row.values.length > 0)
+            && (row.values.some(function(v){return v.effectiveValue !== undefined;}))) {
+          foundFirstRow = true;
+          var extracted = extractRowSchema(row.values.map(processValue));
+          row.values = extracted.values;
+          rowSchemas.push(extracted.schema);
+          return row.values;
+        } else if (!foundFirstRow) {
+          startRow += 1;
+        } else {
+          emptyRows.push(rowNum);
+        }
+        rowSchemas.push([]);
+        return [];
+      });
+      // Remove empty rows (reverse order to preserve index locations)
+      for (var i = emptyRows.length - 1; i >= 0; --i) {
+        rowData.splice(emptyRows[i], 1);
+        rowSchemas.splice(emptyRows[i], 1);
+      }
+      rowData.splice(0, startRow);
+      rowSchemas.splice(0, startRow);
+      var tableWidth = (endCol - startCol) + 1;
+      // Trim/pad remaining rows to uniform shape
+      for (var i = 0; i < rowData.length; ++i) {
+        // Trim off any leading columns
+        rowData[i] = rowData[i].slice(startCol, endCol + 1);
+        rowSchemas[i] = rowSchemas[i].slice(startCol, endCol + 1);
+        // Pad out any missing trailing columns
+        for (var j = rowData[i].length; j < tableWidth; ++j) {
+          rowData[i][j] = null;
+          rowSchemas[i].push({ type: VALUE_TYPES.NONE, isOption: false });
+        }
+      }
+      // Unify schemas
+      for (var i = 0; i < rowSchemas.length; ++i) {
+        for (var j = 0; j < Math.max(schema.length, rowSchemas[i].length); ++j) {
+          schema[j] = unifySchemas(schema[j], rowSchemas[i][j], i, j);
+        }
+      }
+      var ret = { values: rowData, schema: schema, startCol: startCol };
+      if (errors.length > 0) {
+        ret.errors = errors;
+      }
+      return ret;
+    }
+
     /**
      * Creates a new Spreadsheet object, representing
      * a Google Sheets spreadsheet.
@@ -88,8 +301,11 @@ function createSheetsAPI(immediate) {
       this.id = data.spreadsheetId;
       this.title = data.properties.title;
       this.defaultFormat = data.properties.defaultFormat || {};
-      this.worksheetsInfo = data.sheets || [];
-      this.worksheets = [];
+      data.sheets = data.sheets || [];
+      this.worksheetsInfo = [];
+      this.worksheets = data.sheets.map(function(wsdata) {
+        return new Worksheet(this, wsdata);
+      }, this);
     }
 
     /**
@@ -132,13 +348,9 @@ function createSheetsAPI(immediate) {
      * @param {number} worksheetIdx - The index of the worksheet to return
      */
     Spreadsheet.prototype.getByIndex = function(worksheetIdx) {
-      var info = this.lookupInfoByIndex(worksheetIdx);
-      if (this.worksheets[worksheetIdx]) { // Have we loaded this worksheet already?
-        return this.worksheets[worksheetIdx];
-      } else {
-        this.worksheets[worksheetIdx] = new Worksheet(this, info);
-        return this.worksheets[worksheetIdx];
-      }
+      // Performs validation on index
+      this.lookupInfoByIndex(worksheetIdx);
+      return this.worksheets[worksheetIdx];
     };
 
     /**
@@ -147,7 +359,8 @@ function createSheetsAPI(immediate) {
      * @param {string} name - The name of the worksheet to return
      */
     Spreadsheet.prototype.getByName = function(name) {
-      return new Worksheet(this, this.lookupInfoByName(name));
+      var info = this.lookupInfoByName(name);
+      return this.worksheets[info.properties.index];
     };
 
     /**
@@ -170,15 +383,26 @@ function createSheetsAPI(immediate) {
           requests: [request]
         }
       })
-      .then((function(data) { return new Worksheet(this, data); }).bind(this))
-      .fail(function(err) {
-               if (err.message && /already exists/.test(err.message)) {
-                 throw new SheetsError("A sheet with name \"" + name + "\""
-                                      + " already exists in this spreadsheet.");
-               } else {
-                 throw err;
-               }
-             });
+        .then((function(data) {
+          return spreadsheets.get({
+            spreadsheetId: this.id,
+            ranges: name,
+            fields: SHEET_REQ_FIELDS
+          });}).bind(this))
+        .then((function(data) {
+          if (!data.sheets || (data.sheets.length === 0)) {
+            throw new SheetsError("Failed to add worksheet: \"" + name + "\"");
+          }
+          return new Worksheet(this, data.sheets[0]);
+        }).bind(this))
+        .fail(function(err) {
+          if (err.message && /already exists/.test(err.message)) {
+            throw new SheetsError("A sheet with name \"" + name + "\""
+                                  + " already exists in this spreadsheet.");
+          } else {
+            throw err;
+          }
+        });
     };
 
     /**
@@ -238,13 +462,93 @@ function createSheetsAPI(immediate) {
      *        (returned from the Google Sheets API)
      */
     function Worksheet(spreadsheet, data) {
+      if (!data) {
+        throw new SheetsError("Worksheet: Internal Error: No data. "
+                              + "Please report this error to the developers.");
+      } else if (!data.properties) {
+        throw new SheetsError("Worksheet: Internal Error: No properties. "
+                              + "Please report this error to the developers.");
+      }
       this.id = data.properties.sheetId;
       this.title = data.properties.title;
       this.rows = data.properties.gridProperties.rowCount;
       this.cols = data.properties.gridProperties.columnCount;
       this.index = data.properties.index;
+      spreadsheet.worksheetsInfo[this.index] = { properties: data.properties };
+      this.cache = [];
       this.spreadsheet = spreadsheet;
+      this.init(data);
+      this.listener = {
+        handleEvent: (function(){
+          return this.flushCache(true);
+        }).bind(this)
+      };
+      if (window === undefined) {
+        console.warn("No window detected. Sheets may fall out of sync.");
+        this.useTimer = false;
+      } else {
+        // Sync with Google Sheets server on save
+        window.addEventListener('pyret-save', this.flushCache.bind(this), false);
+        this.useTimer = true;
+      }
     }
+
+    /**
+     * Reads in row data from the Google Sheets API response,
+     * runs the type inference scheme on it, and populates this
+     * worksheet's data.
+     * @param {object} data - The Google Sheets API response to process.
+     */
+    Worksheet.prototype.init = function(data) {
+      if (!(data.data && data.data[0] && data.data[0].rowData)) {
+        this.data = [];
+        this.startCol = 0;
+        this.schema = [];
+      } else {
+        var unified = unifyRows(data.data[0].rowData);
+        this.startCol = unified.startCol;
+        this.data = unified.values;
+        this.schema = unified.schema;
+        // Might be undefined
+        this.typeErrors = unified.errors;
+        if (!this.data) {
+          throw new SheetsError("Worksheet: Internal Error: "
+                                + "Type-check yielded no values. "
+                                + "Please report this error to the developers.");
+        } else if (!this.schema) {
+          throw new SheetsError("Worksheet: Internal Error: "
+                                + "Type-check yielded no schema. "
+                                + "Please report this error to the developers.");
+        }
+      }
+    };
+
+    /**
+     * Clears this worksheet's timers (for pushing data to the server)
+     */
+    Worksheet.prototype.clearTimer = function() {
+      if (this.useTimer && (this.timeoutId !== undefined)) {
+        window.removeEventListener("beforeunload", this.listener);
+        window.clearTimeout(this.timeoutId);
+        this.timeoutId = undefined;
+      }
+    };
+
+    /**
+     * Sets this worksheet's timers (for pushing data to the server).
+     * If any timers already exist, they are replaced by the new ones.
+     *
+     * The rationale here is that a large number of updates can be batched
+     * together, and, if none are received after 10sec, it's assumed that
+     * the updates are done, so we can go ahead and sync.
+     */
+    Worksheet.prototype.resetTimer = function() {
+      if (this.useTimer) {
+        this.clearTimer();
+        window.addEventListener("beforeunload", this.listener);
+        this.timeoutId = window.setTimeout(this.flushCache.bind(this), 10000);
+      }
+    };
 
     /**
      * Returns the cell at the given position in this worksheet
@@ -276,39 +580,64 @@ function createSheetsAPI(immediate) {
      */
     Worksheet.prototype.setCellRange = function(fromCol, fromRow, toCol, toRow, values) {
       var range = makeRange(this.title, fromCol, fromRow, toCol, toRow);
-      return spreadsheets.values.update({
-        spreadsheetId: this.spreadsheet.id,
+      this.cache.push({
         range: range,
-        resource: {
-          range: range,
-          majorDimension: "ROWS",
-          values: values
-        }
+        majorDimension: "ROWS",
+        values: values
       });
+      this.resetTimer();
+      return true;
+    };
+
+    /**
+     * Pushes all pending changes to the Google Sheets server.
+     * @param {bool} noRefresh - If true, will not reload data
+     *        (useful for pre-closing pushes)
+     */
+    Worksheet.prototype.flushCache = function(noRefresh) {
+      this.clearTimer();
+      // If we're not waiting to set anything, bail out.
+      if (this.cache.length === 0) {
+        return Q(this);
+      } else {
+        // We're waiting to set some values, so set them.
+        var promise = spreadsheets.values.batchUpdate({
+          spreadsheetId: this.spreadsheet.id,
+          resource: {
+            data: this.cache
+          }
+        });
+        this.cache = [];
+        return promise.then(noRefresh ?
+                            function(){return this;}.bind(this)
+                              : this.refresh.bind(this));
+      }
     };
 
     /**
      * Returns all cells in this worksheet
      */
     Worksheet.prototype.getAllCells = function() {
-      return this.getCellRange("A", 1, this.cols, this.rows);
+      return this.flushCache().then((function(){
+        return this.data;
+      }).bind(this));
     };
 
     /**
-     * Returns the given range of cells in this worksheet
+     * Returns the given range of cells in this worksheet (inclusive)
      * @param {string|number} fromCol - The column to start at
      * @param {number} fromRow - The row to start at
      * @param {string|number} toCol - The column to end at
      * @param {number} toRow - The row to end at
      */
     Worksheet.prototype.getCellRange = function(fromCol, fromRow, toCol, toRow) {
-      return spreadsheets.values.get({
-        spreadsheetId: this.spreadsheet.id,
-        range: makeRange(this.title, fromCol, fromRow, toCol, toRow),
-        resource: {
-          majorDimension: "ROWS"
-        }
-      }).then(function(resp) { return resp.values; });
+      fromCol = colAsNumber(fromCol);
+      toCol = colAsNumber(toCol);
+      return this.flushCache().then((function(){
+        return this.data.map((function(row) {
+          return row.slice(fromCol - this.startCol, (toCol - this.startCol) + 1);
+        }).bind(this)).slice(fromRow - 1, toRow);
+      }).bind(this));
     };
 
     /**
@@ -329,11 +658,35 @@ function createSheetsAPI(immediate) {
     };
 
     /**
+     * Fetches the latest worksheet contents from the
+     * Google Sheets server.
+     */
+    Worksheet.prototype.refresh = function() {
+      return spreadsheets.get({
+        spreadsheetId: this.spreadsheet.id,
+        ranges: this.title,
+        fields: SHEET_REQ_FIELDS
+      }).then((function(data){
+        if (!data.sheets || !data.sheets[0]
+            || !data.sheets[0].data
+            || !data.sheets[0].data[0]
+            || !data.sheets[0].data[0].rowData) {
+          throw new SheetsError("Worksheet data not returned by Google. "
+                                + "Please report this error to the developers.");
+        }
+        // Re-unify
+        this.init(data.sheets[this.index]);
+        return this;
+      }).bind(this));
+    };
+
+    /**
      * Loads the spreadsheet with the given id
      */
     Spreadsheet.fromId = function(id) {
       return spreadsheets.get({
-        spreadsheetId: id
+        spreadsheetId: id,
+        fields: SHEET_REQ_FIELDS
       }).then(function(data) { return new Spreadsheet(data); });
     };
     
@@ -379,7 +732,8 @@ function createSheetsAPI(immediate) {
       },
       loadSpreadsheetById: function(id) {
         return Spreadsheet.fromId(id);
-      }
+      },
+      TYPES: VALUE_TYPES
     };
   }
 
