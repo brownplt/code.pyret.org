@@ -1,17 +1,40 @@
-define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "compiler/compile-structs.arr", "trove/image-lib", "./output-ui.js", "/js/share.js"], function(ffiLib, srclocLib, errorLib, contractsLib, csLib, imageLib, outputUI) {
+({
+  requires: [
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./output-ui"]
+    },
+    { "import-type": "builtin",
+      name: "image-lib"
+    },
+    { "import-type": "builtin",
+      name: "srcloc"
+    },
+    { "import-type": "builtin",
+      name: "error"
+    },
+    { "import-type": "builtin",
+      name: "contracts"
+    }
+  ],
+  provides: {},
+  nativeRequires: [ ],
+  theModule: function(runtime, _, uri, outputUI, image, srclocLib, errorLib, contractsLib) {
+    var srcloc = runtime.getField(srclocLib, "values");
+    var error = runtime.getField(errorLib, "values");
+    var contracts = runtime.getField(contractsLib, "values");
 
-  var shareAPI = makeShareAPI("");
-  function drawError(container, editors, runtime, exception, contextFactory) {
-    var ffi = ffiLib(runtime, runtime.namespace);
-    var image = imageLib(runtime, runtime.namespace);
+    var ffi = runtime.ffi;
     var cases = ffi.cases;
-    runtime.loadModules(runtime.namespace, [srclocLib, errorLib, csLib, contractsLib], function(srcloc, error, cs, contracts) {
+
+    function drawError(container, editors, runtime, exception, contextFactory) {
+      var cases = ffi.cases;
       var get = runtime.getField;
 
       function mkPred(pyretFunName) {
         return function(val) { return get(error, pyretFunName).app(val); }
       }
-      
+
       var isContractError = get(contracts, "ContractResult").app;
 
       // Exception will be one of:
@@ -33,7 +56,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
 
 
       function singleHover(dom, loc) {
-        if (loc === undefined) { 
+        if (loc === undefined) {
           console.error("Given an undefined location to highlight, at", (new Error()).stack);
           return;
         }
@@ -51,7 +74,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
                 errorID = contextFactory();
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
                 dom.addClass("compile-error");
-                container.append(dom); 
+                container.append(dom);
                 dom.children().first(".highlightToggle").trigger('click');
               } else {
                 container.append($("<span>").addClass("compile-error")
@@ -89,7 +112,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc); },
+            function() { return get(e.exn, "render-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var errorID = contextFactory();
@@ -116,7 +139,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
           var loc = get(err, "loc");
           var reason = get(err, "reason");
           runtime.runThunk(
-            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc); },
+            function() { return get(err, "render-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
@@ -134,7 +157,7 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
         function drawPyretParseError() {
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(locToSrc); },
+            function() { return get(e.exn, "render-reason").app(locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
@@ -166,13 +189,10 @@ define(["js/ffi-helpers", "trove/srcloc", "trove/error", "trove/contracts", "com
       function drawUnknownException(e) {
         container.append($("<div>").text("An unexpected error occurred: " + String(e)));
       }
+    }
 
-
+    return runtime.makeJSModuleReturn({
+      drawError: drawError
     });
   }
-
-  return {
-    drawError: drawError
-  }
-
-});
+})

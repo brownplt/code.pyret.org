@@ -24,7 +24,7 @@ check "Polygons":
   isosceles-triangle("red", 56, "solid", "black") raises ""
   isosceles-triangle(4, 56, "solid", "black", true) raises ""
 
-  fun test-triangle-fun(f):
+  fun test-triangle-fun(f) block:
     f(4, 5, 6, "outline", "black") satisfies is-image
     f(~4, ~5, ~6, "outline", "black") satisfies is-image
     f(1, 2, 3, "", true) raises ""

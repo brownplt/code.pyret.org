@@ -1,15 +1,38 @@
-define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display", "./output-ui.js", "./error-ui.js", "trove/parse-pyret", "trove/ast"], function(ffiLib, optionLib, srclocLib, errordisplayLib, outputUI, errorUI, parsePyret, astLib) {
-  var highlightCounter = 0;
-  function drawCheckResults(container, editors, runtime, checkResults, contextFactory) {
-    var ffi = ffiLib(runtime, runtime.namespace);
-    var cases = ffi.cases;
-    var get = runtime.getField;
-    var inspect = runtime.getFields;
-  
-    var checkResultsArr = ffi.toArray(checkResults);
-  
-    runtime.loadModules(runtime.namespace, [optionLib, srclocLib, errordisplayLib], function(option, srcloc, ED) {
-  
+({
+  requires: [
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./output-ui"] },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./error-ui"] },
+    { "import-type": "builtin",
+      name: "option" },
+    { "import-type": "builtin",
+      name: "srcloc" },
+    { "import-type": "builtin",
+      name: "checker" }
+  ],
+  provides: {},
+  nativeRequires: [],
+  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker) {
+
+    option = runtime.getField(option, "values");
+    srcloc = runtime.getField(srcloc, "values");
+    CH = runtime.getField(checker, "values");
+
+    function isTestResult(val) { return runtime.unwrap(runtime.getField(CH, "TestResult").app(val)); }
+    function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success").app(val)); }
+
+    var highlightCounter = 0;
+    function drawCheckResults(container, editors, runtime, checkResults, contextFactory) {
+      var ffi = runtime.ffi;
+      var cases = ffi.cases;
+      var get = runtime.getField;
+      var inspect = runtime.getFields;
+    
+      var checkResultsArr = ffi.toArray(checkResults);
+    
       // These counters keep cumulative statistics for all the check blocks.
       var checkTotalAll = 0;
       var checkPassedAll = 0;
@@ -36,7 +59,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         var testsInBlock = trArr.length;
         var testsPassingInBlock = trArr.reduce(
           function(n, test) {
-            return n + ffi.isTestSuccess(test);
+            return n + isTestSuccess(test);
           }, 0);
         checkTotalAll += testsInBlock;
         checkPassedAll += testsPassingInBlock;
@@ -44,6 +67,10 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         eachContainer.attr("id", checkCSSID);
         
         function editorMessage(cssClass, msg) {
+          if(!editors[checkCMLoc.source]) {
+            console.log("Couldn't find editor in which to render: ", checkCMLoc.source);
+            return;
+          }
           editors[checkCMLoc.source].widgets.push(
             editors[checkCMLoc.source].addLineWidget(checkCMLoc.start.line,
               function(){ 
@@ -187,7 +214,7 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
             return dom;
           }
           
-          if (!ffi.isTestSuccess(tr)) {
+          if (!isTestSuccess(tr)) {
             var locToAST = outputUI.locToAST(runtime, editors, srcloc);
             runtime.runThunk(
               function() { return get(tr, "render-fancy-reason").app(locToAST); },
@@ -381,11 +408,11 @@ define(["js/ffi-helpers", "trove/option", "trove/srcloc", "trove/error-display",
         }
         container.append(checkContainer.append(summary));
       }
+
+    }
+    
+    return runtime.makeJSModuleReturn({
+      drawCheckResults: drawCheckResults
     });
   }
-  
-  return {
-    drawCheckResults: drawCheckResults
-  }
-  
-});
+})
