@@ -38,13 +38,14 @@
     "cpo/http-imports",
     "cpo/guess-gas",
     "cpo/cpo-builtin-modules",
+    "cpo/modal-prompt",
     "pyret-base/js/runtime"
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       runtimeLib, loadLib, builtinModules, cpoBuiltins,
-                      gdriveLocators, http, guessGas, cpoModules,
+                      gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
 
 
@@ -469,6 +470,163 @@
     });
 
     });
+
+
+    // Used for image definition naming (identifier: "img" + curImg)
+    var curImg = 0;
+
+    /**
+     * Sets curImg to a value which will not clash with the code in
+     * contents (note: this is done conservatively -- the estimation
+     * is "dumb" in that it pays no attention to token types)
+     */
+    function inferCurImg(contents) {
+      var query = /img([0-9]+)[\s\n\r]*=/g;
+      var maxSoFar = 0;
+      var res;
+      while((res = query.exec(contents)) !== null) {
+        maxSoFar = Math.max(maxSoFar, Number(res[1]));
+      }
+      curImg = maxSoFar + 1;
+    }
+
+    var photoPrompt = new modalPrompt([
+      {
+        message: "Import as Values",
+        value: "values",
+        example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
+      },
+      {
+        message: "Import as Definitions",
+        value: "defs",
+        example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
+      },
+      {
+        message: "Import as a List",
+        value: "list",
+        example: '[list: image-url("<URL>"),\n'
+          + '       image-url("<URL>"),\n'
+          + '       # ...\n       ]'
+      }]);
+
+    var lastSave = 0;
+    function handlePickerData(documents, picker, drive) {
+      function openFile(id) {
+        // FIXME: This causes popup blockers to get triggered...
+        window.open('/editor#program=' + id, '_blank');
+      }
+      // File loaded
+      if (documents[0][picker.Document.TYPE] === "file") {
+        var id = documents[0][picker.Document.ID];
+        // If the editor has not been modified since the last save,
+        // load in this window
+        if (editor.cm.getDoc().history.lastModTime === lastSave) {
+          var p = drive.getFileById(id);
+          showShareContainer(p);
+          window.location.hash = "#program=" + id;
+          setTitle(documents[0][picker.Document.NAME]);
+          loadProgram(p);
+        } else {
+          openFile(id);
+        }
+        for (var i = 1; i < documents.length; ++i) {
+          openFile(documents[i][picker.Document.ID]);
+        }
+      }
+      // Picture loaded
+      else if (documents[0][picker.Document.TYPE] === picker.Type.PHOTO) {
+
+        photoPrompt.show(function(res) {
+          // Name of event for CM undo history
+          var origin = "+insertImage" + curImg;
+          var asValues = (res === "values");
+          var asDefs = (res === "defs");
+          var asList = (res === "list");
+          if (!(asValues || asDefs || asList)) {
+            // Check for garbage and log it
+            if (res !== null) {
+              console.warn("Unknown photoPrompt response: ", res);
+            }
+            return;
+          }
+          // http://stackoverflow.com/questions/23733455/inserting-a-new-text-at-given-cursor-position
+          var cm = editor.cm;
+          var doc = cm.getDoc();
+          function placeInEditor(str) {
+            var cursor = doc.getCursor();
+            var line = doc.getLine(cursor.line);
+            var pos = {
+              line: cursor.line,
+              ch: line.length
+            };
+            doc.replaceRange(str, pos, undefined, origin);
+            reindent(cursor.line);
+          }
+          function reindent(line) {
+            cm.indentLine(line || doc.getCursor().line);
+          }
+          function emitNewline() {
+            var cursor = doc.getCursor();
+            placeInEditor('\n');
+            // FIXME: Dunno why this happens.
+            if (cursor.line === doc.getCursor().line) {
+              doc.setCursor({line: cursor.line + 1, ch: 0});
+            }
+          }
+          function emitLn(s) {
+            placeInEditor(s);
+            emitNewline();
+          }
+          function onEmptyLine() {
+            var cursor = doc.getCursor("to");
+            var line = doc.getLine(cursor.line);
+            return (/^\s*$/.test(line));
+          }
+          // Make newline at cursor position if we are not on an empty line
+          if (onEmptyLine()) {
+            reindent();
+          } else {
+            emitNewline();
+          }
+          if (asList) {
+            placeInEditor("[list:");
+          }
+          documents.forEach(function(d, idx) {
+            var pathToImg = "\"https://drive.google.com/uc?export=download&id="
+                  + d[picker.Document.ID] + "\"";
+            var outstr = asDefs ? ("img" + curImg + " = ") : "";
+            ++curImg;
+            outstr += "image-url(" + pathToImg + ")";
+            var isLast = (idx === (documents.length - 1));
+            if (asList) {
+              if (idx === 0) {
+                // The space after ":" gets eaten, so we need to enter it here
+                outstr = ' ' + outstr;
+              }
+              outstr += isLast ? "]" : ",";
+            }
+            if (isLast) {
+              placeInEditor(outstr);
+            } else {
+              emitLn(outstr);
+            }
+          });
+        });
+      } else {
+        flashError("Invalid file type: " + documents[0][picker.Document.TYPE]);
+      }
+    }
+    var picker;
+    picker = new FilePicker({
+      onLoaded: function() {
+        $("#openFile").attr("disabled", false);
+        picker.openOn($("#openFile")[0], "click");
+      },
+      onSelect: handlePickerData,
+      onError: flashError,
+      onInternalError: stickError
+    });
+
 
     return runtime.makeModuleReturn({}, {});
   }
