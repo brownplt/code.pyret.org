@@ -33,15 +33,15 @@ install:
 - make deploy-cpo-main
 deploy:
   provider: s3
-  access_key_id: AKIAIFY44WM3LGA4OQSQ
+  access_key_id: AKIAJGVNL7LGVGTQS4PA
   secret_access_key:
-    secure: X50U/xTxW1OOBL5rQ6k764xAitKS77+NZfzAGgOKbk/0REUJEg3BHCYCqhr6/AtThh42HKBNNuG029Xu/0wQYOJq9JNWms61g25/1ig6HbeeaJbbpRLdRDWp59UAeB8tUQmPgI34DxREe2zcJJpNErepbkQ0XXx2tULF3HWBLD7PPOv4Ylb78bfhteIGKNX8+Ipag0gCGmJiTr9OPp6FCQh7kWzG1DBfT8t6gZJM9rhvE1y0Myv1OmcT2zs5ZCvd/uJWz7iiGjs4VvOJVTTFYs733B1NX3Inv3vlbgNny46JT7vT5M0RMgulb8ypkkzLham43yuQyn3eIGKVLd3AcTUtdNTB1TP4be50wT/FAoj195Ec1JAsO9LCKz79JPbUvoxdh9C+k+H0B0SHbL+VXqIhZGWLYq0GE/LZfBESYKAeNq/WfoNtfFXIv1VO0rgbX2FU/jxoM7uROagDhfeLBdmYhQVj3O4rXpcUDHcebBEycXlmC5zOaqmANZ37Pc3QIoR1is2+hkNzeP1/NV4huYOmJFlrD7dADKXIsh6vSyp6uZ49tabMfqSe9oKbl41Yc+uHEBm2vPXUF9vmm0SLOZScjFNyvd04EOXxTCBCww+qlFeIeHTyw9NgEIsOgUWUX44ZNZJATLnxCE9EZ+Sp5MHGDH7Wz5ceR5tZh68P7kw=
-  bucket: 'pyret-horizon'
+    secure: maJZXDR077NqqPA60MVn901PYgqpzEbKeMAshDiKWtrQGKd+UwdazMooTTO2VN+8kqwMsplb/GkhsIxTWGyH8Ib6+iXatJ2vtvtnXPvKY8J+oeZnkdXRnict/WTopOf2zLEjd0SmSS7MMEjdX7J7eJYpGrnUX+bcLwRZxvl+8gCUeel22S0skwnU7wAqpDLlpGoDJJEtyiaNGyOXjze59hC1ZPG9pcDQtN7GKClJtNenPoUIrutXC/LfU3fACkcirKh3P3xDHbZcGXp9yrofYRU+u4VHB790qxc5VqHFojD2ediix6jQBOWsQppvZjKIeHiBnXxydxajROIstaW/hGj7ERFqfM+NXpCvyVwuP5YWqIU/2zEQTrKXtLraHIC+Tl/l3CxJwaMfAgdI3fjcD3LJnD5j2C+32wK0UweC/T+fSeZSOkYJkqHjjcI0jHD8HaRIoCKl1lbzyWH4JaNJ5QeWKWPUgKYBIxNUIBO5kN/surXq6fRsMFAxra8TjqOSyvpgx6NZ6BlHcpGogsD0pC5OL89r+tdyip5AjEGF7wJM3Nt4210nKTKx93IxcrKQINewXFK9++7I8ava2+l233NDbWJqqtb9ADO13g/6RtRqU1WRks1klQf/AAIsnd1JSuUyNf2XbDL2Kmsiq1EuD/UOHvcfSIdkPuZZar3rtrg=
+  bucket: pyret-sql
   local-dir: build/web/js
-  upload-dir: new-horizons
+  upload-dir: sql
   acl: public_read
   skip_cleanup: true
   detect_encoding: true
   on:
     repo: brownplt/code.pyret.org
-    branch: horizon
+    branch: sql
