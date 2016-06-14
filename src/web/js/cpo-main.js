@@ -550,7 +550,7 @@
             return;
           }
           // http://stackoverflow.com/questions/23733455/inserting-a-new-text-at-given-cursor-position
-          var cm = editor.cm;
+          var cm = CPO.editor.cm;
           var doc = cm.getDoc();
           function placeInEditor(str) {
             var cursor = doc.getCursor();
