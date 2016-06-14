@@ -112,7 +112,7 @@
           var locToAST = outputUI.locToAST(runtime, editors, srcloc);
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
           runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(locToAST, locToSrc); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var errorID = contextFactory();
@@ -139,7 +139,7 @@
           var loc = get(err, "loc");
           var reason = get(err, "reason");
           runtime.runThunk(
-            function() { return get(err, "render-reason").app(locToAST, locToSrc); },
+            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
@@ -157,7 +157,7 @@
         function drawPyretParseError() {
           var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
           runtime.runThunk(
-            function() { return get(e.exn, "render-reason").app(locToSrc); },
+            function() { return get(e.exn, "render-fancy-reason").app(locToSrc); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
