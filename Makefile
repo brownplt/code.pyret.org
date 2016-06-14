@@ -203,6 +203,7 @@ $(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalon
     --builtin-js-dir src/web/js/trove/ \
     --builtin-js-dir pyret/src/js/trove/ \
     -allow-builtin-overrides \
+    --builtin-arr-dir src/web/arr/trove/ \
     --builtin-arr-dir pyret/src/arr/trove/ \
     --require-config cpo-config.json \
     --build-runnable src/web/arr/cpo-main.arr \
