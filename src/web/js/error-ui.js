@@ -68,9 +68,7 @@
         function drawCompileError(e) {
           runtime.runThunk(
             function() {
-              return get(e, "render-reason").app(); },
-              // TODO(joe): re-enable once merge is complete
-              //return get(e, "render-fancy-reason").app(); },
+              return get(e, "render-fancy-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 errorID = contextFactory();
