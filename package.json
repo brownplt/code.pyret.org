@@ -39,7 +39,7 @@
     "webpack": "^1.13.1"
   },
   "scripts": {
-    "postinstall": "make -j3 web",
+    "postinstall": "webpack && make -j3 web",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
