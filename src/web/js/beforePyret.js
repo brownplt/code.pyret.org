@@ -1,21 +1,28 @@
-LOG = true;
-function ct_log(/* varargs */) {
+/* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
+
+var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
+
+var url = require('url.js');
+
+const LOG = true;
+window.ct_log = function(/* varargs */) {
   if (window.console && LOG) {
     console.log.apply(console, arguments);
   }
-}
-function ct_error(/* varargs */) {
+};
+
+window.ct_error = function(/* varargs */) {
   if (window.console && LOG) {
     console.error.apply(console, arguments);
   }
-}
+};
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
-var highlightMode = "mcmh";
+var highlightMode = "mcmh"; // what is this for?
 function clearFlash() {
   $(".notificationArea").empty();
 }
-function stickError(message, more) {
+window.stickError = function(message, more) {
   clearFlash();
   var err = $("<div>").addClass("error").text(message);
   if(more) {
@@ -23,26 +30,26 @@ function stickError(message, more) {
   }
   err.tooltip();
   $(".notificationArea").prepend(err);
-}
-function flashError(message) {
+};
+window.flashError = function(message) {
   clearFlash();
   var err = $("<div>").addClass("error").text(message);
   $(".notificationArea").prepend(err);
   err.fadeOut(7000);
-}
-function flashMessage(message) {
+};
+window.flashMessage = function(message) {
   clearFlash();
   var msg = $("<div>").addClass("active").text(message);
   $(".notificationArea").prepend(msg);
   msg.fadeOut(7000);
-}
-function stickMessage(message) {
+};
+window.stickMessage = function(message) {
   clearFlash();
   var err = $("<div>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
-}
+};
 
-$(window).bind("beforeunload", function(_) {
+$(window).bind("beforeunload", function() {
   return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
 });
 window.CPO = {
@@ -80,7 +87,7 @@ $(function() {
 
     var runFun = function (code, replOptions) {
       options.run(code, {cm: CM}, replOptions);
-    }
+    };
 
     var useLineNumbers = !options.simpleEditor;
 
@@ -136,10 +143,10 @@ $(function() {
       },
       focus: function() { CM.focus(); }
     };
-  }
+  };
   CPO.RUN_CODE = function() {
 
-  }
+  };
 
   storageAPI.then(function(api) {
     api.collection.then(function() {
@@ -176,7 +183,7 @@ $(function() {
           programToSave = Q.fcall(function() { return null; });
         }
       });
-      api.collection.fail(function(err) {
+      api.collection.fail(function() {
         $("#connectButton").text("Connect to Google Drive");
         $("#connectButton").attr("disabled", false);
       });
@@ -200,7 +207,7 @@ $(function() {
     if(programLoad) {
       programLoad.fail(function(err) {
         console.error(err);
-        stickError("The program failed to load.");
+        window.stickError("The program failed to load.");
       });
       return programLoad;
     } else {
@@ -244,7 +251,7 @@ $(function() {
 
   function showShareContainer(p) {
     $("#shareContainer").empty();
-    $("#shareContainer").append(makeShareLink(p));
+    $("#shareContainer").append(shareAPI.makeShareLink(p));
   }
 
   function nameOrUntitled() {
@@ -258,7 +265,7 @@ $(function() {
   CPO.autoSave = autoSave;
 
   function save() {
-    stickMessage("Saving...");
+    window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
       if(p !== null && !copyOnSave) {
         if(p.getName() !== $("#program-name").val()) {
@@ -276,7 +283,7 @@ $(function() {
           $("#saveButton").text("Save");
           history.pushState(null, null, "#program=" + p.getUniqueId());
           window.location.hash = "#program=" + p.getUniqueId();
-          flashMessage("Program saved as " + p.getName());
+          window.flashMessage("Program saved as " + p.getName());
           setTitle(p.getName());
           return p;
         });
@@ -291,7 +298,7 @@ $(function() {
       }
     });
     savedProgram.fail(function(err) {
-      stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
+      window.stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
       console.error(err);
     });
   }
@@ -330,8 +337,8 @@ $(function() {
 
   programLoaded.fin(function() {
     var pyretLoad = document.createElement('script');
-    console.log(PYRETSRC);
-    pyretLoad.src = PYRETSRC;
+    console.log(process.env.PYRET);
+    pyretLoad.src = process.env.PYRET;
     pyretLoad.type = "text/javascript";
     document.body.appendChild(pyretLoad);
     CPO.editor.focus();
