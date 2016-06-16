@@ -1,4 +1,6 @@
-/* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareLink */
+/* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
+
+var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
 
 var url = require('url.js');
 
@@ -249,7 +251,7 @@ $(function() {
 
   function showShareContainer(p) {
     $("#shareContainer").empty();
-    $("#shareContainer").append(makeShareLink(p));
+    $("#shareContainer").append(shareAPI.makeShareLink(p));
   }
 
   function nameOrUntitled() {
