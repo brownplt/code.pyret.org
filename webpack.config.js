@@ -15,6 +15,22 @@ module.exports = {
     "js/beforePyret": './src/web/js/beforePyret.js',
     "js/ide": './src/web/js/ide.js',
   },
+  module: {
+    preLoaders: [{
+      test: /\.js$/,
+      include: [
+        path.resolve(__dirname, 'src'),
+        path.resolve(__dirname, 'node_modules', 'pyret-ide', 'src'),
+      ],
+      loader: "babel",
+      query: {
+        cacheDirectory: true
+      }
+    }],
+  },
+  resolve: {
+    root: [path.resolve("./node_modules")],
+  },
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -34,6 +50,10 @@ module.exports = {
       }
     }),
   ] : []),
+  babel: {
+    presets: ['es2015', 'react'],
+    sourceMaps: true,
+  },
   devServer: IS_PRODUCTION ? false : {
     progress: true,
     contentBase: path.join(__dirname, 'build', 'web')
