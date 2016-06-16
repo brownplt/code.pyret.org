@@ -305,7 +305,7 @@ $(function() {
   CPO.save = save;
   $("#runButton").click(CPO.autoSave);
   $("#saveButton").click(save);
-  makeHoverMenu($("#menu"), $("#menuContents"), false, function(){});
+  shareAPI.makeHoverMenu($("#menu"), $("#menuContents"), false, function(){});
 
   programLoaded.then(function(c) {
     var codeContainer = $("<div>").addClass("replMain");
