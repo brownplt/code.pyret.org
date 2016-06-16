@@ -1,5 +1,8 @@
-/* global LOG $ url jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareLink */
-window.LOG = true;
+/* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareLink */
+
+var url = require('url.js');
+
+const LOG = true;
 window.ct_log = function(/* varargs */) {
   if (window.console && LOG) {
     console.log.apply(console, arguments);
