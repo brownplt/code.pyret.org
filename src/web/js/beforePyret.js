@@ -1,4 +1,4 @@
-/* global PYRETSRC LOG $ url jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareLink */
+/* global LOG $ url jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareLink */
 window.LOG = true;
 window.ct_log = function(/* varargs */) {
   if (window.console && LOG) {
@@ -331,8 +331,8 @@ $(function() {
 
   programLoaded.fin(function() {
     var pyretLoad = document.createElement('script');
-    console.log(PYRETSRC);
-    pyretLoad.src = PYRETSRC;
+    console.log(process.env.PYRET);
+    pyretLoad.src = process.env.PYRET;
     pyretLoad.type = "text/javascript";
     document.body.appendChild(pyretLoad);
     CPO.editor.focus();
