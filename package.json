@@ -36,6 +36,7 @@
   "devDependencies": {
     "babel-eslint": "^6.0.4",
     "eslint": "^2.12.0",
+    "webpack": "^1.13.1"
   },
   "scripts": {
     "postinstall": "make -j3 web",
