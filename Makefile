@@ -1,3 +1,4 @@
+NPMBIN=`npm bin`
 # NOTE: Needs TWO blank lines here, dunno why
 define \n
 
@@ -84,6 +85,9 @@ COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-api
 
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 	cp $< $@
+
+build/web/js/beforePyret.js: src/web/js/beforePyret.js
+	$(NPMBIN)/webpack
 
 build/web/js/q.js: node_modules/q/q.js
 	cp $< $@
