@@ -42,19 +42,23 @@ module.exports = {
       filename: 'views/ide.html',
       favicon: 'node_modules/pyret-lang/img/pyret-icon.png',
       chunks: ['js/ide'],
-    })
+    }),
   ].concat(IS_PRODUCTION ? [
     new webpack.optimize.UglifyJsPlugin({
       compress: {
         warnings: false
       }
     }),
-  ] : []),
+  ] : [
+    new webpack.HotModuleReplacementPlugin(),
+  ]),
   babel: {
     presets: ['es2015', 'react'],
     sourceMaps: true,
   },
   devServer: IS_PRODUCTION ? false : {
+    inline: true,
+    hot: true,
     progress: true,
     contentBase: path.join(__dirname, 'build', 'web')
   }
