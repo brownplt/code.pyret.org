@@ -202,7 +202,7 @@ function start(config, onServerReady) {
         headers: headers
       }).on('response', function(res){
         var contentType = res.headers['content-type'];
-        // Likely to have multiple MIME types, so 
+        // Likely to have multiple MIME types, so
         // we need to check substrings
         if (hasMime(contentType, ['application/json', 'application/atom+xml'])) {
           res.headers['X-Pyret-Token'] = req.csrfToken();
@@ -220,7 +220,7 @@ function start(config, onServerReady) {
       req.pipe(request(googleUrl)).pipe(response);
     }
   });
-  
+
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
@@ -388,6 +388,10 @@ function start(config, onServerReady) {
     res.render("editor.html");
   });
 
+  app.get("/ide", function(req, res) {
+    res.render("ide.html");
+  });
+
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
   });
@@ -425,4 +429,3 @@ function start(config, onServerReady) {
 module.exports = {
   start: start
 };
-
