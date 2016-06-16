@@ -406,7 +406,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.deferedClosed.i++;
     } else if (state.lastToken === ":") {
       if (inOpening)
-        ls.delimType = pyret_delimiter_type.OPEN_COTD;
+        ls.delimType = pyret_delimiter_type.OPEN_CONTD;
       else if (inSubkw)
         ls.delimType = pyret_delimiter_type.SUB_CONTD;
       if (hasTop(ls.tokens, "WANTCOLON") 
