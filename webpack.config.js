@@ -1,6 +1,5 @@
 var path = require('path');
 var webpack = webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 var IS_PRODUCTION = process.env.NODE_ENV == 'production';
 
@@ -36,12 +35,6 @@ module.exports = {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.PYRET': JSON.stringify(process.env.PYRET),
       'process.env.CURRENT_PYRET_RELEASE': JSON.stringify(process.env.CURRENT_PYRET_RELEASE),
-    }),
-    new HtmlWebpackPlugin({
-      title: 'code.pyret.org',
-      filename: 'views/ide.html',
-      favicon: 'node_modules/pyret-lang/img/pyret-icon.png',
-      chunks: ['js/ide'],
     }),
   ].concat(IS_PRODUCTION ? [
     new webpack.optimize.UglifyJsPlugin({

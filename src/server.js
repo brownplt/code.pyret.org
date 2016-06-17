@@ -1,5 +1,6 @@
 var Q = require("q");
 var gapi = require('googleapis');
+var path = require('path');
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -389,7 +390,10 @@ function start(config, onServerReady) {
   });
 
   app.get("/ide", function(req, res) {
-    res.render("ide.html");
+    res.render(
+      path.resolve(__dirname, "web", "ide.html"),
+      {ASSET_BASE_URL: process.env.ASSET_BASE_URL || ''}
+    );
   });
 
   app.get("/neweditor", function(req, res) {
