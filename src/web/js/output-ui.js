@@ -87,8 +87,8 @@
       var userLocs = srclocStack.filter(function(l) {
         if(!(l && isSrcloc(l))) { return false; }
         var source = runtime.getField(l, "source");
-        return (source === "definitions"
-                || source.indexOf("interactions") !== -1
+        return (source === "definitions://"
+                || source.indexOf("interactions://") !== -1
                 || source.indexOf("gdrive") !== -1);
       });
       var probablyErrorLocation = userLocs[ix];

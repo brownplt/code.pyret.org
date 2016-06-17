@@ -104,7 +104,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/js/loader.js"></script>
-<script src="/js/url.js"></script>
 <script src="/js/colorspaces.js"></script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
@@ -133,11 +132,6 @@ define("seedrandom", [], function() {
 });
 </script>
 <script src="/js/share.js"></script>
-<script>
-var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
-var makeShareLink = shareAPI.makeShareLink;
-var makeHoverMenu = shareAPI.makeHoverMenu;
-</script>
 <script src="/js/google-apis/api-wrapper.js"></script>
 <script src="/js/google-apis/drive.js"></script>
 <script src="/js/google-apis/picker.js"></script>
@@ -157,7 +151,6 @@ function handleGoogLoad() {
 <script>console.log(window.performance.now())</script>
 <script src="js/beforePyret.js"></script>
 <script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
-<script>var PYRETSRC = "{{{ PYRET }}}"</script>
 
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->

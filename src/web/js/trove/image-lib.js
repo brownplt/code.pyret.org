@@ -9,7 +9,7 @@
     
     var image = gf(imageImp, "values");
     var color = gf(image, "color");
-    var colorPred = gf(image, "Color");
+    var colorPred = gf(image, "is-Color");
     var isNum = function(n) { return typeof n === "number"; }
     var unwrap = RUNTIME.unwrap;
 
