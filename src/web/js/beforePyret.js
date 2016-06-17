@@ -18,7 +18,7 @@ window.ct_error = function(/* varargs */) {
 };
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
-var highlightMode = "mcmh"; // what is this for?
+window.highlightMode = "mcmh"; // what is this for?
 function clearFlash() {
   $(".notificationArea").empty();
 }
