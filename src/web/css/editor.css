@@ -126,74 +126,12 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
-.replToggle {
-  cursor: pointer;
-}
-
-.test-reason > .highlightToggle {
-  display: none;
-}
-
-.highlightToggle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  pointer-events: all;
-  cursor: pointer;
-  padding-right: 1em;
-  padding-left: 1em;
-  background: hsl(204, 100%, 94%);
-  border-style: dashed;
-  border-color: hsl(0, 100%, 60%);
-  border-width: 0 0 1px 1px;
-  border-bottom-left-radius: 5px;
-  z-index: 100;
-}
-
-.highlightToggle.highlights-active:before {
-  content: 'Highlighted';
-  color:white;
-}
-
-#output > .compile-error:not(.highlights-active) .highlight,
 .test-reason:not(.highlights-active) .highlight {
   background: initial!important;
 }
 
-
-.highlightToggle:before {
-  content:"Highlight this!";
-  position: relative;
-  z-index: 100;
-  color: hsl(204, 74%, 27%);
-}
-
-.highlightToggle:after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  background: hsl(204, 100%, 74%);
-  transform: scaleX(0);
-  width: 100%;
-  height: 100%;
-  transition: transform .15s ease-in;
-  transform-origin: left;
-}
-
-.check-block-test:not(.highlights-active):hover > .highlightToggle:after,
-.highlightToggle.highlights-active:after,
-.highlightToggle:hover:after {
-  transform: scaleX(1);
-}
-.check-block-test:not(.highlights-active):hover > .highlightToggle:before,
-.highlightToggle:hover:before {
-  color:white;
-}
-
+#output > .compile-error:not(.highlights-active):hover:after,
+.check-block-error > .compile-error:not(.highlights-active):hover::after,
 .check-block-test.failing-test:not(.highlights-active):hover {
     box-shadow: 0 0 2em hsl(204, 100%, 80%);
     transform: scale(1.01);
@@ -202,6 +140,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
     border-image-outset: 5px;
 }
 
+#output > .compile-error:not(.highlights-active):hover:after,
+.check-block-error > .compile-error:not(.highlights-active):hover::after,
 .check-block-test.failing-test:not(.highlights-active):hover::after{
     content:'';
     position:absolute;
@@ -227,9 +167,11 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   to   {background-position:100em;}
 }
 
+#output > .compile-error:not(.highlights-active) > *,
+.check-block-error > .compile-error:not(.highlights-active) > *,
 .check-block-test.failing-test:not(.highlights-active) .test-reason {
   opacity: 0.5;
-  pointer-events: none;
+ 
 }
 
 .check-block-header {
@@ -1242,10 +1184,16 @@ code div {
   margin: 0.5em;
 }
 
+#output > .compile-error.highlights-active,
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
   border: 0.3em hsl(204, 100%, 74%) solid;
   box-shadow: 0 0 1em;
+}
+
+
+.check-block-error .highlights-active.compile-error,
+.check-block-test.highlights-active {
   background: hsla(0,0%,100%,.9);
 }
 
