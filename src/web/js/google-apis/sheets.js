@@ -139,7 +139,7 @@ function createSheetsAPI(immediate) {
         startCol = Math.min(startCol, idx);
         endCol = Math.max(endCol, idx);
 
-        if (v.effectiveValue.numberValue) {
+        if (v.effectiveValue.numberValue !== undefined) {
           var format = v.effectiveFormat
                 && v.effectiveFormat.numberFormat
                 && v.effectiveFormat.numberFormat.type;
@@ -209,11 +209,18 @@ function createSheetsAPI(immediate) {
           if (typeof data === "string") {
             data = '"' + data + '"';
           }
-          errors.push("All items in every column must have the same type. "
+          var error = "All items in every column must have the same type. "
                       + "We expected to find a " + typeName(schema1.type)
                       + " at cell " + colAsString(trueCol + 1) + (trueRow + 1)
                       + ", but we instead found this " + typeName(schema2.type)
-                      + ": " + data);
+                      + ": " + data + ".";
+          if ((schema1.type === VALUE_TYPES.STRING && schema2.type === VALUE_TYPES.NUMBER)
+              || (schema1.type === VALUE_TYPES.NUMBER && schema2.type === VALUE_TYPES.STRING)) {
+            error += " If you want some Numbers to be read as Strings, you need to format those cells "
+              + "in Google Sheets as \"Plain Text\" (Select the cells, click \"Format\", then click \"Number\""
+              + ", and then click \"Plain Text\").";
+          }
+          errors.push(error);
         }
         if (!schema1) { // (T-INTROS)
           return schema2;
