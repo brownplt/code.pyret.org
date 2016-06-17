@@ -201,6 +201,9 @@
             }
           });
           colNames = colNames.slice(ws.startCol, ws.startCol + width);
+          var outData = (new Array(data.length)).fill().map(function(){
+            return new Array(width);
+          });
           return function() {
             // First, we change the data values into Pyret values
             for (var i = 0; i < data.length; ++i) {
@@ -210,13 +213,13 @@
               function buildHelp() {
                 while (++curIdx < width) {
                   // This line is why a simple raw_array_map doesn't work
-                  data[i][curIdx] = constructors[curIdx](data[i][curIdx]);
+                  outData[i][curIdx] = constructors[curIdx](data[i][curIdx]);
                 }
               }
               function buildFun($ar) {
                 try {
                   if (runtime.isActivationRecord($ar)) {
-                    data[i][curIdx] = $ar.ans;
+                    outData[i][curIdx] = $ar.ans;
                   }
                   return buildHelp();
                 } catch($e) {
@@ -236,7 +239,7 @@
               buildFun();
             }
             debugger;
-            return table.makeTable(colNames, data);
+            return table.makeTable(colNames, outData);
           };
         }
       });
