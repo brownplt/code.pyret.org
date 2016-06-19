@@ -15,11 +15,12 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_closing_tokens =
         pyret_closing_keywords.map(toToken("keyword")).concat(
           pyret_closing_builtins.map(toToken("builtin")));
-  const pyret_opening_keywords_colon = ["try", "ask", "ref-graph", "block"];
+  const pyret_opening_keywords_colon = ["try", "ask", "ref-graph", "block", "table"];
   const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let",
                                           "cases", "data", "shared", "check",
                                           "except", "letrec", "lam", "method",
-                                          "examples"];
+                                          "examples", "do", "select", "extend",
+                                          "sieve", "order"];
   const pyret_opening_keywords = pyret_opening_keywords_colon.concat(pyret_opening_keywords_nocolon);
   const pyret_opening_tokens = pyret_opening_keywords.map(toToken("keyword"));
   const pyret_keywords = 
@@ -27,13 +28,13 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                ["var", "rec", "import", "include", "provide", "type", "newtype",
                 "from", "lazy", "shadow", "ref",
                 "and", "or", "as", "else", "cases", "is==", "is=~", "is<=>", "is", "satisfies", "raises",
-                "violates"]));
+                "violates", "by", "ascending", "descending"]));
   const pyret_booleans = wordRegexp(["true", "false"]);
   const pyret_keywords_hyphen =
     wordRegexp(["provide-types", "type-let", "does-not-raise", "raises-violates", 
                 "raises-satisfies", "raises-other-than", "is-not==", "is-not=~", "is-not<=>", "is-not"]);
   const pyret_keywords_colon = 
-    wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where"]));
+    wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where", "do", "row"]));
   const pyret_single_punctuation = 
     new RegExp("^([" + [":", ".", "<", ">", ",", "^", "!",
                         ";", "|", "=", "+", "*", "/", "\\\\", // NOTE: No minus
@@ -65,9 +66,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_subkeywords = {
     "if": ["block", "else if", "else"], "when": ["block"],
     "fun": ["block", "where"], "method": ["block", "where"], "lam": ["block"],
-    "for": ["block"], "let": ["block"], "letrec": ["block"],
+    "for": ["block", "do"], "let": ["block"], "letrec": ["block"],
     "cases": ["block"], "ask": ["block", "then", "otherwise"], 
-    "data": ["sharing", "where"], 
+    "data": ["sharing", "where"], "table": ["row"]
   };
 
   // Subkeywords which cannot be followed by any other keywords
@@ -455,6 +456,15 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // when indents like functions
       ls.tokens.push("WHEN", "WANTCOLONORBLOCK");
+    } else if (state.lastToken === "do") {
+      if (hasTop(ls.tokens, "DO")) {
+        if (ls.curOpened.fn > 0) ls.curOpened.fn--;
+        else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
+        else ls.curClosed.fn++;
+        ls.deferedOpened.fn++;
+        ls.tokens.push("WHEN", "WANTCOLON");
+        ls.delimType = pyret_delimiter_type.SUBKEYWORD;
+      }
     } else if (state.lastToken === "for") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // for-loops indent like functions
@@ -491,6 +501,19 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         else ls.curClosed.fn++;
         ls.deferedOpened.fn++;
         ls.tokens.push("WANTCOLON");
+        ls.delimType = pyret_delimiter_type.SUBKEYWORD;
+      }
+    } else if (state.lastToken === "row") {
+      if (hasTop(ls.tokens, "TABLEROW")) {
+        if (ls.curOpened.fn > 0) ls.curOpened.fn--;
+        else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
+        else ls.curClosed.fn++;
+        ls.deferedOpened.fn++;
+        ls.tokens.push("WANTCOLON");
+        ls.delimType = pyret_delimiter_type.SUBKEYWORD;
+      } else if (hasTop(ls.tokens, "TABLE")) {
+        ls.deferedOpened.fn++;
+        ls.tokens.push("TABLEROW", "WANTCOLON");
         ls.delimType = pyret_delimiter_type.SUBKEYWORD;
       }
     } else if (state.lastToken === "|") {
@@ -577,7 +600,26 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.tokens.push("BLOCK", "WANTCOLON");
         ls.delimType = pyret_delimiter_type.OPENING;
       }
-      console.log(state);
+    } else if (state.lastToken === "table") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("TABLE", "WANTCOLON");
+    } else if (state.lastToken === "select") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("SELECT", "WANTCOLON");
+    } else if (state.lastToken === "extend") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("EXTEND", "WANTCOLON");
+    } else if (state.lastToken === "sieve") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("SIEVE", "WANTCOLON");
+    } else if (state.lastToken === "order") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("ORDER", "WANTCOLON");
     } else if (state.lastToken === "ref-graph") {
       ls.deferedOpened.g++;
       ls.tokens.push("GRAPH", "WANTCOLON");
@@ -642,6 +684,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         //ls.curClosed.o++;
         ls.tokens.pop();
+      } else if (hasTop(ls.tokens, ["TABLEROW", "TABLE"])) {
+        ls.tokens.pop();
+        ls.curClosed.o++;
       }
       var top = peek(ls.tokens);
       var stillUnclosed = true;
@@ -667,7 +712,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           else ls.curClosed.v++;
         } 
         // Things that are counted, and closable by end:
-        else if (top === "FUN" || top === "WHEN" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET") {
+        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET" || top === "TABLE" || top === "SELECT" || top === "EXTEND" || top === "SIEVE" || top === "ORDER") {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
           else ls.curClosed.fn++;

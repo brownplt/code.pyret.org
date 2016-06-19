@@ -7,6 +7,10 @@
     "npm": "2.1.x"
   },
   "dependencies": {
+    "lodash": "~2.4.1",
+    "q": "~1.0.1",
+    "s-expression": "~2.2.0",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#sql",
     "babel-eslint": "^6.0.4",
     "codemirror": "~5.11.0",
     "colorspaces": "0.1.4",
@@ -19,22 +23,20 @@
     "express": "^4.1.1",
     "googleapis": "^1.0.0",
     "jwt-simple": "^0.2.0",
-    "lodash": "~2.4.1",
     "mocha": "^2.2.1",
     "mustache": "^0.8.1",
     "mustache-express": "^1.2.1",
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
-    "q": "~1.0.1",
     "redis": "^0.10.3",
     "request": "^2.34.0",
     "requirejs": "2.1.14",
-    "s-expression": "~2.2.0",
     "seedrandom": "~2.3.10",
     "selenium-webdriver": "^2.41.0",
     "url.js": "^1.0.2",
-    "webpack": "^1.13.1"
+    "webpack": "^1.13.1",
+    "d3": "~3",
+    "d3-tip": "git://github.com/sorawee/d3-tip"
   },
   "scripts": {
     "postinstall": "webpack && make -j3 web",

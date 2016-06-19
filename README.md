@@ -53,7 +53,7 @@ If you'd like to run with a development copy of Pyret, you can simply symlink
 could just run this from the CPO directory:
 
 ```
-$ ln -s ../pyret-lang
+$ ln -s ../pyret-lang pyret
 ```
 
 ## Configuration with Google Auth and Storage

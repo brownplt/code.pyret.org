@@ -44,6 +44,16 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
 
       runtime["checkEQ"] = runtime.makeCheckType(ffi.isEqualityResult, "EqualityResult");
     },
+    "builtin://table": function(table) {
+      table = table.jsmod;
+      runtime["makeTable"] = table.makeTable;
+      runtime["checkTable"] = runtime.makeCheckType(table.isTable, "Table");
+      runtime["isTable"] = table.isTable;
+      runtime["checkWrapTable"] = function(val) {
+        runtime.checkTable(val);
+        return val;
+      };
+    },
     "builtin://checker": function(checker) {
       checker = runtime.getField(runtime.getField(checker, "provide-plus-types"), "values");
       // NOTE(joe): This is the place to add checkAll

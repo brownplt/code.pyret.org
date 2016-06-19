@@ -1134,6 +1134,31 @@
       renderers["cyclic"] = function renderCyclic(val) {
         return renderers.renderText("cyclic", val);
       };
+      renderers.renderTable = function renderTable(val) {
+        debugger;
+        var table = document.createElement("table");
+        table.classList.add('replOutput');
+        var rows = runtime.ffi.toArray(val.dict.rows);
+        var cols = val.dict.headers;
+        var header = document.createElement("tr");
+        for(var i = 0; i < rows.length; i++) {
+          var col = document.createElement("th");
+          col.textContent = cols[i];
+          header.appendChild(col);
+        }
+        table.appendChild(header);
+        for(var i = 0; i < rows.length; i++) {
+          var rowv  = rows[i]
+          var rowel = document.createElement("tr");
+          for(var j = 0; j < cols.length; j++) {
+            var cellel = document.createElement("td");
+            renderPyretValue(cell, runtime, rowv[j]);
+            rowel.appendChild(cellel);
+          }
+          table.appendChild(rowel);
+        }
+        return table;
+      };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
@@ -1403,6 +1428,37 @@
             helper(container, items[i], values);
           }
           container.append($("<span>").text(")"));
+        } else if (runtime.ffi.isVSSeq(val)) {
+          var items = runtime.ffi.toArray(runtime.getField(val, "items"));
+          for (var i = 0; i < items.length; i++) {
+            helper(container, items[i], values);
+          }
+        } else if (runtime.ffi.isVSTable(val)) {
+          var table = document.createElement("table");
+          var cols = runtime.getField(val, "headers")
+          var headers = document.createElement("thead");
+          var header = document.createElement("tr");
+          for(var i = 0; i < cols.length; i++) {
+            var col = document.createElement("th");
+            helper($(col), cols[i], values);
+            header.appendChild(col);
+          }
+          headers.appendChild(header);
+          table.appendChild(headers);
+          var body = document.createElement("tbody");
+          var rows = runtime.getField(val, "rows")
+          for(var i = 0; i < rows.length; i++) {
+            var rowv  = rows[i]
+            var rowel = document.createElement("tr");
+            for(var j = 0; j < cols.length; j++) {
+              var cellel = document.createElement("td");
+              helper($(cellel), rowv[j], values);
+              rowel.appendChild(cellel);
+            }
+            body.appendChild(rowel);
+          }
+          table.appendChild(body);
+          container.append(table);
         } else {
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
@@ -1481,7 +1537,5 @@
       locToAST: locToAST,
       locToSrc: locToSrc,
     });
-
-
   }
 })
