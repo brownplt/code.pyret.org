@@ -85,6 +85,12 @@ COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-api
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 	cp $< $@
 
+build/web/js/d3.js: node_modules/d3/d3.min.js
+	cp $< $@
+
+build/web/js/d3-tip.js: node_modules/d3-tip/index.js
+	cp $< $@
+
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
 	`npm bin`/webpack
 
@@ -136,7 +142,9 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/matchkw.js \
           build/web/js/colorspaces.js \
           build/web/js/es6-shim.js \
-          build/web/js/runmode.js
+          build/web/js/runmode.js \
+          build/web/js/d3.js \
+          build/web/js/d3-tip.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 

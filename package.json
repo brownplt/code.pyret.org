@@ -34,7 +34,9 @@
     "seedrandom": "~2.3.10",
     "selenium-webdriver": "^2.41.0",
     "url.js": "^1.0.2",
-    "webpack": "^1.13.1"
+    "webpack": "^1.13.1",
+    "d3": "~3",
+    "d3-tip": "git://github.com/sorawee/d3-tip"
   },
   "scripts": {
     "postinstall": "webpack && make -j3 web",

@@ -4,3 +4,7 @@ src/web/teachpacks
 build/
 *.swp
 **/.tern-port
+compiled/
+program-deps.js
+program-require.js
+pyret
