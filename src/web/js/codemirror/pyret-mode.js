@@ -59,7 +59,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
 
   // Contexts in which function-names can be unprefixed
   // (i.e. no "fun" or "method")
-  const pyret_unprefixed_contexts = ["OBJECT", "SHARED"];
+  const pyret_unprefixed_contexts = [];
 
   // Subkeywords each token can have
   const pyret_subkeywords = {
@@ -346,6 +346,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       return arr[arr.length - 1] === wanted;
     }
   }
+  // Unused, but temporarily leaving in until
+  // we are positive that unprefixed function
+  // definitions will never appear again
   function isUnprefixedContext(ctx) {
     if (ctx.length === 0)
       return false;
@@ -375,9 +378,10 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       if (inOpening)
         ls.delimType = pyret_delimiter_type.OPEN_CONTD;
     }
-    if (state.lastToken === "name" && style === 'function-name' && isUnprefixedContext(ls.tokens)) {
+    // Uncomment if pyret_unprefixed_contexts is ever used again
+    /*if (state.lastToken === "name" && style === 'function-name' && isUnprefixedContext(ls.tokens)) {
       ls.delimType = pyret_delimiter_type.OPENING;
-    }
+    }*/
     if (ls.nestingsAtLineStart.comments > 0 || ls.curOpened.comments > 0 || ls.deferedOpened.comments > 0) {
       if (state.lastToken === "COMMENT-END") {
         if (ls.curOpened.comments > 0) ls.curOpened.comments--;
@@ -413,9 +417,20 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           || hasTop(ls.tokens, "WANTCOLONOREQUAL")
           || hasTop(ls.tokens, "WANTCOLONORBLOCK"))
         ls.tokens.pop();
-      else if (hasTop(ls.tokens, "OBJECT") || hasTop(ls.tokens, "SHARED")) {
+      else if (hasTop(ls.tokens, "OBJECT")
+               || hasTop(ls.tokens, "SHARED")
+               || hasTop(ls.tokens, "OBJECTORTUPLE")) {
+        if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
+          ls.tokens.pop();
+          ls.tokens.push("OBJECT");
+        }
         ls.deferedOpened.f++;
         ls.tokens.push("FIELD", "NEEDSOMETHING");
+      }
+    } else if (state.lastToken === ";") {
+      if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
+        ls.tokens.pop();
+        ls.tokens.push("TUPLE");
       }
     } else if (state.lastToken === "::") {
       if (hasTop(ls.tokens, "OBJECT") || hasTop(ls.tokens, "SHARED")) {
@@ -444,6 +459,14 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.deferedOpened.v++;
       ls.tokens.push("VAR", "NEEDSOMETHING", "WANTCOLONOREQUAL");
     } else if (state.lastToken === "fun" || state.lastToken === "method" || state.lastToken === "lam") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("FUN", "WANTCOLONORBLOCK", "WANTCLOSEPAREN", "WANTOPENPAREN");
+    } else if (state.lastToken === "method") {
+      if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
+        ls.tokens.pop();
+        ls.tokens.push("OBJECT");
+      }
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
       ls.tokens.push("FUN", "WANTCOLONORBLOCK", "WANTCLOSEPAREN", "WANTOPENPAREN");
@@ -597,7 +620,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       }
     } else if (state.lastToken === "{") {
       ls.deferedOpened.o++;
-      ls.tokens.push("OBJECT");
+      ls.tokens.push("OBJECTORTUPLE");
       ls.delimType = pyret_delimiter_type.OPENING;
     } else if (state.lastToken === "}") {
       ls.delimType = pyret_delimiter_type.CLOSING;
@@ -609,7 +632,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         else if (ls.deferedOpened.f > 0) ls.deferedOpened.f--;
         else ls.curClosed.f++;
       }
-      if (hasTop(ls.tokens, "OBJECT"))
+      if (hasTop(ls.tokens, "OBJECT")
+          || hasTop(ls.tokens, "OBJECTORTUPLE")
+          || hasTop(ls.tokens, "TUPLE"))
         ls.tokens.pop();
       while (hasTop(ls.tokens, "VAR")) {
         ls.tokens.pop();
