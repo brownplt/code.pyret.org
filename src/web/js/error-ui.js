@@ -179,10 +179,10 @@
         else if(isContractError(e.exn)) {
           drawPyretContractFailure(e.exn);
         }
-        else if(mkPred("RuntimeError")(e.exn)) {
+        else if(mkPred("is-RuntimeError")(e.exn)) {
           drawPyretRuntimeError();
         }
-        else if(mkPred("ParseError")(e.exn)) {
+        else if(mkPred("is-ParseError")(e.exn)) {
           drawPyretParseError();
         } else {
           drawRuntimeErrorToString(e)();
