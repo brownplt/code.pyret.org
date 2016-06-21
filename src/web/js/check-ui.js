@@ -66,10 +66,13 @@
         
         eachContainer.attr("id", checkCSSID);
         
-        function editorMessage(cssClass, msg) {
+        function editorMessage(cssClass, msg, optionalError) {
           if(!editors[checkCMLoc.source]) {
             console.log("Couldn't find editor in which to render: ", checkCMLoc.source);
             return;
+          }
+          if(!editors[checkCMLoc.source].widgets) {
+            editors[checkCMLoc.source].widgets = [];
           }
           editors[checkCMLoc.source].widgets.push(
             editors[checkCMLoc.source].addLineWidget(checkCMLoc.start.line,
@@ -83,9 +86,14 @@
                   .on("click", function(){
                     var errorel = document.getElementById(checkCSSID);
                     errorel.style.animation = "emphasize-error 1s 1";
-                    $(errorel).children(".check-block-header").click();
+                    if(optionalError != undefined){
+                      optionalError.trigger('toggleHighlight');
+                      optionalError[0].scrollIntoView(true);
+                    } else {
+                      $(errorel).children(".check-block-header").click();
+                      errorel.scrollIntoView(true);
+                    }
                     $(errorel).on("animationend", function(){this.style.animation = "";});
-                    errorel.scrollIntoView(true);
                   });
                 return marker;
               }(),
@@ -163,7 +171,7 @@
           }
           
           function addReasonToTest(cssClass, errorDisp, loc) {
-            var dom = $(outputUI.renderErrorDisplay(editors, runtime, errorDisp, [], errorID)).addClass(cssClass);
+            var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp, [], errorID).addClass(cssClass);
             var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
             var reasonID = "reason-" + outputUI.cmlocToCSSClass(cmloc);
             dom.attr('id',reasonID);
@@ -186,7 +194,7 @@
               thisTest.on("animationend", function(){this.style.animation = "";});
               thisTest[0].style.animation = "emphasize-error 1s 1";
               thisTest[0].scrollIntoView(true);
-              $(thisTest.children(".highlightToggle")[0]).trigger( "click" );
+              dom.parent().trigger('click');
             });
             
             var gutterHandle = cm.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
@@ -204,9 +212,6 @@
               }
             };
             cm.on("change",onChange);
-            eachTest.on("click", function() {
-                $(this).children(".highlightToggle").click();
-              });
             eachTest.append(testTitle(loc, false));
             eachTest.append(dom);
             eachTest.attr('data-result', "Failed");
@@ -221,8 +226,10 @@
               function(out) {
                 if (runtime.isSuccessResult(out)) {
                   var reason = addReasonToTest("test-reason", out.result, get(tr, "loc"));
-                  reason.children(".highlightToggle")
-                    .detach().prependTo(eachTest);
+                  eachTest.on('click', function(){
+                    reason.trigger('toggleHighlight');
+                    eachTest.addClass('highlights-active');
+                  });
                 } else {
                   addPreToTest("replOutputReason", "<error rendering result; details logged to console>", get(tr, "loc"));
                   console.log(out.exn);
@@ -238,16 +245,16 @@
         eachContainer.append(testContainer);
         
         /* Expand check block results when their header is clicked */
-        $(eachContainer).on("click", ".check-block-header", function(e) {
+        eachContainer.on("click", ".check-block-header", function(e) {
             // Collapse the currently expanded check block, if any
-            $(eachContainer).siblings(".expanded").children(".check-block-header").click();
+            eachContainer.siblings(".expanded").children(".check-block-header").click();
             // Clear the current highlight
             document.getElementById("main").dataset.highlights = "";
             // Expand/Collapse the clicked check block results
-            $(eachContainer).toggleClass("expanded");
+            eachContainer.toggleClass("expanded");
             // If the block results have just been expanded, highlight the first thing available.
-            if($(eachContainer).hasClass("expanded")) {
-              $(eachContainer).find(".highlightToggle").first().click();
+            if(eachContainer.hasClass("expanded")) {
+              testContainer.children().first().trigger('click');
             }
           });
           
@@ -274,9 +281,10 @@
             .addClass("check-block-error")
             .text("The unexpected error:");
           errorUI.drawError(errorDiv, editors, runtime, get(get(cr, "maybe-err"), "value").val, contextFactory);
+          var reason = errorDiv.children(".compile-error");
           eachContainer.append(errorDiv);
           summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
-          editorMessage("editor-check-block-error", "Unexpected Error");
+          editorMessage("editor-check-block-error", "Unexpected Error", reason);
           
           if(testsInBlock > 0) {
             testContainer.prepend(
@@ -299,12 +307,18 @@
           marker.title = "Check block ended with an unexpected error here. Click to see why.";
           marker.classList.add("erroredTestMarker");
           marker.classList.add("CodeMirror-linenumber");
+          
+          errorDiv.on('click', function(){
+            reason.trigger('toggleHighlight');
+          });
+          
           $(marker).on("click", function(){
             thisContainer.on("animationend", function(){this.style.animation = "";});
             thisContainer[0].style.animation = "emphasize-error 1s 1";
-            errorDiv[0].scrollIntoView(true);
-            errorDiv.find(".highlightToggle").trigger("click");
+            reason[0].scrollIntoView(true);
+            reason.trigger('toggleHighlight');
           });
+          
           var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
           var onChange = function(cm, change) {
             var gutterLine = editor.getLineNumber(gutterHandle);

@@ -1069,17 +1069,14 @@
           })});
 
 
-      if(context===undefined) rendering.addClass("highlights-active");
-      if(context != undefined) {
-        rendering.prepend($("<div>").addClass("highlightToggle")
-          .on('click', function(e){
-            $(".highlights-active").removeClass("highlights-active");
-            document.getElementById("main").dataset.highlights = context;
-            this.classList.add("highlights-active");
-            this.parentElement.classList.add("highlights-active");
-            rendering.addClass("highlights-active");
-            e.stopPropagation();
-          }));
+      if(context === undefined) 
+        rendering.addClass("highlights-active");
+      else if(context != undefined) {
+        rendering.bind('toggleHighlight',function() {
+          $(".highlights-active").removeClass("highlights-active");
+          document.getElementById("main").dataset.highlights = context;
+          rendering.addClass("highlights-active");
+        });
       }
 
       return rendering;

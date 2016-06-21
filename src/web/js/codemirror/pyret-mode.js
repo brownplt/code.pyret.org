@@ -541,7 +541,11 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "sharing") {
       ls.curClosed.d++; ls.deferedOpened.s++;
       ls.delimType = pyret_delimiter_type.SUBKEYWORD;
-      if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
+      if (hasTop(ls.tokens, ["FIELD", "OBJECT", "DATA"])) {
+        ls.tokens.pop(); ls.tokens.pop(); ls.tokens.pop();
+        ls.curClosed.o++;
+        ls.tokens.push("SHARED", "WANTCOLON");
+      } else if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         ls.tokens.pop(); ls.tokens.pop();
         //ls.curClosed.o++;
         ls.tokens.push("SHARED", "WANTCOLON");
@@ -552,7 +556,11 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "where" || (state.lastToken === "examples" && ls.tokens.length > 0)) {
       ls.delimType = (state.lastToken === "where") ? pyret_delimiter_type.SUBKEYWORD
                                                    : pyret_delimiter_type.OPENING;
-      if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
+      if (hasTop(ls.tokens, ["FIELD", "OBJECT", "DATA"])) {
+        ls.tokens.pop(); ls.tokens.pop();
+        ls.curClosed.o++; 
+        ls.curClosed.d++; ls.deferedOpened.s++;
+      } else if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         ls.tokens.pop();
         // ls.curClosed.o++; 
         ls.curClosed.d++; ls.deferedOpened.s++;

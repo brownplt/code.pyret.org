@@ -61,18 +61,21 @@
       }
 
       function drawCompileErrors(e) {
-        var errorID;
+        var lastError;
         function drawCompileError(e) {
           runtime.runThunk(
             function() {
               return get(e, "render-fancy-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                errorID = contextFactory();
+                var errorID = contextFactory();
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
                 dom.addClass("compile-error");
+                dom.on('click', function(){
+                  dom.trigger('toggleHighlight');
+                });
+                lastError = dom;
                 container.append(dom);
-                dom.children().first(".highlightToggle").trigger('click');
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
@@ -81,7 +84,7 @@
             });
         }
         e.forEach(drawCompileError);
-        document.getElementById("main").dataset.highlights = errorID;
+        lastError.trigger('toggleHighlight');
       }
 
       function drawPyretException(e) {
@@ -119,7 +122,7 @@
                   outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
                 }
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
-                dom.children().first(".highlightToggle").trigger('click');
+                dom.trigger('toggleHighlight');
                 dom.addClass("compile-error");
                 container.append(dom);
                 dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
