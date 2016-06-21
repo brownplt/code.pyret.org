@@ -35,7 +35,7 @@
         return function(val) { return get(error, pyretFunName).app(val); }
       }
 
-      var isContractError = get(contracts, "ContractResult").app;
+      var isContractError = get(contracts, "is-ContractResult").app;
 
       // Exception will be one of:
       // - an Array of compileErrors (this is legacy, but useful for old versions),

@@ -83,7 +83,7 @@
         }
         else if(callingRuntime.isSuccessResult(result)) {
           result = result.result;
-          ffi.cases(ffi.isEither, "Either", result,
+          ffi.cases(ffi.isEither, "is-Either", result,
             {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();

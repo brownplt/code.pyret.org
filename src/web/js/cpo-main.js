@@ -194,440 +194,432 @@
           },
           runtime: runtime
         };
-        replP.resolve(jsRepl);
+        return withRepl(jsRepl);
       });
 
-    replP.promise.then(function(repl) {
+    function withRepl(repl) {
+
       console.log("Loaded");
       clearInterval($("#loader").data("intervalID"));
       $("#loader").hide();
 
-    // NOTE(joe): This forces the loading of all the built-in compiler libs
-    var interactionsReady = repl.restartInteractions();
-    interactionsReady.fail(function(err) {
-      console.error("Couldn't start REPL: ", err);
-    });
-    interactionsReady.then(function(result) {
-      //editor.cm.setValue("print('Ahoy, world!')");
-      console.log("REPL ready.");
-    });
-    var runButton = $("#runButton");
+      // NOTE(joe): This forces the loading of all the built-in compiler libs
+      var interactionsReady = repl.restartInteractions();
+      interactionsReady.fail(function(err) {
+        console.error("Couldn't start REPL: ", err);
+      });
+      interactionsReady.then(function(result) {
+        //editor.cm.setValue("print('Ahoy, world!')");
+        console.log("REPL ready.");
+      });
+      var runButton = $("#runButton");
 
-    var codeContainer = $("<div>").addClass("replMain");
-    $("#main").prepend(codeContainer);
+      var codeContainer = $("<div>").addClass("replMain");
+      $("#main").prepend(codeContainer);
 
-    var replWidget;
-    runtime.runThunk(function() {
-        return replUI.makeRepl(replContainer, repl, runtime, {
-          breakButton: $("#breakButton"),
-          runButton: runButton
-        });
-    }, function(ans) {
-      if (runtime.isSuccessResult(ans)) {
-        replWidget = ans.result;
-      } else {
-        console.error("MakeRepl failed: ", ans);
+      var replWidget = 
+          replUI.makeRepl(replContainer, repl, runtime, {
+            breakButton: $("#breakButton"),
+            runButton: runButton
+          });
+
+      // NOTE(joe): assigned on window for debuggability
+      window.RUN_CODE = function(src, uiOpts, replOpts) {
+        doRunAction(src);
+      };
+
+      $("#runDropdown").click(function() {
+        $("#run-dropdown-content").toggle();
+      });
+
+      // CPO.editor is set in beforePyret.js
+      var editor = CPO.editor;
+      var currentAction = "run";
+
+      $("#select-run").click(function() {
+        runButton.text("Run");
+        currentAction = "run";
+        doRunAction(editor.cm.getValue());
+        $("#run-dropdown-content").hide();
+      });
+
+      $("#select-tc-run").click(function() {
+        runButton.text("Type-check and Run");
+        currentAction = "tc-and-run";
+        doRunAction(editor.cm.getValue());
+        $("#run-dropdown-content").hide();
+      });
+
+      $("#select-scsh").click(function() {
+        highlightMode = "scsh"; $("#run-dropdown-content").hide();});
+      $("#select-scmh").click(function() {
+        highlightMode = "scmh"; $("#run-dropdown-content").hide();});
+      $("#select-mcmh").click(function() {
+        highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
+
+      function doRunAction(src) {
+        editor.cm.clearGutter("CodeMirror-linenumbers");
+        var marks = editor.cm.getAllMarks();
+        document.getElementById("main").dataset.highlights = "";
+        editor.cm.eachLine(function(lh){
+          editor.cm.removeLineClass(lh, "background");});
+        for(var i = 0; i < marks.length; i++) {
+          marks[i].clear();
+        }
+        for(var i = 0; i < editor.cm.widgets.length; i++) {
+          editor.cm.widgets[i].clear();
+        }
+        var sheet = document.getElementById("highlight-styles").sheet;
+        for(var i=0; i< sheet.cssRules.length; i++) {
+          sheet.deleteRule(i);
+        }
+        switch (currentAction) {
+          case "run":
+            replWidget.runCode(src, {check: true, cm: editor.cm});
+            break;
+          case "tc-and-run":
+            replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
+            break;
+        }
       }
-    });
-    // NOTE(joe): assigned on window for debuggability
-    window.RUN_CODE = function(src, uiOpts, replOpts) {
-      doRunAction(src);
-    };
 
-    $("#runDropdown").click(function() {
-      $("#run-dropdown-content").toggle();
-    });
+      runButton.on("click", function() { doRunAction(editor.cm.getValue()); });
 
-    // CPO.editor is set in beforePyret.js
-    var editor = CPO.editor;
-    var currentAction = "run";
+      $(window).on("keyup", function(e) {
+        if(e.keyCode === 27) { // "ESC"
+          $("#help-keys").fadeOut(500);
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      });
 
-    $("#select-run").click(function() {
-      runButton.text("Run");
-      currentAction = "run";
-      doRunAction(editor.cm.getValue());
-      $("#run-dropdown-content").hide();
-    });
-
-    $("#select-tc-run").click(function() {
-      runButton.text("Type-check and Run");
-      currentAction = "tc-and-run";
-      doRunAction(editor.cm.getValue());
-      $("#run-dropdown-content").hide();
-    });
-
-    $("#select-scsh").click(function() {
-      highlightMode = "scsh"; $("#run-dropdown-content").hide();});
-    $("#select-scmh").click(function() {
-      highlightMode = "scmh"; $("#run-dropdown-content").hide();});
-    $("#select-mcmh").click(function() {
-      highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
-
-    function doRunAction(src) {
-      editor.cm.clearGutter("CodeMirror-linenumbers");
-      var marks = editor.cm.getAllMarks();
-      document.getElementById("main").dataset.highlights = "";
-      editor.cm.eachLine(function(lh){
-        editor.cm.removeLineClass(lh, "background");});
-      for(var i = 0; i < marks.length; i++) {
-        marks[i].clear();
-      }
-      for(var i = 0; i < editor.cm.widgets.length; i++) {
-        editor.cm.widgets[i].clear();
-      }
-      var sheet = document.getElementById("highlight-styles").sheet;
-      for(var i=0; i< sheet.cssRules.length; i++) {
-        sheet.deleteRule(i);
-      }
-      switch (currentAction) {
-        case "run":
-          replWidget.runCode(src, {check: true, cm: editor.cm});
-          break;
-        case "tc-and-run":
-          replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
-          break;
-      }
-    }
-
-    runButton.on("click", function() { doRunAction(editor.cm.getValue()); });
-
-    $(window).on("keyup", function(e) {
-      if(e.keyCode === 27) { // "ESC"
-        $("#help-keys").fadeOut(500);
+      /* Documentation Overlay */
+      /*
+      NOTE(joe): Skipping this for now, until HTTPS solution for docs worked out
+      $("#docs").on("click", function(e){
+        $("#doc-containment").toggle();
         e.stopImmediatePropagation();
         e.preventDefault();
-      }
-    });
+      });
+      */
 
-    /* Documentation Overlay */
-    /*
-    NOTE(joe): Skipping this for now, until HTTPS solution for docs worked out
-    $("#docs").on("click", function(e){
-      $("#doc-containment").toggle();
-      e.stopImmediatePropagation();
-      e.preventDefault();
-    });
-    */
-
-    $("#doc-close").on("click", function(e){
-      $("#doc-containment").toggle();
-      e.stopImmediatePropagation();
-      e.preventDefault();
-    });
-
-    $("#doc-overlay").draggable({
-      start: fixIframe,
-      stop: fixIframe,
-      handle: "#doc-bar",
-      cancel: "#doc-close"
+      $("#doc-close").on("click", function(e){
+        $("#doc-containment").toggle();
+        e.stopImmediatePropagation();
+        e.preventDefault();
       });
 
-    $("#doc-overlay").resizable({
-      handles: {
-        s:"#doc-bottom",
-        e: "#doc-right",
-        w:"#doc-left",
-        sw: "#doc-sw-corner",
-        se:"#doc-se-corner"},
-      start: fixIframe,
-      stop: fixIframe,
-      containment: "#doc-containment",
-      scroll: false
-      });
+      $("#doc-overlay").draggable({
+        start: fixIframe,
+        stop: fixIframe,
+        handle: "#doc-bar",
+        cancel: "#doc-close"
+        });
 
-      function fixIframe() {
-        $("#doc-cover").toggle();
-      }
+      $("#doc-overlay").resizable({
+        handles: {
+          s:"#doc-bottom",
+          e: "#doc-right",
+          w:"#doc-left",
+          sw: "#doc-sw-corner",
+          se:"#doc-se-corner"},
+        start: fixIframe,
+        stop: fixIframe,
+        containment: "#doc-containment",
+        scroll: false
+        });
 
-    $('#font-plus').click(changeFont);
-    $('#font-minus').click(changeFont);
+        function fixIframe() {
+          $("#doc-cover").toggle();
+        }
 
-    function changeFont(e){
-      fontSize = parseInt($('#main').css("font-size"));
-      if ($(e.target).is("#font-plus") && (fontSize < 55)){
-        $('#main').css('font-size', '+=4');
+      $('#font-plus').click(changeFont);
+      $('#font-minus').click(changeFont);
+
+      function changeFont(e){
+        fontSize = parseInt($('#main').css("font-size"));
+        if ($(e.target).is("#font-plus") && (fontSize < 55)){
+          $('#main').css('font-size', '+=4');
+        }
+        else if ($(e.target).is("#font-minus") && (fontSize > 10)){
+          $('#main').css('font-size', '-=4');
+        }
+        editor.refresh();
+        $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
       }
-      else if ($(e.target).is("#font-minus") && (fontSize > 10)){
-        $('#main').css('font-size', '-=4');
-      }
-      editor.refresh();
       $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
-    }
-    $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
-    $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
+      $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
 
-    editor.cm.on('beforeChange', curlyQuotes);
+      editor.cm.on('beforeChange', curlyQuotes);
 
-    function curlyQuotes(instance, changeObj){
-      $('.notificationArea .curlyQ').remove();
-      curlybool = false;
-      if((changeObj.origin == "paste")){
-      var newText = jQuery.map(changeObj.text, function(str, i) {
-        curlybool = curlybool || (str.search(/[\u2018\u2019\u201C\u201D]/g) > -1);
-        str = str.replace(/\u201D/g, "\"")
-        str = str.replace(/\u201C/g, "\"")
-        str = str.replace(/\u2019/g, "\'")
-        str = str.replace(/\u2018/g, "\'")
-        return str;
-      });
-      if(curlybool){
-      curlyQUndo(changeObj.text, changeObj.from);
-      changeObj.update(undefined, undefined, newText);
-    }
-    }}
+      function curlyQuotes(instance, changeObj){
+        $('.notificationArea .curlyQ').remove();
+        curlybool = false;
+        if((changeObj.origin == "paste")){
+        var newText = jQuery.map(changeObj.text, function(str, i) {
+          curlybool = curlybool || (str.search(/[\u2018\u2019\u201C\u201D]/g) > -1);
+          str = str.replace(/\u201D/g, "\"")
+          str = str.replace(/\u201C/g, "\"")
+          str = str.replace(/\u2019/g, "\'")
+          str = str.replace(/\u2018/g, "\'")
+          return str;
+        });
+        if(curlybool){
+        curlyQUndo(changeObj.text, changeObj.from);
+        changeObj.update(undefined, undefined, newText);
+      }
+      }}
 
-    function curlyQUndo(oldText, from){
-      var lineN = oldText.length - 1
-      var to = {line: from.line + lineN, ch: from.ch + oldText[lineN].length}
-      console.log(from, to);
-      message = "Curly quotes converted"
-      var container = $('<div>').addClass("curlyQ")
-      var msg = $("<span>").addClass("curlyQ-msg").text(message);
-      var button = $("<span>").addClass("curlyQ-button").text("Click to Undo");
-      container.append(msg).append(button);
-      container.click(function(){
-        editor.cm.replaceRange(oldText, from, to);
-      });
-      $(".notificationArea").prepend(container);
-      container.delay(15000).fadeOut(3000);
-    }
+      function curlyQUndo(oldText, from){
+        var lineN = oldText.length - 1
+        var to = {line: from.line + lineN, ch: from.ch + oldText[lineN].length}
+        console.log(from, to);
+        message = "Curly quotes converted"
+        var container = $('<div>').addClass("curlyQ")
+        var msg = $("<span>").addClass("curlyQ-msg").text(message);
+        var button = $("<span>").addClass("curlyQ-button").text("Click to Undo");
+        container.append(msg).append(button);
+        container.click(function(){
+          editor.cm.replaceRange(oldText, from, to);
+        });
+        $(".notificationArea").prepend(container);
+        container.delay(15000).fadeOut(3000);
+      }
 
-    // Resizable
-    var replHeight = $( "#REPL" ).height();
-    var editorEvenSplit = true;
-    $( "#REPL" ).resizable({
-      maxHeight: replHeight,
-      maxWidth: window.innerWidth - 128,
-      minHeight: replHeight,
-      minWidth: 100,
-      handles: {"w": "#handle"}});
+      // Resizable
+      var replHeight = $( "#REPL" ).height();
+      var editorEvenSplit = true;
+      $( "#REPL" ).resizable({
+        maxHeight: replHeight,
+        maxWidth: window.innerWidth - 128,
+        minHeight: replHeight,
+        minWidth: 100,
+        handles: {"w": "#handle"}});
 
-    $( "#REPL" ).on( "resize", leftResize);
-    $( "#REPL" ).on( "resize", function() {editorEvenSplit = false;});
+      $( "#REPL" ).on( "resize", leftResize);
+      $( "#REPL" ).on( "resize", function() {editorEvenSplit = false;});
 
-    function leftResize(event, ui) {
-      var leftWidth = (window.innerWidth - ui.size.width)
-      $(".replMain").css("width", leftWidth + "px");
-    }
+      function leftResize(event, ui) {
+        var leftWidth = (window.innerWidth - ui.size.width)
+        $(".replMain").css("width", leftWidth + "px");
+      }
 
-    $( "#REPL" ).on( "resizestop", toPercent);
+      $( "#REPL" ).on( "resizestop", toPercent);
 
-    var rightResizePct = 50;
-    var leftResizePct = 50;
+      var rightResizePct = 50;
+      var leftResizePct = 50;
 
-    function toPercent(event, ui) {
-      rightResizePct = (ui.size.width / window.innerWidth) * 100
-      leftResizePct = 100 - rightResizePct
-      setEditorSize(leftResizePct, rightResizePct);
-    }
-
-    $( window ).resize( function() {
-      $( "#REPL" ).resizable( "option", "maxWidth", window.innerWidth - 128);
-    });
-    // End Resizable
-
-    function setEditorSize(leftPct, rightPct) {
-      $( "#REPL" ).css( "width", rightPct + "%");
-      $( "#REPL" ).css( "left", leftPct + "%");
-      $(".replMain").css("width", leftPct + "%");
-    }
-
-    function toggleEditorSize() {
-      if(editorEvenSplit) {
-        editorEvenSplit = false;
+      function toPercent(event, ui) {
+        rightResizePct = (ui.size.width / window.innerWidth) * 100
+        leftResizePct = 100 - rightResizePct
         setEditorSize(leftResizePct, rightResizePct);
       }
-      else {
-        editorEvenSplit = true;
-        setEditorSize("50", "50");
-      }
-    }
 
-    $(window).on("keydown", function(e) {
-      if(e.ctrlKey) {
-        if(e.keyCode === 83) { // "Ctrl-s"
-          save();
-          e.stopImmediatePropagation();
-          e.preventDefault();
+      $( window ).resize( function() {
+        $( "#REPL" ).resizable( "option", "maxWidth", window.innerWidth - 128);
+      });
+      // End Resizable
+
+      function setEditorSize(leftPct, rightPct) {
+        $( "#REPL" ).css( "width", rightPct + "%");
+        $( "#REPL" ).css( "left", leftPct + "%");
+        $(".replMain").css("width", leftPct + "%");
+      }
+
+      function toggleEditorSize() {
+        if(editorEvenSplit) {
+          editorEvenSplit = false;
+          setEditorSize(leftResizePct, rightResizePct);
         }
-        else if(e.keyCode === 77) { // "Ctrl-m"
-          toggleEditorSize();
-          e.stopImmediatePropagation();
-          e.preventDefault();
-        }
-        else if(e.keyCode === 13) { // "Ctrl-Enter"
-          doRunAction(editor.cm.getValue());
-          CPO.autoSave();
-          e.stopImmediatePropagation();
-          e.preventDefault();
-        } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"
-          $("#help-keys").fadeIn(100);
-          e.stopImmediatePropagation();
-          e.preventDefault();
+        else {
+          editorEvenSplit = true;
+          setEditorSize("50", "50");
         }
       }
-    });
 
-    });
-
-
-    // Used for image definition naming (identifier: "img" + curImg)
-    var curImg = 0;
-
-    /**
-     * Sets curImg to a value which will not clash with the code in
-     * contents (note: this is done conservatively -- the estimation
-     * is "dumb" in that it pays no attention to token types)
-     */
-    function inferCurImg(contents) {
-      var query = /img([0-9]+)[\s\n\r]*=/g;
-      var maxSoFar = 0;
-      var res;
-      while((res = query.exec(contents)) !== null) {
-        maxSoFar = Math.max(maxSoFar, Number(res[1]));
-      }
-      curImg = maxSoFar + 1;
-    }
-
-    var photoPrompt = new modalPrompt([
-      {
-        message: "Import as Values",
-        value: "values",
-        example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
-      },
-      {
-        message: "Import as Definitions",
-        value: "defs",
-        example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
-      },
-      {
-        message: "Import as a List",
-        value: "list",
-        example: '[list: image-url("<URL>"),\n'
-          + '       image-url("<URL>"),\n'
-          + '       # ...\n       ]'
-      }]);
-
-    var lastSave = 0;
-    function handlePickerData(documents, picker, drive) {
-      function openFile(id) {
-        // FIXME: This causes popup blockers to get triggered...
-        window.open('/editor#program=' + id, '_blank');
-      }
-      // File loaded
-      if (documents[0][picker.Document.TYPE] === "file") {
-        var id = documents[0][picker.Document.ID];
-        // If the editor has not been modified since the last save,
-        // load in this window
-        if (editor.cm.getDoc().history.lastModTime === lastSave) {
-          var p = drive.getFileById(id);
-          showShareContainer(p);
-          window.location.hash = "#program=" + id;
-          setTitle(documents[0][picker.Document.NAME]);
-          loadProgram(p);
-        } else {
-          openFile(id);
+      $(window).on("keydown", function(e) {
+        if(e.ctrlKey) {
+          if(e.keyCode === 83) { // "Ctrl-s"
+            save();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+          else if(e.keyCode === 77) { // "Ctrl-m"
+            toggleEditorSize();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+          else if(e.keyCode === 13) { // "Ctrl-Enter"
+            doRunAction(editor.cm.getValue());
+            CPO.autoSave();
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"
+            $("#help-keys").fadeIn(100);
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
         }
-        for (var i = 1; i < documents.length; ++i) {
-          openFile(documents[i][picker.Document.ID]);
-        }
-      }
-      // Picture loaded
-      else if (documents[0][picker.Document.TYPE] === picker.Type.PHOTO) {
+      });
 
-        photoPrompt.show(function(res) {
-          // Name of event for CM undo history
-          var origin = "+insertImage" + curImg;
-          var asValues = (res === "values");
-          var asDefs = (res === "defs");
-          var asList = (res === "list");
-          if (!(asValues || asDefs || asList)) {
-            // Check for garbage and log it
-            if (res !== null) {
-              console.warn("Unknown photoPrompt response: ", res);
-            }
-            return;
-          }
-          // http://stackoverflow.com/questions/23733455/inserting-a-new-text-at-given-cursor-position
-          var cm = CPO.editor.cm;
-          var doc = cm.getDoc();
-          function placeInEditor(str) {
-            var cursor = doc.getCursor();
-            var line = doc.getLine(cursor.line);
-            var pos = {
-              line: cursor.line,
-              ch: line.length
-            };
-            doc.replaceRange(str, pos, undefined, origin);
-            reindent(cursor.line);
-          }
-          function reindent(line) {
-            cm.indentLine(line || doc.getCursor().line);
-          }
-          function emitNewline() {
-            var cursor = doc.getCursor();
-            placeInEditor('\n');
-            // FIXME: Dunno why this happens.
-            if (cursor.line === doc.getCursor().line) {
-              doc.setCursor({line: cursor.line + 1, ch: 0});
-            }
-          }
-          function emitLn(s) {
-            placeInEditor(s);
-            emitNewline();
-          }
-          function onEmptyLine() {
-            var cursor = doc.getCursor("to");
-            var line = doc.getLine(cursor.line);
-            return (/^\s*$/.test(line));
-          }
-          // Make newline at cursor position if we are not on an empty line
-          if (onEmptyLine()) {
-            reindent();
+      // Used for image definition naming (identifier: "img" + curImg)
+      var curImg = 0;
+
+      /**
+       * Sets curImg to a value which will not clash with the code in
+       * contents (note: this is done conservatively -- the estimation
+       * is "dumb" in that it pays no attention to token types)
+       */
+      function inferCurImg(contents) {
+        var query = /img([0-9]+)[\s\n\r]*=/g;
+        var maxSoFar = 0;
+        var res;
+        while((res = query.exec(contents)) !== null) {
+          maxSoFar = Math.max(maxSoFar, Number(res[1]));
+        }
+        curImg = maxSoFar + 1;
+      }
+
+      var photoPrompt = new modalPrompt([
+        {
+          message: "Import as Values",
+          value: "values",
+          example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
+        },
+        {
+          message: "Import as Definitions",
+          value: "defs",
+          example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
+        },
+        {
+          message: "Import as a List",
+          value: "list",
+          example: '[list: image-url("<URL>"),\n'
+            + '       image-url("<URL>"),\n'
+            + '       # ...\n       ]'
+        }]);
+
+      var lastSave = 0;
+      function handlePickerData(documents, picker, drive) {
+        function openFile(id) {
+          // FIXME: This causes popup blockers to get triggered...
+          window.open('/editor#program=' + id, '_blank');
+        }
+        // File loaded
+        if (documents[0][picker.Document.TYPE] === "file") {
+          var id = documents[0][picker.Document.ID];
+          // If the editor has not been modified since the last save,
+          // load in this window
+          if (editor.cm.getDoc().history.lastModTime === lastSave) {
+            var p = drive.getFileById(id);
+            showShareContainer(p);
+            window.location.hash = "#program=" + id;
+            setTitle(documents[0][picker.Document.NAME]);
+            loadProgram(p);
           } else {
-            emitNewline();
+            openFile(id);
           }
-          if (asList) {
-            placeInEditor("[list:");
+          for (var i = 1; i < documents.length; ++i) {
+            openFile(documents[i][picker.Document.ID]);
           }
-          documents.forEach(function(d, idx) {
-            var pathToImg = "\"https://drive.google.com/uc?export=download&id="
-                  + d[picker.Document.ID] + "\"";
-            var outstr = asDefs ? ("img" + curImg + " = ") : "";
-            ++curImg;
-            outstr += "image-url(" + pathToImg + ")";
-            var isLast = (idx === (documents.length - 1));
-            if (asList) {
-              if (idx === 0) {
-                // The space after ":" gets eaten, so we need to enter it here
-                outstr = ' ' + outstr;
+        }
+        // Picture loaded
+        else if (documents[0][picker.Document.TYPE] === picker.Type.PHOTO) {
+
+          photoPrompt.show(function(res) {
+            // Name of event for CM undo history
+            var origin = "+insertImage" + curImg;
+            var asValues = (res === "values");
+            var asDefs = (res === "defs");
+            var asList = (res === "list");
+            if (!(asValues || asDefs || asList)) {
+              // Check for garbage and log it
+              if (res !== null) {
+                console.warn("Unknown photoPrompt response: ", res);
               }
-              outstr += isLast ? "]" : ",";
+              return;
             }
-            if (isLast) {
-              placeInEditor(outstr);
+            // http://stackoverflow.com/questions/23733455/inserting-a-new-text-at-given-cursor-position
+            var cm = CPO.editor.cm;
+            var doc = cm.getDoc();
+            function placeInEditor(str) {
+              var cursor = doc.getCursor();
+              var line = doc.getLine(cursor.line);
+              var pos = {
+                line: cursor.line,
+                ch: line.length
+              };
+              doc.replaceRange(str, pos, undefined, origin);
+              reindent(cursor.line);
+            }
+            function reindent(line) {
+              cm.indentLine(line || doc.getCursor().line);
+            }
+            function emitNewline() {
+              var cursor = doc.getCursor();
+              placeInEditor('\n');
+              // FIXME: Dunno why this happens.
+              if (cursor.line === doc.getCursor().line) {
+                doc.setCursor({line: cursor.line + 1, ch: 0});
+              }
+            }
+            function emitLn(s) {
+              placeInEditor(s);
+              emitNewline();
+            }
+            function onEmptyLine() {
+              var cursor = doc.getCursor("to");
+              var line = doc.getLine(cursor.line);
+              return (/^\s*$/.test(line));
+            }
+            // Make newline at cursor position if we are not on an empty line
+            if (onEmptyLine()) {
+              reindent();
             } else {
-              emitLn(outstr);
+              emitNewline();
             }
+            if (asList) {
+              placeInEditor("[list:");
+            }
+            documents.forEach(function(d, idx) {
+              var pathToImg = "\"https://drive.google.com/uc?export=download&id="
+                    + d[picker.Document.ID] + "\"";
+              var outstr = asDefs ? ("img" + curImg + " = ") : "";
+              ++curImg;
+              outstr += "image-url(" + pathToImg + ")";
+              var isLast = (idx === (documents.length - 1));
+              if (asList) {
+                if (idx === 0) {
+                  // The space after ":" gets eaten, so we need to enter it here
+                  outstr = ' ' + outstr;
+                }
+                outstr += isLast ? "]" : ",";
+              }
+              if (isLast) {
+                placeInEditor(outstr);
+              } else {
+                emitLn(outstr);
+              }
+            });
           });
-        });
-      } else {
-        flashError("Invalid file type: " + documents[0][picker.Document.TYPE]);
+        } else {
+          flashError("Invalid file type: " + documents[0][picker.Document.TYPE]);
+        }
       }
+      var picker;
+      picker = new FilePicker({
+        onLoaded: function() {
+          $("#openFile").attr("disabled", false);
+          picker.openOn($("#openFile")[0], "click");
+        },
+        onSelect: handlePickerData,
+        onError: flashError,
+        onInternalError: stickError
+      });
+
+
+      return runtime.makeModuleReturn({}, {});
     }
-    var picker;
-    picker = new FilePicker({
-      onLoaded: function() {
-        $("#openFile").attr("disabled", false);
-        picker.openOn($("#openFile")[0], "click");
-      },
-      onSelect: handlePickerData,
-      onError: flashError,
-      onInternalError: stickError
-    });
-
-
-    return runtime.makeModuleReturn({}, {});
   }
 })
