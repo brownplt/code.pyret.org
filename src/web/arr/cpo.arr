@@ -36,39 +36,39 @@ end
 
 fun make-builtin-js-locator(builtin-name, raw):
   {
-    needs-compile(_, _): false end,
-    get-modified-time(self):
+    method needs-compile(_, _): false end,
+    method get-modified-time(self):
       0
     end,
-    get-options(self, options):
+    method get-options(self, options):
       options.{ check-mode: false }
     end,
-    get-module(_):
+    method get-module(_):
       raise("Should never fetch source for builtin module " + builtin-name)
     end,
-    get-extra-imports(self):
+    method get-extra-imports(self):
       CS.standard-imports
     end,
-    get-dependencies(_):
+    method get-dependencies(_):
       deps = raw.get-raw-dependencies()
       raw-array-to-list(deps).map(make-dep)
     end,
-    get-native-modules(_):
+    method get-native-modules(_):
       natives = raw.get-raw-native-modules()
       raw-array-to-list(natives).map(CS.requirejs)
     end,
-    get-globals(_):
+    method get-globals(_):
       CS.standard-globals
     end,
-    get-namespace(_, some-runtime):
+    method get-namespace(_, some-runtime):
       nothing
     end,
 
-    uri(_): "builtin://" + builtin-name end,
-    name(_): builtin-name end,
+    method uri(_): "builtin://" + builtin-name end,
+    method name(_): builtin-name end,
 
-    set-compiled(_, _): nothing end,
-    get-compiled(self):
+    method set-compiled(_, _): nothing end,
+    method get-compiled(self):
       provs = CS.provides-from-raw-provides(self.uri(), {
         uri: self.uri(),
         values: raw-array-to-list(raw.get-raw-value-provides()),
@@ -78,7 +78,7 @@ fun make-builtin-js-locator(builtin-name, raw):
       some(CL.module-as-string(provs, CS.minimal-builtins, CS.ok(JSP.ccp-string(raw.get-raw-compiled()))))
     end,
 
-    _equals(self, other, req-eq):
+    method _equals(self, other, req-eq):
       req-eq(self.uri(), other.uri())
     end
   }
