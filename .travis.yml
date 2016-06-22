@@ -4,7 +4,6 @@ env:
   - TEST_LOC="sauce"
   - GOOGLE_CLIENT_ID=""
   - GOOGLE_CLIENT_SECRET=""
-  - GOOGLE_API_KEY=""
   - REDISCLOUD_URL=""
   - BASE_URL=http://localhost:5000
   - SESSION_SECRET=not-so-secret-for-testing
@@ -16,6 +15,7 @@ env:
   - SAUCE_TEST_TARGET="http://localhost:5000"
   - SAUCE_USERNAME="pyret-lang"
   - secure: e0vpQGmW0d69Ql72Mw6gsGsMxAKgt61ZNqsfQEtNlAGtx7CbTKe3xg8kF1ygwFVEB7GDmTaojTcSGbRwqqZ5GAa8dsTAkefhOtfCDV5KUjvXXbpo9J/8YLiZiIy7ksHyh1yhByvvWmZZpjmdxWwcH8gUqtpae3bGtz7rQX3jLf2v3OR5uVFt8vKRMSR9imCWmq6tpnu+GVoaCFOHjq3U7LS1h78R2LJz+MnTuCbDtYFlxp/sAyS7vSXssFScl6wqOsgH5PHlj+kaHhFWLhzsAzG1RoHftqqIeinXzDcYo8EC/c6O3hMf2KtHm/Hsh1dPR8GnE6WClxPw0xNbh10jVf7b1CXuzKGF8a1JlmtsVztiujsMswZGGLpTkqBvBAiuDsMOwKFNk7UrR5FA/0bVMMsluKxW/0UBzVPN9QyMKAs19ca1t/qT3abxYFyvXrDibKMLuS1uCCsZbwTkjkPwfWBzin8ohK2gLi+y24eQFSd27XWcmk+fJHfgJ458OgvczubK0CsyPAaJtCvRBYKvLQaEtkc4RkoM0yx6NhYYLCZqH1DRneam40rVSrVO41yT/PUnA5U64q16ptbn90Vgw/yKlp9OLtWKheBDTinwbst1kegbCSj4qZtORFLIQIUsZQN6SUm9tCACqFosDpRXAzURc2IOdsSUmtJEqvkijsc=
+  - secure: m7Tuxlnl9PYxrk0twLy/5sHGFJ+EGi3qxqvlVpwa3PhUMg0ExcZPaTGjgOKrikiVIpKhdy7SIP8ZMQXgbnV7mnLVG3yvxLGW4LyKAfscLmbup1IWwA6RoPdwpPxFwxzzgG/WBDo5Wfs1SLVuE9eyX8BYiT+C1VX/qYPUPuj9bRNIVJkfmiLSpnefs8b5iCKlLtm2CpZv1aGr3ICIuISl7BbtTnu4mOCcjTq26Lgsfg/gf37o3j4XUnLJX4acIfkfMLkn9rCuUcZZj8k5R/CW2W8AHp1/j12LefMkysS0il91+yhGPummmr7eN8MMyEMx+4T9Jzch31sYSQrI5WdBF7UREXRTMyRcRh8ICIW9yu+PjwP2SllCi3ZYHdqQQocVJEvyzi/hE+moINOt+EQIlp0Bo73Ing0r6cXIHCcB1DyIiE2ptZj57PP2a4lJ5yFvDINqxmGGYSR0vdd4+F6a/rOOdzPIFtw180QfYEQhcbPranujOweGZdiD+nv1dutFglPVcgeoYJrHp3jafUKi479+kWrrsRBx3Qh70Jp5CL9/a1Md1rIjhCEaqKmQ6/l7ZWt1hi/KkkxhB8oprYQDoPdsUMZ5gvRxwWIAX7AD/cc478xIeRuBCjWXLGgk/GSL31wgz7kpiOLdq2J9XIzb2e1LWC2bR8aYEW+tP3D+tno=
   matrix:
   - SAUCE_BROWSER="chrome"
 node_js:
