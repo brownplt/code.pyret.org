@@ -15,6 +15,9 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     stderr: function(s) { console.error(s); }
   });
 
+  var FIREFOX_GAS = 200;
+  var OTHER_GAS = 1000;
+
   var EXIT_SUCCESS = 0;
   var EXIT_ERROR = 1;
   var EXIT_ERROR_RENDERING_ERROR = 2;
@@ -24,6 +27,18 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
 
   runtime.setParam("command-line-arguments", []);
   runtime.setParam("staticModules", program.staticModules);
+
+  var ua = "";
+  if(window.navigator && window.navigator.userAgent) {
+    ua = window.navigator.userAgent;
+  }
+  if(ua.indexOf("Firefox") !== -1) {
+    runtime.INITIAL_GAS = FIREFOX_GAS;
+  }
+  else {
+    runtime.INITIAL_GAS = OTHER_GAS;
+  }
+
 
   var postLoadHooks = {
     "builtin://srcloc": function(srcloc) {
