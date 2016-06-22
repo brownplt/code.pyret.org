@@ -235,7 +235,7 @@
 
       function highlightSrcloc(s, cls, withMarker) {
         return runtime.safeCall(function() {
-          return cases(get(srcloc, "Srcloc"), "Srcloc", s, {
+          return cases(get(srcloc, "is-Srcloc"), "Srcloc", s, {
             "builtin": function(_) { /* no-op */ },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
               var cmLoc = cmPosFromSrcloc(runtime, srcloc, s);
@@ -308,7 +308,7 @@
         if(!editor) { return; }
         if (jQuery(editor.getWrapperElement()).find(".warning-upper").length !== 0) {
           var view = editor.getScrollInfo();
-          cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
+          cases(get(srcloc, "is-Srcloc"), "Srcloc", curLoc, {
             "builtin": function(_) { },
             "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
               var charCh = editor.charCoords(cmPosFromSrcloc(runtime, srcloc, curLoc).start, "local");
@@ -354,7 +354,7 @@
             if(!editor) { return; }
             function rotateLoc() { locIndex = (locIndex + 1) % locs.length; }
 
-            return cases(get(srcloc, "Srcloc"), "Srcloc", curLoc, {
+            return cases(get(srcloc, "is-Srcloc"), "Srcloc", curLoc, {
               "builtin": function(_) { rotateLoc(); gotoNextLoc(); },
               "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
                 editor.scrollIntoView(cmPosFromSrcloc(runtime, srcloc, curLoc).start, 100);
@@ -521,7 +521,7 @@
     }
 
     function cmPosFromSrcloc(runtime, srcloc, loc) {
-      return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
         "builtin": function(_) {
            throw new Error("Cannot get CodeMirror loc from builtin location");
         },
@@ -613,7 +613,7 @@
     function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context, underline) {
       if (underline === undefined) underline = true;
       var styles = document.getElementById("highlight-styles").sheet;
-      return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
         "builtin": function(_) { /* no-op */ },
         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
           var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
@@ -638,7 +638,7 @@
 
     function highlightLines(runtime, editors, srcloc, loc, cssColor, context) {
       var styles = document.getElementById("highlight-styles").sheet;
-      return runtime.ffi.cases(runtime.getField(srcloc, "Srcloc"), "Srcloc", loc, {
+      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
         "builtin": function(_) { /* no-op */ },
         "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
           var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
@@ -827,7 +827,7 @@
       var snippets = new Array();
       var highlights = new Map();
       function help(errorDisp, stack) {
-        return ffi.cases(get(ED, "ErrorDisplay"), "ErrorDisplay", errorDisp, {
+        return ffi.cases(get(ED, "is-ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) {
             var result = $("<div>");
             var contents = ffi.toArray(seq);

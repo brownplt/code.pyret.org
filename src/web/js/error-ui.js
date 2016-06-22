@@ -32,7 +32,7 @@
         return function(val) { return get(error, pyretFunName).app(val); }
       }
 
-      var isContractError = get(contracts, "ContractResult").app;
+      var isContractError = get(contracts, "is-ContractResult").app;
 
       // Exception will be one of:
       // - an Array of compileErrors (this is legacy, but useful for old versions),
@@ -176,10 +176,10 @@
         else if(isContractError(e.exn)) {
           drawPyretContractFailure(e.exn);
         }
-        else if(mkPred("RuntimeError")(e.exn)) {
+        else if(mkPred("is-RuntimeError")(e.exn)) {
           drawPyretRuntimeError();
         }
-        else if(mkPred("ParseError")(e.exn)) {
+        else if(mkPred("is-ParseError")(e.exn)) {
           drawPyretParseError();
         } else {
           drawRuntimeErrorToString(e)();
