@@ -1321,6 +1321,25 @@
         });
         return container;
       };
+      renderers["tuple"] = function(t, pushTodo) {
+        pushTodo(undefined, undefined, undefined, Array.prototype.slice.call(t.vals), "render-tuple");
+      };
+      renderers["render-tuple"] = function(top){
+        var container = $("<span>").addClass("replOutput");
+        var openBrace = $("<span>").text("{");
+        var closeBrace = $("<span>").text("}");
+        var values = $("<span>");
+        for (var i = top.done.length - 1; i >= 0; i--) {
+          values.append(top.done[i]);
+          if (i > 0) {
+             values.append("; ");
+          }
+        }
+        container.append(openBrace);
+        container.append(values);
+        container.append(closeBrace);
+        return container;
+      };
       renderers["object"] = function(val, pushTodo) {
         var keys = [];
         var vals = [];
