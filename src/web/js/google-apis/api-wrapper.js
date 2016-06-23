@@ -8,7 +8,7 @@
  * The most recently authenticated version of the
  * wrapped Google API
  */
-var gwrap = {
+var gwrap = window.gwrap = {
   // Initialize to a dummy method which loads the wrapper
   load: function(params) {
     if (!params || !params.reauth || (params.reauth.immediate === undefined)) {
@@ -44,7 +44,7 @@ var _GWRAP_APIS = {};
  *        on `reauth`.
  */
 function loadAPIWrapper(immediate) {
-  
+
   // Sanity check: Make sure aforementioned things are
   //               actually defined.
 
