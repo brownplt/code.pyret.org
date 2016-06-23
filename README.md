@@ -32,7 +32,7 @@ and the dependencies will be installed.
 To run the server, run:
 
 ```
-$ heroku local:start
+$ heroku local:run npm start
 ```
 
 The editor will be served from `http://localhost:5000/editor`.
@@ -154,4 +154,3 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
  $ heroku ps:scale web=1
 ```
 7.	Now run `heroku open` or visit appname.herokuapp.com.
-
