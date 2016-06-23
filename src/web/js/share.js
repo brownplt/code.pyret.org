@@ -1,4 +1,4 @@
-function makeShareAPI(pyretVersion) {
+window.makeShareAPI = function makeShareAPI(pyretVersion) {
 
   function makeHoverMenu(triggerElt, menuElt, showOnHover, onShow) {
     var divHover = false;

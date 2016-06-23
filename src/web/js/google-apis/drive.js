@@ -1,4 +1,4 @@
-function createProgramCollectionAPI(collectionName, immediate) {
+window.createProgramCollectionAPI = function createProgramCollectionAPI(collectionName, immediate) {
   function DriveError(err) {
     this.err = err;
   }
@@ -117,7 +117,7 @@ function createProgramCollectionAPI(collectionName, immediate) {
         save: function(contents, newRevision) {
           // NOTE(joe): newRevision: false will cause badRequest errors as of
           // April 30, 2014
-          if(newRevision) { 
+          if(newRevision) {
             var params = { 'newRevision': true };
           }
           else {
@@ -156,9 +156,9 @@ function createProgramCollectionAPI(collectionName, immediate) {
 
     // The primary purpose of this is to have some sort of fallback for
     // any situation in which the file object has somehow lost its info
-    function fileBuilder(googFileObject) { 
-      if ((googFileObject.mimeType === 'text/plain' && !googFileObject.fileExtension) 
-          || googFileObject.fileExtension === 'arr') { 
+    function fileBuilder(googFileObject) {
+      if ((googFileObject.mimeType === 'text/plain' && !googFileObject.fileExtension)
+          || googFileObject.fileExtension === 'arr') {
         return makeFile(googFileObject, 'text/plain', 'arr');
       } else {
         return makeFile(googFileObject, googFileObject.mimeType, googFileObject.fileExtension);

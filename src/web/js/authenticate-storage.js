@@ -1,9 +1,10 @@
 // Defines storageAPI (as a promise) for others to use
 var storageAPIDeferred = Q.defer();
 var sheetsAPIDeferred = Q.defer();
-var storageAPI = storageAPIDeferred.promise;
-var sheetsAPI = sheetsAPIDeferred.promise;
-function handleClientLoad(clientId, apiKey) {
+window.storageAPI = storageAPIDeferred.promise;
+window.sheetsAPI = sheetsAPIDeferred.promise;
+
+window.handleClientLoad = function handleClientLoad(clientId, apiKey) {
   gapi.client.setApiKey(apiKey);
   var api = createProgramCollectionAPI("code.pyret.org", true);
 
@@ -36,4 +37,3 @@ function handleClientLoad(clientId, apiKey) {
     };
   });
 }
-
