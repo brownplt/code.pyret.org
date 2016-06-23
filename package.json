@@ -48,7 +48,7 @@
   "scripts": {
     "postinstall": "webpack && make -j3 web",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & webpack-dev-server"
+    "start": "supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & webpack-dev-server --port 5001"
   },
   "repository": {
     "type": "git",
