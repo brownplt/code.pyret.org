@@ -29,7 +29,7 @@
     "mustache-express": "^1.2.1",
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
-    "pyret-ide": "github:pcardune/pyret-ide#master-builds",
+    "pyret-ide": "git://github.com/pcardune/pyret-ide#master-builds",
     "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
     "q": "~1.0.1",
     "react": "^15.1.0",
