@@ -4,6 +4,7 @@ src/web/teachpacks
 build/
 *.swp
 **/.tern-port
+test/jasmine
 compiled/
 program-deps.js
 program-require.js
