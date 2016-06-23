@@ -7,7 +7,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "build", "web"),
     filename: "[name].js",
-    publicPath: IS_PRODUCTION ? undefined : "/",
+    publicPath: IS_PRODUCTION ? undefined : process.env.ASSET_BASE_URL+"/",
   },
   devtool: IS_PRODUCTION ? 'source-map' : 'inline-source-map',
   entry: {
@@ -34,6 +34,7 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.PYRET': JSON.stringify(process.env.PYRET),
+      'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL),
       'process.env.CURRENT_PYRET_RELEASE': JSON.stringify(process.env.CURRENT_PYRET_RELEASE),
     }),
   ].concat(IS_PRODUCTION ? [
@@ -53,6 +54,8 @@ module.exports = {
     inline: true,
     hot: true,
     progress: true,
-    contentBase: path.join(__dirname, 'build', 'web')
-  }
+    contentBase: path.join(__dirname, 'build', 'web'),
+    port: 5001
+  },
+  progress: true
 };
