@@ -124,9 +124,6 @@
           console.error("Bad result: ", result);
           errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
         }
-        $(".check-block-error .cm-future-snippet").each(function(){this.cmrefresh();});
-        $(".compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
-
       }
     }
 
@@ -235,6 +232,10 @@
           }
           output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
+          setTimeout(function(){
+            $(".check-block-error .cm-future-snippet").each(function(){this.cmrefresh();});
+            $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
+          }, 200);
         }
       }
       function setWhileRunning() {

@@ -19,7 +19,7 @@ window.ct_error = function(/* varargs */) {
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
 window.highlightMode = "mcmh"; // what is this for?
-function clearFlash() {
+window.clearFlash = function() {
   $(".notificationArea").empty();
 }
 window.stickError = function(message, more) {
