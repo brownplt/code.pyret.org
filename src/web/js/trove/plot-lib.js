@@ -9,7 +9,7 @@
   ],
   provides: {},
   theModule: function(RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
-    
+
   var gf = RUNTIME.getField;
   var HISTOGRAM_N = 100;
   var libNum =       CLIB.libNum,
@@ -738,6 +738,10 @@
       var i;
       var points = gf(linePlot, "points");
       var options = toJSOptions(gf(linePlot, "options"));
+
+      if (points.length === 0) {
+        return;
+      }
 
       var segments = [];
       for (i = 0; i < points.length - 1; i++) {
