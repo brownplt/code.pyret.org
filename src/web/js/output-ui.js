@@ -882,14 +882,10 @@
               replace(replacement);
               return placeholder;
             }
-            var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
-            var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
-            var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, stack);
             var tryRenderReason = function() {
               return runtime.getField(val, "render-fancy-reason").app(
-                maybeStackLoc,
-                srclocAvaliable,
-                maybeLocToAST);};
+                locToAST(runtime, editors, srcloc),
+                locToSrc(runtime, editors, srcloc));};
             var processTryRenderReason = function(out) {
               if (runtime.isSuccessResult(out)) {
                 var replacement = help(out.result, stack);

@@ -220,12 +220,9 @@
           }
           
           if (!isTestSuccess(tr)) {
-            var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-            var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-            var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, 
-              get(tr, "actual-exn").val.pyretStack);
+            var locToAST = outputUI.locToAST(runtime, editors, srcloc);
             runtime.runThunk(
-              function() { return get(tr, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); },
+              function() { return get(tr, "render-fancy-reason").app(locToAST); },
               function(out) {
                 if (runtime.isSuccessResult(out)) {
                   var reason = addReasonToTest("test-reason", out.result, get(tr, "loc"));
