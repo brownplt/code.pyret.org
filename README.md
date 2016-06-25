@@ -9,7 +9,7 @@ everything in `.env` is just an environment variable if you really want to
 manage things yourself, but using Heroku tools makes sure you run like things
 do in production.
 
-First, get the Heroku toolbelt (https://toolbelt.heroku.com/).
+First, get the [Heroku toolbelt](https://toolbelt.heroku.com/).
 
 Then, copy `.env.example` to `.env`.  If all you want to do is run Pyret code
 and test out the REPL, you only need to edit a few variables.  If you want to
@@ -80,7 +80,7 @@ The instructions for setting up Selenium to open Chrome locally are pretty
 platform-specific, but you can try just running:
 
 ```
-foreman run mocha
+heroku local:run ./node_modules/mocha/bin/mocha
 ```
 
 with Selenium installed, but YMMV.
@@ -102,7 +102,7 @@ SAUCE_ACCESS_KEY="deadbeef-2671-11e5-a6a1-206a8a0824be"
 
 (Not my real access key)
 
-First, install the Sauce Connect client for your system from
+Second, install the Sauce Connect client for your system from
 https://docs.saucelabs.com/reference/sauce-connect/.  Follow the instructions
 for starting the server (the default configuration should work fine), using
 the same username and access key, for example, on Ubuntu I run:
@@ -115,13 +115,13 @@ That sets up a tunnel to Sauce Labs, and on the same machine you should now be
 able to run:
 
 ```
-$ foreman run mocha
+$ heroku local:run ./node_modules/mocha/bin/mocha
 ```
 
 To run only a particular file, pass in one of the filenames in `test/`, e.g.
 
 ```
-$ foreman run mocha test/world.js
+$ heroku local:run ./node_modules/mocha/bin/mocha test/world.js
 ```
 
 Check out how `world.js` and `image.js` are written: they look up files from
@@ -149,8 +149,8 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
 4.	Set the config variables found in `.env` (or `.env.example`) on Heroku. You can enter them using `heroku config:set NAME1=VALUE1 NAME2=VALUE2` or in the online control panel.
 5.	Add a Redis Cloud database using `heroku addons:add rediscloud` or at addons.heroku.com. You will likely have to verify first (enter a credit card), but you shouldn’t actually be charged for the most basic level (but check for yourself!).
 6.	Now, still in your code.pyret.org repo, run
-```
- $ git push heroku <localbranch>:master
- $ heroku ps:scale web=1
-```
+
+        $ git push heroku <localbranch>:master
+        $ heroku ps:scale web=1
+
 7.	Now run `heroku open` or visit appname.herokuapp.com.
