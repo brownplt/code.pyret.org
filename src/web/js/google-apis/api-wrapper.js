@@ -109,8 +109,11 @@ function loadAPIWrapper(immediate) {
    * @see GoogleAPIError
    * @param [message] - The error message for this error
    */
-  function APIResponseError(message) {
-    this.message = message || "";
+  function APIResponseError(response) {
+    response = response || {};
+    this.message = response.message || "";
+    this.code = response.code || null;
+    this.response = response;
   }
   APIResponseError.prototype = Object.create(GoogleAPIError.prototype);
   APIResponseError.prototype.name = "APIResponseError";
@@ -206,12 +209,12 @@ function loadAPIWrapper(immediate) {
   function failCheck(p) {
     return p.then(function(result) {
       // Network error
-      if (result && result.error) {
-        console.error("Error getting Google API response: ", result);
-        throw new APIResponseError(result);
-      }
       if (result && (typeof result.code === "number") && (result.code >= 400)) {
         console.error("40X Error getting Google API response: ", result);
+        throw new APIResponseError(result);
+      }
+      if (result && result.error) {
+        console.error("Error getting Google API response: ", result);
         throw new APIResponseError(result);
       }
       return result;

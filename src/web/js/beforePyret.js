@@ -19,7 +19,7 @@ window.ct_error = function(/* varargs */) {
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
 window.highlightMode = "mcmh"; // what is this for?
-function clearFlash() {
+window.clearFlash = function() {
   $(".notificationArea").empty();
 }
 window.stickError = function(message, more) {
@@ -218,6 +218,7 @@ $(function() {
   function setTitle(progName) {
     document.title = progName + " - code.pyret.org";
   }
+  CPO.setTitle = setTitle;
 
   $("#download a").click(function() {
     var downloadElt = $("#download a");
@@ -263,6 +264,8 @@ $(function() {
     });
   }
   CPO.autoSave = autoSave;
+  CPO.showShareContainer = showShareContainer;
+  CPO.loadProgram = loadProgram;
 
   function save() {
     window.stickMessage("Saving...");

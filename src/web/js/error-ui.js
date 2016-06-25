@@ -68,7 +68,7 @@
               return get(e, "render-fancy-reason").app(); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var errorID = contextFactory();
+                var errorID = !contextFactory ? undefined : contextFactory();
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
                 dom.addClass("compile-error");
                 dom.on('click', function(){
@@ -79,7 +79,9 @@
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.error("An error occurred rendering the reason for this error", errorDisp);;
                 console.log(errorDisp.exn);
+                renderSimpleReason(e);
               }
             });
         }
@@ -109,46 +111,86 @@
         }
 
         function drawPyretRuntimeError() {
-          var locToAST = outputUI.locToAST(runtime, editors, srcloc);
-          var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
+          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
+          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
+          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(locToAST, locToSrc); },
+            function() { return get(e.exn, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var errorID = contextFactory();
+                var errorID = !contextFactory ? undefined : contextFactory();
                 var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, e.pyretStack,
                       e.exn.$name == "arity-mismatch" ? 1 : 0);
                 if(highlightMode === "scsh" && highlightLoc != undefined) {
                   outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
                 }
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
+                dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
+                dom.on('click', function(){
+                  dom.trigger('toggleHighlight');
+                });
                 dom.trigger('toggleHighlight');
                 dom.addClass("compile-error");
                 container.append(dom);
-                dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
               } else {
-                  console.log(errorDisp.exn);
+                renderSimpleReason(e);
+                errorError = $("<span>").addClass("compile-error internal-error highlights-active")
+                  .text("An error occurred rendering the reason for the above error; details logged to the console");
+                if(!container.hasClass("internal-error")) {
+                  drawError(errorError, editors, runtime, errorDisp.exn, undefined);
+                }
+                container.append(errorError);
+                errorError.trigger('toggleHighlight');
+                console.error("An error occurred rendering the reason for this error", errorDisp, e.exn);
+              }
+            });
+        }
+        
+        function renderSimpleReason(err) {
+          runtime.runThunk(
+            function() { return get(err.exn, "render-reason").app(); },
+            function(errorDisp) {
+              if (runtime.isSuccessResult(errorDisp)) {
+                var errorID = !contextFactory ? undefined : contextFactory();
+                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, err.pyretStack, errorID);
+                dom.addClass("compile-error");
+                container.append(dom);
+                dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, err));
+                if(contextFactory == undefined) {
+                  dom.on('click', function(){
+                    dom.trigger('toggleHighlight');
+                  });
+                }
+                dom.trigger('toggleHighlight');
+              } else {
+                container.append($("<span>").addClass("compile-error")
+                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.error("An error occurred rendering the reason for this error", errorDisp);
+                console.log(err);
               }
             });
         }
 
         function drawPyretContractFailure(err) {
-          var locToAST = outputUI.locToAST(runtime, editors, srcloc);
-          var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
+          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
+          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
+          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
           var isArg = ffi.isFailArg(err);
           var loc = get(err, "loc");
           var reason = get(err, "reason");
           runtime.runThunk(
-            function() { return get(err, "render-fancy-reason").app(locToAST, locToSrc); },
+            function() { return get(err, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); },
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
-                dom.addClass("parse-error");
+                dom.addClass("compile-error");
                 container.append(dom);
                 dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
+                dom.trigger('toggleHighlight');
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.error("An error occurred rendering the reason for this error", errorDisp);
                 console.log(errorDisp.exn);
               }
             });
@@ -166,6 +208,7 @@
               } else {
                 container.append($("<span>").addClass("compile-error")
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.error("An error occurred rendering the reason for this error", errorDisp);
                 console.log(errorDisp.exn);
               }
             });

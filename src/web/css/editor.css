@@ -154,6 +154,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
         rgba(255, 255, 255, 0.8) 45%,
         rgba(255, 255, 255, 0.0) 50%);
     top:0;
+    left:0;
     background-size: cover;
     cursor: pointer;
     background-position: 100em;

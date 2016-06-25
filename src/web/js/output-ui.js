@@ -557,31 +557,41 @@
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
 
-    function astFromText(runtime, source, filename) {
-      // TODO(joe): This isn't, and wasn't ever, stack safe
-      return runtime.unwrap(runtime.getField(PP, "surface-parse").app(source, filename));
-    }
-
     function locToSrc(runtime, editors, srcloc) {
       return runtime.makeFunction(function(loc) {
         var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
         return getSourceContent(editors, cmloc, true);
       });
     }
-
-    function locToAST(runtime, editors, srcloc) {
+    
+    function makeSrclocAvaliable(runtime, editors, srcloc) {
       return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        var source = getSourceContent(editors, cmloc, true);
-        var prelude = ""
-        var start_line = runtime.getField(loc,"start-line");
-        var start_col = runtime.getField(loc,"start-column");
-        for(var i=1; i < start_line; i++) { prelude += "\n"; }
-        for(var i=0; i < start_col; i++) { prelude += " "; }
-        return astFromText(runtime,prelude + source, cmloc.source);
+        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+          "builtin": function(_) {
+            console.error("srclocAvaliable should not be passed a builtin source location.", srcloc);
+            return runtime.pyretFalse;
+          },
+          "srcloc": function(filename, _, _, _, _, _, _) {
+            if(editors.hasOwnProperty(filename)) {
+              return runtime.pyretTrue;
+            } else if (!!sessionStorage.getItem(filename)) {
+              return runtime.pyretTrue;
+            } else {
+              runtime.pauseStack(function(restarter){
+                $.ajax({url: "/arr/" + filename.slice(10) + ".arr", async:false}).done(
+                  function(response){
+                    sessionStorage.setItem(filename, response);
+                    restarter.resume(runtime.pyretTrue);
+                  }).fail(function(){
+                    restarter.resume(runtime.pyretFalse);
+                  });
+              });
+            }
+          }
+        });
       });
     }
-
+    
     function getSourceContent(editors, cmloc, tight) {
       if(editors.hasOwnProperty(cmloc.source)) {
         if(!tight) {
@@ -597,9 +607,7 @@
       } else {
         var source = sessionStorage.getItem(cmloc.source);
         if(!source) {
-          source = "";
-          $.ajax({url: cmloc.source.slice(3), async:false}).success(
-            function(s){source = s});
+          return "Source not found";
         }
         var lines = source.split("\n").slice(cmloc.start.line, cmloc.end.line + 1);
         if(tight) {
@@ -610,6 +618,61 @@
       }
     }
 
+    function locToAST(runtime, editors, srcloc) {
+      return runtime.makeFunction(function(loc) {
+        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
+        var source = getSourceContent(editors, cmloc, true);
+        var prelude = ""
+        var start_line = runtime.getField(loc,"start-line");
+        var start_col = runtime.getField(loc,"start-column");
+        for(var i=1; i < start_line; i++) { prelude += "\n"; }
+        for(var i=0; i < start_col; i++) { prelude += " "; }
+        return astFromText(runtime,prelude + source, cmloc.source);
+      });
+    }
+    
+    function makeMaybeLocToAST(runtime, editors, srcloc) {
+      return runtime.makeFunction(function(loc) {
+        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+          "builtin": function(_) {
+            console.error("maybeLocToAST should not be passed a builtin source location.", loc);
+            return runtime.ffi.makeNone();
+          },
+          "srcloc": function(filename, start_line, start_col, startCh, endL, endC, endCh) {
+            var prelude = ""
+            for(var i=1; i < start_line; i++) {prelude += "\n";}
+            for(var i=0; i < start_col; i++)  {prelude += " "; }
+            var source = getSourceContent(editors, cmPosFromSrcloc(runtime, srcloc, loc), true);
+            runtime.pauseStack(function(restarter) {
+              runtime.run(function(_, __) {
+                  return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
+                }, runtime.namespace, {
+                  sync: false
+                }, function(result) {
+                  if(runtime.isSuccessResult(result)) {
+                    restarter.resume(runtime.ffi.makeSome(result.result.dict.block.dict.stmts.dict.first));
+                  } else {
+                    restarter.resume(runtime.ffi.makeNone());
+                  }
+                });});
+          }});
+        });
+    }
+    
+    function makeMaybeStackLoc(runtime, editors, srcloc, stack) {
+      return runtime.makeFunction(function(n, userFramesOnly) {
+        var probablyErrorLocation;
+        if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+        else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
+        else { probablyErrorLocation = false; }
+        if (probablyErrorLocation) {
+          return runtime.ffi.makeSome(probablyErrorLocation);
+        } else {
+          return runtime.ffi.makeNone();
+        }
+      });
+    }
+      
     function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context, underline) {
       if (underline === undefined) underline = true;
       var styles = document.getElementById("highlight-styles").sheet;
@@ -622,7 +685,7 @@
           if(editor) {
             styles.insertRule(
                   ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
-                  + " ." + locKey + " { background-color:" + cssColor +
+                   + " ." + locKey + " { " + (!!cssColor ? "background-color:" + cssColor : "") +
                   (underline ? ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid" : "") + ";}",
                   styles.cssRules.length);
               return editor.markText(
@@ -814,13 +877,17 @@
       var makePalette = function(){
         var palette = new Map();
         return function(n){
-          if(highlightMode == "scsh" || highlightMode == "scmh")
-            return 0;
-          if(!palette.has(n)) {
-            lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-            palette.set(n, lastHue);
+          if(n === -1) {
+            return undefined;
+          } else {
+            if(highlightMode == "scsh" || highlightMode == "scmh")
+              return 0;
+            if(!palette.has(n)) {
+              lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+              palette.set(n, lastHue);
+            }
+            return palette.get(n);
           }
-          return palette.get(n);
         };};
 
       var palette = makePalette();
@@ -882,10 +949,14 @@
               replace(replacement);
               return placeholder;
             }
+            var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
+            var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
+            var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, stack);
             var tryRenderReason = function() {
               return runtime.getField(val, "render-fancy-reason").app(
-                locToAST(runtime, editors, srcloc),
-                locToSrc(runtime, editors, srcloc));};
+                maybeStackLoc,
+                srclocAvaliable,
+                maybeLocToAST);};
             var processTryRenderReason = function(out) {
               if (runtime.isSuccessResult(out)) {
                 var replacement = help(out.result, stack);
@@ -950,27 +1021,19 @@
             else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
             else { probablyErrorLocation = false; }
             if (probablyErrorLocation) {
-              var placeholder = $("<span>").text("Rendering...");
+              var result;
               runtime.runThunk(
-                function() { return contentsWithLoc.app(probablyErrorLocation); },
+                function() { 
+                  return contentsWithLoc.app(probablyErrorLocation);
+                },
                 function(out) {
                   if (runtime.isSuccessResult(out)) {
-                    var rendered = help(out.result,stack);
-                    if ($.contains(document.documentElement, placeholder[0])) {
-                      placeholder.replaceWith(rendered);
-                    }
-                    else {
-                      placeholder = rendered;
-                    }
-                    return rendered;
+                    result = out.result;
                   } else {
-                    var msg = $("<span>").addClass("output-failed")
-                      .text("<error rendering embedded contents; details logged to console>");
-                    console.log(out.exn);
-                    return msg;
+                    
                   }
                 });
-              return placeholder;
+              return help(result);
             } else {
               return help(contentsWithoutLoc,stack);
             }
@@ -992,19 +1055,29 @@
             var cmLocs = locArray.map(
               function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
 
-            var cssColor = hueToRGB(palette(locs));
+            var hue = palette(color);
+            var cssColor = hue === undefined ? undefined : hueToRGB(hue);
 
             var locClasses = cmLocs.map(
               function(l){return cmlocToCSSClass(l);});
 
+            //for (var h = 0; h < locArray.length; h++) {
+            //  anchor.addClass(locClasses[h]);
+            //  var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
+            //  if(highlight == undefined) {
+            //    highlights.set({pl:locArray[h],l:cmLocs[h],c:cssColor},
+            //      highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
+            //  }
+            //}
             for (var h = 0; h < locArray.length; h++) {
               anchor.addClass(locClasses[h]);
               var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
               if(highlight == undefined) {
-                highlights.set({pl:locArray[h],l:cmLocs[h],c:palette(color)},
+                highlights.set({pl:locArray[h],l:cmLocs[h],c:cssColor},
                   highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
               }
             }
+
 
             anchor.on("mouseenter", function() {
               for (var i = 0; i < locClasses.length; i++) {
@@ -1555,6 +1628,9 @@
       cmlocToCSSClass: cmlocToCSSClass,
       locToAST: locToAST,
       locToSrc: locToSrc,
+      makeMaybeLocToAST: makeMaybeLocToAST,
+      makeMaybeStackLoc: makeMaybeStackLoc,
+      makeSrclocAvaliable: makeSrclocAvaliable
     });
   }
 })

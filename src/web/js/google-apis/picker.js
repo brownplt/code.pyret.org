@@ -10,25 +10,25 @@ function FilePicker(options) {
   this.onLoaded = options.onLoaded || function(){};
   this.onError = options.onError || function(m) { throw new gwrap.GAPIError(m); };
   this.onInternalError = options.onInternalError || this.onError;
+  this.raisedError = false;
 
-  function onPickerLoaded(drive) {
-    return function() {
-      this.init(drive, google.picker);
-      this.onLoaded();
-    };
+  function onPickerLoaded() {
+    this.init(google.picker);
+    this.onLoaded();
   }
 
-  storageAPI.then((function(drive){
-    google.load('picker', '1', { 'callback': onPickerLoaded(drive).bind(this) });
+  // Wrapped for dependency-ordering, although that might be unneeded.
+  storageAPI.then((function(){
+    google.load('picker', '1', { 'callback': onPickerLoaded.bind(this) });
   }).bind(this));
 }
 
-FilePicker.prototype.init = function(drive, picker) {
-  this.open = this.initOpen(drive, picker);
+FilePicker.prototype.init = function(picker) {
+  this.open = this.initOpen(picker);
   // this.openOn does not need initialization
 };
 
-FilePicker.prototype.initOpen = function(drive, picker) {
+FilePicker.prototype.initOpen = function(picker) {
 
   var validateSelection = (function(sel) {
     if (sel.length === 0) {
@@ -77,11 +77,13 @@ FilePicker.prototype.initOpen = function(drive, picker) {
     if (data[picker.Response.ACTION] == picker.Action.PICKED) {
       var selection = data[picker.Response.DOCUMENTS];
       validateSelection(selection);
-      this.dataHandler(selection, picker, drive);
+      storageAPI.then((function(drive) {
+        this.dataHandler(selection, picker, drive);
+      }).bind(this));
     }
   }).bind(this);
 
-  var showPicker = (function() {
+  var showPicker = (function(drive) {
     /**
      * A Picker View which displays Pyret files which users may load.
      */
@@ -117,9 +119,21 @@ FilePicker.prototype.initOpen = function(drive, picker) {
 
   
 
-  return function() {
-    gwrap.withAuth(showPicker);
-  };
+  return (function() {
+    this.raisedError = false;
+    return storageAPI.then(function(drive) {
+      return gwrap.withAuth(function() {return showPicker(drive); });
+    })
+      .catch((function(err) {
+        if (this.raisedError) {
+          throw err; // <- result from this.onError or this.onInternalError
+        } else if (err && err.message) {
+          this.onInternalError(err.message);
+        } else {
+          this.onInternalError(err);
+        }
+      }).bind(this));
+  }).bind(this);
 };
 
 FilePicker.prototype.openOn = function(elt, evt) {

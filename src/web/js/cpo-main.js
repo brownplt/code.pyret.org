@@ -513,10 +513,13 @@
           // load in this window
           if (editor.cm.getDoc().history.lastModTime === lastSave) {
             var p = drive.getFileById(id);
-            showShareContainer(p);
+            window.CPO.showShareContainer(p);
             window.location.hash = "#program=" + id;
-            setTitle(documents[0][picker.Document.NAME]);
-            loadProgram(p);
+            window.CPO.setTitle(documents[0][picker.Document.NAME]);
+            window.CPO.loadProgram(p).then(function(contents) {
+              window.CPO.editor.cm.setValue(contents);
+              window.CPO.editor.cm.clearHistory();
+            });
           } else {
             openFile(id);
           }
