@@ -218,6 +218,7 @@ $(function() {
   function setTitle(progName) {
     document.title = progName + " - code.pyret.org";
   }
+  CPO.setTitle = setTitle;
 
   $("#download a").click(function() {
     var downloadElt = $("#download a");
@@ -263,6 +264,8 @@ $(function() {
     });
   }
   CPO.autoSave = autoSave;
+  CPO.showShareContainer = showShareContainer;
+  CPO.loadProgram = loadProgram;
 
   function save() {
     window.stickMessage("Saving...");
