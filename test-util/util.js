@@ -215,10 +215,63 @@ function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
   });
 }
 
+function evalPyret(driver, toEval) {
+  var replOutput = driver.findElement(webdriver.By.id("output"));
+  var breakButton = driver.findElement(webdriver.By.id('breakButton'));
+  var escaped = escape(toEval);
+  driver.executeScript([
+    "(function(cm){",
+    "cm.setValue(unescape(\"" + escaped + "\"));",
+    "cm.options.extraKeys.Enter(cm);",
+    "})",
+    "($(\".repl-prompt > .CodeMirror\")[0].CodeMirror)"
+  ].join(""));
+  driver.wait(webdriver.until.elementIsDisabled(breakButton));
+  return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
+    if (elements.length === 0) {
+      throw new Error("Failed to run Pyret code: " + toEval);
+    } else {
+      return elements[elements.length - 1];
+    }
+  });
+}
+
+
+function evalPyretNoError(driver, toEval) {
+  return evalPyret(driver, toEval).then(function(element) {
+    return element.getTagName().then(function(name) {
+      if (name != 'span') {
+        throw new Error("Failed to run Pyret code: " + toEval);
+      } else {
+        return element;
+      }
+    });
+  })
+}
+
+function testErrorRendersString(it, name, toEval, expectedString) {
+  it("should render " + name + " errors", function() {
+    this.timeout(30000);
+    this.browser.get(this.base + "/editor");
+    waitForPyretLoad(this.browser);
+    return evalPyret(this.browser, toEval).then(function(response) {
+      return response.getText().then(function(text) {
+        if(text.substring(expectedString) !== -1) {
+          return true;
+        }
+        else {
+          throw new Error("Text content " + text + " did not match " + expectedString);
+        }
+      });
+    });
+  });
+}
 
 module.exports = {
   pyretLoaded: pyretLoaded,
   waitForPyretLoad: waitForPyretLoad,
+  evalPyret: evalPyret,
+  testErrorRendersString: testErrorRendersString,
   setup: setup,
   teardown: teardown,
   runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
