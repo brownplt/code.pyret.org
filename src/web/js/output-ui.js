@@ -1479,6 +1479,7 @@
       });
     }
     return runtime.makeJSModuleReturn({
+      installRenderers: installRenderers,
       renderPyretValue: renderPyretValue,
       renderStackTrace: renderStackTrace,
       hoverLocs: hoverLocs,

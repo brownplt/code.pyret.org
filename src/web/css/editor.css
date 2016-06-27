@@ -126,6 +126,21 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
+div.trace {
+   background-color: #f2f6ff;
+}
+div.trace.error {
+   background-color: #fff6f2;
+}
+span.trace {
+   padding-right: 1em;
+   font-size: 85%;
+}
+span.trace:after {
+   content: ":";
+}   
+
+
 .test-reason:not(.highlights-active) .highlight {
   background: initial!important;
 }

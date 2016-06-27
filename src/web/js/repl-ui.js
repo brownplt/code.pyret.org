@@ -248,6 +248,32 @@
         options.runButton.attr("disabled", true);
       }
 
+      // SETUP FOR TRACING ALL OUTPUTS
+      var replOutputCount = 0;
+      outputUI.installRenderers(repl.runtime);
+      repl.runtime.setParam("onRecordTrace", function(val) {
+        if (repl.runtime.isNothing(val)) return false;
+        console.log("In repl-ui:runMainCode(), top-level val is", val);
+        repl.runtime.pauseStack(function(restarter) {
+          repl.runtime.runThunk(function() {
+            return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+          }, function(container) {
+            if (repl.runtime.isSuccessResult(container)) {
+              $(output)
+                .append($("<div>").addClass("trace")
+                        .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
+                        .append(container.result));
+            } else {
+              $(output).append($("<div>").addClass("error trace")
+                               .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
+                               .append($("<span>").text("<error displaying value: details logged to console>")));
+              console.log(container.exn);
+            }
+            restarter.resume(val);
+          });
+        });
+      });
+
       var runMainCode = function(src, uiOptions) {
         breakButton.attr("disabled", false);
         output.empty();
@@ -258,6 +284,8 @@
         editors = {};
         editors["definitions://"] = uiOptions.cm;
         interactionsCount = 0;
+        replOutputCount = 0;
+        repl.runtime.clearTrace();
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
           console.error("Error displaying result: ", err);
