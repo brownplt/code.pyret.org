@@ -76,21 +76,26 @@ redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
 There are tests in `test-util/` and `test/` that use Selenium to script a
 browser.
 
-The instructions for setting up Selenium to open Chrome locally are pretty
+The instructions for setting up Selenium to open Chrome locally are somewhat
 platform-specific, but you can try just running:
 
 ```
-foreman run mocha
+heroku local:run mocha
 ```
 
-with Selenium installed, but YMMV.
+with Selenium installed and a development server running.  You can refine this
+with, e.g.
 
-The easiest thing to do is probably to run all the tests on Sauce Labs
-(https://saucelabs.com).  Pyret has an account there and you can email Joe to
-get a sub-account if you want, you can also get a personal free account with
-unlimited testing if you only test open-source stuff (which Pyret/CPO are).
-Sauce also stores screencasts and logs of your tests, which can be helpful
-with debugging.
+```
+heroku local:run mocha -g "errors"
+```
+
+to only run the tests in `test/errors.js`.
+
+Another options to run all the tests on Sauce Labs (https://saucelabs.com).
+You can also get a personal free account with unlimited testing if you only
+test open-source stuff (which Pyret/CPO are).  Sauce also stores screencasts
+and logs of your tests, which can be helpful with debugging.
 
 First, add your sauce username and access key (from your account page at
 Sauce) to `.env`:

@@ -181,11 +181,11 @@ function testErrorRendersString(it, name, toEval, expectedString) {
     this.timeout(15000);
     return evalPyret(this.browser, toEval).then(function(response) {
       return response.getText().then(function(text) {
-        if(text.substring(expectedString) !== -1) {
+        if(text.indexOf(expectedString) !== -1) {
           return true;
         }
         else {
-          throw new Error("Text content " + text + " did not match " + expectedString);
+          throw new Error("Text content of error \"" + text + "\" did not match \"" + expectedString + "\"");
         }
       });
     });
