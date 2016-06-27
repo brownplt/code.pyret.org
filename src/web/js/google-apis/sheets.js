@@ -115,8 +115,10 @@ function createSheetsAPI(immediate) {
      * (if link is dead, contact Philip (belph)).
      *
      * @param rowData - The raw data to process
+     * @param [skipHeaders] - If true, omits the first nonempty row from
+     *        the processed data set.
      */
-    function unifyRows(rowData) {
+    function unifyRows(rowData, skipHeaders) {
       var errors = [];
       // Schemas of individual rows
       var rowSchemas = [];
@@ -252,11 +254,18 @@ function createSheetsAPI(immediate) {
       }
 
       var foundFirstRow = false;
+      var foundHeaders = false;
       var emptyRows = [];
       rowData = rowData.map(function(row, rowNum) {
         if (row.values
             && (row.values.length > 0)
             && (row.values.some(function(v){return v.effectiveValue !== undefined;}))) {
+          if (!foundHeaders && skipHeaders) {
+            foundHeaders = true;
+            startRow += 1;
+            rowSchemas.push([]);
+            return [];
+          }
           foundFirstRow = true;
           var extracted = extractRowSchema(row.values.map(processValue), rowNum);
           row.values = extracted.values;
@@ -358,21 +367,29 @@ function createSheetsAPI(immediate) {
      * Returns the worksheet in this spreadsheet at the specified
      * index.
      * @param {number} worksheetIdx - The index of the worksheet to return
+     * @param {boolean} skipHeaders - Indicates whether or not header rows
+     *        should be skipped (ignored if this worksheet has been previously loaded)
      */
-    Spreadsheet.prototype.getByIndex = function(worksheetIdx) {
+    Spreadsheet.prototype.getByIndex = function(worksheetIdx, skipHeaders) {
       // Performs validation on index
       this.lookupInfoByIndex(worksheetIdx);
-      return this.worksheets[worksheetIdx];
+      var ret = this.worksheets[worksheetIdx];
+      ret.init(skipHeaders);
+      return ret;
     };
 
     /**
      * Returns the worksheet in this spreadsheet with the
      * given name.
      * @param {string} name - The name of the worksheet to return
+     * @param {boolean} skipHeaders - Indicates whether or not header rows
+     *        should be skipped (ignored if this worksheet has been previously loaded)
      */
-    Spreadsheet.prototype.getByName = function(name) {
+    Spreadsheet.prototype.getByName = function(name, skipHeaders) {
       var info = this.lookupInfoByName(name);
-      return this.worksheets[info.properties.index];
+      var ret = this.worksheets[info.properties.index];
+      ret.init(skipHeaders);
+      return ret;
     };
 
     /**
@@ -405,7 +422,9 @@ function createSheetsAPI(immediate) {
           if (!data.sheets || (data.sheets.length === 0)) {
             throw new SheetsError("Failed to add worksheet: \"" + name + "\"");
           }
-          return new Worksheet(this, data.sheets[0]);
+          var ret = new Worksheet(this, data.sheets[0]);
+          ret.init(false);
+          return ret;
         }).bind(this))
         .fail(function(err) {
           if (err.message && /already exists/.test(err.message)) {
@@ -489,7 +508,7 @@ function createSheetsAPI(immediate) {
       spreadsheet.worksheetsInfo[this.index] = { properties: data.properties };
       this.cache = [];
       this.spreadsheet = spreadsheet;
-      this.init(data);
+      this.rawData = data;
       this.listener = {
         handleEvent: (function(){
           return this.flushCache(true);
@@ -509,15 +528,28 @@ function createSheetsAPI(immediate) {
      * Reads in row data from the Google Sheets API response,
      * runs the type inference scheme on it, and populates this
      * worksheet's data.
-     * @param {object} data - The Google Sheets API response to process.
+     * @param {boolean} skipHeaders - Indicates whether or not header rows
+     *        should be skipped (ignored if this worksheet has been previously loaded)
      */
-    Worksheet.prototype.init = function(data) {
+    Worksheet.prototype.init = function(skipHeaders) {
+      if ((this.hasHeaders !== undefined)
+          && (this.hasHeaders !== !skipHeaders)) {
+        throw new SheetsError("Attempted to load worksheet with"
+                              + (skipHeaders ? "out" : "")
+                              + " headers, but worksheet was already previously"
+                              + " loaded with" + (skipHeaders ? "" : "out")
+                              + " headers.");
+      } else if (this.data !== undefined) {
+        return;
+      }
+      var data = this.rawData;
+      this.hasHeaders = !skipHeaders;
       if (!(data.data && data.data[0] && data.data[0].rowData)) {
         this.data = [];
         this.startCol = 0;
         this.schema = [];
       } else {
-        var unified = unifyRows(data.data[0].rowData);
+        var unified = unifyRows(data.data[0].rowData, skipHeaders);
         this.startCol = unified.startCol;
         this.data = unified.values;
         this.schema = unified.schema;
@@ -687,7 +719,8 @@ function createSheetsAPI(immediate) {
                                 + "Please report this error to the developers.");
         }
         // Re-unify
-        this.init(data.sheets[this.index]);
+        this.rawData = data.sheets[this.index];
+        this.init();
         return this;
       }).bind(this));
     };

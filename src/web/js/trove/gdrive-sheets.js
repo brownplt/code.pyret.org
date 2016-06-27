@@ -251,16 +251,18 @@
           return runtime.makeString(ws.properties.title);
         }));
       
-      function sheetByName(name) {
-        runtime.ffi.checkArity(1, arguments, "sheet-by-name");
+      function sheetByName(name, skipHeaders) {
+        runtime.ffi.checkArity(2, arguments, "sheet-by-name");
         runtime.checkString(name);
-        return loadWorksheet(function(){return ss.getByName(name);});
+        runtime.checkBoolean(skipHeaders);
+        return loadWorksheet(function(){return ss.getByName(name, skipHeaders);});
       }
       
-      function sheetByPos(idx) {
-        runtime.ffi.checkArity(1, arguments, "sheet-by-index");
+      function sheetByPos(idx, skipHeaders) {
+        runtime.ffi.checkArity(2, arguments, "sheet-by-index");
         runtime.checkNumber(idx);
-        return loadWorksheet(function(){return ss.getByIndex(idx);});
+        runtime.checkBoolean(skipHeaders);
+        return loadWorksheet(function(){return ss.getByIndex(idx, skipHeaders);});
       }
       function deleteSheetByName(name) {
         runtime.ffi.checkArity(1, arguments, "delete-sheet-by-name");
