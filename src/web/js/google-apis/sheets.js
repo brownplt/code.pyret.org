@@ -699,7 +699,10 @@ function createSheetsAPI(immediate) {
       return spreadsheets.get({
         spreadsheetId: id,
         fields: SHEET_REQ_FIELDS
-      }).then(function(data) { return new Spreadsheet(data); });
+      }).then(function(data) { return new Spreadsheet(data); },
+              function(err) {
+                throw new SheetsError("No Spreadsheet with id \"" + id + "\" found");
+              });
     };
     
     /**
