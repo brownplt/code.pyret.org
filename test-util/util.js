@@ -8,18 +8,19 @@ function teardown() {
   }
 }
 
-function teardownEditor() {
+function teardownMulti() {
   return this.browser.quit();
 }
 
-function setup() {
+function setupWithName(name) {
+  if(this.currentTest) { name = this.currentTest.title; }
   var browser = process.env.SAUCE_BROWSER || "chrome";
   if (process.env.TRAVIS_JOB_NUMBER != undefined) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
     .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
     .withCapabilities({
-      name: this.currentTest.title,
+      name: name,
       'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
       build: process.env.TRAVIS_BUILD_NUMBER,
       username: process.env.SAUCE_USERNAME,
@@ -54,11 +55,17 @@ function setup() {
   return;
 }
 
-function setupEditor() {
-  setup.call(this);
-  this.browser.get(this.base + "/editor");
-  this.timeout(15000);
-  return waitForPyretLoad(this.browser);
+function setup() {
+  setupWithName.call(this, undefined)
+}
+
+function setupMulti(name) {
+  return function() {
+    setupWithName.call(this, name);
+    this.browser.get(this.base + "/editor");
+    this.timeout(15000);
+    return waitForPyretLoad(this.browser);
+  }
 }
 
 function contains(str) {
@@ -198,9 +205,9 @@ module.exports = {
   evalPyret: evalPyret,
   testErrorRendersString: testErrorRendersString,
   setup: setup,
-  setupEditor: setupEditor,
+  setupMulti: setupMulti,
   teardown: teardown,
-  teardownEditor: teardownEditor,
+  teardownMulti: teardownMulti,
   runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
   checkWorldProgramRunsCleanly: checkWorldProgramRunsCleanly,
   doForEachPyretFile: doForEachPyretFile

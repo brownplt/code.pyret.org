@@ -1,8 +1,8 @@
 var tester = require("../test-util/util.js");
 
 describe("Rendering errors", function() {
-  //before(tester.setupEditor);
-  //after(tester.teardownEditor);
+  before(tester.setupMulti("Rendering errors"));
+  after(tester.teardownMulti);
 
   // NOTE(joe): A few failing cases commented out below, good TODOs for
   // easy things to fix first.
@@ -22,7 +22,7 @@ describe("Rendering errors", function() {
   ];
 
   tests.forEach(function(t) {
-//    tester.testErrorRendersString(it, t[0], t[1], t[2]);
+    tester.testErrorRendersString(it, t[0], t[1], t[2]);
   });
 
 });
