@@ -186,7 +186,10 @@
       }
       return ws.getAllCells().then(function(data) {
         if (ws.typeErrors && (ws.typeErrors.length > 0)) {
-          throw new Error(ws.typeErrors[0]);
+          var errmsgs = ws.typeErrors.map(runtime.ffi.makeMessageException);
+          errmsgs.unshift(
+            runtime.ffi.makeMessageException("There were worksheet importing errors."));
+          runtime.ffi.throwMultiErrorException(runtime.ffi.makeList(errmsgs));
         } else if (data.length === 0) {
           return function() { runtime.getField(table, "makeTable")([], []); };
         } else {
