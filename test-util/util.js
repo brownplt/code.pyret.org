@@ -8,14 +8,19 @@ function teardown() {
   }
 }
 
-function setup() {
+function teardownMulti() {
+  return this.browser.quit();
+}
+
+function setupWithName(name) {
+  if(this.currentTest) { name = this.currentTest.title; }
   var browser = process.env.SAUCE_BROWSER || "chrome";
   if (process.env.TRAVIS_JOB_NUMBER != undefined) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
     .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
     .withCapabilities({
-      name: this.currentTest.title,
+      name: name,
       'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
       build: process.env.TRAVIS_BUILD_NUMBER,
       username: process.env.SAUCE_USERNAME,
@@ -48,6 +53,19 @@ function setup() {
   }
 
   return;
+}
+
+function setup() {
+  setupWithName.call(this, undefined)
+}
+
+function setupMulti(name) {
+  return function() {
+    setupWithName.call(this, name);
+    this.browser.get(this.base + "/editor");
+    this.timeout(15000);
+    return waitForPyretLoad(this.browser);
+  }
 }
 
 function contains(str) {
@@ -163,7 +181,7 @@ function checkWorldProgramRunsCleanly(code, driver, test, timeout) {
       .findElements(webdriver.By.className("ui-dialog-title")).then(
         function(elements) { return elements.length > 0; });
   }, timeout);
-  driver.sleep(5); // make sure the big-bang can run for 5 seconds
+  driver.sleep(5000); // make sure the big-bang can run for 5 seconds
   driver.findElement(webdriver.By.className("ui-icon-closethick"))
     .click();
   checkAllTestsPassed(driver, test, timeout);
@@ -236,7 +254,6 @@ function evalPyret(driver, toEval) {
   });
 }
 
-
 function evalPyretNoError(driver, toEval) {
   return evalPyret(driver, toEval).then(function(element) {
     return element.getTagName().then(function(name) {
@@ -251,16 +268,14 @@ function evalPyretNoError(driver, toEval) {
 
 function testErrorRendersString(it, name, toEval, expectedString) {
   it("should render " + name + " errors", function() {
-    this.timeout(30000);
-    this.browser.get(this.base + "/editor");
-    waitForPyretLoad(this.browser);
+    this.timeout(15000);
     return evalPyret(this.browser, toEval).then(function(response) {
       return response.getText().then(function(text) {
-        if(text.substring(expectedString) !== -1) {
+        if(text.indexOf(expectedString) !== -1) {
           return true;
         }
         else {
-          throw new Error("Text content " + text + " did not match " + expectedString);
+          throw new Error("Text content of error \"" + text + "\" did not match \"" + expectedString + "\"");
         }
       });
     });
@@ -273,7 +288,9 @@ module.exports = {
   evalPyret: evalPyret,
   testErrorRendersString: testErrorRendersString,
   setup: setup,
+  setupMulti: setupMulti,
   teardown: teardown,
+  teardownMulti: teardownMulti,
   runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
   checkTableRendersCorrectly: checkTableRendersCorrectly,
   checkWorldProgramRunsCleanly: checkWorldProgramRunsCleanly,
