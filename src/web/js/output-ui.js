@@ -1186,7 +1186,7 @@
           // This function returns three string values, numerals to
           // appear before the decimal point, numerals to appear
           // after, and numerals to be repeated.
-          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator());
+          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), runtime.NumberErrbacks);
           var decimalString = decimal[0].toString() + "." + decimal[1].toString();
 
           var outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
