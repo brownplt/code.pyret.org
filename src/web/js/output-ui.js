@@ -81,7 +81,7 @@
       });
     }
 
-    function getLastUserLocation(runtime, srcloc, e, ix) {
+    function getLastUserLocation(runtime, srcloc, editors, e, ix, local) {
       var srclocStack = e.map(runtime.makeSrcloc);
       var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
       var userLocs = srclocStack.filter(function(l) {
@@ -89,7 +89,8 @@
         var source = runtime.getField(l, "source");
         return (source === "definitions://"
                 || source.indexOf("interactions://") !== -1
-                || source.indexOf("gdrive") !== -1);
+                || source.indexOf("gdrive") !== -1)
+                || local ? editors[source] !== undefined : false;
       });
       var probablyErrorLocation = userLocs[ix];
       return probablyErrorLocation;
@@ -538,6 +539,7 @@
 
     function emphasizeLine(editors, cmloc) {
       var editor = editors[cmloc.source];
+      if(!editor) return;
       for(var i = cmloc.start.line; i <= cmloc.end.line; i++) {
         setTimeout(
           function(){editor.removeLineClass(this, "background", "emphasize-line");}
@@ -607,7 +609,7 @@
       } else {
         var source = sessionStorage.getItem(cmloc.source);
         if(!source) {
-          return "Source not found";
+          return undefined;
         }
         var lines = source.split("\n").slice(cmloc.start.line, cmloc.end.line + 1);
         if(tight) {
@@ -643,7 +645,9 @@
             for(var i=1; i < start_line; i++) {prelude += "\n";}
             for(var i=0; i < start_col; i++)  {prelude += " "; }
             var source = getSourceContent(editors, cmPosFromSrcloc(runtime, srcloc, loc), true);
-            runtime.pauseStack(function(restarter) {
+            if(source === undefined) 
+              return runtime.ffi.makeNone();
+            else runtime.pauseStack(function(restarter) {
               runtime.run(function(_, __) {
                   return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
                 }, runtime.namespace, {
@@ -662,7 +666,7 @@
     function makeMaybeStackLoc(runtime, editors, srcloc, stack) {
       return runtime.makeFunction(function(n, userFramesOnly) {
         var probablyErrorLocation;
-        if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+        if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, editors, stack, n, false); }
         else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
         else { probablyErrorLocation = false; }
         if (probablyErrorLocation) {
@@ -789,7 +793,7 @@
           {line: cmloc.end.line, ch: endch}));
       } else {
         cmSnippet.setOption("firstLineNumber", cmloc.start.line);
-        cmSnippet.getDoc().setValue(getSourceContent(editors, cmloc, false));
+        cmSnippet.getDoc().setValue(getSourceContent(editors, cmloc, false) || "");
         endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
       }
 
@@ -949,13 +953,12 @@
               replace(replacement);
               return placeholder;
             }
-            
-            var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, stack);
-            var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
-            var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
 
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
+              var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
+              var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
+              var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
               var container = $("<div>").addClass("compile-error");
               runtime.runThunk(
                 function(){
@@ -966,9 +969,9 @@
                 },
                 function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
-                    var highlightLoc = getLastUserLocation(runtime, srcloc, e.pyretStack,
+                    var highlightLoc = getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
                       e.exn.$name == "arity-mismatch" ? 1
-                                                      : 0);
+                                                      : 0, true);
                     if(highlightMode === "scsh" && highlightLoc != undefined) {
                       highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", context);
                     }
@@ -1006,7 +1009,7 @@
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
-            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, stack, n); }
+            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, editors, stack, n, false); }
             else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
             else { probablyErrorLocation = false; }
             if (probablyErrorLocation) {
@@ -1035,8 +1038,8 @@
 
             var anchor = $("<a>").append(help(contents,stack)).addClass("highlight");
 
-            var locArray = ffi.toArray(locs);
-
+            var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
+            var locArray = ffi.toArray(locs).filter(function(l) { return l && isSrcloc(l); });
 
             anchor.attr('title',
               "Click to scroll source location into view.");
@@ -1107,6 +1110,8 @@
 
       snippets.forEach(function(s){
         highlights.forEach(function(value,key){
+            if(key.l.source != s.featured.source)
+              return;
             s.editor.markText(
               {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
               {line: key.l.end.line - s.featured.start.line, ch: key.l.end.ch},

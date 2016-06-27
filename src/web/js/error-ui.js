@@ -112,6 +112,7 @@
             }
           }
         }
+        
 
         function drawPyretRuntimeError() {
           var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
@@ -122,8 +123,8 @@
             function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var errorID = !contextFactory ? undefined : contextFactory();
-                var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, e.pyretStack,
-                      e.exn.$name == "arity-mismatch" ? 1 : 0);
+                var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
+                      e.exn.$name == "arity-mismatch" ? 1 : 0, true);
                 if(highlightMode === "scsh" && highlightLoc != undefined) {
                   outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
                 }

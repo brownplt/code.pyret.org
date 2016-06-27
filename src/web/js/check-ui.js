@@ -300,8 +300,8 @@
           }
           
           // Highlight the point the check block errored at.
-          var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, 
-                get(get(cr, "maybe-err"), "value").val.pyretStack, 0);
+          var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, 
+                get(get(cr, "maybe-err"), "value").val.pyretStack, 0, true);
           outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
           var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
           var editor = editors[cmloc.source];
