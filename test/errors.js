@@ -1,8 +1,8 @@
 var tester = require("../test-util/util.js");
 
 describe("Rendering errors", function() {
-  before(tester.setupEditor);
-  after(tester.teardownEditor);
+  //before(tester.setupEditor);
+  //after(tester.teardownEditor);
 
   // NOTE(joe): A few failing cases commented out below, good TODOs for
   // easy things to fix first.
