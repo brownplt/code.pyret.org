@@ -949,32 +949,21 @@
               replace(replacement);
               return placeholder;
             }
-            var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
-            var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
+            
             var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, stack);
-            var tryRenderReason = function() {
-              return runtime.getField(val, "render-fancy-reason").app(
-                maybeStackLoc,
-                srclocAvaliable,
-                maybeLocToAST);};
-            var processTryRenderReason = function(out) {
-              if (runtime.isSuccessResult(out)) {
-                var replacement = help(out.result, stack);
-                $(replacement).addClass("compile-error");
-                replace(replacement);
-              } else {
-                runtime.runThunk(tryTorepr, processTryTorepr);
-              }
-              return placeholder;
-            }
+            var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
+            var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
 
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
               var container = $("<div>").addClass("compile-error");
               runtime.runThunk(
-                function() { return get(e.exn, "render-fancy-reason").app(
-                  locToAST(runtime, editors, srcloc),
-                  locToSrc(runtime, editors, srcloc));},
+                function(){
+                  return runtime.getField(e.exn, "render-fancy-reason").app(
+                    maybeStackLoc,
+                    srclocAvaliable,
+                    maybeLocToAST);
+                },
                 function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
                     var highlightLoc = getLastUserLocation(runtime, srcloc, e.pyretStack,
@@ -986,11 +975,11 @@
                     container = help(errorDisp.result, e.pyretStack)
                                   .addClass("compile-error");
                     container.append(renderStackTrace(runtime,editors, srcloc, e));
+                    replace(container);
                   } else {
                       console.log(errorDisp.exn);
                   }
                 });
-              replace(container);
               return placeholder;
             } else {
               runtime.runThunk(tryTorepr, processTryTorepr);
