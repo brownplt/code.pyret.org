@@ -251,9 +251,9 @@
       // SETUP FOR TRACING ALL OUTPUTS
       var replOutputCount = 0;
       outputUI.installRenderers(repl.runtime);
-      repl.runtime.setParam("onRecordTrace", function(val) {
-        if (repl.runtime.isNothing(val)) return false;
-        console.log("In repl-ui:runMainCode(), top-level val is", val);
+      repl.runtime.setParam("onTrace", function(loc, val, url) {
+        if (repl.runtime.getParam("currentMainURL") !== url) { return { "onTrace": "didn't match" }; }
+        if (repl.runtime.isNothing(val)) { return { "onTrace": "was nothing" }; }
         repl.runtime.pauseStack(function(restarter) {
           repl.runtime.runThunk(function() {
             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
@@ -285,7 +285,6 @@
         editors["definitions://"] = uiOptions.cm;
         interactionsCount = 0;
         replOutputCount = 0;
-        repl.runtime.clearTrace();
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
           console.error("Error displaying result: ", err);

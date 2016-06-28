@@ -158,8 +158,6 @@
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
-                runtime.setParam("currentURL", 
-                                 gf(gf(repl, "initial-locator"), "uri").app());
                 return gf(repl, "restart-interactions").app(typeCheck);
               }, function(result) {
                 ret.resolve(result);
@@ -178,7 +176,6 @@
                       runtime.makeFunction(function() { return str; }))
                   },
                   function(locator) {
-                    runtime.setParam("currentURL", gf(locator, "uri").app());
                     return gf(repl, "run-interaction").app(locator);
                   });
               }, function(result) {

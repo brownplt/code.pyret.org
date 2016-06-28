@@ -127,7 +127,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 div.trace {
-   background-color: #f2f6ff;
+ 
 }
 div.trace.error {
    background-color: #fff6f2;
@@ -135,6 +135,7 @@ div.trace.error {
 span.trace {
    padding-right: 1em;
    font-size: 85%;
+   display: none;
 }
 span.trace:after {
    content: ":";
