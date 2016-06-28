@@ -87,10 +87,10 @@
       var userLocs = srclocStack.filter(function(l) {
         if(!(l && isSrcloc(l))) { return false; }
         var source = runtime.getField(l, "source");
-        return (source === "definitions://"
+        return source === "definitions://"
                 || source.indexOf("interactions://") !== -1
-                || source.indexOf("gdrive") !== -1)
-                || local ? editors[source] !== undefined : false;
+                || source.indexOf("gdrive") !== -1
+                || (local ? editors[source] !== undefined : false);
       });
       var probablyErrorLocation = userLocs[ix];
       return probablyErrorLocation;
