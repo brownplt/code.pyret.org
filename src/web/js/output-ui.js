@@ -1214,7 +1214,7 @@
           var scaleFactorX = 100 / realWidth;
           var scaleFactorY = 200 / realHeight;
           var scaleFactor = scaleFactorX < scaleFactorY ? scaleFactorX : scaleFactorY;
-          var scaled = runtime.imageLib.makeScaleImage(scaleFactor, scaleFactor, img);
+          var scaled = image.makeScaleImage(scaleFactor, scaleFactor, img);
           imageDom = scaled.toDomNode();
           container.append(imageDom);
           container.append($("<img>").attr("src", "/img/magnifier.gif").addClass("info-icon"));
