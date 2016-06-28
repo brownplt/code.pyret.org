@@ -17,6 +17,8 @@ describe("Rendering errors", function() {
     ["template-not-finished", "fun f(): ... end\nf()", "tried to evaluate an unfinished template"],
     ["lookup-non-tuple", "5.{1}", "evaluate to a tuple"],
     ["lookup-large-index", "{1;2}.{3}", "a value could not be found at the given position"],
+
+    ["type-id-used-as-value", "data D: d(x) end", "my-x = D.x", "but it is defined as a type"]
   ];
 
   tests.forEach(function(t) {
