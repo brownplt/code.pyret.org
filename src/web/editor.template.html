@@ -108,6 +108,20 @@
 <script src="/js/loader.js"></script>
 <script src="/js/colorspaces.js"></script>
 <script src="/js/webgazer.js"></script>
+<script>
+ webgazer.begin();
+</script>
+<script>
+ webgazer.setGazeListener(function(data, elapsedTime) {
+     if (data == null) {
+         return;
+     }
+     var xprediction = data.x;
+     var yprediction = data.y;
+     console.log(elapsedTime);
+ }).begin()
+         .showPredictionPoints(true); /* shows a square every 100 milliseconds where current prediction is */
+</script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/mark-selection.js"></script>
