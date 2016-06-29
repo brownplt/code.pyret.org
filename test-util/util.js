@@ -125,9 +125,7 @@ function runAndCheckAllTestsPassed(code, driver, test, timeout) {
 function checkAllTestsPassed(driver, test, timeout) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   driver.wait(function() {
-    return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
-      return elements.length > 0;
-    });
+    return replOutput.findElements(webdriver.By.className("testing-summary"));
   }, timeout);
   var outputElements = replOutput.findElements(webdriver.By.xpath("*"));
   outputElements.then(function(elements) {
