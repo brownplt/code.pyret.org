@@ -824,7 +824,7 @@
       } else {
         snippetWrapper.removeClass("cm-snippet");
         snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
-        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), featured: featured};
+        return {wrapper: snippetWrapper, featured: featured};
       }
 
     }
