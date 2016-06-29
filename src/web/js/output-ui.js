@@ -1622,7 +1622,7 @@
     // NOTE: THIS MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function renderPyretValue(output, runtime, answer) {
       installRenderers(runtime);
-      runtime.pauseThunk(function(restarter) {
+      runtime.pauseStack(function(restarter) {
         runtime.runThunk(function() {
           return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
         }, function(container) {
