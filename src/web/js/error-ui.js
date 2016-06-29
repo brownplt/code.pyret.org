@@ -98,7 +98,7 @@
         return runtime.safeCall(function() {
           return runtime.eachLoop(runtime.makeFunction(function(i) {
             return drawCompileError(e[i]);
-          }, 0, e.length));
+          }), 0, e.length);
         }, function(_) {
           lastError.trigger('toggleHighlight');
         }, "drawCompileErrors: each: drawCompileError");
