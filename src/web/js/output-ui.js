@@ -993,20 +993,33 @@
                                                            e.exn.$name == "arity-mismatch" ? 1
                                                            : 0, true);
                     runtime.runThunk(function() {
-                      if(highlightMode === "scsh" && highlightLoc != undefined) {
-                        return highlightSrcloc(runtime, editors, srcloc, highlightLoc, 
-                                               "hsl(0, 100%, 89%);", context);
+                      return runtime.safeCall(function() {
+                        if(highlightMode === "scsh" && highlightLoc != undefined) {
+                          return highlightSrcloc(runtime, editors, srcloc, highlightLoc, 
+                                                 "hsl(0, 100%, 89%);", context);
+                        }
+                        return null;
+                      }, function(_) {
+                        return help(errorDisp.result, e.pyretStack);
+                      });
+                    }, function(containerResult) {
+                      if (runtime.isSuccessResult(containerResult)) {
+                        var container = containerResult.result;
+                        container.addClass("compile-error");
+                        container.append(renderStackTrace(runtime,editors, srcloc, e));
+                        restarter.resume(container);
+                      } else {
+                        container.add($("<span>").addClass("output-failed")
+                                      .text("<error rendering reason for exception; details logged to console>"));
+                        console.error("help: embed: highlightSrcloc or help failed:", errorDisp);
+                        console.log(errorDisp.exn);
+                        restarter.resume(container);
                       }
-                      return null;
-                    }, function(_) {
-                      container = help(errorDisp.result, e.pyretStack)
-                        .addClass("compile-error");
-                      container.append(renderStackTrace(runtime,editors, srcloc, e));
-                      restarter.resume(container);
                     });
                   } else {
                     container.add($("<span>").addClass("output-failed")
                                   .text("<error rendering fancy-reason of exception; details logged to console>"));
+                    console.error("help: embed: render-fancy-reason failed:", errorDisp);
                     console.log(errorDisp.exn);
                     restarter.resume(container);
                   }

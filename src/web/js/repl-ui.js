@@ -80,11 +80,7 @@
         callingRuntime.runThunk(function() {
           console.log("Management/compile run stats:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
-            callingRuntime.pauseStack(function(restarter) {
-              return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
-            }, function(_) {
-              restarter.resume(callingRuntime.nothing);
-            });
+            return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -96,11 +92,7 @@
                 results.forEach(function(r) {
                   errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
                 });
-                callingRuntime.pauseStack(function(restarter) {
-                  return errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
-                }, function(_) {
-                  restarter.resume(callingRuntime.nothing);
-                });
+                return errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
@@ -134,7 +126,7 @@
                         }, "rr.drawCheckResults");
                       }, "rr.renderPyretValue and drawCheckResults");
                     } else {
-                      errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
+                      return errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -145,7 +137,7 @@
           }
           else {
             console.error("Bad result: ", result);
-            errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
+            return errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
           }
         }, function(_) { return callingRuntime.nothing; });
       }
@@ -205,6 +197,7 @@
       });
 
       var output = jQuery("<div id='output' class='cm-s-default'>");
+      var outputPending = jQuery("<span>").text("Gathering results...");
       runtime.setStdout(function(str) {
           ct_log(str);
           output.append($("<pre>").addClass("replPrint").text(str));
@@ -243,6 +236,7 @@
       var runContents;
       function afterRun(cm) {
         return function() {
+          outputPending.remove();
           options.runButton.empty();
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
@@ -276,6 +270,7 @@
       var runMainCode = function(src, uiOptions) {
         breakButton.attr("disabled", false);
         output.empty();
+        output.append(outputPending);
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
         setWhileRunning();
@@ -309,6 +304,7 @@
         interactionsCount++;
         var thisName = 'interactions://' + interactionsCount;
         editors[thisName] = echoCM;
+        output.append(outputPending);
         var replResult = repl.run(code, thisName);
         var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
           console.error("Error displaying result: ", err);
