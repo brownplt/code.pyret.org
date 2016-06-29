@@ -110,6 +110,7 @@
 <script src="/js/webgazer.js"></script>
 <script>
  webgazer.begin();
+ webgazer.setRegression("weightedRidge");
 </script>
 <script>
  webgazer.setGazeListener(function(data, elapsedTime) {
@@ -118,7 +119,7 @@
      }
      var xprediction = data.x;
      var yprediction = data.y;
-     console.log(elapsedTime);
+     console.log(webgazer.getRegression());
  }).begin()
          .showPredictionPoints(true); /* shows a square every 100 milliseconds where current prediction is */
 </script>
