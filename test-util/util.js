@@ -1,7 +1,7 @@
 var assert = require("assert");
 var webdriver = require("selenium-webdriver");
 var fs = require("fs");
-var Q = require("Q");
+var Q = require("q");
 
 function teardown() {
   if(!(this.currentTest.state === 'failed')) {
