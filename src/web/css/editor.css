@@ -116,7 +116,12 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   z-index: 4000;
 }
 
+#REPL {
+  font-family: sans-serif;
+}
+
 .replTextOutput {
+  font-family: monospace;
   border: none;
   background-color: transparent;
   white-space: pre;
@@ -606,6 +611,7 @@ div#font-label:hover{
 }
 
 .replPrint {
+  font-family: monospace;
   padding-top: 0;
   padding-bottom: 0.5em;
   padding-left: 0.5em;
