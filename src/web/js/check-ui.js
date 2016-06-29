@@ -326,7 +326,7 @@
                   // Highlight the point the check block errored at.
                   var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, 
                                                               get(get(cr, "maybe-err"), "value").val.pyretStack, 0, true);
-                  outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
+                  //outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
                   var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
                   var editor = editors[cmloc.source];
                   var textMarker = editor.markText(cmloc.start, cmloc.end,
@@ -380,12 +380,6 @@
                 //  More than one test; some pass
                   : testsPassingInBlock + " out of " + testsInBlock + " tests passed in this block.";
                 summary.text(message);
-                
-                editorMessage(
-                  testsInBlock == testsPassingInBlock
-                    ? "editor-check-block-success"
-                    : "editor-check-block-failed", 
-                  message);
                 return runtime.nothing;
               }
             }, function(_) {
@@ -420,6 +414,24 @@
           }, "each: testResult");
         }), 0, checkResultsArr.length);
       }, function(_) {
+      
+        var onChange = 
+          function(cm, change){
+            cm.off("change", onChange);
+            checkContainer.addClass("stale");
+            var staleWarning = 
+              $('<div>').addClass('check-block').addClass('stale-warning')
+                .text('This test report is stale and may be inaccurate. Run your code again for an up-to-date report.');
+            checkContainer.prepend(staleWarning);
+            // This is a little jarring.
+            // staleWarning[0].scrollIntoView(true);
+            editors["definitions://"].widgets.forEach(function(w){
+              w.clear();
+            });
+          };
+        editors["definitions://"].on("change", onChange);
+        
+      
         var summary = $("<div>").addClass("check-block testing-summary");
         var errored;
         // If there was more than one check block, print a message about

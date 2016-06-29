@@ -1495,3 +1495,68 @@ code div {
   color: white;
   height: 60px;
 }
+
+.stale.test-results .check-block-failed,
+.stale.test-results .check-block-success,
+.stale.test-results .check-block-errored,
+.stale.test-results .check-block-test,
+.stale.test-results .summary-bits {
+  transition: background-color 0.3s linear;
+}
+
+.stale.test-results .stale-warning {
+  position: block;
+  /* Note: this is FF-only, but if the consensus is that it's a nice
+   * effect, there is a polyfill for Chrome that adds support */
+  position: sticky;
+  color: white;
+  top: 0;
+  z-index: 1;
+  background-color: hsl(212, 30%, 50%)
+}
+
+.stale.test-results .check-block-failed {
+  background-color: hsl(45,30%,85%);
+}
+
+.stale.test-results .check-block-success {
+  background-color: hsl(88, 30%, 76%);
+}
+
+.stale.test-results .check-block-errored {
+  background-color: hsl(0, 30%, 85%);
+}
+
+.stale.test-results .check-block-test.failing-test:not(.highlights-active) {
+  background-color: hsl(45, 30%, 93%);
+}
+
+.stale.test-results .check-block-test.highlights-active {
+  background-color: hsl(45,0%,95%);
+}
+
+.stale.test-results .check-block-test.highlights-active > header {
+  background-color: hsl(45, 50%, 85%);
+}
+
+.stale.test-results .check-block-test.passing-test {
+  background-color: hsl(90, 10%, 91%);
+}
+
+.stale.test-results .testing-summary .summary-passed {
+  background-color: hsl(88, 30%, 76%);
+}
+
+.stale.test-results .testing-summary .summary-failed {
+  background-color: hsl(45,30%,85%);
+}
+
+.stale.test-results .testing-summary .summary-errored {
+  background-color: hsl(0, 30%, 70%);
+}
+
+.stale .compile-error.highlights-active, 
+.stale .compile-error.highlights-active, 
+.stale .check-block-test.highlights-active {
+  border-color: hsl(204, 40%, 74%);
+}
