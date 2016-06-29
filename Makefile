@@ -145,10 +145,11 @@ MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/i
 build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
-COPY_ARR := $(patsubst node_modules/pyret-lang/src/arr/base/%.arr,build/web/arr/base/%.arr,$(wildcard node_modules/pyret-lang/src/arr/base/*.arr))
+COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
+COPY_ARR :=
 
-build/web/arr/base/%: node_modules/pyret-lang/src/arr/base/%
-	cp $< $@
+# build/web/arr/%: pyret/src/arr/trove/%
+# 	cp $< $@
 
 
 WEB = build/web
@@ -157,7 +158,7 @@ WEBJS = build/web/js
 WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
 WEBIMG = build/web/img
-WEBARR = build/web/arr/base
+WEBARR = build/web/arr
 NEWCSS = build/web/neweditor/css
 NEWJS = build/web/neweditor/js
 

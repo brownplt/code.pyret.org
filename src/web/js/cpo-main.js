@@ -116,7 +116,7 @@
           });
        }, function(l) {
           return gmf(compileLib, "located").app(l, runtime.nothing);
-       });
+       }, "findModule");
     }
 
     // NOTE(joe): This line is "cheating" by mixing runtime levels,
@@ -180,7 +180,7 @@
                   });
               }, function(result) {
                 ret.resolve(result);
-              });
+              }, "make-interaction-locator");
             }, 0);
             return ret.promise;
           },
@@ -195,7 +195,7 @@
           runtime: runtime
         };
         return withRepl(jsRepl);
-      });
+      }, "make-repl");
 
     function withRepl(repl) {
 
