@@ -146,9 +146,10 @@ build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
 COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
+COPY_ARR :=
 
-build/web/arr/%: pyret/src/arr/trove/%
-	cp $< $@
+# build/web/arr/%: pyret/src/arr/trove/%
+# 	cp $< $@
 
 
 WEB = build/web

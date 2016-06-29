@@ -752,20 +752,20 @@
       return {marker: handle, key: lockey};
     }
 
-    function snippet(editors, featured){
+    function snippet(editors, featured, srcloc, ul){
       var cmloc = featured;
       var lockey = "snippet-" + cmlocToCSSClass(cmloc);
       var snippetWrapper = $("<div>").addClass("cm-snippet");
-      var cmSnippet = CodeMirror(snippetWrapper[0],{
-        readOnly: "nocursor",
-        disableInput: true,
-        indentUnit: 2,
-        lineWrapping: false,
-        lineNumbers: true,
-        viewportMargin: 1,
-        scrollbarStyle: "null"});
-      var endch;
       if(cmloc.source in editors) {
+        var cmSnippet = CodeMirror(snippetWrapper[0],{
+          readOnly: "nocursor",
+          disableInput: true,
+          indentUnit: 2,
+          lineWrapping: false,
+          lineNumbers: true,
+          viewportMargin: 1,
+          scrollbarStyle: "null"});
+        var endch;
         var cmsrc = editors[featured.source];
         var handle = cmsrc.markText(cmloc.start, cmloc.end,
          {className: lockey,
@@ -791,36 +791,38 @@
         cmSnippet.getDoc().setValue(cmsrc.getRange(
           {line: cmloc.start.line, ch: 0},
           {line: cmloc.end.line, ch: endch}));
+
+        // Fade areas outside featured range
+        cmSnippet.getDoc().markText(
+          {line: 0, ch: 0},
+          {line: 0, ch: cmloc.start.ch},
+          {className: "highlight-irrelevant"});
+        cmSnippet.getDoc().markText(
+          {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
+          {line: cmloc.end.line - cmloc.start.line, ch: endch},
+          {className: "highlight-irrelevant"});
+
+        if(cmloc.source in editors) {
+          // Refresh the gutters when a change is made to the source document
+          var refresh = function(cm, change) {
+            cmSnippet.setOption("firstLineNumber",0);
+            cmSnippet.setOption("firstLineNumber",1);};
+          cmsrc.on("change", refresh);
+          handle.on("clear", function(){cmsrc.off("change", refresh);});
+        }
+
+        // render header
+        snippetWrapper.prepend(
+          $("<header>").append(drawCMloc(editors, cmloc)));
+        snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
+        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
+
       } else {
-        cmSnippet.setOption("firstLineNumber", cmloc.start.line);
-        cmSnippet.getDoc().setValue(getSourceContent(editors, cmloc, false) || "");
-        endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
+        snippetWrapper.removeClass("cm-snippet");
+        snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
+        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), featured: featured};
       }
 
-      // Fade areas outside featured range
-      cmSnippet.getDoc().markText(
-        {line: 0, ch: 0},
-        {line: 0, ch: cmloc.start.ch},
-        {className: "highlight-irrelevant"});
-      cmSnippet.getDoc().markText(
-        {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
-        {line: cmloc.end.line - cmloc.start.line, ch: endch},
-        {className: "highlight-irrelevant"});
-
-      if(cmloc.source in editors) {
-        // Refresh the gutters when a change is made to the source document
-        var refresh = function(cm, change) {
-          cmSnippet.setOption("firstLineNumber",0);
-          cmSnippet.setOption("firstLineNumber",1);};
-        cmsrc.on("change", refresh);
-        handle.on("clear", function(){cmsrc.off("change", refresh);});
-      }
-
-      // render header
-      snippetWrapper.prepend(
-        $("<header>").append(drawCMloc(editors, cmloc)));
-      snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
-      return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
     }
 
     function renderStackTrace(runtime, editors, srcloc, error) {
@@ -845,23 +847,33 @@
         userLocs.forEach(function(ul) {
           var slContainer = $("<div>");
           var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-          var cmSnippet = snippet(editors, cmLoc);
-          snippets.push(cmSnippet.editor);
-          cmSnippet.editor.getWrapperElement().style.height =
-            (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-          if(editors[cmLoc.source] === undefined) {
+          var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+          if (cmSnippet.editor) {
+            snippets.push(cmSnippet.editor);
+            cmSnippet.editor.getWrapperElement().style.height =
+              (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+            if(editors[cmLoc.source] === undefined) {
+              cmSnippet.wrapper.on("mouseenter", function(e){
+                contextManager.highlights = "spotlight-external";
+                flashMessage("This code isn't in this editor.")
+              });
+              cmSnippet.wrapper.on("mouseleave", function(e){
+                clearFlash();
+              });
+            } else {
+              var lockey = spotlight(editors, cmLoc).key;
+              cmSnippet.wrapper.on("mouseenter", function(e){
+                gotoLoc(runtime, editors, srcloc, ul);
+                contextManager.highlights = lockey;
+              });
+            }
+          } else {
             cmSnippet.wrapper.on("mouseenter", function(e){
               contextManager.highlights = "spotlight-external";
               flashMessage("This code isn't in this editor.")
             });
             cmSnippet.wrapper.on("mouseleave", function(e){
               clearFlash();
-            });
-          } else {
-            var lockey = spotlight(editors, cmLoc).key;
-            cmSnippet.wrapper.on("mouseenter", function(e){
-              gotoLoc(runtime, editors, srcloc, ul);
-              contextManager.highlights = lockey;
             });
           }
           slContainer.append(cmSnippet.wrapper);
