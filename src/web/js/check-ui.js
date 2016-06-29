@@ -184,6 +184,7 @@
                 }, function(dom) { 
                   var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
                   var reasonID = "reason-" + outputUI.cmlocToCSSClass(cmloc);
+                  dom.addClass(cssClass);
                   dom.attr('id',reasonID);
                   var cm = editors[cmloc.source];
                   var doc = cm.getDoc();
@@ -227,7 +228,7 @@
                   eachTest.attr('data-result', "Failed");
                   eachTest.addClass('failing-test');
                   return dom;
-                }, "addRreasonToTest: renderErrorDisplay");
+                }, "addReasonToTest: renderErrorDisplay");
               }
               
               if (!isTestSuccess(tr)) {
