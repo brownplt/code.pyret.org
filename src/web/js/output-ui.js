@@ -251,7 +251,7 @@
               }
             }
           });
-        }, withMarker);
+        }, withMarker, "highlightSrcloc");
       }
 
       // There are warnings to show indicating whether the check output
@@ -645,10 +645,11 @@
             for(var i=1; i < start_line; i++) {prelude += "\n";}
             for(var i=0; i < start_col; i++)  {prelude += " "; }
             var source = getSourceContent(editors, cmPosFromSrcloc(runtime, srcloc, loc), true);
-            if(source === undefined) 
+            if(source === undefined) {
               return runtime.ffi.makeNone();
-            else runtime.pauseStack(function(restarter) {
-              runtime.run(function(_, __) {
+            } else {
+              runtime.pauseStack(function(restarter) {
+                runtime.run(function(_, __) {
                   return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
                 }, runtime.namespace, {
                   sync: false
@@ -658,9 +659,12 @@
                   } else {
                     restarter.resume(runtime.ffi.makeNone());
                   }
-                });});
-          }});
+                });
+              });
+            }
+          }
         });
+      });
     }
     
     function makeMaybeStackLoc(runtime, editors, srcloc, stack) {
@@ -909,109 +913,145 @@
       var palette = makePalette();
       var snippets = new Array();
       var highlights = new Map();
+         
       function help(errorDisp, stack) {
         return ffi.cases(get(ED, "is-ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) {
             var result = $("<div>");
             var contents = ffi.toArray(seq);
-            for (var i = 0; i < contents.length; i++) {
-              if (i != 0) result.append($("<br>"));
-              result.append(help(contents[i], stack));
-            }
-            return result;
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
+                if (i != 0) result.append($("<br>"));
+                return runtime.safeCall(function() {
+                  return help(contents[i], stack);
+                }, function(helpContents) {
+                  result.append(helpContents);
+                  return runtime.nothing;
+                }, "help(contents[i])");
+              }), 0, contents.length);
+            }, function(_) { return result; }, "v-sequence: each: contents");
           },
           "bulleted-sequence": function(seq) {
-            return $("<ul>").append(ffi.toArray(seq).map(
-              function(i){
-                return $("<li>").append(help(i, stack));
-              }));
+            var contents = ffi.toArray(seq);
+            var result = $("<ul>");
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
+                return runtime.safeCall(function() { 
+                  return help(contents[i], stack); 
+                }, function(helpContents) {
+                  result.append($("<li>").append(helpContents));
+                  return runtime.nothing;
+                }, "help(contents[i])");
+              }), 0, contents.length)
+            }, function(_) { return result; }, "bulleted-sequence: each: contents");
           },
           "h-sequence": function(seq, separator) {
             var result = $("<p>");
             var contents = ffi.toArray(seq);
-            for (var i = 0; i < contents.length; i++) {
-              if (i != 0 && separator !== "") result.append(separator);
-              result.append(help(contents[i], stack));
-            }
-            return result.contents();
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) { 
+                if (i != 0 && separator !== "") result.append(separator);
+                return runtime.safeCall(function() {
+                  return help(contents[i], stack);
+                }, function(helpContents) { 
+                  result.append(helpContents);
+                  return runtime.nothing;
+                }, "help(contents[i])");
+              }), 0, contents.length);
+            }, function(_) { return result.contents(); }, "h-sequence: each: contents");
           },
           "paragraph": function(seq) {
             var result = $("<p>");
             var contents = ffi.toArray(seq);
-            for (var i = 0; i < contents.length; i++) {
-              result.append(help(contents[i], stack));
-            }
-            return result;
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
+                return runtime.safeCall(function() { 
+                  return help(contents[i], stack);
+                }, function(helpContents) {
+                  result.append(helpContents);
+                  return runtime.nothing;
+                }, "help(contents[i])");
+              }), 0, contents.length);
+            }, function(_) { return result; }, "paragraph: each: contents");
           },
           "embed": function(val) {
-            var placeholder = $("<span>").text("Rendering...");
-            var replace = function(replacement) {
-              if ($.contains(document.documentElement, placeholder[0])) {
-                placeholder.replaceWith(replacement);
-              } else {
-                placeholder = replacement;
-              }
-            }
-            var tryTorepr = function() { return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]); }
-            var processTryTorepr = function(out) {
-              var replacement;
-              if (runtime.isSuccessResult(out)) {
-                replacement = out.result;
-              } else {
-                replacement = $("<span>").addClass("output-failed")
-                  .text("<error rendering embedded value; details logged to console>");
-                console.error(out.exn);
-              }
-              replace(replacement);
-              return placeholder;
-            }
-
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
               var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
               var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
               var container = $("<div>").addClass("compile-error");
-              runtime.runThunk(
-                function(){
+              runtime.pauseStack(function(restarter) {
+                runtime.runThunk(function() {
                   return runtime.getField(e.exn, "render-fancy-reason").app(
                     maybeStackLoc,
                     srclocAvaliable,
                     maybeLocToAST);
-                },
-                function(errorDisp) {
+                }, function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
                     var highlightLoc = getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
-                      e.exn.$name == "arity-mismatch" ? 1
-                                                      : 0, true);
-                    if(highlightMode === "scsh" && highlightLoc != undefined) {
-                      highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", context);
-                    }
-                    container = help(errorDisp.result, e.pyretStack)
-                                  .addClass("compile-error");
-                    container.append(renderStackTrace(runtime,editors, srcloc, e));
-                    replace(container);
+                                                           e.exn.$name == "arity-mismatch" ? 1
+                                                           : 0, true);
+                    runtime.runThunk(function() {
+                      if(highlightMode === "scsh" && highlightLoc != undefined) {
+                        return highlightSrcloc(runtime, editors, srcloc, highlightLoc, 
+                                               "hsl(0, 100%, 89%);", context);
+                      }
+                      return null;
+                    }, function(_) {
+                      container = help(errorDisp.result, e.pyretStack)
+                        .addClass("compile-error");
+                      container.append(renderStackTrace(runtime,editors, srcloc, e));
+                      restarter.resume(container);
+                    });
                   } else {
-                      console.log(errorDisp.exn);
+                    container.add($("<span>").addClass("output-failed")
+                                  .text("<error rendering fancy-reason of exception; details logged to console>"));
+                    console.log(errorDisp.exn);
+                    restarter.resume(container);
                   }
                 });
-              return placeholder;
+              });
             } else {
-              runtime.runThunk(tryTorepr, processTryTorepr);
-              return placeholder;
+              runtime.pauseStack(function(restarter) {
+                runtime.runThunk(function() {
+                  return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]);
+                }, function(out) {
+                  if (runtime.isSuccessResult(out)) {
+                    restarter.resume(out.result);
+                  } else {
+                    var result = $("<span>").addClass("output-failed")
+                      .text("<error rendering embedded value; details logged to console>");
+                    console.error(out.exn);
+                    restarter.resume(result);
+                  }
+                });
+              });
             }
           },
           "optional": function(contents) {
-            return expandableMore(help(contents, stack));
+            return runtime.safeCall(function() {
+              return help(contents, stack);
+            }, function(helpContents) {
+              return expandableMore(helpContents);
+            }, "optional: help(contents)");
           },
           "text": function(txt) {
             return $("<span>").text(txt);
           },
           "code": function(contents) {
-            return $("<code>").append(help(contents, stack));
+            return runtime.safeCall(function() {
+              return help(contents, stack);
+            }, function(helpContents) {
+              return $("<code>").append(helpContents);
+            }, "code: help(contents)");
           },
           "styled": function(contents, style) {
-            return help(contents, stack).addClass(style);
+            return runtime.safeCall(function() {
+              return help(contents, stack);
+            }, function(helpContents) {
+              return helpContents.addClass(style);
+            }, "styled: help(contents)");
           },
           "cmcode": function(loc) {
             var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
@@ -1021,25 +1061,41 @@
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
-            if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, editors, stack, n, false); }
-            else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
-            else { probablyErrorLocation = false; }
+            if (userFramesOnly) { 
+              probablyErrorLocation = getLastUserLocation(runtime, srcloc, editors, stack, n, false); 
+            } else if (stack.length >= n) { 
+              probablyErrorLocation = runtime.makeSrcloc(stack[n]); 
+            } else {
+              probablyErrorLocation = false; 
+            }
             if (probablyErrorLocation) {
-              var result;
-              runtime.runThunk(
-                function() { 
+              runtime.pauseStack(function(restarter) {
+                runtime.runThunk(function() {
                   return contentsWithLoc.app(probablyErrorLocation);
-                },
-                function(out) {
+                }, function(out) {
                   if (runtime.isSuccessResult(out)) {
-                    result = out.result;
+                    runtime.runThunk(function() { 
+                      return help(out.result, stack);
+                    }, function(helpOut) { 
+                      restarter.resume(helpOut); 
+                    });
                   } else {
-                    
+                    runtime.runThunk(function() {
+                      return help(contentsWithoutLoc, stack);
+                    }, function(helpOut) { 
+                      var result = $("<div>");
+                      result.append($("<span>").addClass("error")
+                                    .text("<error displaying srcloc-specific message; "
+                                          + "details logged to console; " 
+                                          + "less-specific message displayed instead>"));
+                      result.append(helpOut);
+                      restarter.resume(result); 
+                    });
                   }
                 });
-              return help(result);
-            } else {
-              return help(contentsWithoutLoc,stack);
+              });
+            } else {              
+              return help(contentsWithoutLoc, stack);
             }
           },
           "loc": function(loc) {
@@ -1048,80 +1104,89 @@
           "highlight": function(contents, locs, color) {
             if(highlightMode == "scsh") return help(contents,stack);
 
-            var anchor = $("<a>").append(help(contents,stack)).addClass("highlight");
+            return runtime.safeCall(function () {
+              return help(contents, stack);
+            }, function(helpContents) {
+              var anchor = $("<a>").append(helpContents).addClass("highlight");
 
-            var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
-            var locArray = ffi.toArray(locs).filter(function(l) { return l && isSrcloc(l); });
-
-            anchor.attr('title',
-              "Click to scroll source location into view.");
-
-            var cmLocs = locArray.map(
-              function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
-
-            var hue = palette(color);
-            var cssColor = hue === undefined ? undefined : hueToRGB(hue);
-
-            var locClasses = cmLocs.map(
-              function(l){return cmlocToCSSClass(l);});
-
-            //for (var h = 0; h < locArray.length; h++) {
-            //  anchor.addClass(locClasses[h]);
-            //  var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
-            //  if(highlight == undefined) {
-            //    highlights.set({pl:locArray[h],l:cmLocs[h],c:cssColor},
-            //      highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
-            //  }
-            //}
-            for (var h = 0; h < locArray.length; h++) {
-              anchor.addClass(locClasses[h]);
-              var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
-              if(highlight == undefined) {
-                highlights.set({pl:locArray[h],l:cmLocs[h],c:cssColor},
-                  highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
+              var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
+              var locArray = ffi.toArray(locs).filter(function(l) { return l && isSrcloc(l); });
+              
+              anchor.attr('title',
+                          "Click to scroll source location into view.");
+              
+              var cmLocs = locArray.map(
+                function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
+              
+              var hue = palette(color);
+              var cssColor = hue === undefined ? undefined : hueToRGB(hue);
+              
+              var locClasses = cmLocs.map(
+                function(l){return cmlocToCSSClass(l);});
+              
+              //for (var h = 0; h < locArray.length; h++) {
+              //  anchor.addClass(locClasses[h]);
+              //  var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
+              //  if(highlight == undefined) {
+              //    highlights.set({pl:locArray[h],l:cmLocs[h],c:cssColor},
+              //      highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
+              //  }
+              //}
+              for (var h = 0; h < locArray.length; h++) {
+                anchor.addClass(locClasses[h]);
+                var highlight = highlights.get({pl: locArray[h], l: cmLocs[h], c: cssColor});
+                if(highlight == undefined) {
+                  highlights.set({pl: locArray[h], l: cmLocs[h], c: cssColor},
+                                 highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
+                }
               }
-            }
-
-
-            anchor.on("mouseenter", function() {
-              for (var i = 0; i < locClasses.length; i++) {
-                hintLoc(runtime, editors, srcloc, locArray[i]);
-                $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
-              }
-            });
-
-            anchor.on("click", function() {
-              for (var z = 0; z < locClasses.length; z++) {
-                var cmloc = cmLocs[z];
-                var els = document.getElementsByClassName(locClasses[z]);
-                emphasizeLine(editors, cmloc);
-              }
-            });
-
-            anchor.on("mouseleave", function() {
-              for (var i = 0; i < locClasses.length; i++) {
-                unhintLoc(runtime, editors, srcloc, locArray[i]);
-                $("."+locClasses[i]).css("animation", "");
-              }
-            });
-
-            anchor.on("click", function() {
-              gotoLoc(runtime, editors, srcloc, locArray[0]);
-            });
-
-            return anchor;
+              
+              
+              anchor.on("mouseenter", function() {
+                for (var i = 0; i < locClasses.length; i++) {
+                  hintLoc(runtime, editors, srcloc, locArray[i]);
+                  $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
+                }
+              });
+              
+              anchor.on("click", function() {
+                for (var z = 0; z < locClasses.length; z++) {
+                  var cmloc = cmLocs[z];
+                  var els = document.getElementsByClassName(locClasses[z]);
+                  emphasizeLine(editors, cmloc);
+                }
+              });
+              
+              anchor.on("mouseleave", function() {
+                for (var i = 0; i < locClasses.length; i++) {
+                  unhintLoc(runtime, editors, srcloc, locArray[i]);
+                  $("."+locClasses[i]).css("animation", "");
+                }
+              });
+              
+              anchor.on("click", function() {
+                gotoLoc(runtime, editors, srcloc, locArray[0]);
+              });
+              
+              return anchor;
+            }, "highlight: help(contents)");
           },
           "loc-display": function(loc, style, contents) {
-            var inner = help(contents,stack);
-            hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
-            return inner;
+            return runtime.safeCall(function () {
+              return help(contents, stack);
+            }, function(inner) {
+              hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
+              return inner;
+            }, "loc-display: help(contents)");
           }
         });
       }
-      var rendering = help(errorDisp, stack);
-
-      snippets.forEach(function(s){
-        highlights.forEach(function(value,key){
+      
+      return runtime.safeCall(function() {
+        return help(errorDisp, stack);
+      }, function(rendering) {
+        snippets.forEach(function(s){
+          highlights.forEach(function(value,key){
             if(key.l.source != s.featured.source)
               return;
             s.editor.markText(
@@ -1147,19 +1212,18 @@
               });});
           })});
 
-
-      if(context === undefined) 
-        rendering.addClass("highlights-active");
-      else if(context != undefined) {
-        rendering.bind('toggleHighlight',function() {
-          $(".highlights-active").removeClass("highlights-active");
-          document.getElementById("main").dataset.highlights = context;
+        if(context === undefined) 
           rendering.addClass("highlights-active");
-        });
-      }
+        else if(context != undefined) {
+          rendering.bind('toggleHighlight',function() {
+            $(".highlights-active").removeClass("highlights-active");
+            document.getElementById("main").dataset.highlights = context;
+            rendering.addClass("highlights-active");
+          });
+        }
 
-      return rendering;
-
+        return rendering;
+      }, "renderErrorDisplay: help(contents)");
     }
 
     // A function to use the class of a container to toggle
@@ -1542,19 +1606,22 @@
     // extra events to happen for them to show up, we provide this as an
     // imperative API: the DOM node created will be appended to the output
     // and also returned
+    // NOTE: THIS MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function renderPyretValue(output, runtime, answer) {
       installRenderers(runtime);
-      runtime.runThunk(function() {
-        return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
-      }, function(container) {
-        if(runtime.isSuccessResult(container)) {
-          $(output).append(container.result);
-        }
-        else {
-          $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
-          console.log(container.exn);
-        }
-        return container;
+      runtime.pauseThunk(function(restarter) {
+        runtime.runThunk(function() {
+          return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
+        }, function(container) {
+          if(runtime.isSuccessResult(container)) {
+            $(output).append(container.result);
+          }
+          else {
+            $(output).append($("<span>").addClass("error").text("<error displaying value: details logged to console>"));
+            console.log(container.exn);
+          }
+          restarter.resume(container);
+        });
       });
     }
     return runtime.makeJSModuleReturn({

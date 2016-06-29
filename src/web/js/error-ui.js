@@ -119,8 +119,9 @@
           var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
           var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
           runtime.runThunk(
-            function() { return get(e.exn, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); },
-            function(errorDisp) {
+            function() { 
+              return get(e.exn, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); 
+            }, function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 var errorID = !contextFactory ? undefined : contextFactory();
                 var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
@@ -128,14 +129,24 @@
                 if(highlightMode === "scsh" && highlightLoc != undefined) {
                   outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
                 }
-                var dom = outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
-                dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
-                dom.on('click', function(){
-                  dom.trigger('toggleHighlight');
+                runtime.runThunk(function() {
+                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
+                }, function(result) {
+                  if (runtime.isSuccessResult(result)) {
+                    var dom = result.result;
+                    dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
+                    dom.on('click', function(){
+                      dom.trigger('toggleHighlight');
+                    });
+                    dom.trigger('toggleHighlight');
+                    dom.addClass("compile-error");
+                    container.append(dom);
+                  } else {
+                    dom.append($("<span>").addClass("error")
+                               .text("Something went wrong while rendering the error"));
+                    console.log(result.exn);
+                  }
                 });
-                dom.trigger('toggleHighlight');
-                dom.addClass("compile-error");
-                container.append(dom);
               } else {
                 renderSimpleReason(e);
                 errorError = $("<span>").addClass("compile-error internal-error highlights-active")

@@ -77,14 +77,14 @@
       var runtime = callingRuntime;
       var rr = resultRuntime;
       return function(result) {
-        console.log("Management/compile run stats:", JSON.stringify(result.stats));
-        if(callingRuntime.isFailureResult(result)) {
-          errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
-        }
-        else if(callingRuntime.isSuccessResult(result)) {
-          result = result.result;
-          ffi.cases(ffi.isEither, "is-Either", result,
-            {
+        callingRuntime.runThunk(function() {
+          console.log("Management/compile run stats:", JSON.stringify(result.stats));
+          if(callingRuntime.isFailureResult(result)) {
+            errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+          }
+          else if(callingRuntime.isSuccessResult(result)) {
+            result = result.result;
+            ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
                 var errs = [];
@@ -99,31 +99,47 @@
                 // to use if we have separate compile/run runtimes.  I think
                 // that loadLib will be instantiated with callingRuntime, and
                 // I think that's correct.
-                var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
-                console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
-                if(rr.isSuccessResult(runResult)) {
-                  if(!isMain) {
-                    var answer = rr.getColonField(runResult.result, "answer");
-                    if(!rr.isNothing(answer)) {
-                      outputUI.renderPyretValue(output, rr, answer);
-                      scroll(output);
+                callingRuntime.pauseStack(function(restarter) {
+                  rr.runThunk(function() {
+                    var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
+                    console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
+                    if(rr.isSuccessResult(runResult)) {
+                      return rr.safeCall(function() {
+                        if(!isMain) {
+                          var answer = rr.getColonField(runResult.result, "answer");
+                          if(!rr.isNothing(answer)) {
+                            return rr.safeCall(function() {
+                              return outputUI.renderPyretValue(output, rr, answer);
+                            }, function(_) {
+                              scroll(output);
+                            }, "rr.renderPyretvalue");
+                          }
+                        }
+                      }, function(_) {
+                        return rr.safeCall(function() {
+                          return checkUI.drawCheckResults(output, editors, rr, 
+                                                          runtime.getField(runResult.result, "checks"), 
+                                                          makeErrorContext);
+                        }, function(_) {
+                          scroll(output);
+                          return true;
+                        }, "rr.drawCheckResults");
+                      }, "rr.renderPyretValue and drawCheckResults");
+                    } else {
+                      errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
-                  }
-
-                  checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"), makeErrorContext);
-                  scroll(output);
-                  return true;
-
-                } else {
-                  errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
-                }
+                  }, function(_) {
+                    restarter.resume(callingRuntime.nothing);
+                  });
+                });
               }
             });
-        }
-        else {
-          console.error("Bad result: ", result);
-          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
-        }
+          }
+          else {
+            console.error("Bad result: ", result);
+            errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
+          }
+        }, function(_) { return callingRuntime.nothing; });
       }
     }
 
