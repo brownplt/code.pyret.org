@@ -80,7 +80,11 @@
         callingRuntime.runThunk(function() {
           console.log("Management/compile run stats:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
-            errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+            callingRuntime.pauseStack(function(restarter) {
+              return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+            }, function(_) {
+              restarter.resume(callingRuntime.nothing);
+            });
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -92,7 +96,11 @@
                 results.forEach(function(r) {
                   errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
                 });
-                errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
+                callingRuntime.pauseStack(function(restarter) {
+                  return errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
+                }, function(_) {
+                  restarter.resume(callingRuntime.nothing);
+                });
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
