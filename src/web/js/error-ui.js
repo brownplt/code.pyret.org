@@ -175,7 +175,7 @@
                       dom.addClass("compile-error");
                       container.append(dom);
                     } else {
-                      dom.append($("<span>").addClass("error")
+                      container.append($("<span>").addClass("error")
                                  .text("Something went wrong while rendering the error"));
                       console.log("drawPyretRuntimeError: renderErrorDisplay failed:", result.exn);
                     }

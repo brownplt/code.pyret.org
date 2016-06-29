@@ -1068,7 +1068,7 @@
           },
           "cmcode": function(loc) {
             var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-            var s = snippet(editors, cmloc);
+            var s = snippet(editors, cmloc, srcloc, loc);
             snippets.push(s);
             return s.wrapper;
           },
@@ -1201,6 +1201,8 @@
         snippets.forEach(function(s){
           highlights.forEach(function(value,key){
             if(key.l.source != s.featured.source)
+              return;
+            if (!s.editor)
               return;
             s.editor.markText(
               {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
