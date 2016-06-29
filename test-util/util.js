@@ -35,9 +35,6 @@ function setupWithName(name) {
       },
       browserName: browser
     }).build();
-    this.browser.session._then(function(s) {
-      console.log(name + ": see https://saucelabs.com/jobs/" + s.id_);
-    });
   } else if(process.env.SAUCE_USERNAME !== undefined) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
