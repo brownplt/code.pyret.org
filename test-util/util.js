@@ -230,12 +230,12 @@ function testErrorRendersString(it, name, toEval, expectedString) {
 function testRunsAndHasCheckBlocks(it, name, toEval, specs) {
   it("should render " + name + " check blocks", function() {
     var self = this;
-    this.timeout(10000);
+    this.timeout(20000);
     var replOutput = evalPyretDefinitionsAndWait(this.browser, toEval);
     var checkBlocks = replOutput.then(function(response) {
       self.browser.wait(function () {
         return self.browser.isElementPresent(webdriver.By.className("testing-summary"));
-      }, 3000);
+      }, 20000);
       return response.findElements(webdriver.By.className("check-block-results"));
     });
     var blocksAsSpec = checkBlocks.then(function(cbs) {
