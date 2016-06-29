@@ -756,11 +756,14 @@
       return {marker: handle, key: lockey};
     }
 
-    function snippet(editors, featured, srcloc, ul){
+    function snippet(editors, featured, srcloc, ul) {
       var cmloc = featured;
       var lockey = "snippet-" + cmlocToCSSClass(cmloc);
       var snippetWrapper = $("<div>").addClass("cm-snippet");
-      if(cmloc.source in editors) {
+      
+      if(cmloc.source in editors
+       || !!sessionStorage.getItem(cmloc.source)) {
+        var endch;
         var cmSnippet = CodeMirror(snippetWrapper[0],{
           readOnly: "nocursor",
           disableInput: true,
@@ -769,33 +772,48 @@
           lineNumbers: true,
           viewportMargin: 1,
           scrollbarStyle: "null"});
-        var endch;
-        var cmsrc = editors[featured.source];
-        var handle = cmsrc.markText(cmloc.start, cmloc.end,
-         {className: lockey,
-          inclusiveLeft: false,
-          inclusiveRight:false,
-          shared: false,
-          clearWhenEmpty: true,
-          addToHistory: false});
-        if(cmloc.source.startsWith("interactions")) {
-          cmSnippet.setOption("lineNumberFormatter",
-            function(line) {
-              return ">";
-            });
+          
+        if(cmloc.source in editors) {
+          var cmsrc = editors[featured.source];
+          var handle = cmsrc.markText(cmloc.start, cmloc.end,
+           {className: lockey,
+            inclusiveLeft: false,
+            inclusiveRight:false,
+            shared: false,
+            clearWhenEmpty: true,
+            addToHistory: false});
+          if(cmloc.source.startsWith("interactions")) {
+            cmSnippet.setOption("lineNumberFormatter",
+              function(line) {
+                return ">";
+              });
+          } else {
+            cmSnippet.setOption("lineNumberFormatter",
+              function(line) {
+                var handleLoc = handle.find();
+                return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
+              });
+            // Refresh the gutters when a change is made to the source document
+            var refresh = function(cm, change) {
+              cmSnippet.setOption("firstLineNumber",0);
+              cmSnippet.setOption("firstLineNumber",1);};
+            cmsrc.on("change", refresh);
+            handle.on("clear", function(){cmsrc.off("change", refresh);});
+          }
+          // Copy relevant part of document.
+          endch = cmsrc.getLine(cmloc.end.line).length;
+          cmSnippet.getDoc().setValue(cmsrc.getRange(
+            {line: cmloc.start.line, ch: 0},
+            {line: cmloc.end.line, ch: endch}));
         } else {
-          cmSnippet.setOption("lineNumberFormatter",
-            function(line) {
-              var handleLoc = handle.find();
-              return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
-            });
+          var source = sessionStorage.getItem(cmloc.source)
+                      .split("\n")
+                      .slice(featured.start.line, featured.end.line + 1)
+                      .join("\n");
+          cmSnippet.setOption("firstLineNumber", cmloc.start.line);
+          cmSnippet.getDoc().setValue(getSourceContent(editors, cmloc, false) || "");
+          endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
         }
-        // Copy relevant part of document.
-        endch = cmsrc.getLine(cmloc.end.line).length;
-        cmSnippet.getDoc().setValue(cmsrc.getRange(
-          {line: cmloc.start.line, ch: 0},
-          {line: cmloc.end.line, ch: endch}));
-
         // Fade areas outside featured range
         cmSnippet.getDoc().markText(
           {line: 0, ch: 0},
@@ -805,28 +823,16 @@
           {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
           {line: cmloc.end.line - cmloc.start.line, ch: endch},
           {className: "highlight-irrelevant"});
-
-        if(cmloc.source in editors) {
-          // Refresh the gutters when a change is made to the source document
-          var refresh = function(cm, change) {
-            cmSnippet.setOption("firstLineNumber",0);
-            cmSnippet.setOption("firstLineNumber",1);};
-          cmsrc.on("change", refresh);
-          handle.on("clear", function(){cmsrc.off("change", refresh);});
-        }
-
         // render header
         snippetWrapper.prepend(
           $("<header>").append(drawCMloc(editors, cmloc)));
         snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
         return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
-
       } else {
         snippetWrapper.removeClass("cm-snippet");
         snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
-        return {wrapper: snippetWrapper, featured: featured};
+        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), featured: featured};
       }
-
     }
 
     function renderStackTrace(runtime, editors, srcloc, error) {
