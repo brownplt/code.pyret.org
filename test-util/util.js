@@ -10,7 +10,7 @@ function teardown() {
 }
 
 function teardownMulti() {
-//  return this.browser.quit();
+  return this.browser.quit();
 }
 
 function setupWithName(name) {
