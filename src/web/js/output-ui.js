@@ -89,8 +89,7 @@
         var source = runtime.getField(l, "source");
         return source === "definitions://"
                 || source.indexOf("interactions://") !== -1
-                || source.indexOf("gdrive") !== -1
-                || (local ? editors[source] !== undefined : false);
+                || (!local ? source.indexOf("gdrive") !== -1 : false);
       });
       var probablyErrorLocation = userLocs[ix];
       return probablyErrorLocation;
@@ -811,7 +810,7 @@
                       .slice(featured.start.line, featured.end.line + 1)
                       .join("\n");
           cmSnippet.setOption("firstLineNumber", cmloc.start.line);
-          cmSnippet.getDoc().setValue(getSourceContent(editors, cmloc, false) || "");
+          cmSnippet.getDoc().setValue(source);
           endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
         }
         // Fade areas outside featured range
@@ -1210,11 +1209,19 @@
               return;
             if (!s.editor)
               return;
+            var locKey = cmlocToCSSClass(key.l);
             s.editor.markText(
               {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
               {line: key.l.end.line - s.featured.start.line, ch: key.l.end.ch},
-              {className:"highlight " + cmlocToCSSClass(key.l),
+              {className:"highlight " + locKey,
                handleMouseEvents: false, atomic: true});
+            if(!editors[key.l.source]) {
+              var styles = document.getElementById("highlight-styles").sheet;
+              styles.insertRule(
+                  ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
+                   + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
+                   + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
+            };
             var updated = false;
             s.editor.on("update", function() {
               if(updated) return;

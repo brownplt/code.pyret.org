@@ -418,6 +418,8 @@
         var onChange = 
           function(cm, change){
             cm.off("change", onChange);
+            if(checkContainer.hasClass("stale"))
+              return;
             checkContainer.addClass("stale");
             var staleWarning = 
               $('<div>').addClass('check-block').addClass('stale-warning')
