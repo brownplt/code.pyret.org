@@ -1,6 +1,7 @@
 var assert = require("assert");
 var webdriver = require("selenium-webdriver");
 var fs = require("fs");
+var Q = require("Q");
 
 function teardown() {
   if(!(this.currentTest.state === 'failed')) {
@@ -9,7 +10,7 @@ function teardown() {
 }
 
 function teardownMulti() {
-  return this.browser.quit();
+//  return this.browser.quit();
 }
 
 function setupWithName(name) {
@@ -34,6 +35,9 @@ function setupWithName(name) {
       },
       browserName: browser
     }).build();
+    this.browser.session._then(function(s) {
+      console.log(name + ": see https://saucelabs.com/jobs/" + s.id_);
+    });
   } else if(process.env.SAUCE_USERNAME !== undefined) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
@@ -83,12 +87,24 @@ function waitForPyretLoad(driver, timeout) {
   return driver.wait(function() { return pyretLoaded(driver); }, timeout);
 }
 
-function loadAndRunPyret(code, driver, timeout) {
-  waitForPyretLoad(driver, timeout);
+function evalDefinitions(driver, toEval) {
   // http://stackoverflow.com/a/1145525 
-  var escaped = escape(code);
+  var escaped = escape(toEval);
   driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(unescape(\""+ escaped + "\"));");
   driver.findElement(webdriver.By.id("runButton")).click();
+}
+
+function evalPyretDefinitionsAndWait(driver, toEval) {
+  evalDefinitions(driver, toEval);
+  var breakButton = driver.findElement(webdriver.By.id('breakButton'));
+  driver.wait(webdriver.until.elementIsDisabled(breakButton));
+  return driver.findElement(webdriver.By.id("output"));
+;
+}
+
+function loadAndRunPyret(code, driver, timeout) {
+  waitForPyretLoad(driver, timeout);
+  evalDefinitions(driver, code);
 }
 
 function checkWorldProgramRunsCleanly(code, driver, test, timeout) {
@@ -186,7 +202,12 @@ function evalPyretNoError(driver, toEval) {
 function testErrorRendersString(it, name, toEval, expectedString) {
   it("should render " + name + " errors", function() {
     this.timeout(15000);
-    return evalPyret(this.browser, toEval).then(function(response) {
+    var self = this;
+    var replOutput = self.browser.findElement(webdriver.By.id("output"));
+    return evalPyretDefinitionsAndWait(this.browser, toEval).then(function(response) {
+      self.browser.wait(function () {
+        return replOutput.isElementPresent(webdriver.By.className("compile-error"));
+      }, 6000);
       return response.getText().then(function(text) {
         if(text.indexOf(expectedString) !== -1) {
           return true;
@@ -199,11 +220,63 @@ function testErrorRendersString(it, name, toEval, expectedString) {
   });
 }
 
+/*
+  specs: an Array<Array<Array<String>>>:
+
+    There should be a number of check blocks equal to the outer array, each
+    with a number of test results equal to the inner array, each containing
+    all of the given strings as substrings of the output.
+*/
+function testRunsAndHasCheckBlocks(it, name, toEval, specs) {
+  it("should render " + name + " check blocks", function() {
+    var self = this;
+    this.timeout(10000);
+    var replOutput = evalPyretDefinitionsAndWait(this.browser, toEval);
+    var checkBlocks = replOutput.then(function(response) {
+      self.browser.wait(function () {
+        return self.browser.isElementPresent(webdriver.By.className("testing-summary"));
+      }, 3000);
+      return response.findElements(webdriver.By.className("check-block-results"));
+    });
+    var blocksAsSpec = checkBlocks.then(function(cbs) {
+      var tests = cbs.map(function(cb) {
+        return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
+          return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
+            return Q.all(tests.map(function(t) { return t.getText(); }));
+          });
+        });
+      });
+      return Q.all(tests);
+    });
+    return blocksAsSpec.then(function(blocks) {
+      var expectedBlocks = specs.length;
+      if(expectedBlocks !== blocks.length) {
+        throw new Error("Expected to see output for " + expectedBlocks + " check blocks, but saw " + blocks.length);
+      }
+      blocks.forEach(function(b, i) {
+        var expectedTests = specs[i].length;
+        if(b.length !== expectedTests) {
+          throw new Error("Expected to see output for " + expectedTests + " tests within check block at index " + i + ", but saw " + b.length);
+        }
+        b.forEach(function(text, j) {
+          specs[i][j].forEach(function(testMustContain) {
+            if(text.indexOf(testMustContain) === -1) {
+              throw new Error("Text content of error \"" + text + "\" did not contain \"" + testMustContain + "\"");
+            }
+          });
+        });
+      });
+      return true;
+    });
+  });
+}
+
 module.exports = {
   pyretLoaded: pyretLoaded,
   waitForPyretLoad: waitForPyretLoad,
   evalPyret: evalPyret,
   testErrorRendersString: testErrorRendersString,
+  testRunsAndHasCheckBlocks: testRunsAndHasCheckBlocks,
   setup: setup,
   setupMulti: setupMulti,
   teardown: teardown,

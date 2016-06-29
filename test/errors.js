@@ -1,13 +1,19 @@
 var tester = require("../test-util/util.js");
+var fs = require("fs");
 
 describe("Rendering errors", function() {
   before(tester.setupMulti("Rendering errors"));
   after(tester.teardownMulti);
 
+  function fileTest(name, expected) {
+    var path = "test-util/pyret-programs/errors/" + name + ".arr";
+    return [name, fs.readFileSync(path), expected];
+  }
+
   var tests = [
-    ["field-not-found", "{}.x", "to contain a field named"],
-    ["lookup-non-object", "5.x", "to evaluate to an object"],
-    ["lookup-constructor-not-object", "data D: d() end\n d.x", "on a constructor"],
+    ["field-not-found", "{}.x", "did not have a field"],
+    ["lookup-non-object", "5.x", "non-object value"],
+    ["lookup-constructor-not-object", "data D: d() end\n d.x", "evaluated to a constructor (d)"],
     ["update-non-obj", "5!{x : 10}", "The reference update expression"],
     ["update-non-ref", "{x:5}!{x : 10}", "is not a reference"],
     ["update-non-existent-field", "{x:5}!{y : 10}", "does not exist"],
@@ -18,7 +24,9 @@ describe("Rendering errors", function() {
     ["lookup-non-tuple", "5.{1}", "evaluate to a tuple"],
     ["lookup-large-index", "{1;2}.{3}", "a value could not be found at the given position"],
 
-    ["type-id-used-as-value", "data D: d(x) end\nmy-x = D.x", "but it is defined as a type"]
+    ["type-id-used-as-value", "data D: d(x) end\nmy-x = D.x", "but it is defined as a type"],
+
+    fileTest("deeply-recursive-field-not-found", "did not have a field")
   ];
 
   tests.forEach(function(t) {

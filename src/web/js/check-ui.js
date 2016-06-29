@@ -50,7 +50,7 @@
         return runtime.eachLoop(runtime.makeFunction(function(i) { 
           var cr = checkResultsArr[i];
 
-          var eachContainer = $("<div>").addClass("check-block");
+          var eachContainer = $("<div>").addClass("check-block").addClass("check-block-results");
           var testContainer = $("<div>").addClass("check-block-test-container");
           var checkLoc      = get(cr,"loc");
           var checkCMLoc    = outputUI.cmPosFromSrcloc(runtime, srcloc, checkLoc);
