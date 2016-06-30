@@ -1,0 +1,68 @@
+/* load after pure-min.css */
+body {
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+form {
+  padding: 0 5px;
+}
+
+.pure-u-1 {
+  display: block;
+}
+
+#tbl {
+  text-align: center;
+}
+
+table {
+  margin: 0 auto;
+  text-align: left;
+}
+
+th {
+  text-align: center;
+  white-space: nowrap;
+}
+
+th:not(:first-child) {
+  padding: 20px 0;
+}
+
+th:not(:first-child) div {
+  transform: rotate(-90deg)
+  translate(25px, 51px);
+  -webkit-transform: rotate(-90deg);
+}
+
+#tbl td, th {
+  cursor: pointer;
+}
+
+#tbl .name, #tbl .dis, #tbl .nohov {
+  cursor: default !important;
+}
+
+#tbl .def:hover {
+  background-color: #bebebe;
+}
+
+#frm {
+  display: none;
+}
+
+#frm textarea {
+  min-height: 400px;
+}
+
+.tt {
+  background-color: #161616;
+  border: 1px solid #333;
+  border-radius: 5px;
+  color: #fff;
+  display: none;
+  font-size: 12px;
+  padding: 3px;
+  position: absolute;
+}

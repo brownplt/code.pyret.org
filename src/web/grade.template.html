@@ -1,0 +1,219 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org/grade</title>
+  <link rel="stylesheet" href="/css/pure-min.css">
+  <link rel="stylesheet" href="/css/grade.css">
+</head>
+<body>
+  <div class="pure-g">
+    <div id="cfg-container">
+      <div class="pure-u-1-2">
+        <form id="cfg" class="pure-form pure-form-stacked" method="POST">
+          <fieldset>
+            <legend>CPO/grade Configuration</legend>
+            <button id="openFile" class="blueButton loginOnly">Open</button>
+
+            <label for="id">What's the gDrive folder ID of your assignment?</label>
+            <input name="id" id="id" class="pure-input-1" value="0B-_f7M_B5NMiQjFLeEo1SVBBUE0">
+
+            <label for="implementation">What's the name of a implementation file?</label>
+            <input name="implementation" id="implementation" class="pure-input-1" value="list-drill-code.arr">
+
+            <label for="test">What's the name of a test file?</label>
+            <input name="test" id="test" class="pure-input-1" value="list-drill-tests.arr">
+
+            <label for="suite">What's the gDrive file ID of your test suite?</label>
+            <input name="suite" id="suite" class="pure-input-1" value="0B-_f7M_B5NMiOGpHLTN5Rk1aU2c">
+
+            <label for="gold">What's the gDrive file ID of your gold?</label>
+            <input name="gold" id="gold" class="pure-input-1" value="0B-_f7M_B5NMiZ1dJclRWMGN3ZTg">
+
+            <label for="coals">What're the gDrive file IDs of your coals? Delimit names and IDs with colons and coals with new lines.</label>
+            <textarea name="coals" id="coals" class="pure-input-1"></textarea>
+
+            <button type="submit" id="load" class="pure-button pure-button-primary">Load Submissions</button>
+
+          </fieldset>
+        </form>
+      </div>
+      <div class="pure-u-1-2">
+        <form id="prf" class="pure-form pure-form-stacked" method="POST">
+          <fieldset>
+            <legend>Previous Runs</legend>
+
+            <label for="pr">What's the time of the run you would like to restore?</label>
+            <select name="pr" id="pr" class="pure-input-1"></select>
+
+            <button type="submit" class="pure-button pure-button-primary">Restore</button>
+            <button id="reset" type="reset" class="pure-button pure-button-primary">Reset</button>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+    <div class="pure-u-1">
+      <table id="tbl" class="pure-table pure-table-bordered">
+        <thead><tr></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="pure-u-1">
+      <form id="frm" class="pure-form">
+        <fieldset>
+          <button id="gen" type="submit" class="pure-button pure-button-primary">Generate JSON</button>
+        </fieldset>
+        <textarea id="out" class="pure-input-1" placeholder="Click 'Generate JSON' after running targets"></textarea>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+  <script>
+    function resetForm(e) {
+      e.preventDefault();
+      localStorage.clear();
+      drawForm();
+      console.log("reset");
+    }
+
+    function saveForm(e) {
+      e.preventDefault();
+      if (!(localStorage.n > 0)) localStorage.n = 0;
+      localStorage.n++;
+      localStorage[localStorage.n] = $(this).serialize();
+      localStorage["t" + localStorage.n] = new Date;
+    }
+
+    function drawForm() {
+      if (localStorage.n > 0) {
+        $("#pr").html("<option selected disabled>Click to select</option>");
+        for (var i = localStorage.n; i > 0; i--) {
+          $("#pr").append(
+            "<option value=" + i + ">" + localStorage["t" + i] + "</option>");
+        }
+      }
+      else {
+        $("#pr").html("<option selected disabled>No prior runs</option>");
+      }
+    }
+
+    function updateForm(e) {
+      e.preventDefault();
+      var s = localStorage[$("#pr").val()];
+      var form_data = s.split("&");
+      $.each(form_data, function(k, v) {
+        var data = v.split("=");
+        $("#" + data[0]).val(decodeURIComponent(data[1]));
+      });
+    }
+
+    drawForm();
+    $("#cfg").on("submit", saveForm);
+    $("#reset").on("click", resetForm);
+    $("#prf").on("submit", updateForm);
+
+  </script>
+  <script src="/js/loader.js"></script>
+  <script src="/js/colorspaces.js"></script>
+  <script src="/js/q.js"></script>
+  <script src="/js/codemirror.js"></script>
+  <script src="/js/mark-selection.js"></script>
+  <script src="/js/runmode.js"></script>
+  <script src="/js/pyret-mode.js"></script>
+  <script src="/js/pyret-fold.js"></script>
+  <script src="/js/matchkw.js"></script>
+  <script src="/js/draw.js"></script>
+  <script src="/js/require.js"></script>
+  <script>
+    window.module = {};
+  </script>
+  <script src="/js/s-expression-lib.js"></script>
+  <script>
+    var sexp_exports = window.module.exports;
+    define("s-expression", [], function() {
+      return sexp_exports;
+    });
+  </script>
+  <script src="/js/seedrandom.js"></script>
+  <script>
+    var seed_exports = window.module.exports;
+    define("seedrandom", [], function() {
+      return seed_exports;
+    });
+  </script>
+  <script src="/js/share.js"></script>
+  <script src="/js/google-apis/api-wrapper.js"></script>
+  <script src="/js/google-apis/drive.js"></script>
+  <script src="/js/google-apis/picker.js"></script>
+  <script src="/js/google-apis/sheets.js"></script>
+  <script src="/js/authenticate-storage.js"></script>
+  <script>
+    var clientId = "";
+    var apiKey = "{{ GOOGLE_API_KEY }}";
+    function handleGoogLoad() {
+      handleClientLoad(clientId, apiKey);
+    }
+  </script>
+  <!-- Google API Loader (For picker) -->
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <!-- GAPI Client -->
+  <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+  <script>console.log(window.performance.now())</script>
+  <script src="js/beforePyret.js"></script>
+  <script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
+  <script type="text/javascript" src="/js/grade.js"></script>
+<!--   <script id="loadVersion">
+    // Figure out what version of Pyret we should be using, if not the current default
+    var APP_BASE_URL = "{{{ BASE_URL }}}";
+    var initialParams = url.parse(document.location.href);
+    var params = url.parse("/?" + initialParams["hash"]);
+    if(params.get && params.get["v"]) {
+      VERSION = params.get["v"];
+    }
+    else {
+      VERSION = "{{{ CURRENT_PYRET_RELEASE }}}";
+    }
+    if(VERSION !== "") { VERSION = VERSION + "/"; }
+    var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
+    function start() {
+      var start = document.createElement("script");
+      start.src = "/js/grade.js";
+      document.body.appendChild(start);
+    }
+    if({{{ USE_STANDALONE_PYRET }}}) {
+      var script = document.createElement("script");
+      script.src = BASE + "pyret.js"
+      document.body.insertBefore(script, document.getElementById("loadVersion"));
+      script.addEventListener("load", function() { start(); });
+      setTimeout(function() {
+        requirejs.config({
+          paths: {
+            "q": "/js/q",
+            "s-expression": "/js/s-expression",
+            "fs": "/js/fsstub"
+          },
+          waitSeconds: 0
+        });
+      });
+    } else {
+      var phase1Base = BASE + "phase1/";
+      requirejs.config({
+        paths: {
+          "js": phase1Base + "js",
+          "compiler": phase1Base + "arr/compiler",
+          "arr": phase1Base + "arr",
+          "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
+          "trove": phase1Base + "trove",
+          "q": "/js/q",
+          "s-expression": "/js/s-expression",
+          "fs": "/js/fsstub"
+        },
+        waitSeconds: 0
+      });
+      start();
+    }
+  </script> -->
+</body>
+</html>
