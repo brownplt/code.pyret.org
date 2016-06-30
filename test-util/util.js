@@ -127,22 +127,7 @@ function checkAllTestsPassed(driver, test, timeout) {
   driver.wait(function() {
     return replOutput.findElements(webdriver.By.className("testing-summary"));
   }, timeout);
-  var outputElements = replOutput.findElements(webdriver.By.xpath("*"));
-  outputElements.then(function(elements) {
-    elements[0].getAttribute("class").then(function(cls) {
-      if(cls.indexOf("error") !== -1) {
-        elements[0].getInnerHtml().then(function(str) {
-          driver.session_.then(function(s) {
-            var message = "See https://saucelabs.com/jobs/" + s.id_ + "\n\n" + str;
-            assert.equal("An error occurred", message);
-          });
-        });
-      }
-      else {
-        return replOutput.findElement(contains("Looks shipshape"));
-      }
-    });
-  });
+  return replOutput.findElements(contains("Looks shipshape"));
 }
 
 function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
