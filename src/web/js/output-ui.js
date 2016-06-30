@@ -1180,13 +1180,21 @@
                 }
               }
               
-              
-              anchor.on("mouseenter", function() {
-                for (var i = 0; i < locClasses.length; i++) {
-                  hintLoc(runtime, editors, srcloc, locArray[i]);
-                  $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
-                }
-              });
+              if (hue === undefined) {
+                anchor.on("mouseenter", function() {
+                  for (var i = 0; i < locClasses.length; i++) {
+                    hintLoc(runtime, editors, srcloc, locArray[i]);
+                    $("."+locClasses[i]).css("animation", "pulse-underline 0.4s infinite alternate");
+                  }
+                });
+              } else {
+                anchor.on("mouseenter", function() {
+                  for (var i = 0; i < locClasses.length; i++) {
+                    hintLoc(runtime, editors, srcloc, locArray[i]);
+                    $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
+                  }
+                });
+              }
               
               anchor.on("click", function() {
                 for (var z = 0; z < locClasses.length; z++) {
@@ -1246,6 +1254,8 @@
                    + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
                    + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
             };
+            if(!key.c)
+              return;
             var updated = false;
             s.editor.on("update", function() {
               if(updated) return;

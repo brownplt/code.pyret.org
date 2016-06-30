@@ -824,6 +824,15 @@ a.highlight {
   }
 }
 
+@keyframes pulse-underline {
+  from {
+  }
+  to {
+  background-color:transparent;
+  border-color:transparent;
+  }
+}
+
 .test-reason > code,
 .test-reason > .replOutput,
 .test-reason > .replTextOutput,
