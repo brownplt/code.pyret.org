@@ -77,6 +77,7 @@
       var runtime = callingRuntime;
       var rr = resultRuntime;
       return function(result) {
+        var doneDisplay = Q.defer();
         callingRuntime.runThunk(function() {
           console.log("Management/compile run stats:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
@@ -105,26 +106,13 @@
                     console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        if(!isMain) {
-                          var answer = rr.getColonField(runResult.result, "answer");
-                          if(!rr.isNothing(answer)) {
-                            return rr.safeCall(function() {
-                              return outputUI.renderPyretValue(output, rr, answer);
-                            }, function(_) {
-                              scroll(output);
-                            }, "rr.renderPyretvalue");
-                          }
-                        }
+                        return checkUI.drawCheckResults(output, editors, rr, 
+                                                        runtime.getField(runResult.result, "checks"), 
+                                                        makeErrorContext);
                       }, function(_) {
-                        return rr.safeCall(function() {
-                          return checkUI.drawCheckResults(output, editors, rr, 
-                                                          runtime.getField(runResult.result, "checks"), 
-                                                          makeErrorContext);
-                        }, function(_) {
-                          scroll(output);
-                          return true;
-                        }, "rr.drawCheckResults");
-                      }, "rr.renderPyretValue and drawCheckResults");
+                        scroll(output);
+                        return true;
+                      }, "rr.drawCheckResults");
                     } else {
                       return errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
@@ -136,10 +124,15 @@
             });
           }
           else {
+            doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             return errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
           }
-        }, function(_) { return callingRuntime.nothing; });
+        }, function(_) {
+          doneDisplay.resolve("Done displaying output");
+          return callingRuntime.nothing;
+        });
+      return doneDisplay.promise;
       }
     }
 
@@ -198,6 +191,15 @@
 
       var output = jQuery("<div id='output' class='cm-s-default'>");
       var outputPending = jQuery("<span>").text("Gathering results...");
+      var outputPendingHidden = true;
+      function maybeShowOutputPending() {
+        outputPendingHidden = false;
+        setTimeout(function() {
+          if(!outputPendingHidden) {
+            output.append(outputPending);
+          }
+        }, 200);
+      }
       runtime.setStdout(function(str) {
           ct_log(str);
           output.append($("<pre>").addClass("replPrint").text(str));
@@ -237,6 +239,7 @@
       function afterRun(cm) {
         return function() {
           outputPending.remove();
+          outputPendingHidden = true;
           options.runButton.empty();
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
@@ -282,11 +285,13 @@
                 .append($("<div>").addClass("trace")
                         .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
                         .append(container.result));
+              scroll(output);
             } else {
               $(output).append($("<div>").addClass("error trace")
                                .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
                                .append($("<span>").text("<error displaying value: details logged to console>")));
               console.log(container.exn);
+              scroll(output);
             }
             restarter.resume(val);
           });
@@ -296,7 +301,6 @@
       var runMainCode = function(src, uiOptions) {
         breakButton.attr("disabled", false);
         output.empty();
-        output.append(outputPending);
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
         setWhileRunning();
@@ -306,7 +310,11 @@
         interactionsCount = 0;
         replOutputCount = 0;
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
-        var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+        var startRendering = replResult.then(function(r) {
+          maybeShowOutputPending();
+          return r;
+        });
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(false));
@@ -331,9 +339,13 @@
         interactionsCount++;
         var thisName = 'interactions://' + interactionsCount;
         editors[thisName] = echoCM;
-        output.append(outputPending);
         var replResult = repl.run(code, thisName);
-        var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+//        replResult.then(afterRun(CM));
+        var startRendering = replResult.then(function(r) {
+          maybeShowOutputPending();
+          return r;
+        });
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(CM));
