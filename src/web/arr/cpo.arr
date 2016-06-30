@@ -60,9 +60,6 @@ fun make-builtin-js-locator(builtin-name, raw):
     method get-globals(_):
       CS.standard-globals
     end,
-    method get-namespace(_, some-runtime):
-      nothing
-    end,
 
     method uri(_): "builtin://" + builtin-name end,
     method name(_): builtin-name end,
