@@ -1026,6 +1026,9 @@
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
                         var container = containerResult.result;
+                        if (container.length > 0) {
+                          container = $("<div>").append(container);
+                        }
                         container.addClass("compile-error");
                         container.append(renderStackTrace(runtime,editors, srcloc, e));
                         restarter.resume(container);
