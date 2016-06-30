@@ -309,10 +309,10 @@
           "Scene": runtime.makePrimitiveAnn("Scene", checkScenePred)
         },
         values: runtime.makeObject({
-          "circle": f(function(maybeRadius, maybeMode, maybeColor) {
+          "circle": f(function(radius, mode, color) {
             checkArity(3, arguments, "circle");
-            c("circle", arguments, [annNumNonNegative, annMode, annColor]);
-            var color = checkColor(annColor);
+            c("circle", [radius, mode, color], [annNumNonNegative, annMode, annColor]);
+            color = checkColor(color);
             return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), String(mode), color));
           }),
           "is-image-color": f(function(maybeImage) {
