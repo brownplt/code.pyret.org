@@ -891,7 +891,8 @@
             }
             slContainer.append(cmSnippet.wrapper);
             container.append(slContainer);
-            cmSnippet.editor.refresh();
+            if(cmSnippet.editor)
+              cmSnippet.editor.refresh();
           }
           if (j == 10) {
             var more = $("<a>").text("Show more...");
@@ -1218,6 +1219,9 @@
       return runtime.safeCall(function() {
         return help(errorDisp, stack);
       }, function(rendering) {
+        if (rendering.length > 0) {
+          rendering = $("<div>").append(rendering);
+        }
         snippets.forEach(function(s){
           highlights.forEach(function(value,key){
             if(key.l.source != s.featured.source)
