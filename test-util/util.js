@@ -16,10 +16,14 @@ function teardownMulti() {
 function setupWithName(name) {
   if(this.currentTest) { name = this.currentTest.title; }
   var browser = process.env.SAUCE_BROWSER || "chrome";
+  var logging = webdriver.logging;
+  var prefs = new logging.Preferences();
+  prefs.setLevel(logging.Type.BROWSER, process.env.LOG_LEVEL || logging.Level.ALL);
   if (process.env.TRAVIS_JOB_NUMBER != undefined) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
     .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
+    .setLoggingPrefs(prefs)
     .withCapabilities({
       name: name,
       'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
@@ -39,6 +43,7 @@ function setupWithName(name) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
     .usingServer('https://ondemand.saucelabs.com/wd/hub')
+    .setLoggingPrefs(prefs)
     .withCapabilities({
       name: this.currentTest.title,
       username: process.env.SAUCE_USERNAME,
@@ -48,10 +53,28 @@ function setupWithName(name) {
   } else {
     this.base = process.env.BASE_URL;
     this.browser = new webdriver.Builder()
+    .setLoggingPrefs(prefs)
     .withCapabilities({
       browserName: browser
     }).build();
   }
+
+  webdriver.promise.controlFlow().once('uncaughtException', function(e) {
+    setTimeout((function(){
+      this.browser.manage().logs().get(logging.Type.BROWSER).then(function(logs) {
+        if (logs && logs.length > 0) {
+          e.message = e.message || '';
+          e.message += "\n\n   Javascript Console Logs:\n\n";
+          logs.forEach(function(l) {
+            e.message += (l.opt_timestamp ? "[" + l.opt_timestamp + "]" : "")
+              + " [" + l.level + "] " + l.message + "\n";
+          });
+          e.message += "\n";
+        }
+        throw e;
+      });
+    }).bind(this), 0);
+  }, this);
 
   return;
 }
