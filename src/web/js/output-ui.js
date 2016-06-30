@@ -758,10 +758,11 @@
     function snippet(editors, featured, srcloc, ul) {
       var cmloc = featured;
       var lockey = "snippet-" + cmlocToCSSClass(cmloc);
-      var snippetWrapper = $("<div>").addClass("cm-snippet");
+      var snippetWrapper = $("<div>");
       
       if(cmloc.source in editors
        || !!sessionStorage.getItem(cmloc.source)) {
+        snippetWrapper.addClass("cm-snippet");
         var endch;
         var cmSnippet = CodeMirror(snippetWrapper[0],{
           readOnly: "nocursor",
@@ -828,9 +829,8 @@
         snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
         return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
       } else {
-        snippetWrapper.removeClass("cm-snippet");
         snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
-        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), featured: featured};
+        return {wrapper: snippetWrapper, featured: featured};
       }
     }
 
