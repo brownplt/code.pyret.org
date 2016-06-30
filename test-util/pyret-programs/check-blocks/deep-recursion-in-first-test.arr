@@ -5,7 +5,7 @@ check:
   o = {method _output(self) block:
       var i = 0
       fun f(n):
-        if n > 10000 block: nothing
+        if n > 2000 block: nothing
         else:
           i := i + 1
           f(n + 1)
