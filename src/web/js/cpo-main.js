@@ -64,7 +64,6 @@
 
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules);
 
-    var replEnv = gmf(compileStructs, "standard-builtins");
     function findModule(contextIgnored, dependency) {
       return runtime.safeCall(function() {
         return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
@@ -141,13 +140,15 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
+    var getDefsForPyret = runtime.makeFunction(function() {
+        return CPO.editor.cm.getValue();
+      });
+    var replGlobals = gmf(compileStructs, "standard-globals");
+
     var replP = Q.defer();
     runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
             builtinsForPyret,
-            runtime.makeFunction(function() {
-              return CPO.editor.cm.getValue();
-            }),
             pyRuntime,
             pyRealm,
             runtime.makeFunction(findModule));
@@ -158,7 +159,14 @@
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
-                return gf(repl, "restart-interactions").app(typeCheck);
+                return runtime.safeCall(
+                  function() {
+                    return gf(repl,
+                    "make-definitions-locator").app(getDefsForPyret, replGlobals);
+                  },
+                  function(locator) {
+                    return gf(repl, "restart-interactions").app(locator, typeCheck);
+                  });
               }, function(result) {
                 ret.resolve(result);
               });
