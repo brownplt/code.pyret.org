@@ -742,7 +742,7 @@
         shared: false,
         clearWhenEmpty: true,
         addToHistory: false});
-      var editorSelector = (cmloc.source == "definitions"
+      var editorSelector = (cmloc.source == "definitions://"
         ? " > div.replMain "
         : " .repl-echo ");
       styles.insertRule(
@@ -874,11 +874,13 @@
                   clearFlash();
                 });
               } else {
-                var lockey = spotlight(editors, cmLoc).key;
-                cmSnippet.wrapper.on("mouseenter", function(e){
-                  gotoLoc(runtime, editors, srcloc, ul);
-                  contextManager.highlights = lockey;
-                });
+                cmSnippet.wrapper.on("mouseenter",
+                  (function(key, ul){
+                    return function(e){
+                      gotoLoc(runtime, editors, srcloc, ul);
+                      contextManager.highlights = key;
+                    };
+                  })(spotlight(editors, cmLoc).key, ul));
               }
             } else {
               cmSnippet.wrapper.on("mouseenter", function(e){
