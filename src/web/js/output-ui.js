@@ -853,15 +853,34 @@
         });
       if(userLocs.length > 0) {
         container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
-        userLocs.forEach(function(ul) {
-          var slContainer = $("<div>");
-          var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-          var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-          if (cmSnippet.editor) {
-            snippets.push(cmSnippet.editor);
-            cmSnippet.editor.getWrapperElement().style.height =
-              (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-            if(editors[cmLoc.source] === undefined) {
+        function drawStackChunk(i) {
+          if (i >= userLocs.length) return;
+          var j = 0;
+          for (j = 0; j + i < userLocs.length && j < 10; j++) {
+            var ul = userLocs[j + i];
+            var slContainer = $("<div>");
+            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+            if (cmSnippet.editor) {
+              snippets.push(cmSnippet.editor);
+              cmSnippet.editor.getWrapperElement().style.height =
+                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+              if(editors[cmLoc.source] === undefined) {
+                cmSnippet.wrapper.on("mouseenter", function(e){
+                  contextManager.highlights = "spotlight-external";
+                  flashMessage("This code isn't in this editor.")
+                });
+                cmSnippet.wrapper.on("mouseleave", function(e){
+                  clearFlash();
+                });
+              } else {
+                var lockey = spotlight(editors, cmLoc).key;
+                cmSnippet.wrapper.on("mouseenter", function(e){
+                  gotoLoc(runtime, editors, srcloc, ul);
+                  contextManager.highlights = lockey;
+                });
+              }
+            } else {
               cmSnippet.wrapper.on("mouseenter", function(e){
                 contextManager.highlights = "spotlight-external";
                 flashMessage("This code isn't in this editor.")
@@ -869,25 +888,21 @@
               cmSnippet.wrapper.on("mouseleave", function(e){
                 clearFlash();
               });
-            } else {
-              var lockey = spotlight(editors, cmLoc).key;
-              cmSnippet.wrapper.on("mouseenter", function(e){
-                gotoLoc(runtime, editors, srcloc, ul);
-                contextManager.highlights = lockey;
-              });
             }
-          } else {
-            cmSnippet.wrapper.on("mouseenter", function(e){
-              contextManager.highlights = "spotlight-external";
-              flashMessage("This code isn't in this editor.")
-            });
-            cmSnippet.wrapper.on("mouseleave", function(e){
-              clearFlash();
-            });
+            slContainer.append(cmSnippet.wrapper);
+            container.append(slContainer);
+            cmSnippet.editor.refresh();
           }
-          slContainer.append(cmSnippet.wrapper);
-          container.append(slContainer);
-        });
+          if (j == 10) {
+            var more = $("<a>").text("Show more...");
+            more.on("click", function() {
+              more.remove();
+              drawStackChunk(i + 10);
+            });
+            container.append(more);
+          }
+        }
+        drawStackChunk(0);
         return expandable(container, "program execution trace");
       } else {
         return container;
