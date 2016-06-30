@@ -1294,16 +1294,28 @@
 
     function installRenderers(runtime) {
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
+      function renderText(txt) {
+        var echo = $("<span>").addClass("replTextOutput");
+        echo.text(txt);
+        setTimeout(function() {
+          CodeMirror.runMode(echo.text(), "pyret", echo[0]);
+          echo.addClass("cm-s-default");
+        }, 0);
+        return echo;
+      };
+      function sooper(renderers, valType, val) {
+        return renderers.__proto__[valType](val);
+      }
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
         } else {
-          return renderers.renderText("opaque", val);
+          return renderText(sooper(renderers, "opaque", val));
         }
       };
       renderers["cyclic"] = function renderCyclic(val) {
-        return renderers.renderText("cyclic", val);
+        return renderText(sooper(renderers, "cyclic", val));
       };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
@@ -1374,22 +1386,11 @@
 
           return outText;
         } else {
-          return renderers.renderText("number", num);
+          return renderText(sooper(renderers, "number", num));
         }
       };
-      renderers["nothing"] = function renderPNothing(val) {
-        return $("<span>").addClass("replTextOutput").text("nothing");
-      };
-      renderers.renderText = function renderText(valType, val) {
-        var echo = $("<span>").addClass("replTextOutput");
-        echo.text(renderers.__proto__[valType](val));
-        setTimeout(function() {
-          CodeMirror.runMode(echo.text(), "pyret", echo[0]);
-          echo.addClass("cm-s-default");
-        }, 0);
-        return echo;
-      };
-      renderers["boolean"] = function(val) { return renderers.renderText("boolean", val); };
+      renderers["nothing"] = function(val) { return renderText("nothing"); }
+      renderers["boolean"] = function(val) { return renderText(sooper(renderers, "boolean", val)); };
       renderers["string"] = function(val) {
         var outText = $("<span>").addClass("replTextOutput escaped");
         var escapedUnicode = '"' + replaceUnprintableStringChars(val, true) + '"';
@@ -1436,8 +1437,8 @@
         }
         return ret.join('');
       };
-      renderers["method"] = function(val) { return renderers.renderText("method", val); };
-      renderers["function"] = function(val) { return renderers.renderText("function", val); };
+      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
+      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
       renderers["render-array"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
