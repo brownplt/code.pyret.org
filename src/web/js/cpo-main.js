@@ -146,7 +146,7 @@
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var replP = Q.defer();
-    runtime.safeCall(function() {
+    return runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
             builtinsForPyret,
             pyRuntime,
