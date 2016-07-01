@@ -125,25 +125,25 @@ function runAndCheckAllTestsPassed(code, driver, test, timeout) {
 function checkAllTestsPassed(driver, test, timeout) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   driver.wait(function() {
-    return replOutput.findElements(webdriver.By.className("testing-summary"));
+    return replOutput.isElementPresent(webdriver.By.className("testing-summary"));
   }, timeout);
-  return replOutput.findElements(contains("Looks shipshape"));
+  return replOutput.findElement(contains("Looks shipshape"));
 }
 
 function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
-  it("should run " + name + " programs", function(done) {
-    var self = this;
-    self.browser.get(self.base + "/editor");
-    var tests = fs.readdirSync(base).filter(function(p) {
-      return p.indexOf(".arr") === (p.length - 4);
-    });
-    self.timeout(tests.length * (baseTimeout || 30000));
-    tests.forEach(function(program) {
+  var tests = fs.readdirSync(base).filter(function(p) {
+    return p.indexOf(".arr") === (p.length - 4);
+  });
+  tests.forEach(function(program) {
+    it("should run " + name + " programs from " + program, function(done) {
+      var self = this;
+      self.browser.get(self.base + "/editor");
+      self.timeout(tests.length * (baseTimeout || 30000));
       var programText = String(fs.readFileSync(base + program));
       testFun(programText, self);
+      self.browser.call(done);
     });
-    self.browser.call(done);
-  });
+  })
 }
 
 function evalPyret(driver, toEval) {

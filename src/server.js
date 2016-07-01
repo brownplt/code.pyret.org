@@ -70,6 +70,9 @@ function start(config, onServerReady) {
   app.set('view engine', 'html');
 
   app.use(express.static(__dirname + "/../build/web/"));
+  if(config.development) {
+    app.use(express.static(__dirname + "/../test-util/"));
+  }
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
 

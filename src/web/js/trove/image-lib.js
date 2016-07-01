@@ -60,6 +60,10 @@
       if (!isImage(left) || !isImage(right)) { return false; }
       return left.equals(right);
     }
+    var imageDifference = function(left, right) {
+      if (!isImage(left) || !isImage(right)) { return false; }
+      return left.difference(right);
+    }
     //////////////////////////////////////////////////////////////////////
 
     var heir = Object.create;
@@ -199,15 +203,15 @@
       canvas.width = width;
       canvas.height = height;
 
-      jQuery(canvas).css('width', canvas.width + "px");
-      jQuery(canvas).css('height', canvas.height + "px");
-      jQuery(canvas).css('padding', '0px');
+      canvas.style.width  = canvas.width  + "px";
+      canvas.style.height = canvas.height + "px";
 
       // KLUDGE: IE compatibility uses /js/excanvas.js, and dynamic
       // elements must be marked this way.
-      if (window.G_vmlCanvasManager) {
-        canvas = window.G_vmlCanvasManager.initElement(canvas);
+      if (window && typeof window.G_vmlCanvasManager !== 'undefined') {
+          canvas = window.G_vmlCanvasManager.initElement(canvas);
       }
+
       return canvas;
     };
 
@@ -261,6 +265,60 @@
 
     BaseImage.prototype.toWrittenString = function(cache) { return "<image>"; }
     BaseImage.prototype.toDisplayedString = function(cache) { return "<image>"; }
+
+    /* Calculates the difference between two images, and returns it
+       as a Pyret Either<String, Number>
+
+       The difference is calculated from the formula at
+
+       http://stackoverflow.com/questions/9136524/are-there-any-javascript-libs-to-pixel-compare-images-using-html5-canvas-or-any
+
+       values in the low double digits indicate pretty similar images, in the
+       low hundreds something is clearly off.
+    */
+    BaseImage.prototype.difference = function(other) {
+      if(Math.floor(this.width)    !== Math.floor(other.getWidth())    ||
+         Math.floor(this.height)   !== Math.floor(other.getHeight())){
+        return RUNTIME.ffi.makeLeft("different-size([" + this.width + ", " + this.height + "], [" +
+                  other.getWidth() + ", " + other.getHeight() + "])");
+      }
+
+      // http://stackoverflow.com/questions/9136524/are-there-any-javascript-libs-to-pixel-compare-images-using-html5-canvas-or-any
+      function rmsDiff(data1,data2){
+        var squares = 0;
+        for(var i = 0; i<data1.length; i++){
+            squares += (data1[i]-data2[i])*(data1[i]-data2[i]);
+        }
+        var rms = Math.sqrt(squares / data1.length);
+        return rms;
+      }
+
+      // if it's something more sophisticated, render both images to canvases
+      // First check canvas dimensions, then go pixel-by-pixel
+      var c1 = this.toDomNode(), c2 = other.toDomNode();
+      c1.style.visibility = c2.style.visibility = "hidden";
+      var w1 = Math.floor(c1.width),
+          h1 = Math.floor(c1.height),
+          w2 = Math.floor(c2.width),
+          h2 = Math.floor(c2.height);
+      if(w1 !== w2 || h1 !== h2){
+        return RUNTIME.makeLeft("different-size-dom([" + c1.width + ", " + c1.height + "], [" +
+                  c2.width + ", " + c2.height + "])");
+      }
+      var ctx1 = c1.getContext('2d'), ctx2 = c2.getContext('2d');
+      this.render(ctx1, 0, 0);
+      other.render(ctx2, 0, 0);
+      try{
+        var data1 = ctx1.getImageData(0, 0, w1, h1),
+        data2 = ctx2.getImageData(0, 0, w2, h2);
+        var pixels1 = data1.data,
+            pixels2 = data2.data;
+        return RUNTIME.ffi.makeRight(rmsDiff(pixels1, pixels2));
+      } catch(e){
+        // if we violate CORS, just bail
+        return RUNTIME.ffi.makeLeft("exception: " + String(e));
+      }
+    };
 
     // Best-Guess equivalence for images. If they're vertex-based we're in luck,
     // otherwise we go pixel-by-pixel. It's up to exotic image types to provide
@@ -454,11 +512,6 @@
 
     FileImage.prototype.getHeight = function() {
       return this.img.height;
-    };
-
-    // Override toDomNode: we don't need a full-fledged canvas here.
-    FileImage.prototype.toDomNode = function(params) {
-      return this.img.cloneNode(true);
     };
 
     FileImage.prototype.equals = function(other) {
@@ -1554,6 +1607,7 @@
       StarImage: StarImage,
 
       imageEquals: imageEquals,
+      imageDifference: imageDifference,
 
       colorDb: colorDb,
 

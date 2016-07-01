@@ -60,7 +60,7 @@
       $(".repl").animate({
            scrollTop: output.height(),
          },
-         500
+         50
       );
     }
 

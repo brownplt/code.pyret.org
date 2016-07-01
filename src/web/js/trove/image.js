@@ -20,6 +20,7 @@
       "open-image-url": "tany",
       "image-url": "tany",
       "images-equal": "tany",
+      "images-difference": "tany",
       "text": "tany",
       "text-font": "tany",
       "overlay": "tany",
@@ -351,6 +352,12 @@
           "bitmap-url": bitmapURL,
           "open-image-url": bitmapURL,
           "image-url": bitmapURL,
+          "images-difference": f(function(maybeImage1, maybeImage2) {
+            checkArity(2, arguments, "images-difference");
+            var img1 = checkImage(maybeImage1);
+            var img2 = checkImage(maybeImage2);
+            return runtime.wrap(image.imageDifference(img1, img2));
+          }),
           "images-equal": f(function(maybeImage1, maybeImage2) {
             checkArity(2, arguments, "images-equal");
             // TODO: The original version of the image library's equals function passes a union-find datastructure
@@ -969,6 +976,7 @@
             var name = checkString(maybeName);
             return runtime.wrap(colorDb.get(String(name)) || false);
           })
+
         }),
       }),
       answer: runtime.namespace.get("nothing")
