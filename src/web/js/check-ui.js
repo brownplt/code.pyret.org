@@ -291,44 +291,46 @@
                   // Highlight the point the check block errored at.
                   var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, 
                                                               get(get(cr, "maybe-err"), "value").val.pyretStack, 0, true);
-                  //outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
-                  var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
-                  var editor = editors[cmloc.source];
-                  var textMarker = editor.markText(cmloc.start, cmloc.end,
-                                                   {inclusiveLeft:false, inclusiveRight:false});
-                  var thisContainer = eachContainer;
-                  var marker = document.createElement("div");
-                  marker.innerHTML = cmloc.start.line + 1;
-                  marker.title = "Check block ended with an unexpected error here. Click to see why.";
-                  marker.classList.add("erroredTestMarker");
-                  marker.classList.add("CodeMirror-linenumber");
                   
                   errorDiv.on('click', function(){
                     reason.trigger('toggleHighlight');
                   });
                   
-                  $(marker).on("click", function(){
-                    thisContainer.on("animationend", function(){this.style.animation = "";});
-                    thisContainer[0].style.animation = "emphasize-error 1s 1";
-                    reason[0].scrollIntoView(true);
-                    reason.trigger('toggleHighlight');
-                  });
-                  
-                  var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
-                  var onChange = function(cm, change) {
-                    var gutterLine = editor.getLineNumber(gutterHandle);
-                    var markerLoc  = textMarker.find();
-                    if(markerLoc === undefined)
-                      return;
-                    var markerLine = markerLoc.from.line;
-                    marker.innerHTML = markerLine + 1;
-                    if(gutterLine != markerLine) {
-                      editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
-                      editor.refresh();
-                      gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
-                    }
-                  };
-                  editor.on("change",onChange);
+                  if(errorLoc !== undefined) {
+                    var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
+                    var editor = editors[cmloc.source];
+                    var textMarker = editor.markText(cmloc.start, cmloc.end,
+                                                     {inclusiveLeft:false, inclusiveRight:false});
+                    var thisContainer = eachContainer;
+                    var marker = document.createElement("div");
+                    marker.innerHTML = cmloc.start.line + 1;
+                    marker.title = "Check block ended with an unexpected error here. Click to see why.";
+                    marker.classList.add("erroredTestMarker");
+                    marker.classList.add("CodeMirror-linenumber");
+                    
+                    $(marker).on("click", function(){
+                      thisContainer.on("animationend", function(){this.style.animation = "";});
+                      thisContainer[0].style.animation = "emphasize-error 1s 1";
+                      reason[0].scrollIntoView(true);
+                      reason.trigger('toggleHighlight');
+                    });
+                    
+                    var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
+                    var onChange = function(cm, change) {
+                      var gutterLine = editor.getLineNumber(gutterHandle);
+                      var markerLoc  = textMarker.find();
+                      if(markerLoc === undefined)
+                        return;
+                      var markerLine = markerLoc.from.line;
+                      marker.innerHTML = markerLine + 1;
+                      if(gutterLine != markerLine) {
+                        editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
+                        editor.refresh();
+                        gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
+                      }
+                    };
+                    editor.on("change",onChange);
+                  }
                   return runtime.nothing;
                 }, "about to drawError");
               } else { // !thisCheckBlockErrored
