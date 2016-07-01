@@ -8,7 +8,9 @@ check "All sheets loaded":
 end
 
 check "Table loading and Type Inference":
-  sheet1 = foo.sheet-by-name("Sheet1", false)
+  sheet1 = load-table: A, B, C, D, E
+    source: foo.sheet-by-name("Sheet1", false)
+  end
 
   # Loading/String inference
   (extract A from sheet1 end) is [list: "Bob", "Alice", "Nancy", "Eve", "Don"]
