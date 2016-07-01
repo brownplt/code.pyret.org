@@ -27,6 +27,10 @@
     },
     { "import-type": "builtin",
       name: "cpo-builtins"
+    },
+    {
+      "import-type": "builtin",
+      name: "parse-pyret"
     }
   ],
   nativeRequires: [
@@ -35,7 +39,7 @@
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo,
-                      runtimeLib, loadLib, builtinModules, cpoBuiltins,
+                      runtimeLib, loadLib, builtinModules, cpoBuiltins, parsePyret,
                       cpoModules
   ) {
     window.CPOIDEHooks = {
@@ -50,6 +54,7 @@
       loadLib: loadLib,
       builtinModules: builtinModules,
       cpoBuiltins: cpoBuiltins,
+      parsePyret: parsePyret,
       cpoModules: cpoModules,
     };
     return runtime.makeModuleReturn({}, {});
