@@ -146,7 +146,7 @@
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var replP = Q.defer();
-    runtime.safeCall(function() {
+    return runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
             builtinsForPyret,
             pyRuntime,
@@ -273,9 +273,6 @@
           editor.cm.removeLineClass(lh, "background");});
         for(var i = 0; i < marks.length; i++) {
           marks[i].clear();
-        }
-        for(var i = 0; i < editor.cm.widgets.length; i++) {
-          editor.cm.widgets[i].clear();
         }
         var sheet = document.getElementById("highlight-styles").sheet;
         for(var i=0; i< sheet.cssRules.length; i++) {

@@ -742,7 +742,7 @@
         shared: false,
         clearWhenEmpty: true,
         addToHistory: false});
-      var editorSelector = (cmloc.source == "definitions"
+      var editorSelector = (cmloc.source == "definitions://"
         ? " > div.replMain "
         : " .repl-echo ");
       styles.insertRule(
@@ -853,15 +853,36 @@
         });
       if(userLocs.length > 0) {
         container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
-        userLocs.forEach(function(ul) {
-          var slContainer = $("<div>");
-          var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-          var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-          if (cmSnippet.editor) {
-            snippets.push(cmSnippet.editor);
-            cmSnippet.editor.getWrapperElement().style.height =
-              (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-            if(editors[cmLoc.source] === undefined) {
+        function drawStackChunk(i) {
+          if (i >= userLocs.length) return;
+          var j = 0;
+          for (j = 0; j + i < userLocs.length && j < 10; j++) {
+            var ul = userLocs[j + i];
+            var slContainer = $("<div>");
+            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+            if (cmSnippet.editor) {
+              snippets.push(cmSnippet.editor);
+              cmSnippet.editor.getWrapperElement().style.height =
+                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+              if(editors[cmLoc.source] === undefined) {
+                cmSnippet.wrapper.on("mouseenter", function(e){
+                  contextManager.highlights = "spotlight-external";
+                  flashMessage("This code isn't in this editor.")
+                });
+                cmSnippet.wrapper.on("mouseleave", function(e){
+                  clearFlash();
+                });
+              } else {
+                cmSnippet.wrapper.on("mouseenter",
+                  (function(key, ul){
+                    return function(e){
+                      gotoLoc(runtime, editors, srcloc, ul);
+                      contextManager.highlights = key;
+                    };
+                  })(spotlight(editors, cmLoc).key, ul));
+              }
+            } else {
               cmSnippet.wrapper.on("mouseenter", function(e){
                 contextManager.highlights = "spotlight-external";
                 flashMessage("This code isn't in this editor.")
@@ -869,25 +890,22 @@
               cmSnippet.wrapper.on("mouseleave", function(e){
                 clearFlash();
               });
-            } else {
-              var lockey = spotlight(editors, cmLoc).key;
-              cmSnippet.wrapper.on("mouseenter", function(e){
-                gotoLoc(runtime, editors, srcloc, ul);
-                contextManager.highlights = lockey;
-              });
             }
-          } else {
-            cmSnippet.wrapper.on("mouseenter", function(e){
-              contextManager.highlights = "spotlight-external";
-              flashMessage("This code isn't in this editor.")
-            });
-            cmSnippet.wrapper.on("mouseleave", function(e){
-              clearFlash();
-            });
+            slContainer.append(cmSnippet.wrapper);
+            container.append(slContainer);
+            if(cmSnippet.editor)
+              cmSnippet.editor.refresh();
           }
-          slContainer.append(cmSnippet.wrapper);
-          container.append(slContainer);
-        });
+          if (j == 10) {
+            var more = $("<a>").text("Show more...");
+            more.on("click", function() {
+              more.remove();
+              drawStackChunk(i + 10);
+            });
+            container.append(more);
+          }
+        }
+        drawStackChunk(0);
         return expandable(container, "program execution trace");
       } else {
         return container;
@@ -1010,6 +1028,9 @@
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
                         var container = containerResult.result;
+                        if (container.length > 0) {
+                          container = $("<div>").append(container);
+                        }
                         container.addClass("compile-error");
                         container.append(renderStackTrace(runtime,editors, srcloc, e));
                         restarter.resume(container);
@@ -1159,13 +1180,21 @@
                 }
               }
               
-              
-              anchor.on("mouseenter", function() {
-                for (var i = 0; i < locClasses.length; i++) {
-                  hintLoc(runtime, editors, srcloc, locArray[i]);
-                  $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
-                }
-              });
+              if (hue === undefined) {
+                anchor.on("mouseenter", function() {
+                  for (var i = 0; i < locClasses.length; i++) {
+                    hintLoc(runtime, editors, srcloc, locArray[i]);
+                    $("."+locClasses[i]).css("animation", "pulse-underline 0.4s infinite alternate");
+                  }
+                });
+              } else {
+                anchor.on("mouseenter", function() {
+                  for (var i = 0; i < locClasses.length; i++) {
+                    hintLoc(runtime, editors, srcloc, locArray[i]);
+                    $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
+                  }
+                });
+              }
               
               anchor.on("click", function() {
                 for (var z = 0; z < locClasses.length; z++) {
@@ -1203,6 +1232,9 @@
       return runtime.safeCall(function() {
         return help(errorDisp, stack);
       }, function(rendering) {
+        if (rendering.length > 0) {
+          rendering = $("<div>").append(rendering);
+        }
         snippets.forEach(function(s){
           highlights.forEach(function(value,key){
             if(key.l.source != s.featured.source)
@@ -1222,6 +1254,8 @@
                    + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
                    + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
             };
+            if(!key.c)
+              return;
             var updated = false;
             s.editor.on("update", function() {
               if(updated) return;

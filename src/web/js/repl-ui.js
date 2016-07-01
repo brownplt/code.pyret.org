@@ -86,7 +86,7 @@
       return function(result) {
         var doneDisplay = Q.defer();
         callingRuntime.runThunk(function() {
-          console.log("Management/compile run stats:", JSON.stringify(result.stats));
+          console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
             return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
           }
@@ -110,7 +110,7 @@
                 callingRuntime.pauseStack(function(restarter) {
                   rr.runThunk(function() {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
-                    console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
+                    console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
                         return checkUI.drawCheckResults(output, editors, rr, 
