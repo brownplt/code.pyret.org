@@ -73,39 +73,6 @@
 
           eachContainer.attr("id", checkCSSID);
           
-          function editorMessage(cssClass, msg, optionalError) {
-            if(!editors[checkCMLoc.source]) {
-              console.log("Couldn't find editor in which to render: ", checkCMLoc.source);
-              return;
-            }
-            if(!editors[checkCMLoc.source].widgets) {
-              editors[checkCMLoc.source].widgets = [];
-            }
-            editors[checkCMLoc.source].widgets.push(
-              editors[checkCMLoc.source].addLineWidget(checkCMLoc.start.line,
-                                                       function(){ 
-                                                         var marker = document.createElement("div");
-                                                         $(marker)
-                                                           .addClass("editor-check-block-message")
-                                                           .addClass(cssClass)
-                                                           .attr('id',"check-marker" + checkCSS)
-                                                           .text(msg)
-                                                           .on("click", function(){
-                                                             var errorel = document.getElementById(checkCSSID);
-                                                             errorel.style.animation = "emphasize-error 1s 1";
-                                                             if(optionalError != undefined){
-                                                               optionalError.trigger('toggleHighlight');
-                                                               optionalError[0].scrollIntoView(true);
-                                                             } else {
-                                                               $(errorel).children(".check-block-header").click();
-                                                               errorel.scrollIntoView(true);
-                                                             }
-                                                             $(errorel).on("animationend", function(){this.style.animation = "";});
-                                                           });
-                                                         return marker;
-                                                       }(),
-                                                       {coverGutter: false, noHScroll: true, above: true}));
-          }
           
           // Check block header
           var name = $("<a>").text(get(cr, "name"))
@@ -313,7 +280,6 @@
                   var reason = errorDiv.children(".compile-error");
                   eachContainer.append(errorDiv);
                   summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
-                  editorMessage("editor-check-block-error", "Unexpected Error", reason);
                   
                   if(testsInBlock > 0) {
                     testContainer.prepend(
@@ -426,9 +392,6 @@
             checkContainer.prepend(staleWarning);
             // This is a little jarring.
             // staleWarning[0].scrollIntoView(true);
-            editors["definitions://"].widgets.forEach(function(w){
-              w.clear();
-            });
           };
         editors["definitions://"].on("change", onChange);
         
