@@ -33,7 +33,7 @@
             <label for="coals">What're the gDrive file IDs of your coals? Delimit names and IDs with colons and coals with new lines.</label>
             <textarea name="coals" id="coals" class="pure-input-1"></textarea>
 
-            <button type="submit" id="load" class="pure-button pure-button-primary">Load Submissions</button>
+            <button id="load" class="pure-button pure-button-primary">Load Submissions</button>
 
           </fieldset>
         </form>
@@ -70,51 +70,7 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-  <script>
-    function resetForm(e) {
-      e.preventDefault();
-      localStorage.clear();
-      drawForm();
-      console.log("reset");
-    }
 
-    function saveForm(e) {
-      e.preventDefault();
-      if (!(localStorage.n > 0)) localStorage.n = 0;
-      localStorage.n++;
-      localStorage[localStorage.n] = $(this).serialize();
-      localStorage["t" + localStorage.n] = new Date;
-    }
-
-    function drawForm() {
-      if (localStorage.n > 0) {
-        $("#pr").html("<option selected disabled>Click to select</option>");
-        for (var i = localStorage.n; i > 0; i--) {
-          $("#pr").append(
-            "<option value=" + i + ">" + localStorage["t" + i] + "</option>");
-        }
-      }
-      else {
-        $("#pr").html("<option selected disabled>No prior runs</option>");
-      }
-    }
-
-    function updateForm(e) {
-      e.preventDefault();
-      var s = localStorage[$("#pr").val()];
-      var form_data = s.split("&");
-      $.each(form_data, function(k, v) {
-        var data = v.split("=");
-        $("#" + data[0]).val(decodeURIComponent(data[1]));
-      });
-    }
-
-    drawForm();
-    $("#cfg").on("submit", saveForm);
-    $("#reset").on("click", resetForm);
-    $("#prf").on("submit", updateForm);
-
-  </script>
   <script src="/js/loader.js"></script>
   <script src="/js/colorspaces.js"></script>
   <script src="/js/q.js"></script>
@@ -164,56 +120,5 @@
   <script src="js/beforePyret.js"></script>
   <script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
   <script type="text/javascript" src="/js/grade.js"></script>
-<!--   <script id="loadVersion">
-    // Figure out what version of Pyret we should be using, if not the current default
-    var APP_BASE_URL = "{{{ BASE_URL }}}";
-    var initialParams = url.parse(document.location.href);
-    var params = url.parse("/?" + initialParams["hash"]);
-    if(params.get && params.get["v"]) {
-      VERSION = params.get["v"];
-    }
-    else {
-      VERSION = "{{{ CURRENT_PYRET_RELEASE }}}";
-    }
-    if(VERSION !== "") { VERSION = VERSION + "/"; }
-    var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
-    function start() {
-      var start = document.createElement("script");
-      start.src = "/js/grade.js";
-      document.body.appendChild(start);
-    }
-    if({{{ USE_STANDALONE_PYRET }}}) {
-      var script = document.createElement("script");
-      script.src = BASE + "pyret.js"
-      document.body.insertBefore(script, document.getElementById("loadVersion"));
-      script.addEventListener("load", function() { start(); });
-      setTimeout(function() {
-        requirejs.config({
-          paths: {
-            "q": "/js/q",
-            "s-expression": "/js/s-expression",
-            "fs": "/js/fsstub"
-          },
-          waitSeconds: 0
-        });
-      });
-    } else {
-      var phase1Base = BASE + "phase1/";
-      requirejs.config({
-        paths: {
-          "js": phase1Base + "js",
-          "compiler": phase1Base + "arr/compiler",
-          "arr": phase1Base + "arr",
-          "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
-          "trove": phase1Base + "trove",
-          "q": "/js/q",
-          "s-expression": "/js/s-expression",
-          "fs": "/js/fsstub"
-        },
-        waitSeconds: 0
-      });
-      start();
-    }
-  </script> -->
 </body>
 </html>
