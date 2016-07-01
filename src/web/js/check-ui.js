@@ -65,9 +65,12 @@
             function(n, test) {
               return n + isTestSuccess(test);
             }, 0);
+          var thisCheckBlockErrored =
+            get(option, "is-some").app(get(cr, "maybe-err"));
           checkTotalAll += testsInBlock;
           checkPassedAll += testsPassingInBlock;
           
+
           eachContainer.attr("id", checkCSSID);
           
           function editorMessage(cssClass, msg, optionalError) {
@@ -267,7 +270,7 @@
                 addPassToTest(get(tr, "loc"));
                 return runtime.nothing;
               }
-            }), 0, trArr.length);
+            }), 0, (testsInBlock === testsPassingInBlock && !thisCheckBlockErrored) ? 0 : trArr.length);
           }, function(_) {
             eachContainer.append(testContainer);
             
@@ -292,10 +295,6 @@
             });
             
             var summary = $("<div>").addClass("check-block-summary");
-            
-            
-            var thisCheckBlockErrored =
-              get(option, "is-some").app(get(cr, "maybe-err"));
             
             eachContainer.addClass(
               thisCheckBlockErrored               ? "check-block-errored"
