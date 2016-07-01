@@ -283,19 +283,23 @@
         }
 
         function drawPyretParseError() {
-          var locToSrc = outputUI.locToSrc(runtime, editors, srcloc);
+          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
           runtime.pauseStack(function(restarter) {
             runtime.runThunk(function() { 
-              return get(e.exn, "render-fancy-reason").app(locToSrc); 
+              return get(e.exn, "render-fancy-reason").app(srclocAvaliable);
             }, function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 runtime.runThunk(function() {
                   return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
                 }, function(domResult) {
                   if (runtime.isSuccessResult(domResult)) {
-                    var dom = domResult.result;
-                    dom.addClass("parse-error");
-                    container.append(dom);
+                    var rendering = domResult.result;
+                    rendering
+                      .addClass("compile-error")
+                      .on('click', function(){
+                        rendering.trigger('toggleHighlight');
+                      })
+                      .appendTo(container);
                   } else {
                     container.append($("<span>").addClass("compile-error")
                                      .text("An error occurred rendering the reason for this error; details logged to the console"));
