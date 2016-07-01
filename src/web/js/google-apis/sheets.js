@@ -117,8 +117,11 @@ function createSheetsAPI(immediate) {
      * @param rowData - The raw data to process
      * @param [skipHeaders] - If true, omits the first nonempty row from
      *        the processed data set.
+     * @param [onlyInfer] - If given, lists the only columns for which
+     *        type inference should take place (effectively, this just
+     *        doesn't log any type errors for other columns)
      */
-    function unifyRows(rowData, skipHeaders) {
+    function unifyRows(rowData, skipHeaders, onlyInfer) {
       var errors = [];
       // Schemas of individual rows
       var rowSchemas = [];
@@ -203,6 +206,9 @@ function createSheetsAPI(immediate) {
       // schema1 = accumulated
       function unifySchemas(schema1, schema2, row, index) {
         function logFail() {
+          if (onlyInfer && !onlyInfer.includes(schema2.trueCol)) {
+            return;
+          }
           var trueRow = schema2.trueRow;
           var trueCol = schema2.trueCol;
 
@@ -369,12 +375,14 @@ function createSheetsAPI(immediate) {
      * @param {number} worksheetIdx - The index of the worksheet to return
      * @param {boolean} skipHeaders - Indicates whether or not header rows
      *        should be skipped (ignored if this worksheet has been previously loaded)
+     * @param {integer[]} [onlyInfer] - If given, will only perform type inference
+     *        on the given columns (i.e. does not report type errors on other columns)
      */
-    Spreadsheet.prototype.getByIndex = function(worksheetIdx, skipHeaders) {
+    Spreadsheet.prototype.getByIndex = function(worksheetIdx, skipHeaders, onlyInfer) {
       // Performs validation on index
       this.lookupInfoByIndex(worksheetIdx);
       var ret = this.worksheets[worksheetIdx];
-      ret.init(skipHeaders);
+      ret.init(skipHeaders, onlyInfer);
       return ret;
     };
 
@@ -384,11 +392,13 @@ function createSheetsAPI(immediate) {
      * @param {string} name - The name of the worksheet to return
      * @param {boolean} skipHeaders - Indicates whether or not header rows
      *        should be skipped (ignored if this worksheet has been previously loaded)
+     * @param {integer[]} [onlyInfer] - If given, will only perform type inference
+     *        on the given columns (i.e. does not report type errors on other columns)
      */
-    Spreadsheet.prototype.getByName = function(name, skipHeaders) {
+    Spreadsheet.prototype.getByName = function(name, skipHeaders, onlyInfer) {
       var info = this.lookupInfoByName(name);
       var ret = this.worksheets[info.properties.index];
-      ret.init(skipHeaders);
+      ret.init(skipHeaders, onlyInfer);
       return ret;
     };
 
@@ -530,8 +540,10 @@ function createSheetsAPI(immediate) {
      * worksheet's data.
      * @param {boolean} skipHeaders - Indicates whether or not header rows
      *        should be skipped (ignored if this worksheet has been previously loaded)
+     * @param {integer[]} [onlyInfer] - If given, will only perform type inference
+     *        on the given columns (i.e. does not report type errors on other columns)
      */
-    Worksheet.prototype.init = function(skipHeaders) {
+    Worksheet.prototype.init = function(skipHeaders, onlyInfer) {
       if ((this.hasHeaders !== undefined)
           && (this.hasHeaders !== !skipHeaders)) {
         throw new SheetsError("Attempted to load worksheet with"
@@ -549,7 +561,7 @@ function createSheetsAPI(immediate) {
         this.startCol = 0;
         this.schema = [];
       } else {
-        var unified = unifyRows(data.data[0].rowData, skipHeaders);
+        var unified = unifyRows(data.data[0].rowData, skipHeaders, onlyInfer);
         this.startCol = unified.startCol;
         this.data = unified.values;
         this.schema = unified.schema;
