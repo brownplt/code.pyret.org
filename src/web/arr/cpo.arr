@@ -60,9 +60,6 @@ fun make-builtin-js-locator(builtin-name, raw):
     method get-globals(_):
       CS.standard-globals
     end,
-    method get-namespace(_, some-runtime):
-      nothing
-    end,
 
     method uri(_): "builtin://" + builtin-name end,
     method name(_): builtin-name end,
@@ -84,9 +81,8 @@ fun make-builtin-js-locator(builtin-name, raw):
   }
 end
 
-fun make-repl(builtin-mods, get-defs, runtime, realm, finder):
+fun make-repl(builtin-mods, runtime, realm, finder):
   modules = get-builtin-modules(builtin-mods)
-  locator = R.make-repl-definitions-locator(get-defs, CS.standard-globals)
-  repl = R.make-repl(runtime, modules, realm, locator, "cpo-context-currently-unused", finder)
+  repl = R.make-repl(runtime, modules, realm, "cpo-context-currently-unused", finder)
   repl
 end

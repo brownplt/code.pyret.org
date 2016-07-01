@@ -133,8 +133,6 @@ $(function() {
       CM.display.wrapper.appendChild(lowerWarning.get(0));
     }
 
-    CM.widgets = new Array();
-
     return {
       cm: CM,
       refresh: function() { CM.refresh(); },

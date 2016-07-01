@@ -65,44 +65,14 @@
             function(n, test) {
               return n + isTestSuccess(test);
             }, 0);
+          var thisCheckBlockErrored =
+            get(option, "is-some").app(get(cr, "maybe-err"));
           checkTotalAll += testsInBlock;
           checkPassedAll += testsPassingInBlock;
           
+
           eachContainer.attr("id", checkCSSID);
           
-          function editorMessage(cssClass, msg, optionalError) {
-            if(!editors[checkCMLoc.source]) {
-              console.log("Couldn't find editor in which to render: ", checkCMLoc.source);
-              return;
-            }
-            if(!editors[checkCMLoc.source].widgets) {
-              editors[checkCMLoc.source].widgets = [];
-            }
-            editors[checkCMLoc.source].widgets.push(
-              editors[checkCMLoc.source].addLineWidget(checkCMLoc.start.line,
-                                                       function(){ 
-                                                         var marker = document.createElement("div");
-                                                         $(marker)
-                                                           .addClass("editor-check-block-message")
-                                                           .addClass(cssClass)
-                                                           .attr('id',"check-marker" + checkCSS)
-                                                           .text(msg)
-                                                           .on("click", function(){
-                                                             var errorel = document.getElementById(checkCSSID);
-                                                             errorel.style.animation = "emphasize-error 1s 1";
-                                                             if(optionalError != undefined){
-                                                               optionalError.trigger('toggleHighlight');
-                                                               optionalError[0].scrollIntoView(true);
-                                                             } else {
-                                                               $(errorel).children(".check-block-header").click();
-                                                               errorel.scrollIntoView(true);
-                                                             }
-                                                             $(errorel).on("animationend", function(){this.style.animation = "";});
-                                                           });
-                                                         return marker;
-                                                       }(),
-                                                       {coverGutter: false, noHScroll: true, above: true}));
-          }
           
           // Check block header
           var name = $("<a>").text(get(cr, "name"))
@@ -267,7 +237,7 @@
                 addPassToTest(get(tr, "loc"));
                 return runtime.nothing;
               }
-            }), 0, trArr.length);
+            }), 0, (testsInBlock === testsPassingInBlock && !thisCheckBlockErrored) ? 0 : trArr.length);
           }, function(_) {
             eachContainer.append(testContainer);
             
@@ -293,10 +263,6 @@
             
             var summary = $("<div>").addClass("check-block-summary");
             
-            
-            var thisCheckBlockErrored =
-              get(option, "is-some").app(get(cr, "maybe-err"));
-            
             eachContainer.addClass(
               thisCheckBlockErrored               ? "check-block-errored"
                 : testsInBlock == testsPassingInBlock ? "check-block-success"
@@ -314,7 +280,6 @@
                   var reason = errorDiv.children(".compile-error");
                   eachContainer.append(errorDiv);
                   summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
-                  editorMessage("editor-check-block-error", "Unexpected Error", reason);
                   
                   if(testsInBlock > 0) {
                     testContainer.prepend(
@@ -326,44 +291,46 @@
                   // Highlight the point the check block errored at.
                   var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, 
                                                               get(get(cr, "maybe-err"), "value").val.pyretStack, 0, true);
-                  //outputUI.highlightLines(runtime, editors, srcloc, errorLoc, "hsl(0, 100%, 97%)", contextFactory.current);
-                  var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
-                  var editor = editors[cmloc.source];
-                  var textMarker = editor.markText(cmloc.start, cmloc.end,
-                                                   {inclusiveLeft:false, inclusiveRight:false});
-                  var thisContainer = eachContainer;
-                  var marker = document.createElement("div");
-                  marker.innerHTML = cmloc.start.line + 1;
-                  marker.title = "Check block ended with an unexpected error here. Click to see why.";
-                  marker.classList.add("erroredTestMarker");
-                  marker.classList.add("CodeMirror-linenumber");
                   
                   errorDiv.on('click', function(){
                     reason.trigger('toggleHighlight');
                   });
                   
-                  $(marker).on("click", function(){
-                    thisContainer.on("animationend", function(){this.style.animation = "";});
-                    thisContainer[0].style.animation = "emphasize-error 1s 1";
-                    reason[0].scrollIntoView(true);
-                    reason.trigger('toggleHighlight');
-                  });
-                  
-                  var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
-                  var onChange = function(cm, change) {
-                    var gutterLine = editor.getLineNumber(gutterHandle);
-                    var markerLoc  = textMarker.find();
-                    if(markerLoc === undefined)
-                      return;
-                    var markerLine = markerLoc.from.line;
-                    marker.innerHTML = markerLine + 1;
-                    if(gutterLine != markerLine) {
-                      editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
-                      editor.refresh();
-                      gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
-                    }
-                  };
-                  editor.on("change",onChange);
+                  if(errorLoc !== undefined) {
+                    var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
+                    var editor = editors[cmloc.source];
+                    var textMarker = editor.markText(cmloc.start, cmloc.end,
+                                                     {inclusiveLeft:false, inclusiveRight:false});
+                    var thisContainer = eachContainer;
+                    var marker = document.createElement("div");
+                    marker.innerHTML = cmloc.start.line + 1;
+                    marker.title = "Check block ended with an unexpected error here. Click to see why.";
+                    marker.classList.add("erroredTestMarker");
+                    marker.classList.add("CodeMirror-linenumber");
+                    
+                    $(marker).on("click", function(){
+                      thisContainer.on("animationend", function(){this.style.animation = "";});
+                      thisContainer[0].style.animation = "emphasize-error 1s 1";
+                      reason[0].scrollIntoView(true);
+                      reason.trigger('toggleHighlight');
+                    });
+                    
+                    var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
+                    var onChange = function(cm, change) {
+                      var gutterLine = editor.getLineNumber(gutterHandle);
+                      var markerLoc  = textMarker.find();
+                      if(markerLoc === undefined)
+                        return;
+                      var markerLine = markerLoc.from.line;
+                      marker.innerHTML = markerLine + 1;
+                      if(gutterLine != markerLine) {
+                        editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
+                        editor.refresh();
+                        gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
+                      }
+                    };
+                    editor.on("change",onChange);
+                  }
                   return runtime.nothing;
                 }, "about to drawError");
               } else { // !thisCheckBlockErrored
@@ -427,9 +394,6 @@
             checkContainer.prepend(staleWarning);
             // This is a little jarring.
             // staleWarning[0].scrollIntoView(true);
-            editors["definitions://"].widgets.forEach(function(w){
-              w.clear();
-            });
           };
         editors["definitions://"].on("change", onChange);
         

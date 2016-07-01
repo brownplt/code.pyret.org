@@ -557,13 +557,6 @@
 
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
-
-    function locToSrc(runtime, editors, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        return getSourceContent(editors, cmloc, true);
-      });
-    }
     
     function makeSrclocAvaliable(runtime, editors, srcloc) {
       return runtime.makeFunction(function(loc) {
@@ -617,19 +610,6 @@
         }
         return lines.join("\n");
       }
-    }
-
-    function locToAST(runtime, editors, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        var source = getSourceContent(editors, cmloc, true);
-        var prelude = ""
-        var start_line = runtime.getField(loc,"start-line");
-        var start_col = runtime.getField(loc,"start-column");
-        for(var i=1; i < start_line; i++) { prelude += "\n"; }
-        for(var i=0; i < start_col; i++) { prelude += " "; }
-        return astFromText(runtime,prelude + source, cmloc.source);
-      });
     }
     
     function makeMaybeLocToAST(runtime, editors, srcloc) {
@@ -742,7 +722,7 @@
         shared: false,
         clearWhenEmpty: true,
         addToHistory: false});
-      var editorSelector = (cmloc.source == "definitions"
+      var editorSelector = (cmloc.source == "definitions://"
         ? " > div.replMain "
         : " .repl-echo ");
       styles.insertRule(
@@ -758,10 +738,11 @@
     function snippet(editors, featured, srcloc, ul) {
       var cmloc = featured;
       var lockey = "snippet-" + cmlocToCSSClass(cmloc);
-      var snippetWrapper = $("<div>").addClass("cm-snippet");
+      var snippetWrapper = $("<div>");
       
       if(cmloc.source in editors
        || !!sessionStorage.getItem(cmloc.source)) {
+        snippetWrapper.addClass("cm-snippet");
         var endch;
         var cmSnippet = CodeMirror(snippetWrapper[0],{
           readOnly: "nocursor",
@@ -828,9 +809,8 @@
         snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
         return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
       } else {
-        snippetWrapper.removeClass("cm-snippet");
         snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
-        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), featured: featured};
+        return {wrapper: snippetWrapper, featured: featured};
       }
     }
 
@@ -853,15 +833,36 @@
         });
       if(userLocs.length > 0) {
         container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
-        userLocs.forEach(function(ul) {
-          var slContainer = $("<div>");
-          var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-          var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-          if (cmSnippet.editor) {
-            snippets.push(cmSnippet.editor);
-            cmSnippet.editor.getWrapperElement().style.height =
-              (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-            if(editors[cmLoc.source] === undefined) {
+        function drawStackChunk(i) {
+          if (i >= userLocs.length) return;
+          var j = 0;
+          for (j = 0; j + i < userLocs.length && j < 10; j++) {
+            var ul = userLocs[j + i];
+            var slContainer = $("<div>");
+            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+            if (cmSnippet.editor) {
+              snippets.push(cmSnippet.editor);
+              cmSnippet.editor.getWrapperElement().style.height =
+                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+              if(editors[cmLoc.source] === undefined) {
+                cmSnippet.wrapper.on("mouseenter", function(e){
+                  contextManager.highlights = "spotlight-external";
+                  flashMessage("This code isn't in this editor.")
+                });
+                cmSnippet.wrapper.on("mouseleave", function(e){
+                  clearFlash();
+                });
+              } else {
+                cmSnippet.wrapper.on("mouseenter",
+                  (function(key, ul){
+                    return function(e){
+                      gotoLoc(runtime, editors, srcloc, ul);
+                      contextManager.highlights = key;
+                    };
+                  })(spotlight(editors, cmLoc).key, ul));
+              }
+            } else {
               cmSnippet.wrapper.on("mouseenter", function(e){
                 contextManager.highlights = "spotlight-external";
                 flashMessage("This code isn't in this editor.")
@@ -869,25 +870,22 @@
               cmSnippet.wrapper.on("mouseleave", function(e){
                 clearFlash();
               });
-            } else {
-              var lockey = spotlight(editors, cmLoc).key;
-              cmSnippet.wrapper.on("mouseenter", function(e){
-                gotoLoc(runtime, editors, srcloc, ul);
-                contextManager.highlights = lockey;
-              });
             }
-          } else {
-            cmSnippet.wrapper.on("mouseenter", function(e){
-              contextManager.highlights = "spotlight-external";
-              flashMessage("This code isn't in this editor.")
-            });
-            cmSnippet.wrapper.on("mouseleave", function(e){
-              clearFlash();
-            });
+            slContainer.append(cmSnippet.wrapper);
+            container.append(slContainer);
+            if(cmSnippet.editor)
+              cmSnippet.editor.refresh();
           }
-          slContainer.append(cmSnippet.wrapper);
-          container.append(slContainer);
-        });
+          if (j == 10) {
+            var more = $("<a>").text("Show more...");
+            more.on("click", function() {
+              more.remove();
+              drawStackChunk(i + 10);
+            });
+            container.append(more);
+          }
+        }
+        drawStackChunk(0);
         return expandable(container, "program execution trace");
       } else {
         return container;
@@ -1010,6 +1008,9 @@
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
                         var container = containerResult.result;
+                        if (container.length > 0) {
+                          container = $("<div>").append(container);
+                        }
                         container.addClass("compile-error");
                         container.append(renderStackTrace(runtime,editors, srcloc, e));
                         restarter.resume(container);
@@ -1159,13 +1160,21 @@
                 }
               }
               
-              
-              anchor.on("mouseenter", function() {
-                for (var i = 0; i < locClasses.length; i++) {
-                  hintLoc(runtime, editors, srcloc, locArray[i]);
-                  $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
-                }
-              });
+              if (hue === undefined) {
+                anchor.on("mouseenter", function() {
+                  for (var i = 0; i < locClasses.length; i++) {
+                    hintLoc(runtime, editors, srcloc, locArray[i]);
+                    $("."+locClasses[i]).css("animation", "pulse-underline 0.4s infinite alternate");
+                  }
+                });
+              } else {
+                anchor.on("mouseenter", function() {
+                  for (var i = 0; i < locClasses.length; i++) {
+                    hintLoc(runtime, editors, srcloc, locArray[i]);
+                    $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
+                  }
+                });
+              }
               
               anchor.on("click", function() {
                 for (var z = 0; z < locClasses.length; z++) {
@@ -1203,6 +1212,9 @@
       return runtime.safeCall(function() {
         return help(errorDisp, stack);
       }, function(rendering) {
+        if (rendering.length > 0) {
+          rendering = $("<div>").append(rendering);
+        }
         snippets.forEach(function(s){
           highlights.forEach(function(value,key){
             if(key.l.source != s.featured.source)
@@ -1222,6 +1234,8 @@
                    + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
                    + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
             };
+            if(!key.c)
+              return;
             var updated = false;
             s.editor.on("update", function() {
               if(updated) return;
@@ -1294,16 +1308,28 @@
 
     function installRenderers(runtime) {
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
+      function renderText(txt) {
+        var echo = $("<span>").addClass("replTextOutput");
+        echo.text(txt);
+        setTimeout(function() {
+          CodeMirror.runMode(echo.text(), "pyret", echo[0]);
+          echo.addClass("cm-s-default");
+        }, 0);
+        return echo;
+      };
+      function sooper(renderers, valType, val) {
+        return renderers.__proto__[valType](val);
+      }
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
         } else {
-          return renderers.renderText("opaque", val);
+          return renderText(sooper(renderers, "opaque", val));
         }
       };
       renderers["cyclic"] = function renderCyclic(val) {
-        return renderers.renderText("cyclic", val);
+        return renderText(sooper(renderers, "cyclic", val));
       };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
@@ -1374,22 +1400,11 @@
 
           return outText;
         } else {
-          return renderers.renderText("number", num);
+          return renderText(sooper(renderers, "number", num));
         }
       };
-      renderers["nothing"] = function renderPNothing(val) {
-        return $("<span>").addClass("replTextOutput").text("nothing");
-      };
-      renderers.renderText = function renderText(valType, val) {
-        var echo = $("<span>").addClass("replTextOutput");
-        echo.text(renderers.__proto__[valType](val));
-        setTimeout(function() {
-          CodeMirror.runMode(echo.text(), "pyret", echo[0]);
-          echo.addClass("cm-s-default");
-        }, 0);
-        return echo;
-      };
-      renderers["boolean"] = function(val) { return renderers.renderText("boolean", val); };
+      renderers["nothing"] = function(val) { return renderText("nothing"); }
+      renderers["boolean"] = function(val) { return renderText(sooper(renderers, "boolean", val)); };
       renderers["string"] = function(val) {
         var outText = $("<span>").addClass("replTextOutput escaped");
         var escapedUnicode = '"' + replaceUnprintableStringChars(val, true) + '"';
@@ -1436,8 +1451,8 @@
         }
         return ret.join('');
       };
-      renderers["method"] = function(val) { return renderers.renderText("method", val); };
-      renderers["function"] = function(val) { return renderers.renderText("function", val); };
+      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
+      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
       renderers["render-array"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
@@ -1672,8 +1687,6 @@
       getLastUserLocation: getLastUserLocation,
       cssSanitize: cssSanitize,
       cmlocToCSSClass: cmlocToCSSClass,
-      locToAST: locToAST,
-      locToSrc: locToSrc,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
       makeSrclocAvaliable: makeSrclocAvaliable

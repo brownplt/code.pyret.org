@@ -266,6 +266,14 @@ span.trace:after {
   cursor:default;
 }
 
+.check-block-test-container:empty {
+  margin: 0;
+}
+
+.check-block-test-container:empty:after {
+  content: 'No details to show.';
+}
+
 .check-block-test-container,.check-block-error{
   margin-top: .5em;
 }
@@ -821,6 +829,15 @@ a.highlight {
   }
   to {
   background-color:transparent;
+  }
+}
+
+@keyframes pulse-underline {
+  from {
+  }
+  to {
+  background-color:transparent;
+  border-color:transparent;
   }
 }
 

@@ -20,6 +20,7 @@
       "open-image-url": "tany",
       "image-url": "tany",
       "images-equal": "tany",
+      "images-difference": "tany",
       "text": "tany",
       "text-font": "tany",
       "overlay": "tany",
@@ -148,6 +149,15 @@
       return function(val) { runtime.makeCheckType(pred, name)(val); return val; }
     }
 
+    var ann = function(name, pred) {
+      return runtime.makePrimitiveAnn(name, pred); 
+    };
+
+    var annString = runtime.String;
+    var annNumber = runtime.Number;
+    var annPositive = runtime.NumPositive;
+    var annNumNonNegative = runtime.NumNonNegative;
+
     var checkString = p(runtime.isString, "String");
     var checkStringOrFalse = p(function(val) { return runtime.isString(val) || runtime.isPyretFalse; }, "String or false");
 
@@ -173,6 +183,8 @@
 
 
     var _checkColor = p(image.isColorOrColorString, "Color");
+
+    var annColor = ann("Color", image.isColorOrColorString);
 
     var checkColor = function(val) {
       var aColor = _checkColor(val);
@@ -234,6 +246,7 @@
     var checkAngle = p(image.isAngle, "Angle");
 
     var checkMode = p(isMode, "Mode");
+    var annMode = ann("Mode", isMode);
 
     var checkSideCount = p(image.isSideCount, "Side Count");
 
@@ -268,6 +281,9 @@
       return (sideA*sideA) + (sideB*sideB) - (2*sideA*sideB*Math.cos(angleC * Math.PI/180));
     }
 
+    var c = function(name, args, anns) {
+      runtime.checkArgsInternal("image", name, args, anns);
+    };
     //////////////////////////////////////////////////////////////////////
     var f = runtime.makeFunction;
     var bitmapURL = f(function(maybeUrl) {
@@ -294,11 +310,10 @@
           "Scene": runtime.makePrimitiveAnn("Scene", checkScenePred)
         },
         values: runtime.makeObject({
-          "circle": f(function(maybeRadius, maybeMode, maybeColor) {
+          "circle": f(function(radius, mode, color) {
             checkArity(3, arguments, "circle");
-            var radius = checkNonNegativeReal(maybeRadius);
-            var mode = checkMode(maybeMode);
-            var color = checkColor(maybeColor);
+            c("circle", [radius, mode, color], [annNumNonNegative, annMode, annColor]);
+            color = checkColor(color);
             return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), String(mode), color));
           }),
           "is-image-color": f(function(maybeImage) {
@@ -337,6 +352,12 @@
           "bitmap-url": bitmapURL,
           "open-image-url": bitmapURL,
           "image-url": bitmapURL,
+          "images-difference": f(function(maybeImage1, maybeImage2) {
+            checkArity(2, arguments, "images-difference");
+            var img1 = checkImage(maybeImage1);
+            var img2 = checkImage(maybeImage2);
+            return runtime.wrap(image.imageDifference(img1, img2));
+          }),
           "images-equal": f(function(maybeImage1, maybeImage2) {
             checkArity(2, arguments, "images-equal");
             // TODO: The original version of the image library's equals function passes a union-find datastructure
@@ -955,6 +976,7 @@
             var name = checkString(maybeName);
             return runtime.wrap(colorDb.get(String(name)) || false);
           })
+
         }),
       }),
       answer: runtime.namespace.get("nothing")

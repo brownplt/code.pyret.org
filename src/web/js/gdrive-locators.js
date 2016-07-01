@@ -118,10 +118,6 @@ define([], function() {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-
           function getModifiedTime(_) { return 0; }
           function getOptions(_, options) { return options; }
           function getNativeModules(_) { return runtime.ffi.makeList([]); }
@@ -145,7 +141,6 @@ define([], function() {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -243,10 +238,6 @@ define([], function() {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -269,7 +260,6 @@ define([], function() {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -368,10 +358,6 @@ define([], function() {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -388,7 +374,6 @@ define([], function() {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -505,10 +490,6 @@ define([], function() {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -525,7 +506,6 @@ define([], function() {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
