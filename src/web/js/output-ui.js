@@ -557,13 +557,6 @@
 
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
-
-    function locToSrc(runtime, editors, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        return getSourceContent(editors, cmloc, true);
-      });
-    }
     
     function makeSrclocAvaliable(runtime, editors, srcloc) {
       return runtime.makeFunction(function(loc) {
@@ -617,19 +610,6 @@
         }
         return lines.join("\n");
       }
-    }
-
-    function locToAST(runtime, editors, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        var source = getSourceContent(editors, cmloc, true);
-        var prelude = ""
-        var start_line = runtime.getField(loc,"start-line");
-        var start_col = runtime.getField(loc,"start-column");
-        for(var i=1; i < start_line; i++) { prelude += "\n"; }
-        for(var i=0; i < start_col; i++) { prelude += " "; }
-        return astFromText(runtime,prelude + source, cmloc.source);
-      });
     }
     
     function makeMaybeLocToAST(runtime, editors, srcloc) {
@@ -1707,8 +1687,6 @@
       getLastUserLocation: getLastUserLocation,
       cssSanitize: cssSanitize,
       cmlocToCSSClass: cmlocToCSSClass,
-      locToAST: locToAST,
-      locToSrc: locToSrc,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
       makeSrclocAvaliable: makeSrclocAvaliable
