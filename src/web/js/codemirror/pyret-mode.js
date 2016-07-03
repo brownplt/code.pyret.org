@@ -768,7 +768,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           else ls.curClosed.v++;
         } 
         // Things that are counted, and closable by end:
-        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET" || top === "TABLE" || top === "SELECT" || top === "EXTEND" || top === "SIEVE" || top === "ORDER") {
+        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET" || top === "TABLE" || top === "LOADTABLE" || top === "SELECT" || top === "EXTEND" || top === "SIEVE" || top === "ORDER") {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
           else ls.curClosed.fn++;
