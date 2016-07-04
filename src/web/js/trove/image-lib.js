@@ -2,9 +2,9 @@
   requires: [
     { "import-type": "builtin", "name": "image-structs" }
   ],
-  nativeRequires: ["pyret-base/js/js-numbers"],
+  nativeRequires: ["pyret-base/js/js-numbers", "js-md5"],
   provides: {},
-  theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums) {
+  theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums, md5) {
     var gf = RUNTIME.getField;
     
     var image = gf(imageImp, "values");
@@ -14,6 +14,220 @@
     var unwrap = RUNTIME.unwrap;
 
     var hasOwnProperty = {}.hasOwnProperty;
+
+
+    //////////////////////////////////////////////////////////////////////
+    var makeColor = function(r,g,b,a) {
+      if (a === undefined) { a = 255; }
+      if ([r,g,b,a].filter(isNum).length !== 4) {
+        throw new Error("Internal error: non-number in makeColor argList ", [r, g, b, a]);
+      }
+      return color.app(
+        RUNTIME.wrap(r),
+        RUNTIME.wrap(g),
+        RUNTIME.wrap(b),
+        RUNTIME.wrap(a)
+      );
+    };
+
+    // Color database
+    var ColorDb = function() {
+      this.colors = {};
+    };
+
+    ColorDb.prototype.put = function(name, color) {
+      this.colors[name] = color;
+    };
+
+    ColorDb.prototype.get = function(name) {
+      return this.colors[name.toString().toUpperCase()];
+    };
+
+    // FIXME: update toString to handle the primitive field values.
+
+    var colorDb = new ColorDb();
+    colorDb.put("ORANGE", makeColor(255, 165, 0));
+    colorDb.put("RED", makeColor(255, 0, 0));
+    colorDb.put("ORANGERED", makeColor(255, 69, 0));
+    colorDb.put("TOMATO", makeColor(255, 99, 71));
+    colorDb.put("DARKRED", makeColor(139, 0, 0));
+    colorDb.put("RED", makeColor(255, 0, 0));
+    colorDb.put("FIREBRICK", makeColor(178, 34, 34));
+    colorDb.put("CRIMSON", makeColor(220, 20, 60));
+    colorDb.put("DEEPPINK", makeColor(255, 20, 147));
+    colorDb.put("MAROON", makeColor(176, 48, 96));
+    colorDb.put("INDIAN RED", makeColor(205, 92, 92));
+    colorDb.put("INDIANRED", makeColor(205, 92, 92));
+    colorDb.put("MEDIUM VIOLET RED", makeColor(199, 21, 133));
+    colorDb.put("MEDIUMVIOLETRED", makeColor(199, 21, 133));
+    colorDb.put("VIOLET RED", makeColor(208, 32, 144));
+    colorDb.put("VIOLETRED", makeColor(208, 32, 144));
+    colorDb.put("LIGHTCORAL", makeColor(240, 128, 128));
+    colorDb.put("HOTPINK", makeColor(255, 105, 180));
+    colorDb.put("PALEVIOLETRED", makeColor(219, 112, 147));
+    colorDb.put("LIGHTPINK", makeColor(255, 182, 193));
+    colorDb.put("ROSYBROWN", makeColor(188, 143, 143));
+    colorDb.put("PINK", makeColor(255, 192, 203));
+    colorDb.put("ORCHID", makeColor(218, 112, 214));
+    colorDb.put("LAVENDERBLUSH", makeColor(255, 240, 245));
+    colorDb.put("SNOW", makeColor(255, 250, 250));
+    colorDb.put("CHOCOLATE", makeColor(210, 105, 30));
+    colorDb.put("SADDLEBROWN", makeColor(139, 69, 19));
+    colorDb.put("BROWN", makeColor(132, 60, 36));
+    colorDb.put("DARKORANGE", makeColor(255, 140, 0));
+    colorDb.put("CORAL", makeColor(255, 127, 80));
+    colorDb.put("SIENNA", makeColor(160, 82, 45));
+    colorDb.put("ORANGE", makeColor(255, 165, 0));
+    colorDb.put("SALMON", makeColor(250, 128, 114));
+    colorDb.put("PERU", makeColor(205, 133, 63));
+    colorDb.put("DARKGOLDENROD", makeColor(184, 134, 11));
+    colorDb.put("GOLDENROD", makeColor(218, 165, 32));
+    colorDb.put("SANDYBROWN", makeColor(244, 164, 96));
+    colorDb.put("LIGHTSALMON", makeColor(255, 160, 122));
+    colorDb.put("DARKSALMON", makeColor(233, 150, 122));
+    colorDb.put("GOLD", makeColor(255, 215, 0));
+    colorDb.put("YELLOW", makeColor(255, 255, 0));
+    colorDb.put("OLIVE", makeColor(128, 128, 0));
+    colorDb.put("BURLYWOOD", makeColor(222, 184, 135));
+    colorDb.put("TAN", makeColor(210, 180, 140));
+    colorDb.put("NAVAJOWHITE", makeColor(255, 222, 173));
+    colorDb.put("PEACHPUFF", makeColor(255, 218, 185));
+    colorDb.put("KHAKI", makeColor(240, 230, 140));
+    colorDb.put("DARKKHAKI", makeColor(189, 183, 107));
+    colorDb.put("MOCCASIN", makeColor(255, 228, 181));
+    colorDb.put("WHEAT", makeColor(245, 222, 179));
+    colorDb.put("BISQUE", makeColor(255, 228, 196));
+    colorDb.put("PALEGOLDENROD", makeColor(238, 232, 170));
+    colorDb.put("BLANCHEDALMOND", makeColor(255, 235, 205));
+    colorDb.put("MEDIUM GOLDENROD", makeColor(234, 234, 173));
+    colorDb.put("MEDIUMGOLDENROD", makeColor(234, 234, 173));
+    colorDb.put("PAPAYAWHIP", makeColor(255, 239, 213));
+    colorDb.put("MISTYROSE", makeColor(255, 228, 225));
+    colorDb.put("LEMONCHIFFON", makeColor(255, 250, 205));
+    colorDb.put("ANTIQUEWHITE", makeColor(250, 235, 215));
+    colorDb.put("CORNSILK", makeColor(255, 248, 220));
+    colorDb.put("LIGHTGOLDENRODYELLOW", makeColor(250, 250, 210));
+    colorDb.put("OLDLACE", makeColor(253, 245, 230));
+    colorDb.put("LINEN", makeColor(250, 240, 230));
+    colorDb.put("LIGHTYELLOW", makeColor(255, 255, 224));
+    colorDb.put("SEASHELL", makeColor(255, 245, 238));
+    colorDb.put("BEIGE", makeColor(245, 245, 220));
+    colorDb.put("FLORALWHITE", makeColor(255, 250, 240));
+    colorDb.put("IVORY", makeColor(255, 255, 240));
+    colorDb.put("GREEN", makeColor(0, 255, 0));
+    colorDb.put("LAWNGREEN", makeColor(124, 252, 0));
+    colorDb.put("CHARTREUSE", makeColor(127, 255, 0));
+    colorDb.put("GREEN YELLOW", makeColor(173, 255, 47));
+    colorDb.put("GREENYELLOW", makeColor(173, 255, 47));
+    colorDb.put("YELLOW GREEN", makeColor(154, 205, 50));
+    colorDb.put("YELLOWGREEN", makeColor(154, 205, 50));
+    colorDb.put("MEDIUM FOREST GREEN", makeColor(107, 142, 35));
+    colorDb.put("OLIVEDRAB", makeColor(107, 142, 35));
+    colorDb.put("MEDIUMFORESTGREEN", makeColor(107, 142, 35));
+    colorDb.put("DARK OLIVE GREEN", makeColor(85, 107, 47));
+    colorDb.put("DARKOLIVEGREEN", makeColor(85, 107, 47));
+    colorDb.put("DARKSEAGREEN", makeColor(143, 188, 139));
+    colorDb.put("LIME", makeColor(0, 255, 0));
+    colorDb.put("DARK GREEN", makeColor(0, 100, 0));
+    colorDb.put("DARKGREEN", makeColor(0, 100, 0));
+    colorDb.put("LIME GREEN", makeColor(50, 205, 50));
+    colorDb.put("LIMEGREEN", makeColor(50, 205, 50));
+    colorDb.put("FOREST GREEN", makeColor(34, 139, 34));
+    colorDb.put("FORESTGREEN", makeColor(34, 139, 34));
+    colorDb.put("SPRING GREEN", makeColor(0, 255, 127));
+    colorDb.put("SPRINGGREEN", makeColor(0, 255, 127));
+    colorDb.put("MEDIUM SPRING GREEN", makeColor(0, 250, 154));
+    colorDb.put("MEDIUMSPRINGGREEN", makeColor(0, 250, 154));
+    colorDb.put("SEA GREEN", makeColor(46, 139, 87));
+    colorDb.put("SEAGREEN", makeColor(46, 139, 87));
+    colorDb.put("MEDIUM SEA GREEN", makeColor(60, 179, 113));
+    colorDb.put("MEDIUMSEAGREEN", makeColor(60, 179, 113));
+    colorDb.put("AQUAMARINE", makeColor(112, 216, 144));
+    colorDb.put("LIGHTGREEN", makeColor(144, 238, 144));
+    colorDb.put("PALE GREEN", makeColor(152, 251, 152));
+    colorDb.put("PALEGREEN", makeColor(152, 251, 152));
+    colorDb.put("MEDIUM AQUAMARINE", makeColor(102, 205, 170));
+    colorDb.put("MEDIUMAQUAMARINE", makeColor(102, 205, 170));
+    colorDb.put("TURQUOISE", makeColor(64, 224, 208));
+    colorDb.put("LIGHTSEAGREEN", makeColor(32, 178, 170));
+    colorDb.put("MEDIUM TURQUOISE", makeColor(72, 209, 204));
+    colorDb.put("MEDIUMTURQUOISE", makeColor(72, 209, 204));
+    colorDb.put("HONEYDEW", makeColor(240, 255, 240));
+    colorDb.put("MINTCREAM", makeColor(245, 255, 250));
+    colorDb.put("ROYALBLUE", makeColor(65, 105, 225));
+    colorDb.put("DODGERBLUE", makeColor(30, 144, 255));
+    colorDb.put("DEEPSKYBLUE", makeColor(0, 191, 255));
+    colorDb.put("CORNFLOWERBLUE", makeColor(100, 149, 237));
+    colorDb.put("STEEL BLUE", makeColor(70, 130, 180));
+    colorDb.put("STEELBLUE", makeColor(70, 130, 180));
+    colorDb.put("LIGHTSKYBLUE", makeColor(135, 206, 250));
+    colorDb.put("DARK TURQUOISE", makeColor(0, 206, 209));
+    colorDb.put("DARKTURQUOISE", makeColor(0, 206, 209));
+    colorDb.put("CYAN", makeColor(0, 255, 255));
+    colorDb.put("AQUA", makeColor(0, 255, 255));
+    colorDb.put("DARKCYAN", makeColor(0, 139, 139));
+    colorDb.put("TEAL", makeColor(0, 128, 128));
+    colorDb.put("SKY BLUE", makeColor(135, 206, 235));
+    colorDb.put("SKYBLUE", makeColor(135, 206, 235));
+    colorDb.put("CADET BLUE", makeColor(96, 160, 160));
+    colorDb.put("CADETBLUE", makeColor(95, 158, 160));
+    colorDb.put("DARK SLATE GRAY", makeColor(47, 79, 79));
+    colorDb.put("DARKSLATEGRAY", makeColor(47, 79, 79));
+    colorDb.put("LIGHTSLATEGRAY", makeColor(119, 136, 153));
+    colorDb.put("SLATEGRAY", makeColor(112, 128, 144));
+    colorDb.put("LIGHT STEEL BLUE", makeColor(176, 196, 222));
+    colorDb.put("LIGHTSTEELBLUE", makeColor(176, 196, 222));
+    colorDb.put("LIGHT BLUE", makeColor(173, 216, 230));
+    colorDb.put("LIGHTBLUE", makeColor(173, 216, 230));
+    colorDb.put("POWDERBLUE", makeColor(176, 224, 230));
+    colorDb.put("PALETURQUOISE", makeColor(175, 238, 238));
+    colorDb.put("LIGHTCYAN", makeColor(224, 255, 255));
+    colorDb.put("ALICEBLUE", makeColor(240, 248, 255));
+    colorDb.put("AZURE", makeColor(240, 255, 255));
+    colorDb.put("MEDIUM BLUE", makeColor(0, 0, 205));
+    colorDb.put("MEDIUMBLUE", makeColor(0, 0, 205));
+    colorDb.put("DARKBLUE", makeColor(0, 0, 139));
+    colorDb.put("MIDNIGHT BLUE", makeColor(25, 25, 112));
+    colorDb.put("MIDNIGHTBLUE", makeColor(25, 25, 112));
+    colorDb.put("NAVY", makeColor(36, 36, 140));
+    colorDb.put("BLUE", makeColor(0, 0, 255));
+    colorDb.put("INDIGO", makeColor(75, 0, 130));
+    colorDb.put("BLUE VIOLET", makeColor(138, 43, 226));
+    colorDb.put("BLUEVIOLET", makeColor(138, 43, 226));
+    colorDb.put("MEDIUM SLATE BLUE", makeColor(123, 104, 238));
+    colorDb.put("MEDIUMSLATEBLUE", makeColor(123, 104, 238));
+    colorDb.put("SLATE BLUE", makeColor(106, 90, 205));
+    colorDb.put("SLATEBLUE", makeColor(106, 90, 205));
+    colorDb.put("PURPLE", makeColor(160, 32, 240));
+    colorDb.put("DARK SLATE BLUE", makeColor(72, 61, 139));
+    colorDb.put("DARKSLATEBLUE", makeColor(72, 61, 139));
+    colorDb.put("DARKVIOLET", makeColor(148, 0, 211));
+    colorDb.put("DARK ORCHID", makeColor(153, 50, 204));
+    colorDb.put("DARKORCHID", makeColor(153, 50, 204));
+    colorDb.put("MEDIUMPURPLE", makeColor(147, 112, 219));
+    colorDb.put("CORNFLOWER BLUE", makeColor(68, 64, 108));
+    colorDb.put("MEDIUM ORCHID", makeColor(186, 85, 211));
+    colorDb.put("MEDIUMORCHID", makeColor(186, 85, 211));
+    colorDb.put("MAGENTA", makeColor(255, 0, 255));
+    colorDb.put("FUCHSIA", makeColor(255, 0, 255));
+    colorDb.put("DARKMAGENTA", makeColor(139, 0, 139));
+    colorDb.put("VIOLET", makeColor(238, 130, 238));
+    colorDb.put("PLUM", makeColor(221, 160, 221));
+    colorDb.put("LAVENDER", makeColor(230, 230, 250));
+    colorDb.put("THISTLE", makeColor(216, 191, 216));
+    colorDb.put("GHOSTWHITE", makeColor(248, 248, 255));
+    colorDb.put("WHITE", makeColor(255, 255, 255));
+    colorDb.put("WHITESMOKE", makeColor(245, 245, 245));
+    colorDb.put("GAINSBORO", makeColor(220, 220, 220));
+    colorDb.put("LIGHT GRAY", makeColor(211, 211, 211));
+    colorDb.put("LIGHTGRAY", makeColor(211, 211, 211));
+    colorDb.put("SILVER", makeColor(192, 192, 192));
+    colorDb.put("GRAY", makeColor(190, 190, 190));
+    colorDb.put("DARK GRAY", makeColor(169, 169, 169));
+    colorDb.put("DARKGRAY", makeColor(169, 169, 169));
+    colorDb.put("DIM GRAY", makeColor(105, 105, 105));
+    colorDb.put("DIMGRAY", makeColor(105, 105, 105));
+    colorDb.put("BLACK", makeColor(0, 0, 0));
 
     // clone: object -> object
     // Copies an object.  The new object should respond like the old
@@ -34,20 +248,6 @@
         }
       }
       return c;
-    };
-
-    //////////////////////////////////////////////////////////////////////
-    var makeColor = function(r,g,b,a) {
-      if (a === undefined) { a = 255; }
-      if ([r,g,b,a].filter(isNum).length !== 4) {
-        throw new Error("Internal error: non-number in makeColor argList ", [r, g, b, a]);
-      }
-      return color.app(
-        RUNTIME.wrap(r),
-        RUNTIME.wrap(g),
-        RUNTIME.wrap(b),
-        RUNTIME.wrap(a)
-      );
     };
     var isColor = function(c) { return unwrap(colorPred.app(c)); };
     var colorRed = function(c) { return unwrap(gf(c, "red")); }
@@ -93,6 +293,65 @@
         alpha + ")";
     };
 
+    function RGBtoLAB(r, g, b){
+      function RGBtoXYZ(r, g, b){
+         function process(v){
+           v = parseFloat(v/255);
+           return (v>0.04045? Math.pow( (v+0.055)/1.055, 2.4) : v/12.92) * 100;
+         }
+        var var_R = process(r), var_G = process(g), var_B = process(b);
+        //Observer. = 2°, Illuminant = D65
+        var X = var_R * 0.4124 + var_G * 0.3576 + var_B * 0.1805;
+        var Y = var_R * 0.2126 + var_G * 0.7152 + var_B * 0.0722;
+        var Z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505;
+        return [X, Y, Z];
+      }
+      
+      function XYZtoLAB(x, y, z){
+        var var_X = x / 95.047;           //ref_X =  95.047   Observer= 2°, Illuminant= D65
+        var var_Y = y / 100.000;          //ref_Y = 100.000
+        var var_Z = z / 108.883;          //ref_Z = 108.883
+        function process(v){ return v>0.008856? Math.pow(v, 1/3) : (7.787*v) + (16/116); }
+        var_X = process(var_X); var_Y = process(var_Y); var_Z = process(var_Z);
+        var CIE_L = ( 116 * var_Y ) - 16;
+        var CIE_a = 500 * ( var_X - var_Y );
+        var CIE_b = 200 * ( var_Y - var_Z );
+        return [CIE_L, CIE_a, CIE_b];
+      }
+      var xyz = RGBtoXYZ(r,g,b), lab = XYZtoLAB(xyz[0],xyz[1],xyz[2]);
+      return {l: lab[0], a: lab[1], b:lab[2]};
+    }
+    var colorLabs = [], colorRgbs = colorDb.colors;
+    for (var p in colorRgbs) {
+      if (colorRgbs.hasOwnProperty(p)) {
+        var lab = RGBtoLAB(colorRed(colorRgbs[p]),
+                           colorGreen(colorRgbs[p]),
+                           colorBlue(colorRgbs[p]));
+        colorLabs.push({name:p, l:lab.l, a:lab.a, b:lab.b});
+      }
+    }
+ 
+    //////////////////////////////////////////////////////////////////////
+    // colorToSpokenString : hexColor Style -> String
+    // Describes the color using the nearest HTML color name
+    // Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
+    function colorToSpokenString(aColor, aStyle){
+      if(aStyle===0) return " transparent ";
+      var lab1 = RGBtoLAB(colorRed(aColor),
+                          colorGreen(aColor),
+                          colorBlue(aColor));
+      var distances = colorLabs.map(function(lab2){
+              return {l: lab2.l, a: lab2.a, b:lab2.b, name: lab2.name,
+                      d: Math.sqrt(Math.pow(lab1.l-lab2.l,2)
+                                   +Math.pow(lab1.a-lab2.a,2)
+                                   +Math.pow(lab1.b-lab2.b,2))}});
+      var distances = distances.sort(function(a,b){return a.d<b.d? -1 : a.d>b.d? 1 : 0 ;});
+      var match = distances[0].name;
+      var style = isNaN(aStyle)? (aStyle === "solid"? " solid" : "n outline") : " translucent ";
+      return style + " " + match.toLowerCase();
+    }
+
+
     var isSideCount = function(x) {
       return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 3);
     };
@@ -137,6 +396,32 @@
       }
       return vertices;
     };
+    // given an array of (x, y) pairs, unzip them into separate arrays
+    var unzipVertices = function(vertices){
+        return {xs: vertices.map(function(v) { return v.x }),
+                ys: vertices.map(function(v) { return v.y })};
+    };
+    // given an array of vertices, find the width of the shape
+    var findWidth = function(vertices){
+        var xs = unzipVertices(vertices).xs;
+        return Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
+    }
+    // given an array of vertices, find the height of the shape
+    var findHeight = function(vertices){
+        var ys = unzipVertices(vertices).ys;
+        return Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
+    }
+ 
+    // given a list of vertices and a translationX/Y, shift them
+    var translateVertices = function(vertices) {
+        var vs = unzipVertices(vertices);
+        var translateX = -Math.min.apply( Math, vs.xs );
+        var translateY = -Math.min.apply( Math, vs.ys );
+        return vertices.map(function(v) {
+            return {x: v.x + translateX, y: v.y + translateY };
+        })
+    }
+
 
     // Base class for all images.
     var BaseImage = function() {};
@@ -149,15 +434,15 @@
     };
 
     BaseImage.prototype.getHeight = function(){
-      return this.height;
+      return Math.round(this.height);
     };
 
     BaseImage.prototype.getWidth = function(){
-      return this.width;
+      return Math.round(this.width);
     };
 
     BaseImage.prototype.getBaseline = function(){
-      return this.height;
+      return Math.round(this.height);
     };
 
     // return the vertex array if it exists, otherwise make one using height and width
@@ -180,9 +465,28 @@
       }
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(x+this.vertices[0].x, y+this.vertices[0].y);
-      for(var i=1; i < this.vertices.length; i++){
-        ctx.lineTo(x+this.vertices[i].x, y+this.vertices[i].y);
+
+      var vertices;
+      // pixel-perfect vertices fail on Chrome, and certain versions of FF,
+      // so we only enable the offset if we're not doing the test
+      if(ctx.isEqualityTest){
+          vertices = this.vertices;
+      } else {
+          // find the midpoint of the xs and ys from vertices
+          var midX = findWidth(this.vertices) / 2;
+          var midY = findHeight(this.vertices) / 2;
+
+          // compute 0.5px offsets to ensure that we draw on the pixel
+          // and not the pixel boundary
+          vertices = this.vertices.map(function(v){
+              return {x: v.x + (v.x <= midX ? 0.5 : -0.5),
+                      y: v.y + (v.y <= midY ? 0.5 : -0.5)};
+          });
+      }
+
+      ctx.moveTo(x+vertices[0].x, y+vertices[0].y);
+      for(var i=1; i < vertices.length; i++){
+        ctx.lineTo(x+vertices[i].x, y+vertices[i].y);
       }
       ctx.closePath();
 
@@ -216,17 +520,7 @@
     };
 
     var withIeHack = function(canvas, f) {
-      // 	canvas.style.display = 'none';
-      // 	document.body.appendChild(canvas);
-      // 	try {
       var result = f(canvas);
-      // 	} catch(e) {
-      // 	    document.body.removeChild(canvas);
-      // 	    canvas.style.display = '';
-      // 	    throw e;
-      // 	}
-      // 	document.body.removeChild(canvas);
-      // 	canvas.style.display = '';
       return result;
     };
 
@@ -239,12 +533,6 @@
       var canvas = makeCanvas(width, height);
       var ctx;
 
-      // // Try best effort to render to screen at this point.
-      // try {
-      //     ctx = canvas.getContext("2d");
-      //     that.render(ctx, 0, 0);
-      // } catch (e) {
-      // }
       // KLUDGE: on IE, the canvas rendering functions depend on a
       // context where the canvas is attached to the DOM tree.
       // We initialize an afterAttach hook; the client's responsible
@@ -259,6 +547,8 @@
 
       // Canvases lose their drawn content on cloning.  data may help us to preserve it.
       jQuery(canvas).data('toRender', onAfterAttach);
+
+      canvas.ariaText = this.ariaText || "image";
 
       return canvas;
     };
@@ -335,23 +625,39 @@
       }
       // if it's something more sophisticated, render both images to canvases
       // First check canvas dimensions, then go pixel-by-pixel
-      var node1 = this.toDomNode(), node2 = other.toDomNode();
-      if(node1.width !== node2.width || node1.height !== node2.height){ return false;}
-      var c1 = makeCanvas(node1.width, node1.height);
-      var c2 = makeCanvas(node2.width, node2.height);
-      var ctx1 = c1.getContext('2d'), ctx2 = c2.getContext('2d');
-      this.render(ctx1, 0, 0);
-      other.render(ctx2, 0, 0);
+      var c1 = this.toDomNode(), c2 = other.toDomNode();
+      c1.style.visibility = c2.style.visibility = "hidden";
+      if(c1.width !== c2.width || c1.height !== c2.height){ return false;}
       try{
-        var data1 = ctx1.getImageData(0, 0, node1.width, node1.height),
-        data2 = ctx2.getImageData(0, 0, node2.width, node2.height);
-        var pixels1 = data1.data,
-        pixels2 = data2.data;
-        for(var i = 0; i < pixels1.length; i++){
-          if(pixels1[i] !== pixels2[i]){ return false; }
+        var ctx1 = c1.getContext('2d'), ctx2 = c2.getContext('2d');
+        ctx1.isEqualityTest = true;
+        ctx2.isEqualityTest = true;
+        this.render(ctx1, 0, 0); other.render(ctx2, 0, 0);
+        // create temporary canvases
+        var slice1 = document.createElement('canvas').getContext('2d'),
+            slice2 = document.createElement('canvas').getContext('2d');
+        var tileW = Math.min(10000, c1.width); // use only the largest tiles we need for these images
+        var tileH = Math.min(10000, c1.height);
+        for (var y=0; y < c1.height; y += tileH){
+            for (var x=0; x < c1.width; x += tileW){
+                tileW = Math.min(tileW, c1.width - x); // can we use smaller tiles for what's left?
+                tileH = Math.min(tileH, c1.height- y);
+                slice1.canvas.width  = slice2.canvas.width  = tileW;
+                slice1.canvas.height = slice2.canvas.height = tileH;
+                console.log('processing chunk from ('+x+','+y+') to ('+(x+tileW)+','+(y+tileH)+')');
+                slice1.clearRect(0, 0, tileW, tileH);
+                slice1.drawImage(c1, x, y, tileW, tileH, 0, 0, tileW, tileH);
+                slice2.clearRect(0, 0, tileW, tileH);
+                slice2.drawImage(c2, x, y, tileW, tileH, 0, 0, tileW, tileH);
+                var d1 = slice1.canvas.toDataURL(), 
+                    d2 = slice2.canvas.toDataURL(),
+                    h1 = md5(d1),  h2 = md5(d2);
+                if(h1 !== h2) return false;
+            }
         }
+      // Slow-path can fail with CORS or image-loading problems
       } catch(e){
-        // if we violate CORS, just bail
+        console.log('Couldn\'t compare images:', e);
         return false;
       }
       // if, after all this, we're still good...then they're equal!
@@ -372,6 +678,10 @@
       this.height   = height;
       this.children = children; // arrayof [image, number, number]
       this.withBorder = withBorder;
+      this.ariaText = " scene that is "+width+" by "+height+". children are: ";
+      this.ariaText += children.map(function(c,i){
+        return "child "+(i+1)+": "+c[0].ariaText+", positioned at "+c[1]+","+c[2]+" ";
+      }).join(". ");
     };
     SceneImage.prototype = heir(BaseImage.prototype);
 
@@ -445,6 +755,7 @@
       var self = this;
       this.src = src;
       this.isLoaded = false;
+      this.ariaText = " image file from "+decodeURIComponent(src).slice(16);
 
       // animationHack: see installHackToSupportAnimatedGifs() for details.
       this.animationHackImg = undefined;
@@ -507,11 +818,11 @@
     };
 
     FileImage.prototype.getWidth = function() {
-      return this.img.width;
+      return Math.round(this.img.width);
     };
 
     FileImage.prototype.getHeight = function() {
-      return this.img.height;
+      return Math.round(this.img.height);
     };
 
     FileImage.prototype.equals = function(other) {
@@ -527,6 +838,7 @@
       BaseImage.call(this);
       var self = this;
       this.src = src;
+      this.ariaText = " video file from "+decodeURIComponent(src).slice(16);
       if (rawVideo) {
         this.video			= rawVideo;
         this.width			= self.video.videoWidth;
@@ -669,6 +981,28 @@
       this.y2 = Math.floor(y2);
       this.img1 = img1;
       this.img2 = img2;
+      var positionText;
+      if((["middle","center"].indexOf(placeX)>-1) && (["middle","center"].indexOf(placeY)>-1)){
+        positionText = " centered above ";
+      } else if(placeX==="left"){
+        positionText = " left-aligned ";
+      } else if(placeX==="right"){
+        positionText = " right-aligned ";
+      } else if(placeX==="beside"){
+        positionText = " beside ";
+      } else if(!isNaN(placeX)){
+        positionText = " shifted left by "+placeX;
+      }
+      if(placeY==="top"){
+        positionText += " top-aligned ";
+      } else if(placeY==="bottom"){
+        positionText += " bottom-aligned ";
+      } else if(placeY==="above"){
+        positionText += " above ";
+      } else if(!isNaN(placeY)){
+        positionText += " , shifted up by "+placeY;
+      }
+      this.ariaText = " an overlay: first image is" + img1.ariaText + positionText + img2.ariaText;
     };
 
     OverlayImage.prototype = heir(BaseImage.prototype);
@@ -708,30 +1042,22 @@
       var height= img.getHeight();
 
       // rotate each point as if it were rotated about (0,0)
-      var vertices = img.getVertices(), xs = [], ys = [];
-      for(var i=0; i<vertices.length; i++){
-        xs[i] = Math.round(vertices[i].x*cos - vertices[i].y*sin);
-        ys[i] = Math.round(vertices[i].x*sin + vertices[i].y*cos);
-      }
-      // figure out what translation is necessary to shift the vertices back to 0,0
-      var translateX = Math.floor(-Math.min.apply( Math, xs ));
-      var translateY = Math.floor(-Math.min.apply( Math, ys ));
-      for(var i=0; i<vertices.length; i++){
-        xs[i] += translateX;
-        ys[i] += translateY;
-      }
+      var vertices = img.getVertices().map(function(v) {
+          return {x: v.x*cos - v.y*sin, y: v.x*sin + v.y*cos };
+      });
 
+      // extract the xs and ys separately
+      var vs = unzipVertices(vertices);
+      
       // store the vertices as something private, so this.getVertices() will still return undefined
-      this._vertices = zipVertices(xs,ys);
-      var rotatedWidth  = Math.max.apply( Math, xs ) - Math.min.apply( Math, xs );
-      var rotatedHeight = Math.max.apply( Math, ys ) - Math.min.apply( Math, ys );
-
+      this._vertices  = translateVertices(vertices);
       this.img        = img;
-      this.width      = Math.floor(rotatedWidth);
-      this.height     = Math.floor(rotatedHeight);
-      this.angle      = angle;
-      this.translateX = translateX;
-      this.translateY  = translateY;
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
+      this.angle      = Math.round(angle);
+      this.translateX = -Math.min.apply( Math, vs.xs );
+      this.translateY = -Math.min.apply( Math, vs.ys );
+      this.ariaText   = "Rotated image, "+angle+" degrees: "+img.ariaText;
     };
 
     RotateImage.prototype = heir(BaseImage.prototype);
@@ -764,20 +1090,18 @@
     // Scale an image
     var ScaleImage = function(xFactor, yFactor, img) {
       BaseImage.call(this);
-      var vertices = img.getVertices();
-      var xs = [], ys = [];
-      for(var i=0; i<vertices.length; i++){
-        xs[i] = Math.round(vertices[i].x*xFactor);
-        ys[i] = Math.round(vertices[i].y*yFactor);
-      }
-      // store the vertices as something private, so this.getVertices() will still return undefined
-      this._vertices = zipVertices(xs,ys);
+      // grab the img vertices, scale them, and save the result to this_vertices
+      this._vertices = img.getVertices().map(function(v) {
+          return {x: v.x * xFactor, y: v.y * yFactor };
+      });
 
       this.img      = img;
-      this.width    = Math.floor(img.getWidth() * xFactor);
-      this.height   = Math.floor(img.getHeight() * yFactor);
+      this.width    = img.width * xFactor;
+      this.height   = img.height * yFactor;
       this.xFactor  = xFactor;
       this.yFactor  = yFactor;
+      this.ariaText = "Scaled Image, "+ (xFactor===yFactor? "by "+xFactor
+        : "horizontally by "+xFactor+" and vertically by "+yFactor)+". "+img.ariaText;
     };
 
     ScaleImage.prototype = heir(BaseImage.prototype);
@@ -800,7 +1124,8 @@
               this.height    === other.height &&
               this.xFactor   === other.xFactor &&
               this.yFactor   === other.yFactor &&
-              imageEquals(this.img, other.img) );
+              imageEquals(this.img, other.img) )
+            || BaseImage.prototype.isEqual.call(this, other, aUnionFind);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -813,6 +1138,7 @@
       this.width      = width;
       this.height     = height;
       this.img        = img;
+      this.ariaText = "Cropped image, from "+x+", "+y+" to "+(x+width)+", "+(y+height)+": "+img.ariaText;
     };
 
     CropImage.prototype = heir(BaseImage.prototype);
@@ -877,6 +1203,7 @@
       this.width      = img.getWidth();
       this.height     = img.getHeight();
       this.direction  = direction;
+      this.ariaText   = direction+"ly flipped image: " + img.ariaText;
     };
 
     FlipImage.prototype = heir(BaseImage.prototype);
@@ -899,11 +1226,11 @@
     };
 
     FlipImage.prototype.getWidth = function() {
-      return this.width;
+      return Math.round(this.width);
     };
 
     FlipImage.prototype.getHeight = function() {
-      return this.height;
+      return Math.round(this.height);
     };
 
     FlipImage.prototype.equals = function(other) {
@@ -925,16 +1252,10 @@
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:0,y:height},{x:0,y:0},{x:width,y:0},{x:width,y:height}];
+      this.ariaText = " a" + colorToSpokenString(color,style) + ((width===height)? " square of size "+width
+          : " rectangle of width "+width+" and height "+height);
     };
     RectangleImage.prototype = heir(BaseImage.prototype);
-
-    RectangleImage.prototype.getWidth = function() {
-      return this.width;
-    };
-
-    RectangleImage.prototype.getHeight = function() {
-      return this.height;
-    };
 
     //////////////////////////////////////////////////////////////////////
     // RhombusImage: Number Number Mode Color -> Image
@@ -952,17 +1273,10 @@
                        {x:this.width,   y:this.height/2},
                        {x:this.width/2, y:this.height},
                        {x:0,            y:this.height/2}];
+      this.ariaText = " a"+colorToSpokenString(color,style) + " rhombus of size "+side+" and angle "+angle;
 
     };
     RhombusImage.prototype = heir(BaseImage.prototype);
-
-    RhombusImage.prototype.getWidth = function() {
-      return this.width;
-    };
-
-    RhombusImage.prototype.getHeight = function() {
-      return this.height;
-    };
 
     //////////////////////////////////////////////////////////////////////
     // PolygonImage: Number Count Step Mode Color -> Image
@@ -994,13 +1308,9 @@
       this.style      = style;
       this.color      = color;
 
-      // shift the vertices by the calculated offsets, now that we know the width
-      var xOffset = Math.round(this.width/2);
-      var yOffset = ((this.count % 2)? this.outerRadius : this.innerRadius);
-      for(i=0; i<vertices.length; i++){
-        vertices[i].x += xOffset; vertices[i].y += yOffset;
-      }
-      this.vertices   = vertices;
+      this.vertices = translateVertices(vertices);
+      this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
+                      +" sided polygon with each side of length "+length;
     };
 
     PolygonImage.prototype = heir(BaseImage.prototype);
@@ -1014,10 +1324,10 @@
 
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
-    var TextImage = function(msg, size, color, face, family, style, weight, underline) {
+    var TextImage = function(str, size, color, face, family, style, weight, underline) {
       BaseImage.call(this);
       var metrics;
-      this.msg        = msg;
+      this.str        = str;
       this.size       = size;   // 18
       this.color      = color;  // red
       this.face       = face;   // Gill Sans
@@ -1038,37 +1348,35 @@
                    '"'+this.face+'", '+
                    this.family);
 
-      try {
-        ctx.font    = this.font;
-      } catch (e) {
-        this.fallbackOnFont();
-        ctx.font    = this.font;
-      }
+      // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
+      // based off of the amazing work at http://mudcu.be/journal/2011/01/html5-typographic-metrics/#baselineCanvas
+      // PENDING CANVAS V5 API: http://www.whatwg.org/specs/web-apps/current-work/#textmetrics
 
-      // Defensive: on IE, this can break.
-      try {
-        metrics     = ctx.measureText(msg);
-        this.width  = metrics.width;
-        this.height = Number(this.size);
-      } catch(e) {
-        this.fallbackOnFont();
-      }
+      // build a DOM node with the same styling as the canvas, then measure it
+      var container = document.createElement("div"),
+          parent = document.createElement("span"),
+          image = document.createElement("img");    // hack to get at CSS measuring properties
+      parent.style.font = this.font;                // use the same font settings as the context
+      image.width = 42; image.height = 1;           // we use a dataURL to reduce dependency on external image files
+      image.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWM4MbPgPwAGzwLR05RbqwAAAABJRU5ErkJggg==";
+      container.style.cssText = "position: absolute; top: 0px; left: 0px; zIndex=-1; white-space: pre;";
+      parent.appendChild(document.createTextNode(str));
+      parent.appendChild(image);
+      container.appendChild(parent);
+      document.body.appendChild(container);
+      
+      // getting (more accurate) css equivalent of ctx.measureText()
+      image.style.display = "none";
+      parent.style.display= "inline";
+      this.alphaBaseline = 0;
+      this.width       = parent.offsetWidth;
+      this.height      = parent.offsetHeight;
+      document.body.removeChild(container);       // clean up after ourselves
+
+      this.ariaText = " the string "+str+", colored "+colorToSpokenString(color,'solid')+" of size "+ size;
     };
 
     TextImage.prototype = heir(BaseImage.prototype);
-
-    TextImage.prototype.fallbackOnFont = function() {
-      // Defensive: if the browser doesn't support certain features, we
-      // reduce to a smaller feature set and try again.
-      this.font       = this.size + "px " + maybeQuote(this.family);
-      var canvas      = makeCanvas(0, 0);
-      var ctx         = canvas.getContext("2d");
-      ctx.font        = this.font;
-      var metrics     = ctx.measureText(this.msg);
-      this.width      = metrics.width;
-      // KLUDGE: I don't know how to get at the height.
-      this.height     = Number(this.size);//ctx.measureText("m").width + 20;
-    };
 
     TextImage.prototype.render = function(ctx, x, y) {
       ctx.save();
@@ -1077,11 +1385,11 @@
       ctx.fillStyle   = colorString(this.color);
       ctx.font        = this.font;
       try {
-        ctx.fillText(this.msg, x, y);
+        ctx.fillText(this.str, x, y);
       } catch (e) {
         this.fallbackOnFont();
         ctx.font = this.font;
-        ctx.fillText(this.msg, x, y);
+        ctx.fillText(this.str, x, y);
       }
       if(this.underline){
         ctx.beginPath();
@@ -1103,7 +1411,7 @@
       if (!(other instanceof TextImage)) {
         return BaseImage.prototype.equals.call(this, other);
       }
-      return (this.msg      === other.msg &&
+      return (this.str      === other.str &&
               this.size     === other.size &&
               this.face     === other.face &&
               this.family   === other.family &&
@@ -1344,8 +1652,8 @@
     var makeFlipImage = function(img, direction) {
       return new FlipImage(img, direction);
     };
-    var makeTextImage = function(msg, size, color, face, family, style, weight, underline) {
-      return new TextImage(msg, size, color, face, family, style, weight, underline);
+    var makeTextImage = function(str, size, color, face, family, style, weight, underline) {
+      return new TextImage(str, size, color, face, family, style, weight, underline);
     };
     var makeImageDataImage = function(imageData) {
       return new ImageDataImage(imageData);
@@ -1377,205 +1685,6 @@
     var isTextImage	= function(x) { return x instanceof TextImage; };
     var isFileImage	= function(x) { return x instanceof FileImage; };
     var isFileVideo	= function(x) { return x instanceof FileVideo; };
-
-    // Color database
-    var ColorDb = function() {
-      this.colors = {};
-    };
-
-    ColorDb.prototype.put = function(name, color) {
-      this.colors[name] = color;
-    };
-
-    ColorDb.prototype.get = function(name) {
-      return this.colors[name.toString().toUpperCase()];
-    };
-
-    // FIXME: update toString to handle the primitive field values.
-
-    var colorDb = new ColorDb();
-    colorDb.put("ORANGE", makeColor(255, 165, 0));
-    colorDb.put("RED", makeColor(255, 0, 0));
-    colorDb.put("ORANGERED", makeColor(255, 69, 0));
-    colorDb.put("TOMATO", makeColor(255, 99, 71));
-    colorDb.put("DARKRED", makeColor(139, 0, 0));
-    colorDb.put("RED", makeColor(255, 0, 0));
-    colorDb.put("FIREBRICK", makeColor(178, 34, 34));
-    colorDb.put("CRIMSON", makeColor(220, 20, 60));
-    colorDb.put("DEEPPINK", makeColor(255, 20, 147));
-    colorDb.put("MAROON", makeColor(176, 48, 96));
-    colorDb.put("INDIAN RED", makeColor(205, 92, 92));
-    colorDb.put("INDIANRED", makeColor(205, 92, 92));
-    colorDb.put("MEDIUM VIOLET RED", makeColor(199, 21, 133));
-    colorDb.put("MEDIUMVIOLETRED", makeColor(199, 21, 133));
-    colorDb.put("VIOLET RED", makeColor(208, 32, 144));
-    colorDb.put("VIOLETRED", makeColor(208, 32, 144));
-    colorDb.put("LIGHTCORAL", makeColor(240, 128, 128));
-    colorDb.put("HOTPINK", makeColor(255, 105, 180));
-    colorDb.put("PALEVIOLETRED", makeColor(219, 112, 147));
-    colorDb.put("LIGHTPINK", makeColor(255, 182, 193));
-    colorDb.put("ROSYBROWN", makeColor(188, 143, 143));
-    colorDb.put("PINK", makeColor(255, 192, 203));
-    colorDb.put("ORCHID", makeColor(218, 112, 214));
-    colorDb.put("LAVENDERBLUSH", makeColor(255, 240, 245));
-    colorDb.put("SNOW", makeColor(255, 250, 250));
-    colorDb.put("CHOCOLATE", makeColor(210, 105, 30));
-    colorDb.put("SADDLEBROWN", makeColor(139, 69, 19));
-    colorDb.put("BROWN", makeColor(132, 60, 36));
-    colorDb.put("DARKORANGE", makeColor(255, 140, 0));
-    colorDb.put("CORAL", makeColor(255, 127, 80));
-    colorDb.put("SIENNA", makeColor(160, 82, 45));
-    colorDb.put("ORANGE", makeColor(255, 165, 0));
-    colorDb.put("SALMON", makeColor(250, 128, 114));
-    colorDb.put("PERU", makeColor(205, 133, 63));
-    colorDb.put("DARKGOLDENROD", makeColor(184, 134, 11));
-    colorDb.put("GOLDENROD", makeColor(218, 165, 32));
-    colorDb.put("SANDYBROWN", makeColor(244, 164, 96));
-    colorDb.put("LIGHTSALMON", makeColor(255, 160, 122));
-    colorDb.put("DARKSALMON", makeColor(233, 150, 122));
-    colorDb.put("GOLD", makeColor(255, 215, 0));
-    colorDb.put("YELLOW", makeColor(255, 255, 0));
-    colorDb.put("OLIVE", makeColor(128, 128, 0));
-    colorDb.put("BURLYWOOD", makeColor(222, 184, 135));
-    colorDb.put("TAN", makeColor(210, 180, 140));
-    colorDb.put("NAVAJOWHITE", makeColor(255, 222, 173));
-    colorDb.put("PEACHPUFF", makeColor(255, 218, 185));
-    colorDb.put("KHAKI", makeColor(240, 230, 140));
-    colorDb.put("DARKKHAKI", makeColor(189, 183, 107));
-    colorDb.put("MOCCASIN", makeColor(255, 228, 181));
-    colorDb.put("WHEAT", makeColor(245, 222, 179));
-    colorDb.put("BISQUE", makeColor(255, 228, 196));
-    colorDb.put("PALEGOLDENROD", makeColor(238, 232, 170));
-    colorDb.put("BLANCHEDALMOND", makeColor(255, 235, 205));
-    colorDb.put("MEDIUM GOLDENROD", makeColor(234, 234, 173));
-    colorDb.put("MEDIUMGOLDENROD", makeColor(234, 234, 173));
-    colorDb.put("PAPAYAWHIP", makeColor(255, 239, 213));
-    colorDb.put("MISTYROSE", makeColor(255, 228, 225));
-    colorDb.put("LEMONCHIFFON", makeColor(255, 250, 205));
-    colorDb.put("ANTIQUEWHITE", makeColor(250, 235, 215));
-    colorDb.put("CORNSILK", makeColor(255, 248, 220));
-    colorDb.put("LIGHTGOLDENRODYELLOW", makeColor(250, 250, 210));
-    colorDb.put("OLDLACE", makeColor(253, 245, 230));
-    colorDb.put("LINEN", makeColor(250, 240, 230));
-    colorDb.put("LIGHTYELLOW", makeColor(255, 255, 224));
-    colorDb.put("SEASHELL", makeColor(255, 245, 238));
-    colorDb.put("BEIGE", makeColor(245, 245, 220));
-    colorDb.put("FLORALWHITE", makeColor(255, 250, 240));
-    colorDb.put("IVORY", makeColor(255, 255, 240));
-    colorDb.put("GREEN", makeColor(0, 255, 0));
-    colorDb.put("LAWNGREEN", makeColor(124, 252, 0));
-    colorDb.put("CHARTREUSE", makeColor(127, 255, 0));
-    colorDb.put("GREEN YELLOW", makeColor(173, 255, 47));
-    colorDb.put("GREENYELLOW", makeColor(173, 255, 47));
-    colorDb.put("YELLOW GREEN", makeColor(154, 205, 50));
-    colorDb.put("YELLOWGREEN", makeColor(154, 205, 50));
-    colorDb.put("MEDIUM FOREST GREEN", makeColor(107, 142, 35));
-    colorDb.put("OLIVEDRAB", makeColor(107, 142, 35));
-    colorDb.put("MEDIUMFORESTGREEN", makeColor(107, 142, 35));
-    colorDb.put("DARK OLIVE GREEN", makeColor(85, 107, 47));
-    colorDb.put("DARKOLIVEGREEN", makeColor(85, 107, 47));
-    colorDb.put("DARKSEAGREEN", makeColor(143, 188, 139));
-    colorDb.put("LIME", makeColor(0, 255, 0));
-    colorDb.put("DARK GREEN", makeColor(0, 100, 0));
-    colorDb.put("DARKGREEN", makeColor(0, 100, 0));
-    colorDb.put("LIME GREEN", makeColor(50, 205, 50));
-    colorDb.put("LIMEGREEN", makeColor(50, 205, 50));
-    colorDb.put("FOREST GREEN", makeColor(34, 139, 34));
-    colorDb.put("FORESTGREEN", makeColor(34, 139, 34));
-    colorDb.put("SPRING GREEN", makeColor(0, 255, 127));
-    colorDb.put("SPRINGGREEN", makeColor(0, 255, 127));
-    colorDb.put("MEDIUM SPRING GREEN", makeColor(0, 250, 154));
-    colorDb.put("MEDIUMSPRINGGREEN", makeColor(0, 250, 154));
-    colorDb.put("SEA GREEN", makeColor(46, 139, 87));
-    colorDb.put("SEAGREEN", makeColor(46, 139, 87));
-    colorDb.put("MEDIUM SEA GREEN", makeColor(60, 179, 113));
-    colorDb.put("MEDIUMSEAGREEN", makeColor(60, 179, 113));
-    colorDb.put("AQUAMARINE", makeColor(112, 216, 144));
-    colorDb.put("LIGHTGREEN", makeColor(144, 238, 144));
-    colorDb.put("PALE GREEN", makeColor(152, 251, 152));
-    colorDb.put("PALEGREEN", makeColor(152, 251, 152));
-    colorDb.put("MEDIUM AQUAMARINE", makeColor(102, 205, 170));
-    colorDb.put("MEDIUMAQUAMARINE", makeColor(102, 205, 170));
-    colorDb.put("TURQUOISE", makeColor(64, 224, 208));
-    colorDb.put("LIGHTSEAGREEN", makeColor(32, 178, 170));
-    colorDb.put("MEDIUM TURQUOISE", makeColor(72, 209, 204));
-    colorDb.put("MEDIUMTURQUOISE", makeColor(72, 209, 204));
-    colorDb.put("HONEYDEW", makeColor(240, 255, 240));
-    colorDb.put("MINTCREAM", makeColor(245, 255, 250));
-    colorDb.put("ROYALBLUE", makeColor(65, 105, 225));
-    colorDb.put("DODGERBLUE", makeColor(30, 144, 255));
-    colorDb.put("DEEPSKYBLUE", makeColor(0, 191, 255));
-    colorDb.put("CORNFLOWERBLUE", makeColor(100, 149, 237));
-    colorDb.put("STEEL BLUE", makeColor(70, 130, 180));
-    colorDb.put("STEELBLUE", makeColor(70, 130, 180));
-    colorDb.put("LIGHTSKYBLUE", makeColor(135, 206, 250));
-    colorDb.put("DARK TURQUOISE", makeColor(0, 206, 209));
-    colorDb.put("DARKTURQUOISE", makeColor(0, 206, 209));
-    colorDb.put("CYAN", makeColor(0, 255, 255));
-    colorDb.put("AQUA", makeColor(0, 255, 255));
-    colorDb.put("DARKCYAN", makeColor(0, 139, 139));
-    colorDb.put("TEAL", makeColor(0, 128, 128));
-    colorDb.put("SKY BLUE", makeColor(135, 206, 235));
-    colorDb.put("SKYBLUE", makeColor(135, 206, 235));
-    colorDb.put("CADET BLUE", makeColor(96, 160, 160));
-    colorDb.put("CADETBLUE", makeColor(95, 158, 160));
-    colorDb.put("DARK SLATE GRAY", makeColor(47, 79, 79));
-    colorDb.put("DARKSLATEGRAY", makeColor(47, 79, 79));
-    colorDb.put("LIGHTSLATEGRAY", makeColor(119, 136, 153));
-    colorDb.put("SLATEGRAY", makeColor(112, 128, 144));
-    colorDb.put("LIGHT STEEL BLUE", makeColor(176, 196, 222));
-    colorDb.put("LIGHTSTEELBLUE", makeColor(176, 196, 222));
-    colorDb.put("LIGHT BLUE", makeColor(173, 216, 230));
-    colorDb.put("LIGHTBLUE", makeColor(173, 216, 230));
-    colorDb.put("POWDERBLUE", makeColor(176, 224, 230));
-    colorDb.put("PALETURQUOISE", makeColor(175, 238, 238));
-    colorDb.put("LIGHTCYAN", makeColor(224, 255, 255));
-    colorDb.put("ALICEBLUE", makeColor(240, 248, 255));
-    colorDb.put("AZURE", makeColor(240, 255, 255));
-    colorDb.put("MEDIUM BLUE", makeColor(0, 0, 205));
-    colorDb.put("MEDIUMBLUE", makeColor(0, 0, 205));
-    colorDb.put("DARKBLUE", makeColor(0, 0, 139));
-    colorDb.put("MIDNIGHT BLUE", makeColor(25, 25, 112));
-    colorDb.put("MIDNIGHTBLUE", makeColor(25, 25, 112));
-    colorDb.put("NAVY", makeColor(36, 36, 140));
-    colorDb.put("BLUE", makeColor(0, 0, 255));
-    colorDb.put("INDIGO", makeColor(75, 0, 130));
-    colorDb.put("BLUE VIOLET", makeColor(138, 43, 226));
-    colorDb.put("BLUEVIOLET", makeColor(138, 43, 226));
-    colorDb.put("MEDIUM SLATE BLUE", makeColor(123, 104, 238));
-    colorDb.put("MEDIUMSLATEBLUE", makeColor(123, 104, 238));
-    colorDb.put("SLATE BLUE", makeColor(106, 90, 205));
-    colorDb.put("SLATEBLUE", makeColor(106, 90, 205));
-    colorDb.put("PURPLE", makeColor(160, 32, 240));
-    colorDb.put("DARK SLATE BLUE", makeColor(72, 61, 139));
-    colorDb.put("DARKSLATEBLUE", makeColor(72, 61, 139));
-    colorDb.put("DARKVIOLET", makeColor(148, 0, 211));
-    colorDb.put("DARK ORCHID", makeColor(153, 50, 204));
-    colorDb.put("DARKORCHID", makeColor(153, 50, 204));
-    colorDb.put("MEDIUMPURPLE", makeColor(147, 112, 219));
-    colorDb.put("CORNFLOWER BLUE", makeColor(68, 64, 108));
-    colorDb.put("MEDIUM ORCHID", makeColor(186, 85, 211));
-    colorDb.put("MEDIUMORCHID", makeColor(186, 85, 211));
-    colorDb.put("MAGENTA", makeColor(255, 0, 255));
-    colorDb.put("FUCHSIA", makeColor(255, 0, 255));
-    colorDb.put("DARKMAGENTA", makeColor(139, 0, 139));
-    colorDb.put("VIOLET", makeColor(238, 130, 238));
-    colorDb.put("PLUM", makeColor(221, 160, 221));
-    colorDb.put("LAVENDER", makeColor(230, 230, 250));
-    colorDb.put("THISTLE", makeColor(216, 191, 216));
-    colorDb.put("GHOSTWHITE", makeColor(248, 248, 255));
-    colorDb.put("WHITE", makeColor(255, 255, 255));
-    colorDb.put("WHITESMOKE", makeColor(245, 245, 245));
-    colorDb.put("GAINSBORO", makeColor(220, 220, 220));
-    colorDb.put("LIGHT GRAY", makeColor(211, 211, 211));
-    colorDb.put("LIGHTGRAY", makeColor(211, 211, 211));
-    colorDb.put("SILVER", makeColor(192, 192, 192));
-    colorDb.put("GRAY", makeColor(190, 190, 190));
-    colorDb.put("DARK GRAY", makeColor(169, 169, 169));
-    colorDb.put("DARKGRAY", makeColor(169, 169, 169));
-    colorDb.put("DIM GRAY", makeColor(105, 105, 105));
-    colorDb.put("DIMGRAY", makeColor(105, 105, 105));
-    colorDb.put("BLACK", makeColor(0, 0, 0));
 
     ///////////////////////////////////////////////////////////////
     // Exports

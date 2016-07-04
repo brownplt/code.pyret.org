@@ -21,7 +21,7 @@ end
 
 # Switch t to add-test-and-print if you want to see all the images, as well.
 # The default just prints the check results
-t = add-test
+t = add-test-and-print
 
 t("above-align-left",
   above-align("left",
@@ -102,9 +102,7 @@ t("blue-circle-ur-corner-scene",
   put-image(circle(50, "solid", "blue"), 100, 100, empty-scene(100, 100)))
 
 
-#|
-NOTE(joe): These are intentionally commented out because text is simply not
-reliable cross browser
+#| NOTE(joe): Images quite inconsistent across browsers
 
 t("hello-20-black",
   text("hello world", 20, "black"))
@@ -126,11 +124,31 @@ t("indigo-helvetica-normal",
 
 t("blue-helvetica-roman-underline",
   text-font("low-hanging glyphs", 36, blue, "Times", "roman", "normal", "bold", true))
+
 |#
 
 
-check:
 
+t("red-black-ellipses",
+  overlay(ellipse(10, 10, "solid", "red"),
+    overlay(ellipse(20, 20, "solid", "black"),
+      overlay(ellipse(30, 30, "solid", "red"),
+        overlay(ellipse(40, 40, "solid", "black"),
+          overlay(ellipse(50, 50, "solid", "red"),
+            ellipse(60, 60, "solid", "black")))))))
+
+t("centered-target",
+  place-image(
+    overlay(ellipse(10, 10, "solid", "white"),
+      overlay(ellipse(20, 20, "solid", "black"),
+        overlay(ellipse(30, 30, "solid", "white"),
+          overlay(ellipse(40, 40, "solid", "black"),
+            overlay(ellipse(50, 50, "solid", "white"),
+              ellipse(60, 60, "solid", "black")))))),
+    150, 100,
+    rectangle(300, 200, "solid", "black")))
+
+check:
   fun within-n-badness(n):
     lam(img1, img2):
       diff = images-difference(img1, img2)
@@ -150,8 +168,16 @@ check:
   for each(k from tests.keys-list-now()):
     i1 = i(k)
     i2 = tests.get-value-now(k)
-    i1 is%(within-n-badness(25)) i2
+    i1 is%(within-n-badness(26)) i2
   end
+end
+
+check "equivalences":
+  overlay(circle(20, "solid", color(50, 50, 255, 255)),
+          square(40, "solid", color(100, 100, 255, 255)))
+    is
+    overlay(circle(20, "solid", color(50, 50, 255, 255)),
+            regular-polygon(40, 4, "solid", color(100, 100, 255, 255)))
 end
 
 
@@ -262,8 +288,6 @@ end
 
 
 
-NOTE(joe): DONE TO HERE
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TEXT & TEXT/FONT
@@ -299,6 +323,9 @@ NOTE(joe): DONE TO HERE
 (text/font "not really a link" 36 "blue"
            "Courier" 'roman 'italic 'normal #t)
 
+NOTE(joe): DONE TO HERE
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; IMAGE-URL & VIDEO-URL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -312,17 +339,11 @@ NOTE(joe): DONE TO HERE
 ;(rotate 45
 ;  (video-url "http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4"))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; OVERLAY
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 "the next two images should be identical"
-(overlay (circle 20 "solid" (make-color  50  50 255))
-         (square 40 "solid" (make-color 100 100 255)))
-         
-
-(overlay (circle 20 "solid" (make-color  50  50 255))
-         (regular-polygon 40 4 "solid" (make-color 100 100 255)))
-
 (overlay (ellipse 10 10 "solid" "red")
          (ellipse 20 20 "solid" "black")
          (ellipse 30 30 "solid" "red")
@@ -341,16 +362,6 @@ NOTE(joe): DONE TO HERE
          (regular-polygon 32 4 "solid" (make-color 150 150 255))
          (regular-polygon 38 4 "solid" (make-color 200 200 255))
          (regular-polygon 44 4 "solid" (make-color 250 250 255)))
-
-"overlay with place-image - target should be centered"
- (place-image (overlay (ellipse 10 10 "solid" "white")
-                    (ellipse 20 20 "solid" "black")                   
-                     (ellipse 30 30 "solid" "white")                    
-                      (ellipse 40 40 "solid" "black")       
-                       (ellipse 50 50 "solid" "white")
-                        (ellipse 60 60 "solid" "black"))
- 150 100
- (rectangle 300 200 "solid" "black"))
 
 
 
