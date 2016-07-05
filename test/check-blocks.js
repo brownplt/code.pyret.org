@@ -16,6 +16,8 @@ describe("Rendering check blocks", function() {
     ["simple3", "check: 1 is 2 end\ncheck: 3 is 4 end", [[["reported failure"]],[["reported failure"]]]],
 
     ["satisfies0", "check: 5 satisfies {(x): raise('nope')} end", [[["nope"]]]],
+    
+    ["doesNotRaise0", "check: raise('nope') does-not-raise end", [[["nope"]]]],
 
     fileTest("deep-recursion-in-first-test", [
       [["2001", "o is-not o"], ["reported failure"], ["reported failure"]]
