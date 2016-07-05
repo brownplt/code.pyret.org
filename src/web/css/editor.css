@@ -1381,13 +1381,6 @@ code div {
   background-color: rgb(150,150,150);
   transition: .1s background-color linear .3s;
 }
-#main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
-#main[data-highlights|="spotlight"] .repl,
-#main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
-#main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
-  background-color: rgb(150,150,150);
-  transition: .1s background-color linear .3s;
-}
 #main[data-highlights|="spotlight"] .compile-error:not(:hover),
 #main[data-highlights|="spotlight"] .check-block-test:not(:hover),
 #main[data-highlights|="spotlight"] .check-block:not(:hover) {
