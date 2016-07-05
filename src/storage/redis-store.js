@@ -17,6 +17,16 @@ function makeStorage(client) {
     updateRefreshToken: updateRefreshToken,
     createUser: createUser
   };
+
+  function getSharedProgram(sharedProgramId) {
+    var key = "shared_" + sharedProgramId;
+    return Q.ninvoke(client, "hgetall", key);
+  }
+
+  function createSharedProgram(sharedProgramId, programId, userId) {
+    var key = "shared_" + sharedProgramId;
+    return Q.ninvoke(client, "hmset", [key, "programId", programId, "userId", userId]).then(function(_) { return getSharedProgram(sharedProgramId); });
+  }
 }
 
 module.exports = { makeStorage: makeStorage }

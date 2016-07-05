@@ -1,6 +1,7 @@
 var Q = require("q");
 var gapi = require('googleapis');
 var path = require('path');
+var uuid = require('node-uuid');
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -405,6 +406,83 @@ function start(config, onServerReady) {
 
   app.get("/share", function(req, res) {
 
+  });
+
+  app.get("/create-shared-program", function(req, res) {
+    var driveFileId = req.driveFileId;
+    var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+    maybeUser.then(function(u) {
+      if(u === null) {
+        res.status(403).send("Invalid or inaccessible user information");
+        return null;
+      }
+      auth.refreshAccess(u.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
+        else {
+          var sharedProgramId = uuid.v4();
+          var sharedProgram = createSharedProgram(sharedProgramId, driveFileId, u.google_id);
+          sharedProgram.then(function(sp) {
+            res.send({ });
+          });
+          res.send({ access_token: newToken });
+          res.end();
+        }
+      });
+    });
+    maybeUser.fail(function(err) {
+      console.error("Failed to get an access token: ", err);
+      noAuth();
+    });
+  });
+
+  app.get("/shared-program", function(req, res) {
+    var sharedProgramId = req.sharedProgramId;    
+    var program = db.getSharedProgram(sharedProgramId);
+    program.fail(function(err) {
+      res.status(404).send("No account information found.");
+      res.end();
+    });
+    program.then(function(prog) {
+      auth.refreshAccess(prog.userId, function(err, newToken) {
+        console.log("refreshAccess: ", err, newToken);
+        if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
+        else {
+          var client = new gapi.auth.OAuth2(
+              config.google.clientId,
+              config.google.clientSecret,
+              config.baseUrl + config.google.redirect
+            );
+          client.setCredentials({
+            access_token: newToken
+          });
+
+          var drive = gapi.drive({ version: 'v2', auth: client });
+          drive.files.get({fileId: id}, function(err, response) {
+            console.log("Get file: ", err, response);
+            if(err) { res.status(400).send("Couldn't access shared file " + id); }
+            else {
+              request({ url: response.downloadUrl,
+                headers: {
+                  method: "get",
+                  dataType: 'text',
+                  headers: {'Authorization': 'Bearer ' + gapi.auth.getToken().access_token }
+                }
+              }, function(err, response, body) {
+                console.log("Download response: ", err, response, body);
+                if(err) {
+                  res.status(400).send("Couldn't access shared file " + id); 
+                }
+                else {
+                  res.status(200);
+                  res.send(body);
+                  res.end();
+                }
+              });
+            }
+          });
+        }
+      });
+    });
   });
 
   app.get("/embeditor", function(req, res) {
