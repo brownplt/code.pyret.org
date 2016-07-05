@@ -157,6 +157,7 @@
     var annNumber = runtime.Number;
     var annPositive = runtime.NumPositive;
     var annNumNonNegative = runtime.NumNonNegative;
+    var annNumNonNegative = runtime.NumNonNegative;
 
     var checkString = p(runtime.isString, "String");
     var checkStringOrFalse = p(function(val) { return runtime.isString(val) || runtime.isPyretFalse; }, "String or false");
@@ -169,6 +170,9 @@
     }, "Real Number");
     var checkBoolean = p(runtime.isBoolean, "Boolean");
 
+    var annNatural = ann("Natural Number", function(val) {
+      return runtime.isNumber(val) && jsnums.isInteger(val) && jsnums.greaterThanOrEqual(val, 0);
+    });
     var checkNatural = p(function(val) {
       return runtime.isNumber(val) && jsnums.isInteger(val) && jsnums.greaterThanOrEqual(val, 0);
     }, "Natural Number");
@@ -198,6 +202,7 @@
       return runtime.isOpaque(val) && image.isImage(val.val);
     };
     var checkImageType = runtime.makeCheckType(checkImagePred, "Image");
+    var annImage = ann("Image", checkImagePred);
     var checkImage = function(val) {
       checkImageType(val);
       return val.val;
@@ -205,6 +210,7 @@
     var checkImageOrScenePred = function(val) {
       return runtime.isOpaque(val) && (image.isImage(val.val) || image.isScene(val.val));
     };
+    var annImageOrScene = ann("Image", checkImageOrScenePred);
     var checkImageOrSceneType = runtime.makeCheckType(checkImageOrScenePred, "Image")
     var checkImageOrScene = function(val) {
       checkImageOrSceneType(val);
@@ -215,38 +221,36 @@
       return runtime.isOpaque(val) && image.isScene(val.val);
     };
 
+    var annFontFamily = ann("Font Family", isFontFamily);
     var checkFontFamily = p(isFontFamily, "Font Family");
 
+    var annFontStyle = ann("Font Style (\"normal\", \"italic\", or \"slant\")", isFontStyle);
     var checkFontStyle = p(isFontStyle, "Font Style");
 
+    var annFontWeight = ann("Font Weight", isFontWeight);
     var checkFontWeight = p(isFontWeight, "Font Weight");
 
+    var annPlaceX = ann("X Place (\"left\", \"middle\", \"center\", or \"right\"", isPlaceX);
     var checkPlaceX = p(isPlaceX, "X Place");
 
+    var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"baseline\", or \"middle\")", isPlaceY);
     var checkPlaceY = p(isPlaceY, "Y Place");
 
 
+    var annAngle = ann("Angle (a number 0-360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 
 
-    var checkMode = p(isMode, "Mode");
-
-    var checkSideCount = p(image.isSideCount, "Side Count");
-
-    var checkStepCount = p(image.isStepCount, "Step Count");
-
-    var checkPointsCount = p(image.isPointsCount, "Points Count");
-
-    var checkArity = ffi.checkArity;
-
+    var annListColor = ann("List<Color>", function(val) {
+      return runtime.ffi.isList(val);
+    });
     var checkListofColor = p(function(val) {
       return ffi.makeList(ffi.toArray(val).map(checkColor));
     }, "List<Color>");
 
-    var checkAngle = p(image.isAngle, "Angle");
 
     var checkMode = p(isMode, "Mode");
-    var annMode = ann("Mode", isMode);
+    var annMode = ann("Mode (\"outline\" or \"solid\")", isMode);
 
     var checkSideCount = p(image.isSideCount, "Side Count");
 
@@ -286,8 +290,9 @@
     };
     //////////////////////////////////////////////////////////////////////
     var bitmapURL = function(maybeUrl) {
-      checkArity(1, arguments, "image-url");
-      var url = checkString(maybeUrl);
+      checkArity(1, arguments, "image");
+      c("image-url", [maybeUrl], [annString]);
+      var url = maybeUrl;
       runtime.pauseStack(function(restarter) {
         var rawImage = new Image();
         if(runtime.hasParam("imgUrlProxy")) {
@@ -307,13 +312,13 @@
       values[name] = runtime.makeFunction(fun, name);
     }
     f("circle", function(radius, mode, color) {
-      checkArity(3, arguments, "circle");
+      checkArity(3, arguments, "image");
       c("circle", [radius, mode, color], [annNumNonNegative, annMode, annColor]);
       color = checkColor(color);
       return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), String(mode), color));
     });
     f("is-image-color", function(maybeColor) {
-      checkArity(1, arguments, "is-image-color");
+      checkArity(1, arguments, "image");
       return runtime.wrap(image.isColorOrColorString(maybeColor));
     });
     f("is-mode", function(maybeMode) {
@@ -349,21 +354,22 @@
     f("open-image-url", bitmapURL),
     f("image-url", bitmapURL),
     f("images-difference", function(maybeImage1, maybeImage2) {
-      checkArity(2, arguments, "images-difference");
+      checkArity(2, arguments, "image");
+      c("images-difference", [maybeImage1, maybeImage2], [annImage, annImage]);
       var img1 = checkImage(maybeImage1);
       var img2 = checkImage(maybeImage2);
       return runtime.wrap(image.imageDifference(img1, img2));
     });
     f("images-equal", function(maybeImage1, maybeImage2) {
-      checkArity(2, arguments, "images-equal");
-      // TODO: The original version of the image library's equals function passes a union-find datastructure
-      // for some reason.  Our runtime.same method doesn't.  Could be a problem...
+      checkArity(2, arguments, "image");
+      c("images-equal", [maybeImage1, maybeImage2], [annImage, annImage]);
       var img1 = checkImage(maybeImage1);
       var img2 = checkImage(maybeImage2);
       return runtime.wrap(image.imageEquals(img1, img2));
     });
     f("text", function(maybeString, maybeSize, maybeColor) {
-      checkArity(3, arguments, "text");
+      checkArity(3, arguments, "image");
+      c("text", [maybeString, maybeSize, maybeColor], [runtime.String, annNumNonNegative, annColor]);
       var string = checkString(maybeString);
       var size = checkPositiveInteger(maybeSize);
       var color = checkColor(maybeColor);
@@ -374,6 +380,25 @@
     f("text-font", function(maybeString, maybeSize, maybeColor, maybeFace,
                             maybeFamily, maybeStyle, maybeWeight, maybeUnderline) {
       checkArity(8, arguments);
+      c("text", [
+          maybeString,
+          maybeSize,
+          maybeColor,
+          maybeFace,
+          maybeFamily,
+          maybeStyle,
+          maybeWeight,
+          maybeUnderline
+        ], [
+          runtime.String,
+          annNumNonNegative,
+          annColor,
+          runtime.String,
+          annFontFamily,
+          annFontStyle,
+          annFontWeight,
+          runtime.Boolean
+        ]);
       var string = checkString(maybeString);
       var size = checkByte(maybeSize);
       var color = checkColor(maybeColor);
@@ -390,6 +415,7 @@
 
     f("overlay", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "overlay");
+      c("overlay", [maybeImg1, maybeImg2], [annImage, annImage]);
       var img1 = checkImage(maybeImg1);
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, img2, "middle", "middle"));
@@ -397,6 +423,9 @@
 
     f("overlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
       checkArity(4, arguments, "overlay-xy");
+      c("overlay-xy",
+        [maybeImg1, maybeDx, maybeDy, maybeImg2],
+        [annImage, runtime.Number, runtime.Number, annImage]);
       var img1 = checkImage(maybeImg1);
       var dx = checkReal(maybeDx);
       var dy = checkReal(maybeDy);
@@ -407,6 +436,9 @@
 
     f("overlay-align", function(maybePlaceX, maybePlaceY, maybeImg1, maybeImg2) {
       checkArity(4, arguments, "overlay-align");
+      c("overlay-align",
+        [maybePlaceX, maybePlaceY, maybeImg1, maybeImg2],
+        [annPlaceX, annPlaceY, annImage, annImage]);
       var placeX = checkPlaceX(maybePlaceX);
       var placeY = checkPlaceY(maybePlaceY);
       var img1 = checkImage(maybeImg1);
@@ -416,6 +448,7 @@
 
     f("underlay", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "underlay");
+      c("underlay", [maybeImg1, maybeImg2], [annImage, annImage]);
       var img1 = checkImage(maybeImg1);
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img2, img1, "middle", "middle"));
@@ -423,6 +456,9 @@
 
     f("underlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
       checkArity(4, arguments, "underlay-xy");
+      c("underlay-xy",
+        [maybeImg1, maybeDx, maybeDy, maybeImg2],
+        [annImage, runtime.Number, runtime.Number, annImage]);
       var img1 = checkImage(maybeImg1);
       var dx = checkReal(maybeDx);
       var dy = checkReal(maybeDy);
@@ -433,6 +469,9 @@
 
     f("underlay-align", function(maybePlaceX, maybePlaceY, maybeImg1, maybeImg2) {
       checkArity(4, arguments, "underlay-align");
+      c("overlay-align",
+        [maybePlaceX, maybePlaceY, maybeImg1, maybeImg2],
+        [annPlaceX, annPlaceY, annImage, annImage]);
       var placeX = checkPlaceX(maybePlaceX);
       var placeY = checkPlaceY(maybePlaceY);
       var img1 = checkImage(maybeImg1);
@@ -442,6 +481,7 @@
 
     f("beside", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "beside");
+      c("beside", [maybeImg1, maybeImg2], [annImage, annImage]);
       var img1 = checkImage(maybeImg1);
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, img2, "beside", "middle"));
@@ -449,6 +489,9 @@
 
     f("beside-align", function(maybePlaceY, maybeImg1, maybeImg2) {
       checkArity(3, arguments, "beside-align");
+      c("beside-align",
+        [maybePlaceY, maybeImg1, maybeImg2],
+        [annPlaceY, annImage, annImage]);
       var placeY = checkPlaceY(maybePlaceY);
       var img1 = checkImage(maybeImg1);
       var img2 = checkImage(maybeImg2);
@@ -457,6 +500,7 @@
 
     f("above", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "above");
+      c("beside", [maybeImg1, maybeImg2], [annImage, annImage]);
       var img1 = checkImage(maybeImg1);
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, img2, "middle", "above"));
@@ -464,6 +508,9 @@
 
     f("above-align", function(maybePlaceX, maybeImg1, maybeImg2) {
       checkArity(3, arguments, "above-align");
+      c("above-align",
+        [maybePlaceX, maybeImg1, maybeImg2],
+        [annPlaceX, annImage, annImage]);
       var placeX = checkPlaceX(maybePlaceX);
       var img1 = checkImage(maybeImg1);
       var img2 = checkImage(maybeImg2);
@@ -472,6 +519,7 @@
 
     f("empty-scene", function(maybeWidth, maybeHeight) {
       checkArity(2, arguments, "empty-scene");
+      c("empty-scene", [maybeWidth, maybeHeight], [annNumNonNegative, annNumNonNegative]);
       var width = checkNonNegativeReal(maybeWidth);
       var height = checkNonNegativeReal(maybeHeight);
       return makeImage(
@@ -479,6 +527,9 @@
     });
     f("put-image", function(maybePicture, maybeX, maybeY, maybeBackground) {
       checkArity(4, arguments, "put-image");
+      c("underlay-xy",
+        [maybePicture, maybeX, maybeY, maybeBackground],
+        [annImage, runtime.Number, runtime.Number, annImageOrScene]);
       var picture = checkImage(maybePicture);
       var x = checkReal(maybeX);
       var y = checkReal(maybeY);
@@ -494,6 +545,9 @@
     });
     f("place-image", function(maybePicture, maybeX, maybeY, maybeBackground) {
       checkArity(4, arguments, "place-image");
+      c("place-image",
+        [maybePicture, maybeX, maybeY, maybeBackground],
+        [annImage, runtime.Number, runtime.Number, annImageOrScene]);
       var picture = checkImage(maybePicture);
       var x = checkReal(maybeX);
       var y = checkReal(maybeY);
@@ -509,6 +563,9 @@
     });
     f("place-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
       checkArity(6, arguments, "place-image-align");
+      c("place-image-align",
+        [maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground],
+        [annImage, runtime.Number, runtime.Number, annPlaceX, annPlaceY, annImageOrScene]);
       var img = checkImage(maybeImg);
       var x = checkReal(maybeX);
       var y = checkReal(maybeY);
@@ -535,6 +592,7 @@
 
     f("rotate", function(maybeAngle, maybeImg) {
       checkArity(2, arguments, "rotate");
+      c("rotate", [maybeAngle, maybeImg], [annAngle, annImage]);
       var angle = checkAngle(maybeAngle);
       var img = checkImage(maybeImg);
       return makeImage(image.makeRotateImage(jsnums.toFixnum(-angle), img));
@@ -542,6 +600,7 @@
 
     f("scale", function(maybeFactor, maybeImg) {
       checkArity(2, arguments, "scale");
+      c("scale", [maybeFactor, maybeImg], [annAngle, annImage]);
       var factor = checkReal(maybeFactor);
       var img = checkImage(maybeImg);
       return makeImage(image.makeScaleImage(jsnums.toFixnum(factor), jsnums.toFixnum(factor), img));
@@ -549,6 +608,7 @@
 
     f("scale-xy", function(maybeXFactor, maybeYFactor, maybeImg) {
       checkArity(3, arguments, "scale-xy");
+      c("scale-xy", [maybeXFactor, maybeYFactor, maybeImg], [runtime.Number, runtime.Number, annImage]);
       var xFactor = checkReal(maybeXFactor);
       var yFactor = checkReal(maybeYFactor);
       var img = checkImage(maybeImg);
@@ -557,24 +617,30 @@
 
     f("flip-horizontal", function(maybeImg) {
       checkArity(1, arguments, "flip-horizontal");
+      c("flip-horizontal", [maybeImg], [annImage]);
       var img = checkImage(maybeImg);
       return makeImage(image.makeFlipImage(img, "horizontal"));
     });
 
     f("flip-vertical", function(maybeImg) {
       checkArity(1, arguments, "flip-vertical");
+      c("flip-horizontal", [maybeImg], [annImage]);
       var img = checkImage(maybeImg);
       return makeImage(image.makeFlipImage(img, "vertical"));
     });
 
     f("frame", function(maybeImg) {
       checkArity(1, arguments, "frame");
+      c("flip-horizontal", [maybeImg], [annImage]);
       var img = checkImage(maybeImg);
       return makeImage(image.makeFrameImage(img));
     });
 
     f("crop", function(maybeX, maybeY, maybeWidth, maybeHeight, maybeImg) {
       checkArity(5, arguments, "crop");
+      c("crop",
+        [maybeX, maybeY, maybeWidth, maybeHeight, maybeImg],
+        [runtime.Number, runtime.Number, annNumNonNegative, annNumNonNegative, annImage]);
       var x = checkReal(maybeX);
       var y = checkReal(maybeY);
       var width = checkNonNegativeReal(maybeWidth);
@@ -586,6 +652,7 @@
 
     f("line", function(maybeX, maybeY, maybeC) {
       checkArity(3, arguments, "line");
+      c("line", [maybeX, maybeY, maybeC], [runtime.Number, runtime.Number, annColor]);
       var x = checkReal(maybeX);
       var y = checkReal(maybeY);
       var c = checkColor(maybeC);
@@ -595,6 +662,9 @@
 
     f("add-line", function(maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC) {
       checkArity(6, arguments, "add-line");
+      c("add-line",
+        [maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC],
+        [annImage, runtime.Number, runtime.Number, runtime.Number, runtime.Number, annColor]);
       var x1 = checkReal(maybeX1);
       var y1 = checkReal(maybeY1);
       var x2 = checkReal(maybeX2);
@@ -609,6 +679,9 @@
 
     f("scene-line", function(maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC) {
       checkArity(6, arguments, "scene-line");
+      c("scene-line",
+        [maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC],
+        [annImage, runtime.Number, runtime.Number, runtime.Number, runtime.Number, annColor]);
       var x1 = checkReal(maybeX1);
       var y1 = checkReal(maybeY1);
       var x2 = checkReal(maybeX2);
@@ -634,6 +707,9 @@
 
     f("square", function(maybeSide, maybeMode, maybeColor) {
       checkArity(3, arguments, "square");
+      c("square",
+        [maybeSide, maybeMode, maybeColor],
+        [annNumNonNegative, annMode, annColor]);
       var side = checkNonNegativeReal(maybeSide);
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
@@ -642,6 +718,9 @@
 
     f("rectangle", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
       checkArity(4, arguments, "rectangle");
+      c("square",
+        [maybeWidth, maybeHeight, maybeMode, maybeColor],
+        [annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var width = checkNonNegativeReal(maybeWidth);
       var height = checkNonNegativeReal(maybeHeight);
       var mode = checkMode(maybeMode);
@@ -652,6 +731,9 @@
 
     f("regular-polygon", function(maybeLength, maybeCount, maybeMode, maybeColor) {
       checkArity(4, arguments, "regular-polygon");
+      c("regular-polygon",
+        [maybeLength, maybeCount, maybeMode, maybeColor],
+        [annNumNonNegative, annNatural, annMode, annColor]);
       var length = checkNonNegativeReal(maybeLength);
       var count = checkNonNegativeReal(maybeCount);
       var mode = checkMode(maybeMode);
@@ -662,6 +744,9 @@
 
     f("ellipse", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
       checkArity(4, arguments, "ellipse");
+      c("ellipse",
+        [maybeWidth, maybeHeight, maybeMode, maybeColor],
+        [annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var width = checkNonNegativeReal(maybeWidth);
       var height = checkNonNegativeReal(maybeHeight);
       var mode = checkMode(maybeMode);
@@ -672,6 +757,9 @@
 
     f("triangle", function(maybeSide, maybeMode, maybeColor) {
       checkArity(3, arguments, "triangle");
+      c("triangle",
+        [maybeSide, maybeMode, maybeColor],
+        [annNumNonNegative, annMode, annColor]);
       var side = checkNonNegativeReal(maybeSide);
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
@@ -683,6 +771,9 @@
 
     f("triangle-sas", function(maybeSideA, maybeAngleB, maybeSideC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-sas");
+      c("triangle-sas",
+        [maybeSideA, maybeAngleB, maybeSideC, maybeMode, maybeColor],
+        [annNumNonNegative, annAngle, annNumNonNegative, annMode, annColor]);
       var sideA = checkNonNegativeReal(maybeSideA);
       var angleB = checkAngle(maybeAngleB);
       var sideC = checkNonNegativeReal(maybeSideC);
@@ -720,6 +811,9 @@
 
     f("triangle-sss", function(maybeSideA, maybeSideB, maybeSideC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-sss");
+      c("triangle-sss",
+        [maybeSideA, maybeSideB, maybeSideC, maybeMode, maybeColor],
+        [annNumNonNegative, annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var sideA = checkNonNegativeReal(maybeSideA);
       var sideB = checkNonNegativeReal(maybeSideB);
       var sideC = checkNonNegativeReal(maybeSideC);
@@ -741,6 +835,9 @@
 
     f("triangle-ass", function(maybeAngleA, maybeSideB, maybeSideC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-ass");
+      c("triangle-ass",
+        [maybeAngleA, maybeSideB, maybeSideC, maybeMode, maybeColor],
+        [annAngle, annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var angleA = checkAngle(maybeAngleA);
       var sideB = checkNonNegativeReal(maybeSideB);
       var sideC = checkNonNegativeReal(maybeSideC);
@@ -757,6 +854,9 @@
 
     f("triangle-ssa", function(maybeSideA, maybeSideB, maybeAngleC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-ssa");
+      c("triangle-ssa",
+        [maybeSideA, maybeSideB, maybeAngleC, maybeMode, maybeColor],
+        [annNumNonNegative, annNumNonNegative, annAngle, annMode, annColor]);
       var sideA  = checkNonNegativeReal(maybeSideA);
       var sideB  = checkNonNegativeReal(maybeSideB);
       var angleC = checkAngle(maybeAngleC);
@@ -790,6 +890,9 @@
 
     f("triangle-aas", function(maybeAngleA, maybeAngleB, maybeSideC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-aas");
+      c("triangle-aas",
+        [maybeAngleA, maybeAngleB, maybeSideC, maybeMode, maybeColor],
+        [annAngle, annAngle, annNumNonNegative, annMode, annColor]);
       var angleA = checkAngle(maybeAngleA);
       var angleB = checkAngle(maybeAngleB);
       var sideC = checkNonNegativeReal(maybeSideC);
@@ -809,6 +912,9 @@
 
     f("triangle-asa", function(maybeAngleA, maybeSideB, maybeAngleC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-asa");
+      c("triangle-asa",
+        [maybeAngleA, maybeSideB, maybeAngleC, maybeMode, maybeColor],
+        [annAngle, annNumNonNegative, annAngle, annMode, annColor]);
       var angleA = checkAngle(maybeAngleA);
       var sideB = checkNonNegativeReal(maybeSideB);
       var angleC = checkAngle(maybeAngleC);
@@ -828,6 +934,9 @@
 
     f("triangle-saa", function(maybeSideA, maybeAngleB, maybeAngleC, maybeMode, maybeColor) {
       checkArity(5, arguments, "triangle-saa");
+      c("triangle-saa",
+        [maybeSideA, maybeAngleB, maybeAngleC, maybeMode, maybeColor],
+        [annNumNonNegative, annAngle, annAngle, annMode, annColor]);
       var sideA = checkNonNegativeReal(maybeSideA);
       var angleB = checkAngle(maybeAngleB);
       var angleC = checkAngle(maybeAngleC);
@@ -844,6 +953,9 @@
 
     f("right-triangle", function(maybeSide1, maybeSide2, maybeMode, maybeColor) {
       checkArity(4, arguments, "right-triangle");
+      c("right-triangle",
+        [maybeSide1, maybeSide2, maybeMode, maybeColor],
+        [annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var side1 = checkNonNegativeReal(maybeSide1);
       var side2 = checkNonNegativeReal(maybeSide2);
       var mode = checkMode(maybeMode);
@@ -856,6 +968,9 @@
 
     f("isosceles-triangle", function(maybeSide, maybeAngleC, maybeMode, maybeColor) {
       checkArity(4, arguments, "isosceles-triangle");
+      c("isosceles-triangle",
+        [maybeSide, maybeAngleC, maybeMode, maybeColor],
+        [annNumNonNegative, annAngle, annMode, annColor]);
       var side = checkNonNegativeReal(maybeSide);
       var angleC = checkAngle(maybeAngleC);
       var mode = checkMode(maybeMode);
@@ -870,6 +985,7 @@
 
     f("star", function(maybeSide, maybeMode, maybeColor) {
       checkArity(3, arguments, "star");
+      c("star", [maybeSide, maybeMode, maybeColor], [annNumNonNegative, annMode, annColor]);
       var side = checkNonNegativeReal(maybeSide);
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
@@ -880,6 +996,9 @@
     // TODO: This was split from the variable-arity case in the original whalesong "star" function
     f("star-sized", function(maybeSideCount, maybeOuter, maybeInner, maybeMode, maybeColor) {
       checkArity(5, arguments, "star-sized");
+      c("star-sized",
+        [maybeSideCount, maybeOuter, maybeInner, maybeMode, maybeColor],
+        [annNatural, annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var sideCount = checkSideCount(maybeSideCount);
       var outer = checkNonNegativeReal(maybeOuter);
       var inner = checkNonNegativeReal(maybeInner);
@@ -892,6 +1011,9 @@
     // TODO: Same as star-sized?
     f("radial-star", function(maybePoints, maybeOuter, maybeInner, maybeMode, maybeColor) {
       checkArity(5, arguments, "radial-star");
+      c("radial-star",
+        [maybePoints, maybeOuter, maybeInner, maybeMode, maybeColor],
+        [annNatural, annNumNonNegative, annNumNonNegative, annMode, annColor]);
       var points = checkPointsCount(maybePoints);
       var outer = checkNonNegativeReal(maybeOuter);
       var inner = checkNonNegativeReal(maybeInner);
@@ -904,6 +1026,9 @@
 
     f("star-polygon", function(maybeLength, maybeCount, maybeStep, maybeMode, maybeColor) {
       checkArity(5, arguments, "star-polygon");
+      c("star-polygon",
+        [maybeLength, maybeCount, maybeStep, maybeMode, maybeColor],
+        [annNumNonNegative, annNatural, annNatural, annMode, annColor]);
       var length = checkNonNegativeReal(maybeLength);
       var count = checkNonNegativeReal(maybeCount);
       var step = checkStepCount(maybeStep);
@@ -916,6 +1041,9 @@
 
     f("rhombus", function(maybeLength, maybeAngle, maybeMode, maybeColor) {
       checkArity(4, arguments, "rhombus");
+      c("rhombus",
+        [maybeLength, maybeAngle, maybeMode, maybeColor],
+        [annNumNonNegative, annAngle, annMode, annColor]);
       var length = checkNonNegativeReal(maybeLength);
       var angle = checkAngle(maybeAngle); // TODO: This was originally checkNonNegativeReal, seemed like a bug
       var mode = checkMode(maybeMode);
@@ -926,12 +1054,16 @@
 
     f("image-to-color-list", function(maybeImage) {
       checkArity(1, arguments, "image-to-color-list");
+      c("image-width", [maybeImg], [annImage]);
       var img = checkImage(maybeImage);
       return image.imageToColorList(img);
     });
 
     f("color-list-to-image", function(maybeList, maybeWidth, maybeHeight, maybePinholeX, maybePinholeY) {
       checkArity(5, arguments, "color-list-to-image");
+      c("color-list-to-image",
+        [maybeList, maybeWidth, maybeHeight, maybePinholeX, maybePinholeY],
+        [annListColor, annNatural, annNatural, annNatural, annNatural]);
       var loc = checkListofColor(maybeList);
       var width = checkNatural(maybeWidth);
       var height = checkNatural(maybeHeight);
@@ -943,6 +1075,9 @@
 
     f("color-list-to-bitmap", function(maybeList, maybeWidth, maybeHeight) {
       checkArity(3, arguments, "color-list-to-bitmap");
+      c("color-list-to-bitmap",
+        [maybeList, maybeWidth, maybeHeight],
+        [annListColor, annNatural, annNatural]);
       var loc = checkListofColor(maybeList);
       var width = checkNatural(maybeWidth);
       var height = checkNatural(maybeHeight);
@@ -951,24 +1086,28 @@
 
     f("image-width", function(maybeImg) {
       checkArity(1, arguments, "image-width");
+      c("image-width", [maybeImg], [annImage]);
       var img = checkImage(maybeImg);
       return runtime.wrap(img.getWidth());
     });
 
     f("image-height", function(maybeImg) {
       checkArity(1, arguments, "image-height");
+      c("image-height", [maybeImg], [annImage]);
       var img = checkImage(maybeImg);
       return runtime.wrap(img.getHeight());
     });
 
     f("image-baseline", function(maybeImg) {
       checkArity(1, arguments, "image-baseline");
+      c("image-baseline", [maybeImg], [annImage]);
       var img = checkImage(maybeImg);
       return runtime.wrap(img.getBaseline());
     });
 
     f("name-to-color", function(maybeName) {
       checkArity(1, arguments, "name-to-color");
+      c("name-to-color", [maybeName], [runtime.String]);
       var name = checkString(maybeName);
       return runtime.wrap(colorDb.get(String(name)) || false);
     });
