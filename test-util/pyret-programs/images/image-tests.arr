@@ -71,7 +71,7 @@ check "Polygons":
   star-sized(33, 10, 50, "solid", "blue", true) raises ""
 
   star-polygon(43, 2, 5, "solid", "blue") satisfies is-image
-  star-polygon(~43, ~2, 5, "solid", "blue") satisfies is-image
+  star-polygon(~43, 2, 5, "solid", "blue") satisfies is-image
   star-polygon("blue", 2, 5, "solid", "blue") raises ""
   star-polygon(43, 2, 5, "solid", "blue", {}) raises ""
 
