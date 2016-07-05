@@ -148,6 +148,43 @@ t("centered-target",
     150, 100,
     rectangle(300, 200, "solid", "black")))
 
+flag2 =
+  place-image(
+    rotate(90,
+      underlay-align("center", "center",
+        rectangle(50, 450, "solid", "white"),
+        underlay-align("center", "center",
+          rotate(90, rectangle(50, 450, "solid", "white")),
+          underlay-align("center", "center",
+            rotate(90, rectangle(30, 450, "solid", "red")),
+            rotate(180, rectangle(30, 450, "solid", "red")))))),
+    200, 100,
+    place-image(
+      rotate(65,
+        underlay-align("center", "center",
+          rectangle(15, 450, "solid", "red"),
+          rotate(50, rectangle(15, 450, "solid", "red")))),
+      200, 100,
+      place-image(
+        rotate(65,
+          underlay-align("center", "center",
+            rectangle(40, 450, "solid", "white"),
+            rotate(50, rectangle(40, 450, "solid", "white")))),
+        200, 100,
+        rectangle(400, 200, "solid", "navy"))))
+
+t("australia-ish",
+  place-image(flag2, 200, 100,
+    place-image(star-polygon(30, 7, 3, "solid", "white"),
+      650, 60,
+      place-image(star-polygon(50, 7, 3, "solid", "white"),
+        200, 300,
+        place-image(star-polygon(40, 7, 3, "solid", "white"),
+          500, 300,
+          place-image(star-polygon(40, 7, 3, "solid", "white"),
+            490, 220,
+            rectangle(900, 400, "solid", "navy")))))))
+
 check:
   fun within-n-badness(n):
     lam(img1, img2):
@@ -178,6 +215,54 @@ check "equivalences":
     is
     overlay(circle(20, "solid", color(50, 50, 255, 255)),
             regular-polygon(40, 4, "solid", color(100, 100, 255, 255)))
+
+
+  fun bulls-eye(shadow i, color1, color2):
+    ask:
+      | i <= 0 then: empty-image
+      | otherwise:
+        overlay(bulls-eye(i - 1, color2, color1),
+                circle(i * 10, "solid", color1))
+    end
+  end
+  bulls-eye(0, "blue", "red") is empty-image
+  bulls-eye(1, "blue", "red") is circle(10, "solid", "blue")
+  bulls-eye(2, "blue", "red") is
+    overlay(circle(10, "solid", "red"), circle(20, "solid", "blue"))
+
+  c = circle(15, "solid", "red")
+  for each(shadow i from range(0, 20)):
+    rotate(i * 18, c) is c
+  end
+
+  s = square(15, "solid", "red")
+  for each(shadow i from range(0, 3)):
+    rotate(i * 90, c) is c
+  end
+  
+  el = ellipse(30, 40, "solid", "red")
+  rotate(180, el) is el
+
+  circle(50, 90, "orange") is ellipse(100, 100, 90, "orange")
+
+  regular-polygon(40, 4, "solid", "black") is rectangle(40, 40, "solid", "black")
+
+  scale(1/2, square(100, "solid", "blue")) is square(50, "solid", "blue")
+  scale(1/3, square(100, "solid", "blue")) is-not square(50, "solid", "blue")
+
+  image-url("http://www.bootstrapworld.org/images/icon.gif") is
+    image-url("http://www.bootstrapworld.org/images/icon.gif")
+
+  image-url("http://www.bootstrapworld.org/images/icon.gif") is-not
+    rectangle(150, 150, "solid", "pink")
+
+  image-url("http://www.bootstrapworld.org/images/icon.gif") is-not
+    image-url("http://www.bootstrapworld.org/images/icon.png")
+
+  empty-scene(20, 50) is empty-scene(20, 50)
+
+  triangle(50, "solid", "blue") is-not triangle(50, "outline", "blue")
+
 end
 
 
@@ -188,142 +273,6 @@ end
 #|
 
 (printf "images.rkt\n")
-
-;; "Checking Empty scene"
-;; (empty-scene 40 50 "red")
-"These three circles (red, green, blue) should be left aligned"
-(above/align "left"
-             (circle 30 "solid" "red")
-             (above/align "left" (circle 50 'solid 'green) (circle 20 'solid 'blue)))
-
-
-"These three circles (red, green, blue) should be right aligned"
-(above/align "right"
-             (circle 30 "solid" "red")
-             (above/align "right" (circle 50 'solid 'green) (circle 20 'solid 'blue)))
-
-
-"These three circles (red, green, blue) should be middle aligned, vertically"
-(above/align "middle"
-             (circle 30 "solid" "red")
-             (above/align "middle" (circle 50 'solid 'green) (circle 20 'solid 'blue)))
-
-
-
-"These three circles (red, green, blue) should be top-aligned"
-(beside/align "top"
-             (circle 30 "solid" "red")
-             (beside/align "top" (circle 50 'solid 'green) (circle 20 'solid 'blue)))
-
-"These three circles (red, green, blue) should be bottom-aligned"
-(beside/align "bottom"
-             (circle 30 "solid" "red")
-             (beside/align "bottom" (circle 50 'solid 'green) (circle 20 'solid 'blue)))
-
-"These three circles (red, green, blue) should be middle-aligned, horizontally"
-(beside/align "middle"
-             (circle 30 "solid" "red")
-             (beside/align "middle" (circle 50 'solid 'green) (circle 20 'solid 'blue)))
-
-
-
-
-
-"should be a bar graph"
-(define (make-stars number)
-  (cond [(eq? number 1) (star 12 "solid" "purple")]
-        [true (beside (star 12 "solid" "purple") (make-stars (- number 1)))] ))
-(define (bar-graph l1)
-  (cond [(empty? l1) (circle 0 "outline" "blue")]
-        [true (above/align "left" (make-stars (car l1)) (bar-graph (cdr l1)))]))
-(bar-graph '(1 3 5 3 9 5 3 4 4 3 5 2))
-
-
-
-(check-expect (image? 'blue) #f)
-(check-expect (image? (circle 20 "solid" "green")) #t)
-
-"should be a solid green circle: " (circle 20 "solid" "green")
-
-"should be an outline turquoise rectangle: " (rectangle 20 30 "outline" "turquoise")
-
-"should be a solid, mostly-translucent red rectangle: " (rectangle 200 300 10 "red")
-"should be an outline red rectangle: " (rectangle 200 300 "outline" "red")
-"should be an *invisible* red rectangle: " (rectangle 200 300 0 "red")
-
-(define halfred (make-color 255 0 0 128))
-(define quarterred (make-color 255 0 0 64))
-"should be a solid red triangle" (triangle 50 "solid" "red")
-"should be a solid triangle made from a half-transparent red" (triangle 50 "solid" halfred)
-"should be a solid, half-alpha triangle made from a half-transparent red" (triangle 50 128 halfred)
-"should be a solid triangle made from a quater-trasparent red" (triangle 50 "solid" quarterred)
-
-;(check-expect (color? (make-color 3 4 5)))
-
-(check-expect (color-red (make-color 3 4 5)) 3)
-(check-expect (color-green (make-color 3 4 5)) 4)
-(check-expect (color-blue (make-color 3 4 5)) 5)
-
-(check-expect (image? (empty-scene 20 50)) true)
-
-(check-expect (image? (place-image (circle 50 'solid 'blue)
-                                   50
-                                   50
-                                   (empty-scene 100 100)))
-              true)
-
-"should be a blue circle in a scene with a border: " (place-image (circle 50 'solid 'blue)
-                                                                  50
-                                                                  50
-                                                                  (empty-scene 100 100))
-
-"should be a blue circle in the UR of a scene with a border: " (put-image (circle 50 'solid 'blue)
-                                                                  100
-                                                                  100
-                                                                  (empty-scene 100 100))
-
-(check-expect (image?
-               (rectangle 20 20 'solid 'green))
-              true)
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; TEXT & TEXT/FONT
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-"simple text functionality" 
-(text "hello world" 20 'black)
-(text (string-copy "hello world") 30 'purple)
-(text "hello world" 40 'red)
-
-
-"test font-weight"
-(text/font "Hello" 24 "purple"
-           "Gill Sans" 'swiss 'normal 'bold #f)
-(text/font "Hello" 24 "green"
-           "Gill Sans" 'swiss 'normal 'light #f)
-
-"test font-style"
-(text/font "Goodbye" 48 "indigo"
-           "Helvetica" 'modern 'italic 'normal #f)
-(text/font "Goodbye" 48 "indigo"
-           "Helvetica" 'modern 'normal 'normal #f)
-
-"test underline-height calculation"
-(text/font "test this!" 80 "purple"
-           "Helvetica" 'roman 'normal 'normal #t)
-
-(text/font "low-hanging glyphs" 36 "blue"
-           "Times" 'roman 'normal 'bold #t)  
-
-(text/font "teeny-tiny text" 8 "black"
-           "Times" 'roman 'normal 'bold #t)  
-
-(text/font "not really a link" 36 "blue"
-           "Courier" 'roman 'italic 'normal #t)
-
-NOTE(joe): DONE TO HERE
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -339,29 +288,6 @@ NOTE(joe): DONE TO HERE
 ;(rotate 45
 ;  (video-url "http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4"))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; OVERLAY
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-"the next two images should be identical"
-(overlay (ellipse 10 10 "solid" "red")
-         (ellipse 20 20 "solid" "black")
-         (ellipse 30 30 "solid" "red")
-         (ellipse 40 40 "solid" "black")
-         (ellipse 50 50 "solid" "red")
-         (ellipse 60 60 "solid" "black"))
-
-"the next two images should be identical"
-(overlay (square 20 "solid" (make-color  50  50 255))
-         (square 26 "solid" (make-color 100 100 255))
-         (square 32 "solid" (make-color 150 150 255))
-         (square 38 "solid" (make-color 200 200 255))
-         (square 44 "solid" (make-color 250 250 255)))
-(overlay (regular-polygon 20 4 "solid" (make-color  50  50 255))
-         (regular-polygon 26 4 "solid" (make-color 100 100 255))
-         (regular-polygon 32 4 "solid" (make-color 150 150 255))
-         (regular-polygon 38 4 "solid" (make-color 200 200 255))
-         (regular-polygon 44 4 "solid" (make-color 250 250 255)))
 
 
 
@@ -921,200 +847,4 @@ Australia2
 "flip the first one vertically"          
 (above (flip-vertical (square 20 "solid" (make-color  50  50 255)))
        (square 34 "solid" (make-color 150 150 255)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; IMAGE EQUALITY
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; IMAGE EQUALITY
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-"checking a circle against a rectangle"
-(check-expect (image=? (circle 50 "solid" "blue")
-                       (rectangle 20 30 "outline" "turquoise"))
-              #f)
-(check-expect (image=? (empty-scene 20 50) (empty-scene 20 50)) true)
-
-"checking a circle against a different one"
-(check-expect (image=? (circle 50 "solid" "blue")
-                       (circle 50 "solid" "turquoise"))
-              #f)
-
-"checking a triangle against a different one"
-(check-expect (image=? (triangle 50 "solid" "blue")
-                       (triangle 50 "outline" "blue"))
-              #f)
-
-"checking a circle against a different one"
-(check-expect (image=? (circle 50 "solid" "blue")
-                       (circle 50 "solid" "turquoise"))
-              #f)
-
-"checking a textImage against a different one"
-(check-expect (image=? (text "purple" 50 "blue")
-                       (text "purple" 50 "red"))
-              #f)
-
-"checking a textImage against itself"
-(check-expect (image=? (text "purple" 50 "blue")
-                       (text "purple" 50 "blue"))
-              #t)
-
-"checking a bitmap against itself"
-(check-expect (image=? (bitmap/url "http://www.bootstrapworld.org/images/icon.gif")
-                       (bitmap/url "http://www.bootstrapworld.org/images/icon.gif"))
-              #t)
-
-"checking a bitmap against a shape of the same size"
-(check-expect (image=? (bitmap/url "http://www.bootstrapworld.org/images/icon.gif")
-                       (rectangle 150 150 "solid" "pink"))
-              #f)
-
-"checking a bitmap against a shape of a different size"
-(check-expect (image=? (bitmap/url "http://www.bootstrapworld.org/images/icon.gif")
-                       (rectangle 100 100 "solid" "pink"))
-              #f)
-
-"checking a bitmap against a different one"
-(check-expect (image=? (bitmap/url "http://www.bootstrapworld.org/images/icon.gif")
-                       (bitmap/url "http://www.bootstrapworld.org/images/icon.png"))
-              #f)
-
-"checking a rectangle against itself"
-(check-expect (image=? (rectangle 100 50 "solid" "blue")
-                       (rectangle 100 50 "solid" "blue"))
-              #t)
-
-"checking a rhombus against itself"
-(check-expect (image=? (rhombus 100 50 "solid" "blue")
-                       (rhombus 100 50 "solid" "blue"))
-              #t)
-
-"checking a square against a 2x larger one that's been scaled by 1/2"
-(check-expect (image=? (scale 1/2 (square 100 "solid" "blue"))
-                       (square 50 "solid" "blue"))
-              #t)
-
-"checking a square against a 2x larger one that's been scaled by 1/3"
-(check-expect (image=? (scale 1/3 (square 100 "solid" "blue"))
-                       (square 50 "solid" "blue"))
-              #f)
-
-"checking a rectangle against its equivalent polygon"
-(check-expect (image=? (regular-polygon 40 4 "solid" "black")
-                       (rectangle 40 40 "solid" "black"))
-              #t)
-
-"checking a circle against its equivalent ellipse"
-(check-expect (image=? (circle 50 90 "orange")
-                       (ellipse 100 100 90 "orange"))
-              #t)
-
-
-"checking a circle against its rotated self"
-(check-expect (image=? (circle 50 90 "orange")
-                       (rotate 45 (circle 50 90 "orange")))
-              #t)
-
-"checking structurally-different overlays"
-(define img (circle 15 "solid" "red"))
-(check-expect (beside img (beside img img))
-            (beside img img img))
-
-"bulls-eye tests"
-(define (bulls-eye i color1 color2)
-  (if (<= i 0)
-      empty-image
-      (overlay (bulls-eye (sub1 i) color2 color1)
-               (circle (* i 10) "solid" color1))))
-      
-(check-expect (bulls-eye 0 "blue" "red") empty-image)
-(check-expect (bulls-eye 1 "blue" "red") (circle 10 "solid" "blue"))
-(check-expect (bulls-eye 2 "blue" "red")
-              (overlay (circle 10 "solid" "red")
-                       (circle 20 "solid" "blue")))
-
-"shrinking balls tests"
-(define (line-of-balls r)
-  (if (<= r 1)
-      (circle r "solid" "red")
-      (beside
-       (circle r "solid" "red")
-       (line-of-balls (* r 0.8)))))
-
-(define manual (beside (circle 2 "solid" "red")
-                       (circle (* 2 .8) "solid" "red")
-                       (circle (* 2 .8 .8) "solid" "red")
-                       (circle (* 2 .8 .8 .8) "solid" "red")
-                       (circle (* 2 .8 .8 .8 .8) "solid" "red")))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; IMAGE PROPERTIES
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-"(image-width (ellipse 30 40 'solid' 'orange'))"
-(image-width (ellipse 30 40 "solid" "orange"))
-
-"(image-width (circle 30 'solid' 'orange'))"
-(image-width (circle 30 "solid" "orange"))
-
-"(image-width (beside (circle 20 'solid' 'orange') (circle 20 'solid' 'purple')))"
-(image-width (beside (circle 20 "solid" "orange") (circle 20 "solid" "purple")))
-
-"(image-height (overlay (circle 20 'solid' 'orange') (circle 30 'solid' 'purple')))"
-(image-height (overlay (circle 20 "solid" "orange") (circle 30 "solid" "purple")))
-
-"(image-height (rectangle 10 0 'solid' 'purple'))"
-(image-height (rectangle 10 0 "solid" "purple"))
-
-"(image-baseline (text 'Hello' 24 'black'))"
-(image-baseline (text "Hello" 24 "black"))
-
-"(image-baseline (text/font 'Goodbye' 48 'indigo' 'Helvetica' 'modern 'normal 'normal #f))"
-(image-baseline (text/font "Goodbye" 48 "indigo" "Helvetica" 'modern 'normal 'normal #f))
-
-
-"(image-height (text/font 'Goodbye' 48 'indigo' 'Helvetica' 'modern 'normal 'normal #f))"
-(image-height (text/font "Goodbye" 48 "indigo" "Helvetica" 'modern 'normal 'normal #f))
-
-"(image-baseline (rectangle 100 100 'solid' 'black'))"
-(image-baseline (rectangle 100 100 "solid" "black"))
-
-"(image-height (rectangle 100 100 'solid' 'black'))"
-(image-height (rectangle 100 100 "solid" "black"))
-
-
-"(mode? 'outline')"
-(mode? "outline")
-
-"(mode? 'checkered')"
-(mode? "checkered")
-
-"(image-color? 'pink')"
-(image-color? "pink")
-
-"(image-color? 'puke')"
-(image-color? "puke")
-
-"(y-place? 'middle')"
-(y-place? "middle")
-
-"(x-place? 'up-top')"
-(x-place? "up-top")
-
-"(angle? 290)"
-(angle? 290)
-
-"(angle? -290)"
-(angle? -290)
-
-"(side-count? 20)"
-(side-count? 20)
-
-"(side-count? 2)"
-(side-count? 2)
-
-"(step-count? 2)"
-(step-count? 2)
-
-"(step-count? 0)"
-(step-count? 0)
-|#
+       |#

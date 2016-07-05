@@ -614,8 +614,8 @@
     // otherwise we go pixel-by-pixel. It's up to exotic image types to provide
     // more efficient ways of comparing one another
     BaseImage.prototype.equals = function(other) {
-      if(this.width    !== other.getWidth()    ||
-         this.height   !== other.getHeight()){ return false; }
+      if(this.getWidth()    !== other.getWidth()    ||
+         this.getHeight()   !== other.getHeight()){ return false; }
       // if they're both vertex-based images, all we need to compare are
       // their styles, vertices and color
       if(this.vertices && other.vertices){
@@ -1036,11 +1036,13 @@
     // TODO: special case for ellipse?
     var RotateImage = function(angle, img) {
       BaseImage.call(this);
+      // optimization for trying to rotate a circle
+      if((img instanceof EllipseImage) && (img.width == img.height)){
+          angle = 0;
+      }
       var sin   = Math.sin(angle * Math.PI / 180);
       var cos   = Math.cos(angle * Math.PI / 180);
-      var width = img.getWidth();
-      var height= img.getHeight();
-
+      
       // rotate each point as if it were rotated about (0,0)
       var vertices = img.getVertices().map(function(v) {
           return {x: v.x*cos - v.y*sin, y: v.x*sin + v.y*cos };
@@ -1382,29 +1384,29 @@
       ctx.save();
       ctx.textAlign   = 'left';
       ctx.textBaseline= 'top';
-      ctx.fillStyle   = colorString(this.color);
       ctx.font        = this.font;
-      try {
-        ctx.fillText(this.str, x, y);
-      } catch (e) {
-        this.fallbackOnFont();
-        ctx.font = this.font;
-        ctx.fillText(this.str, x, y);
+
+      // if 'outline' is enabled, use strokeText. Otherwise use fillText
+      ctx.fillStyle = this.outline? 'white' : colorString(this.color);
+      ctx.fillText(this.str, x, y);
+      if(this.outline){
+        ctx.strokeStyle = colorString(this.color);
+        ctx.strokeText(this.str, x, y);
       }
       if(this.underline){
-        ctx.beginPath();
-        ctx.moveTo(x, y+this.size);
-        // we use this.size, as it is more accurate for underlining than this.height
-        ctx.lineTo(x+this.width, y+this.size);
-        ctx.closePath();
-        ctx.strokeStyle = colorString(this.color);
-        ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x, y+this.size);
+          // we use this.size, as it is more accurate for underlining than this.height
+          ctx.lineTo(x+this.width, y+this.size);
+          ctx.closePath();
+          ctx.strokeStyle = colorString(this.color);
+          ctx.stroke();
       }
       ctx.restore();
     };
 
     TextImage.prototype.getBaseline = function() {
-      return this.size;
+      return this.alphaBaseline;
     };
 
     TextImage.prototype.equals = function(other) {
@@ -1434,18 +1436,20 @@
       this.style      = style;
       this.color      = color;
       this.radius     = Math.max(this.inner, this.outer);
-      this.width      = this.radius*2;
-      this.height     = this.radius*2;
       var vertices   = [];
 
       var oneDegreeAsRadian = Math.PI / 180;
-      for(var pt = 0; pt < (this.points * 2) + 1; pt++ ) {
-        var rads = ( ( 360 / (2 * this.points) ) * pt ) * oneDegreeAsRadian - 0.5;
-        var radius = ( pt % 2 === 1 ) ? this.outer : this.inner;
-        vertices.push({x:this.radius + ( Math.sin( rads ) * radius ),
-                       y:this.radius + ( Math.cos( rads ) * radius )} );
+      for(var pt = 0; pt < (points * 2) + 1; pt++ ) {
+        var rads = ( ( 360 / (2 * points) ) * pt ) * oneDegreeAsRadian - 0.5;
+        var radius = ( pt % 2 === 1 ) ? outer : inner;
+        vertices.push({ x: radius + ( Math.sin( rads ) * radius ),
+                        y: radius + ( Math.cos( rads ) * radius )});
       }
-      this.vertices = vertices;
+      this.width  = findWidth(vertices);
+      this.height = findHeight(vertices);
+      this.vertices = translateVertices(vertices);
+      this.ariaText = " a" + colorToSpokenString(color,style) + ", " + points +
+          "pointeded star with inner radius "+inner+" and outer radius "+outer;
     };
 
     StarImage.prototype = heir(BaseImage.prototype);
@@ -1480,6 +1484,8 @@
 
       this.style = style;
       this.color = color;
+      this.ariaText = " a"+colorToSpokenString(color,style) + " triangle whose base is of length "+sideC
+          +", with an angle of " + (angleA%180) + " degrees between it and a side of length "+sideB;
     };
     TriangleImage.prototype = heir(BaseImage.prototype);
 
@@ -1491,6 +1497,8 @@
       this.height = height;
       this.style = style;
       this.color = color;
+      this.ariaText = " a"+colorToSpokenString(color,style) + ((width===height)? " circle of radius "+(width/2)
+            : " ellipse of width "+width+" and height "+height);
     };
 
     EllipseImage.prototype = heir(BaseImage.prototype);
@@ -1526,13 +1534,12 @@
     };
 
     EllipseImage.prototype.equals = function(other) {
-      if (!(other instanceof EllipseImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width    === other.width &&
-              this.height   === other.height &&
-              this.style    === other.style &&
-              equals(this.color, other.color));
+      return ((other instanceof EllipseImage) &&
+             this.width    === other.width &&
+             this.height   === other.height &&
+             this.style    === other.style &&
+             equals(this.color, other.color))
+      || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1553,6 +1560,7 @@
       this.width  = Math.abs(x);
       this.height = Math.abs(y);
       this.vertices = vertices;
+      this.ariaText = " a" + colorToSpokenString(color,'solid') + " line of width "+x+" and height "+y;
     };
 
     LineImage.prototype = heir(BaseImage.prototype);

@@ -72,7 +72,8 @@
       "image-width": "tany",
       "image-height": "tany",
       "image-baseline": "tany",
-      "name-to-color": "tany"
+      "name-to-color": "tany",
+      "empty-image": "tany"
     },
     aliases: { Image: "tany" },
     datatypes: { Image: "tany" } 
@@ -1110,6 +1111,8 @@
       var name = checkString(maybeName);
       return runtime.wrap(colorDb.get(String(name)) || false);
     });
+
+    values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true));
     return runtime.makeObject({
       "provide-plus-types": runtime.makeObject({
         types: {
