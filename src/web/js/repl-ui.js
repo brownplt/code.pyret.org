@@ -307,6 +307,10 @@
 
         editors = {};
         editors["definitions://"] = uiOptions.cm;
+        editors["definitions://"].on("change",
+          function(cm, change) {
+            document.getElementById("main").dataset.highlights = "";
+          });
         interactionsCount = 0;
         replOutputCount = 0;
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
