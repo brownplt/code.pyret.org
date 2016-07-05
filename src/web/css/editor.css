@@ -1363,6 +1363,24 @@ code div {
   pointer-events: none;
 }
 
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket::before {
+  opacity:0;
+  transition: .1s opacity linear .3s;
+}
+
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket,
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket.open,
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket.close,
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket-region,
+#main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
+#main[data-highlights|="spotlight"] .repl,
+#main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
+#main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
+  background-color: rgb(150,150,150);
+  transition: .1s background-color linear .3s;
+}
 #main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
 #main[data-highlights|="spotlight"] .repl,
 #main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
