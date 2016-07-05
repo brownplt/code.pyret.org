@@ -157,7 +157,6 @@
     var annNumber = runtime.Number;
     var annPositive = runtime.NumPositive;
     var annNumNonNegative = runtime.NumNonNegative;
-    var annNumNonNegative = runtime.NumNonNegative;
 
     var checkString = p(runtime.isString, "String");
     var checkStringOrFalse = p(function(val) { return runtime.isString(val) || runtime.isPyretFalse; }, "String or false");
