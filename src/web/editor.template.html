@@ -119,7 +119,18 @@
      }
      var xprediction = data.x;
      var yprediction = data.y;
-     console.log(webgazer.getRegression());
+     var splitlocation = $(window).width() / 2;
+
+     if (xprediction < splitlocation) {
+         // then we change the color of it
+         //gazeDot.style.background = 'red';
+         console.log("left side")
+     }
+     else {
+         // then we give it this color
+         // gazeDot.style.background = 'blue';
+         console.log("right side")
+     }
  }).begin()
          .showPredictionPoints(true); /* shows a square every 100 milliseconds where current prediction is */
 </script>
