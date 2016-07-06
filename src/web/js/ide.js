@@ -28,24 +28,29 @@ const runtimeApi = {
              (TODO: return richer values for parse error return)
   */
   parse(src, url) {
+    // TODO(joe): pass in a URL to uniquely identify this program
+    if(!url) { url = "definitions://"; }
     var runtime = window.CPOIDEHooks.runtime;
-    var parse = runtime.getField(window.CPOIDEHooks.parsePyret, "surface-parse");
-    function handleError(parseResult) {
-      runtime.runThunk(
-        () => return runtime.toReprJS(parseResult.exn),
-        (exnResult) => {
-          if(runtime.isSuccessResult(exnResult)) {
-            reject(exnResult.result);
-          }
-          else {
-            console.error("Could not render: ", parseResult, " because ", exnResult);
-            reject("An error occurred while rendering a parse error, details logged to console");
-          }
-        });
+    function getVal(mod, name) {
+      return runtime.getField(runtime.getField(mod, "values"), name);
     }
-    return new Promise((resolve, reject) =>
+    var parse = getVal(window.CPOIDEHooks.parsePyret, "surface-parse");
+    return new Promise((resolve, reject) => {
+      function handleError(parseResult) {
+        runtime.runThunk(
+          () => runtime.toRepr(parseResult.exn.exn),
+          (exnResult) => {
+            if(runtime.isSuccessResult(exnResult)) {
+              reject(exnResult.result);
+            }
+            else {
+              console.error("Could not render: ", parseResult, " because ", exnResult);
+              reject("An error occurred while rendering a parse error, details logged to console");
+            }
+          });
+      }
       runtime.runThunk(
-        () => return parse.app(src, url),
+        () => parse.app(src, url),
         (parseResult) => {
           if(runtime.isSuccessResult(parseResult)) {
             resolve(parseResult.result);
@@ -53,7 +58,8 @@ const runtimeApi = {
           else {
             handleError(parseResult);
           }
-        }));
+        });
+    })
   },
   /*
     @param {AST} ast - A Pyret AST from parse
