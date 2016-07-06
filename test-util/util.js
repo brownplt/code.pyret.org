@@ -219,10 +219,12 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs) {
       return response.findElements(webdriver.By.className("check-block-results"));
     });
     var blocksAsSpec = checkBlocks.then(function(cbs) {
-      var tests = cbs.map(function(cb) {
+      var tests = cbs.map(function(cb, i) {
         return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
           return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
-            return Q.all(tests.map(function(t) { return t.getText(); }));
+            return tests.length === 0
+              ? Q.all(Array(specs[i].length).fill("Passed"))
+              : Q.all(tests.map(function(t) { return t.getText(); }));
           });
         });
       });
