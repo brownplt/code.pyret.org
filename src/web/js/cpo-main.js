@@ -39,17 +39,15 @@
     "cpo/guess-gas",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
-    "pyret-base/js/runtime"
+    "pyret-base/js/runtime",
+    "cpo/spyret-parse"
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
-                      rtLib) {
-
-
-
+                      rtLib, spyretParse) {
 
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -128,7 +126,6 @@
       }));
     var pyRealm = gf(loadLib, "internal").makeRealm(cpoModules.getRealm());
 
-
     var builtins = [];
     Object.keys(runtime.getParam("staticModules")).forEach(function(k) {
       if(k.indexOf("builtin://") === 0) {
@@ -141,7 +138,9 @@
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
     var getDefsForPyret = runtime.makeFunction(function() {
-        return CPO.editor.cm.getValue();
+        var ws_str = CPO.editor.cm.getValue();
+        var ws_str_j = spyretParse.schemeToPyretAST(ws_str, "definitions");
+        return ws_str_j;
       });
     var replGlobals = gmf(compileStructs, "standard-globals");
 
@@ -162,7 +161,7 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-definitions-locator").app(getDefsForPyret, replGlobals);
+                    "make-spyret-definitions-locator").app(getDefsForPyret, replGlobals);
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, typeCheck);
@@ -180,15 +179,18 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-interaction-locator").app(
-                      runtime.makeFunction(function() { return str; }))
+                    "make-spyret-interaction-locator").app(
+                      runtime.makeFunction(function() {
+                        var ws_str_j = spyretParse.schemeToPyretAST(str, name, "repl");
+                        return ws_str_j;
+                        }))
                   },
                   function(locator) {
                     return gf(repl, "run-interaction").app(locator);
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, "make-interaction-locator");
+              }, "make-spyret-interaction-locator");
             }, 0);
             return ret.promise;
           },
@@ -225,7 +227,7 @@
       var codeContainer = $("<div>").addClass("replMain");
       $("#main").prepend(codeContainer);
 
-      var replWidget = 
+      var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
             runButton: runButton
@@ -625,7 +627,6 @@
         onError: flashError,
         onInternalError: stickError
       });
-
 
       return runtime.makeModuleReturn({}, {});
     }
