@@ -29,7 +29,7 @@ before_script:
 addons:
   sauce_connect: true
 script:
-- mocha --harmony --retries 2
+- mocha --harmony
 install:
 - npm install --ignore-scripts
 - make web
