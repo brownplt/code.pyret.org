@@ -93,6 +93,13 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
+    function parse(source, uri) {
+      var parse = runtime.getField(runtime.getField(parsePyret, "values"), "surface-parse")
+      return runtime.safeTail(function() {
+        return parse.app(source, uri);
+      });
+    }
+
     function compile(ast) {
       var compileAst = gmf(cpo, "compile-ast");
       return runtime.safeTail(function() {
@@ -109,7 +116,7 @@
 
     window.CPOIDEHooks = {
       runtime: runtime,
-      parsePyret: parsePyret,
+      parse: parse,
       compile: compile,
       run: run
     };
