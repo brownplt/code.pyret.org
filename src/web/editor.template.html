@@ -119,9 +119,10 @@
      }
      var xprediction = data.x;
      var yprediction = data.y;
-     var splitlocation = $(window).width() / 2;
+     var repl = document.getElementById("REPL");
+     var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-     if (xprediction < splitlocation) {
+     if (xprediction < splitLocationX) {
          // then we change the color of it
          //gazeDot.style.background = 'red';
          console.log("left side")
