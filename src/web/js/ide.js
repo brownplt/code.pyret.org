@@ -19,7 +19,88 @@ type AST: An instance of Program from src/arr/trove/ast.arr in pyret-lang
 */
 
 function makeRuntimeAPI(CPOIDEHooks) {
-  var runtime = CPOIDEHooks.runtime;
+
+  const cpo = CPOIDEHooks.cpo;
+  const parsePyret = CPOIDEHooks.parsePyret;
+  const runtime = CPOIDEHooks.runtime;
+  const loadLib = CPOIDEHooks.loadLib;
+  const runtimeLib = CPOIDEHooks.runtimeLib;
+  const compileStructs = CPOIDEHooks.compileStructs;
+  const compileLib = CPOIDEHooks.compileLib;
+  const cpoModules = CPOIDEHooks.cpoModules;
+
+
+  const gf = runtime.getField;
+  const gmf = function(m, f) { return gf(gf(m, "values"), f); };
+
+  function findModule(contextIgnored, dependency) {
+    // TODO(joe): enhance this with gdrive locators, etc, later
+    return runtime.safeCall(function() {
+      return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+        {
+          builtin: function(name) {
+            var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+            if(!raw) {
+              throw runtime.throwMessageException("Unknown module: " + name);
+            }
+            else {
+              return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+            }
+          },
+          dependency: function(protocol, args) {
+            console.error("Unknown import: ", dependency);
+          }
+        });
+     }, function(l) {
+        return gmf(compileLib, "located").app(l, runtime.nothing);
+     }, "findModule");
+  }
+  var pyFindModule = runtime.makeFunction(findModule, "find-module");
+
+  // NOTE(joe): This line is "cheating" by mixing runtime levels, and uses
+  // the same runtime for the compiler and running code.  Usually you can
+  // only get a new pyret-viewable Runtime by calling create, but here we
+  // magic the current runtime into one.
+  // Someday Pyret will be quick enough that we won't need to save theses
+  // seconds of instantiation.
+  var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+    runtime.makeObject({
+      "runtime": runtime.makeOpaque(runtime)
+    }));
+  var pyRealm = gf(loadLib, "internal").makeRealm(cpoModules.getRealm());
+
+  var builtins = [];
+  Object.keys(runtime.getParam("staticModules")).forEach(function(k) {
+    if(k.indexOf("builtin://") === 0) {
+      builtins.push(runtime.makeObject({
+        uri: k,
+        raw: cpoModules.getBuiltinLoadable(runtime, k)
+      }));
+    }
+  });
+  var builtinsForPyret = runtime.ffi.makeList(builtins);
+
+  function parse(source, uri) {
+    var parse = gmf(parsePyret, "surface-parse");
+    return runtime.safeTail(function() {
+      return parse.app(source, uri);
+    });
+  }
+
+  function compile(ast) {
+    var compileAst = gmf(cpo, "compile-ast");
+    return runtime.safeTail(function() {
+      return compileAst.app(ast, pyRuntime, pyFindModule, gmf(compileStructs, "default-compile-options"));
+    });
+  }
+
+  function run(jsSrc) {
+    var run = gmf(cpo, "run");
+    return runtime.safeTail(function() {
+      return run.app(pyRuntime, pyRealm, jsSrc);
+    });
+  }
+
   function toReprOrDie(value, resolve, reject) {
     runtime.runThunk(
       () => runtime.toRepr(value),
@@ -47,7 +128,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
       if(!url) { url = "definitions://"; }
       return new Promise((resolve, reject) => {
         runtime.runThunk(
-          () => CPOIDEHooks.parse(src, url),
+          () => parse(src, url),
           (parseResult) => {
             if(runtime.isSuccessResult(parseResult)) {
               resolve(parseResult.result);
@@ -67,11 +148,10 @@ function makeRuntimeAPI(CPOIDEHooks) {
                (TODO: return richer values for error returns)
     */
     compile(ast) {
-      var runtime = CPOIDEHooks.runtime;
       var get = runtime.getField;
       return new Promise((resolve, reject) => {
         runtime.runThunk(
-          () => CPOIDEHooks.compile(ast),
+          () => compile(ast),
           (compileResult) => {
             // NOTE(joe): success here just means the compiler didn't blow up; the result
             // is a Pyret Either indicating compile errors or a final JS program to run
@@ -99,11 +179,10 @@ function makeRuntimeAPI(CPOIDEHooks) {
                (TODO: return richer values for error returns)
     */
     execute(bytecode) {
-      var runtime = CPOIDEHooks.runtime;
       var get = runtime.getField;
       return new Promise((resolve, reject) => {
         runtime.runThunk(
-          () => CPOIDEHooks.run(bytecode),
+          () => run(bytecode),
           (runResult) => {
             // NOTE(joe): success here means the run succeeded, and will report
             // both passing and failing tests, along with a final value
