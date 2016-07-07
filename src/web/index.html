@@ -35,9 +35,10 @@
 <script src="/js/google-apis/drive.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-var clientId = "";
+var clientId = "{{ GOOGLE_CLIENT_ID }}";
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
+  //console.log('doing handleGoogLoad I');
   handleClientLoad(clientId, apiKey);
 }
 </script>
@@ -71,7 +72,6 @@ gdriveCollection.fail(function(err) {
   });
 });
 </script>
-
 
 </body>
 </html>
