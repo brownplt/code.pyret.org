@@ -60,7 +60,7 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules, pyRepl, spyretParse);
 
     function findModule(contextIgnored, dependency) {
       return runtime.safeCall(function() {
@@ -90,7 +90,13 @@
             },
             dependency: function(protocol, args) {
               var arr = runtime.ffi.toArray(args);
-              if (protocol === "my-gdrive") {
+              if (protocol === "wescheme-collection") {
+                return constructors.makeWeSchemeCollectionLocator(arr[0]);
+              }
+              else if (protocol === "wescheme-mygdrive") {
+                return constructors.makeWeSchemeMyGDriveLocator(arr[0]);
+              }
+              else if (protocol === "my-gdrive") {
                 return constructors.makeMyGDriveLocator(arr[0]);
               }
               else if (protocol === "shared-gdrive") {
