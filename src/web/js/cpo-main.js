@@ -273,6 +273,11 @@
       $("#select-mcmh").click(function() {
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
+
+      $("#modeButton").change(function(e) {
+        editor.cm.changeMode(e.target.value);
+      });
+
       function doRunAction(src) {
         editor.cm.clearGutter("CodeMirror-linenumbers");
         var marks = editor.cm.getAllMarks();
