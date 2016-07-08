@@ -147,6 +147,10 @@ function loadAPIWrapper(immediate) {
     //console.log('doing reauth ' + immediate);
     var d = Q.defer();
     if (!clientId) {
+      console.log('ds26gte auth not possible');
+      d.resolve(null);
+    }
+    /*
     if (!immediate) {
       // Need to do a login to get a cookie for this user; do it in a popup
       var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
@@ -168,8 +172,7 @@ function loadAPIWrapper(immediate) {
       newToken.fail(function(t) {
         d.resolve(null);
       });
-    }
-    }
+    }*/
     if (clientId) {
     if (!immediate) {
       console.log('trying gapi.auth.authorize');
