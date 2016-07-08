@@ -1,3 +1,4 @@
+//console.log('loading WeschemeParser.js');
 var CodeMirrorBlocks = CodeMirrorBlocks || {};
 CodeMirrorBlocks["parsers"] = CodeMirrorBlocks["parsers"] || {};
 CodeMirrorBlocks["parsers"]["WeschemeParser"] =
@@ -6000,6 +6001,7 @@ CodeMirrorBlocks["parsers"]["WeschemeParser"] =
 	//var LANGUAGES = {};
 
 	function addLanguage(languageDefinition) {
+          //console.log('addLanguage (w) ' + languageDefinition);
 	  var id = languageDefinition.id;
 	  if (!id) {
 	    throw new Error('language definition missing an \'id\' attribute');
@@ -6023,6 +6025,7 @@ CodeMirrorBlocks["parsers"]["WeschemeParser"] =
 	}
 
 	function getLanguage(languageId) {
+          //console.log('doing getLanguage (w)');
 	  if (!LANGUAGES[languageId]) {
 	    console.warn('Trying to get language', languageId, 'but it hasn\'t been added yet');
 	  }
