@@ -1,3 +1,4 @@
+//console.log('loading CodeMirrorBlocks-all.js');
 var LANGUAGES = {};
 var CodeMirrorBlocks =
 /******/ (function(modules) { // webpackBootstrap
@@ -19969,7 +19970,7 @@ var CodeMirrorBlocks =
 	//var LANGUAGES = {};
 
 	function addLanguage(languageDefinition) {
-          console.log('doing addLanguage (cmb)');
+          //console.log('doing addLanguage (cmb)' + languageDefinition);
 	  var id = languageDefinition.id;
 	  if (!id) {
 	    throw new Error('language definition missing an \'id\' attribute');
@@ -19993,7 +19994,7 @@ var CodeMirrorBlocks =
 	}
 
 	function getLanguage(languageId) {
-          console.log('doing getLanguage (cmb)');
+          //console.log('doing getLanguage (c)');
 	  if (!LANGUAGES[languageId]) {
 	    console.warn('Trying to get language', languageId, 'but it hasn\'t been added yet');
 	  }
