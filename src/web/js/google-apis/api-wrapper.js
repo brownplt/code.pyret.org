@@ -146,7 +146,7 @@ function loadAPIWrapper(immediate) {
   function reauth(immediate) {
     //console.log('doing reauth ' + immediate);
     var d = Q.defer();
-    /*
+    if (!clientId) {
     if (!immediate) {
       // Need to do a login to get a cookie for this user; do it in a popup
       var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
@@ -169,7 +169,8 @@ function loadAPIWrapper(immediate) {
         d.resolve(null);
       });
     }
-    */
+    }
+    if (clientId) {
     if (!immediate) {
       console.log('trying gapi.auth.authorize');
       gapi.auth.authorize({
@@ -187,6 +188,7 @@ function loadAPIWrapper(immediate) {
       });
     } else {
       d.resolve(true);
+    }
     }
 
     return d.promise;
