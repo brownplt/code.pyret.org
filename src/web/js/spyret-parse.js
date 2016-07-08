@@ -5650,7 +5650,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         old_module = _module;
         _module = moduleName;
       }
-      console.log('doing convertToPyretAST ' + provenance + ' ' + moduleName);
+      //console.log('doing convertToPyretAST ' + provenance + ' ' + moduleName);
       var requirepreludes = [];
       var defstructs = [];
       var defnonfuns = [];
@@ -5905,7 +5905,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
 
     function makeStructFromMembers(constructor, elts, loc, quoted) {
-      console.log('doing makeStructFromMembers ' + elts);
+      //console.log('doing makeStructFromMembers ' + elts);
       var fakeArrayCall = new symbolExpr(constructor)
       function makeListEltFromValue(val) {
         console.log('makeListEltFromValue of val = ' + val);
@@ -5933,7 +5933,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       function makeListArgs(args) {
-        console.log('doing makeListArgs ' + args);
+        //console.log('doing makeListArgs ' + args);
         if (args.length === 0) {
           return [];
         } else if (args.length === 1) {
@@ -6712,7 +6712,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // call expression
     // callExpr(func, args, stx)
     callExpr.prototype.toPyretAST = function() {
-      console.log('doing callExpr:toPyretAST');
+      //console.log('doing callExpr:toPyretAST');
       var loc = this.location;
 
       // runtime calls to "vector" need to be processed specially
@@ -6725,7 +6725,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       function makeCallExprArgs(args) {
-        console.log('doing makeCallExprArgs');
+        //console.log('doing makeCallExprArgs');
         if (args.length === 0) {
           return [];
         } else if (args.length === 1) {
@@ -7113,7 +7113,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     //requireExpr.prototype.collectDefinitions remove
     requireExpr.prototype.toPyretAST = function() {
-      console.log('doing requireExpr:toPyretAST ' + this.spec);
+      //console.log('doing requireExpr:toPyretAST ' + this.spec);
       var moduleName = this.spec;
 
       // is this a shared WeScheme program?
@@ -7123,7 +7123,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       function getWeSchemeGDriveModule(name) {
-        console.log('doing getWeSchemeGDriveModule ' + name);
+        //console.log('doing getWeSchemeGDriveModule ' + name);
         var m = name.match(/^gdrive\/(\S+)$/);
         return m ? m[1] : false;
       }
@@ -7211,7 +7211,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
   })();
 
   function schemeToPyretAST(code, name, provenance) {
-    console.log('doing schemeToPyretAST of ' + code);
+    //console.log('doing schemeToPyretAST of ' + code);
     var debug = false;
     //var debug = true;
     provenance = provenance || "definitions";
