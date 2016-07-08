@@ -109,7 +109,10 @@
 <script src="/js/colorspaces.js"></script>
 <script src="/js/webgazer.js"></script>
 <script>
- webgazer.begin();
+ newFunc = function() {
+     console.log("oh hi there");
+ }
+ webgazer.begin(newFunc);
  webgazer.setRegression("weightedRidge");
 </script>
 <script>
@@ -132,8 +135,8 @@
          // gazeDot.style.background = 'blue';
          console.log("right side")
      }
- }).begin()
-         .showPredictionPoints(true); /* shows a square every 100 milliseconds where current prediction is */
+ })/* shows a square every 100 milliseconds where current prediction is */
+         .showPredictionPoints(true); 
 </script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
