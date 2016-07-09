@@ -257,6 +257,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
   }
 
   function initialize(wrappedDrive) {
+    console.log('doing drive.js/initialize');
     drive = wrappedDrive;
 
     var list = drive.files.list({
@@ -292,5 +293,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
                 console.log("Drive loaded");
                 ret.resolve(initialize(drive));
               }});
+  console.log('createProgramCollectionAPI returning');
   return ret.promise;
 }
