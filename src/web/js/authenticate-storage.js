@@ -5,6 +5,7 @@ window.storageAPI = storageAPIDeferred.promise;
 window.sheetsAPI = sheetsAPIDeferred.promise;
 
 window.handleClientLoad = function handleClientLoad(clientId, apiKey) {
+  console.log('doing handleClientLoad');
   gapi.client.setApiKey(apiKey);
   var api = createProgramCollectionAPI("code.pyret.org", true);
 

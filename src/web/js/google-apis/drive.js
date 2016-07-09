@@ -1,4 +1,5 @@
 window.createProgramCollectionAPI = function createProgramCollectionAPI(collectionName, immediate) {
+  console.log('doing createProgramCollectionAPI');
   function DriveError(err) {
     this.err = err;
   }
