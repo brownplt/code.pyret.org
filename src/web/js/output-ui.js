@@ -678,7 +678,7 @@
               return editor.markText(
                 cmLoc.start,
                 cmLoc.end,
-               {className: locKey + " highlight", shared: true});
+               {className: locKey + " highlight", shared: false});
           } else {
             return null;
           }
