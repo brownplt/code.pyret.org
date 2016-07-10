@@ -1,23 +1,28 @@
-provide  {
-  line-plot: line-plot,
-  is-line-plot: is-line-plot,
+# provide  {
+#   line-plot: line-plot,
+#   is-line-plot: is-line-plot,
+#
+#   scatter-plot: scatter-plot,
+#   is-scatter-plot: is-scatter-plot,
+#
+#   function-plot: function-plot,
+#   is-function-plot: is-function-plot,
+#
+#   plot-function: plot-function,
+#   plot-scatter: plot-scatter,
+#   plot-line: plot-line,
+#
+#   plot-multi: plot-multi,
+#   default-options: default-options,
+#   default-window-options: default-window-options,
+#
+#   histogram: histogram,
+#   pie-chart: pie-chart,
+#   bar-chart: bar-chart,
+#   grouped-bar-chart: grouped-bar-chart
+# } end
 
-  scatter-plot: scatter-plot,
-  is-scatter-plot: is-scatter-plot,
-
-  function-plot: function-plot,
-  is-function-plot: is-function-plot,
-
-  plot-function: plot-function,
-  plot-scatter: plot-scatter,
-  plot-line: plot-line,
-
-  plot-multi: plot-multi,
-  default-options: default-options,
-
-  histogram: histogram,
-  pie-chart: pie-chart
-} end
+provide *
 
 provide-types {
   Plot :: Plot,
@@ -82,45 +87,109 @@ data PlotInternal:
   | function-plot-int(f :: PlottableFunction, options :: PlotOptions)
 end
 
-default-options = {<A>(x :: A): x}
-
-data Pair<a, b>:
-  | pair(first :: a, second :: b)
-end
+id = {<A>(x :: A): x}
+default-options = id
+default-window-options = id
 
 fun posn(x :: Number, y :: Number) -> Posn:
   [raw-array: x, y]
 end
 
-fun histogram(tab :: Table, n :: Number) -> Table block:
-  doc: "Consume a table with one column: `value`, and a number of bins, and show a histogram"
-  when not(tab._header-raw-array =~ [raw-array: "value"]):
-    raise("histogram: expect a table with a column named `value`")
+fun histogram(title :: String, tab :: Table, n :: Number) -> Table block:
+  doc: 'Consume a table with one column: `value`, and a number of bins, and show a histogram'
+  when not(tab._header-raw-array =~ [raw-array: 'value']):
+    raise('histogram: expect a table with a column named `value`')
   end
   when (n < 1) or (n > 100) or not(num-is-integer(n)):
-    raise("histogram: expect `n` to be an integer between 1 and 100 (inclusive)")
+    raise('histogram: expect `n` to be an integer between 1 and 100 (inclusive)')
   end
   when raw-array-length(tab._rows-raw-array) == 0:
-    raise("histogram: expect the table to have at least one row")
+    raise('histogram: expect the table to have at least one row')
   end
-  P.histogram(tab._rows-raw-array, n)
+  P.histogram(tab._rows-raw-array, n, title)
+  tab
+where:
+  histogram(
+    'My histogram',
+    table: value :: Number
+      row: 1
+      row: 1.2
+      row: 2
+      row: 3
+      row: 10
+      row: 3
+      row: 6
+      row: -1
+    end,
+    4) does-not-raise
+end
+
+fun pie-chart(title :: String, tab :: Table) -> Table block:
+  doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
+  when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
+    raise('pie-chart: expect a table with columns named `label` and `value`')
+  end
+  when raw-array-length(tab._rows-raw-array) == 0:
+    raise('pie-chart: expect the table to have at least one row')
+  end
+  P.pie-chart(tab._rows-raw-array, title)
+  tab
+where:
+  pie-chart('My pie chart', table: label, value
+    row: 'asd', 1
+    row: 'dsa', 2
+    row: 'qwe', 3
+  end) does-not-raise
+end
+
+fun bar-chart(title :: String, tab :: Table, legend :: String) -> Table:
+  _ = grouped-bar-chart(
+    title,
+    block:
+      new-tab = extend tab using value:
+        values: [list: value]
+      end
+      select label, values from new-tab end
+    end,
+    [list: legend])
   tab
 end
 
-fun pie-chart(tab :: Table) -> Table block:
-  doc: "Consume a table with two columns: `label` and `value`, and show a pie-chart"
-  when not(tab._header-raw-array =~ [raw-array: "label", "value"]):
-    raise("pie-chart: expect a table with columns named `label` and `value`")
+fun grouped-bar-chart(
+  title :: String,
+  tab :: Table,
+  legend :: List<String>
+) -> Table block:
+  when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
+    raise('expect a table with two columns: label and values')
   end
-  when raw-array-length(tab._rows-raw-array) == 0:
-    raise("pie-chart: expect the table to have at least one row")
-  end
-  P.pie-chart(tab._rows-raw-array)
+  P.bar-chart(tab._rows-raw-array, legend, title)
   tab
+where:
+  grouped-bar-chart(
+    'My bar chart',
+    table: label, values
+      row: 'CA', [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496]
+      row: 'TX', [list: 2027307,3277946,1420518,2454721,7017731,5656528,2472223]
+      row: 'NY', [list: 1208495,2141490,1058031,1999120,5355235,5120254,2607672]
+      row: 'FL', [list: 1140516,1938695,925060,1607297,4782119,4746856,3187797]
+      row: 'IL', [list: 894368,1558919,725973,1311479,3596343,3239173,1575308]
+      row: 'PA', [list: 737462,1345341,679201,1203944,3157759,3414001,1910571]
+    end, [list:
+      'Under 5 Years',
+      '5 to 13 Years',
+      '14 to 17 Years',
+      '18 to 24 Years',
+      '25 to 44 Years',
+      '45 to 64 Years',
+      '65 Years and Over']) does-not-raise
 end
 
-fun generate-xy(plot :: PlotInternal, win-opt :: PlotWindowOptions) -> PlotInternal:
-  doc: "Generate a scatter-plot from an function-plot"
+fun generate-xy(
+  plot :: PlotInternal,
+  win-opt :: PlotWindowOptions
+) -> PlotInternal:
+  doc: 'Generate a scatter-plot from an function-plot'
   fraction = (win-opt.x-max - win-opt.x-min) / (win-opt.num-samples - 1)
   cases (PlotInternal) plot:
     | function-plot-int(f, options) =>
@@ -133,7 +202,7 @@ fun generate-xy(plot :: PlotInternal, win-opt :: PlotWindowOptions) -> PlotInter
       end
         ^ builtins.list-to-raw-array
         ^ scatter-plot-int(_, options)
-    | else => raise("plot: expect function-plot, got other")
+    | else => raise('internal-plot: expect function-plot, got other')
   end
 where:
   win-options = {
@@ -155,30 +224,63 @@ where:
     ], plot-options)
 end
 
-fun plot-function(f :: PlottableFunction) -> PlottableFunction block:
-  plot-multi([list: function-plot(f, default-options)], default-options)
+fun plot-function(title :: String, f :: PlottableFunction) -> PlottableFunction:
+  _ = plot-multi(
+    title,
+    [list: function-plot(f, default-options)],
+    default-window-options)
   f
+where:
+  plot-function('My function', num-sin)
 end
 
-fun plot-scatter(tab :: Table) -> Table block:
-  plot-multi([list: scatter-plot(tab, default-options)], default-options)
+fun plot-scatter(title :: String, tab :: Table) -> Table:
+  _ = plot-multi(
+    title,
+    [list: scatter-plot(tab, default-options)],
+    default-window-options)
   tab
+where:
+  plot-scatter('My scatter', table: x, y
+    row: 1, 2
+    row: 1, 3.1
+    row: 4, 1
+    row: 7, 3
+    row: 4, 6
+    row: 2, 5
+  end)
 end
 
-fun plot-line(tab :: Table) -> Table block:
-  plot-multi([list: line-plot(tab, default-options)], default-options)
+fun plot-line(title :: String, tab :: Table) -> Table:
+  _ = plot-multi(
+    title,
+    [list: line-plot(tab, default-options)],
+    default-window-options)
   tab
+where:
+  plot-line('My line', table: x, y
+    row: 1, 2
+    row: 1, 3.1
+    row: 4, 1
+    row: 7, 3
+    row: 4, 6
+    row: 2, 5
+  end)
 end
 
-fun plot-multi(plots :: List<Plot>, options-generator :: WrappedPlotWindowOptions) -> List<Plot> block:
+fun plot-multi(
+  title :: String,
+  plots :: List<Plot>,
+  options-generator :: WrappedPlotWindowOptions
+) -> List<Plot> block:
   options = options-generator(plot-window-options)
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
-    raise("plot: x-min and y-min must be strictly less than x-max and y-max respectively")
+    raise('plot: x-min and y-min must be strictly less than x-max and y-max respectively')
   end
   when (options.num-samples > MAX-SAMPLES) or
        (options.num-samples <= 1) or
        not(num-is-integer(options.num-samples)):
-    raise("plot: num-samples must be an an integer greater than 1 and do not exceed " + num-to-string(MAX-SAMPLES))
+    raise('plot: num-samples must be an an integer greater than 1 and do not exceed ' + num-to-string(MAX-SAMPLES))
   end
 
   original-plots = plots
@@ -186,23 +288,18 @@ fun plot-multi(plots :: List<Plot>, options-generator :: WrappedPlotWindowOption
     lam(plot :: Plot) -> PlotInternal:
       cases (Plot) plot block:
         | scatter-plot(points, opt-gen) =>
-          when not(points._header-raw-array =~ [raw-array: "x", "y"]):
-            raise("plot: expect the table for scatter-plot to have two columns: `x` and `y`")
+          when not(points._header-raw-array =~ [raw-array: 'x', 'y']):
+            raise('plot: expect the table for scatter-plot to have two columns: `x` and `y`')
           end
           scatter-plot-int(
             points._rows-raw-array,
             opt-gen(plot-options).{opacity: 80,  size: 4, tip: true})
         | line-plot(points, opt-gen) =>
-          when not(points._header-raw-array =~ [raw-array: "x", "y"]):
-            raise("plot: expect the table for line-plot to have two columns: `x` and `y`")
+          when not(points._header-raw-array =~ [raw-array: 'x', 'y']):
+            raise('plot: expect the table for line-plot to have two columns: `x` and `y`')
           end
           line-plot-int(
-            if raw-array-length(points._rows-raw-array) <> 1:
-              points._rows-raw-array
-            else:
-              row = raw-array-get(points._rows-raw-array, 0)
-              [raw-array: row, row]
-            end,
+            points._rows-raw-array,
             opt-gen(plot-options).{opacity: 100, size: 1, tip: false})
         | function-plot(f, opt-gen) =>
           function-plot-int(
@@ -219,14 +316,14 @@ fun plot-multi(plots :: List<Plot>, options-generator :: WrappedPlotWindowOption
     points = line-and-scatter.map(
       lam(plot :: PlotInternal):
         cases (PlotInternal) plot:
-          | function-plot-int(_, _) => raise("plot: function-plot not filtered")
+          | function-plot-int(_, _) => raise('internal-plot: function-plot not filtered')
           | line-plot-int(points, _) => raw-array-to-list(points)
           | scatter-plot-int(points, _) => raw-array-to-list(points)
         end
       end).foldl(_ + _, empty)
 
     cases (List) points:
-      | empty => options.{num-samples: options.num-samples}
+      | empty => options
       | link(f, r) =>
 
         fun bound(ps :: List<Posn>,
@@ -238,15 +335,13 @@ fun plot-multi(plots :: List<Plot>, options-generator :: WrappedPlotWindowOption
           end
         end
 
-        win-opt-ret :: PlotWindowOptions = {
+        options.{
           x-min: bound(r, f, num-min, raw-array-get(_, 0)) - OFFSET,
           x-max: bound(r, f, num-max, raw-array-get(_, 0)) + OFFSET,
           y-min: bound(r, f, num-min, raw-array-get(_, 1)) - OFFSET,
           y-max: bound(r, f, num-max, raw-array-get(_, 1)) + OFFSET,
-          num-samples: options.num-samples,
           infer-bounds: false
         }
-        win-opt-ret
     end
   else:
     options
@@ -258,7 +353,11 @@ fun plot-multi(plots :: List<Plot>, options-generator :: WrappedPlotWindowOption
 
   fun helper(shadow options :: PlotWindowOptions) -> List<Plot>:
     shadow function-plots = function-plots.map(generate-xy(_, options))
-    maybe-new-options = P.plot-multi(function-plots + scatter-plots, line-plots, options)
+    maybe-new-options = P.plot-multi(
+      function-plots + scatter-plots,
+      line-plots,
+      options,
+      title)
     cases (Option<PlotWindowOptions>) maybe-new-options:
       | none => original-plots
       | some(new-options) => helper(new-options)

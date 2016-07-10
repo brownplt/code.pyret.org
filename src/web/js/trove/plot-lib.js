@@ -1,19 +1,18 @@
 ({
   requires: [
-    { "import-type": "builtin", "name": "d3-lib" },
+    { 'import-type': 'builtin', 'name': 'd3-lib' },
   ],
   nativeRequires: [
-    "pyret-base/js/js-numbers",
-    "./build/web/js/d3.js",
-    "./build/web/js/d3-tip.js"
+    'pyret-base/js/js-numbers',
+    './build/web/js/d3.js',
+    './build/web/js/d3-tip.js'
   ],
   provides: {},
   theModule: function(RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
 
   var gf = RUNTIME.getField;
-  var HISTOGRAM_N = 100;
   var libNum =       CLIB.libNum,
-      getMargin =    CLIB.d3common.getMargin,
+      libJS =        CLIB.libJS,
       getDimension = CLIB.d3common.getDimension,
       svgTranslate = CLIB.d3common.svgTranslate,
       createDiv =    CLIB.d3common.createDiv,
@@ -38,8 +37,8 @@
 
     function getAxisConf(aMin, aMax) {
       var conf = {},
-        scaler = libNum.scaler(aMin, aMax, 0, 1, false),
-        pos = jsnums.toFixnum(scaler(0));
+          scaler = libNum.scaler(aMin, aMax, 0, 1, false),
+          pos = jsnums.toFixnum(scaler(0));
 
       if (0 <= pos && pos <= 1) {
         conf.bold = true;
@@ -62,39 +61,39 @@
 
     var xAxisScaler = d3.scale.linear()
         .domain([0, tickNum - 1]).range([0, width - 1]),
-      yAxisScaler = d3.scale.linear()
+        yAxisScaler = d3.scale.linear()
         .domain([0, tickNum - 1]).range([height - 1, 0]);
 
     var allValues = d3.range(0, tickNum);
 
     var xAxisDisplayScaler = libNum.scaler(0, tickNum - 1, xMin, xMax),
-      yAxisDisplayScaler = libNum.scaler(0, tickNum - 1, yMin, yMax);
+        yAxisDisplayScaler = libNum.scaler(0, tickNum - 1, yMin, yMax);
 
-    var prettyNumToStringDigits7 = libNum.getPrettyNumToStringDigits(7);
+    var prettyNumToStringDigitsForAxis = libNum.getPrettyNumToStringDigits(5);
 
     var xAxis = d3.svg.axis().scale(xAxisScaler)
-        .orient((xAxisConf.pos === 0) ? "top" : "bottom")
+        .orient((xAxisConf.pos === 0) ? 'top' : 'bottom')
         .tickValues(allValues).tickFormat(
           function (d, i) {
-            return prettyNumToStringDigits7(xAxisDisplayScaler(i));
+            return prettyNumToStringDigitsForAxis(xAxisDisplayScaler(i));
           });
 
-    canvas.append("g")
-      .attr("class", "x axis").attr(
-        "transform",
+    canvas.append('g')
+      .attr('class', 'x axis').attr(
+        'transform',
         svgTranslate(0, xAxisConf.pos * (height - 1)))
       .call(xAxis);
 
     var yAxis = d3.svg.axis().scale(yAxisScaler)
-        .orient((yAxisConf.pos === 1) ? "right" : "left")
+        .orient((yAxisConf.pos === 1) ? 'right' : 'left')
         .tickValues(allValues).tickFormat(
           function (d, i) {
-            return prettyNumToStringDigits7(yAxisDisplayScaler(i));
+            return prettyNumToStringDigitsForAxis(yAxisDisplayScaler(i));
           });
 
-    canvas.append("g")
-      .attr("class", "y axis").attr(
-        "transform",
+    canvas.append('g')
+      .attr('class', 'y axis').attr(
+        'transform',
         svgTranslate(yAxisConf.pos * (width - 1), 0))
       .call(yAxis);
 
@@ -109,12 +108,12 @@
       'fill': 'none'
     });
 
-    canvas.selectAll("g.y.axis g.tick line")
-      .attr("x1", -yAxisConf.pos * (width - 1))
-      .attr("x2", (1 - yAxisConf.pos) * (width - 1));
-    canvas.selectAll("g.x.axis g.tick line")
-      .attr("y1", -xAxisConf.pos * (height - 1))
-      .attr("y2", (1 - xAxisConf.pos) * (height - 1));
+    canvas.selectAll('g.y.axis g.tick line')
+      .attr('x1', -yAxisConf.pos * (width - 1))
+      .attr('x2', (1 - yAxisConf.pos) * (width - 1));
+    canvas.selectAll('g.x.axis g.tick line')
+      .attr('y1', -xAxisConf.pos * (height - 1))
+      .attr('y2', (1 - xAxisConf.pos) * (height - 1));
 
     canvas.selectAll('.axis').style({'shape-rendering': 'crispEdges'});
     canvas.selectAll('.axis text').style({'font-size': '10px'});
@@ -124,134 +123,96 @@
     });
   }
 
-  function plotBar(xMin, xMax, yMin, yMax, width, height, data, histogramn, detached, canvas) {
-
-    /*
-     * Plot a histogram
-     *
-     * Part of this function is adapted from
-     * http://www.frankcleary.com/making-an-interactive-histogram-in-d3-js/
-     */
-
-    var x = d3.scale.linear()
-        .domain([0, histogramn])
-        .range([0, width]);
-
-    var y = d3.scale.linear()
-        .domain([0, d3.max(data, function (d) { return d.y; })])
-        .range([height, 0]);
-
-    var prettyNumToStringDigits7 = libNum.getPrettyNumToStringDigits(7);
-
-    var tip = d3tip(detached)
-        .attr('class', 'd3-tip')
-        .direction('e')
-        .offset([0, 20])
-        .html(function (d) {
-          var maxVal = prettyNumToStringDigits7(d.reduce(libNum.numMax), 6);
-          var minVal = prettyNumToStringDigits7(d.reduce(libNum.numMin), 6);
-          return "min: " + minVal.toString() + "<br />" +
-                 "max: " + maxVal.toString() + "<br />" +
-                 "freq: " + d.y;
-        });
-
-    canvas.call(tip);
-
-    var bar = canvas.selectAll(".bar")
-        .data(data)
-        .enter().append("g")
-        .attr("class", "bar")
-        .on("mouseover", tip.show)
-        .on("mouseout", tip.hide);
-
-    bar.append("rect")
-      .attr("x", function (d) { return x(d.x); })
-      .attr("y", function (d) { return y(d.y); })
-      .attr("width", x(data[0].dx) - 1)
-      .attr("height", function (d) { return height - y(d.y); });
-
-    canvas.selectAll('.bar rect')
+  function putLabel(label, detached, dimension) {
+    detached.select('.maing')
+      .append('text')
+      .attr('x', (dimension.marginLeft + dimension.width + dimension.marginRight) / 2)
+      .attr('y', dimension.height + dimension.marginTop + (dimension.marginBottom / 2))
+      .html(libJS.htmlspecialchars(label))
       .style({
-        'fill': 'steelblue',
-        'fill-opacity': '0.8',
-        'shape-rendering': 'crispEdges'
-      })
-      .on('mouseover', function (d) {
-        d3.select(this).style('fill', "black");
-      })
-      .on('mouseout', function (d) {
-        d3.select(this).style('fill', "steelblue");
+        position: 'absolute',
+        'font-size': '8pt',
+        'text-anchor': 'middle'
       });
-
-    stylizeTip(detached);
   }
 
-  function genericPlot(scatterPlots, linePlots, windowOptions) {
-    var xMin = gf(windowOptions, "x-min");
-    var xMax = gf(windowOptions, "x-max");
-    var yMin = gf(windowOptions, "y-min");
-    var yMax = gf(windowOptions, "y-max");
+  function genericPlot(scatterPlots, linePlots, windowOptions, title) {
+    var xMin = gf(windowOptions, 'x-min'),
+        xMax = gf(windowOptions, 'x-max'),
+        yMin = gf(windowOptions, 'y-min'),
+        yMax = gf(windowOptions, 'y-max');
 
-    var marginType = "normal",
-      margin = getMargin(marginType),
-      dimension = getDimension(margin),
-      width = dimension.width,
-      height = dimension.height;
-
-    var detached = createDiv();
-
-    var divSvg = detached
-            .append('div')
-            .attr('class', 'divsvg'),
-        canvas = divSvg
-            .append("svg")
-            .attr("width", CLIB.constants.width)
-            .attr("height", CLIB.constants.height)
-            .append("g")
-            .attr('class', 'maing')
-            .append('g'),
-        panel = detached.append('div').style({top: '65px', left: '660px'}),
-        controller = $(panel.append('div').style({top: "90px"}).node()),
-        coordDisplay = panel.append('div').style({top: "0px", left: "0px", 'font-size': '12px', width: '500px'}),
+    var dimension = getDimension({
+      windowWidth: 1000,
+      windowHeight: null,
+      width: 501,
+      height: 501,
+      marginLeft: 100,
+      marginRight: 100,
+      marginTop: 30,
+      marginBottom: 70,
+      mode: 'top-left',
+    }),
+        width = dimension.width,
+        height = dimension.height,
+        detached = createDiv(),
+        canvas = createCanvas(detached, dimension),
+        panel = detached.append('div').style({
+          top: '65px',
+          left: '700px'
+        }),
+        controller = $(panel.append('div').style({
+          top: '90px'
+        }).node()),
+        coordDisplay = panel.append('div').style({
+          top: '0px',
+          left: '0px',
+          'font-size': '12px',
+          width: '500px'
+        }),
         rectangleElement = canvas
           .append('rect')
           .attr('class', 'selection')
           .style({
-            "stroke"          : "gray",
-            "stroke-width"    : "1px",
-            "stroke-dasharray": "4px",
-            "stroke-opacity"  : "0.5",
-            "fill"            : "gray",
-            "opacity"         : "0.3",
+            'stroke'          : 'gray',
+            'stroke-width'    : '1px',
+            'stroke-dasharray': '4px',
+            'stroke-opacity'  : '0.5',
+            'fill'            : 'gray',
+            'opacity'         : '0.3',
           });
 
-    panel.append('div').style({top: "295px", left: "50px", 'font-size': '18px', width: '500px'}).text('Number of Samples:');
-    canvas.attr("transform", svgTranslate(110, 40));
+    panel.append('div').style({
+      top: '295px',
+      left: '50px',
+      'font-size': '18px',
+      width: '500px'
+    }).text('Number of Samples:');
 
     var xMinC = $('<input/>', {
-      type: "text",
-      placeholder: "x-min",
-      style: "left: 0px; top: 70px",
+      type: 'text',
+      placeholder: 'x-min',
+      style: 'left: 0px; top: 70px',
     }).attr('size', '8');
     var xMaxC = $('<input/>', {
-      type: "text",
-      placeholder: "x-max",
-      style: "left: 180px; top: 70px",
+      type: 'text',
+      placeholder: 'x-max',
+      style: 'left: 180px; top: 70px',
     }).attr('size', '8');
     var yMinC = $('<input/>', {
-      type: "text",
-      placeholder: "y-min",
-      style: "left: 90px; top: 140px",
+      type: 'text',
+      placeholder: 'y-min',
+      style: 'left: 90px; top: 140px',
     }).attr('size', '8');
     var yMaxC = $('<input/>', {
-      type: "text",
-      placeholder: "y-max",
-      style: "left: 90px; top: 0px",
+      type: 'text',
+      placeholder: 'y-max',
+      style: 'left: 90px; top: 0px',
     }).attr('size', '8');
     var numSamplesC = $('<input/>', {
-      type: "text",
-      placeholder: "num-samples",
-      style: "left: 90px; top: 240px",
+      type: 'text',
+      placeholder: 'num-samples',
+      style: 'left: 90px; top: 240px',
     }).attr('size', '8');
 
     controller
@@ -271,12 +232,12 @@
       yMaxC.val(prettyNumToStringDigits20(yMax));
     }
 
-    numSamplesC.val(RUNTIME.num_to_string(gf(windowOptions, "num-samples")));
+    numSamplesC.val(RUNTIME.num_to_string(gf(windowOptions, 'num-samples')));
 
     setDefault();
 
     function getNewWindow() {
-      var ret = RUNTIME.ffi.cases(RUNTIME.ffi.isOption, "Option", RUNTIME.string_to_number(xMinC.val()), {
+      var ret = RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMinC.val()), {
         none: function() {
           xMinC.addClass('error-bg');
           xMinC.removeClass('ok-bg');
@@ -285,7 +246,7 @@
         some: function(xMin_val) {
           xMinC.removeClass('error-bg');
           xMinC.addClass('ok-bg');
-          return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, "Option", RUNTIME.string_to_number(xMaxC.val()), {
+          return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMaxC.val()), {
             none: function() {
               xMaxC.addClass('error-bg');
               xMaxC.removeClass('ok-bg');
@@ -303,7 +264,7 @@
                 return null;
               }
 
-              return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, "Option", RUNTIME.string_to_number(yMinC.val()), {
+              return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMinC.val()), {
                 none: function() {
                   yMinC.addClass('error-bg');
                   yMinC.removeClass('ok-bg');
@@ -313,7 +274,7 @@
                   yMinC.removeClass('error-bg');
                   yMinC.addClass('ok-bg');
 
-                  return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, "Option", RUNTIME.string_to_number(yMaxC.val()), {
+                  return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMaxC.val()), {
                     none: function() {
                       yMaxC.addClass('error-bg');
                       yMaxC.removeClass('ok-bg');
@@ -331,7 +292,7 @@
                         return null;
                       }
 
-                      return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, "Option", RUNTIME.string_to_number(numSamplesC.val()), {
+                      return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(numSamplesC.val()), {
                         none: function() {
                           numSamplesC.addClass('error-bg');
                           numSamplesC.removeClass('ok-bg');
@@ -349,12 +310,12 @@
                           }
 
                           return {
-                            "x-min": xMin_val,
-                            "x-max": xMax_val,
-                            "y-min": yMin_val,
-                            "y-max": yMax_val,
-                            "num-samples": numSamples_val,
-                            "infer-bounds": RUNTIME.pyretTrue,
+                            'x-min': xMin_val,
+                            'x-max': xMax_val,
+                            'y-min': yMin_val,
+                            'y-max': yMax_val,
+                            'num-samples': numSamples_val,
+                            'infer-bounds': RUNTIME.pyretTrue,
                           };
                         }
                       });
@@ -374,7 +335,7 @@
 
     controller.append($('<button/>', {
       text: '⇦',
-      style: "left: 100px; top: 70px",
+      style: 'left: 100px; top: 70px',
     }).addClass('xMinGo d3btn').click(function() {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
@@ -389,7 +350,7 @@
     }));
     controller.append($('<button/>', {
       text: '⇨',
-      style: "left: 140px; top: 70px",
+      style: 'left: 140px; top: 70px',
     }).addClass('xMaxGo d3btn').click(function() {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
@@ -404,7 +365,7 @@
     }));
     controller.append($('<button/>', {
       text: '⇩',
-      style: "left: 120px; top: 105px",
+      style: 'left: 120px; top: 105px',
     }).addClass('yMinGo d3btn').click(function() {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
@@ -419,7 +380,7 @@
     }));
     controller.append($('<button/>', {
       text: '⇧',
-      style: "left: 120px; top: 35px",
+      style: 'left: 120px; top: 35px',
     }).addClass('yMaxGo d3btn').click(function() {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
@@ -471,7 +432,7 @@
       .attr('width', width)
       .attr('height', height)
       .attr('class', 'overlay')
-      .on("click", function() {
+      .on('click', function() {
         if (!d3.event.shiftKey) { return; }
 
         var coord = d3.mouse(this);
@@ -486,7 +447,7 @@
         yMaxC.val(prettyNumToStringDigits20(jsnums.add(cy, radiusY)));
 
       })
-      .on("mousedown", function() {
+      .on('mousedown', function() {
         if (isDown) { return; }
         if (d3.event.shiftKey) { return; }
 
@@ -499,7 +460,7 @@
         rectangleElement.style({visibility: 'visible'});
         isDown = true;
       })
-      .on("mousemove", function(){
+      .on('mousemove', function(){
 
         var coord = d3.mouse(this);
         var vX = pixelToX(coord[0]);
@@ -513,7 +474,7 @@
           updateRect();
         }
       })
-      .on("mouseup", function() {
+      .on('mouseup', function() {
         if (rectData[0].x == rectData[1].x &&
             rectData[0].y == rectData[1].y &&
             rectangleElement.attr('style').indexOf('visible') >= 0) {
@@ -544,8 +505,8 @@
         .y(function (d) { return yToPixel(d[1]); });
 
       canvas
-        .append("path")
-        .attr("d", line(points))
+        .append('path')
+        .attr('d', line(points))
         .style({'stroke': options.color, 'stroke-width': 1, 'fill': 'none'});
     }
 
@@ -564,58 +525,55 @@
           .html(function (d) {
             var x = prettyNumToStringDigits9(d[0]);
             var y = prettyNumToStringDigits9(d[1]);
-            return "x: " + x.toString() + "<br />" +
-                   "y: " + y.toString() + "<br />";
+            return 'x: ' + x.toString() + '<br />' +
+                   'y: ' + y.toString() + '<br />';
           });
 
       canvas.call(tip);
 
       canvas
-        .selectAll("circle")
+        .selectAll('circle')
         .data(points)
         .enter()
-        .append("circle")
-        .attr("cx", function (d) { return xToPixel(d[0]); })
-        .attr("cy", function (d) { return yToPixel(d[1]); })
-        .attr("r", function(d) { return d[2].size; })
+        .append('circle')
+        .attr('cx', function (d) { return xToPixel(d[0]); })
+        .attr('cy', function (d) { return yToPixel(d[1]); })
+        .attr('r', function(d) { return d[2].size; })
         .style('fill', function(d) { return d[2].color; })
         .style('opacity', function(d) { return d[2].opacity; })
-        .on("mouseover", function(d) {
+        .on('mouseover', function(d) {
           if (d[2].tip) {
             tip.show.apply(this, arguments);
           }
         })
-        .on("mouseout", function(d) {
+        .on('mouseout', function(d) {
           if (d[2].tip) {
             tip.hide.apply(this, arguments);
           }
         });
-
     }
-
 
     plotPoints(scatterPlots);
     linePlots.forEach(plotLine);
 
+    putLabel(title, detached, dimension);
     stylizeTip(detached);
-
-    callBigBang(970, 650, detached, RUNTIME.ffi.makeNone(), function(restarter) {
+    callBigBang(detached, dimension, RUNTIME.ffi.makeNone(), function(restarter) {
       redraw.click(function() {
         var newWindow = getNewWindow();
         if (newWindow === null) { return; }
         var toRet = RUNTIME.ffi.makeSome(RUNTIME.makeObject(newWindow));
-        RUNTIME.getParam("remove-d3-port")();
+        RUNTIME.getParam('remove-d3-port')();
         restarter.resume(toRet);
       });
     });
-
   }
 
-  function plotMulti(lstOfScatterPlots, lstOfLinePlots, windowOptions) {
-    var xMin = gf(windowOptions, "x-min");
-    var xMax = gf(windowOptions, "x-max");
-    var yMin = gf(windowOptions, "y-min");
-    var yMax = gf(windowOptions, "y-max");
+  function plotMulti(lstOfScatterPlots, lstOfLinePlots, windowOptions, title) {
+    var xMin = gf(windowOptions, 'x-min');
+    var xMax = gf(windowOptions, 'x-max');
+    var yMin = gf(windowOptions, 'y-min');
+    var yMax = gf(windowOptions, 'y-max');
 
     function inBound(p) {
       return jsnums.lessThanOrEqual(xMin, p[0]) &&
@@ -714,17 +672,17 @@
 
     function toJSOptions(options) {
 			return {
-        color:   CLIB.libColor.convertColor(gf(options, "color")),
-        size:    jsnums.toFixnum(gf(options, "size")),
-        opacity: jsnums.toFixnum(gf(options, "opacity")),
-        tip:     RUNTIME.isPyretTrue(gf(options, "tip")),
+        color:   CLIB.libColor.convertColor(gf(options, 'color')),
+        size:    jsnums.toFixnum(gf(options, 'size')),
+        opacity: jsnums.toFixnum(gf(options, 'opacity')),
+        tip:     RUNTIME.isPyretTrue(gf(options, 'tip')),
       };
 		}
 
     var scatterPoints = [];
     RUNTIME.ffi.toArray(lstOfScatterPlots).forEach(function(scatterPlot) {
-      var points = gf(scatterPlot, "points");
-      var options = toJSOptions(gf(scatterPlot, "options"));
+      var points = gf(scatterPlot, 'points');
+      var options = toJSOptions(gf(scatterPlot, 'options'));
       points.forEach(function(point) {
         if (inBound(point)) {
           scatterPoints.push(point.concat([options]));
@@ -736,10 +694,10 @@
 
     RUNTIME.ffi.toArray(lstOfLinePlots).forEach(function(linePlot) {
       var i;
-      var points = gf(linePlot, "points");
-      var options = toJSOptions(gf(linePlot, "options"));
+      var points = gf(linePlot, 'points');
+      var options = toJSOptions(gf(linePlot, 'options'));
 
-      if (points.length === 0) {
+      if (points.length <= 1) {
         return;
       }
 
@@ -787,41 +745,102 @@
       });
     });
 
-    return genericPlot(scatterPoints, linePlots, windowOptions);
+    return genericPlot(scatterPoints, linePlots, windowOptions, title);
   }
 
-  function histogram(tab, n) {
+  function histogram(tab, n, title) {
+    /*
+     * Plot a histogram
+     *
+     * Part of this function is adapted from
+     * http://www.frankcleary.com/making-an-interactive-histogram-in-d3-js/
+     */
     var data = tab.map(function(row){ return row[0]; });
     var xMin = data.reduce(libNum.numMin);
     var xMax = data.reduce(libNum.numMax);
-    var dataScaler = libNum.scaler(xMin, xMax, 0, HISTOGRAM_N, false);
+    var dataScaler = libNum.scaler(xMin, xMax, 0, 1, true);
 
     var histogramData = d3.layout.histogram()
-        .bins(n).value(function (val) {
-          return jsnums.toFixnum(dataScaler(val));
-        })(data);
+        .bins(n).value(dataScaler)(data);
 
     var yMax = d3.max(histogramData, function (d) { return d.y; });
-
-    var marginType = "normal",
-      margin = getMargin(marginType),
-      dimension = getDimension(margin),
-      width = dimension.width,
-      height = dimension.height;
-
-    var detached = createDiv();
-    var canvas = createCanvas(detached, margin, "top-left");
+    var dimension = getDimension({
+      windowWidth: null,
+      windowHeight: null,
+      width: 501,
+      height: 501,
+      marginLeft: 100,
+      marginRight: 100,
+      marginTop: 30,
+      marginBottom: 70,
+      mode: 'top-left',
+    }),
+        width = dimension.width,
+        height = dimension.height,
+        detached = createDiv(),
+        canvas = createCanvas(detached, dimension);
 
     appendAxis(xMin, xMax, 0, yMax, width, height, canvas);
 
-    plotBar(xMin, xMax, 0, yMax, width, height,
-        histogramData, HISTOGRAM_N, detached, canvas);
+    var x = d3.scale.linear()
+        .domain([0, 1])
+        .range([0, width]);
 
-    callBigBang(undefined, undefined, detached, tab, function(){});
+    var y = d3.scale.linear()
+        .domain([0, d3.max(histogramData, function (d) { return d.y; })])
+        .range([height, 0]);
+
+    var prettyNumToStringDigits7 = libNum.getPrettyNumToStringDigits(7);
+
+    var tip = d3tip(detached)
+        .attr('class', 'd3-tip')
+        .direction('e')
+        .offset([0, 20])
+        .html(function (d) {
+          var maxVal = prettyNumToStringDigits7(d.reduce(libNum.numMax), 6);
+          var minVal = prettyNumToStringDigits7(d.reduce(libNum.numMin), 6);
+          return 'min: ' + minVal.toString() + '<br />' +
+                 'max: ' + maxVal.toString() + '<br />' +
+                 'freq: ' + d.y;
+        });
+
+    canvas.call(tip);
+
+    var bar = canvas.selectAll('.bar')
+        .data(histogramData)
+        .enter().append('g')
+        .attr('class', 'bar')
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
+
+    bar.append('rect')
+      .attr('x', function (d) { return x(d.x); })
+      .attr('y', function (d) { return y(d.y); })
+      .attr('width', x(histogramData[0].dx) - 1)
+      .attr('height', function (d) { return height - y(d.y); });
+
+    canvas.selectAll('.bar rect')
+      .style({
+        'fill': 'steelblue',
+        'fill-opacity': '0.8',
+        'shape-rendering': 'crispEdges'
+      })
+      .on('mouseover', function (d) {
+        d3.select(this).style('fill', 'black');
+      })
+      .on('mouseout', function (d) {
+        d3.select(this).style('fill', 'steelblue');
+      });
+
+    putLabel(title, detached, dimension);
+    stylizeTip(detached);
+    callBigBang(detached, dimension, tab, function(){});
   }
 
-  function pieChart(tab) {
+  function pieChart(tab, title) {
     /*
+     * Pie Chart
+     *
      * Part of this function is adapted from:
      * http://bl.ocks.org/mbostock/3887235
      *
@@ -831,13 +850,23 @@
     var sum = tab.map(function (row) { return row[1]; }).reduce(jsnums.add);
     var scaler = libNum.scaler(0, sum, 0, 100, true);
 
-    var marginType = "normal",
-      margin = getMargin(marginType),
-      dimension = getDimension(margin),
-      width = dimension.width,
-      height = dimension.height;
+    var dimension = getDimension({
+      windowWidth: null,
+      windowHeight: null,
+      width: 501,
+      height: 501,
+      marginLeft: 160,
+      marginRight: 160,
+      marginTop: 30,
+      marginBottom: 70,
+      mode: 'center',
+    }),
+        width = dimension.width,
+        height = dimension.height,
+        detached = createDiv(),
+        canvas = createCanvas(detached, dimension);
 
-    var radius = Math.min(width, height) / 2;
+    var radius = height / 2;
     var color = d3.scale.category20();
     var arc = d3.svg.arc()
         .outerRadius(radius)
@@ -847,8 +876,6 @@
         .sort(null)
         .value(function (row) { return row[1]; });
 
-    var detached = createDiv();
-
     var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
 
     var tip = d3tip(detached)
@@ -856,64 +883,215 @@
         .direction('e')
         .offset([0, 20])
         .html(function (d) {
-          return "value: <br />" + prettyNumToStringDigits9(d.data[1]) + "<br />" +
-                 "percent: <br />" + prettyNumToStringDigits9(scaler(d.data[1])) + "%";
+          return 'value: <br />' + prettyNumToStringDigits9(d.data[1]) + '<br />' +
+                 'percent: <br />' + prettyNumToStringDigits9(scaler(d.data[1])) + '%';
         });
 
-    var canvas = createCanvas(detached, margin, "center");
     canvas.call(tip);
 
-    var g = canvas.selectAll(".arc")
+    var g = canvas.selectAll('.arc')
         .data(pie(tab))
-        .enter().append("g")
-        .attr("class", "arc");
+        .enter().append('g')
+        .attr('class', 'arc');
 
-    g.append("path").attr("class", "path").attr("d", arc);
+    g.append('path').attr('class', 'path').attr('d', arc);
 
-    g.append("text")
-      .attr("transform", function (d) {
-        return "translate(" + arc.centroid(d) + ")";
+    g.append('text')
+      .attr('transform', function (d) {
+        return svgTranslate(arc.centroid(d));
       })
-      .attr("dy", ".35em")
+      .attr('dy', '.35em')
       .style({
-        "text-anchor": "middle"
+        'text-anchor': 'middle'
       })
       .text(function (d) { return d.data[0]; });
 
-    g.append("path").attr("class", "transparent").attr("d", arc);
+    g.append('path').attr('class', 'transparent').attr('d', arc);
 
-    stylizeTip(detached);
-
-    canvas.selectAll(".arc path")
+    canvas.selectAll('.arc path')
       .style({
-        "fill": function (d, i) { return color(i); }
+        fill: function (d, i) { return color(i); }
       })
-      .on("mouseover", function (e) {
+      .on('mouseover', function (e) {
         d3.select(this.parentNode)
-          .selectAll(".path")
+          .selectAll('.path')
           .style('opacity', '0.4');
         tip.show(e);
       })
-      .on("mouseout", function (e) {
+      .on('mouseout', function (e) {
         d3.select(this.parentNode)
-          .selectAll(".path")
+          .selectAll('.path')
           .style('opacity', '0.9');
         tip.hide(e);
       });
 
-    canvas.selectAll(".transparent").style('opacity', '0');
+    canvas.selectAll('.transparent').style('opacity', '0');
     canvas.selectAll('text').style({'font-size': '15px'});
-    callBigBang(undefined, undefined, detached, tab, function(){});
+
+    putLabel(title, detached, dimension);
+    stylizeTip(detached);
+    callBigBang(detached, dimension, tab, function(){});
+  }
+
+  function barChart(table, legend, title) {
+    /*
+     * Bar Chart
+     *
+     * Part of this function is adapted from:
+     * https://bl.ocks.org/mbostock/3887051
+     */
+    var dimension = getDimension({
+      windowWidth: null,
+      windowHeight: null,
+      width: 501,
+      height: 501,
+      marginLeft: 120,
+      marginRight: 30,
+      marginTop: 30,
+      marginBottom: 70,
+      mode: 'top-left',
+    }),
+    width = dimension.width,
+    height = dimension.height,
+    detached = createDiv(),
+    canvas = createCanvas(detached, dimension);
+
+    var x0 = d3.scale.ordinal()
+        .rangeRoundBands([0, width], 0.1);
+
+    var x1 = d3.scale.ordinal();
+
+    var y = d3.scale.linear()
+        .domain([0, 1])
+        .range([height, 0]);
+
+    var color = d3.scale.category20();
+
+    var xAxis = d3.svg.axis()
+        .scale(x0)
+        .orient('bottom');
+
+    var legendData = RUNTIME.ffi.toArray(legend);
+
+    var yMax = 0;
+    var data = table.map(function(row) {
+      return {
+        label: row[0],
+        data: RUNTIME.ffi.toArray(row[1]).map(function(value, i) {
+          yMax = libNum.numMax(yMax, value);
+          return {name: legendData[i], value: value};
+        })
+      };
+    });
+
+    var yAxisScaler = libNum.scaler(0, yMax, 0, 1, true);
+    var yAxisDisplayScaler = libNum.scaler(0, 1, 0, yMax);
+
+    data = data.map(function(row) {
+      return {
+        label: row.label,
+        data: row.data.map(function(value) {
+          return {name: value.name, value: yAxisScaler(value.value)};
+        })
+      }
+    });
+
+    var prettyNumToStringDigitsForAxis = libNum.getPrettyNumToStringDigits(5);
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient('left')
+        .tickFormat(function (d, i) {
+          return prettyNumToStringDigitsForAxis(yAxisDisplayScaler(i));
+        });
+
+    x0.domain(data.map(function(d) { return d.label; }));
+    x1.domain(legendData).rangeRoundBands([0, x0.rangeBand()]);
+
+    canvas.append('g')
+        .attr('class', 'x axis')
+        .attr('transform', svgTranslate(0, height))
+        .call(xAxis);
+
+    canvas.append('g')
+      .attr('class', 'y axis')
+      .call(yAxis)
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 6)
+      .attr('dy', '.71em')
+      .style('text-anchor', 'end');
+
+    canvas.selectAll('.x.axis path').style({
+      'stroke': 'black',
+      'stroke-width': 2,
+      'fill': 'none'
+    });
+    canvas.selectAll('.y.axis path').style({
+      'stroke': 'black',
+      'stroke-width': 2,
+      'fill': 'none'
+    });
+
+    canvas.selectAll('.axis').style({'shape-rendering': 'crispEdges'});
+    canvas.selectAll('.axis text').style({'font-size': '10px'});
+
+    var bar = canvas.selectAll('.bar')
+        .data(data)
+      .enter().append('g')
+        .attr('class', 'bar')
+        .attr('transform', function(d) {
+          return svgTranslate(x0(d.label), 0);
+        });
+
+    bar.selectAll('rect')
+        .data(function(d) { return d.data; })
+      .enter().append('rect')
+        .attr('width', x1.rangeBand())
+        .attr('x', function(d) { return x1(d.name); })
+        .attr('y', function(d) { return y(d.value); })
+        .attr('height', function(d) { return height - y(d.value); })
+        .style('fill', function(d) { return color(d.name); });
+
+    var legend = canvas.selectAll('.legend')
+      .data(legendData.slice().reverse())
+      .enter().append('g')
+      .attr('class', 'legend')
+      .attr('transform', function(d, i) {
+        return svgTranslate(0, i * 20);
+      });
+
+    legend
+      .append('rect')
+      .attr('x', width - 18)
+      .attr('width', 18)
+      .attr('height', 18)
+      .style('fill', color);
+
+    legend
+      .append('text')
+      .attr('x', width - 24)
+      .attr('y', 9)
+      .attr('dy', '.35em')
+      .style({
+        'text-anchor': 'end',
+        'font-size': '10px'
+      })
+      .text(function(d) { return d; });
+
+    putLabel(title, detached, dimension);
+    callBigBang(detached, dimension, table, function(){});
   }
 
   return RUNTIME.makeObject({
-    "provide-plus-types": RUNTIME.makeObject({
+    'provide-plus-types': RUNTIME.makeObject({
       types: RUNTIME.makeObject({
       }),
       values: RUNTIME.makeObject({
-        "histogram": RUNTIME.makeFunction(histogram),
-        "pie-chart": RUNTIME.makeFunction(pieChart),
-        "plot-multi": RUNTIME.makeFunction(plotMulti)
+        'histogram': RUNTIME.makeFunction(histogram),
+        'pie-chart': RUNTIME.makeFunction(pieChart),
+        'plot-multi': RUNTIME.makeFunction(plotMulti),
+        'bar-chart': RUNTIME.makeFunction(barChart)
       })
     })
   });

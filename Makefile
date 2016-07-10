@@ -207,7 +207,8 @@ link-pyret:
 
 deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS)
 
-TROVE_JS := $(wildcard src/web/js/trove/*.js)
+TROVE_JS := src/web/js/trove/*.js
+TROVE_ARR := src/web/arr/trove/*.arr
 
 $(PHASEA): libpyret ;
 
@@ -215,7 +216,7 @@ $(PHASEA): libpyret ;
 libpyret:
 	$(MAKE) phaseA -C pyret/
 
-$(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
+$(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
 	cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
@@ -230,7 +231,7 @@ $(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalon
     --compiled-dir ./compiled \
     --outfile $(CPOMAIN) -no-check-mode
 
-$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
+$(CPOIDEHOOKS): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;
 	cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \

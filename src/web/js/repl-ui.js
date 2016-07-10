@@ -113,8 +113,8 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, editors, rr, 
-                                                        runtime.getField(runResult.result, "checks"), 
+                        return checkUI.drawCheckResults(output, editors, rr,
+                                                        runtime.getField(runResult.result, "checks"),
                                                         makeErrorContext);
                       }, function(_) {
                         outputPending.remove();
@@ -240,7 +240,7 @@
           currentZIndex += 2;
         });
 
-      runtime.setParam("d3-port", function(dom, width, height, onExit, closeButton) {
+      runtime.setParam("d3-port", function(dom, width, height, onExit, onSave) {
           // duplicate the code for now
           var animationDiv = $("<div>");
           animationDivs.push(animationDiv);
@@ -254,23 +254,30 @@
             bgiframe : true,
             modal : true,
             overlay : { opacity: 0.5, background: 'black'},
-            //buttons : { "Save" : closeDialog },
             width : width || "auto",
             height : height || "auto",
             close : onClose,
-            closeOnEscape : true
-          });
-          closeButton(function() {
-            animationDiv.dialog('close');
-            // this will call onClose automatically
+            closeOnEscape : true,
+            buttons: [
+              {
+                click: onSave(dom),
+                icons: { primary: 'ui-icon-disk' }
+              }
+            ],
+            create: function() {
+              $('.ui-dialog-buttonset').appendTo('.ui-dialog-titlebar');
+              $('.ui-dialog-buttonset button')
+                .removeClass('ui-button-icon-primary')
+                .addClass('ui-button-icon-only ui-dialog-titlebar-close')
+                .css('left', '33px');
+              $('.ui-dialog-buttonpane').css('display', 'none');
+            }
           });
           animationDiv.append(dom);
           var dialogMain = animationDiv.parent();
           dialogMain.css({"z-index": currentZIndex + 1});
           dialogMain.prev().css({"z-index": currentZIndex});
           currentZIndex += 2;
-
-          dialogMain.find('.ui-dialog-titlebar').css({display: 'none'});
       });
       runtime.setParam("remove-d3-port", function() {
           closeTopAnimationIfOpen();
