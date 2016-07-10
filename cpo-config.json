@@ -5,6 +5,7 @@
       "cpo": "./src/web/js/",
       "pyret-base": "./pyret/build/phaseA/",
       "jglr": "./pyret/lib/jglr",
+      "js-md5": "node_modules/js-md5/src/md5",
       "crypto": "empty:",
       "path": "src/web/js/pathstub",
       "q": "build/web/js/q",

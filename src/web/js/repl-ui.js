@@ -67,7 +67,7 @@
       $(".repl").animate({
            scrollTop: output.height(),
          },
-         500
+         50
       );
     }
 
@@ -117,7 +117,8 @@
                                                         runtime.getField(runResult.result, "checks"), 
                                                         makeErrorContext);
                       }, function(_) {
-                        scroll(output);
+                        outputPending.remove();
+                        outputPendingHidden = true;
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
@@ -302,10 +303,9 @@
               cm.removeLineClass(line, 'background', 'cptteach-fixed');
             });
           }
-          output.get(0).scrollTop = output.get(0).scrollHeight;
+          //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
           setTimeout(function(){
-            $(".check-block-error .cm-future-snippet").each(function(){this.cmrefresh();});
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
         }
@@ -358,6 +358,10 @@
 
         editors = {};
         editors["definitions://"] = uiOptions.cm;
+        editors["definitions://"].on("change",
+          function(cm, change) {
+            document.getElementById("main").dataset.highlights = "";
+          });
         interactionsCount = 0;
         replOutputCount = 0;
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
@@ -419,6 +423,8 @@
           }
         }
       }).cm;
+
+      editors['definitions://'] = CM;
 
       var lastNameRun = 'interactions';
       var lastEditorRun = null;

@@ -180,25 +180,25 @@ function runAndCheckAllTestsPassed(code, driver, test, timeout) {
 function checkAllTestsPassed(driver, test, timeout) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   driver.wait(function() {
-    return replOutput.findElements(webdriver.By.className("testing-summary"));
+    return replOutput.isElementPresent(webdriver.By.className("testing-summary"));
   }, timeout);
-  return replOutput.findElements(contains("Looks shipshape"));
+  return replOutput.findElement(contains("Looks shipshape"));
 }
 
 function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
-  it("should run " + name + " programs", function(done) {
-    var self = this;
-    self.browser.get(self.base + "/editor");
-    var tests = fs.readdirSync(base).filter(function(p) {
-      return p.indexOf(".arr") === (p.length - 4);
-    });
-    self.timeout(tests.length * (baseTimeout || 30000));
-    tests.forEach(function(program) {
+  var tests = fs.readdirSync(base).filter(function(p) {
+    return p.indexOf(".arr") === (p.length - 4);
+  });
+  tests.forEach(function(program) {
+    it("should run " + name + " programs from " + program, function(done) {
+      var self = this;
+      self.browser.get(self.base + "/editor");
+      self.timeout(tests.length * (baseTimeout || 30000));
       var programText = String(fs.readFileSync(base + program));
       testFun(programText, self);
+      self.browser.call(done);
     });
-    self.browser.call(done);
-  });
+  })
 }
 
 function evalPyret(driver, toEval) {
@@ -279,10 +279,12 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs) {
       return response.findElements(webdriver.By.className("check-block-results"));
     });
     var blocksAsSpec = checkBlocks.then(function(cbs) {
-      var tests = cbs.map(function(cb) {
+      var tests = cbs.map(function(cb, i) {
         return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
           return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
-            return Q.all(tests.map(function(t) { return t.getText(); }));
+            return tests.length === 0
+              ? Q.all(Array(specs[i].length).fill("Passed"))
+              : Q.all(tests.map(function(t) { return t.getText(); }));
           });
         });
       });

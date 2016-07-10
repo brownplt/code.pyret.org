@@ -557,13 +557,6 @@
 
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
-
-    function locToSrc(runtime, editors, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        return getSourceContent(editors, cmloc, true);
-      });
-    }
     
     function makeSrclocAvaliable(runtime, editors, srcloc) {
       return runtime.makeFunction(function(loc) {
@@ -617,19 +610,6 @@
         }
         return lines.join("\n");
       }
-    }
-
-    function locToAST(runtime, editors, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-        var source = getSourceContent(editors, cmloc, true);
-        var prelude = ""
-        var start_line = runtime.getField(loc,"start-line");
-        var start_col = runtime.getField(loc,"start-column");
-        for(var i=1; i < start_line; i++) { prelude += "\n"; }
-        for(var i=0; i < start_col; i++) { prelude += " "; }
-        return astFromText(runtime,prelude + source, cmloc.source);
-      });
     }
     
     function makeMaybeLocToAST(runtime, editors, srcloc) {
@@ -698,7 +678,7 @@
               return editor.markText(
                 cmLoc.start,
                 cmLoc.end,
-               {className: locKey + " highlight", shared: true});
+               {className: locKey + " highlight", shared: false});
           } else {
             return null;
           }
@@ -835,6 +815,14 @@
     }
 
     function renderStackTrace(runtime, editors, srcloc, error) {
+      function batchOperation(thunk) {
+        return Object.keys(editors)
+          .map(function(editor){ return editors[editor];})
+          .reduce(
+            function(acc, editor) {
+              return function(){return editor.operation(acc);};
+            }, thunk)();
+      }
       var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
       var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
       var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
@@ -855,17 +843,35 @@
         container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
         function drawStackChunk(i) {
           if (i >= userLocs.length) return;
-          var j = 0;
-          for (j = 0; j + i < userLocs.length && j < 10; j++) {
-            var ul = userLocs[j + i];
-            var slContainer = $("<div>");
-            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-            if (cmSnippet.editor) {
-              snippets.push(cmSnippet.editor);
-              cmSnippet.editor.getWrapperElement().style.height =
-                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-              if(editors[cmLoc.source] === undefined) {
+          batchOperation(function(){
+            var j = 0;
+            for (j = 0; j + i < userLocs.length && j < 10; j++) {
+              var ul = userLocs[j + i];
+              var slContainer = $("<div>");
+              var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+              var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+              if (cmSnippet.editor) {
+                snippets.push(cmSnippet.editor);
+                cmSnippet.editor.getWrapperElement().style.height =
+                  (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+                if(editors[cmLoc.source] === undefined) {
+                  cmSnippet.wrapper.on("mouseenter", function(e){
+                    contextManager.highlights = "spotlight-external";
+                    flashMessage("This code isn't in this editor.")
+                  });
+                  cmSnippet.wrapper.on("mouseleave", function(e){
+                    clearFlash();
+                  });
+                } else {
+                  cmSnippet.wrapper.on("mouseenter",
+                    (function(key, ul){
+                      return function(e){
+                        gotoLoc(runtime, editors, srcloc, ul);
+                        contextManager.highlights = key;
+                      };
+                    })(spotlight(editors, cmLoc).key, ul));
+                }
+              } else {
                 cmSnippet.wrapper.on("mouseenter", function(e){
                   contextManager.highlights = "spotlight-external";
                   flashMessage("This code isn't in this editor.")
@@ -873,37 +879,21 @@
                 cmSnippet.wrapper.on("mouseleave", function(e){
                   clearFlash();
                 });
-              } else {
-                cmSnippet.wrapper.on("mouseenter",
-                  (function(key, ul){
-                    return function(e){
-                      gotoLoc(runtime, editors, srcloc, ul);
-                      contextManager.highlights = key;
-                    };
-                  })(spotlight(editors, cmLoc).key, ul));
               }
-            } else {
-              cmSnippet.wrapper.on("mouseenter", function(e){
-                contextManager.highlights = "spotlight-external";
-                flashMessage("This code isn't in this editor.")
-              });
-              cmSnippet.wrapper.on("mouseleave", function(e){
-                clearFlash();
-              });
+              slContainer.append(cmSnippet.wrapper);
+              container.append(slContainer);
+              if(cmSnippet.editor)
+                cmSnippet.editor.refresh();
             }
-            slContainer.append(cmSnippet.wrapper);
-            container.append(slContainer);
-            if(cmSnippet.editor)
-              cmSnippet.editor.refresh();
-          }
-          if (j == 10) {
-            var more = $("<a>").text("Show more...");
-            more.on("click", function() {
-              more.remove();
-              drawStackChunk(i + 10);
-            });
-            container.append(more);
-          }
+            if (j == 10) {
+              var more = $("<a>").text("Show more...");
+              more.on("click", function() {
+                more.remove();
+                drawStackChunk(i + 10);
+              });
+              container.append(more);
+            }
+          });
         }
         drawStackChunk(0);
         return expandable(container, "program execution trace");
@@ -1763,8 +1753,6 @@
       getLastUserLocation: getLastUserLocation,
       cssSanitize: cssSanitize,
       cmlocToCSSClass: cmlocToCSSClass,
-      locToAST: locToAST,
-      locToSrc: locToSrc,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
       makeSrclocAvaliable: makeSrclocAvaliable

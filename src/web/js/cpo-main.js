@@ -257,16 +257,16 @@
         doRunAction(editor.cm.getValue());
         $("#run-dropdown-content").hide();
       });
-
+      /*
       $("#select-scsh").click(function() {
         highlightMode = "scsh"; $("#run-dropdown-content").hide();});
       $("#select-scmh").click(function() {
         highlightMode = "scmh"; $("#run-dropdown-content").hide();});
       $("#select-mcmh").click(function() {
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
-
+      */
       function doRunAction(src) {
-        editor.cm.clearGutter("CodeMirror-linenumbers");
+        editor.cm.clearGutter("test-marker-gutter");
         var marks = editor.cm.getAllMarks();
         document.getElementById("main").dataset.highlights = "";
         editor.cm.eachLine(function(lh){
