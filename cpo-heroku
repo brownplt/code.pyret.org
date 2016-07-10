@@ -1,0 +1,28 @@
+# last modified 2016-07-08
+
+localbranchname=$(git rev-parse --abbrev-ref HEAD)
+herokuappname=$1
+
+#heroku apps:destroy --confirm $herokuappname
+heroku apps:destroy $herokuappname
+
+heroku create $herokuappname
+
+heroku config:set \
+GOOGLE_CLIENT_ID="" \
+GOOGLE_CLIENT_SECRET="" \
+GOOGLE_API_KEY="" \
+BASE_URL="https://$herokuappname.herokuapp.com" \
+SESSION_SECRET="not-so-secret" \
+REDISCLOUD_URL="" \
+USE_STANDALONE_PYRET="true" \
+PYRET_RELEASE_BASE="https://$herokuappname.herokuapp.com/js/cpo-main.jarr" \
+CURRENT_PYRET_RELEASE="" \
+PORT=5000 \
+NODE_ENV=development
+
+git push heroku $localbranchname:master
+
+heroku ps:scale web=1
+
+echo Browse to $herokuappname.herokuapp.com
