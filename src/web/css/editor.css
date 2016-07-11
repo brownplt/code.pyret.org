@@ -258,7 +258,6 @@ span.trace:after {
   border: none;
   border-radius: 3px;
   margin: .5em;
-  margin-bottom: 1em;
   padding: .5em;
   box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
   background: #E1F5FE;
@@ -266,15 +265,8 @@ span.trace:after {
   cursor:default;
 }
 
-.check-block-test-container:empty {
-  margin: 0;
-}
-
-.check-block-test-container:empty:after {
-  content: 'No details to show.';
-}
-
-.check-block-test-container,.check-block-error{
+.check-block-tests,
+.check-block-error{
   margin-top: .5em;
 }
 
@@ -285,7 +277,6 @@ span.trace:after {
 
 .check-block-errored {
   background-color: hsl(0, 100%, 90%);
-  margin: 5px;
 }
 
 .check-block-success {
@@ -1235,9 +1226,29 @@ code div {
   background: hsla(0,0%,100%,.9);
 }
 
-.check-block:not(.expanded) > .check-block-test-container {
+.check-block:not(.expanded) > .check-block-tests {
   display: none;
 }
+
+.test-reason:empty
+.check-block-tests:empty,
+.check-block-error:empty {
+  height: 3em;
+  background-image: url(img/pyret-spin.gif);
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.test-reason:empty > * {
+  opacity: 0;
+  transition: opacity .5s linear;
+}
+
+.test-reason:not(:empty) > * {
+  opacity: 1;
+}
+
+
 
 .check-block-header:after {
   position: absolute;
@@ -1270,15 +1281,26 @@ code div {
   background:rgba(255,255,255,0.5);
 }
 
-.erroredTestMarker {background-color: hsl(0, 100%, 90%);} 
-.failedTestMarker {background-color: hsl(45, 100%, 85%);}
+.test-marker-gutter {
+  left: 0;
+  width: 0px;
+}
 
-.failedTestMarker,
-.erroredTestMarker {
+.errored-test-marker,
+.failed-test-marker {
+  left: -29px;
+  border-right: 1px black solid;
+  width: 29px;
+  position: absolute;
   cursor: pointer;
-  color: #822;
-  text-decoration: underline;
-  font-weight: bold;
+}
+
+.errored-test-marker {
+  background-color: hsla(0, 100%, 50%, 0.5);
+}
+
+.failed-test-marker {
+  background-color: hsla(45, 90%, 50%, 0.5);
 }
 
 

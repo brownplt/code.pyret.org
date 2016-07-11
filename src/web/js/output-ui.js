@@ -810,11 +810,20 @@
         return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
       } else {
         snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
+        snippetWrapper[0].cmrefresh = function(){};
         return {wrapper: snippetWrapper, featured: featured};
       }
     }
 
     function renderStackTrace(runtime, editors, srcloc, error) {
+      function batchOperation(thunk) {
+        return Object.keys(editors)
+          .map(function(editor){ return editors[editor];})
+          .reduce(
+            function(acc, editor) {
+              return function(){return editor.operation(acc);};
+            }, thunk)();
+      }
       var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
       var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
       var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
@@ -835,17 +844,35 @@
         container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
         function drawStackChunk(i) {
           if (i >= userLocs.length) return;
-          var j = 0;
-          for (j = 0; j + i < userLocs.length && j < 10; j++) {
-            var ul = userLocs[j + i];
-            var slContainer = $("<div>");
-            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-            if (cmSnippet.editor) {
-              snippets.push(cmSnippet.editor);
-              cmSnippet.editor.getWrapperElement().style.height =
-                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-              if(editors[cmLoc.source] === undefined) {
+          batchOperation(function(){
+            var j = 0;
+            for (j = 0; j + i < userLocs.length && j < 10; j++) {
+              var ul = userLocs[j + i];
+              var slContainer = $("<div>");
+              var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+              var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+              if (cmSnippet.editor) {
+                snippets.push(cmSnippet.editor);
+                cmSnippet.editor.getWrapperElement().style.height =
+                  (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+                if(editors[cmLoc.source] === undefined) {
+                  cmSnippet.wrapper.on("mouseenter", function(e){
+                    contextManager.highlights = "spotlight-external";
+                    flashMessage("This code isn't in this editor.")
+                  });
+                  cmSnippet.wrapper.on("mouseleave", function(e){
+                    clearFlash();
+                  });
+                } else {
+                  cmSnippet.wrapper.on("mouseenter",
+                    (function(key, ul){
+                      return function(e){
+                        gotoLoc(runtime, editors, srcloc, ul);
+                        contextManager.highlights = key;
+                      };
+                    })(spotlight(editors, cmLoc).key, ul));
+                }
+              } else {
                 cmSnippet.wrapper.on("mouseenter", function(e){
                   contextManager.highlights = "spotlight-external";
                   flashMessage("This code isn't in this editor.")
@@ -853,37 +880,21 @@
                 cmSnippet.wrapper.on("mouseleave", function(e){
                   clearFlash();
                 });
-              } else {
-                cmSnippet.wrapper.on("mouseenter",
-                  (function(key, ul){
-                    return function(e){
-                      gotoLoc(runtime, editors, srcloc, ul);
-                      contextManager.highlights = key;
-                    };
-                  })(spotlight(editors, cmLoc).key, ul));
               }
-            } else {
-              cmSnippet.wrapper.on("mouseenter", function(e){
-                contextManager.highlights = "spotlight-external";
-                flashMessage("This code isn't in this editor.")
-              });
-              cmSnippet.wrapper.on("mouseleave", function(e){
-                clearFlash();
-              });
+              slContainer.append(cmSnippet.wrapper);
+              container.append(slContainer);
+              if(cmSnippet.editor)
+                cmSnippet.editor.refresh();
             }
-            slContainer.append(cmSnippet.wrapper);
-            container.append(slContainer);
-            if(cmSnippet.editor)
-              cmSnippet.editor.refresh();
-          }
-          if (j == 10) {
-            var more = $("<a>").text("Show more...");
-            more.on("click", function() {
-              more.remove();
-              drawStackChunk(i + 10);
-            });
-            container.append(more);
-          }
+            if (j == 10) {
+              var more = $("<a>").text("Show more...");
+              more.on("click", function() {
+                more.remove();
+                drawStackChunk(i + 10);
+              });
+              container.append(more);
+            }
+          });
         }
         drawStackChunk(0);
         return expandable(container, "program execution trace");
