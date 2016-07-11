@@ -266,14 +266,16 @@
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
       function doRunAction(src) {
-        editor.cm.clearGutter("test-marker-gutter");
-        var marks = editor.cm.getAllMarks();
-        document.getElementById("main").dataset.highlights = "";
-        editor.cm.eachLine(function(lh){
-          editor.cm.removeLineClass(lh, "background");});
-        for(var i = 0; i < marks.length; i++) {
-          marks[i].clear();
-        }
+        editor.cm.operation(function() {
+          editor.cm.clearGutter("test-marker-gutter");
+          var marks = editor.cm.getAllMarks();
+          document.getElementById("main").dataset.highlights = "";
+          editor.cm.eachLine(function(lh){
+            editor.cm.removeLineClass(lh, "background");});
+          for(var i = 0; i < marks.length; i++) {
+            marks[i].clear();
+          }
+        });
         var sheet = document.getElementById("highlight-styles").sheet;
         for(var i=0; i< sheet.cssRules.length; i++) {
           sheet.deleteRule(i);
