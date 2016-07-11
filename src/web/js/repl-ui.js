@@ -272,6 +272,9 @@
                 .css('left', '33px');
               $('.ui-dialog-buttonpane').css('display', 'none');
             }
+          }).dialog("widget").draggable({
+            containment: "none",
+            scroll: false,
           });
           animationDiv.append(dom);
           var dialogMain = animationDiv.parent();
