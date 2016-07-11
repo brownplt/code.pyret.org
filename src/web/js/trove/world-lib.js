@@ -194,10 +194,10 @@
       // and exit quickly.
       if (changingWorld[changingWorld.length - 1]) {
         setTimeout(
-            function() {
-              change_world(updater, k);
-            },
-            DELAY_BEFORE_RETRY);
+          function() {
+            change_world(updater, k);
+          },
+          DELAY_BEFORE_RETRY);
         return;
       }
 
@@ -208,18 +208,18 @@
       var changeWorldHelp;
       changeWorldHelp = function() {
         forEachK(worldListeners,
-            function(listener, k2) {
-              listener(world, originalWorld, k2);
-            },
-            function(e) {
-              changingWorld[changingWorld.length - 1] = false;
-              world = originalWorld;
-              throw e;
-            },
-            function() {
-              changingWorld[changingWorld.length - 1] = false;
-              k();
-            });
+                 function(listener, k2) {
+                   listener(world, originalWorld, k2);
+                 },
+                 function(e) {
+                   changingWorld[changingWorld.length - 1] = false;
+                   world = originalWorld;
+                   throw e;
+                 },
+                 function() {
+                   changingWorld[changingWorld.length - 1] = false;
+                   k();
+                 });
       };
 
       try {
@@ -280,48 +280,48 @@
 
     // treeable(nodes(N), relations(N)) = bool
     /*function treeable(nodes, relations) {
-     // for all neighbor relations between x and y
-     for (var i = 0; i < relations.length; i++)
-     if (relations[i].relation == 'neighbor') {
-     var x = relations[i].left, y = relations[i].right;
+    // for all neighbor relations between x and y
+    for (var i = 0; i < relations.length; i++)
+    if (relations[i].relation == 'neighbor') {
+    var x = relations[i].left, y = relations[i].right;
 
-     // there does not exist a neighbor relation between x and z!=y or z!=x and y
-     for (var j = 0; j < relations.length; j++)
-     if (relations[j].relation === 'neighbor')
-     if (relations[j].left === x && relations[j].right !== y ||
-     relations[j].left !== x && relations[j].right === y)
-     return false;
-     }
+    // there does not exist a neighbor relation between x and z!=y or z!=x and y
+    for (var j = 0; j < relations.length; j++)
+    if (relations[j].relation === 'neighbor')
+    if (relations[j].left === x && relations[j].right !== y ||
+    relations[j].left !== x && relations[j].right === y)
+    return false;
+    }
 
-     // for all parent relations between x and y
-     for (var i = 0; i < relations.length; i++)
-     if (relations[i].relation == 'parent') {
-     var x = relations[i].parent, y = relations[i].child;
+    // for all parent relations between x and y
+    for (var i = 0; i < relations.length; i++)
+    if (relations[i].relation == 'parent') {
+    var x = relations[i].parent, y = relations[i].child;
 
-     // there does not exist a parent relation between z!=x and y
-     for (var j = 0; j < relations.length; j++)
-     if (relations[j].relation == 'parent')
-     if (relations[j].parent !== x && relations[j].child === y)
-     return false;
-     }
+    // there does not exist a parent relation between z!=x and y
+    for (var j = 0; j < relations.length; j++)
+    if (relations[j].relation == 'parent')
+    if (relations[j].parent !== x && relations[j].child === y)
+    return false;
+    }
 
-     // for all neighbor relations between x and y
-     for (var i = 0; i < relations.length; i++)
-     if (relations[i].relation == 'neighbor') {
-     var x = relations[i].left, y = relations[i].right;
+    // for all neighbor relations between x and y
+    for (var i = 0; i < relations.length; i++)
+    if (relations[i].relation == 'neighbor') {
+    var x = relations[i].left, y = relations[i].right;
 
-     // all parent relations between z and x or y share the same z
-     for (var j = 0; j < relations.length; j++)
-     if (relations[j].relation == 'parent')
-     for (var k = 0; k < relations.length; k++)
-     if (relations[k].relation == 'parent')
-     if (relations[j].child === x && relations[k].child === y &&
-     relations[j].parent !== relations[k].parent)
-     return false;
-     }
+    // all parent relations between z and x or y share the same z
+    for (var j = 0; j < relations.length; j++)
+    if (relations[j].relation == 'parent')
+    for (var k = 0; k < relations.length; k++)
+    if (relations[k].relation == 'parent')
+    if (relations[j].child === x && relations[k].child === y &&
+    relations[j].parent !== relations[k].parent)
+    return false;
+    }
 
-     return true;
-     }*/
+    return true;
+    }*/
 
 
     // node_to_tree: dom -> dom-tree
@@ -361,14 +361,14 @@
       var i;
       for (i = 0; i < tree.children.length; i++) {
         ret.push({ relation: 'parent',
-          parent: tree.node,
-          child: tree.children[i].node });
+                   parent: tree.node,
+                   child: tree.children[i].node });
       }
 
       for (i = 0; i < tree.children.length - 1; i++) {
         ret.push({ relation: 'neighbor',
-          left: tree.children[i].node,
-          right: tree.children[i + 1].node });
+                   left: tree.children[i].node,
+                   right: tree.children[i + 1].node });
       }
 
       if (! tree.node.jsworldOpaque) {
@@ -505,7 +505,7 @@
       if (css.id.match(/^\./)) {
         // Check to see if we match the class
         return (node.className && member(node.className.split(/\s+/),
-            css.id.substring(1)));
+                                         css.id.substring(1)));
       } else {
         return (node.id && node.id === css.id);
       }
@@ -555,17 +555,17 @@
       if (oldWorld instanceof InitialWorld) {
         // Simple path
         redraw_func(world,
-            function(drawn) {
-              var t = sexp2tree(drawn);
-              var ns = nodes(t);
-              // HACK: css before dom, due to excanvas hack.
-              redraw_css_func(world,
-                  function(css) {
-                    update_css(ns, sexp2css(css));
-                    update_dom(toplevelNode, ns, relations(t));
-                    k();
-                  });
-            });
+                    function(drawn) {
+                      var t = sexp2tree(drawn);
+                      var ns = nodes(t);
+                      // HACK: css before dom, due to excanvas hack.
+                      redraw_css_func(world,
+                                      function(css) {
+                                        update_css(ns, sexp2css(css));
+                                        update_dom(toplevelNode, ns, relations(t));
+                                        k();
+                                      });
+                    });
       } else {
         maintainingSelection(
             function(k2) {
@@ -717,8 +717,8 @@
 
       // Create an activation record for this big-bang.
       var activationRecord =
-          new BigBangRecord(top, init_world, handlerCreators, handlers, attribs,
-              succ, fail);
+        new BigBangRecord(top, init_world, handlerCreators, handlers, attribs,
+                          succ, fail);
       runningBigBangs.push(activationRecord);
       function keepRecordUpToDate(w, oldW, k2) {
         activationRecord.world = w;
@@ -730,7 +730,7 @@
 
       // Monitor for termination and register the other handlers.
       var stopWhen = new StopWhenHandler(function(w, k2) { k2(false); },
-          function(w, k2) { k2(w); });
+                                         function(w, k2) { k2(w); });
       for(i = 0 ; i < handlers.length; i++) {
         if (handlers[i] instanceof StopWhenHandler) {
           stopWhen = handlers[i];
@@ -1000,7 +1000,7 @@
     // Attaches a world-updating handler when the world is changed.
     function add_ev(node, event, f) {
       var eventHandler = function(e) { change_world(function(w, k) { f(w, e, k); },
-          doNothing); };
+                                                    doNothing); };
       attachEvent(node, event, eventHandler);
       eventDetachers.push(function() { detachEvent(node, event, eventHandler); });
     }
@@ -1011,8 +1011,8 @@
     function add_ev_after(node, event, f) {
       var eventHandler = function(e) {
         setTimeout(function() { change_world(function(w, k) { f(w, e, k); },
-            doNothing); },
-            0);
+                                             doNothing); },
+                   0);
       };
 
       attachEvent(node, event, eventHandler);
@@ -1077,8 +1077,8 @@
 
     var throwDomError = function(thing, topThing) {
       throw new JsworldDomError(
-          "Expected a non-empty array, received " +  thing + " within " + topThing,
-          thing);
+        "Expected a non-empty array, received " +  thing + " within " + topThing,
+        thing);
     };
 
     // checkDomSexp: X X -> boolean
@@ -1098,7 +1098,7 @@
       if (isTextNode(thing[0])) {
         if (thing.length > 1) {
           throw new JsworldDomError("Text node " + thing + " can not have children",
-              thing);
+                                    thing);
         }
       } else if (isElementNode(thing[0])) {
         for (i = 1; i < thing.length; i++) {
@@ -1108,8 +1108,8 @@
         if (window.console && window.console.log) { window.console.log(thing[0]); }
 
         throw new JsworldDomError(
-            "expected a Text or an Element, received " + thing + " within " + topThing,
-            thing[0]);
+          "expected a Text or an Element, received " + thing + " within " + topThing,
+          thing[0]);
       }
     };
 
@@ -1193,9 +1193,9 @@
 
     var stopClickPropagation = function(node) {
       attachEvent(node, "click",
-          function(e) {
-            stopPropagation(e);
-          });
+                  function(e) {
+                    stopPropagation(e);
+                  });
       return node;
     };
 
@@ -1206,11 +1206,11 @@
     function input(aType, updateF, attribs) {
       aType = aType.toLowerCase();
       var dispatchTable = { text : text_input,
-        password: text_input,
-        checkbox: checkbox_input
-        //button: button_input,
-        //radio: radio_input
-      };
+                            password: text_input,
+                            checkbox: checkbox_input
+                            //button: button_input,
+                            //radio: radio_input
+                          };
 
       if (dispatchTable[aType]) {
         return (dispatchTable[aType])(aType, updateF, attribs);
@@ -1232,15 +1232,15 @@
       var onEvent = function() {
         if (! n.parentNode) { return; }
         setTimeout(
-            function() {
-              if (lastVal !== n.value) {
-                lastVal = n.value;
-                change_world(function (w, k) {
-                  updateF(w, n.value, k);
-                }, doNothing);
-              }
-            },
-            0);
+          function() {
+            if (lastVal !== n.value) {
+              lastVal = n.value;
+              change_world(function (w, k) {
+                updateF(w, n.value, k);
+              }, doNothing);
+            }
+          },
+          0);
       };
 
       attachEvent(n, "keydown", onEvent);
@@ -1252,7 +1252,7 @@
         detachEvent(n, "change", onEvent); });
 
       return stopClickPropagation(
-          addFocusTracking(copy_attribs(n, attribs)));
+        addFocusTracking(copy_attribs(n, attribs)));
     };
 
 
