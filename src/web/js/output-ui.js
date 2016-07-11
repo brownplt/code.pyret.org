@@ -11,10 +11,11 @@
   ],
   provides: {},
   nativeRequires: [
+    "pyret-base/js/runtime-util",
     "pyret-base/js/js-numbers",
     "cpo/share"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
@@ -23,6 +24,44 @@
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
     var shareAPI = makeShareAPI("");
+
+    var marksByEditor = {}; // Map from editor-source to {mark-span, callback}
+    function addMark(source, editor, from, to, opts, cb) {
+      if (!marksByEditor[source])
+        marksByEditor[source] = [];
+      if (editor === undefined) {
+        console.trace();
+        console.error("Editor is undefined ", source, from, to, opts, cb);
+      }
+      marksByEditor[source].push({editor: editor, from: from, to: to, opts: opts, cb: cb});
+    }
+
+    function runMarks() {
+      var allMarks = marksByEditor;
+      marksByEditor = {};
+      for (var source in allMarks) {
+        var marks = allMarks[source];
+        var editor = marks[0].editor; // these should be uniformly the same editor...
+        var chunkSize = 100;
+        for (var i = 0; i < Math.ceil(marks.length / chunkSize); i++) {
+          function chunk(start) {
+            return function() {
+              editor.operation(function() {
+                for (var j = start; j < marks.length && j < start + chunkSize; j++) {
+                  //...but we'll use the right editor, just in case
+                  var mark = marks[j];
+                  var handle = mark.editor.markText(mark.from, mark.to, mark.opts);
+                  if (mark.cb)
+                    mark.cb(editor, handle);
+                }
+              });
+            };
+          }
+          util.suspend(chunk(i * chunkSize));
+        }
+      }
+    }
+
 
     function mapK(inList, f, k, outList) {
       if (inList.length === 0) { k(outList || []); }
@@ -675,13 +714,10 @@
                    + " ." + locKey + " { " + (!!cssColor ? "background-color:" + cssColor : "") +
                   (underline ? ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid" : "") + ";}",
                   styles.cssRules.length);
-              return editor.markText(
-                cmLoc.start,
-                cmLoc.end,
-               {className: locKey + " highlight", shared: false});
-          } else {
-            return null;
+            addMark(source, editor, cmLoc.start, cmLoc.end,
+                    {className: locKey + " highlight", shared: false});
           }
+          return undefined;
         }
       });
     }
@@ -715,13 +751,13 @@
         throw new Error("Cannot spotlight a location not shown in the editor.");
       var styles = document.getElementById("highlight-styles").sheet;
       var lockey = "spotlight-" + cmlocToCSSClass(cmloc);
-      var handle = editors[cmloc.source].markText(cmloc.start, cmloc.end,
-       {className: lockey,
-        inclusiveLeft: false,
-        inclusiveRight:false,
-        shared: false,
-        clearWhenEmpty: true,
-        addToHistory: false});
+      addMark(cmloc.source, editors[cmloc.source], cmloc.start, cmloc.end,
+              {className: lockey,
+               inclusiveLeft: false,
+               inclusiveRight:false,
+               shared: false,
+               clearWhenEmpty: true,
+               addToHistory: false});
       var editorSelector = (cmloc.source == "definitions://"
         ? " > div.replMain "
         : " .repl-echo ");
@@ -732,7 +768,7 @@
       styles.insertRule(
         "#main[data-highlights=" + lockey + "]"
         + editorSelector + " span." + lockey + "{background:white!important;}", 0);
-      return {marker: handle, key: lockey};
+      return lockey;
     }
 
     function snippet(editors, featured, srcloc, ul) {
@@ -755,31 +791,37 @@
           
         if(cmloc.source in editors) {
           var cmsrc = editors[featured.source];
-          var handle = cmsrc.markText(cmloc.start, cmloc.end,
-           {className: lockey,
-            inclusiveLeft: false,
-            inclusiveRight:false,
-            shared: false,
-            clearWhenEmpty: true,
-            addToHistory: false});
-          if(cmloc.source.startsWith("interactions")) {
-            cmSnippet.setOption("lineNumberFormatter",
-              function(line) {
-                return ">";
-              });
-          } else {
-            cmSnippet.setOption("lineNumberFormatter",
-              function(line) {
-                var handleLoc = handle.find();
-                return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
-              });
-            // Refresh the gutters when a change is made to the source document
-            var refresh = function(cm, change) {
-              cmSnippet.setOption("firstLineNumber",0);
-              cmSnippet.setOption("firstLineNumber",1);};
-            //cmsrc.on("change", refresh);
-            handle.on("clear", function(){cmsrc.off("change", refresh);});
-          }
+          addMark(
+            featured.source, cmsrc, cmloc.start, cmloc.end,
+            {className: lockey,
+             inclusiveLeft: false,
+             inclusiveRight:false,
+             shared: false,
+             clearWhenEmpty: true,
+             addToHistory: false},
+            function(cmsrc, handle) {
+              if(cmloc.source.startsWith("interactions")) {
+                cmSnippet.setOption("lineNumberFormatter",
+                                    function(line) {
+                                      return ">";
+                                    });
+              } else {
+                cmSnippet.setOption("lineNumberFormatter",
+                                    function(line) {
+                                      var handleLoc = handle.find();
+                                      return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
+                                    });
+                // Refresh the gutters when a change is made to the source document
+                var refresh = function(cm, change) {
+                  cmsrc.off("change", refresh);
+                  cmSnippet.setOption("lineNumbers",false);
+                  cmSnippet.setOption("lineNumbers",true);
+                };
+                // NOTE(joe): come back to this
+                cmsrc.on("change", refresh);
+                handle.on("clear", function(){cmsrc.off("change", refresh); });
+              }
+            });
           // Copy relevant part of document.
           endch = cmsrc.getLine(cmloc.end.line).length;
           cmSnippet.getDoc().setValue(cmsrc.getRange(
@@ -816,18 +858,9 @@
     }
 
     function renderStackTrace(runtime, editors, srcloc, error) {
-      function batchOperation(thunk) {
-        return Object.keys(editors)
-          .map(function(editor){ return editors[editor];})
-          .reduce(
-            function(acc, editor) {
-              return function(){return editor.operation(acc);};
-            }, thunk)();
-      }
       var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
       var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
       var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
-      var snippets = new Array();
       var contextManager = document.getElementById("main").dataset;
       var currentHighlight;
       var container = $("<div>").addClass("stacktrace")
@@ -844,35 +877,16 @@
         container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
         function drawStackChunk(i) {
           if (i >= userLocs.length) return;
-          batchOperation(function(){
-            var j = 0;
-            for (j = 0; j + i < userLocs.length && j < 10; j++) {
-              var ul = userLocs[j + i];
-              var slContainer = $("<div>");
-              var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-              var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-              if (cmSnippet.editor) {
-                snippets.push(cmSnippet.editor);
-                cmSnippet.editor.getWrapperElement().style.height =
-                  (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-                if(editors[cmLoc.source] === undefined) {
-                  cmSnippet.wrapper.on("mouseenter", function(e){
-                    contextManager.highlights = "spotlight-external";
-                    flashMessage("This code isn't in this editor.")
-                  });
-                  cmSnippet.wrapper.on("mouseleave", function(e){
-                    clearFlash();
-                  });
-                } else {
-                  cmSnippet.wrapper.on("mouseenter",
-                    (function(key, ul){
-                      return function(e){
-                        gotoLoc(runtime, editors, srcloc, ul);
-                        contextManager.highlights = key;
-                      };
-                    })(spotlight(editors, cmLoc).key, ul));
-                }
-              } else {
+          var j = 0;
+          for (j = 0; j + i < userLocs.length && j < 10; j++) {
+            var ul = userLocs[j + i];
+            var slContainer = $("<div>");
+            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
+            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
+            if (cmSnippet.editor) {
+              cmSnippet.editor.getWrapperElement().style.height =
+                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
+              if(editors[cmLoc.source] === undefined) {
                 cmSnippet.wrapper.on("mouseenter", function(e){
                   contextManager.highlights = "spotlight-external";
                   flashMessage("This code isn't in this editor.")
@@ -880,21 +894,37 @@
                 cmSnippet.wrapper.on("mouseleave", function(e){
                   clearFlash();
                 });
+              } else {
+                cmSnippet.wrapper.on("mouseenter",
+                                     (function(key, ul){
+                                       return function(e){
+                                         gotoLoc(runtime, editors, srcloc, ul);
+                                         contextManager.highlights = key;
+                                       };
+                                     })(spotlight(editors, cmLoc), ul));
               }
-              slContainer.append(cmSnippet.wrapper);
-              container.append(slContainer);
-              if(cmSnippet.editor)
-                cmSnippet.editor.refresh();
-            }
-            if (j == 10) {
-              var more = $("<a>").text("Show more...");
-              more.on("click", function() {
-                more.remove();
-                drawStackChunk(i + 10);
+            } else {
+              cmSnippet.wrapper.on("mouseenter", function(e){
+                contextManager.highlights = "spotlight-external";
+                flashMessage("This code isn't in this editor.")
               });
-              container.append(more);
+              cmSnippet.wrapper.on("mouseleave", function(e){
+                clearFlash();
+              });
             }
-          });
+            slContainer.append(cmSnippet.wrapper);
+            container.append(slContainer);
+            if(cmSnippet.editor)
+              cmSnippet.editor.refresh();
+          }
+          if (j == 10) {
+            var more = $("<a>").text("Show more...");
+            more.on("click", function() {
+              more.remove();
+              drawStackChunk(i + 10);
+            });
+            container.append(more);
+          }
         }
         drawStackChunk(0);
         return expandable(container, "program execution trace");
@@ -1009,13 +1039,13 @@
                     runtime.runThunk(function() {
                       return runtime.safeCall(function() {
                         if(highlightMode === "scsh" && highlightLoc != undefined) {
-                          return highlightSrcloc(runtime, editors, srcloc, highlightLoc, 
-                                                 "hsl(0, 100%, 89%);", context);
+                          highlightSrcloc(runtime, editors, srcloc, highlightLoc, 
+                                          "hsl(0, 100%, 89%);", context);
                         }
                         return null;
                       }, function(_) {
                         return help(errorDisp.result, e.pyretStack);
-                      });
+                      }, "highlightSrcloc, then help");
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
                         var container = containerResult.result;
@@ -1227,43 +1257,46 @@
           rendering = $("<div>").append(rendering);
         }
         snippets.forEach(function(s){
-          highlights.forEach(function(value,key){
-            if(key.l.source != s.featured.source)
-              return;
-            if (!s.editor)
-              return;
-            var locKey = cmlocToCSSClass(key.l);
-            s.editor.markText(
-              {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
-              {line: key.l.end.line - s.featured.start.line, ch: key.l.end.ch},
-              {className:"highlight " + locKey,
-               handleMouseEvents: false, atomic: true});
-            if(!editors[key.l.source]) {
-              var styles = document.getElementById("highlight-styles").sheet;
-              styles.insertRule(
+          if (!s.editor) return;
+          s.editor.operation(function() {
+            highlights.forEach(function(value,key){
+              if(key.l.source != s.featured.source)
+                return;
+              var locKey = cmlocToCSSClass(key.l);
+              s.editor.markText(
+                {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
+                {line: key.l.end.line - s.featured.start.line, ch: key.l.end.ch},
+                {className:"highlight " + locKey,
+                 handleMouseEvents: false, atomic: true});
+              if(!editors[key.l.source]) {
+                var styles = document.getElementById("highlight-styles").sheet;
+                styles.insertRule(
                   ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
-                   + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
-                   + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
-            };
-            if(!key.c)
-              return;
-            var updated = false;
-            s.editor.on("update", function() {
-              if(updated) return;
-              updated = true;
-              $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseenter", function() {
-                hintLoc(runtime, editors, srcloc, key.pl);
-                $("."+cmlocToCSSClass(key.l)).css("animation", "pulse 0.4s infinite alternate");
+                    + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
+                    + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
+              };
+              if(!key.c)
+                return;
+              var updated = false;
+              s.editor.on("update", function() {
+                if(updated) return;
+                updated = true;
+                $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseenter", function() {
+                  hintLoc(runtime, editors, srcloc, key.pl);
+                  $("."+cmlocToCSSClass(key.l)).css("animation", "pulse 0.4s infinite alternate");
+                });
+                $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("click", function() {
+                  emphasizeLine(editors, key.l);
+                  gotoLoc(runtime, editors, srcloc, key.pl);
+                });
+                $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseleave", function() {
+                  unhintLoc(runtime, editors, srcloc, key.pl);
+                  $("."+cmlocToCSSClass(key.l)).css("animation", "");
+                });
               });
-              $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("click", function() {
-                emphasizeLine(editors, key.l);
-                gotoLoc(runtime, editors, srcloc, key.pl);
-              });
-              $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseleave", function() {
-                unhintLoc(runtime, editors, srcloc, key.pl);
-                $("."+cmlocToCSSClass(key.l)).css("animation", "");
-              });});
-          })});
+            });
+          });
+        });
 
         if(context === undefined) 
           rendering.addClass("highlights-active");
@@ -1322,10 +1355,10 @@
       function renderText(txt) {
         var echo = $("<span>").addClass("replTextOutput");
         echo.text(txt);
-        setTimeout(function() {
-          CodeMirror.runMode(echo.text(), "pyret", echo[0]);
-          echo.addClass("cm-s-default");
-        }, 0);
+        // setTimeout(function() {
+        //   CodeMirror.runMode(echo.text(), "pyret", echo[0]);
+        //   echo.addClass("cm-s-default");
+        // }, 0);
         return echo;
       };
       function sooper(renderers, valType, val) {
@@ -1682,6 +1715,8 @@
       installRenderers: installRenderers,
       renderPyretValue: renderPyretValue,
       renderStackTrace: renderStackTrace,
+      addMark: addMark,
+      runMarks: runMarks,
       hoverLocs: hoverLocs,
       hoverLink: hoverLink,
       highlightSrcloc: highlightSrcloc,
