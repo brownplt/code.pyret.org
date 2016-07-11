@@ -37,6 +37,10 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
+      "close-when-stop": ["forall", ["a"],
+          ["arrow",
+             ["Boolean"],
+             "WCOofA"]],
       "is-world-config": ["arrow", [ "Any" ], "Boolean"],
       "is-key-equal": ["arrow", [ "String", "String" ], "Boolean"]
     },
@@ -58,21 +62,27 @@
     }
 
     var bigBang = function(initW, handlers) {
+      var closeBigBangWindow = null;
       var outerToplevelNode = jQuery('<span/>').css('padding', '0px').get(0);
       // TODO(joe): This obviously can't stay
       if(!runtime.hasParam("current-animation-port")) {
         document.body.appendChild(outerToplevelNode);
       } else {
-        runtime.getParam("current-animation-port")(outerToplevelNode);
+        runtime.getParam("current-animation-port")(outerToplevelNode, function(closeWindow) {
+          closeBigBangWindow = closeWindow;
+        });
       }
 
       var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
 
       var configs = [];
       var isOutputConfigSeen = false;
+      var closeWhenStop = false;
 
       for (var i = 0 ; i < handlers.length; i++) {
-        if (isOpaqueWorldConfigOption(handlers[i])) {
+        if (isOpaqueCloseWhenStopConfig(handlers[i])) {
+          closeWhenStop = handlers[i].val.isClose;
+        } else if (isOpaqueWorldConfigOption(handlers[i])) {
           configs.push(handlers[i].val.toRawHandler(toplevelNode));
         }
         else {
@@ -89,16 +99,20 @@
 
       runtime.pauseStack(function(restarter) {
         rawJsworld.bigBang(
-          toplevelNode,
-          initW,
-          configs,
-          {},
-          function(finalWorldValue) {
-            restarter.resume(finalWorldValue);
-          },
-          function(err) {
-            restarter.error(err);
-          });
+            toplevelNode,
+            initW,
+            configs,
+            {},
+            function(finalWorldValue) {
+              restarter.resume(finalWorldValue);
+            },
+            function(err) {
+              restarter.error(err);
+            },
+            {
+              closeWhenStop: closeWhenStop,
+              closeBigBangWindow: closeBigBangWindow
+            });
       });
     };
 
@@ -154,17 +168,17 @@
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
         runtime.run(function(_, _) {
-          return worldFunction.app.apply(null, pyretArgs);
-        }, runtime.namespace,
-                    { sync: false },
-                    function(result) {
-                      if(runtime.isSuccessResult(result)) {
-                        success(result.result);
-                      }
-                      else {
-                        return rawJsworld.shutdown({errorShutdown: result.exn});
-                      }
-                    });
+              return worldFunction.app.apply(null, pyretArgs);
+            }, runtime.namespace,
+            { sync: false },
+            function(result) {
+              if(runtime.isSuccessResult(result)) {
+                success(result.result);
+              }
+              else {
+                return rawJsworld.shutdown({errorShutdown: result.exn});
+              }
+            });
       };
     };
 
@@ -198,9 +212,9 @@
       var that = this;
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_key(
-        function(w, e, success) {
-          worldFunction(w, getKeyCodeName(e), success);
-        });
+          function(w, e, success) {
+            worldFunction(w, getKeyCodeName(e), success);
+          });
     };
 
 
@@ -208,48 +222,48 @@
       var code = e.charCode || e.keyCode;
       var keyname;
       switch(code) {
-      case 16: keyname = "shift"; break;
-      case 17: keyname = "control"; break;
-      case 19: keyname = "pause"; break;
-      case 27: keyname = "escape"; break;
-      case 33: keyname = "prior"; break;
-      case 34: keyname = "next"; break;
-      case 35: keyname = "end"; break;
-      case 36: keyname = "home"; break;
-      case 37: keyname = "left"; break;
-      case 38: keyname = "up"; break;
-      case 39: keyname = "right"; break;
-      case 40: keyname = "down"; break;
-      case 42: keyname = "print"; break;
-      case 45: keyname = "insert"; break;
-      case 46: keyname = String.fromCharCode(127); break;
-      case 106: keyname = "*"; break;
-      case 107: keyname = "+"; break;
-      case 109: keyname = "-"; break;
-      case 110: keyname = "."; break;
-      case 111: keyname = "/"; break;
-      case 144: keyname = "numlock"; break;
-      case 145: keyname = "scroll"; break;
-      case 186: keyname = ";"; break;
-      case 187: keyname = "="; break;
-      case 188: keyname = ","; break;
-      case 189: keyname = "-"; break;
-      case 190: keyname = "."; break;
-      case 191: keyname = "/"; break;
-      case 192: keyname = "`"; break;
-      case 219: keyname = "["; break;
-      case 220: keyname = "\\"; break;
-      case 221: keyname = "]"; break;
-      case 222: keyname = "'"; break;
-      default:
-        if (code >= 96 && code <= 105) {
-          keyname = (code - 96).toString();
-        } else if (code >= 112 && code <= 123) {
-          keyname = "f" + (code - 111);
-        } else {
-          keyname = String.fromCharCode(code).toLowerCase();
-        }
-        break;
+        case 16: keyname = "shift"; break;
+        case 17: keyname = "control"; break;
+        case 19: keyname = "pause"; break;
+        case 27: keyname = "escape"; break;
+        case 33: keyname = "prior"; break;
+        case 34: keyname = "next"; break;
+        case 35: keyname = "end"; break;
+        case 36: keyname = "home"; break;
+        case 37: keyname = "left"; break;
+        case 38: keyname = "up"; break;
+        case 39: keyname = "right"; break;
+        case 40: keyname = "down"; break;
+        case 42: keyname = "print"; break;
+        case 45: keyname = "insert"; break;
+        case 46: keyname = String.fromCharCode(127); break;
+        case 106: keyname = "*"; break;
+        case 107: keyname = "+"; break;
+        case 109: keyname = "-"; break;
+        case 110: keyname = "."; break;
+        case 111: keyname = "/"; break;
+        case 144: keyname = "numlock"; break;
+        case 145: keyname = "scroll"; break;
+        case 186: keyname = ";"; break;
+        case 187: keyname = "="; break;
+        case 188: keyname = ","; break;
+        case 189: keyname = "-"; break;
+        case 190: keyname = "."; break;
+        case 191: keyname = "/"; break;
+        case 192: keyname = "`"; break;
+        case 219: keyname = "["; break;
+        case 220: keyname = "\\"; break;
+        case 221: keyname = "]"; break;
+        case 222: keyname = "'"; break;
+        default:
+          if (code >= 96 && code <= 105) {
+            keyname = (code - 96).toString();
+          } else if (code >= 112 && code <= 123) {
+            keyname = "f" + (code - 111);
+          } else {
+            keyname = String.fromCharCode(code).toLowerCase();
+          }
+          break;
       }
       return keyname;
     }
@@ -270,9 +284,9 @@
       var that = this;
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_mouse(
-        function(w, x, y, type, success) {
-          worldFunction(w, x, y, type, success);
-        });
+          function(w, x, y, type, success) {
+            worldFunction(w, x, y, type, success);
+          });
     };
 
 
@@ -311,52 +325,52 @@
       var worldFunction = function(world, success) {
 
         adaptedWorldFunction(
-          world,
-          function(v) {
-            // fixme: once jsworld supports fail continuations, use them
-            // to check the status of the scene object and make sure it's an
-            // image.
+            world,
+            function(v) {
+              // fixme: once jsworld supports fail continuations, use them
+              // to check the status of the scene object and make sure it's an
+              // image.
 
 
-            if (runtime.isOpaque(v) && isImage(v.val) ) {
-              var theImage = v.val;
-              var width = theImage.getWidth();
-              var height = theImage.getHeight();
+              if (runtime.isOpaque(v) && isImage(v.val) ) {
+                var theImage = v.val;
+                var width = theImage.getWidth();
+                var height = theImage.getHeight();
 
-              if (! reusableCanvas) {
-                reusableCanvas = imageLibrary.makeCanvas(width, height);
-                // Note: the canvas object may itself manage objects,
-                // as in the case of an excanvas.  In that case, we must make
-                // sure jsworld doesn't try to disrupt its contents!
-                reusableCanvas.jsworldOpaque = true;
-                reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                if (! reusableCanvas) {
+                  reusableCanvas = imageLibrary.makeCanvas(width, height);
+                  // Note: the canvas object may itself manage objects,
+                  // as in the case of an excanvas.  In that case, we must make
+                  // sure jsworld doesn't try to disrupt its contents!
+                  reusableCanvas.jsworldOpaque = true;
+                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                }
+                if (reusableCanvas.width !== width) {
+                  reusableCanvas.width = width;
+                }
+                if (reusableCanvas.height !== height) {
+                  reusableCanvas.height = height;
+                }
+                var ctx = reusableCanvas.getContext("2d");
+                ctx.save();
+                ctx.fillStyle = "rgba(255,255,255,1)";
+                ctx.fillRect(0, 0, width, height);
+                ctx.restore();
+                theImage.render(ctx, 0, 0);
+                success([toplevelNode, reusableCanvasNode]);
+              } else {
+                // TODO(joe): Maybe torepr below
+                success([toplevelNode, rawJsworld.node_to_tree(String(v))]);
               }
-              if (reusableCanvas.width !== width) {
-                reusableCanvas.width = width;
-              }
-              if (reusableCanvas.height !== height) {
-                reusableCanvas.height = height;
-              }
-              var ctx = reusableCanvas.getContext("2d");
-              ctx.save();
-              ctx.fillStyle = "rgba(255,255,255,1)";
-              ctx.fillRect(0, 0, width, height);
-              ctx.restore();
-              theImage.render(ctx, 0, 0);
-              success([toplevelNode, reusableCanvasNode]);
-            } else {
-              // TODO(joe): Maybe torepr below
-              success([toplevelNode, rawJsworld.node_to_tree(String(v))]);
-            }
-          });
+            });
       };
 
       var cssFunction = function(w, k) {
         if (reusableCanvas) {
           k([[reusableCanvas,
-              ["padding", "0px"],
-              ["width", reusableCanvas.width + "px"],
-              ["height", reusableCanvas.height + "px"]]]);
+            ["padding", "0px"],
+            ["width", reusableCanvas.width + "px"],
+            ["height", reusableCanvas.height + "px"]]]);
         } else {
           k([]);
         }
@@ -386,7 +400,7 @@
         }, function(str) {
           textNode.text(str);
           success([toplevelNode,
-                   rawJsworld.node_to_tree(textNode[0])]);
+            rawJsworld.node_to_tree(textNode[0])]);
         });
       };
       var cssFunction = function(w, success) { success([]); }
@@ -398,7 +412,17 @@
 
     //////////////////////////////////////////////////////////////////////
 
+    var CloseWhenStop = function(isClose) {
+      WorldConfigOption.call(this, 'close-when-stop');
+      this.isClose = runtime.isPyretTrue(isClose);
+    };
 
+    CloseWhenStop.prototype = Object.create(WorldConfigOption.prototype);
+
+    var isCloseWhenStopConfig = function(v) { return v instanceof CloseWhenStop; };
+    var isOpaqueCloseWhenStopConfig = function(v) {
+      return runtime.isOpaque(v) && isCloseWhenStopConfig(v.val);
+    }
 
     var StopWhen = function(handler) {
       WorldConfigOption.call(this, 'stop-when');
@@ -456,6 +480,11 @@
             runtime.ffi.checkArity(1, arguments, "stop-when");
             runtime.checkFunction(stopper);
             return runtime.makeOpaque(new StopWhen(stopper));
+          }),
+          "close-when-stop": makeFunction(function(isClose) {
+            runtime.ffi.checkArity(1, arguments, "close-when-stop");
+            runtime.checkBoolean(isClose);
+            return runtime.makeOpaque(new CloseWhenStop(isClose));
           }),
           "on-key": makeFunction(function(onKey) {
             runtime.ffi.checkArity(1, arguments, "on-key");

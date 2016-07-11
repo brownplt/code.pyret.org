@@ -3,6 +3,13 @@
   nativeRequires: [],
   provides: [],
   theModule: function(runtime, namespace, uri) {
+    var _worldIndex = 0;
+
+    var getNewWorldIndex = function() {
+      _worldIndex++;
+      return _worldIndex;
+    }
+
     var rawJsworld = {};
 
     // Stuff here is copy-and-pasted from Chris King's JSWorld.
@@ -60,24 +67,63 @@
     function InitialWorld() {}
 
     var world = new InitialWorld();
-    var worldListeners = [];
-    var eventDetachers = [];
+    var worldListenersStack = [];
+    var eventDetachersStack = [];
+    var worldIndexStack = [];
     var runningBigBangs = [];
 
-    var changingWorld = false;
+    var worldIndex = null;
+    var worldListeners = null;
+    var eventDetachers = null;
+    var changingWorld = [];
 
 
 
     function clear_running_state() {
-      var i;
+      worldIndexStack = [];
+      worldIndex = null;
       world = new InitialWorld();
-      worldListeners = [];
+      worldListenersStack = [];
+      worldListeners = null;
 
-      for (i = 0; i < eventDetachers.length; i++) {
-        eventDetachers[i]();
+      eventDetachersStack.forEach(function(eventDetachers) {
+        eventDetachers.forEach(function(eventDetacher) {
+          eventDetacher();
+        });
+      });
+      eventDetachersStack = [];
+      eventDetachers = null;
+      changingWorld = [];
+    }
+
+    function resume_running_state() {
+      worldIndexStack.pop();
+      if (worldIndexStack.length > 0) {
+        worldIndex = worldIndexStack[worldIndexStack.length - 1];
+      } else {
+        worldIndex = null;
       }
-      eventDetachers = [];
-      changingWorld = false;
+      if(runningBigBangs.length > 0) {
+        world = runningBigBangs[runningBigBangs.length - 1].world;
+      } else {
+        world = new InitialWorld();
+      }
+      worldListenersStack.pop();
+      if (worldListenersStack.length > 0) {
+        worldListeners = worldListenersStack[worldListenersStack.length - 1];
+      } else {
+        worldListeners = null;
+      }
+
+      eventDetachersStack.pop().forEach(function(eventDetacher){
+        eventDetacher();
+      });
+      if (eventDetachersStack.length > 0) {
+        eventDetachers = eventDetachersStack[eventDetachersStack.length - 1];
+      } else {
+        eventDetachers = null;
+      }
+      changingWorld.pop();
     }
 
 
@@ -86,7 +132,7 @@
     Jsworld.shutdown = function(options) {
       while(runningBigBangs.length > 0) {
         var currentRecord = runningBigBangs.pop();
-        if (currentRecord) { currentRecord.pause(); }
+        currentRecord.pause();
         if (options.cleanShutdown) {
           currentRecord.success(world);
         }
@@ -97,6 +143,23 @@
       clear_running_state();
     };
 
+    // Close all world computations.
+    Jsworld.shutdownSingle = function(options) {
+      if(runningBigBangs.length > 0) {
+        var currentRecord = runningBigBangs.pop();
+        currentRecord.pause();
+        if (options.cleanShutdown) {
+          currentRecord.success(world);
+        }
+        if (options.errorShutdown) {
+          currentRecord.fail(options.errorShutdown);
+        }
+      }
+      resume_running_state();
+      if(runningBigBangs.length > 0) {
+        runningBigBangs[runningBigBangs.length - 1].start();
+      }
+    };
 
 
     function add_world_listener(listener) {
@@ -129,34 +192,34 @@
       // Check to see if we're in the middle of changing
       // the world already.  If so, put on the queue
       // and exit quickly.
-      if (changingWorld) {
+      if (changingWorld[changingWorld.length - 1]) {
         setTimeout(
-          function() {
-            change_world(updater, k);
-          },
-          DELAY_BEFORE_RETRY);
+            function() {
+              change_world(updater, k);
+            },
+            DELAY_BEFORE_RETRY);
         return;
       }
 
 
-      changingWorld = true;
+      changingWorld[changingWorld.length - 1] = true;
       var originalWorld = world;
 
       var changeWorldHelp;
       changeWorldHelp = function() {
         forEachK(worldListeners,
-                 function(listener, k2) {
-                   listener(world, originalWorld, k2);
-                 },
-                 function(e) {
-                   changingWorld = false;
-                   world = originalWorld;
-                   throw e; 
-                 },
-                 function() {
-                   changingWorld = false;
-                   k();
-                 });
+            function(listener, k2) {
+              listener(world, originalWorld, k2);
+            },
+            function(e) {
+              changingWorld[changingWorld.length - 1] = false;
+              world = originalWorld;
+              throw e;
+            },
+            function() {
+              changingWorld[changingWorld.length - 1] = false;
+              k();
+            });
       };
 
       try {
@@ -165,7 +228,7 @@
           changeWorldHelp();
         });
       } catch(e) {
-        changingWorld = false;
+        changingWorld[changingWorld.length - 1] = false;
         world = originalWorld;
         return Jsworld.shutdown({errorShutdown: e});
       }
@@ -217,48 +280,48 @@
 
     // treeable(nodes(N), relations(N)) = bool
     /*function treeable(nodes, relations) {
-    // for all neighbor relations between x and y
-    for (var i = 0; i < relations.length; i++)
-    if (relations[i].relation == 'neighbor') {
-    var x = relations[i].left, y = relations[i].right;
+     // for all neighbor relations between x and y
+     for (var i = 0; i < relations.length; i++)
+     if (relations[i].relation == 'neighbor') {
+     var x = relations[i].left, y = relations[i].right;
 
-    // there does not exist a neighbor relation between x and z!=y or z!=x and y
-    for (var j = 0; j < relations.length; j++)
-    if (relations[j].relation === 'neighbor')
-    if (relations[j].left === x && relations[j].right !== y ||
-    relations[j].left !== x && relations[j].right === y)
-    return false;
-    }
+     // there does not exist a neighbor relation between x and z!=y or z!=x and y
+     for (var j = 0; j < relations.length; j++)
+     if (relations[j].relation === 'neighbor')
+     if (relations[j].left === x && relations[j].right !== y ||
+     relations[j].left !== x && relations[j].right === y)
+     return false;
+     }
 
-    // for all parent relations between x and y
-    for (var i = 0; i < relations.length; i++)
-    if (relations[i].relation == 'parent') {
-    var x = relations[i].parent, y = relations[i].child;
+     // for all parent relations between x and y
+     for (var i = 0; i < relations.length; i++)
+     if (relations[i].relation == 'parent') {
+     var x = relations[i].parent, y = relations[i].child;
 
-    // there does not exist a parent relation between z!=x and y
-    for (var j = 0; j < relations.length; j++)
-    if (relations[j].relation == 'parent')
-    if (relations[j].parent !== x && relations[j].child === y)
-    return false;
-    }
+     // there does not exist a parent relation between z!=x and y
+     for (var j = 0; j < relations.length; j++)
+     if (relations[j].relation == 'parent')
+     if (relations[j].parent !== x && relations[j].child === y)
+     return false;
+     }
 
-    // for all neighbor relations between x and y
-    for (var i = 0; i < relations.length; i++)
-    if (relations[i].relation == 'neighbor') {
-    var x = relations[i].left, y = relations[i].right;
+     // for all neighbor relations between x and y
+     for (var i = 0; i < relations.length; i++)
+     if (relations[i].relation == 'neighbor') {
+     var x = relations[i].left, y = relations[i].right;
 
-    // all parent relations between z and x or y share the same z
-    for (var j = 0; j < relations.length; j++)
-    if (relations[j].relation == 'parent')
-    for (var k = 0; k < relations.length; k++)
-    if (relations[k].relation == 'parent')
-    if (relations[j].child === x && relations[k].child === y &&
-    relations[j].parent !== relations[k].parent)
-    return false;
-    }
+     // all parent relations between z and x or y share the same z
+     for (var j = 0; j < relations.length; j++)
+     if (relations[j].relation == 'parent')
+     for (var k = 0; k < relations.length; k++)
+     if (relations[k].relation == 'parent')
+     if (relations[j].child === x && relations[k].child === y &&
+     relations[j].parent !== relations[k].parent)
+     return false;
+     }
 
-    return true;
-    }*/
+     return true;
+     }*/
 
 
     // node_to_tree: dom -> dom-tree
@@ -298,14 +361,14 @@
       var i;
       for (i = 0; i < tree.children.length; i++) {
         ret.push({ relation: 'parent',
-                   parent: tree.node,
-                   child: tree.children[i].node });
+          parent: tree.node,
+          child: tree.children[i].node });
       }
 
       for (i = 0; i < tree.children.length - 1; i++) {
         ret.push({ relation: 'neighbor',
-                   left: tree.children[i].node,
-                   right: tree.children[i + 1].node });
+          left: tree.children[i].node,
+          right: tree.children[i + 1].node });
       }
 
       if (! tree.node.jsworldOpaque) {
@@ -442,7 +505,7 @@
       if (css.id.match(/^\./)) {
         // Check to see if we match the class
         return (node.className && member(node.className.split(/\s+/),
-                                         css.id.substring(1)));
+            css.id.substring(1)));
       } else {
         return (node.id && node.id === css.id);
       }
@@ -492,43 +555,43 @@
       if (oldWorld instanceof InitialWorld) {
         // Simple path
         redraw_func(world,
-                    function(drawn) {
-                      var t = sexp2tree(drawn);
-                      var ns = nodes(t);
-                      // HACK: css before dom, due to excanvas hack.
-                      redraw_css_func(world,
-                                      function(css) {
-                                        update_css(ns, sexp2css(css));
-                                        update_dom(toplevelNode, ns, relations(t));
-                                        k();
-                                      });
-                    });
+            function(drawn) {
+              var t = sexp2tree(drawn);
+              var ns = nodes(t);
+              // HACK: css before dom, due to excanvas hack.
+              redraw_css_func(world,
+                  function(css) {
+                    update_css(ns, sexp2css(css));
+                    update_dom(toplevelNode, ns, relations(t));
+                    k();
+                  });
+            });
       } else {
         maintainingSelection(
-          function(k2) {
-            redraw_func(
-              world,
-              function(newRedraw) {
-
-                redraw_css_func(
+            function(k2) {
+              redraw_func(
                   world,
-                  function(newRedrawCss) {
-                    var t = sexp2tree(newRedraw);
-                    var ns = nodes(t);
-                    // Try to save the current selection and preserve it across
-                    // dom updates.
+                  function(newRedraw) {
 
-                    // Kludge: update the CSS styles first.
-                    // This is a workaround an issue with excanvas: any style change
-                    // clears the content of the canvas, so we do this first before
-                    // attaching the dom element.
-                    update_css(ns, sexp2css(newRedrawCss));
-                    update_dom(toplevelNode, ns, relations(t));
+                    redraw_css_func(
+                        world,
+                        function(newRedrawCss) {
+                          var t = sexp2tree(newRedraw);
+                          var ns = nodes(t);
+                          // Try to save the current selection and preserve it across
+                          // dom updates.
 
-                    k2();
+                          // Kludge: update the CSS styles first.
+                          // This is a workaround an issue with excanvas: any style change
+                          // clears the content of the canvas, so we do this first before
+                          // attaching the dom element.
+                          update_css(ns, sexp2css(newRedrawCss));
+                          update_dom(toplevelNode, ns, relations(t));
+
+                          k2();
+                        });
                   });
-              });
-          }, k);
+            }, k);
       }
     }
 
@@ -605,8 +668,13 @@
       this.fail = fail;
     }
 
-    BigBangRecord.prototype.restart = function() {
-      bigBang(this.top, this.world, this.handlerCreators, this.attribs);
+    BigBangRecord.prototype.start = function() {
+      var i;
+      for(i = 0 ; i < this.handlers.length; i++) {
+        if (! (this.handlers[i] instanceof StopWhenHandler)) {
+          this.handlers[i].onRegister(this.top);
+        }
+      }
     };
 
     BigBangRecord.prototype.pause = function() {
@@ -629,20 +697,28 @@
     // init_world: any
     // handlerCreators: (Arrayof (-> handler))
     // k: any -> void
-    bigBang = function(top, init_world, handlerCreators, attribs, succ, fail) {
+    bigBang = function(top, init_world, handlerCreators, attribs, succ, fail, extras) {
+      var thisWorldIndex = getNewWorldIndex();
+      worldIndexStack.push(thisWorldIndex);
+      worldIndex = thisWorldIndex;
       var i;
       // clear_running_state();
 
       // Construct a fresh set of the handlers.
-      var handlers = map(handlerCreators, function(x) { return x();} );
+      var handlers = map(handlerCreators, function(x) { return x(thisWorldIndex);} );
       if (runningBigBangs.length > 0) {
         runningBigBangs[runningBigBangs.length - 1].pause();
       }
+      changingWorld.push(false);
+      worldListeners = [];
+      worldListenersStack.push(worldListeners);
+      eventDetachers = [];
+      eventDetachersStack.push(eventDetachers);
 
       // Create an activation record for this big-bang.
       var activationRecord =
-        new BigBangRecord(top, init_world, handlerCreators, handlers, attribs, 
-                          succ, fail);
+          new BigBangRecord(top, init_world, handlerCreators, handlers, attribs,
+              succ, fail);
       runningBigBangs.push(activationRecord);
       function keepRecordUpToDate(w, oldW, k2) {
         activationRecord.world = w;
@@ -654,22 +730,30 @@
 
       // Monitor for termination and register the other handlers.
       var stopWhen = new StopWhenHandler(function(w, k2) { k2(false); },
-                                         function(w, k2) { k2(w); });
+          function(w, k2) { k2(w); });
       for(i = 0 ; i < handlers.length; i++) {
         if (handlers[i] instanceof StopWhenHandler) {
           stopWhen = handlers[i];
-        } else {
-          handlers[i].onRegister(top);
         }
       }
+      activationRecord.start();
       var watchForTermination = function(w, oldW, k2) {
+        if (thisWorldIndex != worldIndex) { return; }
         stopWhen.test(w,
-                      function(stop) {
-                        if (stop) {
-                          Jsworld.shutdown({cleanShutdown: true});
-                        }
-                        else { k2(); }
-                      });
+            function(stop) {
+              if (!stop) {
+                k2();
+              } else {
+                if (extras.closeWhenStop) {
+                  if (extras.closeBigBangWindow) {
+                    extras.closeBigBangWindow();
+                  }
+                  Jsworld.shutdownSingle({cleanShutdown: true});
+                } else {
+                  activationRecord.pause();
+                }
+              }
+            });
       };
       add_world_listener(watchForTermination);
 
@@ -686,21 +770,22 @@
 
     // on_tick: number CPS(world -> world) -> handler
     var on_tick = function(delay, tick) {
-      return function() {
+      return function(thisWorldIndex) {
         var scheduleTick, ticker;
         scheduleTick = function(t) {
           ticker.watchId = setTimeout(
-            function() {
-              ticker.watchId = undefined;
-              var startTime = (new Date()).valueOf();
-              change_world(tick,
-                           function() {
-                             var endTime = (new Date()).valueOf();
-                             scheduleTick(Math.max(delay - (endTime - startTime),
-                                                   0));
-                           });
-            },
-            t);
+              function() {
+                if (thisWorldIndex != worldIndex) { return; }
+                ticker.watchId = undefined;
+                var startTime = (new Date()).valueOf();
+                change_world(tick,
+                    function() {
+                      var endTime = (new Date()).valueOf();
+                      scheduleTick(Math.max(delay - (endTime - startTime),
+                          0));
+                    });
+              },
+              t);
         };
 
         ticker = {
@@ -725,8 +810,9 @@
 
 
     function on_key(press) {
-      return function() {
+      return function(thisWorldIndex) {
         var wrappedPress = function(e) {
+          if (thisWorldIndex != worldIndex) { return; }
           if(e.keyCode === 27) { return; } // Escape events are not for world; the environment handles them
           stopPropagation(e);
           preventDefault(e);
@@ -753,10 +839,11 @@
     // http://www.quirksmode.org/js/events_mouse.html
     // http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
     function on_mouse(mouse) {
-      return function() {
+      return function(thisWorldIndex) {
         var isButtonDown = false;
         var makeWrapped = function(type) {
           return function(e) {
+            if (thisWorldIndex != worldIndex) { return; }
             preventDefault(e);
             stopPropagation(e);
             var x = e.pageX, y = e.pageY;
@@ -824,10 +911,11 @@
         });
       };
 
-      return function() {
+      return function(thisWorldIndex) {
         var drawer = {
           _top: null,
           _listener: function(w, oldW, k2) {
+            if (thisWorldIndex != worldIndex) { return; }
             do_redraw(w, oldW, drawer._top, wrappedRedraw, redraw_css, k2);
           },
           onRegister: function (top) {
@@ -864,8 +952,11 @@
 
 
     function on_world_change(f) {
-      var listener = function(world, oldW, k) { f(world, k); };
-      return function() {
+      return function(thisWorldIndex) {
+        var listener = function(world, oldW, k) {
+          if (thisWorldIndex != worldIndex) { return; }
+          f(world, k);
+        };
         return {
           onRegister: function (top) {
             add_world_listener(listener); },
@@ -909,7 +1000,7 @@
     // Attaches a world-updating handler when the world is changed.
     function add_ev(node, event, f) {
       var eventHandler = function(e) { change_world(function(w, k) { f(w, e, k); },
-                                                    doNothing); };
+          doNothing); };
       attachEvent(node, event, eventHandler);
       eventDetachers.push(function() { detachEvent(node, event, eventHandler); });
     }
@@ -920,8 +1011,8 @@
     function add_ev_after(node, event, f) {
       var eventHandler = function(e) {
         setTimeout(function() { change_world(function(w, k) { f(w, e, k); },
-                                             doNothing); },
-                   0);
+            doNothing); },
+            0);
       };
 
       attachEvent(node, event, eventHandler);
@@ -986,8 +1077,8 @@
 
     var throwDomError = function(thing, topThing) {
       throw new JsworldDomError(
-        "Expected a non-empty array, received " +  thing + " within " + topThing,
-        thing);
+          "Expected a non-empty array, received " +  thing + " within " + topThing,
+          thing);
     };
 
     // checkDomSexp: X X -> boolean
@@ -1007,7 +1098,7 @@
       if (isTextNode(thing[0])) {
         if (thing.length > 1) {
           throw new JsworldDomError("Text node " + thing + " can not have children",
-                                    thing);
+              thing);
         }
       } else if (isElementNode(thing[0])) {
         for (i = 1; i < thing.length; i++) {
@@ -1017,8 +1108,8 @@
         if (window.console && window.console.log) { window.console.log(thing[0]); }
 
         throw new JsworldDomError(
-          "expected a Text or an Element, received " + thing + " within " + topThing,
-          thing[0]);
+            "expected a Text or an Element, received " + thing + " within " + topThing,
+            thing[0]);
       }
     };
 
@@ -1102,24 +1193,24 @@
 
     var stopClickPropagation = function(node) {
       attachEvent(node, "click",
-                  function(e) {
-                    stopPropagation(e);
-                  });
+          function(e) {
+            stopPropagation(e);
+          });
       return node;
     };
 
 
     var text_input, checkbox_input;
 
-    // input: string CPS(world -> world) 
+    // input: string CPS(world -> world)
     function input(aType, updateF, attribs) {
       aType = aType.toLowerCase();
       var dispatchTable = { text : text_input,
-                            password: text_input,
-                            checkbox: checkbox_input
-                            //button: button_input,
-                            //radio: radio_input 
-                          };
+        password: text_input,
+        checkbox: checkbox_input
+        //button: button_input,
+        //radio: radio_input
+      };
 
       if (dispatchTable[aType]) {
         return (dispatchTable[aType])(aType, updateF, attribs);
@@ -1141,15 +1232,15 @@
       var onEvent = function() {
         if (! n.parentNode) { return; }
         setTimeout(
-          function() {
-            if (lastVal !== n.value) {
-              lastVal = n.value;
-              change_world(function (w, k) {
-                updateF(w, n.value, k);
-              }, doNothing);
-            }
-          },
-          0);
+            function() {
+              if (lastVal !== n.value) {
+                lastVal = n.value;
+                change_world(function (w, k) {
+                  updateF(w, n.value, k);
+                }, doNothing);
+              }
+            },
+            0);
       };
 
       attachEvent(n, "keydown", onEvent);
@@ -1161,7 +1252,7 @@
         detachEvent(n, "change", onEvent); });
 
       return stopClickPropagation(
-        addFocusTracking(copy_attribs(n, attribs)));
+          addFocusTracking(copy_attribs(n, attribs)));
     };
 
 
@@ -1251,6 +1342,7 @@
       return addFocusTracking(copy_attribs(node, attribs));
     }
     Jsworld.raw_node = raw_node;
+
 
     return runtime.makeJSModuleReturn(Jsworld);
   }
