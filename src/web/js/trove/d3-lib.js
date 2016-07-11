@@ -26,8 +26,7 @@
      * @param {jsnums} oldY
      * @param {jsnums} newX
      * @param {jsnums} newY
-     * @param {boolean} toInt: if true, the result is converted to
-     * integer fixnum
+     * @param {boolean} toInt: if true, the result is converted to fixnum
      * @return {Function}
      */
     return function (k) {
