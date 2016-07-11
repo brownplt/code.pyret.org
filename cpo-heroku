@@ -1,4 +1,4 @@
-# last modified 2016-07-08
+# last modified 2016-07-11
 
 localbranchname=$(git rev-parse --abbrev-ref HEAD)
 herokuappname=$1
@@ -13,13 +13,16 @@ GOOGLE_CLIENT_ID="" \
 GOOGLE_CLIENT_SECRET="" \
 GOOGLE_API_KEY="" \
 BASE_URL="https://$herokuappname.herokuapp.com" \
+ASSET_BASE_URL="https://$herokuappname.herokuapp.com" \
 SESSION_SECRET="not-so-secret" \
 REDISCLOUD_URL="" \
 USE_STANDALONE_PYRET="true" \
-PYRET_RELEASE_BASE="https://$herokuappname.herokuapp.com/js/cpo-main.jarr" \
+PYRET_RELEASE_BASE="https://github.com/ds26gte/code.pyret.org/tree/latitude/build/web/js" \
 CURRENT_PYRET_RELEASE="" \
+PYRET="https://$herokuappname.herokuapp.com/js/cpo-main.jarr" \
 PORT=5000 \
-NODE_ENV=development
+NODE_ENV=development \
+OK_GOOGLE_IDS="{\"0B32bNEogmncO\":\"joe.politz@gmail.com\"}"
 
 git push heroku $localbranchname:master
 
