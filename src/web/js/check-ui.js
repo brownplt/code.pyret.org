@@ -209,6 +209,7 @@
                   .append(checkBlockTests);
               }
 
+              checkBlockReport.addClass("check-block-result");
               checkBlockReport.addClass(
                   thisCheckBlockErrored               ? "check-block-errored"
                 : tests.length == testsPassingInBlock ? "check-block-success"
@@ -508,6 +509,8 @@
                   }}), 0, tests.length);
               });}), 0, checkBlockTestReports.length)},
               function(_){
+                // NOTE(joe): This is used for hooking into integration tests
+                resultsContainer.append($("<span class='check-results-done-rendering' style='display:none'></span>"));
                 // all done!
               });
           });

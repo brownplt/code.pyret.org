@@ -223,7 +223,7 @@ $(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalon
     --outfile $(CPOMAIN) -no-check-mode
 
 $(CPOMAIN).gz: $(CPOMAIN)
-	gzip -k $(CPOMAIN)
+	gzip -k -f $(CPOMAIN)
 
 $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;
