@@ -143,7 +143,7 @@
                 eachTest.addClass("passing-test");
                 eachTest.prepend(testTitle(loc, true));
                 var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
-                var cmLinked = outputUI.snippet(editors, cmloc);
+                var cmLinked = outputUI.snippet(editors, cmloc, srcloc, loc);
                 eachTest.append(cmLinked.wrapper);
                 testEditors.push(cmLinked);
               }
