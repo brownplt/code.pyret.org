@@ -124,6 +124,10 @@
         eventDetachers = null;
       }
       changingWorld.pop();
+
+      if(runningBigBangs.length > 0) {
+        runningBigBangs[runningBigBangs.length - 1].restart();
+      }
     }
 
 
@@ -143,7 +147,7 @@
       clear_running_state();
     };
 
-    // Close all world computations.
+    // Closes the most recent world computation.
     Jsworld.shutdownSingle = function(options) {
       if(runningBigBangs.length > 0) {
         var currentRecord = runningBigBangs.pop();
@@ -156,9 +160,6 @@
         }
       }
       resume_running_state();
-      if(runningBigBangs.length > 0) {
-        runningBigBangs[runningBigBangs.length - 1].start();
-      }
     };
 
 
@@ -668,7 +669,7 @@
       this.fail = fail;
     }
 
-    BigBangRecord.prototype.start = function() {
+    BigBangRecord.prototype.restart = function() {
       var i;
       for(i = 0 ; i < this.handlers.length; i++) {
         if (! (this.handlers[i] instanceof StopWhenHandler)) {
@@ -736,7 +737,7 @@
           stopWhen = handlers[i];
         }
       }
-      activationRecord.start();
+      activationRecord.restart();
       var watchForTermination = function(w, oldW, k2) {
         if (thisWorldIndex != worldIndex) { return; }
         stopWhen.test(w,
