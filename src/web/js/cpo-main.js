@@ -266,7 +266,7 @@
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
       function doRunAction(src) {
-        editor.cm.clearGutter("test-marker-gutter");
+        editor.cm.clearGutter("CodeMirror-linenumbers");
         var marks = editor.cm.getAllMarks();
         document.getElementById("main").dataset.highlights = "";
         editor.cm.eachLine(function(lh){

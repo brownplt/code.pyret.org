@@ -19,501 +19,424 @@
 
     option = runtime.getField(option, "values");
     srcloc = runtime.getField(srcloc, "values");
-    var CH = runtime.getField(checker, "values");
+    CH = runtime.getField(checker, "values");
 
     function isTestResult(val) { return runtime.unwrap(runtime.getField(CH, "TestResult").app(val)); }
     function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success").app(val)); }
 
+    var highlightCounter = 0;
     // NOTE: MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function drawCheckResults(container, editors, runtime, checkResults, contextFactory) {
       var ffi = runtime.ffi;
       var cases = ffi.cases;
       var get = runtime.getField;
-
-      function cssKey(loc) {
-        return outputUI.cmlocToCSSClass(
-                outputUI.cmPosFromSrcloc(runtime, srcloc, loc));
-      }
-
-      function batchOperation(thunk) {
-        return Object.keys(editors)
-          .map(function(editor){ return editors[editor];})
-          .reduce(
-            function(acc, editor) {
-              return function(){return editor.operation(acc);};
-            }, thunk)();
-      }
-
-      var checkBlocks = ffi.toArray(checkResults).reverse();
-
-      if (checkBlocks.length === 0)
-        return;
-
-      var checkBlockTestReports  = [];
-      var checkBlockErrorReports = [];
-
+      var inspect = runtime.getFields;
+    
+      var checkResultsArr = ffi.toArray(checkResults).reverse();
+    
+      // These counters keep cumulative statistics for all the check blocks.
       var checkTotalAll = 0;
       var checkPassedAll = 0;
+      var checkBlockCount = checkResultsArr.length;
+      var checkBlocksErrored = checkResultsArr.reduce(
+        function(n, test) {
+          return n + get(option, "is-some").app(get(test, "maybe-err"));
+        }, 0);
+  
+      var checkContainer = $("<div>").addClass("test-results");
+  
+      // Sort through all the check blocks.
+      return runtime.safeCall(function() {
+        return runtime.eachLoop(runtime.makeFunction(function(i) { 
+          var cr = checkResultsArr[i];
 
-      var currentlyExpandedBlock = undefined;
-      var resultsContainer = $("<div>").addClass("test-results");
-      var contextManager = document.getElementById("main").dataset;
+          var eachContainer = $("<div>").addClass("check-block").addClass("check-block-results");
+          var testContainer = $("<div>").addClass("check-block-test-container");
+          var checkLoc      = get(cr,"loc");
+          var checkCMLoc    = outputUI.cmPosFromSrcloc(runtime, srcloc, checkLoc);
+          var checkCSS      = outputUI.cmlocToCSSClass(checkCMLoc);
+          var checkCSSID    = "check-" + checkCSS;    
+          
+          // Counters for cumulative stats within a check block.
+          var trArr = ffi.toArray(get(cr, "test-results")).reverse();
+          
+          var testsInBlock = trArr.length;
+          var testsPassingInBlock = trArr.reduce(
+            function(n, test) {
+              return n + isTestSuccess(test);
+            }, 0);
+          var thisCheckBlockErrored =
+            get(option, "is-some").app(get(cr, "maybe-err"));
+          checkTotalAll += testsInBlock;
+          checkPassedAll += testsPassingInBlock;
+          
 
-      /* First, we generate a 'skeleton' into which the actual
-       * test result reasons can be rendered. The `batchOperation` here
-       * batches the `textMarker` calls used for check block and test
-       * title links.                                                 */
-      batchOperation(
-        function() {
-          return checkBlocks.map(
-            function(checkBlock){
-              var thisCheckBlockErrored =
-                get(option, "is-some").app(get(checkBlock, "maybe-err"));
+          eachContainer.attr("id", checkCSSID);
+          
+          
+          // Check block header
+          var name = $("<a>").text(get(cr, "name"))
+            .addClass("hinted-highlight")
+            .addClass(checkCSS);
+          
+          
+          
+          eachContainer
+            .append($("<div>").addClass("check-block-header")
+                    .append(name.append(": ")));
+          
+          var testEditors = new Array();
+          
+          var testNumber = 0;
+          function testTitle(loc, passed) {
+            testNumber++;
+            var testName = $("<a class='hinted-highlight'>").text("Test " + testNumber);
+            var header = $("<header>")
+              .append(testName)
+              .append(": " +
+                      (passed ? "Passed"
+                       : "Failed"))
+              .attr('title',"Click to scroll editor to test.");
+            var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
+            var testContext = outputUI.cmlocToCSSClass(cmloc);
+            // Highlight the whole test on hover
+            var testMarker = outputUI.highlightSrcloc(runtime, editors, srcloc, loc, 
+                                                      (passed ? "hsl(88, 50%, 76%)" : "hsl(45, 100%, 85%)"), testContext, false);
+            var currentHighlight = "";
+            var contextManager = document.getElementById("main").dataset;
+            testName.on("click", function(e){
+              outputUI.emphasizeLine(editors, cmloc);
+              outputUI.gotoLoc(runtime, editors, srcloc, loc);
+              e.stopPropagation();});
+            testName.on("mouseenter", function(e){
+              if(header.parent().hasClass("highlights-active")) return;
+              currentHighlight = contextManager.highlights;
+              contextManager.highlights = testContext;
+              outputUI.hintLoc(runtime, editors, srcloc, loc);
+              e.stopPropagation();});
+            testName.on("mouseleave", function(e) {
+              if(header.parent().hasClass("highlights-active")) return;
+              contextManager.highlights = currentHighlight;
+              outputUI.unhintLoc(runtime, editors, srcloc, loc);
+              e.stopPropagation();});
+            return header;
+          }
+          
+          // Sort through the collection of test results within a check
+          // block.
+          return runtime.safeCall(function() {
+            return runtime.eachLoop(runtime.makeFunction(function(i) {
+              var tr = trArr[i];
+              var errorID = contextFactory();
+              
+              var eachTest = $("<div>").addClass("check-block-test");
+              testContainer.append(eachTest);
 
-              var name =
-                $("<a>")
-                  .text(get(checkBlock, "name"))
-                  .addClass("hinted-highlight")
-                  .addClass(cssKey(get(checkBlock, "loc")));
-
-              var checkBlockReport =
-                $("<div>")
-                  .addClass("check-block")
-                  .append(
-                    $("<header>")
-                      .addClass("check-block-header")
-                      .append(name));
-              var checkBlockTests =
-                $("<div>").addClass("check-block-tests");
-
-              var tests = ffi.toArray(get(checkBlock, "test-results")).reverse();
-
-              checkBlockReport.on("click", ".check-block-header",
-                function(e) {
-                  if (checkBlockReport.hasClass("expanded")
-                   && currentlyExpandedBlock === checkBlockReport) {
-                    checkBlockReport.removeClass("expanded");
-                    contextManager.highlights = "";
-                    currentlyExpandedBlock = undefined;
-                  } else {
-                    if (currentlyExpandedBlock !== undefined)
-                      currentlyExpandedBlock.removeClass("expanded");
-                    currentlyExpandedBlock = checkBlockReport;
-                    checkBlockReport.addClass("expanded");
-                  }
-                });
-
-              var testsInBlock        = 0,
-                  testsPassingInBlock = 0;
-
-              function makeTitle(loc, passed) {
-                var testName =
-                  $("<a>")
-                    .text("Test " + testsInBlock)
-                    .addClass("hinted-highlight");
-
-                var header =
-                  $("<header>")
-                    .append(testName)
-                    .append(": " + (passed ? "Passed" : "Failed"))
-                    .attr('title',"Click to scroll editor to test.");
-
-                var source = get(get(checkBlock, "loc"), "source");
-                if(editors.hasOwnProperty(source)){
-                  var handle = editors[source].markText(
-                    { line: get(get(checkBlock, "loc"), "start-line") - 1,
-                      ch:   get(get(checkBlock, "loc"), "start-column") },
-                    { line: get(get(checkBlock, "loc"), "end-line") - 1,
-                      ch:   get(get(checkBlock, "loc"), "end-column") },
-                    { inclusiveLeft:false,
-                      inclusiveRight:false,
-                      type:"bookmark" });
-                  header.on("click",
-                    function(e){
-                      if(source === "definitions://") {
-                        editors[source].scrollIntoView(cmLoc.start, 100);
-                      } else if (source.indexOf("interactions") != -1) {
-                        editors[source].getWrapperElement().scrollIntoView(true);
+              function addPreToTest(cssClass, txt, loc) {
+                var dom = $("<pre>").addClass(cssClass).text(txt);
+                outputUI.hoverLocs(editors, runtime, srcloc, dom, [loc], "check-highlight");
+                eachTest.append(dom);
+              }
+              
+              function addPassToTest(loc) {
+                eachTest.attr('data-result', "Passed");
+                eachTest.addClass("passing-test");
+                eachTest.prepend(testTitle(loc, true));
+                var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
+                var cmLinked = outputUI.snippet(editors, cmloc);
+                eachTest.append(cmLinked.wrapper);
+                testEditors.push(cmLinked);
+              }
+              
+              function addReasonToTest(cssClass, errorDisp, loc) {
+                return runtime.safeCall(function() {
+                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp, [], errorID).addClass(cssClass);
+                }, function(dom) { 
+                  var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, loc);
+                  var reasonID = "reason-" + outputUI.cmlocToCSSClass(cmloc);
+                  dom.addClass(cssClass);
+                  dom.attr('id',reasonID);
+                  var cm = editors[cmloc.source];
+                  var doc = cm.getDoc();
+                  var textMarker = doc.markText(cmloc.start, cmloc.end,
+                                                {inclusiveLeft:false, inclusiveRight:false});
+                  var thisTest = eachTest;
+                  var thisContainer = eachContainer;
+                  if(highlightMode === "scsh")
+                    outputUI.highlightLines(runtime, editors, srcloc, loc, "hsl(45, 100%, 85%)", errorID);
+                  var marker = document.createElement("div");
+                  marker.innerHTML = cmloc.start.line + 1;
+                  marker.title = "Test failed! Click to see why.";
+                  marker.classList.add("failedTestMarker");
+                  marker.classList.add("CodeMirror-linenumber");
+                  $(marker).on("click", function(){
+                    if(!thisContainer.hasClass("expanded"))
+                      thisContainer.children(".check-block-header").click();
+                    thisTest.on("animationend", function(){this.style.animation = "";});
+                    thisTest[0].style.animation = "emphasize-error 1s 1";
+                    thisTest[0].scrollIntoView(true);
+                    dom.parent().trigger('click');
+                  });
+                  
+                  var gutterHandle = cm.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
+                  var onChange = function(cm, change) {
+                    var gutterLine = doc.getLineNumber(gutterHandle);
+                    var markerLoc  = textMarker.find();
+                    if(markerLoc === undefined)
+                      return;
+                    var markerLine = markerLoc.from.line;
+                    marker.innerHTML = markerLine + 1;
+                    if(gutterLine != markerLine) {
+                      cm.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
+                      cm.refresh();
+                      gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
+                    }
+                  };
+                  cm.on("change",onChange);
+                  eachTest.append(testTitle(loc, false));
+                  eachTest.append(dom);
+                  eachTest.attr('data-result', "Failed");
+                  eachTest.addClass('failing-test');
+                  return dom;
+                }, "addReasonToTest: renderErrorDisplay");
+              }
+              
+              if (!isTestSuccess(tr)) {
+                var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
+                var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
+                var maybeStackLoc   = (runtime.hasField(tr, "actual-exn")) ?
+                  (outputUI.makeMaybeStackLoc(runtime, editors, srcloc, get(tr, "actual-exn").val.pyretStack))
+                  : (runtime.makeFunction(function(n, userFramesOnly) {
+                    return runtime.ffi.makeNone();
+                  }));
+                runtime.pauseStack(function(restarter) {
+                  runtime.runThunk(
+                    function() { 
+                      return get(tr, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); 
+                    }, function(out) {
+                      if (runtime.isSuccessResult(out)) {
+                        runtime.runThunk(function() {
+                          return addReasonToTest("test-reason", out.result, get(tr, "loc"));
+                        }, function(reasonResult) {
+                          var reason = reasonResult.result;
+                          eachTest.on('click', function(){
+                            reason.trigger('toggleHighlight');
+                            eachTest.addClass('highlights-active');
+                          });
+                          restarter.resume(runtime.nothing);
+                        });
+                      } else {
+                        addPreToTest("replOutputReason", "<error rendering result; details logged to console>", get(tr, "loc"));
+                        console.log(out.exn);
+                        restarter.resume(runtime.nothing);
                       }
                     });
-                }
-
-                return header;
-              }
-
-              checkBlockTestReports.push(
-                { elems:
-                    tests.map(
-                      function(test){
-                        checkTotalAll++;
-                        testsInBlock++;
-                        checkPassedAll += isTestSuccess(test);
-                        testsPassingInBlock += isTestSuccess(test);
-                        var reason =
-                          $("<div>").addClass("test-reason");
-                        var wrapper =
-                          $("<div>")
-                          .addClass("check-block-test")
-                          .append(makeTitle(get(test, "loc"), isTestSuccess(test)))
-                          .addClass(isTestSuccess(test) ? "passing-test" : "failing-test")
-                          .append(reason);
-                        wrapper.appendTo(checkBlockTests);
-                        return {wrapper: wrapper,
-                                reason : reason };
-                      }),
-                  tests: tests,
-                  block: checkBlockReport });
-
-              if (thisCheckBlockErrored) {
-                var checkBlockError = $("<div>").addClass("check-block-error");
-                checkBlockReport
-                  .append(
-                    $("<span>")
-                      .addClass("check-block-summary")
-                      .text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run."))
-                  .append(
-                    checkBlockTests
-                      .prepend(
-                        $("<span>")
-                          .addClass("check-block-summary")
-                          .text("Before the unexpected error, "
-                              + testsInBlock + ((testsInBlock === 0) ? " tests " : " test ")
-                              + "in this block ran"
-                              + ((testsInBlock > 0) ? (" (" + testsPassingInBlock + " passed):")
-                                                    : "."))))
-                  .append(checkBlockError);
-                checkBlockErrorReports.push(
-                  { elem:  checkBlockError,
-                    error: get(get(checkBlock, "maybe-err"),"value").val,
-                    block: checkBlockReport });
+                });
               } else {
-                checkBlockReport
-                  .append(
-                    $("<span>")
-                      .addClass("check-block-summary")
-                      .text(
-                        // Only one test in block; it passes.
-                        (testsInBlock == 1 && testsPassingInBlock == 1)
-                        ? "The test in this block passed."
-                        // Only one test in block; it fails
-                        : (testsInBlock == 1 && testsPassingInBlock == 0)
-                        ? "The test in this block failed."
-                        : (testsInBlock == 0)
-                        //  Huh, a block with no tests?
-                        ? "There were no tests in this block!"
-                        : (testsInBlock == testsPassingInBlock)
-                        //  More than one test; all pass.
-                        ? "All " + testsInBlock + " tests in this block passed."
-                        //  More than one test; some pass
-                        : testsPassingInBlock + " out of " + testsInBlock + " tests passed in this block."))
-                  .append(checkBlockTests);
+                // If you're here, the test passed, all is well.
+                addPassToTest(get(tr, "loc"));
+                return runtime.nothing;
               }
-
-              checkBlockReport.addClass(
-                  thisCheckBlockErrored               ? "check-block-errored"
-                : tests.length == testsPassingInBlock ? "check-block-success"
+            }), 0, (testsInBlock === testsPassingInBlock && !thisCheckBlockErrored) ? 0 : trArr.length);
+          }, function(_) {
+            eachContainer.append(testContainer);
+            
+            /* Expand check block results when their header is clicked */
+            eachContainer.on("click", ".check-block-header", function(e) {
+              // Collapse the currently expanded check block, if any
+              eachContainer.siblings(".expanded").children(".check-block-header").click();
+              // Clear the current highlight
+              document.getElementById("main").dataset.highlights = "";
+              // Expand/Collapse the clicked check block results
+              eachContainer.toggleClass("expanded");
+              // If the block results have just been expanded, highlight the first thing available.
+              if(eachContainer.hasClass("expanded")) {
+                testContainer.children().first().trigger('click');
+              }
+            });
+            
+            /* on the first expansion, refresh the CodeMirror snippets */
+            $(eachContainer).one("click", ".check-block-header", function(){
+              $(eachContainer).find(".cm-future-snippet").each(
+                function(){this.cmrefresh();});
+            });
+            
+            var summary = $("<div>").addClass("check-block-summary");
+            
+            eachContainer.addClass(
+              thisCheckBlockErrored               ? "check-block-errored"
+                : testsInBlock == testsPassingInBlock ? "check-block-success"
                 :                                       "check-block-failed");
 
-              var source = get(get(checkBlock, "loc"), "source");
-              if(editors.hasOwnProperty(source)){
-                var handle = editors[source].markText(
-                  { line: get(get(checkBlock, "loc"), "start-line") - 1,
-                    ch:   get(get(checkBlock, "loc"), "start-column") },
-                  { line: get(get(checkBlock, "loc"), "end-line") - 1,
-                    ch:   get(get(checkBlock, "loc"), "end-column") },
-                  { inclusiveLeft:false,
-                    inclusiveRight:false,
-                    type:"bookmark" });
-                name.on("click",
-                  function(e){
-                    if(source === "definitions://") {
-                      editors[source].scrollIntoView(cmLoc.start, 100);
-                    } else if (source.indexOf("interactions") != -1) {
-                      editors[source].getWrapperElement().scrollIntoView(true);
-                    }
+            return runtime.safeCall(function() {
+              // Necessary check because this field was not present in older versions
+              if (thisCheckBlockErrored) {
+                var errorDiv = $("<div>")
+                  .addClass("check-block-error")
+                  .text("The unexpected error:");
+                return runtime.safeCall(function() {
+                  return errorUI.drawError(errorDiv, editors, runtime, get(get(cr, "maybe-err"), "value").val, contextFactory);
+                }, function(_) {
+                  var reason = errorDiv.children(".compile-error");
+                  eachContainer.append(errorDiv);
+                  summary.text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run.");
+                  
+                  if(testsInBlock > 0) {
+                    testContainer.prepend(
+                      "Before the unexpected error, "
+                        + testsInBlock + ((testsInBlock > 1) ? " tests " : " test ")
+                        + "in this block ran (" + testsPassingInBlock + " passed):");
+                  }
+                  
+                  // Highlight the point the check block errored at.
+                  var errorLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, 
+                                                              get(get(cr, "maybe-err"), "value").val.pyretStack, 0, true);
+                  
+                  errorDiv.on('click', function(){
+                    reason.trigger('toggleHighlight');
                   });
+                  
+                  if(errorLoc !== undefined) {
+                    var cmloc = outputUI.cmPosFromSrcloc(runtime, srcloc, errorLoc);
+                    var editor = editors[cmloc.source];
+                    var textMarker = editor.markText(cmloc.start, cmloc.end,
+                                                     {inclusiveLeft:false, inclusiveRight:false});
+                    var thisContainer = eachContainer;
+                    var marker = document.createElement("div");
+                    marker.innerHTML = cmloc.start.line + 1;
+                    marker.title = "Check block ended with an unexpected error here. Click to see why.";
+                    marker.classList.add("erroredTestMarker");
+                    marker.classList.add("CodeMirror-linenumber");
+                    
+                    $(marker).on("click", function(){
+                      thisContainer.on("animationend", function(){this.style.animation = "";});
+                      thisContainer[0].style.animation = "emphasize-error 1s 1";
+                      reason[0].scrollIntoView(true);
+                      reason.trigger('toggleHighlight');
+                    });
+                    
+                    var gutterHandle = editor.setGutterMarker(cmloc.start.line, "CodeMirror-linenumbers", marker);
+                    var onChange = function(cm, change) {
+                      var gutterLine = editor.getLineNumber(gutterHandle);
+                      var markerLoc  = textMarker.find();
+                      if(markerLoc === undefined)
+                        return;
+                      var markerLine = markerLoc.from.line;
+                      marker.innerHTML = markerLine + 1;
+                      if(gutterLine != markerLine) {
+                        editor.setGutterMarker(gutterHandle, "CodeMirror-linenumbers", null);
+                        editor.refresh();
+                        gutterHandle = cm.setGutterMarker(markerLine, "CodeMirror-linenumbers", marker);
+                      }
+                    };
+                    editor.on("change",onChange);
+                  }
+                  return runtime.nothing;
+                }, "about to drawError");
+              } else { // !thisCheckBlockErrored
+                var message = 
+                  // Only one test in block; it passes.
+                  (testsInBlock == 1 && testsPassingInBlock == 1)
+                  ? "The test in this block passed."
+                // Only one test in block; it fails
+                  : (testsInBlock == 1 && testsPassingInBlock == 0)
+                  ? "The test in this block failed."
+                  : (testsInBlock == testsPassingInBlock)
+                //  More than one test; all pass.
+                  ? "All " + testsInBlock + " tests in this block passed."
+                //  More than one test; some pass
+                  : testsPassingInBlock + " out of " + testsInBlock + " tests passed in this block.";
+                summary.text(message);
+                return runtime.nothing;
               }
+            }, function(_) {
+              
+              // Highlight the test block name appropriately
+              var nameMarker = outputUI.highlightSrcloc(runtime, editors, srcloc, checkLoc, 
+                                                        eachContainer.hasClass("check-block-success") ? "hsl(88, 50%, 76%)"
+                                                        : eachContainer.hasClass("check-block-failed")  ? "hsl(45, 100%, 85%)"
+                                                        : eachContainer.hasClass("check-block-errored") ? "hsl(0, 100%, 90%)":""
+                                                        , checkCSS, false);
+              var currentHighlight = "";
+              var contextManager = document.getElementById("main").dataset;
+              name.on("click", function(e){
+                outputUI.emphasizeLine(editors, checkCMLoc);
+                outputUI.gotoLoc(runtime, editors, srcloc, checkLoc);
+                e.stopPropagation();});
+              name.on("mouseenter", function(e){
+                currentHighlight = contextManager.highlights;
+                contextManager.highlights = checkCSS;
+                outputUI.hintLoc(runtime, editors, srcloc, checkLoc);
+                e.stopPropagation();});
+              name.on("mouseleave", function(e) {
+                contextManager.highlights = currentHighlight;
+                outputUI.unhintLoc(runtime, editors, srcloc, checkLoc);
+                e.stopPropagation();});
+              
+              name.after(summary);
+              checkContainer.append(eachContainer);
 
-              return checkBlockReport;
-            });
-        })
-        .forEach(
-          function(checkBlock){
-            /* Throw the skeleton onto the DOM */
-            resultsContainer.append(checkBlock);
-          });
-
-      var checkBlockCount = checkBlocks.length;
-      var checkBlocksErrored = checkBlockErrorReports.length;
-
-      /* Next, render the summary */
-
-      var onChange =
-        function(cm, change){
-          cm.off("change", onChange);
-          if(resultsContainer.hasClass("stale"))
-            return;
-          resultsContainer.addClass("stale");
-          var staleWarning =
-            $('<div>').addClass('check-block').addClass('stale-warning')
-              .text('This test report is stale and may be inaccurate. Run your code again for an up-to-date report.');
-          resultsContainer.prepend(staleWarning);
-          // This is a little jarring.
-          // staleWarning[0].scrollIntoView(true);
-        };
-      editors["definitions://"].on("change", onChange);
-
-
-      var summary = $("<div>").addClass("check-block testing-summary");
-      // If there was more than one check block, print a message about
-      // the grand total of checks and passes.
-      if (checkPassedAll == checkTotalAll && checkBlocksErrored === 0) {
-        if (checkTotalAll > 0) {
-          if (checkTotalAll == 1) {
-            summary.text("Looks shipshape, your test passed, mate!");
-          } else if (checkTotalAll == 2) {
-            summary.text("Looks shipshape, both tests passed, mate!");
-          } else {
-            summary.text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+              return runtime.nothing;
+            }, "thisCheckBlockErrored check");
+          }, "each: testResult");
+        }), 0, checkResultsArr.length);
+      }, function(_) {
+      
+        var onChange = 
+          function(cm, change){
+            cm.off("change", onChange);
+            if(checkContainer.hasClass("stale"))
+              return;
+            checkContainer.addClass("stale");
+            var staleWarning = 
+              $('<div>').addClass('check-block').addClass('stale-warning')
+                .text('This test report is stale and may be inaccurate. Run your code again for an up-to-date report.');
+            checkContainer.prepend(staleWarning);
+            // This is a little jarring.
+            // staleWarning[0].scrollIntoView(true);
+          };
+        editors["definitions://"].on("change", onChange);
+        
+      
+        var summary = $("<div>").addClass("check-block testing-summary");
+        var errored;
+        // If there was more than one check block, print a message about
+        // the grand total of checks and passes.
+        if (checkPassedAll == checkTotalAll && checkBlocksErrored === 0) {
+          if (checkTotalAll > 0) {
+            if (checkTotalAll == 1) {
+              summary.text("Looks shipshape, your test passed, mate!");
+            } else if (checkTotalAll == 2) {
+              summary.text("Looks shipshape, both tests passed, mate!");
+            } else {
+              summary.text("Looks shipshape, all " + checkTotalAll + " tests passed, mate!");
+            }
+            container.append(checkContainer.append(summary));
           }
+        } else {
+          var testsFailedAll = (checkTotalAll - checkPassedAll);
+          function TESTS(n){return n == 1 ? "TEST" : "TESTS";}
+          summary.append(
+            $("<div>").addClass("summary-bits")
+              .append($("<div>").addClass("summary-bit summary-passed").html("<span class='summary-count'>" + checkPassedAll + "</span> " + TESTS(checkPassedAll) + " PASSED"))
+              .append($("<div>").addClass("summary-bit summary-failed").html("<span class='summary-count'>" + testsFailedAll + "</span> " + TESTS(testsFailedAll) + " FAILED")));
+          
+          if (checkBlocksErrored > 0) {
+            summary.append($("<div>").addClass("summary-errored")
+                           .append($("<span class='summary-count'>").text(checkBlocksErrored))
+                           .append($("<span class='summary-text'>")
+                                   .html(" ended in an unexpected error, and <b>some tests in "
+                                         + (checkBlocksErrored == 1 ? "this block":"these blocks")
+                                         + " may not have run</b>.")
+                                   .prepend($("<code>").text(checkBlocksErrored == 1 ? "check-block":"check-blocks"))));
+          }
+          container.append(checkContainer.append(summary));
         }
-      } else {
-        var testsFailedAll = (checkTotalAll - checkPassedAll);
-        function TESTS(n){return n == 1 ? "TEST" : "TESTS";}
-        summary.append(
-          $("<div>").addClass("summary-bits")
-            .append($("<div>").addClass("summary-bit summary-passed").html("<span class='summary-count'>" + checkPassedAll + "</span> " + TESTS(checkPassedAll) + " PASSED"))
-            .append($("<div>").addClass("summary-bit summary-failed").html("<span class='summary-count'>" + testsFailedAll + "</span> " + TESTS(testsFailedAll) + " FAILED")));
-
-        if (checkBlocksErrored > 0) {
-          summary.append($("<div>").addClass("summary-errored")
-                         .append($("<span class='summary-count'>").text(checkBlocksErrored))
-                         .append($("<span class='summary-text'>")
-                                 .html(" ended in an unexpected error, and <b>some tests in "
-                                       + (checkBlocksErrored == 1 ? "this block":"these blocks")
-                                       + " may not have run</b>.")
-                                 .prepend($("<code>").text(checkBlocksErrored == 1 ? "check-block":"check-blocks"))));
-        }
-      }
-
-      /* At this point, we've gone as far as we can without calling
-       * `render-fancy-reason`, and we have summaries for each block, as
-       * well as the summary of overall test outcomes. By adding it to
-       * the `container`, this skeleton becomes visible on the page.  */
-      container.append(resultsContainer.prepend(summary));
-
-      return runtime.safeCall(function(){
-        /* First, we'll render errors that caused check-blocks to exit
-         * unexpectedly, since those are displayed without further user
-         * interaction (unlike typical test results).                 */
-        return batchOperation(function(){
-          return runtime.eachLoop(runtime.makeFunction(function(i){
-            var checkBlockErrorReport = checkBlockErrorReports[i];
-            var error = checkBlockErrorReport.error,
-                block = checkBlockErrorReport.block,
-                elem  = checkBlockErrorReport.elem;
-            return runtime.safeCall(
-              function(){
-                return errorUI.drawError(
-                  elem,
-                  editors,
-                  runtime,
-                  error,
-                  contextFactory);
-              },
-              function(_){
-                elem.find(".cm-future-snippet")
-                  .each(function(){this.cmrefresh();});
-                var probableErrorLocation =
-                  outputUI.getLastUserLocation(
-                    runtime,
-                    srcloc,
-                    editors,
-                    error.pyretStack,
-                    0,
-                    true);
-                if (probableErrorLocation !== undefined
-                 && runtime.unwrap(get(srcloc, "is-srcloc").app(probableErrorLocation))
-                 && editors.hasOwnProperty(get(probableErrorLocation, "source"))) {
-                  var editor = editors[get(probableErrorLocation, "source")];
-
-                  var handle = editor.markText(
-                      { line: get(probableErrorLocation, "start-line") - 1,
-                        ch:   get(probableErrorLocation, "start-column") },
-                      { line: get(probableErrorLocation, "end-line") - 1,
-                        ch:   get(probableErrorLocation, "end-column") },
-                      { inclusiveLeft:false,
-                        inclusiveRight:false});
-
-                  var marker =
-                    $("<div>")
-                      .html("&nbsp;")
-                      .addClass("errored-test-marker")
-                      .on("click",
-                        function(){
-                          block[0].style.animation = "emphasize-error 1s 1";
-                          block.on("animationend", function(){this.style.animation = "";});
-                          elem[0].scrollIntoView(true);
-                          elem.children().trigger('toggleHighlight');
-                        });
-
-                  var gutter =
-                    editor.setGutterMarker(
-                      get(probableErrorLocation, "start-line") - 1,
-                      "test-marker-gutter",
-                      marker[0]);
-
-                  handle.on("hide",
-                    function(){
-                      marker.hide();
-                    });
-
-                  handle.on("unhide",
-                    function(){
-                      marker.show();
-                    });
-                } else {
-                  console.log("That's unfortunate, we cannot show where this check-block ended in an error.");
-                }
-              });
-            }), 0, checkBlockErrorReports.length)})},
-        function(_){
-          /* Next, we'll render the individual tests reports of each
-           * check block, and add them to the skeleton as they become
-           * available.                                               */
-          return runtime.safeCall(function(){
-            return runtime.eachLoop(runtime.makeFunction(function(i){
-              return batchOperation(function(){
-                var checkBlockTestReport = checkBlockTestReports[i];
-                var elems = checkBlockTestReport.elems,
-                    tests = checkBlockTestReport.tests,
-                    block = checkBlockTestReport.block,
-                    neverOpened = true;
-                runtime.eachLoop(runtime.makeFunction(function(j){
-                  var test    = tests[j],
-                      reason  = elems[j].reason,
-                      wrapper = elems[j].wrapper,
-                      context = contextFactory();
-                  if (!isTestSuccess(test)) {
-                    var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-                    var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-                    var maybeStackLoc   = (runtime.hasField(test, "actual-exn"))
-                      ? (outputUI.makeMaybeStackLoc(runtime, editors, srcloc, get(test, "actual-exn").val.pyretStack))
-                      : (runtime.makeFunction(function(n, userFramesOnly) {
-                        return runtime.ffi.makeNone();
-                      }));
-                    runtime.pauseStack(function(restarter) {
-                      runtime.runThunk(
-                        function() {
-                          return get(test, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST);
-                        },
-                        function(errorDisp) {
-                          if (runtime.isSuccessResult(errorDisp)) {
-                            runtime.runThunk(function() {
-                              return runtime.safeCall(function() {
-                                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, [], context);
-                                }, function(dom) {
-                                  wrapper.on('click', function(){
-                                    dom.trigger('toggleHighlight');
-                                    wrapper.toggleClass("highlights-active");
-                                  });
-                                  var loc = get(test, "loc");
-                                  if (editors.hasOwnProperty(get(loc, "source"))) {
-                                    var editor = editors[get(loc, "source")];
-
-                                    var handle = editor.markText(
-                                        { line: get(loc, "start-line") - 1,
-                                          ch:   get(loc, "start-column") },
-                                        { line: get(loc, "end-line") - 1,
-                                          ch:   get(loc, "end-column") },
-                                        { inclusiveLeft:false,
-                                          inclusiveRight:false});
-
-                                    var marker =
-                                      $("<div>")
-                                        .html("&nbsp;")
-                                        .addClass("failed-test-marker")
-                                        .on("click",
-                                          function(){
-                                            if(!block.hasClass("expanded")){
-                                              if (currentlyExpandedBlock !== undefined)
-                                                currentlyExpandedBlock.removeClass("expanded");
-                                              currentlyExpandedBlock = block;
-                                              block.addClass("expanded");
-                                            }
-                                            if(neverOpened) {
-                                              block.find(".cm-future-snippet").each(
-                                                function(){this.cmrefresh();});
-                                              neverOpened = false;
-                                            }
-                                            dom[0].style.animation = "emphasize-error 1s 1";
-                                            dom.on("animationend", function(){this.style.animation = "";});
-                                            dom[0].scrollIntoView(true);
-                                            dom.trigger('toggleHighlight');
-                                            wrapper.toggleClass("highlights-active");
-                                          });
-
-                                    var gutter =
-                                      editor.setGutterMarker(
-                                        get(loc, "start-line") - 1,
-                                        "test-marker-gutter",
-                                        marker[0]);
-
-                                    handle.on("hide",
-                                      function(){
-                                        marker.hide();
-                                      });
-
-                                    handle.on("unhide",
-                                      function(){
-                                        marker.show();
-                                      });
-                                  }
-                                  reason.replaceWith(dom.addClass("test-reason"));
-                                });},
-                            function(reasonResult) {
-                              if(j === 0) {
-                                block.on("click", ".check-block-header",
-                                  function(e) {
-                                    if(block.hasClass("expanded"))
-                                      wrapper.trigger('click');
-                                  });
-                              }
-                              block.one("click", ".check-block-header",
-                                function(e) {
-                                  if (currentlyExpandedBlock === block && neverOpened){
-                                    block.find(".cm-future-snippet").each(
-                                      function(){this.cmrefresh();});
-                                    neverOpened = false;
-                                  }
-                                });
-                              restarter.resume(runtime.nothing);
-                            });
-                          } else {
-                            console.error("ARRRGGH BAD THINGS HAPPENED");
-                            restarter.resume(runtime.nothing);
-                          }
-                        })});
-                  } else {
-                    var snippet =
-                      outputUI.snippet(editors,
-                        outputUI.cmPosFromSrcloc(runtime, srcloc, get(test,"loc")))
-                          .wrapper;
-                    reason.replaceWith(snippet);
-                    block.one("click", ".check-block-header",
-                      function(e) {
-                        snippet[0].cmrefresh();
-                      });
-                  }}), 0, tests.length);
-              });}), 0, checkBlockTestReports.length)},
-              function(_){
-                // all done!
-              });
-          });
-      }
-
-      return runtime.makeJSModuleReturn({
-        drawCheckResults: drawCheckResults
-      });
+      }, "drawCheckResults: each: checkResult");
     }
+    
+    return runtime.makeJSModuleReturn({
+      drawCheckResults: drawCheckResults
+    });
+  }
 })
