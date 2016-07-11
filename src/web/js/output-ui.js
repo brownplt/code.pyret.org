@@ -777,7 +777,7 @@
             var refresh = function(cm, change) {
               cmSnippet.setOption("firstLineNumber",0);
               cmSnippet.setOption("firstLineNumber",1);};
-            cmsrc.on("change", refresh);
+            //cmsrc.on("change", refresh);
             handle.on("clear", function(){cmsrc.off("change", refresh);});
           }
           // Copy relevant part of document.
