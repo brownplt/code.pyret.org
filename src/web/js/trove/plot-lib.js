@@ -21,7 +21,6 @@
       stylizeTip =   CLIB.d3common.stylizeTip;
   var d3tip = D3TIP(d3);
 
-
   function appendAxis(xMin, xMax, yMin, yMax, width, height, canvas) {
     /*
      * Appends axes to canvas
@@ -98,14 +97,14 @@
       .call(yAxis);
 
     canvas.selectAll('.x.axis path').style({
-      'stroke': 'black',
+      stroke: 'black',
       'stroke-width': xAxisConf.bold ? 2 : 0,
-      'fill': 'none'
+      fill: 'none'
     });
     canvas.selectAll('.y.axis path').style({
-      'stroke': 'black',
+      stroke: 'black',
       'stroke-width': yAxisConf.bold ? 2 : 0,
-      'fill': 'none'
+      fill: 'none'
     });
 
     canvas.selectAll('g.y.axis g.tick line')
@@ -118,8 +117,8 @@
     canvas.selectAll('.axis').style({'shape-rendering': 'crispEdges'});
     canvas.selectAll('.axis text').style({'font-size': '10px'});
     canvas.selectAll('.axis line').style({
-      'stroke': 'lightgray',
-      'opacity': 0.6
+      stroke: 'lightgray',
+      opacity: 0.6
     });
   }
 
