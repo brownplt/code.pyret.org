@@ -306,7 +306,6 @@
         /* First, we'll render errors that caused check-blocks to exit
          * unexpectedly, since those are displayed without further user
          * interaction (unlike typical test results).                 */
-        return batchOperation(function(){
           return runtime.eachLoop(runtime.makeFunction(function(i){
             var checkBlockErrorReport = checkBlockErrorReports[i];
             var error = checkBlockErrorReport.error,
@@ -376,7 +375,8 @@
                   console.log("That's unfortunate, we cannot show where this check-block ended in an error.");
                 }
               });
-            }), 0, checkBlockErrorReports.length)})},
+            }), 0, checkBlockErrorReports.length);
+        },
         function(_){
           /* Next, we'll render the individual tests reports of each
            * check block, and add them to the skeleton as they become
