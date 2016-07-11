@@ -126,7 +126,7 @@
     detached.select('.maing')
       .append('text')
       .attr('x', (dimension.marginLeft + dimension.width + dimension.marginRight) / 2)
-      .attr('y', dimension.height + dimension.marginTop + (dimension.marginBottom / 2))
+      .attr('y', dimension.height + dimension.marginTop + (5 * dimension.marginBottom / 8))
       .html(libJS.htmlspecialchars(label))
       .style({
         position: 'absolute',
@@ -144,12 +144,12 @@
     var dimension = getDimension({
       windowWidth: 1000,
       windowHeight: null,
-      width: 501,
-      height: 501,
+      width: 471,
+      height: 471,
       marginLeft: 100,
       marginRight: 100,
       marginTop: 30,
-      marginBottom: 70,
+      marginBottom: 60,
       mode: 'top-left',
     }),
         width = dimension.width,
@@ -173,12 +173,12 @@
           .append('rect')
           .attr('class', 'selection')
           .style({
-            'stroke'          : 'gray',
+            stroke            : 'gray',
             'stroke-width'    : '1px',
             'stroke-dasharray': '4px',
             'stroke-opacity'  : '0.5',
-            'fill'            : 'gray',
-            'opacity'         : '0.3',
+            fill              : 'gray',
+            opacity           : '0.3',
           });
 
     panel.append('div').style({
@@ -766,11 +766,11 @@
     var dimension = getDimension({
       windowWidth: null,
       windowHeight: null,
-      width: 501,
-      height: 501,
+      width: 471,
+      height: 471,
       marginLeft: 100,
       marginRight: 100,
-      marginTop: 30,
+      marginTop: 20,
       marginBottom: 70,
       mode: 'top-left',
     }),
@@ -852,12 +852,12 @@
     var dimension = getDimension({
       windowWidth: null,
       windowHeight: null,
-      width: 501,
-      height: 501,
+      width: 471,
+      height: 471,
       marginLeft: 160,
       marginRight: 160,
       marginTop: 30,
-      marginBottom: 70,
+      marginBottom: 60,
       mode: 'center',
     }),
         width = dimension.width,
@@ -942,12 +942,12 @@
     var dimension = getDimension({
       windowWidth: null,
       windowHeight: null,
-      width: 501,
-      height: 501,
+      width: 471,
+      height: 471,
       marginLeft: 120,
       marginRight: 30,
       marginTop: 30,
-      marginBottom: 70,
+      marginBottom: 60,
       mode: 'top-left',
     }),
     width = dimension.width,

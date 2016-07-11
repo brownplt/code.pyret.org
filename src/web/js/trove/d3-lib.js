@@ -455,7 +455,7 @@
       RUNTIME.getParam('d3-port')(
         detached.node(),
         dimension.windowWidth,
-        dimension.windowHeight + 50, // titlebar
+        dimension.windowHeight + 35, // titlebar
         function() {
           restarter.resume(retVal);
         },

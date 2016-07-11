@@ -250,7 +250,7 @@
             closeTopAnimationIfOpen();
           }
           animationDiv.dialog({
-            position: [10, 10],
+            position: [5, 5],
             bgiframe : true,
             modal : true,
             overlay : { opacity: 0.5, background: 'black'},

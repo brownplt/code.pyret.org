@@ -1,5 +1,4 @@
 .CodeMirror, .inlineExample { line-height: 1.5; border: 1px solid black; background: #f8f8f8; color: #eee; }
-
 .replMain .CodeMirror {
   line-height: 1.3;
   border-top: none;
@@ -996,6 +995,8 @@ code div {
   width: 100%;
   background-color: #eee;
 }
+
+.ui-dialog-titlebar { height: 1em; }
 
 /* NOTE(joe): removes the white bar in popups */
 .ui-widget-content{
