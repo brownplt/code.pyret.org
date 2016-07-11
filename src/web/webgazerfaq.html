@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <title>code.pyret.org</title>
+  <title>Tracking information</title>
   <link rel="stylesheet" href="/css/shared.css"/>
   <link rel="stylesheet" href="/css/index.css"/>
   <link rel="icon" type="image/png" href="/img/pyret-icon.png?v=2">
@@ -10,64 +10,32 @@
 <body>
 
 <div id="main">
-  <h1>haha!</h1>
-  <div class="main-logo">
-    <a id="left" class="blueButton">{{ LEFT_LINK }}</a>
-    <a href="http://pyret.org" target="_blank" alt="What's Pyret?"><img src="/img/pyret-logo.png"></img></a>
-    <a id="right" class="blueButton" href="/editor">Start Coding</a>
-  <br/>
-  <br/>
+  <h1>You need access to my webcam?</h1>
   <div class="centered">
-    <p>The <a target="_blank" href="http://www.pyret.org/docs/latest/Getting_Started.html">getting started guide</a> will show you the basics of Pyret.</p>
-    <p>For more, <a target="_blank" href="http://papl.cs.brown.edu/2014/">Programming and Programming Languages</a> is a textbook on programming with all its example programs in Pyret.</p><br/>
     <p>We are experimenting using <a target="_blank" href="https://webgazer.cs.brown.edu/">webgazer.js</a>
         to track users' eyes to improve our programming environment.
-        For more information, see something.</p>
-  </div> </div>
+        Specifically, we wish to see how participants use our error messages and how effective our error messages are.
+    </p>
+    <p>
+        We have a reputation of respecting and maintaining our users' privacy.
+        We aim to continue this.
+        All computation is done on your computer--there is no webcam-caught image or video data lying around on some server.
+        <a target="_blank" href="https://webgazer.cs.brown.edu/">Webgazer</a> goes into more detail on this.
+        We store the predicted location of where you are looking on the screen as well as the time information.
+        Anything else is extrapolated from this data.
+    </p>
+    <p>
+        Participation and giving us access to your webcam is completely opt-in.
+        In the editor view, a dialogue should open asking if you want to grant us access.
+        If you do not, simply ignore this dialogue box.
+        It should disappear shortly.
+        Note that if you do grant us access,
+        your browser will probably verify that you do mean to allow us access to your webcam.
+        Click confirm.
+        We appreciate your help!
+    </p>
+  </div>
 </div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="/js/q.js"></script>
-<script src="/js/google-apis/api-wrapper.js"></script>
-<script src="/js/google-apis/drive.js"></script>
-<script src="/js/authenticate-storage.js"></script>
-<script>
-var clientId = "";
-var apiKey = "{{ GOOGLE_API_KEY }}";
-function handleGoogLoad() {
-  handleClientLoad(clientId, apiKey);
-}
-</script>
-<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
-<script>
-var gdriveCollection = storageAPI.then(function(storage) {
-  return storage.collection;
-});
-function showMyPrograms(collection) {
-  storageAPI.then(function(sa) {
-    sa.api.getCollectionLink().then(function(newLink) {
-      $("#left").text("My Programs").attr("href", newLink);
-    });
-  });
-}
-gdriveCollection.then(function(c) {
-  showMyPrograms(c);
-});
-gdriveCollection.fail(function(err) {
-  $("#left").click(function() {
-    $("#left").attr("disabled", "disabled");
-    storageAPI = createProgramCollectionAPI("code.pyret.org", false);
-    storageAPI.then(function(api) {
-      $("#left").off("click");
-      showMyPrograms(api);
-    });
-    storageAPI.fail(function(err) {
-      $("#connectButton").text("Log In");
-      $("#connectButton").attr("disabled", false);
-    });
-  });
-});
-</script>
-
 
 </body>
 </html>
