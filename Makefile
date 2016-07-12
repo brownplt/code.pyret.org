@@ -149,7 +149,60 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_GIF)  build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOMAIN).gz $(CPOIDEHOOKS)
+
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
+
+link-pyret:
+	ln -s node_modules/pyret-lang pyret;
+	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
+
+deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) $(CPOMAIN).gz
+
+TROVE_JS := $(wildcard src/web/js/trove/*.js)
+
+$(PHASEA): libpyret ;
+
+.PHONY: libpyret
+libpyret:
+	$(MAKE) phaseA -C pyret/
+
+$(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
+	mkdir -p compiled/;
+	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	node pyret/build/phaseA/pyret.jarr \
+    --builtin-js-dir src/web/js/trove/ \
+    --builtin-js-dir pyret/src/js/trove/ \
+    -allow-builtin-overrides \
+    --builtin-arr-dir src/web/arr/trove/ \
+    --builtin-arr-dir pyret/src/arr/trove/ \
+    --require-config cpo-config.json \
+    --build-runnable src/web/arr/cpo-main.arr \
+    --standalone-file cpo-standalone.js \
+    --compiled-dir ./compiled \
+    --outfile $(CPOMAIN) -no-check-mode
+
+$(CPOMAIN).gz: $(CPOMAIN)
+	gzip -c -f $(CPOMAIN) > $(CPOMAIN).gz
+
+release-main: $(CPOMAIN).gz
+	mkdir -p build/release;
+	cp $(CPOMAIN).gz build/release/
+
+$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
+	mkdir -p compiled/;
+	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	node pyret/build/phaseA/pyret.jarr \
+    --builtin-js-dir src/web/js/trove/ \
+    --builtin-js-dir pyret/src/js/trove/ \
+    -allow-builtin-overrides \
+    --builtin-arr-dir src/web/arr/trove/ \
+    --builtin-arr-dir pyret/src/arr/trove/ \
+    --require-config cpo-config.json \
+    --build-runnable src/web/arr/cpo-ide-hooks.arr \
+    --standalone-file cpo-standalone.js \
+    --compiled-dir ./compiled \
+    --outfile $(CPOIDEHOOKS) -no-check-mode
 
 clean:
 	rm -rf build/web
