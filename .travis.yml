@@ -36,7 +36,7 @@ install:
 - mkdir -p build/release/$TRAVIS_COMMIT
 - echo "not really pyret" > build/release/$TRAVIS_COMMIT/cpo-main.jarr
 - gzip build/release/$TRAVIS_COMMIT/cpo-main.jarr
-- heroku config:set PYRET=https://d251z2akfyabv3.cloudfront.net/releases/$(TRAVIS_COMMIT)/cpo-main.jarr.gz
+- heroku config:set --app patch-experiment PYRET=https://d251z2akfyabv3.cloudfront.net/releases/$TRAVIS_COMMIT/cpo-main.jarr.gz
 #- npm install --ignore-scripts
 #- make web
 #- make deploy-cpo-main
