@@ -54,10 +54,10 @@ function start(config, onServerReady) {
     res.set("Content-Type", "application/javascript");
     res.send(fs.readFileSync("build/web/js/pyret.js.gz"));
   });
-  app.get("/js/cpo-main.jarr.gz", function(req, res) {
+  app.get("/js/cpo-main.jarr.gz.js", function(req, res) {
     res.set("Content-Encoding", "gzip");
     res.set("Content-Type", "application/javascript");
-    res.send(fs.readFileSync("build/web/js/cpo-main.jarr.gz"));
+    res.send(fs.readFileSync("build/web/js/cpo-main.jarr.gz.js"));
   });
 
   app.use(cookieSession({
