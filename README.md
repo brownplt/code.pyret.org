@@ -159,3 +159,49 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
  $ heroku ps:scale web=1
 ```
 7.	Now run `heroku open` or visit appname.herokuapp.com.
+
+
+## Production Deployment
+
+This branch (`release`) is pushed to in order to trigger deploys of the "real"
+version of code.pyret.org.  If you have permission to push to this branch, you
+can cause code.pyret.org to update simply by pushing.
+
+There are several encrypted credentials stored in Travis.  Anyone's will work,
+they just need to have access to the right places. 
+
+- The access key id and access token for an appropriate S3 bucket.  This is
+  where the built and compressed `cpo-main.jarr.gz` file will go.
+- The access key for a Heroku account, which goes in two places; first, in the
+  `global` section so the heroku toolbelt can run, and second in the api\_key
+  field of the Heroku deployment itself.  This needs to be a Heroku account
+  that has access to the `code-pyret-org` project
+
+The build creates `cpo-main.jarr.gz`, stores it in
+`build/release/<short-commit-id>/cpo-main.jarr.gz`, and then copies that
+directory over to the given S3 bucket.
+
+It then sets the current Heroku `PYRET` variable to point to the appropriate
+URL – in the current deployment, this URL is an AWS CloudFront endpoint that
+is backed by a S3 bucket, but any path to the bucket with the right ending
+commit hash will work.  Note that it is quite useful to update this variable
+because it changes the URL that is fetched on loading CPO, so it will bypass
+the users' browser cache the next time they visit.  It's a Good Idea to have
+very long cache settings on the CPO main JavaScript file, and also good to make
+sure folks get the update.
+
+In addition, this means that it's easy to roll back using Heroku's rollback
+feature, since all the copies of the built standalones are available.
+
+This branch doesn't run the Selenium tests; the various development branches
+and master do that.  Mainly this is for expedience, since all commits go
+through a development branch that runs tests anyway, so it would merely
+lengthen the path to deploying.  Also, running the tests on multiple browsers
+causes the heroku build to fire twice, which causes an error (see
+https://github.com/travis-ci/travis-ci/issues/929).
+
+This branch is access-controlled to admins of brownplt and a few others.  This
+is mainly to prevent _mistakes_ (Oops!  I pushed to `release` and it broke!)
+more than to lock anyone out.
+
+
