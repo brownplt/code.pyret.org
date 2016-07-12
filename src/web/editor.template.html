@@ -103,7 +103,13 @@
 </div>
 <div id="footer"></div>
 <div id="webgazerdialogue">
-    <span>Oh hi there.</span>
+    <span>
+        Improve Pyret!
+        To allow us access to your webcam,
+        <a href="javascript:startWebGazer()">click here</a>.
+        For more information,
+        <a target="_blank" href="/views/webgazerfaq.html" sytle="color: white">click here!</a>
+    </span>
 </div>
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -113,32 +119,35 @@
 <script src="/js/webgazer.js"></script>
 <script>
  newFunc = function() {
-     console.log("oh hi there");
+     alert("Is your browser blocking your webcam?\n" +
+     "Is your webcam turned on?");
  }
- webgazer.begin(newFunc);
- webgazer.setRegression("weightedRidge");
- webgazer.setGazeListener(function(data, elapsedTime) {
-     if (data == null) {
-         return;
-     }
-     var xprediction = data.x;
-     var yprediction = data.y;
-     var repl = document.getElementById("REPL");
-     var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
+ startWebGazer = function() {
+     webgazer.begin(newFunc);
+     webgazer.setRegression("weightedRidge");
+     webgazer.setGazeListener(function(data, elapsedTime) {
+         if (data == null) {
+             return;
+         }
+         var xprediction = data.x;
+         var yprediction = data.y;
+         var repl = document.getElementById("REPL");
+         var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-     if (xprediction < splitLocationX) {
-         // then we change the color of it
-         //gazeDot.style.background = 'red';
-         console.log("left side")
-     }
-     else {
-         // then we give it this color
-         // gazeDot.style.background = 'blue';
-         console.log("right side")
-     }
- })
- /* shows a square every 100 milliseconds where current prediction is */
-         .showPredictionPoints(true); 
+         if (xprediction < splitLocationX) {
+             // then we change the color of it
+             //gazeDot.style.background = 'red';
+             console.log("left side")
+         }
+         else {
+             // then we give it this color
+             // gazeDot.style.background = 'blue';
+             console.log("right side")
+         }
+     })
+     /* shows a square every 100 milliseconds where current prediction is */
+             .showPredictionPoints(true); 
+ }
 </script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
