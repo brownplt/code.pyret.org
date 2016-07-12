@@ -17,7 +17,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], ["tid", "a"]]],
              "WCOofA"]],
-      "on-tick": ["forall", ["a"],
+      "on-tick-n": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number" ], ["tid", "a"]]],
              "WCOofA"]],
@@ -444,7 +444,7 @@
             runtime.ffi.checkArity(2, arguments, "on-tick-n");
             runtime.checkFunction(handler);
             runtime.checkNumber(n);
-            var fixN = typeof n === "number" ? fixN : n.toFixnum();
+            var fixN = typeof n === "number" ? n : n.toFixnum();
             return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
           }),
           "to-draw": makeFunction(function(drawer) {
