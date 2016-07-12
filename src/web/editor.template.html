@@ -118,11 +118,24 @@
 <script src="/js/colorspaces.js"></script>
 <script src="/js/webgazer.js"></script>
 <script>
+ // if the person has already allowed access, don't show dialogue
+ var webgazerAllowed = localStorage.getItem('allowed');
+ if (webgazerAllowed !== null) {
+     // then hide the webgazerDialogue
+     var dialogue = document.getElementById("webgazerdialogue");
+     dialogue.remove();
+ }
+ else {
+     // show the dialogue, and set it to animate away after some point
+ }
+</script>
+<script>
  newFunc = function() {
      alert("Is your browser blocking your webcam?\n" +
      "Is your webcam turned on?");
  }
  startWebGazer = function() {
+     localStorage.setItem('allowed', 'true');
      webgazer.begin(newFunc);
      webgazer.setRegression("weightedRidge");
      webgazer.setGazeListener(function(data, elapsedTime) {
