@@ -222,8 +222,10 @@ $(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalon
     --compiled-dir ./compiled \
     --outfile $(CPOMAIN) -no-check-mode
 
-$(CPOMAIN).gz: $(CPOMAIN)
-	gzip -c -f $(CPOMAIN) > $(CPOMAIN).gz
+# NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
+# non-.js extension.
+$(CPOMAIN).gz.js: $(CPOMAIN)
+	gzip -c -f $(CPOMAIN) > $(CPOMAIN).gz.js
 
 $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;
