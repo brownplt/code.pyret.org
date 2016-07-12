@@ -1,125 +1,91 @@
-define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js", "./error-ui.js", "./output-ui.js", "trove/world-lib"], function(ffi, util, imageLib, checkUI, errorUI, outputUI, worldLib) {
-  function merge(obj, extension) {
-    var newobj = {};
-    Object.keys(obj).forEach(function(k) {
-      newobj[k] = obj[k];
-    });
-    Object.keys(extension).forEach(function(k) {
-      newobj[k] = extension[k];
-    });
-    return newobj;
-  }
-  var animationDiv = null;
-  function closeAnimationIfOpen() {
-    if(animationDiv) {
-      animationDiv.empty();
-      animationDiv.dialog("destroy");
-      animationDiv = null;
+({
+  requires: [
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./check-ui"]
+    },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./output-ui"]
+    },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./error-ui"]
+    },
+    { "import-type": "builtin",
+      name: "world-lib"
+    },
+    { "import-type": "builtin",
+      name: "load-lib"
     }
-  }
-  var editors = {};
-  var interactionsCount = 0;
-  function makeEditor(container, runtime, options) {
-    var initial = "";
-    if (options.hasOwnProperty("initial")) {
-      initial = options.initial;
-    }
+  ],
+  nativeRequires: [
+    "pyret-base/js/runtime-util"
+  ],
+  provides: {},
+  theModule: function(runtime, _, uri,
+                      checkUI, outputUI, errorUI,
+                      worldLib, loadLib,
+                      util) {
+    var ffi = runtime.ffi;
 
-    var textarea = jQuery("<textarea>");
-    textarea.val(initial);
-    container.append(textarea);
-
-    var runFun = function (code, replOptions) {
-      options.run(code, {cm: CM}, replOptions);
-    }
-
-    var useLineNumbers = !options.simpleEditor;
-
-    function reindentAllLines(cm) {
-      var last = cm.lineCount();
-      cm.operation(function() {
-        for (var i = 0; i < last; ++i) cm.indentLine(i);
+    function merge(obj, extension) {
+      var newobj = {};
+      Object.keys(obj).forEach(function(k) {
+        newobj[k] = obj[k];
       });
-    }
-
-    var cmOptions = {
-      extraKeys: {
-        "Shift-Enter": function(cm) { runFun(cm.getValue()); },
-        "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
-        "Tab": "indentAuto",
-        "Ctrl-I": reindentAllLines
-      },
-      indentUnit: 2,
-      tabSize: 2,
-      viewportMargin: Infinity,
-      lineNumbers: useLineNumbers,
-      matchKeywords: true,
-      matchBrackets: true,
-      foldGutter: true,
-      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-      lineWrapping: true
-    };
-
-    cmOptions = merge(cmOptions, options.cmOptions || {});
-
-    var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
-
-
-    if (useLineNumbers) {
-      var upperWarning = jQuery("<div>").addClass("warning-upper");
-      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/img/up-arrow.png");
-      upperWarning.append(upperArrow);
-      CM.display.wrapper.appendChild(upperWarning.get(0));
-      var lowerWarning = jQuery("<div>").addClass("warning-lower");
-      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/img/down-arrow.png");
-      lowerWarning.append(lowerArrow);
-      CM.display.wrapper.appendChild(lowerWarning.get(0));
-    }
-
-    // True for editor, false for repl entries
-    if(options.runButton) {
-      options.runButton.on("click", function() {
-        runFun(CM.getValue());
+      Object.keys(extension).forEach(function(k) {
+        newobj[k] = extension[k];
       });
+      return newobj;
+    }
+    var animationDiv = null;
+    function closeAnimationIfOpen() {
+      if(animationDiv) {
+        animationDiv.empty();
+        animationDiv.dialog("destroy");
+        animationDiv = null;
+      }
+    }
+    var editors = {};
+    var interactionsCount = 0;
+
+    function formatCode(container, src) {
+      CodeMirror.runMode(src, "pyret", container);
     }
 
-    return {
-      cm: CM,
-      refresh: function() { CM.refresh(); },
-      run: function() {
-        runFun(CM.getValue());
-      },
-      focus: function() { CM.focus(); }
-    };
-  }
+    // NOTE(joe): sadly depends on the page and hard to figure out how to make
+    // this less global
+    function scroll(output) {
+      $(".repl").animate({
+           scrollTop: output.height(),
+         },
+         50
+      );
+    }
 
-  function formatCode(container, src) {
-    CodeMirror.runMode(src, "pyret", container);
-  }
+    var makeErrorContext = (function () {
+      var counter = 0;
+      var makeNew = function () {
+        makeNew.current = "eg-" + counter++
+        return makeNew.current;
+      }
+      return makeNew;
+    })();
 
-  // NOTE(joe): sadly depends on the page and hard to figure out how to make
-  // this less global
-  function scroll(output) {
-    $(".repl").animate({ 
-         scrollTop: output.height(),
-       },
-       500
-    );
-  }
-
-  function displayResult(output, callingRuntime, resultRuntime, isMain) {
-    var runtime = callingRuntime;
-    var rr = resultRuntime;
-    return function(result) {
-      runtime.loadJSModules(runtime.namespace, [ffi], function(ffi) {
-        console.log("Management/compile run stats:", JSON.stringify(result.stats));
-        if(callingRuntime.isFailureResult(result)) {
-          errorUI.drawError(output, editors, callingRuntime, result.exn);
-        }
-        else if(callingRuntime.isSuccessResult(result)) {
-          result = result.result;
-          ffi.cases(ffi.isEither, "Either", result,
-            {
+    function displayResult(output, callingRuntime, resultRuntime, isMain) {
+      var runtime = callingRuntime;
+      var rr = resultRuntime;
+      return function(result) {
+        var doneDisplay = Q.defer();
+        callingRuntime.runThunk(function() {
+          console.log("Full time including compile/load:", JSON.stringify(result.stats));
+          if(callingRuntime.isFailureResult(result)) {
+            return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+          }
+          else if(callingRuntime.isSuccessResult(result)) {
+            result = result.result;
+            ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
                 var errs = [];
@@ -127,244 +93,317 @@ define(["js/ffi-helpers", "js/runtime-util", "trove/image-lib", "./check-ui.js",
                 results.forEach(function(r) {
                   errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
                 });
-                errorUI.drawError(output, editors, runtime, {exn: errs});
+                return errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
               },
               right: function(v) {
-                rr.loadBuiltinModules(
-                  [util.modBuiltin("load-lib")],
-                  "repl-ui",
-                  function(loadLib) {
+                // TODO(joe): This is a place to consider which runtime level
+                // to use if we have separate compile/run runtimes.  I think
+                // that loadLib will be instantiated with callingRuntime, and
+                // I think that's correct.
+                callingRuntime.pauseStack(function(restarter) {
+                  rr.runThunk(function() {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
-                    console.log("Stats for running definitions:", JSON.stringify(runResult.stats));
+                    console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
-                      if(!isMain) {
-                        var answer = rr.getField(runResult.result, "answer");
-                        if(rr.isNothing(answer)) {
-                          return;
-                        }
-                        outputUI.renderPyretValue(output, rr, answer);
-                        scroll(output);
-                      }
-
-                      checkUI.drawCheckResults(output, editors, rr, runtime.getField(runResult.result, "checks"));
-                      scroll(output);
-
-                      return true;
-                    
+                      return rr.safeCall(function() {
+                        return checkUI.drawCheckResults(output, editors, rr, 
+                                                        runtime.getField(runResult.result, "checks"), 
+                                                        makeErrorContext);
+                      }, function(_) {
+                        outputPending.remove();
+                        outputPendingHidden = true;
+                        return true;
+                      }, "rr.drawCheckResults");
                     } else {
-                      errorUI.drawError(output, editors, rr, runResult.exn);
+                      return errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
                     }
+                  }, function(_) {
+                    restarter.resume(callingRuntime.nothing);
                   });
+                });
               }
             });
-        }
-        else {
-          console.error("Bad result: ", result);
-          errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
-        }
-      });
-    }
-  }
-
-  //: -> (code -> printing it on the repl)
-  function makeRepl(container, repl, runtime, options) {
-    
-    var Jsworld = worldLib(runtime, runtime.namespace);
-    var items = [];
-    var pointer = -1;
-    var current = "";
-    function loadItem() {
-      CM.setValue(items[pointer]);
-    }
-    function saveItem() {
-      items.unshift(CM.getValue());
-    }
-    function prevItem() {
-      if (pointer === -1) {
-        current = CM.getValue();
-      }
-      if (pointer < items.length - 1) {
-        pointer++;
-        loadItem();
-      }
-    }
-    function nextItem() {
-      if (pointer >= 1) {
-        pointer--;
-        loadItem();
-      } else if (pointer === 0) {
-        CM.setValue(current);
-        pointer--;
-      }
-    }
-
-    var promptContainer = jQuery("<div class='prompt-container'>");
-    var promptArrow = drawPromptArrow();
-    var prompt = jQuery("<span>").addClass("repl-prompt");
-    function showPrompt() {
-      promptContainer.hide();
-      promptContainer.fadeIn(100);
-      CM.setValue("");
-      CM.focus();
-      CM.refresh();
-    }
-    promptContainer.append(promptArrow).append(prompt);
-
-    container.on("click", function(e) {
-      if($(CM.getTextArea()).parent().offset().top < e.pageY) {
-        CM.focus();
-      }
-    });
-
-    var output = jQuery("<div id='output' class='cm-s-default'>");
-    runtime.setStdout(function(str) {
-        ct_log(str);
-        output.append($("<pre>").addClass("replPrint").text(str));
-      });
-    runtime.setParam("current-animation-port", function(dom) {
-        animationDiv = $("<div>").css({"z-index": 10000});
-        output.append(animationDiv);
-        function onClose() {
-          Jsworld.shutdown({ cleanShutdown: true });
-          showPrompt();
-        }
-        animationDiv.dialog({
-          title: 'big-bang',
-          position: ["left", "top"],
-			    bgiframe : true,
-			    modal : true,
-			    overlay : { opacity: 0.5, background: 'black'},
-			    //buttons : { "Save" : closeDialog },
-          width : "auto",
-          height : "auto",
-          close : onClose,
-          closeOnEscape : true
+          }
+          else {
+            doneDisplay.reject("Error displaying output");
+            console.error("Bad result: ", result);
+            return errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
+          }
+        }, function(_) {
+          doneDisplay.resolve("Done displaying output");
+          return callingRuntime.nothing;
         });
-        animationDiv.append(dom);
-      });
-
-    var breakButton = options.breakButton;
-    container.append(output).append(promptContainer);
-
-    var img = $("<img>").attr({
-      "src": "/img/pyret-spin.gif",
-      "width": "25px",
-    }).css({
-      "vertical-align": "middle"
-    });
-    function afterRun(cm) {
-      return function() {
-        options.runButton.empty();
-        options.runButton.text("Run");
-        options.runButton.attr("disabled", false);
-        breakButton.attr("disabled", true);
-        if(cm) {
-          cm.setValue("");
-          cm.setOption("readonly", false);
-          cm.getDoc().eachLine(function (line) {
-            cm.removeLineClass(line, 'background', 'cptteach-fixed');
-          });
-        }
-        output.get(0).scrollTop = output.get(0).scrollHeight;
-        showPrompt();
+      return doneDisplay.promise;
       }
     }
-    function setWhileRunning() {
-      options.runButton.empty();
-      var text = $("<span>").text("Running...");
-      text.css({
+
+    //: -> (code -> printing it on the repl)
+    function makeRepl(container, repl, runtime, options) {
+
+      var Jsworld = worldLib;
+      var items = [];
+      var pointer = -1;
+      var current = "";
+      function loadItem() {
+        CM.setValue(items[pointer]);
+      }
+      function saveItem() {
+        items.unshift(CM.getValue());
+      }
+      function prevItem() {
+        if (pointer === -1) {
+          current = CM.getValue();
+        }
+        if (pointer < items.length - 1) {
+          pointer++;
+          loadItem();
+          CM.refresh();
+        }
+      }
+      function nextItem() {
+        if (pointer >= 1) {
+          pointer--;
+          loadItem();
+          CM.refresh();
+        } else if (pointer === 0) {
+          CM.setValue(current);
+          CM.refresh();
+          pointer--;
+        }
+      }
+
+      var promptContainer = jQuery("<div class='prompt-container'>");
+      var promptArrow = drawPromptArrow();
+      var prompt = jQuery("<span>").addClass("repl-prompt");
+      function showPrompt() {
+        promptContainer.hide();
+        promptContainer.fadeIn(100);
+        CM.setValue("");
+        CM.focus();
+        CM.refresh();
+      }
+      promptContainer.append(promptArrow).append(prompt);
+
+      container.on("click", function(e) {
+        if($(CM.getTextArea()).parent().offset().top < e.pageY) {
+          CM.focus();
+        }
+      });
+
+      var output = jQuery("<div id='output' class='cm-s-default'>");
+      var outputPending = jQuery("<span>").text("Gathering results...");
+      var outputPendingHidden = true;
+      function maybeShowOutputPending() {
+        outputPendingHidden = false;
+        setTimeout(function() {
+          if(!outputPendingHidden) {
+            output.append(outputPending);
+          }
+        }, 200);
+      }
+      runtime.setStdout(function(str) {
+          ct_log(str);
+          output.append($("<pre>").addClass("replPrint").text(str));
+        });
+      runtime.setParam("current-animation-port", function(dom) {
+          animationDiv = $("<div>").css({"z-index": 10000});
+          output.append(animationDiv);
+          function onClose() {
+            Jsworld.shutdown({ cleanShutdown: true });
+            showPrompt();
+          }
+          animationDiv.dialog({
+            title: 'big-bang',
+            position: ["left", "top"],
+            bgiframe : true,
+            modal : true,
+            overlay : { opacity: 0.5, background: 'black'},
+            //buttons : { "Save" : closeDialog },
+            width : "auto",
+            height : "auto",
+            close : onClose,
+            closeOnEscape : true
+          });
+          animationDiv.append(dom);
+        });
+
+      var breakButton = options.breakButton;
+      container.append(output).append(promptContainer);
+
+      var img = $("<img>").attr({
+        "src": "/img/pyret-spin.gif",
+        "width": "25px",
+      }).css({
         "vertical-align": "middle"
       });
-      options.runButton.append([img, text]);
-      options.runButton.attr("disabled", true);
-    }
-
-    var runMainCode = function(src, uiOptions) {
-      breakButton.attr("disabled", false);
-      output.empty();
-      promptContainer.hide();
-      lastEditorRun = uiOptions.cm || null;
-      setWhileRunning();
-
-      editors = {};
-      editors["definitions"] = uiOptions.cm;
-      interactionsCount = 0;
-      var replResult = repl.restartInteractions(src);
-      var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
-        console.error("Error displaying result: ", err);
-      });
-      doneRendering.fin(afterRun(false));
-    };
-
-    var runner = function(code) {
-      items.unshift(code);
-      pointer = -1;
-      var echoContainer = $("<div class='echo-container'>");
-      var echoSpan = $("<span>").addClass("repl-echo");
-      var echo = $("<textarea>");
-      echoSpan.append(echo);
-      echoContainer.append(drawPromptArrow()).append(echoSpan);
-      write(echoContainer);
-      var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
-      echoCM.setValue(code);
-      breakButton.attr("disabled", false);
-      CM.setValue("");
-      promptContainer.hide();
-      setWhileRunning();
-      interactionsCount++;
-      var thisName = 'interactions' + interactionsCount;
-      editors[thisName] = echoCM;
-      var replResult = repl.run(code, thisName);
-      var doneRendering = replResult.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
-        console.error("Error displaying result: ", err);
-      });
-      doneRendering.fin(afterRun(CM));
-    };
-
-    var CM = makeEditor(prompt, runtime, {
-      simpleEditor: true,
-      run: runner,
-      initial: "",
-      cmOptions: {
-        extraKeys: {
-          'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
-          'Shift-Enter': "newlineAndIndent",
-          'Up': prevItem,
-          'Down': nextItem,
-          'Ctrl-Up': "goLineUp",
-          'Ctrl-Alt-Up': "goLineUp",
-          'Ctrl-Down': "goLineDown",
-          'Ctrl-Alt-Down': "goLineDown"
+      var runContents;
+      function afterRun(cm) {
+        return function() {
+          outputPending.remove();
+          outputPendingHidden = true;
+          options.runButton.empty();
+          options.runButton.append(runContents);
+          options.runButton.attr("disabled", false);
+          breakButton.attr("disabled", true);
+          if(cm) {
+            cm.setValue("");
+            cm.setOption("readonly", false);
+            cm.getDoc().eachLine(function (line) {
+              cm.removeLineClass(line, 'background', 'cptteach-fixed');
+            });
+          }
+          //output.get(0).scrollTop = output.get(0).scrollHeight;
+          showPrompt();
+          setTimeout(function(){
+            $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
+          }, 200);
         }
       }
-    }).cm;
+      function setWhileRunning() {
+        runContents = options.runButton.contents();
+        options.runButton.empty();
+        var text = $("<span>").text("Running...");
+        text.css({
+          "vertical-align": "middle"
+        });
+        options.runButton.append([img, text]);
+        options.runButton.attr("disabled", true);
+      }
 
-    var lastNameRun = 'interactions';
-    var lastEditorRun = null;
+      // SETUP FOR TRACING ALL OUTPUTS
+      var replOutputCount = 0;
+      outputUI.installRenderers(repl.runtime);
+      repl.runtime.setParam("onTrace", function(loc, val, url) {
+        if (repl.runtime.getParam("currentMainURL") !== url) { return { "onTrace": "didn't match" }; }
+        if (repl.runtime.isNothing(val)) { return { "onTrace": "was nothing" }; }
+        repl.runtime.pauseStack(function(restarter) {
+          repl.runtime.runThunk(function() {
+            return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+          }, function(container) {
+            if (repl.runtime.isSuccessResult(container)) {
+              $(output)
+                .append($("<div>").addClass("trace")
+                        .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
+                        .append(container.result));
+              scroll(output);
+            } else {
+              $(output).append($("<div>").addClass("error trace")
+                               .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
+                               .append($("<span>").text("<error displaying value: details logged to console>")));
+              console.log(container.exn);
+              scroll(output);
+            }
+            restarter.resume(val);
+          });
+        });
+      });
 
-    var write = function(dom) {
-      output.append(dom);
-    };
+      var runMainCode = function(src, uiOptions) {
+        breakButton.attr("disabled", false);
+        output.empty();
+        promptContainer.hide();
+        lastEditorRun = uiOptions.cm || null;
+        setWhileRunning();
 
-    var onBreak = function() {
+        editors = {};
+        editors["definitions://"] = uiOptions.cm;
+        function invalidateHighlights(cm, change) {
+          cm.off("change", invalidateHighlights);
+          document.getElementById("main").dataset.highlights = "";
+        }
+        editors["definitions://"].on("change", invalidateHighlights);
+        interactionsCount = 0;
+        replOutputCount = 0;
+        var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
+        var startRendering = replResult.then(function(r) {
+          maybeShowOutputPending();
+          return r;
+        });
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+          console.error("Error displaying result: ", err);
+        });
+        doneRendering.fin(afterRun(false));
+      };
+
+      var runner = function(code) {
+        document.getElementById("main").dataset.highlights = "";
+        items.unshift(code);
+        pointer = -1;
+        var echoContainer = $("<div class='echo-container'>");
+        var echoSpan = $("<span>").addClass("repl-echo");
+        var echo = $("<textarea>");
+        echoSpan.append(echo);
+        echoContainer.append(drawPromptArrow()).append(echoSpan);
+        write(echoContainer);
+        var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
+        echoCM.setValue(code);
+        breakButton.attr("disabled", false);
+        CM.setValue("");
+        promptContainer.hide();
+        setWhileRunning();
+        interactionsCount++;
+        var thisName = 'interactions://' + interactionsCount;
+        editors[thisName] = echoCM;
+        var replResult = repl.run(code, thisName);
+//        replResult.then(afterRun(CM));
+        var startRendering = replResult.then(function(r) {
+          maybeShowOutputPending();
+          return r;
+        });
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+          console.error("Error displaying result: ", err);
+        });
+        doneRendering.fin(afterRun(CM));
+      };
+
+      var CM = CPO.makeEditor(prompt, {
+        simpleEditor: true,
+        run: runner,
+        initial: "",
+        cmOptions: {
+          extraKeys: {
+            'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
+            'Shift-Enter': "newlineAndIndent",
+            'Up': prevItem,
+            'Down': nextItem,
+            'Ctrl-Up': "goLineUp",
+            'Ctrl-Alt-Up': "goLineUp",
+            'Ctrl-Down': "goLineDown",
+            'Ctrl-Alt-Down': "goLineDown"
+          }
+        }
+      }).cm;
+
+      editors['definitions://'] = CM;
+
+      var lastNameRun = 'interactions';
+      var lastEditorRun = null;
+
+      var write = function(dom) {
+        output.append(dom);
+      };
+
+      var onBreak = function() {
+        breakButton.attr("disabled", true);
+        repl.stop();
+        closeAnimationIfOpen();
+        Jsworld.shutdown({ cleanShutdown: true });
+        showPrompt();
+      };
+
       breakButton.attr("disabled", true);
-      repl.stop();
-      closeAnimationIfOpen();
-      Jsworld.shutdown({ cleanShutdown: true });
-      showPrompt();
-    };
+      breakButton.click(onBreak);
 
-    breakButton.attr("disabled", true);
-    breakButton.click(onBreak);
+      return {
+        runCode: runMainCode,
+        focus: function() { CM.focus(); }
+      };
+    }
 
-    return {
-      runCode: runMainCode,
-      focus: function() { CM.focus(); }
-    };
+    return runtime.makeJSModuleReturn({
+      makeRepl: makeRepl,
+      makeEditor: CPO.makeEditor
+    });
+
   }
-
-  return {
-    makeRepl: makeRepl,
-    makeEditor: makeEditor
-  };
-});
+})

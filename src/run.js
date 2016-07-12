@@ -19,7 +19,6 @@ else {
 
 var res = Q.fcall(function(db) {
   server.start({
-    okGoogleIds: JSON.parse(process.env["OK_GOOGLE_IDS"]),
     development: process.env["NODE_ENV"] !== "production",
     baseUrl: process.env["BASE_URL"],
     port: process.env["PORT"],
@@ -31,7 +30,7 @@ var res = Q.fcall(function(db) {
       redirect: "/oauth2callback"
     }
   }, function(app) {
-
+    console.log("Server ready.");
   });
 });
 res.fail(function(err) {

@@ -15,10 +15,13 @@ else
 endif
 
 CM=node_modules/codemirror
+CPOMAIN=build/web/js/cpo-main.jarr
+CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
+PHASEA=pyret/build/phaseA/pyret.jarr
+COMMITID=$(git rev-parse --short HEAD)
 
 build/web/js/pyret.js.gz:
 	gzip -9 node_modules/pyret-lang/build/phase0/pyret.js -c > build/web/js/pyret.js.gz
-
 
 .PHONY : post-install
 post-install: compress-pyret
@@ -28,11 +31,11 @@ install-link:
 
 .PHONY : selenium-test-local
 selenium-test-local:
-	TEST_LOC="local" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
+	TEST_LOC="local" node test/test.js test/browser
 
 .PHONY : selenium-test-sauce
 selenium-test-sauce:
-	TEST_LOC="sauce" node node_modules/jasmine-node/lib/jasmine-node/cli.js test/browser/
+	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
 
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
@@ -80,10 +83,24 @@ COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.
 build/web/js/%.js: src/web/js/%.js
 	cp $< $@
 
+COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-apis/%.js,$(wildcard src/web/js/google-apis/*.js))
+
+build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
+	cp $< $@
+
+build/web/js/beforePyret.js: src/web/js/beforePyret.js
+	`npm bin`/webpack
+
 build/web/js/q.js: node_modules/q/q.js
 	cp $< $@
 
 build/web/js/s-expression-lib.js: node_modules/s-expression/index.js
+	cp $< $@
+
+build/web/js/colorspaces.js: node_modules/colorspaces/colorspaces.js
+	cp $< $@
+
+build/web/js/es6-shim.js: node_modules/es6-shim/es6-shim.min.js
 	cp $< $@
 
 build/web/js/seedrandom.js: node_modules/seedrandom/seedrandom.js
@@ -95,7 +112,13 @@ build/web/js/url.js: node_modules/url.js/url.js
 build/web/js/require.js: node_modules/requirejs/require.js
 	cp $< $@
 
-build/web/js/codemirror.js: node_modules/codemirror/lib/codemirror.js
+build/web/js/codemirror.js: $(CM)/lib/codemirror.js
+	cp $< $@
+
+build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
+	cp $< $@
+
+build/web/js/runmode.js: $(CM)/addon/runmode/runmode.js
 	cp $< $@
 
 build/web/js/pyret-fold.js: src/web/js/codemirror/pyret-fold.js
@@ -109,22 +132,34 @@ build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
+          build/web/js/mark-selection.js \
           build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
           build/web/js/seedrandom.js \
           build/web/js/pyret-fold.js \
-          build/web/js/matchkw.js
+          build/web/js/matchkw.js \
+          build/web/js/colorspaces.js \
+          build/web/js/es6-shim.js \
+          build/web/js/runmode.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
 build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
+COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
+COPY_ARR :=
+
+# build/web/arr/%: pyret/src/arr/trove/%
+# 	cp $< $@
+
 
 WEB = build/web
 WEBV = build/web/views
 WEBJS = build/web/js
+WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
 WEBIMG = build/web/img
+WEBARR = build/web/arr
 NEWCSS = build/web/neweditor/css
 NEWJS = build/web/neweditor/js
 
@@ -137,11 +172,17 @@ $(WEB):
 $(WEBJS):
 	@$(call MKDIR,$(WEBJS))
 
+$(WEBJSGOOG):
+	@$(call MKDIR,$(WEBJSGOOG))
+
 $(WEBCSS):
 	@$(call MKDIR,$(WEBCSS))
 
 $(WEBIMG):
 	@$(call MKDIR,$(WEBIMG))
+
+$(WEBARR):
+	@$(call MKDIR,$(WEBARR))
 
 $(NEWCSS):
 	@$(call MKDIR,$(NEWCSS))
@@ -186,8 +227,8 @@ $(CPOMAIN).gz: $(CPOMAIN)
 	gzip -c -f $(CPOMAIN) > $(CPOMAIN).gz
 
 release-main: $(CPOMAIN).gz
-	mkdir -p build/release;
-	cp $(CPOMAIN).gz build/release/
+	mkdir -p build/release/$(COMMITID);
+	cp $(CPOMAIN).gz build/release/$(COMMITID)/
 
 $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;
@@ -205,4 +246,5 @@ $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-stand
     --outfile $(CPOIDEHOOKS) -no-check-mode
 
 clean:
-	rm -rf build/web
+	rm -rf build/
+	rm -rf compiled/

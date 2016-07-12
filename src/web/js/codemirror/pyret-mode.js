@@ -11,12 +11,12 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   
   const pyret_indent_regex = new RegExp("^[a-zA-Z_][a-zA-Z0-9$_\\-]*");
   const pyret_closing_keywords = ["end"];
-  const pyret_closing_builtins = [";"];
+  const pyret_closing_builtins = [];
   const pyret_closing_tokens =
         pyret_closing_keywords.map(toToken("keyword")).concat(
           pyret_closing_builtins.map(toToken("builtin")));
-  const pyret_opening_keywords_colon = ["try", "ask", "ref-graph", "block"];
-  const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let",
+  const pyret_opening_keywords_colon = ["try", "ref-graph", "block"];
+  const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let", "ask",
                                           "cases", "data", "shared", "check",
                                           "except", "letrec", "lam", "method",
                                           "examples"];
@@ -59,12 +59,15 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
 
   // Contexts in which function-names can be unprefixed
   // (i.e. no "fun" or "method")
-  const pyret_unprefixed_contexts = ["OBJECT", "SHARED"];
+  const pyret_unprefixed_contexts = [];
 
   // Subkeywords each token can have
   const pyret_subkeywords = {
-    "if": ["else if", "else"], "fun": ["where"],
-    "data": ["sharing", "where"], "method": ["where"]
+    "if": ["block", "else if", "else"], "when": ["block"],
+    "fun": ["block", "where"], "method": ["block", "where"], "lam": ["block"],
+    "for": ["block"], "let": ["block"], "letrec": ["block"],
+    "cases": ["block"], "ask": ["block", "then", "otherwise"], 
+    "data": ["sharing", "where"], 
   };
 
   // Subkeywords which cannot be followed by any other keywords
@@ -82,6 +85,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     //console.log("Token:", state, tokType, content, style);
     return style;
   }
+
 
   function tokenBase(stream, state) { 
     if (stream.eatSpace())
@@ -101,9 +105,20 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         return ret(state, "COMMENT", state.lastContent, 'comment');
       }
     }
+
     // Handle Number Literals
-    if (stream.match(/^[0-9]+(\.[0-9]+)?/))
+    const number = new RegExp("^[-+]?[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+    const badNumber = new RegExp("^~?[+-]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?");
+    const roughnum = new RegExp("^~[-+]?[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+    const rational = new RegExp("^[-+]?[0-9]+/[0-9]+");
+    if (stream.match(roughnum))
+      return ret(state, 'number', stream.current(), 'roughnum');
+    else if (stream.match(rational))
       return ret(state, 'number', stream.current(), 'number');
+    else if (stream.match(number))
+      return ret(state, 'number', stream.current(), 'number');
+    else if (stream.match(badNumber))
+      return ret(state, 'number', stream.current(), 'bad-number');
     
     // if (ch === '"') {
     //   state.tokenizer = tokenStringDouble;
@@ -145,6 +160,8 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       return state.tokenizer(stream, state);
     } else if (match = stream.match(unterminated_string, true)) {
       return ret(state, 'string', match[0], 'unterminated-string');
+    } else if (match = stream.match(/^\.\.\./, true)) {
+      return ret(state, match[0], match[0], 'builtin');
     }
     // Level 1
     if ((match = stream.match(pyret_double_punctuation, true)) || 
@@ -329,6 +346,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       return arr[arr.length - 1] === wanted;
     }
   }
+  // Unused, but temporarily leaving in until
+  // we are positive that unprefixed function
+  // definitions will never appear again
   function isUnprefixedContext(ctx) {
     if (ctx.length === 0)
       return false;
@@ -354,13 +374,14 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.nestingsAtLineStart = ls.nestingsAtLineEnd.copy();
     }
     // Special case: period-separated names in for <func>(...) expressions
-    if ((state.lastToken === "name" || state.lastToken === ".") && hasTop(ls.tokens, "WANTCOLON", "FOR")) {
+    if ((state.lastToken === "name" || state.lastToken === ".") && hasTop(ls.tokens, "WANTCOLONORBLOCK", "FOR")) {
       if (inOpening)
         ls.delimType = pyret_delimiter_type.OPEN_CONTD;
     }
-    if (state.lastToken === "name" && style === 'function-name' && isUnprefixedContext(ls.tokens)) {
+    // Uncomment if pyret_unprefixed_contexts is ever used again
+    /*if (state.lastToken === "name" && style === 'function-name' && isUnprefixedContext(ls.tokens)) {
       ls.delimType = pyret_delimiter_type.OPENING;
-    }
+    }*/
     if (ls.nestingsAtLineStart.comments > 0 || ls.curOpened.comments > 0 || ls.deferedOpened.comments > 0) {
       if (state.lastToken === "COMMENT-END") {
         if (ls.curOpened.comments > 0) ls.curOpened.comments--;
@@ -389,14 +410,27 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.deferedClosed.i++;
     } else if (state.lastToken === ":") {
       if (inOpening)
-        ls.delimType = pyret_delimiter_type.OPEN_COTD;
+        ls.delimType = pyret_delimiter_type.OPEN_CONTD;
       else if (inSubkw)
         ls.delimType = pyret_delimiter_type.SUB_CONTD;
-      if (hasTop(ls.tokens, "WANTCOLON") || hasTop(ls.tokens, "WANTCOLONOREQUAL"))
+      if (hasTop(ls.tokens, "WANTCOLON") 
+          || hasTop(ls.tokens, "WANTCOLONOREQUAL")
+          || hasTop(ls.tokens, "WANTCOLONORBLOCK"))
         ls.tokens.pop();
-      else if (hasTop(ls.tokens, "OBJECT") || hasTop(ls.tokens, "SHARED")) {
+      else if (hasTop(ls.tokens, "OBJECT")
+               || hasTop(ls.tokens, "SHARED")
+               || hasTop(ls.tokens, "OBJECTORTUPLE")) {
+        if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
+          ls.tokens.pop();
+          ls.tokens.push("OBJECT");
+        }
         ls.deferedOpened.f++;
         ls.tokens.push("FIELD", "NEEDSOMETHING");
+      }
+    } else if (state.lastToken === ";") {
+      if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
+        ls.tokens.pop();
+        ls.tokens.push("TUPLE");
       }
     } else if (state.lastToken === "::") {
       if (hasTop(ls.tokens, "OBJECT") || hasTop(ls.tokens, "SHARED")) {
@@ -427,23 +461,31 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "fun" || state.lastToken === "method" || state.lastToken === "lam") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
-      ls.tokens.push("FUN", "WANTOPENPAREN");
+      ls.tokens.push("FUN", "WANTCOLONORBLOCK", "WANTCLOSEPAREN", "WANTOPENPAREN");
+    } else if (state.lastToken === "method") {
+      if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
+        ls.tokens.pop();
+        ls.tokens.push("OBJECT");
+      }
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("FUN", "WANTCOLONORBLOCK", "WANTCLOSEPAREN", "WANTOPENPAREN");
     } else if (state.lastToken === "let" || state.lastToken === "letrec") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
-      ls.tokens.push("LET", "WANTCOLON");
+      ls.tokens.push("LET", "WANTCOLONORBLOCK");
     } else if (state.lastToken === "when") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // when indents like functions
-      ls.tokens.push("WHEN", "WANTCOLON");
+      ls.tokens.push("WHEN", "WANTCOLONORBLOCK");
     } else if (state.lastToken === "for") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++; // for-loops indent like functions
-      ls.tokens.push("FOR", "WANTCOLON");
+      ls.tokens.push("FOR", "WANTCOLONORBLOCK");
     } else if (state.lastToken === "cases") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.c++;
-      ls.tokens.push("CASES", "WANTCOLON", "WANTCLOSEPAREN", "WANTOPENPAREN");
+      ls.tokens.push("CASES", "WANTCOLONORBLOCK", "WANTCLOSEPAREN", "WANTOPENPAREN");
     } else if (state.lastToken === "data") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.d++;
@@ -451,12 +493,11 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "ask") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.c++;
-      ls.tokens.push("IFCOND");
+      ls.tokens.push("IFCOND", "WANTCOLONORBLOCK");
     } else if (state.lastToken === "if") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
-      ls.tokens.push("IF");
-      ls.tokens.push("WANTCOLON", "NEEDSOMETHING");
+      ls.tokens.push("IF", "WANTCOLONORBLOCK", "NEEDSOMETHING");
     } else if (state.lastToken === "else if") {
       if (hasTop(ls.tokens, "IF")) {
         if (ls.curOpened.fn > 0) ls.curOpened.fn--;
@@ -500,7 +541,11 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "sharing") {
       ls.curClosed.d++; ls.deferedOpened.s++;
       ls.delimType = pyret_delimiter_type.SUBKEYWORD;
-      if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
+      if (hasTop(ls.tokens, ["FIELD", "OBJECT", "DATA"])) {
+        ls.tokens.pop(); ls.tokens.pop(); ls.tokens.pop();
+        ls.curClosed.o++;
+        ls.tokens.push("SHARED", "WANTCOLON");
+      } else if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         ls.tokens.pop(); ls.tokens.pop();
         //ls.curClosed.o++;
         ls.tokens.push("SHARED", "WANTCOLON");
@@ -511,7 +556,11 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     } else if (state.lastToken === "where" || (state.lastToken === "examples" && ls.tokens.length > 0)) {
       ls.delimType = (state.lastToken === "where") ? pyret_delimiter_type.SUBKEYWORD
                                                    : pyret_delimiter_type.OPENING;
-      if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
+      if (hasTop(ls.tokens, ["FIELD", "OBJECT", "DATA"])) {
+        ls.tokens.pop(); ls.tokens.pop();
+        ls.curClosed.o++; 
+        ls.curClosed.d++; ls.deferedOpened.s++;
+      } else if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         ls.tokens.pop();
         // ls.curClosed.o++; 
         ls.curClosed.d++; ls.deferedOpened.s++;
@@ -541,9 +590,17 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.tokens.pop();
         ls.tokens.push("WANTCOLON", "WANTCLOSEPAREN", "WANTOPENPAREN");
       }
+    } else if (state.lastToken === "then" || state.lastToken === "otherwise") {
+      ls.delimType = pyret_delimiter_type.SUBKEYWORD;
     } else if (state.lastToken === "block") {
-      ls.deferedOpened.fn++;
-      ls.tokens.push("BLOCK", "WANTCOLON");
+      if (hasTop(ls.tokens, "WANTCOLONORBLOCK")) {
+        ls.delimType = pyret_delimiter_type.SUBKEYWORD;
+      } else {
+        ls.deferedOpened.fn++;
+        ls.tokens.push("BLOCK", "WANTCOLON");
+        ls.delimType = pyret_delimiter_type.OPENING;
+      }
+      console.log(state);
     } else if (state.lastToken === "ref-graph") {
       ls.deferedOpened.g++;
       ls.tokens.push("GRAPH", "WANTCOLON");
@@ -563,7 +620,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       }
     } else if (state.lastToken === "{") {
       ls.deferedOpened.o++;
-      ls.tokens.push("OBJECT");
+      ls.tokens.push("OBJECTORTUPLE");
       ls.delimType = pyret_delimiter_type.OPENING;
     } else if (state.lastToken === "}") {
       ls.delimType = pyret_delimiter_type.CLOSING;
@@ -575,7 +632,9 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         else if (ls.deferedOpened.f > 0) ls.deferedOpened.f--;
         else ls.curClosed.f++;
       }
-      if (hasTop(ls.tokens, "OBJECT"))
+      if (hasTop(ls.tokens, "OBJECT")
+          || hasTop(ls.tokens, "OBJECTORTUPLE")
+          || hasTop(ls.tokens, "TUPLE"))
         ls.tokens.pop();
       while (hasTop(ls.tokens, "VAR")) {
         ls.tokens.pop();
@@ -587,7 +646,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       if (hasTop(ls.tokens, "WANTOPENPAREN")) {
         ls.tokens.pop();
       } else if (hasTop(ls.tokens, "OBJECT") || hasTop(ls.tokens, "SHARED")) {
-        ls.tokens.push("FUN");
+        ls.tokens.push("FUN", "WANTCOLONORBLOCK");
         ls.deferedOpened.fn++;
       } else {
         ls.tokens.push("WANTCLOSEPAREN");
@@ -603,21 +662,13 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.tokens.pop();
         ls.deferedClosed.v++;
       }
-    } else if (state.lastToken === "end" || state.lastToken === ";") {
+    } else if (state.lastToken === "end") {
       ls.delimType = pyret_delimiter_type.CLOSING;
       if (hasTop(ls.tokens, ["OBJECT", "DATA"])) {
         //ls.curClosed.o++;
         ls.tokens.pop();
       }
       var top = peek(ls.tokens);
-      var is_semi, which_to_close;
-      if (state.lastToken === ";") {
-        is_semi = true;
-        which_to_close = ls.deferedClosed;
-      } else {
-        is_semi = false;
-        which_to_close = ls.curClosed;
-      }
       var stillUnclosed = true;
       while (stillUnclosed && ls.tokens.length) {
         // Things that are not counted at all:
@@ -626,55 +677,55 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         if (top === "OBJECT" || top === "ARRAY") {
           if (ls.curOpened.o > 0) ls.curOpened.o--;
           else if (ls.deferedOpened.o > 0) ls.deferedOpened.o--;
-          else which_to_close.o++;
+          else ls.curClosed.o++;
         } else if (top === "WANTCLOSEPAREN") {
           if (ls.curOpened.p > 0) ls.curOpened.p--;
           else if (ls.deferedOpened.p > 0) ls.deferedOpened.p--;
-          else which_to_close.p++;
+          else ls.curClosed.p++;
         } else if (top === "FIELD") {
           if (ls.curOpened.f > 0) ls.curOpened.f--;
           else if (ls.deferedOpened.f > 0) ls.deferedOpened.f--;
-          else which_to_close.f++;
+          else ls.curClosed.f++;
         } else if (top === "VAR") {
           if (ls.curOpened.v > 0) ls.curOpened.v--;
           else if (ls.deferedOpened.v > 0) ls.deferedOpened.v--;
-          else which_to_close.v++;
+          else ls.curClosed.v++;
         } 
         // Things that are counted, and closable by end:
         else if (top === "FUN" || top === "WHEN" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET") {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
-          else which_to_close.fn++;
+          else ls.curClosed.fn++;
           stillUnclosed = false;
         } else if (top === "CASES" || top === "IFCOND") {
           if (ls.curOpened.c > 0) ls.curOpened.c--;
           else if (ls.deferedOpened.c > 0) ls.deferedOpened.c--;
-          else which_to_close.c++;
+          else ls.curClosed.c++;
           stillUnclosed = false;
         } else if (top === "DATA") {
           if (ls.curOpened.d > 0) ls.curOpened.d--;
           else if (ls.deferedOpened.d > 0) ls.deferedOpened.d--;
-          else which_to_close.d++;
+          else ls.curClosed.d++;
           stillUnclosed = false;
         } else if (top === "SHARED" || top === "CHECK") {
           if (ls.curOpened.s > 0) ls.curOpened.s--;
           else if (ls.deferedOpened.s > 0) ls.deferedOpened.s--;
-          else which_to_close.s++;
+          else ls.curClosed.s++;
           stillUnclosed = false;
         } else if (top === "TRY") {
           if (ls.curOpened.t > 0) ls.curOpened.t--;
           else if (ls.deferedOpened.t > 0) ls.deferedOpened.t--;
-          else which_to_close.t++;
+          else ls.curClosed.t++;
           stillUnclosed = false;
         } else if (top === "EXCEPT") {
           if (ls.curOpened.e > 0) ls.curOpened.e--;
           else if (ls.deferedOpened.e > 0) ls.deferedOpened.e--;
-          else which_to_close.e++;
+          else ls.curClosed.e++;
           stillUnclosed = false;
         } else if (top === "GRAPH") {
           if (ls.curOpened.g > 0) ls.curOpened.g--
           else if (ls.deferedOpened.g > 0) ls.deferedOpened.g--;
-          else which_to_close.g++;
+          else ls.curClosed.g++;
           stillUnclosed = false;
         }
         ls.tokens.pop();

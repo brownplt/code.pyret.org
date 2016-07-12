@@ -5,6 +5,16 @@ var OAuth2 = gapi.auth.OAuth2;
 // Relevant README/docs at https://github.com/google/google-api-nodejs-client/
 
 function makeAuth(config) {
+  var OAUTH_SCOPES = ["email",
+                      "https://www.googleapis.com/auth/spreadsheets",
+                      // The `drive` scope allows us to open files
+                      // (particularly spreadsheets)made outside of
+                      // the Pyret ecosystem.
+                      "https://www.googleapis.com/auth/drive",
+                      "https://www.googleapis.com/auth/drive.file",
+                      "https://www.googleapis.com/auth/drive.install",
+                      "https://www.googleapis.com/auth/drive.photos.readonly",
+                      "https://www.googleapis.com/auth/photos"];
   var oauth2Client =
       new OAuth2(
           config.google.clientId,
@@ -14,7 +24,6 @@ function makeAuth(config) {
 
   return {
     refreshAccess: function(refreshToken, callback) {
-      console.log(refreshToken);
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -37,9 +46,7 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: "email "
-             + "https://www.googleapis.com/auth/drive.file "
-             + "https://www.googleapis.com/auth/drive.install",
+        scope: OAUTH_SCOPES.join(' '),
         state: afterUrl
       });
     },
@@ -52,7 +59,6 @@ function makeAuth(config) {
               config.baseUrl + config.google.redirect
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
-        console.log("Got tokens: ", JSON.stringify(tokens));
         if(err !== null) {
           console.error("Error in Google login: ", err);
           callback(err, null); return;

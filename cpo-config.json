@@ -1,0 +1,17 @@
+{
+  "baseUrl": "./",
+  "optimize": "none",
+  "paths": {
+      "cpo": "./src/web/js/",
+      "pyret-base": "./pyret/build/phaseA/",
+      "jglr": "./pyret/lib/jglr",
+      "js-md5": "node_modules/js-md5/src/md5",
+      "crypto": "empty:",
+      "path": "src/web/js/pathstub",
+      "q": "build/web/js/q",
+      "s-expression": "build/web/js/s-expression",
+      "fs": "build/web/js/fsstub",
+      "requirejs": "empty:",
+      "seedrandom": "empty:"
+    }
+}
