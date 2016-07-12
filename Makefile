@@ -18,7 +18,7 @@ CM=node_modules/codemirror
 CPOMAIN=build/web/js/cpo-main.jarr
 CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
 PHASEA=pyret/build/phaseA/pyret.jarr
-COMMITID=$(git rev-parse HEAD)
+COMMITID=$(shell git rev-parse --short HEAD)
 
 build/web/js/pyret.js.gz:
 	gzip -9 node_modules/pyret-lang/build/phase0/pyret.js -c > build/web/js/pyret.js.gz
@@ -198,9 +198,12 @@ link-pyret:
 	ln -s node_modules/pyret-lang pyret;
 	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
 
-deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) $(CPOMAIN).gz
+deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) cpo-main-release 
+
+cpo-main-release: $(CPOMAIN).gz 
 	mkdir -p build/release/$(COMMITID);
 	cp $(CPOMAIN).gz build/release/$(COMMITID)/
+
 
 TROVE_JS := $(wildcard src/web/js/trove/*.js)
 
