@@ -38,13 +38,13 @@
 
     function runMarks() {
       var allMarks = marksByEditor;
+      var chunkSize = 100;
       marksByEditor = {};
       for (var source in allMarks) {
         var marks = allMarks[source];
         var editor = marks[0].editor; // these should be uniformly the same editor...
-        var chunkSize = 100;
         for (var i = 0; i < Math.ceil(marks.length / chunkSize); i++) {
-          function chunk(start) {
+          function chunk(start, editor, marks) {
             return function() {
               editor.operation(function() {
                 for (var j = start; j < marks.length && j < start + chunkSize; j++) {
@@ -52,12 +52,12 @@
                   var mark = marks[j];
                   var handle = mark.editor.markText(mark.from, mark.to, mark.opts);
                   if (mark.cb)
-                    mark.cb(editor, handle);
+                    mark.cb(mark.editor, handle);
                 }
               });
             };
           }
-          util.suspend(chunk(i * chunkSize));
+          util.suspend(chunk(i * chunkSize, editor, marks));
         }
       }
     }
