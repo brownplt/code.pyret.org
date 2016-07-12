@@ -1150,7 +1150,7 @@
                     runtime.runThunk(function() { 
                       return help(out.result, stack);
                     }, function(helpOut) { 
-                      restarter.resume(helpOut); 
+                      restarter.resume(helpOut.result); 
                     });
                   } else {
                     runtime.runThunk(function() {
@@ -1161,7 +1161,7 @@
                                     .text("<error displaying srcloc-specific message; "
                                           + "details logged to console; " 
                                           + "less-specific message displayed instead>"));
-                      result.append(helpOut);
+                      result.append(helpOut.result);
                       restarter.resume(result); 
                     });
                   }

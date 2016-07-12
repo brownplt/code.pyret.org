@@ -141,7 +141,7 @@
 
 
     // adaptWorldFunction: Racket-function -> World-CPS
-    // Takes a racket function and converts it to the CPS-style function
+    // Takes a pyret function and converts it to the CPS-style function
     // that our world implementation expects.
     // NOTE(joe):  This expects there to be no active run for runtime
     // (it should be paused).  The run gets paused by pauseStack() in the
@@ -154,7 +154,13 @@
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
         runtime.run(function(_, _) {
-          return worldFunction.app.apply(null, pyretArgs);
+          // NOTE(joe): adding safecall here to get some meaningful caller frame
+          // so error messages know where the call is coming from
+          return runtime.safeCall(function() {
+            return worldFunction.app.apply(null, pyretArgs);
+          }, function(result) {
+            return result;
+          }, "big-bang");
         }, runtime.namespace,
                     { sync: false },
                     function(result) {
