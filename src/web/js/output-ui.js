@@ -522,14 +522,9 @@
         var srcUrl = makeMyDriveUrl(MyDriveId);
         return srcElem.attr({href: srcUrl, target: "_blank"});
       } else if(isJSImport(cmloc.source)) {
-          /* NOTE(joe): No special handling here, since it's opaque code */
+        return srcElem;
       } else {
-        // TODO: something better here.
-        var srcUrl = "https://github.com/brownplt/pyret-lang/blob/horizon/"
-                   + cmloc.source
-                   + "#L" + (cmloc.start.line + 1) + "-"
-                   + "#L" + (cmloc.end.line + 1);
-        return srcElem.attr({href: srcUrl, target: "_blank"});
+        return srcElem;
       }
     }
 
@@ -610,15 +605,7 @@
             } else if (!!sessionStorage.getItem(filename)) {
               return runtime.pyretTrue;
             } else {
-              runtime.pauseStack(function(restarter){
-                $.ajax({url: "/arr/" + filename.slice(10) + ".arr", async:false}).done(
-                  function(response){
-                    sessionStorage.setItem(filename, response);
-                    restarter.resume(runtime.pyretTrue);
-                  }).fail(function(){
-                    restarter.resume(runtime.pyretFalse);
-                  });
-              });
+              return runtime.pyretFalse;
             }
           }
         });
