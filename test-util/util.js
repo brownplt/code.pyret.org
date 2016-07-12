@@ -64,7 +64,7 @@ function setupMulti(name) {
   return function() {
     setupWithName.call(this, name);
     this.browser.get(this.base + "/editor");
-    this.timeout(15000);
+    this.timeout(20000);
     return waitForPyretLoad(this.browser);
   }
 }
