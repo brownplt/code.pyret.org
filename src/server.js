@@ -1,5 +1,6 @@
 var Q = require("q");
 var gapi = require('googleapis');
+var path = require('path');
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -10,7 +11,6 @@ function start(config, onServerReady) {
   var request = require('request');
   var mustache = require('mustache-express');
   var url = require('url');
-//  var mail = require('./mail.js');
   var fs = require('fs');
 
   function loggedIn(req) {
@@ -25,7 +25,6 @@ function start(config, onServerReady) {
       res.redirect("/login?redirect=" + encodeURIComponent(req.originalUrl));
     }
     if(!session || !session["user_id"]) {
-      console.log("Redirecting, no user id in session", JSON.stringify(session));
       redirect();
     }
     else {
@@ -55,6 +54,11 @@ function start(config, onServerReady) {
     res.set("Content-Type", "application/javascript");
     res.send(fs.readFileSync("build/web/js/pyret.js.gz"));
   });
+  app.get("/js/cpo-main.jarr.gz.js", function(req, res) {
+    res.set("Content-Encoding", "gzip");
+    res.set("Content-Type", "application/javascript");
+    res.send(fs.readFileSync("build/web/js/cpo-main.jarr.gz.js"));
+  });
 
   app.use(cookieSession({
     secret: config.sessionSecret,
@@ -71,6 +75,9 @@ function start(config, onServerReady) {
   app.set('view engine', 'html');
 
   app.use(express.static(__dirname + "/../build/web/"));
+  if(config.development) {
+    app.use(express.static(__dirname + "/../test-util/"));
+  }
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
 
@@ -92,30 +99,135 @@ function start(config, onServerReady) {
     }
   });
 
-  app.get("/gdrive-js-proxy", function(req, response) {
+  app.get("/jsProxy", function(req, response) {
     var parsed = url.parse(req.url);
-    var googleId = decodeURIComponent(parsed.query.slice(0));
-    var idPart = googleId.slice(0, 13);
-    if(!config.okGoogleIds.hasOwnProperty(idPart)) {
-      response.status(400).send({type: "bad-file", error: "Invalid file id"});
-      return;
-    }
-    var googleLink = "https://googledrive.com/host/" + googleId;
-    var gReq = request(googleLink, function(error, googResponse, body) {
-      if(error) {
-        response.status(400).send({type: "failed-file", error: "Failed file response"});
+    var jsUrl = decodeURIComponent(parsed.query.slice(0));
+    var gReq = request(jsUrl, function(error, jsResponse, body) {
+      if(error || (jsResponse.statusCode >= 400)) {
+        response.status(400).send({type: "no-js-file", error: "Couldn't load JS file from " + jsUrl});
+        return;
       }
-      if(!error) {
-        var h = googResponse.headers;
-        var ct = h['content-type']
-        if(ct.indexOf('text/plain') !== 0 && ct.indexOf("application/x-javascript") !== 0) {
-          response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
-          return;
-        }
-        response.set('content-type', 'text/plain');
-        response.send(body);
-      }
+      response.send(body);
     });
+  });
+
+  var okGoogleDomains = [
+    "spreadsheets.google.com",
+    "googleapis.com",
+    "drive.google.com",
+    "googledrive.com"
+  ];
+  function checkGoogle(req, response) {
+    var parsed = url.parse(req.url);
+    var googleUrl = decodeURIComponent(parsed.query.slice(0));
+    var parsedUrl = url.parse(googleUrl);
+    var found = okGoogleDomains.filter(function(v) { return parsedUrl.host === v; });
+    if(found.length === 0) {
+      response.status(400).send({type: "invalid-domain", error: "Refusing to proxy request to domain " + parsedUrl.host});
+      return null;
+    }
+    return googleUrl;
+  }
+
+  function hasMime(response, mimeList) {
+    for (var i = 0; i < mimeList.length; i++) {
+      if (response.indexOf(mimeList[i]) > -1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  app.use(function(req, res, next) {
+    var contentType = req.headers['content-type'] || '';
+    var mime = contentType.split(';')[0];
+
+    if (mime != 'application/atom+xml' && mime != 'application/json') {
+      return next();
+    }
+
+    var data = '';
+    req.setEncoding('utf8');
+    req.on('data', function(chunk) {
+      data += chunk;
+    });
+    req.on('end', function() {
+      req.rawBody = data;
+      next();
+    });
+  });
+
+  app.post("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+      };
+      var post = request.post({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      post.pipe(response);
+    }
+  });
+
+  app.put("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+        "If-Match": "*",
+      };
+      var put = request.put({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      });
+      put.pipe(response);
+    }
+  });
+
+  app.get("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    // Check if the request is expecting a result other than
+    // JSON or XML (and, if so, block it)
+    if(req.accepts && !req.accepts('json') && !req.accepts('atom+xml')) {
+      response.sendStatus(403);
+    }
+    if(googleUrl !== null) {
+      var headers = {
+        "Authorization": req.headers["authorization"],
+        "GData-Version": "3.0",
+        "content-type": req.headers["content-type"],
+      };
+      var get = request.get({
+        url: googleUrl,
+        body: req.rawBody,
+        headers: headers
+      }).on('response', function(res){
+        var contentType = res.headers['content-type'];
+        // Likely to have multiple MIME types, so
+        // we need to check substrings
+        if (hasMime(contentType, ['application/json', 'application/atom+xml'])) {
+          res.headers['X-Pyret-Token'] = req.csrfToken();
+          get.pipe(response);
+        } else {
+          response.sendStatus(403);
+        }
+      });
+    }
+  });
+
+  app.delete("/googleProxy", function(req, response) {
+    var googleUrl = checkGoogle(req, response);
+    if(googleUrl !== null) {
+      req.pipe(request(googleUrl)).pipe(response);
+    }
   });
 
   app.get("/downloadGoogleFile", function(req, response) {
@@ -166,17 +278,14 @@ function start(config, onServerReady) {
 
   app.get(config.google.redirect, function(req, res) {
     auth.serveRedirect(req, function(err, data) {
-      console.log("Data was: ", data);
       if(err) { res.send({type: "auth error", error: err}); }
       else {
-        console.log("Redirect returned data: ", data);
         var existingUser = db.getUserByGoogleId(data.googleId);
         existingUser.fail(function(err) {
-          console.log("Error on getting user: ", err);
+          console.error("Error on getting user: ", err);
           res.send({type: "DB error", error: err});
         });
         var user = existingUser.then(function(user) {
-          console.log("Existing user: ", typeof user, JSON.stringify(user));
           if(user === null) {
             var newUser = db.createUser({
               google_id: data.googleId,
@@ -202,9 +311,7 @@ function start(config, onServerReady) {
         });
         user.then(function(u) {
           const redirect = req.param("state") || "/editor";
-          console.log(JSON.stringify(u));
           req.session["user_id"] = u.google_id;
-          console.log("Redirecting after successful login", JSON.stringify(req.session));
           res.redirect(redirect);
         });
         user.fail(function(err) {
@@ -216,7 +323,6 @@ function start(config, onServerReady) {
   });
 
   app.get("/getAccessToken", function(req, res) {
-    console.log(JSON.stringify(req.session));
     function noAuth() {
       res.status(404).send("No account information found.");
     }
@@ -236,7 +342,7 @@ function start(config, onServerReady) {
         });
       });
       maybeUser.fail(function(err) {
-        console.log("Failed to get an access token: ", err);
+        console.error("Failed to get an access token: ", err);
         noAuth();
       });
     } else {
@@ -275,7 +381,6 @@ function start(config, onServerReady) {
             res.redirect("/editor");
           }
           else {
-            console.log(response);
             res.redirect("/editor#program=" + response.id);
           }
         });
@@ -297,10 +402,31 @@ function start(config, onServerReady) {
     res.render("editor.html");
   });
 
+  app.get("/ide", function(req, res) {
+    res.render(
+      path.resolve(__dirname, "web", "ide.html"),
+      {ASSET_BASE_URL: process.env.ASSET_BASE_URL || ''}
+    );
+  });
+
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
   });
 
+  app.get("/share", function(req, res) {
+
+  });
+
+  app.get("/embeditor", function(req, res) {
+    res.sendfile("build/web/embedditor.html");
+  });
+
+  app.get("/my-programs", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      res.sendfile("build/web/my-programs.html");
+    });
+  });
   app.get("/api-test", function(req, res) {
     res.sendfile("build/web/api-play.html");
   });

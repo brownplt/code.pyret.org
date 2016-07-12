@@ -1,10 +1,16 @@
-define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
-  function makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs) {
+
+define([], function() {
+  function makeLocatorConstructors(
+      storageAPI,
+      runtime,
+      compileLib,
+      compileStructs,
+      builtinModules) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     function fileRequestFailure(failure, filename) {
       var message = "";
-      var defaultMessage = "There was an error fetching file with name " + filename + 
+      var defaultMessage = "There was an error fetching file with name " + filename +
             " (labelled " + filename + ") from Google Drive.";
       if(failure.message === "Authentication failure") {
         message = "Couldn't access the file named " + filename +
@@ -18,7 +24,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             " on Google Drive.";
         }
         else if(failure.err.message) {
-          message = "There was an error fetching file named " + filename + 
+          message = "There was an error fetching file named " + filename +
             " from Google Drive: " + failure.err.message;
         }
         else {
@@ -49,7 +55,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.api.getFileByName(filename);
+          return storage.getFileByName(filename);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -73,6 +79,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
                 getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
               });
               contentsP.then(function(pyretString) {
+                sessionStorage.setItem(uri,pyretString);
                 var ret = gmf(compileLib, "pyret-string").app(pyretString);
                 getModRestart.resume(ret);
               });
@@ -111,10 +118,10 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-          
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -124,6 +131,9 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
@@ -131,7 +141,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -166,7 +175,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.api.getSharedFileById(id);
+          return storage.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -190,6 +199,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
                 getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
               });
               contentsP.then(function(pyretString) {
+                sessionStorage.setItem(uri,pyretString);
                 var ret = gmf(compileLib, "pyret-string").app(pyretString);
                 getModRestart.resume(ret);
               });
@@ -228,19 +238,21 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
 
           var m0 = runtime.makeMethod0;
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
@@ -248,7 +260,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -283,7 +294,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.api.getFileById(id);
+          return storage.getFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -347,10 +358,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -367,7 +374,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -390,7 +396,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           }));
         });
       });
-      
+
     }
     function makeCompiledGDriveJSLocator(filename, id) {
       function checkFileResponse(file, filename, restarter) {
@@ -409,7 +415,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.api.getSharedFileById(id);
+          return storage.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
@@ -484,10 +490,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             return gmf(compileStructs, "standard-builtins");
           }
 
-          function getNamespace(_, otherRuntime) {
-            return gmf(compileLib, "make-base-namespace").app(otherRuntime);
-          }
-          
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -504,7 +506,6 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
             "get-extra-imports": m0(getExtraImports),
             "get-globals": m0(getGlobals),
             "get-compile-env": m0(getCompileEnv),
-            "get-namespace": m1(getNamespace),
             "uri": m0(getUri),
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
@@ -534,7 +535,7 @@ define(["q", "js/secure-loader", "js/runtime-util"], function(q, loader, util) {
           }));
         });
       });
-      
+
     }
     return {
       makeMyGDriveLocator: makeMyGDriveLocator,

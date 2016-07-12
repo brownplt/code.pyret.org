@@ -9,38 +9,30 @@ everything in `.env` is just an environment variable if you really want to
 manage things yourself, but using Heroku tools makes sure you run like things
 do in production.
 
-First, get foreman (https://github.com/ddollar/foreman).
+First, get the Heroku toolbelt (https://toolbelt.heroku.com/).
 
 Then, copy `.env.example` to `.env`.  If all you want to do is run Pyret code
 and test out the REPL, you only need to edit a few variables.  If you want to
-use the standalone pyret that comes with the checkout, use these settings:
+use the standalone pyret that comes with the checkout, you can just set
 
 ```
-USE_STANDALONE_PYRET="true"
-PYRET_RELEASE_BASE="/js"
-CURRENT_PYRET_RELEASE=""
+PYRET="http://localhost:5000/js/cpo-main.jarr"
 ```
 
 Then you can run
 
 ```
-$ git submodule init
-$ git submodule update
-$ foreman run npm install
+$ heroku local:run npm install
+$ ln -s node_modules/pyret-lang pyret
+$ heroku local:run make web-local
 ```
 
 and the dependencies will be installed.
 
-Note that if you just run `npm install`, environment variables will not be set
-correctly when building templated HTML.  You can accomplish the same thing as
-`foreman run` by setting the environment variables in `.env` via your
-environments' mechanisms for doing so.  `foreman` just happens to also be
-useful for starting the server the same way Heroku does, etc.
-
 To run the server, run:
 
 ```
-$ foreman start
+$ heroku local:run npm start
 ```
 
 The editor will be served from `http://localhost:5000/editor`.
@@ -48,72 +40,23 @@ The editor will be served from `http://localhost:5000/editor`.
 If you edit JavaScript or HTML files in `src/web`, run
 
 ```
-$ foreman run make web
+$ heroku local:run make web
 ```
 
 and then refresh the page.
 
-## What Does `OK_GOOGLE_IDS` Mean?
-
-The special `gdrive-js` import form:
-
-    import gdrive-js("stuff.arr", "0B32bNEogmncOdUZkTmZ5dVJsNGs") as S
-
-is only allowed to work with a statically-configured set of accounts.  These
-are configured via the `OK_GOOGLE_IDS` config variable, encoded as a JSON
-string mapping ids to email addresses.  The email addresses are purely
-documentary.  The 12-digit ID is unique to each Google account, and it is the
-first 12 digits of any share URL made by a user.  If you want to add a user to
-your deployment as gdrive-js capable, just ask them for a share link and get
-those digits.
-
-(NOTE(joe Jan 2015): There isn't documentation indicating that this is a stable
-way to do this, so this is an interim note.  We may need a more complicated
-identity-checking mechanism, but this is super-simple and easier to change/rip
-out if necessary.)
-
 ## Running with Development Pyret
 
-If you'd like to run with a development copy of Pyret, you can change the
-environment configuration to:
+If you'd like to run with a development copy of Pyret, you can simply symlink
+`pyret` elsewhere.  For example, if your development environment has
+`code.pyret.org` and `pyret-lang` both checked out in the same directory, you
+could just run this from the CPO directory:
 
 ```
-USE_STANDALONE_PYRET="false"
-PYRET_RELEASE_BASE="<url-to-your-pyret-checkout>/build"
-CURRENT_PYRET_RELEASE=""
+$ ln -s ../pyret-lang
 ```
-
-So for example, if your Pyret checkout is in `/home/joe/src/pyret`, you would
-use:
-
-```
-PYRET_RELEASE_BASE="file:///home/joe/src/pyret/build"
-```
-
-Or if you were runnning it on another web server, hosted at `/pyret`:
-
-```
-PYRET_RELEASE_BASE="http://your-server/pyret/build"
-```
-
-@jpolitz often runs with:
-
-```
-USE_STANDALONE_PYRET="false"
-PYRET_RELEASE_BASE="http://localhost:8000/build"
-CURRENT_PYRET_RELEASE=""
-```
-
-And then, from a checkout of `pyret-lang`, runs
-
-```
-python -m SimpleHTTPServer
-```
-
-
 
 ## Configuration with Google Auth and Storage
-
 
 In order to have share links, saving, and other docs-related functionality
 work, you need to add to your `.env` a Google client secret and client ID.
@@ -128,18 +71,70 @@ redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
 `.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
 
-You will also need to point CPO at an active Redis server.  You can install a
-local copy of Redis, or use a service like Redis Cloud (which has a free
-tier).  You will need a connection URL that contains both your password and
-the host to put in `.env`; if using Redis Cloud, it will look like, for
-example:
+## Testing with Selenium
+
+There are tests in `test-util/` and `test/` that use Selenium to script a
+browser.
+
+The instructions for setting up Selenium to open Chrome locally are somewhat
+platform-specific, but you can try just running:
 
 ```
-REDISCLOUD_URL="redis://rediscloud:<password>@pub-redis-<number>.garantiadata.com:14490"
+heroku local:run mocha
 ```
 
-(code.pyret.org uses a Redis Cloud instance).
+with Selenium installed and a development server running.  You can refine this
+with, e.g.
 
+```
+heroku local:run mocha -g "errors"
+```
+
+to only run the tests in `test/errors.js`.
+
+Another options to run all the tests on Sauce Labs (https://saucelabs.com).
+You can also get a personal free account with unlimited testing if you only
+test open-source stuff (which Pyret/CPO are).  Sauce also stores screencasts
+and logs of your tests, which can be helpful with debugging.
+
+First, add your sauce username and access key (from your account page at
+Sauce) to `.env`:
+
+```
+SAUCE_USERNAME="gibbs"
+SAUCE_ACCESS_KEY="deadbeef-2671-11e5-a6a1-206a8a0824be"
+```
+
+(Not my real access key)
+
+First, install the Sauce Connect client for your system from
+https://docs.saucelabs.com/reference/sauce-connect/.  Follow the instructions
+for starting the server (the default configuration should work fine), using
+the same username and access key, for example, on Ubuntu I run:
+
+```
+~/sc-4.3.9-linux32$ ./bin/sc -u gibbs -k deadbeef-2671-11e5-a6a1-206a8a0824be
+```
+
+That sets up a tunnel to Sauce Labs, and on the same machine you should now be
+able to run:
+
+```
+$ foreman run mocha
+```
+
+To run only a particular file, pass in one of the filenames in `test/`, e.g.
+
+```
+$ foreman run mocha test/world.js
+```
+
+Check out how `world.js` and `image.js` are written: they look up files from
+`test-util/pyret-programs` and run them according to Selenium testers in
+`test-util/util.js`.  The best way to test a whole new library is probably to
+add a directory here and figure out a good predicate that can be applied
+across the files (`runAndCheckAllTestsPassed` is probably a good candidate for
+many use cases).
 
 ## Setting up your own remote version of code.pyret.org with Heroku:
 
@@ -164,4 +159,3 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
  $ heroku ps:scale web=1
 ```
 7.	Now run `heroku open` or visit appname.herokuapp.com.
-
