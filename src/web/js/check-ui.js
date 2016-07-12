@@ -133,7 +133,7 @@
                                type:"bookmark" });
             header.on("click", function(e){
               if(source === "definitions://") {
-                editors[source].scrollIntoView(cmLoc.start, 100);
+                editors[source].scrollIntoView(get(get(checkBlock, "loc"), "start-char"), 100);
               } else if (source.indexOf("interactions") != -1) {
                 editors[source].getWrapperElement().scrollIntoView(true);
               }
@@ -229,7 +229,7 @@
                              type:"bookmark" });
           name.on("click", function(e){
             if(source === "definitions://") {
-              editors[source].scrollIntoView(cmLoc.start, 100);
+              editors[source].scrollIntoView(get(get(checkBlock, "loc"), "start-char"), 100);
             } else if (source.indexOf("interactions") != -1) {
               editors[source].getWrapperElement().scrollIntoView(true);
             }

@@ -780,14 +780,36 @@
        || !!sessionStorage.getItem(cmloc.source)) {
         snippetWrapper.addClass("cm-snippet");
         var endch;
+        var source;
+        if (featured.source in editors) {
+          var cmsrc = editors[featured.source];
+          endch = cmsrc.getLine(cmloc.end.line).length;
+          source = cmsrc.getRange(
+            {line: cmloc.start.line, ch: 0},
+            {line: cmloc.end.line, ch: endch});
+        } else {
+          source = sessionStorage.getItem(cmloc.source)
+            .split("\n")
+            .slice(featured.start.line, featured.end.line + 1)
+            .join("\n");
+          endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
+        }
+
+        var hack = $("<div>").addClass("repl"); // needed for proper CSS styling of the CM below
+        $(document.body).append(hack.append(snippetWrapper.css("position", "absolute").css("top", "-50000px")));
         var cmSnippet = CodeMirror(snippetWrapper[0],{
+          value: source,
           readOnly: "nocursor",
           disableInput: true,
           indentUnit: 2,
           lineWrapping: false,
           lineNumbers: true,
-          viewportMargin: 1,
+          viewportMargin: 0,
           scrollbarStyle: "null"});
+        cmSnippet.refresh(); // compute initial view
+        snippetWrapper.detach().css("position","").css("top", ""); // undo any CSS stupidity and remove
+        hack.remove(); // from document
+        
           
         if(cmloc.source in editors) {
           var cmsrc = editors[featured.source];
@@ -822,19 +844,8 @@
                 handle.on("clear", function(){cmsrc.off("change", refresh); });
               }
             });
-          // Copy relevant part of document.
-          endch = cmsrc.getLine(cmloc.end.line).length;
-          cmSnippet.getDoc().setValue(cmsrc.getRange(
-            {line: cmloc.start.line, ch: 0},
-            {line: cmloc.end.line, ch: endch}));
         } else {
-          var source = sessionStorage.getItem(cmloc.source)
-                      .split("\n")
-                      .slice(featured.start.line, featured.end.line + 1)
-                      .join("\n");
           cmSnippet.setOption("firstLineNumber", cmloc.start.line);
-          cmSnippet.getDoc().setValue(source);
-          endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
         }
         // Fade areas outside featured range
         cmSnippet.getDoc().markText(
