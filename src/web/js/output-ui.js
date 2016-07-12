@@ -767,7 +767,9 @@
         + lockey + "){opacity:0.4;}", 0);
       styles.insertRule(
         "#main[data-highlights=" + lockey + "]"
-        + editorSelector + " span." + lockey + "{background:white!important;}", 0);
+        + editorSelector + " span." + lockey + "{background:white!important;"
+                    + "border-top: 0.1em solid white!important;"
+                    + "border-bottom: 0.1em solid white!important; }", 0);
       return lockey;
     }
 
