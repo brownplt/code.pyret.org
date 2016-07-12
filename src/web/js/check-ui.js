@@ -123,17 +123,18 @@
 
           var source = get(get(checkBlock, "loc"), "source");
           if(editors.hasOwnProperty(source)){
-            outputUI.addMark(source, editors[source],
+            var handle =  editors[source].markText(
                              { line: get(get(checkBlock, "loc"), "start-line") - 1,
                                ch:   get(get(checkBlock, "loc"), "start-column") },
                              { line: get(get(checkBlock, "loc"), "end-line") - 1,
                                ch:   get(get(checkBlock, "loc"), "end-column") },
                              { inclusiveLeft:false,
                                inclusiveRight:false,
-                               type:"bookmark" });
+                               type:"range" });
             header.on("click", function(e){
-              if(source === "definitions://") {
-                editors[source].scrollIntoView(get(get(checkBlock, "loc"), "start-char"), 100);
+              var handleLoc = handle.find();
+              if(source === "definitions://" && handleLoc !== undefined) {
+                editors[source].scrollIntoView(handleLoc.from.line, 100);
               } else if (source.indexOf("interactions") != -1) {
                 editors[source].getWrapperElement().scrollIntoView(true);
               }
@@ -219,17 +220,18 @@
 
         var source = get(get(checkBlock, "loc"), "source");
         if(editors.hasOwnProperty(source)){
-          outputUI.addMark(source, editors[source],
+          var handle = editors[source].markText(
                            { line: get(get(checkBlock, "loc"), "start-line") - 1,
                              ch:   get(get(checkBlock, "loc"), "start-column") },
                            { line: get(get(checkBlock, "loc"), "end-line") - 1,
                              ch:   get(get(checkBlock, "loc"), "end-column") },
                            { inclusiveLeft:false,
                              inclusiveRight:false,
-                             type:"bookmark" });
+                             type:"range" });
           name.on("click", function(e){
-            if(source === "definitions://") {
-              editors[source].scrollIntoView(get(get(checkBlock, "loc"), "start-char"), 100);
+            var handleLoc = handle.find();
+            if(source === "definitions://" && handleLoc !== undefined) {
+              editors[source].scrollIntoView(handleLoc.from.line, 100);
             } else if (source.indexOf("interactions") != -1) {
               editors[source].getWrapperElement().scrollIntoView(true);
             }
