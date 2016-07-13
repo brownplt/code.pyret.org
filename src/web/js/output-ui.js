@@ -29,18 +29,22 @@
     function addMark(source, editor, from, to, opts, cb) {
       if (!marksByEditor[source])
         marksByEditor[source] = [];
+      if (editor === undefined) {
+        console.trace();
+        console.error("Editor is undefined ", source, from, to, opts, cb);
+      }
       marksByEditor[source].push({editor: editor, from: from, to: to, opts: opts, cb: cb});
     }
 
     function runMarks() {
       var allMarks = marksByEditor;
+      var chunkSize = 100;
       marksByEditor = {};
       for (var source in allMarks) {
         var marks = allMarks[source];
         var editor = marks[0].editor; // these should be uniformly the same editor...
-        var chunkSize = 100;
         for (var i = 0; i < Math.ceil(marks.length / chunkSize); i++) {
-          function chunk(start) {
+          function chunk(start, editor, marks) {
             return function() {
               editor.operation(function() {
                 for (var j = start; j < marks.length && j < start + chunkSize; j++) {
@@ -48,12 +52,12 @@
                   var mark = marks[j];
                   var handle = mark.editor.markText(mark.from, mark.to, mark.opts);
                   if (mark.cb)
-                    mark.cb(editor, handle);
+                    mark.cb(mark.editor, handle);
                 }
               });
             };
           }
-          util.suspend(chunk(i * chunkSize));
+          util.suspend(chunk(i * chunkSize, editor, marks));
         }
       }
     }
@@ -518,14 +522,9 @@
         var srcUrl = makeMyDriveUrl(MyDriveId);
         return srcElem.attr({href: srcUrl, target: "_blank"});
       } else if(isJSImport(cmloc.source)) {
-          /* NOTE(joe): No special handling here, since it's opaque code */
+        return srcElem;
       } else {
-        // TODO: something better here.
-        var srcUrl = "https://github.com/brownplt/pyret-lang/blob/horizon/"
-                   + cmloc.source
-                   + "#L" + (cmloc.start.line + 1) + "-"
-                   + "#L" + (cmloc.end.line + 1);
-        return srcElem.attr({href: srcUrl, target: "_blank"});
+        return srcElem;
       }
     }
 
@@ -606,15 +605,7 @@
             } else if (!!sessionStorage.getItem(filename)) {
               return runtime.pyretTrue;
             } else {
-              runtime.pauseStack(function(restarter){
-                $.ajax({url: "/arr/" + filename.slice(10) + ".arr", async:false}).done(
-                  function(response){
-                    sessionStorage.setItem(filename, response);
-                    restarter.resume(runtime.pyretTrue);
-                  }).fail(function(){
-                    restarter.resume(runtime.pyretFalse);
-                  });
-              });
+              return runtime.pyretFalse;
             }
           }
         });
@@ -763,7 +754,9 @@
         + lockey + "){opacity:0.4;}", 0);
       styles.insertRule(
         "#main[data-highlights=" + lockey + "]"
-        + editorSelector + " span." + lockey + "{background:white!important;}", 0);
+        + editorSelector + " span." + lockey + "{background:white!important;"
+                    + "border-top: 0.1em solid white!important;"
+                    + "border-bottom: 0.1em solid white!important; }", 0);
       return lockey;
     }
 
@@ -776,14 +769,36 @@
        || !!sessionStorage.getItem(cmloc.source)) {
         snippetWrapper.addClass("cm-snippet");
         var endch;
+        var source;
+        if (featured.source in editors) {
+          var cmsrc = editors[featured.source];
+          endch = cmsrc.getLine(cmloc.end.line).length;
+          source = cmsrc.getRange(
+            {line: cmloc.start.line, ch: 0},
+            {line: cmloc.end.line, ch: endch});
+        } else {
+          source = sessionStorage.getItem(cmloc.source)
+            .split("\n")
+            .slice(featured.start.line, featured.end.line + 1)
+            .join("\n");
+          endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
+        }
+
+        var hack = $("<div>").addClass("repl"); // needed for proper CSS styling of the CM below
+        $(document.body).append(hack.append(snippetWrapper.css("position", "absolute").css("top", "-50000px")));
         var cmSnippet = CodeMirror(snippetWrapper[0],{
+          value: source,
           readOnly: "nocursor",
           disableInput: true,
           indentUnit: 2,
           lineWrapping: false,
           lineNumbers: true,
-          viewportMargin: 1,
+          viewportMargin: 0,
           scrollbarStyle: "null"});
+        cmSnippet.refresh(); // compute initial view
+        snippetWrapper.detach().css("position","").css("top", ""); // undo any CSS stupidity and remove
+        hack.remove(); // from document
+        
           
         if(cmloc.source in editors) {
           var cmsrc = editors[featured.source];
@@ -811,24 +826,15 @@
                 var refresh = function(cm, change) {
                   cmsrc.off("change", refresh);
                   cmSnippet.setOption("lineNumbers",false);
-                  cmSnippet.setOption("lineNumbers",true);};
+                  cmSnippet.setOption("lineNumbers",true);
+                };
+                // NOTE(joe): come back to this
                 cmsrc.on("change", refresh);
-                handle.on("clear", function(){cmsrc.off("change", refresh);});
+                handle.on("clear", function(){cmsrc.off("change", refresh); });
               }
             });
-          // Copy relevant part of document.
-          endch = cmsrc.getLine(cmloc.end.line).length;
-          cmSnippet.getDoc().setValue(cmsrc.getRange(
-            {line: cmloc.start.line, ch: 0},
-            {line: cmloc.end.line, ch: endch}));
         } else {
-          var source = sessionStorage.getItem(cmloc.source)
-                      .split("\n")
-                      .slice(featured.start.line, featured.end.line + 1)
-                      .join("\n");
           cmSnippet.setOption("firstLineNumber", cmloc.start.line);
-          cmSnippet.getDoc().setValue(source);
-          endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
         }
         // Fade areas outside featured range
         cmSnippet.getDoc().markText(
@@ -846,6 +852,7 @@
         return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
       } else {
         snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
+        snippetWrapper[0].cmrefresh = function(){};
         return {wrapper: snippetWrapper, featured: featured};
       }
     }
@@ -1130,7 +1137,7 @@
                     runtime.runThunk(function() { 
                       return help(out.result, stack);
                     }, function(helpOut) { 
-                      restarter.resume(helpOut); 
+                      restarter.resume(helpOut.result); 
                     });
                   } else {
                     runtime.runThunk(function() {
@@ -1141,7 +1148,7 @@
                                     .text("<error displaying srcloc-specific message; "
                                           + "details logged to console; " 
                                           + "less-specific message displayed instead>"));
-                      result.append(helpOut);
+                      result.append(helpOut.result);
                       restarter.resume(result); 
                     });
                   }

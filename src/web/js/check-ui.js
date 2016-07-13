@@ -123,17 +123,18 @@
 
           var source = get(get(checkBlock, "loc"), "source");
           if(editors.hasOwnProperty(source)){
-            outputUI.addMark(source, editors[source],
+            var handle =  editors[source].markText(
                              { line: get(get(checkBlock, "loc"), "start-line") - 1,
                                ch:   get(get(checkBlock, "loc"), "start-column") },
                              { line: get(get(checkBlock, "loc"), "end-line") - 1,
                                ch:   get(get(checkBlock, "loc"), "end-column") },
                              { inclusiveLeft:false,
                                inclusiveRight:false,
-                               type:"bookmark" });
+                               type:"range" });
             header.on("click", function(e){
-              if(source === "definitions://") {
-                editors[source].scrollIntoView(cmLoc.start, 100);
+              var handleLoc = handle.find();
+              if(source === "definitions://" && handleLoc !== undefined) {
+                editors[source].scrollIntoView(handleLoc.from.line, 100);
               } else if (source.indexOf("interactions") != -1) {
                 editors[source].getWrapperElement().scrollIntoView(true);
               }
@@ -211,6 +212,7 @@
             .append(checkBlockTests);
         }
 
+        checkBlockReport.addClass("check-block-result");
         checkBlockReport.addClass(
           thisCheckBlockErrored               ? "check-block-errored"
             : tests.length == testsPassingInBlock ? "check-block-success"
@@ -218,17 +220,18 @@
 
         var source = get(get(checkBlock, "loc"), "source");
         if(editors.hasOwnProperty(source)){
-          outputUI.addMark(source, editors[source],
+          var handle = editors[source].markText(
                            { line: get(get(checkBlock, "loc"), "start-line") - 1,
                              ch:   get(get(checkBlock, "loc"), "start-column") },
                            { line: get(get(checkBlock, "loc"), "end-line") - 1,
                              ch:   get(get(checkBlock, "loc"), "end-column") },
                            { inclusiveLeft:false,
                              inclusiveRight:false,
-                             type:"bookmark" });
+                             type:"range" });
           name.on("click", function(e){
-            if(source === "definitions://") {
-              editors[source].scrollIntoView(cmLoc.start, 100);
+            var handleLoc = handle.find();
+            if(source === "definitions://" && handleLoc !== undefined) {
+              editors[source].scrollIntoView(handleLoc.from.line, 100);
             } else if (source.indexOf("interactions") != -1) {
               editors[source].getWrapperElement().scrollIntoView(true);
             }
@@ -337,9 +340,9 @@
                       elem[0].scrollIntoView(true);
                       elem.children().trigger('toggleHighlight');
                     });
-
+              var errsrc = get(probableErrorLocation, "source");
               outputUI.addMark(
-                probableErrorLocation, editors[probableErrorLocation],
+                errsrc, editors[errsrc],
                 { line: get(probableErrorLocation, "start-line") - 1,
                   ch:   get(probableErrorLocation, "start-column") },
                 { line: get(probableErrorLocation, "end-line") - 1,
@@ -502,6 +505,7 @@
           }), 0, checkBlockTestReports.length)
         }, function(ans){
           outputUI.runMarks();
+          resultsContainer.append($("<span class='check-results-done-rendering' style='display:none'></span>"));
           return ans;
         });
       });
