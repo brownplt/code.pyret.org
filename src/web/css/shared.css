@@ -234,6 +234,11 @@ em {
   color: #fff;
 }
 
+a.whiteLink:link, a.whiteLink:visited,
+a.whiteLink:hover, a.whiteLink:active {
+                       color: white;
+                   }
+
 span {
     display: inline-block;
     vertical-align: middle;

@@ -105,10 +105,9 @@
 <div id="webgazerdialogue">
     <span>
         Improve Pyret!
-        To allow us access to your webcam,
-        <a href="javascript:startWebGazer()">click here</a>.
-        For more information,
-        <a target="_blank" href="/views/webgazerfaq.html" sytle="color: white">click here!</a>
+        <a class="whiteLink" href="javascript:startWebGazer()">Allow access to webcam</a> -
+        <a class="whiteLink" href="javascript:neverStartWebGazer()">Deny access to webcam</a> -
+        <a class="whiteLink" target="_blank" href="/views/webgazerfaq.html">Why are you asking?</a>
     </span>
 </div>
 <script src="/js/es6-shim.js"></script>
@@ -118,22 +117,11 @@
 <script src="/js/colorspaces.js"></script>
 <script src="/js/webgazer.js"></script>
 <script>
- // if the person has already allowed access, don't show dialogue
- var webgazerAllowed = localStorage.getItem('allowed');
- if (webgazerAllowed !== null) {
-     // then hide the webgazerDialogue
-     var dialogue = document.getElementById("webgazerdialogue");
-     dialogue.remove();
- }
- else {
-     // show the dialogue, and set it to animate away after some point
- }
-</script>
-<script>
  newFunc = function() {
      alert("Is your browser blocking your webcam?\n" +
      "Is your webcam turned on?");
  }
+
  startWebGazer = function() {
      localStorage.setItem('allowed', 'true');
      webgazer.begin(newFunc);
@@ -160,6 +148,20 @@
      })
      /* shows a square every 100 milliseconds where current prediction is */
              .showPredictionPoints(true); 
+ }
+
+ var dialogue = document.getElementById("webgazerdialogue");
+
+ // if the person has already allowed access, don't show dialogue
+ var webgazerAllowed = localStorage.getItem('allowed');
+ if (webgazerAllowed !== null) {
+     // then hide the webgazerDialogue
+     dialogue.remove();
+     startWebGazer();
+ }
+ else {
+     // remove the dialogue after waiting 8 seconds
+     setTimeout(() => {dialogue.remove()}, 8 * 1000);
  }
 </script>
 <script src="/js/q.js"></script>
