@@ -83,6 +83,7 @@
                     console.error("drawCompileError: renderErrorDisplay failed:", errorDisp);;
                     console.log(errorDisp.exn);
                   }
+                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -90,7 +91,10 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawCompileError: render-fancy-reason failed:", errorDisp);;
                 console.log(errorDisp.exn);
-                renderSimpleReason(e).then(function(_) { restarter.resume(runtime.nothing); });
+                renderSimpleReason(e).then(function(_) { 
+                  outputUI.runMarks();
+                  restarter.resume(runtime.nothing); 
+                });
               }
             });
           });
@@ -179,6 +183,7 @@
                                  .text("Something went wrong while rendering the error"));
                       console.log("drawPyretRuntimeError: renderErrorDisplay failed:", result.exn);
                     }
+                    outputUI.runMarks();
                     restarter.resume(runtime.nothing);
                   });
                 } else {
@@ -192,6 +197,7 @@
                     errorError.trigger('toggleHighlight');
                     console.error("drawPyretRuntimeError: render-fancy-reason failed:", errorDisp);
                     console.log(e.exn);
+                    outputUI.runMarks();
                     restarter.resume(runtime.nothing);
                   });
                 }
@@ -269,6 +275,7 @@
                     console.error("drawPyretContractFailure: renderErrorDisplay failed:", errorDisp);
                     console.log(errorDisp.exn);
                   }
+                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -276,6 +283,7 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawPyretContractFailure: render-fancy-reason failed", errorDisp);
                 console.log(errorDisp.exn);
+                outputUI.runMarks();
                 restarter.resume(runtime.nothing);
               }
             });
@@ -306,6 +314,7 @@
                     console.error("drawPyretParseError: renderErrorDisplay failed:", errorDisp);
                     console.log(errorDisp.exn);
                   }
+                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -313,6 +322,7 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawPyretParseError: render-fancy-reason failed:", errorDisp);
                 console.log(errorDisp.exn);
+                outputUI.runMarks();
                 restarter.resume(runtime.nothing);
               }
             });

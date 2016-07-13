@@ -32,6 +32,9 @@ describe("Rendering errors", function() {
 
     ["regular-polygon", "include image\nregular-polygon(20, 1/2, 'solid', 'blue')", "failed because the 2ⁿᵈ argument evaluated to an unexpected value"],
 
+    // TODO(joe): Need a better way to close the world window when this is done
+//    ["arity-on-world-callback", "import world as W\nW.big-bang('a', [list: W.on-tick(lam(x, y): x end)])", "defined accepting 2 arguments"],
+
     fileTest("deeply-recursive-field-not-found", "did not have a field")
   ];
 
