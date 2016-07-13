@@ -158,7 +158,8 @@
 
  removeDialogue = function() {
      var dialogue = document.getElementById("webgazerdialogue");
-     dialogue.remove();
+     if (dialogue !== null)
+         dialogue.remove();
  }
 
  // if the person has already made decision on access, don't show dialogue
