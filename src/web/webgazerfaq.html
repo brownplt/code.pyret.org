@@ -42,7 +42,20 @@
     <p>
         We thank you for participating in making Pyret a better system for all.
     </p>
+    <p>
+        <a href="javascript:resetAccessPreferences()">Reset preferences</a>
+    </p>
   </div>
+  <script>
+      resetAccessPreferences = function() {
+          var access = localStorage.getItem('allowed');
+          if (access !== null) {
+              localStorage.removeItem('allowed');
+          }
+          else
+              console.log("no preferences to reset");
+      }
+  </script>
 </div>
 
 </body>

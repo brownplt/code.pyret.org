@@ -123,6 +123,7 @@
  }
 
  startWebGazer = function() {
+     removeDialogue();
      localStorage.setItem('allowed', 'true');
      webgazer.begin(newFunc);
      webgazer.setRegression("weightedRidge");
@@ -150,18 +151,26 @@
              .showPredictionPoints(true); 
  }
 
- var dialogue = document.getElementById("webgazerdialogue");
+ neverStartWebGazer = function() {
+     removeDialogue();
+     localStorage.setItem('allowed', 'false');
+ }
 
- // if the person has already allowed access, don't show dialogue
+ removeDialogue = function() {
+     var dialogue = document.getElementById("webgazerdialogue");
+     dialogue.remove();
+ }
+
+ // if the person has already made decision on access, don't show dialogue
  var webgazerAllowed = localStorage.getItem('allowed');
  if (webgazerAllowed !== null) {
      // then hide the webgazerDialogue
-     dialogue.remove();
-     startWebGazer();
- }
- else {
-     // remove the dialogue after waiting 8 seconds
-     setTimeout(() => {dialogue.remove()}, 8 * 1000);
+     removeDialogue();
+     // if they allowed access
+     if (webgazerAllowed === 'true')
+         startWebGazer();
+     else
+         console.log("previously denied webgazer");
  }
 </script>
 <script src="/js/q.js"></script>
