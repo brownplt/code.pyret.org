@@ -122,6 +122,8 @@
      "Is your webcam turned on?");
  }
 
+ // could remove removing the dialogue, but then would need another function
+ // when someone grants access to both remove dialogue and start webgazer
  startWebGazer = function() {
      removeDialogue();
      localStorage.setItem('allowed', 'true');
