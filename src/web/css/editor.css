@@ -996,8 +996,6 @@ code div {
   background-color: #eee;
 }
 
-.ui-dialog-titlebar { height: 1em; }
-
 /* NOTE(joe): removes the white bar in popups */
 .ui-widget-content{
   background: none;
