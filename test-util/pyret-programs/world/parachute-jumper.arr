@@ -20,5 +20,8 @@ end
 
 ## DO NOT CHANGE ANYTHING BELOW THIS LINE
 #######################
-go(next-position)
+check:
+  go(next-position) is coord(130, 95)
+end
+
 
