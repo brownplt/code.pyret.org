@@ -31,7 +31,7 @@
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
     "pyret-ide": "git://github.com/pcardune/pyret-ide#master-builds",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#master",
     "q": "~1.0.1",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
