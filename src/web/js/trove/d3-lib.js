@@ -30,13 +30,13 @@
      * @return {Function}
      */
     return function (k) {
-      var oldDiff = jsnums.subtract(k, oldX);
-      var oldRange = jsnums.subtract(oldY, oldX);
-      var portion = jsnums.divide(oldDiff, oldRange);
-      var newRange = jsnums.subtract(newY, newX);
-      var newPortion = jsnums.multiply(portion, newRange);
-      var result = jsnums.add(newPortion, newX);
-      return toFixnum ? jsnums.toFixnum(result) : result;
+      var oldDiff = jsnums.subtract(k, oldX, RUNTIME.NumberErrbacks);
+      var oldRange = jsnums.subtract(oldY, oldX, RUNTIME.NumberErrbacks);
+      var portion = jsnums.divide(oldDiff, oldRange, RUNTIME.NumberErrbacks);
+      var newRange = jsnums.subtract(newY, newX, RUNTIME.NumberErrbacks);
+      var newPortion = jsnums.multiply(portion, newRange, RUNTIME.NumberErrbacks);
+      var result = jsnums.add(newPortion, newX, RUNTIME.NumberErrbacks);
+      return toFixnum ? jsnums.toFixnum(result, RUNTIME.NumberErrbacks) : result;
     };
   }
 
@@ -49,8 +49,8 @@
      * @param {jsnums} vmax
      * @return {jsnums}
      */
-    if (jsnums.lessThan(k, vmin)) return vmin;
-    else if (jsnums.lessThan(vmax, k)) return vmax;
+    if (jsnums.lessThan(k, vmin, RUNTIME.NumberErrbacks)) return vmin;
+    else if (jsnums.lessThan(vmax, k, RUNTIME.NumberErrbacks)) return vmax;
     else return k;
   }
 
@@ -60,23 +60,23 @@
 
   function getPrettyNumToStringDigits(digits) {
     return function(num) {
-      return jsnums.toStringDigits(num, digits).replace(/\.?0*$/, '');
+      return jsnums.toStringDigits(num, digits, RUNTIME.NumberErrbacks).replace(/\.?0*$/, '');
     };
   }
 
   function between(b, a, c) {
-    return (jsnums.lessThanOrEqual(a, b) && jsnums.lessThanOrEqual(b, c)) ||
-           (jsnums.lessThanOrEqual(c, b) && jsnums.lessThanOrEqual(b, a));
+    return (jsnums.lessThanOrEqual(a, b, RUNTIME.NumberErrbacks) && jsnums.lessThanOrEqual(b, c, RUNTIME.NumberErrbacks)) ||
+           (jsnums.lessThanOrEqual(c, b, RUNTIME.NumberErrbacks) && jsnums.lessThanOrEqual(b, a, RUNTIME.NumberErrbacks));
   }
 
   function numMin(a, b) { /* ignore the rest */
     // this ignores other arguments, making reducing on numMin possible
-    return RUNTIME.num_min(a, b);
+    return RUNTIME.num_min(a, b, RUNTIME.NumberErrbacks);
   }
 
   function numMax(a, b) { /* ignore the rest */
     // this ignores other arguments, making reducing on numMin possible
-    return RUNTIME.num_max(a, b);
+    return RUNTIME.num_max(a, b, RUNTIME.NumberErrbacks);
   }
 
   var libNum = {

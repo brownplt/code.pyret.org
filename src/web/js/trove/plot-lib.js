@@ -37,7 +37,7 @@
     function getAxisConf(aMin, aMax) {
       var conf = {},
           scaler = libNum.scaler(aMin, aMax, 0, 1, false),
-          pos = jsnums.toFixnum(scaler(0));
+          pos = jsnums.toFixnum(scaler(0), RUNTIME.NumberErrbacks);
 
       if (0 <= pos && pos <= 1) {
         conf.bold = true;
@@ -255,7 +255,7 @@
               xMaxC.removeClass('error-bg');
               xMaxC.addClass('ok-bg');
 
-              if(jsnums.greaterThanOrEqual(xMin_val, xMax_val)) {
+              if(jsnums.greaterThanOrEqual(xMin_val, xMax_val, RUNTIME.NumberErrbacks)) {
                 xMinC.addClass('error-bg');
                 xMaxC.addClass('error-bg');
                 xMinC.removeClass('ok-bg');
@@ -283,7 +283,7 @@
                       yMaxC.removeClass('error-bg');
                       yMaxC.addClass('ok-bg');
 
-                      if(jsnums.greaterThanOrEqual(xMin_val, xMax_val)) {
+                      if(jsnums.greaterThanOrEqual(xMin_val, xMax_val, RUNTIME.NumberErrbacks)) {
                         yMinC.addClass('error-bg');
                         yMaxC.addClass('error-bg');
                         yMinC.removeClass('ok-bg');
@@ -302,7 +302,7 @@
                           numSamplesC.addClass('ok-bg');
 
                           if (RUNTIME.isPyretFalse(RUNTIME.num_is_integer(numSamples_val)) ||
-                              jsnums.lessThanOrEqual(numSamples_val, 1)) {
+                              jsnums.lessThanOrEqual(numSamples_val, 1, RUNTIME.NumberErrbacks)) {
                             numSamplesC.addClass('error-bg');
                             numSamplesC.removeClass('ok-bg');
                             return null;
@@ -343,9 +343,9 @@
       if (newWindow === null) { return; }
       var xMin_val = newWindow['x-min'];
       var xMax_val = newWindow['x-max'];
-      var move = jsnums.divide(jsnums.subtract(xMax_val, xMin_val), 10);
-      xMinC.val(prettyNumToStringDigits20(jsnums.subtract(xMin_val, move)));
-      xMaxC.val(prettyNumToStringDigits20(jsnums.subtract(xMax_val, move)));
+      var move = jsnums.divide(jsnums.subtract(xMax_val, xMin_val, RUNTIME.NumberErrbacks), 10, RUNTIME.NumberErrbacks);
+      xMinC.val(prettyNumToStringDigits20(jsnums.subtract(xMin_val, move, RUNTIME.NumberErrbacks)));
+      xMaxC.val(prettyNumToStringDigits20(jsnums.subtract(xMax_val, move, RUNTIME.NumberErrbacks)));
     }));
     controller.append($('<button/>', {
       text: '⇨',
@@ -359,8 +359,8 @@
       var xMin_val = newWindow['x-min'];
       var xMax_val = newWindow['x-max'];
       var move = jsnums.divide(jsnums.subtract(xMax_val, xMin_val), 10);
-      xMinC.val(prettyNumToStringDigits20(jsnums.add(xMin_val, move)));
-      xMaxC.val(prettyNumToStringDigits20(jsnums.add(xMax_val, move)));
+      xMinC.val(prettyNumToStringDigits20(jsnums.add(xMin_val, move, RUNTIME.NumberErrbacks)));
+      xMaxC.val(prettyNumToStringDigits20(jsnums.add(xMax_val, move, RUNTIME.NumberErrbacks)));
     }));
     controller.append($('<button/>', {
       text: '⇩',
@@ -374,8 +374,8 @@
       var yMin_val = newWindow['y-min'];
       var yMax_val = newWindow['y-max'];
       var move = jsnums.divide(jsnums.subtract(yMax_val, yMin_val), 10);
-      yMinC.val(prettyNumToStringDigits20(jsnums.subtract(yMin_val, move)));
-      yMaxC.val(prettyNumToStringDigits20(jsnums.subtract(yMax_val, move)));
+      yMinC.val(prettyNumToStringDigits20(jsnums.subtract(yMin_val, move, RUNTIME.NumberErrbacks)));
+      yMaxC.val(prettyNumToStringDigits20(jsnums.subtract(yMax_val, move, RUNTIME.NumberErrbacks)));
     }));
     controller.append($('<button/>', {
       text: '⇧',
@@ -389,8 +389,8 @@
       var yMin_val = newWindow['y-min'];
       var yMax_val = newWindow['y-max'];
       var move = jsnums.divide(jsnums.subtract(yMax_val, yMin_val), 10);
-      yMinC.val(prettyNumToStringDigits20(jsnums.add(yMin_val, move)));
-      yMaxC.val(prettyNumToStringDigits20(jsnums.add(yMax_val, move)));
+      yMinC.val(prettyNumToStringDigits20(jsnums.add(yMin_val, move, RUNTIME.NumberErrbacks)));
+      yMaxC.val(prettyNumToStringDigits20(jsnums.add(yMax_val, move, RUNTIME.NumberErrbacks)));
     }));
 
     var redraw = $('<button/>', {
@@ -440,10 +440,10 @@
         var cy = pixelToY(coord[1]);
         var radiusY = jsnums.subtract(yMax, yMin);
 
-        xMinC.val(prettyNumToStringDigits20(jsnums.subtract(cx, radiusX)));
-        xMaxC.val(prettyNumToStringDigits20(jsnums.add(cx, radiusX)));
-        yMinC.val(prettyNumToStringDigits20(jsnums.subtract(cy, radiusY)));
-        yMaxC.val(prettyNumToStringDigits20(jsnums.add(cy, radiusY)));
+        xMinC.val(prettyNumToStringDigits20(jsnums.subtract(cx, radiusX, RUNTIME.NumberErrbacks)));
+        xMaxC.val(prettyNumToStringDigits20(jsnums.add(cx, radiusX, RUNTIME.NumberErrbacks)));
+        yMinC.val(prettyNumToStringDigits20(jsnums.subtract(cy, radiusY, RUNTIME.NumberErrbacks)));
+        yMaxC.val(prettyNumToStringDigits20(jsnums.add(cy, radiusY, RUNTIME.NumberErrbacks)));
 
       })
       .on('mousedown', function() {
@@ -575,16 +575,16 @@
     var yMax = gf(windowOptions, 'y-max');
 
     function inBound(p) {
-      return jsnums.lessThanOrEqual(xMin, p[0]) &&
-             jsnums.lessThanOrEqual(p[0], xMax) &&
-             jsnums.lessThanOrEqual(yMin, p[1]) &&
-             jsnums.lessThanOrEqual(p[1], yMax);
+      return jsnums.lessThanOrEqual(xMin, p[0], RUNTIME.NumberErrbacks) &&
+             jsnums.lessThanOrEqual(p[0], xMax, RUNTIME.NumberErrbacks) &&
+             jsnums.lessThanOrEqual(yMin, p[1], RUNTIME.NumberErrbacks) &&
+             jsnums.lessThanOrEqual(p[1], yMax, RUNTIME.NumberErrbacks);
     }
 
     function dist(a, b) {
       return jsnums.add(
-        jsnums.sqr(jsnums.subtract(a[0], b[0])),
-        jsnums.sqr(jsnums.subtract(a[1], b[1])));
+        jsnums.sqr(jsnums.subtract(a[0], b[0], RUNTIME.NumberErrbacks)),
+        jsnums.sqr(jsnums.subtract(a[1], b[1], RUNTIME.NumberErrbacks)), RUNTIME.NumberErrbacks);
     }
 
     function nearest(candidates, origin) {
@@ -592,7 +592,7 @@
       var optimal = null;
       candidates.forEach(function(candidate) {
         var distance = dist(candidate, origin);
-        if (optimal === null || jsnums.lessThan(distance, optimal)) {
+        if (optimal === null || jsnums.lessThan(distance, optimal, RUNTIME.NumberErrbacks)) {
           optimal = distance;
           ans = candidate;
         }
@@ -601,7 +601,7 @@
     }
 
     function equal(a, b) {
-      return jsnums.lessThanOrEqual(a, b) && jsnums.lessThanOrEqual(b, a);
+      return jsnums.lessThanOrEqual(a, b, RUNTIME.NumberErrbacks) && jsnums.lessThanOrEqual(b, a, RUNTIME.NumberErrbacks);
     }
 
     function findPointOnEdge(near, far) {
@@ -633,15 +633,15 @@
         x = (y - c) / m         [4]   [rewrite 3]
         */
 
-        var m = jsnums.divide(jsnums.subtract(near[1], far[1]), jsnums.subtract(near[0], far[0]));
-        var c = jsnums.subtract(near[1], jsnums.multiply(m, near[0]));
+        var m = jsnums.divide(jsnums.subtract(near[1], far[1], RUNTIME.NumberErrbacks), jsnums.subtract(near[0], far[0], RUNTIME.NumberErrbacks));
+        var c = jsnums.subtract(near[1], jsnums.multiply(m, near[0], RUNTIME.NumberErrbacks), RUNTIME.NumberErrbacks);
 
         var f = function(x) {
-          return jsnums.add(jsnums.multiply(m, x), c);
+          return jsnums.add(jsnums.multiply(m, x, RUNTIME.NumberErrbacks), c, RUNTIME.NumberErrbacks);
         };
 
         var g = function(y) {
-          return jsnums.divide(jsnums.subtract(y, c), m);
+          return jsnums.divide(jsnums.subtract(y, c, RUNTIME.NumberErrbacks), m, RUNTIME.NumberErrbacks);
         };
 
         candidates = [
@@ -658,10 +658,10 @@
       }
 
       return nearest(candidates.filter(function(p) {
-        return jsnums.lessThanOrEqual(pxMin, p[0]) &&
-               jsnums.lessThanOrEqual(p[0], pxMax) &&
-               jsnums.lessThanOrEqual(pyMin, p[1]) &&
-               jsnums.lessThanOrEqual(p[1], pyMax);
+        return jsnums.lessThanOrEqual(pxMin, p[0], RUNTIME.NumberErrbacks) &&
+               jsnums.lessThanOrEqual(p[0], pxMax, RUNTIME.NumberErrbacks) &&
+               jsnums.lessThanOrEqual(pyMin, p[1], RUNTIME.NumberErrbacks) &&
+               jsnums.lessThanOrEqual(p[1], pyMax, RUNTIME.NumberErrbacks);
       }), near);
     }
 
@@ -672,8 +672,8 @@
     function toJSOptions(options) {
 			return {
         color:   CLIB.libColor.convertColor(gf(options, 'color')),
-        size:    jsnums.toFixnum(gf(options, 'size')),
-        opacity: jsnums.toFixnum(gf(options, 'opacity')),
+        size:    jsnums.toFixnum(gf(options, 'size'), RUNTIME.NumberErrbacks),
+        opacity: jsnums.toFixnum(gf(options, 'opacity'), RUNTIME.NumberErrbacks),
         tip:     RUNTIME.isPyretTrue(gf(options, 'tip')),
       };
 		}
@@ -846,7 +846,9 @@
      * row[0] => label, row[1] => value
      */
 
-    var sum = tab.map(function (row) { return row[1]; }).reduce(jsnums.add);
+    var sum = tab.map(function (row) { return row[1]; }).reduce(function(a, b) {
+      return jsnums.add(a, b, RUNTIME.NumberErrbacks)
+    });
     var scaler = libNum.scaler(0, sum, 0, 100, true);
 
     var dimension = getDimension({
