@@ -655,9 +655,9 @@
       c("line", [maybeX, maybeY, maybeC], [runtime.Number, runtime.Number, annColor]);
       var x = checkReal(maybeX);
       var y = checkReal(maybeY);
-      var c = checkColor(maybeC);
+      var color = checkColor(maybeC);
       return makeImage(
-        image.makeLineImage(jsnums.toFixnum(x), jsnums.toFixnum(y), c, true));
+        image.makeLineImage(jsnums.toFixnum(x), jsnums.toFixnum(y), color, true));
     });
 
     f("add-line", function(maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC) {
@@ -669,9 +669,9 @@
       var y1 = checkReal(maybeY1);
       var x2 = checkReal(maybeX2);
       var y2 = checkReal(maybeY2);
-      var c = checkColor(maybeC);
+      var color = checkColor(maybeC);
       var img = checkImage(maybeImg);
-      var line = image.makeLineImage(jsnums.toFixnum(x2 - x1), jsnums.toFixnum(y2 - y1), c, true);
+      var line = image.makeLineImage(jsnums.toFixnum(x2 - x1), jsnums.toFixnum(y2 - y1), color, true);
       var leftmost = Math.min(x1, x2);
       var topmost = Math.min(y1, y2);
       return makeImage(image.makeOverlayImage(line, img, -leftmost, -topmost));
@@ -686,9 +686,9 @@
       var y1 = checkReal(maybeY1);
       var x2 = checkReal(maybeX2);
       var y2 = checkReal(maybeY2);
-      var c = checkColor(maybeC);
+      var color = checkColor(maybeC);
       var img = checkImage(maybeImg);
-      var line = image.makeLineImage(jsnums.toFixnum(x2 - x1), jsnums.toFixnum(y2 - y1), c, true);
+      var line = image.makeLineImage(jsnums.toFixnum(x2 - x1), jsnums.toFixnum(y2 - y1), color, true);
 
       var newScene = image.makeSceneImage(jsnums.toFixnum(img.getWidth()),
                                           jsnums.toFixnum(img.getHeight()),

@@ -39,15 +39,17 @@
     "cpo/guess-gas",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
-    "pyret-base/js/runtime",
-    "cpo/spyret-parse"
+    "pyret-base/js/runtime"
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
-                      rtLib, spyretParse) {
+                      rtLib) {
+
+
+
 
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -60,7 +62,7 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules, pyRepl, spyretParse);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules);
 
     function findModule(contextIgnored, dependency) {
       return runtime.safeCall(function() {
@@ -90,13 +92,7 @@
             },
             dependency: function(protocol, args) {
               var arr = runtime.ffi.toArray(args);
-              if (protocol === "wescheme-collection") {
-                return constructors.makeWeSchemeCollectionLocator(arr[0]);
-              }
-              else if (protocol === "wescheme-mygdrive") {
-                return constructors.makeWeSchemeMyGDriveLocator(arr[0]);
-              }
-              else if (protocol === "my-gdrive") {
+              if (protocol === "my-gdrive") {
                 return constructors.makeMyGDriveLocator(arr[0]);
               }
               else if (protocol === "shared-gdrive") {
@@ -132,6 +128,7 @@
       }));
     var pyRealm = gf(loadLib, "internal").makeRealm(cpoModules.getRealm());
 
+
     var builtins = [];
     Object.keys(runtime.getParam("staticModules")).forEach(function(k) {
       if(k.indexOf("builtin://") === 0) {
@@ -144,9 +141,7 @@
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
     var getDefsForPyret = runtime.makeFunction(function() {
-        var ws_str = CPO.editor.cm.getValue();
-        var ws_str_j = spyretParse.schemeToPyretAST(ws_str, "definitions");
-        return ws_str_j;
+        return CPO.editor.cm.getValue();
       });
     var replGlobals = gmf(compileStructs, "standard-globals");
 
@@ -167,7 +162,7 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-spyret-definitions-locator").app(getDefsForPyret, replGlobals);
+                    "make-definitions-locator").app(getDefsForPyret, replGlobals);
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, typeCheck);
@@ -185,18 +180,15 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-spyret-interaction-locator").app(
-                      runtime.makeFunction(function() {
-                        var ws_str_j = spyretParse.schemeToPyretAST(str, name, "repl");
-                        return ws_str_j;
-                        }))
+                    "make-interaction-locator").app(
+                      runtime.makeFunction(function() { return str; }))
                   },
                   function(locator) {
                     return gf(repl, "run-interaction").app(locator);
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, "make-spyret-interaction-locator");
+              }, "make-interaction-locator");
             }, 0);
             return ret.promise;
           },
@@ -233,7 +225,7 @@
       var codeContainer = $("<div>").addClass("replMain");
       $("#main").prepend(codeContainer);
 
-      var replWidget =
+      var replWidget = 
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
             runButton: runButton
@@ -273,13 +265,8 @@
       $("#select-mcmh").click(function() {
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
-
-      $("#modeButton").change(function(e) {
-        editor.cm.changeMode(e.target.value);
-      });
-
       function doRunAction(src) {
-        editor.cm.clearGutter("CodeMirror-linenumbers");
+        editor.cm.clearGutter("test-marker-gutter");
         var marks = editor.cm.getAllMarks();
         document.getElementById("main").dataset.highlights = "";
         editor.cm.eachLine(function(lh){
@@ -638,6 +625,7 @@
         onError: flashError,
         onInternalError: stickError
       });
+
 
       return runtime.makeModuleReturn({}, {});
     }

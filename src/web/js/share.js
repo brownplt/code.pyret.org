@@ -48,7 +48,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
 
   function makeShareLink(originalFile) {
     console.log('doing makeShareLink ' + originalFile);
-    var link = $("<div>").append($("<button class=blueButton>").text("Share..."));
+    var link = $("<div>").append($("<button class=blueButton>").text("Publish..."));
     var shareDiv = $("<div>").addClass("share");
     return makeHoverMenu(link, shareDiv, false,
       function() {
@@ -64,7 +64,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
     var displayDone = shares.then(function(sharedInstances) {
       container.empty();
       console.log(sharedInstances);
-      var a = $("<a>").text("Share a new copy").attr("href", "javascript:void(0)");
+      var a = $("<a>").text("Publish a new copy").attr("href", "javascript:void(0)");
       a.click(function() {
         var copy = originalFile.makeShareCopy();
         a.text("Copying...").attr("href", null);
@@ -80,13 +80,12 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       });
       container.append(a);
       if(sharedInstances.length === 0) {
-        var p = $("<p>").text("This file hasn't been shared before.");
+        var p = $("<p>").text("This file hasn't been published before.");
         container.append(p);
       }
       else {
-        var p = $("<p>").text("This file has been shared before:");
+        var p = $("<p>").text("This file has been published before:");
         container.append(p);
-        console.log("shared: ", sharedInstances);
         sharedInstances.forEach(function(shareFile) {
           container.append(drawShareRow(shareFile));
         });

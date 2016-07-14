@@ -238,7 +238,7 @@
               ret.resolve(runtime.nothing);
             }
           });
-          return ret;
+          return ret.promise;
         }
 
         // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK

@@ -113,7 +113,7 @@ $(function() {
       matchBrackets: true,
       styleSelectedText: true,
       foldGutter: true,
-      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+      gutters: ["CodeMirror-linenumbers", "test-marker-gutter"],
       lineWrapping: true
     };
 
