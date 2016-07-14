@@ -1089,7 +1089,7 @@
       types: RUNTIME.makeObject({
       }),
       values: RUNTIME.makeObject({
-        'histogram': RUNTIME.makeFunction(histogram),
+        histogram: RUNTIME.makeFunction(histogram),
         'pie-chart': RUNTIME.makeFunction(pieChart),
         'plot-multi': RUNTIME.makeFunction(plotMulti),
         'bar-chart': RUNTIME.makeFunction(barChart)
