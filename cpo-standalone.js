@@ -27,6 +27,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
 
   runtime.setParam("command-line-arguments", []);
   runtime.setParam("staticModules", program.staticModules);
+  runtime.setParam("currentMainURL", main);
 
   var ua = "";
   if(window.navigator && window.navigator.userAgent) {
