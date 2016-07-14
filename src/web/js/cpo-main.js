@@ -89,12 +89,16 @@
               */
             },
             dependency: function(protocol, args) {
+              console.log('dependency is ' + protocol);
               var arr = runtime.ffi.toArray(args);
               if (protocol === "wescheme-collection") {
                 return constructors.makeWeSchemeCollectionLocator(arr[0]);
               }
-              else if (protocol === "wescheme-mygdrive") {
+              else if (protocol === "wescheme-my-gdrive") {
                 return constructors.makeWeSchemeMyGDriveLocator(arr[0]);
+              }
+              else if (protocol == "wescheme-shared-gdrive") {
+                return constructors.makeWeSchemeSharedGDriveLocator(arr[0]);
               }
               else if (protocol === "my-gdrive") {
                 return constructors.makeMyGDriveLocator(arr[0]);
