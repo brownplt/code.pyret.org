@@ -1,5 +1,6 @@
 import PyretIDE from 'pyret-ide';
 import seedrandom from 'seedrandom';
+import 'babel-polyfill';
 
 function loadScriptUrl(url) {
   var scriptTag = document.createElement('script');
@@ -35,25 +36,33 @@ function makeRuntimeAPI(CPOIDEHooks) {
 
   function findModule(contextIgnored, dependency) {
     // TODO(joe): enhance this with gdrive locators, etc, later
-    return runtime.safeCall(function() {
-      return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
-        {
-          builtin: function(name) {
-            var raw = cpoModules.getBuiltinLoadableName(runtime, name);
-            if(!raw) {
-              throw runtime.throwMessageException("Unknown module: " + name);
+    return runtime.safeCall(
+      function() {
+        return runtime.ffi.cases(
+          gmf(compileStructs, "is-Dependency"),
+          "Dependency",
+          dependency,
+          {
+            builtin: function(name) {
+              var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+              if(!raw) {
+                throw runtime.throwMessageException("Unknown module: " + name);
+              }
+              else {
+                return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+              }
+            },
+            dependency: function(protocol, args) {
+              console.error("Unknown import: ", dependency);
             }
-            else {
-              return gmf(cpo, "make-builtin-js-locator").app(name, raw);
-            }
-          },
-          dependency: function(protocol, args) {
-            console.error("Unknown import: ", dependency);
           }
-        });
-     }, function(l) {
+        );
+      },
+      function(l) {
         return gmf(compileLib, "located").app(l, runtime.nothing);
-     }, "findModule");
+      },
+      "findModule"
+    );
   }
   var pyFindModule = runtime.makeFunction(findModule, "find-module");
 
@@ -78,7 +87,8 @@ function makeRuntimeAPI(CPOIDEHooks) {
       }));
     }
   });
-  var builtinsForPyret = runtime.ffi.makeList(builtins);
+  // the below probably isn't needed? it's not used...
+  // var builtinsForPyret = runtime.ffi.makeList(builtins);
 
   function parse(source, uri) {
     var parse = gmf(parsePyret, "surface-parse");
@@ -138,7 +148,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
               toReprOrDie(parseResult.exn.exn, reject, reject);
             }
           });
-      })
+      });
     },
     /*
       @param {AST} ast - A Pyret AST from parse
@@ -158,7 +168,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
             if(runtime.isSuccessResult(compileResult)) {
               var maybeJS = compileResult.result;
               if(runtime.ffi.isLeft(maybeJS)) {
-                toReprOrDie(maybeJS, reject, reject)
+                toReprOrDie(maybeJS, reject, reject);
               }
               else {
                 resolve(get(maybeJS, "v"));
@@ -192,7 +202,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
             // this result, and it's something we should build out an API for.
             var innerResult = runResult.result.val.result;
             if(runtime.isSuccessResult(innerResult)) {
-              toReprOrDie(get(innerResult.result, "answer"), resolve, reject)
+              toReprOrDie(get(innerResult.result, "answer"), resolve, reject);
             }
             else {
               toReprOrDie(innerResult.exn.exn, reject, reject);
@@ -209,6 +219,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
 }
 
 PyretIDE.init({
+  debug: process.env.NODE_ENV !== 'production',
   rootEl: appDiv,
   runtimeApiLoader() {
     return new Promise((resolve, reject) => {
