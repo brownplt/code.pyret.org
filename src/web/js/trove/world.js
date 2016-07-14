@@ -37,6 +37,10 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
+      "close-when-stop": ["forall", ["a"],
+          ["arrow",
+             ["Boolean"],
+             "WCOofA"]],
       "is-world-config": ["arrow", [ "Any" ], "Boolean"],
       "is-key-equal": ["arrow", [ "String", "String" ], "Boolean"]
     },
@@ -58,21 +62,27 @@
     }
 
     var bigBang = function(initW, handlers) {
+      var closeBigBangWindow = null;
       var outerToplevelNode = jQuery('<span/>').css('padding', '0px').get(0);
       // TODO(joe): This obviously can't stay
       if(!runtime.hasParam("current-animation-port")) {
         document.body.appendChild(outerToplevelNode);
       } else {
-        runtime.getParam("current-animation-port")(outerToplevelNode);
+        runtime.getParam("current-animation-port")(outerToplevelNode, function(closeWindow) {
+          closeBigBangWindow = closeWindow;
+        });
       }
 
       var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
 
       var configs = [];
       var isOutputConfigSeen = false;
+      var closeWhenStop = false;
 
       for (var i = 0 ; i < handlers.length; i++) {
-        if (isOpaqueWorldConfigOption(handlers[i])) {
+        if (isOpaqueCloseWhenStopConfig(handlers[i])) {
+          closeWhenStop = handlers[i].val.isClose;
+        } else if (isOpaqueWorldConfigOption(handlers[i])) {
           configs.push(handlers[i].val.toRawHandler(toplevelNode));
         }
         else {
@@ -89,16 +99,20 @@
 
       runtime.pauseStack(function(restarter) {
         rawJsworld.bigBang(
-          toplevelNode,
-          initW,
-          configs,
-          {},
-          function(finalWorldValue) {
-            restarter.resume(finalWorldValue);
-          },
-          function(err) {
-            restarter.error(err);
-          });
+            toplevelNode,
+            initW,
+            configs,
+            {},
+            function(finalWorldValue) {
+              restarter.resume(finalWorldValue);
+            },
+            function(err) {
+              restarter.error(err);
+            },
+            {
+              closeWhenStop: closeWhenStop,
+              closeBigBangWindow: closeBigBangWindow
+            });
       });
     };
 
@@ -317,44 +331,44 @@
       var worldFunction = function(world, success) {
 
         adaptedWorldFunction(
-          world,
-          function(v) {
-            // fixme: once jsworld supports fail continuations, use them
-            // to check the status of the scene object and make sure it's an
-            // image.
+            world,
+            function(v) {
+              // fixme: once jsworld supports fail continuations, use them
+              // to check the status of the scene object and make sure it's an
+              // image.
 
 
-            if (runtime.isOpaque(v) && isImage(v.val) ) {
-              var theImage = v.val;
-              var width = theImage.getWidth();
-              var height = theImage.getHeight();
+              if (runtime.isOpaque(v) && isImage(v.val) ) {
+                var theImage = v.val;
+                var width = theImage.getWidth();
+                var height = theImage.getHeight();
 
-              if (! reusableCanvas) {
-                reusableCanvas = imageLibrary.makeCanvas(width, height);
-                // Note: the canvas object may itself manage objects,
-                // as in the case of an excanvas.  In that case, we must make
-                // sure jsworld doesn't try to disrupt its contents!
-                reusableCanvas.jsworldOpaque = true;
-                reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                if (! reusableCanvas) {
+                  reusableCanvas = imageLibrary.makeCanvas(width, height);
+                  // Note: the canvas object may itself manage objects,
+                  // as in the case of an excanvas.  In that case, we must make
+                  // sure jsworld doesn't try to disrupt its contents!
+                  reusableCanvas.jsworldOpaque = true;
+                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                }
+                if (reusableCanvas.width !== width) {
+                  reusableCanvas.width = width;
+                }
+                if (reusableCanvas.height !== height) {
+                  reusableCanvas.height = height;
+                }
+                var ctx = reusableCanvas.getContext("2d");
+                ctx.save();
+                ctx.fillStyle = "rgba(255,255,255,1)";
+                ctx.fillRect(0, 0, width, height);
+                ctx.restore();
+                theImage.render(ctx, 0, 0);
+                success([toplevelNode, reusableCanvasNode]);
+              } else {
+                // TODO(joe): Maybe torepr below
+                success([toplevelNode, rawJsworld.node_to_tree(String(v))]);
               }
-              if (reusableCanvas.width !== width) {
-                reusableCanvas.width = width;
-              }
-              if (reusableCanvas.height !== height) {
-                reusableCanvas.height = height;
-              }
-              var ctx = reusableCanvas.getContext("2d");
-              ctx.save();
-              ctx.fillStyle = "rgba(255,255,255,1)";
-              ctx.fillRect(0, 0, width, height);
-              ctx.restore();
-              theImage.render(ctx, 0, 0);
-              success([toplevelNode, reusableCanvasNode]);
-            } else {
-              // TODO(joe): Maybe torepr below
-              success([toplevelNode, rawJsworld.node_to_tree(String(v))]);
-            }
-          });
+            });
       };
 
       var cssFunction = function(w, k) {
@@ -404,7 +418,17 @@
 
     //////////////////////////////////////////////////////////////////////
 
+    var CloseWhenStop = function(isClose) {
+      WorldConfigOption.call(this, 'close-when-stop');
+      this.isClose = runtime.isPyretTrue(isClose);
+    };
 
+    CloseWhenStop.prototype = Object.create(WorldConfigOption.prototype);
+
+    var isCloseWhenStopConfig = function(v) { return v instanceof CloseWhenStop; };
+    var isOpaqueCloseWhenStopConfig = function(v) {
+      return runtime.isOpaque(v) && isCloseWhenStopConfig(v.val);
+    }
 
     var StopWhen = function(handler) {
       WorldConfigOption.call(this, 'stop-when');
@@ -462,6 +486,11 @@
             runtime.ffi.checkArity(1, arguments, "stop-when");
             runtime.checkFunction(stopper);
             return runtime.makeOpaque(new StopWhen(stopper));
+          }),
+          "close-when-stop": makeFunction(function(isClose) {
+            runtime.ffi.checkArity(1, arguments, "close-when-stop");
+            runtime.checkBoolean(isClose);
+            return runtime.makeOpaque(new CloseWhenStop(isClose));
           }),
           "on-key": makeFunction(function(onKey) {
             runtime.ffi.checkArity(1, arguments, "on-key");
