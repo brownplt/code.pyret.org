@@ -11,6 +11,7 @@
 var gwrap = window.gwrap = {
   // Initialize to a dummy method which loads the wrapper
   load: function(params) {
+    //console.log('doing gwrap.load');
     if (!params || !params.reauth || (params.reauth.immediate === undefined)) {
       throw new Error("Google API Wrapper not yet initialized");
     }
@@ -44,6 +45,8 @@ var _GWRAP_APIS = {};
  *        on `reauth`.
  */
 function loadAPIWrapper(immediate) {
+
+  //console.log('doing loadAPIWrapper ' + immediate);
 
   // Sanity check: Make sure aforementioned things are
   //               actually defined.
@@ -121,6 +124,19 @@ function loadAPIWrapper(immediate) {
 
   // Function definitions
 
+  var OAUTH_SCOPES = ["email",
+                      "https://www.googleapis.com/auth/spreadsheets",
+                      // The `drive` scope allows us to open files
+                      // (particularly spreadsheets)made outside of
+                      // the Pyret ecosystem.
+                      "https://www.googleapis.com/auth/drive",
+                      "https://www.googleapis.com/auth/drive.file",
+                      "https://www.googleapis.com/auth/drive.install",
+                      "https://www.googleapis.com/auth/drive.photos.readonly",
+                      "https://www.googleapis.com/auth/photos"];
+
+  var SCOPE = OAUTH_SCOPES.join(' ');
+
   /**
    * Reauthenticates the current session.
    * @param {boolean} immediate - Whether the user needs to log in with
@@ -128,7 +144,13 @@ function loadAPIWrapper(immediate) {
    * @returns A promise which will resolve following the re-authentication.
    */
   function reauth(immediate) {
+    //console.log('doing reauth ' + immediate);
     var d = Q.defer();
+    if (!clientId) {
+      console.log('ds26gte auth not possible');
+      d.resolve(null);
+    }
+    /*
     if (!immediate) {
       // Need to do a login to get a cookie for this user; do it in a popup
       var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
@@ -150,7 +172,28 @@ function loadAPIWrapper(immediate) {
       newToken.fail(function(t) {
         d.resolve(null);
       });
+    }*/
+    if (clientId) {
+    if (!immediate) {
+      console.log('trying gapi.auth.authorize');
+      gapi.auth.authorize({
+        "client_id": clientId,
+        "scope": SCOPE,
+        "immediate": false
+      }, function(authResult) {
+        if (authResult && !authResult.error) {
+          console.log('ds26gte auth successful');
+          d.resolve(reauth(true));
+        } else {
+          console.log('ds26gte auth failed');
+          d.resolve(null);
+        }
+      });
+    } else {
+      d.resolve(true);
     }
+    }
+
     return d.promise;
   }
 
@@ -257,6 +300,7 @@ function loadAPIWrapper(immediate) {
    *          which resolves to the loaded API/APIs.
    */
   function loadAPI(params) {
+    //console.log('doing loadAPI');
     if (!params) {
       throw new GoogleAPIError("Missing API loading parameters");
     }
@@ -357,7 +401,8 @@ function loadAPIWrapper(immediate) {
     }
   }
 
-  var initialAuth = reauth(immediate);
+  //var initialAuth = reauth(immediate);
+  var initialAuth = reauth(!immediate);
   return initialAuth.then(function(_) {
     /**
      * Creates the API Wrapping module to export

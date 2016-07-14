@@ -141,7 +141,7 @@ define("seedrandom", [], function() {
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-var clientId = "";
+var clientId = "{{ GOOGLE_CLIENT_ID }}";
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
   handleClientLoad(clientId, apiKey);
