@@ -120,9 +120,16 @@ function makeRuntimeAPI(CPOIDEHooks) {
         }
         else {
           console.error("Could not render: ", value, " because ", renderResult);
-          reject("An error occurred while rendering a value, details logged to console");
+          reject(new Error("An error occurred while rendering a value, details logged to console"));
         }
       });
+  }
+  function toReprErrorOrDie(value, reject) {
+    toReprOrDie(
+      value,
+      error => reject(new PyretIDE.UserError(error)),
+      reject
+    );
   }
   return {
     /*
@@ -140,12 +147,10 @@ function makeRuntimeAPI(CPOIDEHooks) {
         runtime.runThunk(
           () => parse(src, url),
           (parseResult) => {
-            if(runtime.isSuccessResult(parseResult)) {
+            if (runtime.isSuccessResult(parseResult)) {
               resolve(parseResult.result);
-            }
-            else {
-              // NOTE(joe): intentionally passing reject twice; want to report an error either way
-              toReprOrDie(parseResult.exn.exn, reject, reject);
+            } else {
+              toReprErrorOrDie(parseResult.exn.exn, reject);
             }
           });
       });
@@ -165,18 +170,15 @@ function makeRuntimeAPI(CPOIDEHooks) {
           (compileResult) => {
             // NOTE(joe): success here just means the compiler didn't blow up; the result
             // is a Pyret Either indicating compile errors or a final JS program to run
-            if(runtime.isSuccessResult(compileResult)) {
+            if (runtime.isSuccessResult(compileResult)) {
               var maybeJS = compileResult.result;
               if(runtime.ffi.isLeft(maybeJS)) {
                 toReprOrDie(maybeJS, reject, reject);
-              }
-              else {
+              } else {
                 resolve(get(maybeJS, "v"));
               }
-            }
-            else {
-              // NOTE(joe): intentionally passing reject twice; want to report an error either way
-              toReprOrDie(compileResult.exn.exn, reject, reject);
+            } else {
+              toReprErrorOrDie(compileResult.exn.exn, reject);
             }
           });
       });
@@ -201,11 +203,10 @@ function makeRuntimeAPI(CPOIDEHooks) {
             // the final value for now, but there are lots of juicy things on
             // this result, and it's something we should build out an API for.
             var innerResult = runResult.result.val.result;
-            if(runtime.isSuccessResult(innerResult)) {
+            if (runtime.isSuccessResult(innerResult)) {
               toReprOrDie(get(innerResult.result, "answer"), resolve, reject);
-            }
-            else {
-              toReprOrDie(innerResult.exn.exn, reject, reject);
+            } else {
+              toReprErrorOrDie(innerResult.exn.exn, reject);
             }
           });
       });
