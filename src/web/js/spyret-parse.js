@@ -7118,7 +7118,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
       // is this a shared WeScheme program?
       function getWeSchemeModule(name) {
-        var m = name.match(/^wescheme\/(\w+)$/);
+        var m = name.match(/^wescheme\/(\S+)$/);
         return m ? m[1] : false;
       }
 
@@ -7132,10 +7132,9 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var fileName, protocol;
 
       if (fileName = getWeSchemeModule(moduleName)) {
-        console.log('NOT YET');
+        protocol = "wescheme-shared-gdrive";
       } else if (fileName = getWeSchemeGDriveModule(moduleName)) {
-        protocol = "wescheme-mygdrive";
-        //console.log('NOT YET');
+        protocol = "wescheme-my-gdrive";
       } else {
         fileName = "collections/" + moduleName + ".ss";
         protocol = "wescheme-collection";
@@ -7211,7 +7210,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
   })();
 
   function schemeToPyretAST(code, name, provenance) {
-    //console.log('doing schemeToPyretAST of ' + code);
+    console.log('doing schemeToPyretAST of ' + code + ' ' + name + ' ' + provenance);
     var debug = false;
     //var debug = true;
     provenance = provenance || "definitions";
