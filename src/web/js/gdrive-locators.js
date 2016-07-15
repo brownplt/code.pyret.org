@@ -356,6 +356,136 @@ define([], function() {
         });
       });
     }
+    function makeWeSchemeLegacyLocator(filename) {
+     console.log('doing makeWeSchemeLegacyLocator ' + filename);
+
+      // Pause because we'll fetch the Google Drive file object and restart
+      // with it to create the actual locator
+      runtime.pauseStack(function(restarter) {
+        // We start by setting up the fetch of the file; lots of methods will
+        // close over this.
+
+          var uri = "wescheme-legacy://" + filename;
+
+          var filename2 = "http://www.wescheme.org/loadProject?publicId=" + filename;
+
+          function needsCompile() { return true; }
+
+          function dialect(self) {
+            return runtime.makeString("spyret");
+          }
+
+          function getModule(self) {
+            runtime.pauseStack(function(getModRestart) {
+              var spyretString;
+              runtime.safeCall(function() {
+                jQuery.ajax({
+                  url: filename2,
+                  crossDomain: true,
+                  success: function(str) {
+                    console.log('legacy string = ' + str);
+                    spyretString = str;
+                  },
+                  error: function(error) {
+                    getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
+                  },
+                  async: false
+                });
+                return true;
+              }, function(_) {
+                runtime.safeCall(function() {
+                  return spyretParse.schemeToPyretAST(spyretString, uri, "module");
+                }, function(sAst) {
+                  return runtime.safeCall(function() {
+                    return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
+                  }, function(parsed) {
+                    return runtime.safeCall(function() {
+                      return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                    }, function(pAst) {
+                      return runtime.safeCall(function() {
+                        return gmf(compileLib, "pyret-ast").app(pAst);
+                      }, function(ret) {
+                        getModRestart.resume(ret);
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          }
+
+          function getDependencies(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+              });
+            });
+          }
+
+          function getProvides(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-provides").app(mod, uri);
+              });
+            });
+          }
+
+          function getExtraImports(self) {
+            return gmf(compileStructs, "standard-imports");
+          }
+
+          function getGlobals(self) {
+            return gmf(compileStructs, "standard-globals");
+          }
+
+          function getCompileEnv(_) {
+            return gmf(compileStructs, "standard-builtins");
+          }
+
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
+          function getUri(_) { return uri; }
+          function name(_) { return filename; }
+          function setCompiled(_) { return runtime.nothing; }
+
+          var m0 = runtime.makeMethod0;
+          var m1 = runtime.makeMethod1;
+          var m2 = runtime.makeMethod2;
+
+          restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
+            "needs-compile": m1(needsCompile),
+            "get-module": m0(getModule),
+            "get-dependencies": m0(getDependencies),
+            "get-provides": m0(getProvides),
+            "get-extra-imports": m0(getExtraImports),
+            "get-globals": m0(getGlobals),
+            "get-compile-env": m0(getCompileEnv),
+            "uri": m0(getUri),
+            "name": m0(name),
+            "_equals": m2(function(self, other, rec) {
+              return runtime.safeCall(function() {
+                return runtime.getField(other, "uri").app();
+              }, function(otherstr) {
+                return runtime.safeTail(function() {
+                  return rec.app(otherstr, uri);
+                })
+              });
+            }),
+            "set-compiled": m2(setCompiled),
+            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+          }));
+      });
+    }
     function makeWeSchemeCollectionLocator(filename) {
      console.log('doing makeWeSchemeCollectionLocator ' + filename);
 
@@ -985,6 +1115,7 @@ define([], function() {
     }
     return {
       makeWeSchemeCollectionLocator: makeWeSchemeCollectionLocator,
+      makeWeSchemeLegacyLocator: makeWeSchemeLegacyLocator,
       makeWeSchemeMyGDriveLocator: makeWeSchemeMyGDriveLocator,
       makeWeSchemeSharedGDriveLocator: makeWeSchemeSharedGDriveLocator,
       makeMyGDriveLocator: makeMyGDriveLocator,
