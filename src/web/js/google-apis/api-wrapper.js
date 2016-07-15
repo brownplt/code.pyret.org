@@ -144,7 +144,7 @@ function loadAPIWrapper(immediate) {
    * @returns A promise which will resolve following the re-authentication.
    */
   function reauth(immediate) {
-    //console.log('doing reauth ' + immediate);
+    console.log('doing reauth ' + immediate);
     var d = Q.defer();
     if (!clientId) {
       console.log('ds26gte auth not possible');
@@ -174,24 +174,24 @@ function loadAPIWrapper(immediate) {
       });
     }*/
     if (clientId) {
-    if (!immediate) {
-      console.log('trying gapi.auth.authorize');
-      gapi.auth.authorize({
-        "client_id": clientId,
-        "scope": SCOPE,
-        "immediate": false
-      }, function(authResult) {
-        if (authResult && !authResult.error) {
-          console.log('ds26gte auth successful');
-          d.resolve(reauth(true));
-        } else {
-          console.log('ds26gte auth failed');
-          d.resolve(null);
-        }
-      });
-    } else {
-      d.resolve(true);
-    }
+      if (!immediate) {
+        console.log('trying gapi.auth.authorize');
+        gapi.auth.authorize({
+          "client_id": clientId,
+          "scope": SCOPE,
+          "immediate": false
+        }, function(authResult) {
+          if (authResult && !authResult.error) {
+            console.log('ds26gte auth successful');
+            d.resolve(reauth(true));
+          } else {
+            console.log('ds26gte auth failed');
+            d.resolve(null);
+          }
+        });
+      } else {
+        d.resolve(true);
+      }
     }
 
     return d.promise;
@@ -272,8 +272,9 @@ function loadAPIWrapper(immediate) {
    * @returns {Promise} A promise which resolves to the result of the Google query
    */
   function gQ(request, skipAuth) {
-    var oldAccess = gapi.auth.getToken();
-    if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
+    console.log('doing gQ ' + request + ', ' + skipAuth);
+    //var oldAccess = gapi.auth.getToken();
+    //if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
     var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       // TODO: This should be migrated to a promise
@@ -282,11 +283,13 @@ function loadAPIWrapper(immediate) {
       });
       return d.promise;
     }));
+    /*
     if (skipAuth) {
       ret.fin(function() {
         gapi.auth.setToken({ access_token: oldAccess });
       });
     }
+    */
     return ret;
   }
 
