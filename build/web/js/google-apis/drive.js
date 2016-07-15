@@ -1,4 +1,5 @@
 window.createProgramCollectionAPI = function createProgramCollectionAPI(collectionName, immediate) {
+  console.log('doing createProgramCollectionAPI');
   function DriveError(err) {
     this.err = err;
   }
@@ -13,9 +14,11 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
   function createAPI(baseCollection) {
     function makeSharedFile(googFileObject) {
+      console.log('doing makeShareFile ' + JSON.stringify(googFileObject));
       return {
         shared: true,
         getContents: function() {
+          console.log('doing makeShareFile:getContents');
           var proxyDownloadLink = "/downloadGoogleFile?" + googFileObject.id;
           return Q($.ajax(proxyDownloadLink, {
             method: "get",
@@ -40,6 +43,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
     }
     function makeFile(googFileObject, mimeType, fileExtension) {
+      console.log('doing makeFile ' + googFileObject + ' ' + mimeType + ' ' + fileExtension);
       return {
         shared: false,
         getName: function() {
@@ -67,6 +71,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             });;
         },
         getContents: function() {
+          console.log('doing makeFile:getContents');
           return Q($.ajax(googFileObject.downloadUrl, {
             method: "get",
             dataType: 'text',
@@ -183,6 +188,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
         });
       },
       getSharedFileById: function(id) {
+        console.log('doing getSharedFileById ' + id);
         return drive.files.get({fileId: id}, true).then(makeSharedFile);
       },
       getAllFiles: function() {
@@ -256,6 +262,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
   }
 
   function initialize(wrappedDrive) {
+    console.log('doing drive.js/initialize');
     drive = wrappedDrive;
 
     var list = drive.files.list({
@@ -291,5 +298,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
                 console.log("Drive loaded");
                 ret.resolve(initialize(drive));
               }});
+  console.log('createProgramCollectionAPI returning');
   return ret.promise;
 }

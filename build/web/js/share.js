@@ -47,6 +47,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   }
 
   function makeShareLink(originalFile) {
+    console.log('doing makeShareLink ' + originalFile);
     var link = $("<div>").append($("<button class=blueButton>").text("Publish..."));
     var shareDiv = $("<div>").addClass("share");
     return makeHoverMenu(link, shareDiv, false,
@@ -56,6 +57,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   }
 
   function showShares(container, originalFile) {
+    console.log('doing showShares ' + JSON.stringify(originalFile));
     container.empty();
     var shares = originalFile.getShares();
     container.text("Loading share info...");
@@ -71,6 +73,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
           showShares(container, originalFile);
         });
         var copied = copy.then(function(f) {
+          console.log('copied xxx');
           container.empty();
           showShares(container, originalFile);
         });
