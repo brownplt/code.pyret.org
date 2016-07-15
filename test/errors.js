@@ -11,6 +11,9 @@ describe("Rendering errors", function() {
   }
 
   var tests = [
+    ["renderSimpleReasonSimple", "_plus(1, 'x')", "definitions://:1:0-1:13"],
+    ["renderSimpleReasonError",  "_plus(1, 'x')", "An error occurred rendering the reason"],
+    
     ["field-not-found", "{}.x", "did not have a field"],
     ["lookup-non-object", "5.x", "non-object value"],
     ["lookup-constructor-not-object", "data D: d() end\n d.x", "evaluated to a constructor (d)"],
@@ -25,6 +28,15 @@ describe("Rendering errors", function() {
     ["lookup-large-index", "{1;2}.{3}", "a value could not be found at the given position"],
 
     ["type-id-used-as-value", "data D: d(x) end\nmy-x = D.x", "but it is defined as a type"],
+
+    ["images-equal-preds", "include image\nimages-equal(5, 'a')", "failed because the 1ˢᵗ argument evaluated to an unexpected value"],
+    ["text-preds", "include image\ntext('a', 'a', 'blue')", "failed because the 2ⁿᵈ argument evaluated to an unexpected value"],
+    ["text-font-preds", "include image\ntext-font('a', 5, 'blue', 'times', true, 'italic', 'bold', true)", "failed because the 5ᵗʰ argument evaluated to an unexpected value"],
+
+    ["regular-polygon", "include image\nregular-polygon(20, 1/2, 'solid', 'blue')", "failed because the 2ⁿᵈ argument evaluated to an unexpected value"],
+
+    // TODO(joe): Need a better way to close the world window when this is done
+//    ["arity-on-world-callback", "import world as W\nW.big-bang('a', [list: W.on-tick(lam(x, y): x end)])", "defined accepting 2 arguments"],
 
     fileTest("deeply-recursive-field-not-found", "did not have a field")
   ];

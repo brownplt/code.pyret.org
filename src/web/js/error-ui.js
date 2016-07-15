@@ -83,6 +83,7 @@
                     console.error("drawCompileError: renderErrorDisplay failed:", errorDisp);;
                     console.log(errorDisp.exn);
                   }
+                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -90,7 +91,10 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawCompileError: render-fancy-reason failed:", errorDisp);;
                 console.log(errorDisp.exn);
-                renderSimpleReason(e).then(function(_) { restarter.resume(runtime.nothing); });
+                renderSimpleReason(e).then(function(_) { 
+                  outputUI.runMarks();
+                  restarter.resume(runtime.nothing); 
+                });
               }
             });
           });
@@ -179,6 +183,7 @@
                                  .text("Something went wrong while rendering the error"));
                       console.log("drawPyretRuntimeError: renderErrorDisplay failed:", result.exn);
                     }
+                    outputUI.runMarks();
                     restarter.resume(runtime.nothing);
                   });
                 } else {
@@ -186,12 +191,13 @@
                     errorError = $("<span>").addClass("compile-error internal-error highlights-active")
                       .text("An error occurred rendering the reason for the above error; details logged to the console");
                     if(!container.hasClass("internal-error")) {
-                      drawError(errorError, editors, runtime, errorDisp.exn, undefined);
+                      drawError(errorError, editors, runtime, errorDisp, undefined);
                     }
                     container.append(errorError);
                     errorError.trigger('toggleHighlight');
                     console.error("drawPyretRuntimeError: render-fancy-reason failed:", errorDisp);
                     console.log(e.exn);
+                    outputUI.runMarks();
                     restarter.resume(runtime.nothing);
                   });
                 }
@@ -238,7 +244,7 @@
               ret.resolve(runtime.nothing);
             }
           });
-          return ret;
+          return ret.promise;
         }
 
         // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
@@ -269,6 +275,7 @@
                     console.error("drawPyretContractFailure: renderErrorDisplay failed:", errorDisp);
                     console.log(errorDisp.exn);
                   }
+                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -276,6 +283,7 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawPyretContractFailure: render-fancy-reason failed", errorDisp);
                 console.log(errorDisp.exn);
+                outputUI.runMarks();
                 restarter.resume(runtime.nothing);
               }
             });
@@ -306,6 +314,7 @@
                     console.error("drawPyretParseError: renderErrorDisplay failed:", errorDisp);
                     console.log(errorDisp.exn);
                   }
+                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -313,6 +322,7 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawPyretParseError: render-fancy-reason failed:", errorDisp);
                 console.log(errorDisp.exn);
+                outputUI.runMarks();
                 restarter.resume(runtime.nothing);
               }
             });
@@ -322,6 +332,7 @@
 
       function drawUnknownException(e) {
         container.append($("<div>").text("An unexpected error occurred: " + String(e)));
+        console.error("Unexpected error: ", e);
       }
     }
 

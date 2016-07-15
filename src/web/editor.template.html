@@ -38,7 +38,7 @@
   </div>
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
-    <li id="select-tc-run">Type-check and run</li>
+    <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
     <!--
     <li>Highlight Mode:</li>
     <li id="select-scsh"><input type="radio" id="select-scsh-radio" name="error-display-strategy" value="SCSH"/><label for="select-scsh-radio">SCSH</label></li>
@@ -133,6 +133,7 @@ define("seedrandom", [], function() {
   return seed_exports;
 });
 </script>
+<script>delete window.module;</script>
 <script src="/js/share.js"></script>
 <script src="/js/google-apis/api-wrapper.js"></script>
 <script src="/js/google-apis/drive.js"></script>

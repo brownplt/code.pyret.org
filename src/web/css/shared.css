@@ -324,3 +324,9 @@ code {
   text-decoration: none;
   padding-left: 3px;
 }
+
+#run-dropdown-content sup {
+  font-size: 65%;
+  top: -.15em;
+  vertical-align: top;
+}

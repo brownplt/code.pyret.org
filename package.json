@@ -22,6 +22,7 @@
     "eslint": "^2.12.0",
     "express": "^4.1.1",
     "googleapis": "^1.0.0",
+    "js-md5": "^0.4.1",
     "jwt-simple": "^0.2.0",
     "lodash": "~2.4.1",
     "mocha": "^2.2.1",
@@ -30,7 +31,7 @@
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
     "pyret-ide": "git://github.com/pcardune/pyret-ide#master-builds",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#master",
     "q": "~1.0.1",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
@@ -47,9 +48,11 @@
     "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
+    "local-install": "heroku local:run npm install",
     "postinstall": "webpack && make -j3 web",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & webpack-dev-server --port 5001"
+    "build": "heroku local:run make web-local",
+    "start": "heroku local:run supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & heroku local:run webpack-dev-server --port 5001"
   },
   "repository": {
     "type": "git",
