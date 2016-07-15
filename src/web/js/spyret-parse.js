@@ -7139,7 +7139,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
       if (fileName = getWeSchemeLegacyModule(moduleName)) {
         protocol = "wescheme-legacy";
-      } else if (fileName = getWeSchemeSharedGdriveModule(moduleName)) {
+      } else if (fileName = getWeSchemeSharedGDriveModule(moduleName)) {
         protocol = "wescheme-shared-gdrive";
       } else if (fileName = getWeSchemeMyGDriveModule(moduleName)) {
         protocol = "wescheme-my-gdrive";
