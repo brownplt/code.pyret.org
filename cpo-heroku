@@ -1,4 +1,4 @@
-# last modified 2016-07-11
+# last modified 2016-07-15
 
 localbranchname=$(git rev-parse --abbrev-ref HEAD)
 herokuappname=$1
@@ -9,8 +9,8 @@ heroku apps:destroy $herokuappname
 heroku create $herokuappname
 
 heroku config:set \
-GOOGLE_CLIENT_ID="" \
-GOOGLE_CLIENT_SECRET="" \
+GOOGLE_CLIENT_ID="1040262812577-cv0nkt30vcf1ha5n4o4gu57gmvmigg1u.apps.googleusercontent.com" \
+GOOGLE_CLIENT_SECRET="tAnnipgMrMCpXqaZ6G1fe8Ht" \
 GOOGLE_API_KEY="" \
 BASE_URL="https://$herokuappname.herokuapp.com" \
 ASSET_BASE_URL="https://$herokuappname.herokuapp.com" \

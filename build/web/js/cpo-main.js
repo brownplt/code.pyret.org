@@ -94,6 +94,9 @@
               if (protocol === "wescheme-collection") {
                 return constructors.makeWeSchemeCollectionLocator(arr[0]);
               }
+              else if (protocol === "wescheme-legacy") {
+                return constructors.makeWeSchemeLegacyLocator(arr[0]);
+              }
               else if (protocol === "wescheme-my-gdrive") {
                 return constructors.makeWeSchemeMyGDriveLocator(arr[0]);
               }
