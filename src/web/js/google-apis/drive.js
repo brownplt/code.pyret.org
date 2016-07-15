@@ -14,11 +14,11 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
   function createAPI(baseCollection) {
     function makeSharedFile(googFileObject) {
-      console.log('makeShareFile ' + googFileObject);
+      console.log('doing makeShareFile ' + JSON.stringify(googFileObject));
       return {
         shared: true,
         getContents: function() {
-          console.log('doing makeShareFile > getContents');
+          console.log('doing makeShareFile:getContents');
           var proxyDownloadLink = "/downloadGoogleFile?" + googFileObject.id;
           return Q($.ajax(proxyDownloadLink, {
             method: "get",
@@ -43,6 +43,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
     }
     function makeFile(googFileObject, mimeType, fileExtension) {
+      console.log('doing makeFile ' + googFileObject + ' ' + mimeType + ' ' + fileExtension);
       return {
         shared: false,
         getName: function() {
@@ -70,7 +71,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             });;
         },
         getContents: function() {
-          console.log('doing makeFile > getContents');
+          console.log('doing makeFile:getContents');
           return Q($.ajax(googFileObject.downloadUrl, {
             method: "get",
             dataType: 'text',
