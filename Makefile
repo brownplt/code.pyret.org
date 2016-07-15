@@ -17,6 +17,7 @@ endif
 CM=node_modules/codemirror
 CPOMAIN=build/web/js/cpo-main.jarr
 CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
+CPOGRADE=build/web/js/cpo-grade.jarr
 PHASEA=pyret/build/phaseA/pyret.jarr
 
 build/web/js/pyret.js.gz:
@@ -189,7 +190,7 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOIDEHOOKS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOIDEHOOKS) $(CPOGRADE)
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
@@ -236,6 +237,21 @@ $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-stand
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
     --outfile $(CPOIDEHOOKS) -no-check-mode
+
+$(CPOGRADE): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-grade.arr $(PHASEA)
+	mkdir -p compiled/;
+	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	node pyret/build/phaseA/pyret.jarr \
+    --builtin-js-dir src/web/js/trove/ \
+    --builtin-js-dir pyret/src/js/trove/ \
+    -allow-builtin-overrides \
+    --builtin-arr-dir src/web/arr/trove/ \
+    --builtin-arr-dir pyret/src/arr/trove/ \
+    --require-config cpo-config.json \
+    --build-runnable src/web/arr/cpo-grade.arr \
+    --standalone-file cpo-standalone.js \
+    --compiled-dir ./compiled \
+    --outfile $(CPOGRADE) -no-check-mode
 
 clean:
 	rm -rf build/
