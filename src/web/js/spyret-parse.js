@@ -7117,23 +7117,31 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var moduleName = this.spec;
 
       // is this a shared WeScheme program?
-      function getWeSchemeModule(name) {
+      function getWeSchemeLegacyModule(name) {
         var m = name.match(/^wescheme\/(\S+)$/);
         return m ? m[1] : false;
       }
 
-      function getWeSchemeGDriveModule(name) {
+      function getWeSchemeSharedGDriveModule(name) {
         //console.log('doing getWeSchemeGDriveModule ' + name);
-        var m = name.match(/^gdrive\/(\S+)$/);
+        var m = name.match(/^shared-gdrive\/(\S+)$/);
+        return m ? m[1] : false;
+      }
+
+      function getWeSchemeMyGDriveModule(name) {
+        //console.log('doing getWeSchemeGDriveModule ' + name);
+        var m = name.match(/^my-gdrive\/(\S+)$/);
         return m ? m[1] : false;
       }
 
       var loc = this.location;
       var fileName, protocol;
 
-      if (fileName = getWeSchemeModule(moduleName)) {
+      if (fileName = getWeSchemeLegacyModule(moduleName)) {
+        protocol = "wescheme-legacy";
+      } else if (fileName = getWeSchemeSharedGdriveModule(moduleName)) {
         protocol = "wescheme-shared-gdrive";
-      } else if (fileName = getWeSchemeGDriveModule(moduleName)) {
+      } else if (fileName = getWeSchemeMyGDriveModule(moduleName)) {
         protocol = "wescheme-my-gdrive";
       } else {
         fileName = "collections/" + moduleName + ".ss";
