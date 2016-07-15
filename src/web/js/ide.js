@@ -173,7 +173,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
             if (runtime.isSuccessResult(compileResult)) {
               var maybeJS = compileResult.result;
               if(runtime.ffi.isLeft(maybeJS)) {
-                toReprOrDie(maybeJS, reject, reject);
+                toReprErrorOrDie(maybeJS, reject);
               } else {
                 resolve(get(maybeJS, "v"));
               }
@@ -190,7 +190,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
                with a string describing any error(s).
                (TODO: return richer values for error returns)
     */
-    execute(bytecode) {
+    execute(bytecode, stdout, stderr, onResult) {
       var get = runtime.getField;
       return new Promise((resolve, reject) => {
         runtime.runThunk(
@@ -204,7 +204,14 @@ function makeRuntimeAPI(CPOIDEHooks) {
             // this result, and it's something we should build out an API for.
             var innerResult = runResult.result.val.result;
             if (runtime.isSuccessResult(innerResult)) {
-              toReprOrDie(get(innerResult.result, "answer"), resolve, reject);
+              toReprOrDie(
+                get(innerResult.result, "answer"),
+                (renderedResult) => {
+                  onResult(renderedResult);
+                  resolve(renderedResult);
+                },
+                reject
+              );
             } else {
               toReprErrorOrDie(innerResult.exn.exn, reject);
             }
