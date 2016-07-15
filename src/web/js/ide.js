@@ -1,6 +1,12 @@
 import PyretIDE from 'pyret-ide';
 import seedrandom from 'seedrandom';
 import 'babel-polyfill';
+import CodeMirror from 'codemirror';
+
+// TODO: don't export CodeMirror on window once
+// if we can help it
+window.CodeMirror = CodeMirror;
+require('script!pyret-codemirror-mode/mode/pyret');
 
 function loadScriptUrl(url) {
   var scriptTag = document.createElement('script');
@@ -229,6 +235,9 @@ function makeRuntimeAPI(CPOIDEHooks) {
 PyretIDE.init({
   debug: process.env.NODE_ENV !== 'production',
   rootEl: appDiv,
+  codemirrorOptions: {
+    mode: 'pyret',
+  },
   runtimeApiLoader() {
     return new Promise((resolve, reject) => {
 
