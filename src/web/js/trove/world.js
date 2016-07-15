@@ -13,6 +13,7 @@
     },
     values: {
       "big-bang": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], ["tid", "a"]]],
+      "_spyret_big-bang": "tany",
       "on-tick": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], ["tid", "a"]]],
@@ -21,6 +22,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number" ], ["tid", "a"]]],
              "WCOofA"]],
+      "_spyret_on-tick": "tany",
       "on-mouse": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number", "Number", "String" ], ["tid", "a"]]],
@@ -33,6 +35,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Image"]],
              "WCOofA"]],
+      "on-draw": "tany",
       "stop-when": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
@@ -465,6 +468,21 @@
             bigBang(initialWorldValue, arr);
             runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
           }),
+
+          "_spyret_big-bang": makeFunction(function(init) {
+            if (arguments.length < 1) {
+              throw runtime.ffi.throwArityErrorC(["big-bang"], 1, [init]);
+            }
+            var arr = [], h;
+            for (var i = 1; i < arguments.length; i++) {
+              h = arguments[i];
+              checkHandler(h);
+              arr.push(h);
+            }
+            bigBang(init, arr);
+            runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
+          }),
+
           "on-tick": makeFunction(function(handler) {
             runtime.ffi.checkArity(1, arguments, "on-tick");
             runtime.checkFunction(handler);
@@ -477,8 +495,27 @@
             var fixN = typeof n === "number" ? n : n.toFixnum();
             return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
           }),
+
+          "_spyret_on-tick": makeFunction(function(handler, n) {
+            runtime.ffi.checkArity(arguments.length <= 1? 1: 2, arguments, "on-tick");
+            runtime.checkFunction(handler);
+            var fixN;
+            if (arguments.length >= 2) {
+              fixN = typeof n === "number"? n: n.toFixnum();
+            } else {
+              fixN = DEFAULT_TICK_DELAY;
+            }
+            return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
+          }),
+
           "to-draw": makeFunction(function(drawer) {
             runtime.ffi.checkArity(1, arguments, "to-draw");
+            runtime.checkFunction(drawer);
+            return runtime.makeOpaque(new ToDraw(drawer));
+          }),
+          "on-draw": makeFunction(function(drawer) {
+            // spyret alias for to-draw
+            runtime.ffi.checkArity(1, arguments, "on-draw");
             runtime.checkFunction(drawer);
             return runtime.makeOpaque(new ToDraw(drawer));
           }),
