@@ -239,37 +239,37 @@
         {line: position.from.line, ch:0},
         position.source === "definitions://" ? "local" : "page");
 
-        var viewportMin;
-        var viewportMax;
+      var viewportMin;
+      var viewportMax;
 
-        if (position.source === "definitions://") {
-          var scrollInfo = editor.getScrollInfo();
-          viewportMin = scrollInfo.top;
-          viewportMax = scrollInfo.clientHeight + viewportMin;
-        } else {
-          var repl = document.querySelector('.repl');
-          viewportMin = repl.scrollTop;
-          viewportMax = viewportMin + repl.scrollHeight;
-        }
+      if (position.source === "definitions://") {
+        var scrollInfo = editor.getScrollInfo();
+        viewportMin = scrollInfo.top;
+        viewportMax = scrollInfo.clientHeight + viewportMin;
+      } else {
+        var repl = document.querySelector('.repl');
+        viewportMin = repl.scrollTop;
+        viewportMax = viewportMin + repl.scrollHeight;
+      }
 
-        var direction;
-        var TOP     = 0,
-            BOTTOM  = 1;
+      var direction;
+      var TOP     = 0,
+          BOTTOM  = 1;
 
-        if(coord.top < viewportMin) {
-          direction = TOP
-        } else if (coord.top > viewportMax) {
-          direction = BOTTOM;
-        } else {
-          return;
-        }
+      if(coord.top < viewportMin) {
+        direction = TOP
+      } else if (coord.top > viewportMax) {
+        direction = BOTTOM;
+      } else {
+        return;
+      }
 
-        var hinter = document.querySelector(
-            ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
-          + " > "
-          + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
+      var hinter = document.querySelector(
+          ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
+        + " > "
+        + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
 
-        hinter.classList.add("hinting");
+      hinter.classList.add("hinting");
     }
 
     function unhintLoc() {
