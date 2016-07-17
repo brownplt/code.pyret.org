@@ -20,15 +20,19 @@
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
-.cm-s-default.CodeMirror { color: #111; }
-.cm-s-default .cm-comment { color: #39f; }
+.cm-s-default.CodeMirror { color: black; }
+.cm-s-default .cm-comment { color: #cd7054; }
+.cm-s-default .cm-boolean { color: darkred; }
 .cm-s-default .cm-builtin { color: #555; }
-.cm-s-default .cm-function-name { color: #111; }
-.cm-s-default .cm-variable { color: #111; }
-.cm-s-default .cm-keyword { color: #636; }
-.cm-s-default .cm-number { color: #164; }
-.cm-s-default .cm-string { color: #164; }
-.cm-s-default .cm-type { color: #111; }
+.cm-s-default .cm-function-name { color: #374049; }
+.cm-s-default .cm-variable { color: #4d5966; }
+.cm-s-default .cm-keyword { color: black; font-weight: bold; }
+.cm-s-default .cm-number { color: navy; }
+.cm-s-default .cm-roughnum { color: blue; }
+.cm-s-default .cm-bad-number { color: red; font-weight: bold; }
+.cm-s-default .cm-string { color: forestgreen; }
+.cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
+.cm-s-default .cm-type { color: #374049; }
 .cptteach-fixed { line-height: 1.5; background: #ddd; }
 
 div.CodeMirror-selected,
@@ -47,16 +51,17 @@ span.CodeMirror-selectedtext {
   width: 100%;
   border: 0px solid rgb(90, 149, 217); 
   z-index: 1000; 
-  border-radius: 0.4ex; 
 }
 
 .CodeMirror-matchingbracket.open::before {
   border-width: 0.3ex 0px 0px 0.3ex; 
+  border-top-left-radius: 0.4ex; 
   margin: -0.3ex; 
 }
 
 .CodeMirror-matchingbracket.close::before { 
   border-width: 0px 0.3ex 0.3ex 0px; 
+  border-bottom-right-radius: 0.4ex; 
   margin: 0.3ex;
 }
 
@@ -66,7 +71,30 @@ span.CodeMirror-selectedtext {
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
   background-color: hsl(220, 100%, 95%);
-  box-shadow: 0 0 1em 2px hsl(220, 100%, 95%);
+  border-top: 0.1em solid hsl(220, 100%, 95%);
+  border-bottom: 0.1em solid hsl(220, 100%, 95%);
+}
+
+div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+    box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open {
+  box-shadow: -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+  box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%), -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close {
+  box-shadow: 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+  box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.3ex 0 0.3ex hsl(220, 100%, 95%);
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket {
@@ -83,10 +111,17 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background-color: #fdc;
+  border-top: 0.1em solid #fdd;
+  border-bottom: 0.1em solid #fdd;
   z-index: 4000;
 }
 
+#REPL {
+  font-family: sans-serif;
+}
+
 .replTextOutput {
+  font-family: monospace;
   border: none;
   background-color: transparent;
   white-space: pre;
@@ -96,74 +131,28 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
-.replToggle {
-  cursor: pointer;
+div.trace {
+ 
 }
-
-.test-reason > .highlightToggle {
-  display: none;
+div.trace.error {
+   background-color: #fff6f2;
 }
-
-.highlightToggle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  pointer-events: all;
-  cursor: pointer;
-  padding-right: 1em;
-  padding-left: 1em;
-  background: hsl(204, 100%, 94%);
-  border-style: dashed;
-  border-color: hsl(0, 100%, 60%);
-  border-width: 0 0 1px 1px;
-  border-bottom-left-radius: 5px;
-  z-index: 100;
+span.trace {
+   padding-right: 1em;
+   font-size: 85%;
+   display: none;
 }
+span.trace:after {
+   content: ":";
+}   
 
-.highlightToggle.highlights-active:before {
-  content: 'Highlighted';
-  color:white;
-}
 
-#output > .compile-error:not(.highlights-active) .highlight,
 .test-reason:not(.highlights-active) .highlight {
   background: initial!important;
 }
 
-
-.highlightToggle:before {
-  content:"Highlight this!";
-  position: relative;
-  z-index: 100;
-  color: hsl(204, 74%, 27%);
-}
-
-.highlightToggle:after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  background: hsl(204, 100%, 74%);
-  transform: scaleX(0);
-  width: 100%;
-  height: 100%;
-  transition: transform .15s ease-in;
-  transform-origin: left;
-}
-
-.check-block-test:not(.highlights-active):hover > .highlightToggle:after,
-.highlightToggle.highlights-active:after,
-.highlightToggle:hover:after {
-  transform: scaleX(1);
-}
-.check-block-test:not(.highlights-active):hover > .highlightToggle:before,
-.highlightToggle:hover:before {
-  color:white;
-}
-
+#output > .compile-error:not(.highlights-active):hover:after,
+.check-block-error > .compile-error:not(.highlights-active):hover::after,
 .check-block-test.failing-test:not(.highlights-active):hover {
     box-shadow: 0 0 2em hsl(204, 100%, 80%);
     transform: scale(1.01);
@@ -172,6 +161,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
     border-image-outset: 5px;
 }
 
+#output > .compile-error:not(.highlights-active):hover:after,
+.check-block-error > .compile-error:not(.highlights-active):hover::after,
 .check-block-test.failing-test:not(.highlights-active):hover::after{
     content:'';
     position:absolute;
@@ -184,6 +175,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
         rgba(255, 255, 255, 0.8) 45%,
         rgba(255, 255, 255, 0.0) 50%);
     top:0;
+    left:0;
     background-size: cover;
     cursor: pointer;
     background-position: 100em;
@@ -197,9 +189,11 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   to   {background-position:100em;}
 }
 
+#output > .compile-error:not(.highlights-active) > *,
+.check-block-error > .compile-error:not(.highlights-active) > *,
 .check-block-test.failing-test:not(.highlights-active) .test-reason {
   opacity: 0.5;
-  pointer-events: none;
+ 
 }
 
 .check-block-header {
@@ -264,7 +258,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   border: none;
   border-radius: 3px;
   margin: .5em;
-  margin-bottom: 1em;
   padding: .5em;
   box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
   background: #E1F5FE;
@@ -272,7 +265,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor:default;
 }
 
-.check-block-test-container,.check-block-error{
+.check-block-tests,
+.check-block-error{
   margin-top: .5em;
 }
 
@@ -283,7 +277,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 .check-block-errored {
   background-color: hsl(0, 100%, 90%);
-  margin: 5px;
 }
 
 .check-block-success {
@@ -633,6 +626,7 @@ div#font-label:hover{
 }
 
 .replPrint {
+  font-family: monospace;
   padding-top: 0;
   padding-bottom: 0.5em;
   padding-left: 0.5em;
@@ -808,7 +802,7 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-.highlight {
+a.highlight {
   color: #000 !important;
 }
 
@@ -826,6 +820,15 @@ span.rationalRepeat {
   }
   to {
   background-color:transparent;
+  }
+}
+
+@keyframes pulse-underline {
+  from {
+  }
+  to {
+  background-color:transparent;
+  border-color:transparent;
   }
 }
 
@@ -898,9 +901,7 @@ code div {
 .compile-error {
   font-family: sans-serif;
   border: 1px dashed #FF3131;
-  /* font-size: 10pt; */
-  padding: 3px;
-  padding-top: 1em;
+  padding: 0.2em;
   box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
   border-radius: 3px;
   background: #FFF2F2;
@@ -1212,16 +1213,42 @@ code div {
   margin: 0.5em;
 }
 
+#output > .compile-error.highlights-active,
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
   border: 0.3em hsl(204, 100%, 74%) solid;
   box-shadow: 0 0 1em;
+}
+
+
+.check-block-error .highlights-active.compile-error,
+.check-block-test.highlights-active {
   background: hsla(0,0%,100%,.9);
 }
 
-.check-block:not(.expanded) > .check-block-test-container {
+.check-block:not(.expanded) > .check-block-tests {
   display: none;
 }
+
+.test-reason:empty
+.check-block-tests:empty,
+.check-block-error:empty {
+  height: 3em;
+  background-image: url(img/pyret-spin.gif);
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.test-reason:empty > * {
+  opacity: 0;
+  transition: opacity .5s linear;
+}
+
+.test-reason:not(:empty) > * {
+  opacity: 1;
+}
+
+
 
 .check-block-header:after {
   position: absolute;
@@ -1254,15 +1281,26 @@ code div {
   background:rgba(255,255,255,0.5);
 }
 
-.erroredTestMarker {background-color: hsl(0, 100%, 90%);} 
-.failedTestMarker {background-color: hsl(45, 100%, 85%);}
+.test-marker-gutter {
+  left: 0;
+  width: 0px;
+}
 
-.failedTestMarker,
-.erroredTestMarker {
+.errored-test-marker,
+.failed-test-marker {
+  left: -29px;
+  border-right: 1px black solid;
+  width: 29px;
+  position: absolute;
   cursor: pointer;
-  color: #822;
-  text-decoration: underline;
-  font-weight: bold;
+}
+
+.errored-test-marker {
+  background-color: hsla(0, 100%, 50%, 0.5);
+}
+
+.failed-test-marker {
+  background-color: hsla(45, 90%, 50%, 0.5);
 }
 
 
@@ -1347,10 +1385,21 @@ code div {
   pointer-events: none;
 }
 
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket::before {
+  opacity:0;
+  transition: .1s opacity linear .3s;
+}
+
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket,
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket.open,
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket.close,
+#main[data-highlights|="spotlight"] .CodeMirror-matchingbracket-region,
 #main[data-highlights|="spotlight"] .repl-echo > div.CodeMirror,
 #main[data-highlights|="spotlight"] .repl,
 #main[data-highlights|="spotlight"] .repl-prompt > div.CodeMirror,
 #main[data-highlights|="spotlight"] > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
   background-color: rgb(150,150,150);
   transition: .1s background-color linear .3s;
 }
@@ -1382,4 +1431,204 @@ code div {
   margin-top: -0.5em;
   margin-left: -1em;
   position: absolute;
+}
+
+/* MODAL */
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 9999; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  font-family: sans-serif;
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #C8C8C8;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #888;
+  width: 60%;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+/* The Submit and Close Buttons */
+/*.modal .submit,
+.modal .close {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  padding: 10px 5px;
+}*/
+
+.modal .submit {
+  float: right;
+  padding: 0px 5px;
+}
+
+.modal table {
+  width: 90%;
+  margin: 0 5%;
+}
+
+.modal td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  height: auto;
+}
+
+.pyret-modal-option-radio,
+.pyret-modal-option-message {
+  vertical-align: middle;
+}
+/*
+.submit:hover,
+.submit:focus,
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}*/
+
+.modal .submit,
+.modal .close  {
+  height: 40px;
+  width: 150px;
+  box-shadow: 0px -2px 5px 1px rgba(0,0,0,0.2);
+  margin-top: 10px;
+}
+
+.modal .submit{
+  background: #317BCF;
+}
+
+.modal .submit:hover{
+  background:#0060CE;
+}
+
+.modal .close{
+  background:#CF3B31;
+}
+
+.modal .close:hover{
+  background:#B30C00;
+}
+
+.modal .submit:hover,
+.modal .close:hover{
+  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  padding: 2px 16px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: white;
+  text-align: center;
+}
+
+.modal-body {
+  padding: 2px 16px;
+  font-size: 18px;
+}
+
+.modal td {
+  margin: 10px 16px;
+}
+
+.modal-footer {
+  padding: 2px 16px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: white;
+  height: 60px;
+}
+
+.stale.test-results .check-block-failed,
+.stale.test-results .check-block-success,
+.stale.test-results .check-block-errored,
+.stale.test-results .check-block-test,
+.stale.test-results .summary-bits {
+  transition: background-color 0.3s linear;
+}
+
+.stale.test-results .stale-warning {
+  position: block;
+  /* Note: this is FF-only, but if the consensus is that it's a nice
+   * effect, there is a polyfill for Chrome that adds support */
+  position: sticky;
+  color: white;
+  top: 0;
+  z-index: 1;
+  background-color: hsl(212, 30%, 50%)
+}
+
+.stale.test-results .check-block-failed {
+  background-color: hsl(45,30%,85%);
+}
+
+.stale.test-results .check-block-success {
+  background-color: hsl(88, 30%, 76%);
+}
+
+.stale.test-results .check-block-errored {
+  background-color: hsl(0, 30%, 85%);
+}
+
+.stale.test-results .check-block-test.failing-test:not(.highlights-active) {
+  background-color: hsl(45, 30%, 93%);
+}
+
+.stale.test-results .check-block-test.highlights-active {
+  background-color: hsl(45,0%,95%);
+}
+
+.stale.test-results .check-block-test.highlights-active > header {
+  background-color: hsl(45, 50%, 85%);
+}
+
+.stale.test-results .check-block-test.passing-test {
+  background-color: hsl(90, 10%, 91%);
+}
+
+.stale.test-results .testing-summary .summary-passed {
+  background-color: hsl(88, 30%, 76%);
+}
+
+.stale.test-results .testing-summary .summary-failed {
+  background-color: hsl(45,30%,85%);
+}
+
+.stale.test-results .testing-summary .summary-errored {
+  background-color: hsl(0, 30%, 70%);
+}
+
+.stale .compile-error.highlights-active, 
+.stale .compile-error.highlights-active, 
+.stale .check-block-test.highlights-active {
+  border-color: hsl(204, 40%, 74%);
 }

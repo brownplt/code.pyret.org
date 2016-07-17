@@ -19,6 +19,7 @@
     <input id="program-name" type="text" placeholder="Program Name"></input>
   </div>
   <button id="saveButton" class="blueButton loginOnly">Save</button>
+  <button id="openFile" class="blueButton loginOnly">Open</button>
   <div id="shareContainer"></div>
   <div id="menu"><button class="blueButton">More ▾</a></div>
   <div id="menuContents" style="display: none; z-index: 8990;">
@@ -37,16 +38,44 @@
   </div>
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
-    <li id="select-tc-run">Type-check and run</li>
+    <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
+    <!--
     <li>Highlight Mode:</li>
     <li id="select-scsh"><input type="radio" id="select-scsh-radio" name="error-display-strategy" value="SCSH"/><label for="select-scsh-radio">SCSH</label></li>
     <li id="select-scmh"><input type="radio" id="select-scmh-radio" name="error-display-strategy" value="SCMH"/><label for="select-scmh-radio">SCMH</label></li>
     <li id="select-mcmh"><input type="radio" id="select-mcmh-radio" name="error-display-strategy" value="MCMH" checked/><label for="select-mcmh-radio">MCMH</label></li>
+    -->
   </ul>
 </div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
+<!-- MODAL PROMPT (Adapted from W3Schools' example) -->
+<div id="promptModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Select Import Style</h3>
+    </div>
+    <div class="modal-body">
+      <table id="choiceContainer">
+        <!--<tbody>
+          <tr>
+            <td class="pyret-modal-option-radio">
+              <input id="r0" type="radio">
+            </td>
+            <td class="pyret-modal-option-message">
+              <label for="r0">Foo</label>
+            </td>
+          </tr>
+        </tbody>-->
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="submit blueButton">Submit</span>
+      <button class="close blueButton">Close</span>
+    </div>
+  </div>
+</div>
 <div id="notification" class="notificationArea"></div>
 <div id="REPL" class="replContainer">
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
@@ -77,7 +106,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="/js/loader.js"></script>
-<script src="/js/url.js"></script>
 <script src="/js/colorspaces.js"></script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
@@ -105,13 +133,12 @@ define("seedrandom", [], function() {
   return seed_exports;
 });
 </script>
+<script>delete window.module;</script>
 <script src="/js/share.js"></script>
-<script>
-var shareAPI = makeShareAPI("{{{ CURRENT_PYRET_RELEASE }}}");
-var makeShareLink = shareAPI.makeShareLink;
-var makeHoverMenu = shareAPI.makeHoverMenu;
-</script>
-<script src="/js/programs.js"></script>
+<script src="/js/google-apis/api-wrapper.js"></script>
+<script src="/js/google-apis/drive.js"></script>
+<script src="/js/google-apis/picker.js"></script>
+<script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
 var clientId = "";
@@ -120,59 +147,14 @@ function handleGoogLoad() {
   handleClientLoad(clientId, apiKey);
 }
 </script>
+<!-- Google API Loader (For picker) -->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<!-- GAPI Client -->
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
-<script id="loadVersion">
-// Figure out what version of Pyret we should be using, if not the current default
-var APP_BASE_URL = "{{{ BASE_URL }}}";
-var initialParams = url.parse(document.location.href);
-var params = url.parse("/?" + initialParams["hash"]);
-if(params.get && params.get["v"]) {
-  VERSION = params.get["v"];
-}
-else {
-  VERSION = "{{{ CURRENT_PYRET_RELEASE }}}";
-}
-if(VERSION !== "") { VERSION = VERSION + "/"; }
-var BASE = "{{{ PYRET_RELEASE_BASE }}}" + "/" + VERSION;
-function start() {
-  var start = document.createElement("script");
-  start.src = "/js/repl.js";
-  document.body.appendChild(start);
-}
-if({{{ USE_STANDALONE_PYRET }}}) {
-  var script = document.createElement("script");
-  script.src = BASE + "pyret.js"
-  document.body.insertBefore(script, document.getElementById("loadVersion"));
-  script.addEventListener("load", function() { start(); });
-  setTimeout(function() {
-    requirejs.config({
-      paths: {
-        "q": "/js/q",
-        "s-expression": "/js/s-expression",
-        "fs": "/js/fsstub"
-      },
-      waitSeconds: 0
-    });
-  });
-} else {
-  var phase1Base = BASE + "phase1/";
-  requirejs.config({
-    paths: {
-      "js": phase1Base + "js",
-      "compiler": phase1Base + "arr/compiler",
-      "arr": phase1Base + "arr",
-      "js/../../../lib/jglr": phase1Base + "../../lib/jglr",
-      "trove": phase1Base + "trove",
-      "q": "/js/q",
-      "s-expression": "/js/s-expression",
-      "fs": "/js/fsstub"
-    },
-    waitSeconds: 0
-  });
-  start();
-}
+<script>console.log(window.performance.now())</script>
+<script src="js/beforePyret.js"></script>
+<script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
 
-</script>
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
 </body>

@@ -1,5 +1,6 @@
 var Q = require("q");
 var gapi = require('googleapis');
+var path = require('path');
 
 function start(config, onServerReady) {
   var express = require('express');
@@ -53,6 +54,11 @@ function start(config, onServerReady) {
     res.set("Content-Type", "application/javascript");
     res.send(fs.readFileSync("build/web/js/pyret.js.gz"));
   });
+  app.get("/js/cpo-main.jarr.gz.js", function(req, res) {
+    res.set("Content-Encoding", "gzip");
+    res.set("Content-Type", "application/javascript");
+    res.send(fs.readFileSync("build/web/js/cpo-main.jarr.gz.js"));
+  });
 
   app.use(cookieSession({
     secret: config.sessionSecret,
@@ -69,6 +75,9 @@ function start(config, onServerReady) {
   app.set('view engine', 'html');
 
   app.use(express.static(__dirname + "/../build/web/"));
+  if(config.development) {
+    app.use(express.static(__dirname + "/../test-util/"));
+  }
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
 
@@ -202,7 +211,7 @@ function start(config, onServerReady) {
         headers: headers
       }).on('response', function(res){
         var contentType = res.headers['content-type'];
-        // Likely to have multiple MIME types, so 
+        // Likely to have multiple MIME types, so
         // we need to check substrings
         if (hasMime(contentType, ['application/json', 'application/atom+xml'])) {
           res.headers['X-Pyret-Token'] = req.csrfToken();
@@ -220,7 +229,7 @@ function start(config, onServerReady) {
       req.pipe(request(googleUrl)).pipe(response);
     }
   });
-  
+
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
@@ -251,14 +260,19 @@ function start(config, onServerReady) {
     var googleLink = decodeURIComponent(parsed.query.slice(0));
     var googleParsed = url.parse(googleLink);
     var gReq = request({url: googleLink, encoding: 'binary'}, function(error, imgResponse, body) {
-      var h = imgResponse.headers;
-      var ct = h['content-type']
-      if(ct.indexOf('image/') !== 0) {
-        response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
-        return;
+      if(error) {
+        response.status(400).send({type: "image-load-failure", error: "Unable to load image " + String(error)});
       }
-      response.set('content-type', ct);
-      response.end(body, 'binary');
+      else {
+        var h = imgResponse.headers;
+        var ct = h['content-type']
+        if(ct.indexOf('image/') !== 0) {
+          response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
+          return;
+        }
+        response.set('content-type', ct);
+        response.end(body, 'binary');
+      }
     });
   });
 
@@ -388,6 +402,13 @@ function start(config, onServerReady) {
     res.render("editor.html");
   });
 
+  app.get("/ide", function(req, res) {
+    res.render(
+      path.resolve(__dirname, "web", "ide.html"),
+      {ASSET_BASE_URL: process.env.ASSET_BASE_URL || ''}
+    );
+  });
+
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
   });
@@ -425,4 +446,3 @@ function start(config, onServerReady) {
 module.exports = {
   start: start
 };
-

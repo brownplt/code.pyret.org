@@ -9,38 +9,30 @@ everything in `.env` is just an environment variable if you really want to
 manage things yourself, but using Heroku tools makes sure you run like things
 do in production.
 
-First, get foreman (https://github.com/ddollar/foreman).
+First, get the Heroku toolbelt (https://toolbelt.heroku.com/).
 
 Then, copy `.env.example` to `.env`.  If all you want to do is run Pyret code
 and test out the REPL, you only need to edit a few variables.  If you want to
-use the standalone pyret that comes with the checkout, use these settings:
+use the standalone pyret that comes with the checkout, you can just set
 
 ```
-USE_STANDALONE_PYRET="true"
-PYRET_RELEASE_BASE="/js"
-CURRENT_PYRET_RELEASE=""
+PYRET="http://localhost:5000/js/cpo-main.jarr"
 ```
 
 Then you can run
 
 ```
-$ git submodule init
-$ git submodule update
-$ foreman run npm install
+$ npm run local-install
+$ ln -s node_modules/pyret-lang pyret
+$ npm run build
 ```
 
 and the dependencies will be installed.
 
-Note that if you just run `npm install`, environment variables will not be set
-correctly when building templated HTML.  You can accomplish the same thing as
-`foreman run` by setting the environment variables in `.env` via your
-environments' mechanisms for doing so.  `foreman` just happens to also be
-useful for starting the server the same way Heroku does, etc.
-
 To run the server, run:
 
 ```
-$ foreman start
+$ npm start
 ```
 
 The editor will be served from `http://localhost:5000/editor`.
@@ -48,53 +40,23 @@ The editor will be served from `http://localhost:5000/editor`.
 If you edit JavaScript or HTML files in `src/web`, run
 
 ```
-$ foreman run make web
+$ heroku local:run make web
 ```
 
 and then refresh the page.
 
 ## Running with Development Pyret
 
-If you'd like to run with a development copy of Pyret, you can change the
-environment configuration to:
+If you'd like to run with a development copy of Pyret, you can simply symlink
+`pyret` elsewhere.  For example, if your development environment has
+`code.pyret.org` and `pyret-lang` both checked out in the same directory, you
+could just run this from the CPO directory:
 
 ```
-USE_STANDALONE_PYRET="false"
-PYRET_RELEASE_BASE="<url-to-your-pyret-checkout>/build"
-CURRENT_PYRET_RELEASE=""
+$ ln -s ../pyret-lang pyret
 ```
-
-So for example, if your Pyret checkout is in `/home/joe/src/pyret`, you would
-use:
-
-```
-PYRET_RELEASE_BASE="file:///home/joe/src/pyret/build"
-```
-
-Or if you were runnning it on another web server, hosted at `/pyret`:
-
-```
-PYRET_RELEASE_BASE="http://your-server/pyret/build"
-```
-
-@jpolitz often runs with:
-
-```
-USE_STANDALONE_PYRET="false"
-PYRET_RELEASE_BASE="http://localhost:8000/build"
-CURRENT_PYRET_RELEASE=""
-```
-
-And then, from a checkout of `pyret-lang`, runs
-
-```
-python -m SimpleHTTPServer
-```
-
-
 
 ## Configuration with Google Auth and Storage
-
 
 In order to have share links, saving, and other docs-related functionality
 work, you need to add to your `.env` a Google client secret and client ID.
@@ -114,21 +76,26 @@ redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
 There are tests in `test-util/` and `test/` that use Selenium to script a
 browser.
 
-The instructions for setting up Selenium to open Chrome locally are pretty
+The instructions for setting up Selenium to open Chrome locally are somewhat
 platform-specific, but you can try just running:
 
 ```
-foreman run mocha
+heroku local:run mocha
 ```
 
-with Selenium installed, but YMMV.
+with Selenium installed and a development server running.  You can refine this
+with, e.g.
 
-The easiest thing to do is probably to run all the tests on Sauce Labs
-(https://saucelabs.com).  Pyret has an account there and you can email Joe to
-get a sub-account if you want, you can also get a personal free account with
-unlimited testing if you only test open-source stuff (which Pyret/CPO are).
-Sauce also stores screencasts and logs of your tests, which can be helpful
-with debugging.
+```
+heroku local:run mocha -g "errors"
+```
+
+to only run the tests in `test/errors.js`.
+
+Another options to run all the tests on Sauce Labs (https://saucelabs.com).
+You can also get a personal free account with unlimited testing if you only
+test open-source stuff (which Pyret/CPO are).  Sauce also stores screencasts
+and logs of your tests, which can be helpful with debugging.
 
 First, add your sauce username and access key (from your account page at
 Sauce) to `.env`:
@@ -192,4 +159,3 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
  $ heroku ps:scale web=1
 ```
 7.	Now run `heroku open` or visit appname.herokuapp.com.
-

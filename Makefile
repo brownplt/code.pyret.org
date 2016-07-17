@@ -15,9 +15,10 @@ else
 endif
 
 CM=node_modules/codemirror
-
-build/web/js/pyret.js.gz:
-	gzip -9 node_modules/pyret-lang/build/phase0/pyret.js -c > build/web/js/pyret.js.gz
+CPOMAIN=build/web/js/cpo-main.jarr
+CPOGZ=build/web/js/cpo-main.jarr.gz.js
+CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
+PHASEA=pyret/build/phaseA/pyret.jarr
 
 .PHONY : post-install
 post-install: compress-pyret
@@ -79,12 +80,20 @@ COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.
 build/web/js/%.js: src/web/js/%.js
 	cp $< $@
 
+COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-apis/%.js,$(wildcard src/web/js/google-apis/*.js))
+
+build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
+	cp $< $@
+
+build/web/js/beforePyret.js: src/web/js/beforePyret.js
+	`npm bin`/webpack
+
 build/web/js/q.js: node_modules/q/q.js
 	cp $< $@
 
 build/web/js/s-expression-lib.js: node_modules/s-expression/index.js
 	cp $< $@
-	
+
 build/web/js/colorspaces.js: node_modules/colorspaces/colorspaces.js
 	cp $< $@
 
@@ -102,7 +111,7 @@ build/web/js/require.js: node_modules/requirejs/require.js
 
 build/web/js/codemirror.js: $(CM)/lib/codemirror.js
 	cp $< $@
-	
+
 build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
 	cp $< $@
 
@@ -134,18 +143,20 @@ MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/i
 build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
-COPY_ARR := $(patsubst node_modules/pyret-lang/src/arr/base/%.arr,build/web/arr/base/%.arr,$(wildcard node_modules/pyret-lang/src/arr/base/*.arr))
+COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
+COPY_ARR :=
 
-build/web/arr/base/%: node_modules/pyret-lang/src/arr/base/%
-	cp $< $@
+# build/web/arr/%: pyret/src/arr/trove/%
+# 	cp $< $@
 
 
 WEB = build/web
 WEBV = build/web/views
 WEBJS = build/web/js
+WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
 WEBIMG = build/web/img
-WEBARR = build/web/arr/base
+WEBARR = build/web/arr
 NEWCSS = build/web/neweditor/css
 NEWJS = build/web/neweditor/js
 
@@ -157,6 +168,9 @@ $(WEB):
 
 $(WEBJS):
 	@$(call MKDIR,$(WEBJS))
+
+$(WEBJSGOOG):
+	@$(call MKDIR,$(WEBJSGOOG))
 
 $(WEBCSS):
 	@$(call MKDIR,$(WEBCSS))
@@ -173,9 +187,59 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS)
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) build/web/js/pyret.js.gz $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
+
+link-pyret:
+	ln -s node_modules/pyret-lang pyret;
+	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
+
+deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) $(CPOGZ)
+
+TROVE_JS := $(wildcard src/web/js/trove/*.js)
+
+$(PHASEA): libpyret ;
+
+.PHONY: libpyret
+libpyret:
+	$(MAKE) phaseA -C pyret/
+
+$(CPOMAIN): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
+	mkdir -p compiled/;
+	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	node pyret/build/phaseA/pyret.jarr \
+    --builtin-js-dir src/web/js/trove/ \
+    --builtin-js-dir pyret/src/js/trove/ \
+    -allow-builtin-overrides \
+    --builtin-arr-dir src/web/arr/trove/ \
+    --builtin-arr-dir pyret/src/arr/trove/ \
+    --require-config cpo-config.json \
+    --build-runnable src/web/arr/cpo-main.arr \
+    --standalone-file cpo-standalone.js \
+    --compiled-dir ./compiled \
+    --outfile $(CPOMAIN) -no-check-mode
+
+# NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
+# non-.js extension.
+$(CPOGZ): $(CPOMAIN)
+	gzip -c -f $(CPOMAIN) > $(CPOGZ)
+
+$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
+	mkdir -p compiled/;
+	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	node pyret/build/phaseA/pyret.jarr \
+    --builtin-js-dir src/web/js/trove/ \
+    --builtin-js-dir pyret/src/js/trove/ \
+    -allow-builtin-overrides \
+    --builtin-arr-dir src/web/arr/trove/ \
+    --builtin-arr-dir pyret/src/arr/trove/ \
+    --require-config cpo-config.json \
+    --build-runnable src/web/arr/cpo-ide-hooks.arr \
+    --standalone-file cpo-standalone.js \
+    --compiled-dir ./compiled \
+    --outfile $(CPOIDEHOOKS) -no-check-mode
 
 clean:
 	rm -rf build/
+	rm -rf compiled/

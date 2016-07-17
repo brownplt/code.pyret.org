@@ -9,13 +9,13 @@ em {
 
 #loader {
   position: fixed;
-  left: 0px;
-  top: 40px;
-  width: 100%;
+  right: 0;
+  bottom: 10px;
+  width: 50%;
   height: 100%;
   z-index: 8700;
-  background: url('/img/pyret-spin.gif') 50% 40px no-repeat rgb(249,249,249);
-  background-size: 250px 250px;
+  background: url('/img/pyret-spin.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
+  background-size: 50px 50px;
 }
 
 #help-keys {
@@ -323,4 +323,10 @@ code {
 .copy-link {
   text-decoration: none;
   padding-left: 3px;
+}
+
+#run-dropdown-content sup {
+  font-size: 65%;
+  top: -.15em;
+  vertical-align: top;
 }
