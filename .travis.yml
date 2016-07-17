@@ -20,7 +20,7 @@ env:
   - SAUCE_BROWSER="chrome"
   - SAUCE_BROWSER="firefox"
 #  - SAUCE_BROWSER="safari"
-#  - SAUCE_BROWSER="ie"
+  - SAUCE_BROWSER="internet explorer"
 node_js:
 - 6.2.1
 before_script:
