@@ -367,7 +367,8 @@ define([], function() {
 
           var uri = "wescheme-legacy://" + filename;
 
-          var filename2 = "http://www.wescheme.org/loadProject?publicId=" + filename;
+          //var filename2 = "http://www.wescheme.org/loadProject?publicId=" + filename;
+          var filename2 = "http://231-dot-wescheme-hrd-2.appspot.com/loadProject?publicId=" + filename;
 
           function needsCompile() { return true; }
 
@@ -383,8 +384,11 @@ define([], function() {
                   url: filename2,
                   crossDomain: true,
                   success: function(str) {
-                    console.log('legacy string = ' + str);
-                    spyretString = str;
+                    console.log('legacy string = ' + JSON.stringify(str));
+                    var str2 = str;
+                    //var str2 = JSON.parse(str);
+                    spyretString = str2.source.src;
+                    console.log('Scheme string = ' + spyretString);
                   },
                   error: function(error) {
                     getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
@@ -510,7 +514,12 @@ define([], function() {
                 jQuery.ajax({
                   url: filename,
                   success: function(str) {
+                    if (false) {
+                      var str2 = JSON.parse(str);
+                      spyretString = str2.source.src;
+                    } else {
                     spyretString = str;
+                    }
                   },
                   error: function(error) {
                     getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
