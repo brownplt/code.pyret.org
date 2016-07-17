@@ -1367,6 +1367,7 @@
       var bounds = textParent.getBoundingClientRect(); // make a single blocking call
       this.width       = bounds.width;
       this.height      = bounds.height;
+      this.alphaBaseline = 0;
 
       this.ariaText = " the string "+str+", colored "+colorToSpokenString(color,'solid')+" of size "+ size;
     };
