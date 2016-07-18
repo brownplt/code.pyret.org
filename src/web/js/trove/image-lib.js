@@ -1424,26 +1424,24 @@
     // http://developer.apple.com/safari/articles/makinggraphicswithcanvas.html
     var StarImage = function(points, outer, inner, style, color) {
       BaseImage.call(this);
-      this.points     = points;
-      this.outer      = outer;
-      this.inner      = inner;
-      this.style      = style;
-      this.color      = color;
-      this.radius     = Math.max(this.inner, this.outer);
-      var vertices   = [];
+      var maxRadius = Math.max(inner, outer);
+      var vertices  = [];
 
       var oneDegreeAsRadian = Math.PI / 180;
       for(var pt = 0; pt < (points * 2) + 1; pt++ ) {
         var rads = ( ( 360 / (2 * points) ) * pt ) * oneDegreeAsRadian - 0.5;
-        var radius = ( pt % 2 === 1 ) ? outer : inner;
-        vertices.push({ x: radius + ( Math.sin( rads ) * radius ),
-                        y: radius + ( Math.cos( rads ) * radius )});
+        var whichRadius = ( pt % 2 === 1 ) ? outer : inner;
+        vertices.push({x:maxRadius + ( Math.sin( rads ) * whichRadius ),
+                       y:maxRadius + ( Math.cos( rads ) * whichRadius )} );
       }
-      this.width  = findWidth(vertices);
-      this.height = findHeight(vertices);
-      this.vertices = translateVertices(vertices);
-      this.ariaText = " a" + colorToSpokenString(color,style) + ", " + points +
-          "pointeded star with inner radius "+inner+" and outer radius "+outer;
+      // calculate width and height of the bounding box
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
+      this.style      = style;
+      this.color      = color;
+      this.vertices   = translateVertices(vertices);
+      this.ariaText   = " a" + colorToSpokenString(color,style) + ", " + points +
+                        "pointed star with inner radius "+inner+" and outer radius "+outer;
     };
 
     StarImage.prototype = heir(BaseImage.prototype);
