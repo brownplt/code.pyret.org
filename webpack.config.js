@@ -19,7 +19,6 @@ module.exports = {
       test: /\.js$/,
       include: [
         path.resolve(__dirname, 'src'),
-        path.resolve(__dirname, 'node_modules', 'pyret-ide', 'src'),
       ],
       loader: "babel",
       query: {

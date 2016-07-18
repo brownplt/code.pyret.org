@@ -48,9 +48,11 @@
     "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
+    "local-install": "heroku local:run npm install",
     "postinstall": "webpack && make -j3 web",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & webpack-dev-server --port 5001"
+    "build": "heroku local:run make web-local",
+    "start": "heroku local:run supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & heroku local:run webpack-dev-server --port 5001"
   },
   "repository": {
     "type": "git",
