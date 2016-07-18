@@ -1024,9 +1024,9 @@
       .style('text-anchor', 'end');
 
     canvas.selectAll('.x.axis path').style({
-      'stroke': 'black',
+      stroke: 'black',
       'stroke-width': 2,
-      'fill': 'none'
+      fill: 'none'
     });
     canvas.selectAll('.y.axis path').style({
       stroke: 'black',
