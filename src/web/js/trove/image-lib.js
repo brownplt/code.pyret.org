@@ -1324,6 +1324,7 @@
       return s;
     };
 
+    var textContainer, textParent;
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
     var TextImage = function(str, size, color, face, family, style, weight, underline) {
@@ -1340,10 +1341,6 @@
       // example: "bold italic 20px 'Times', sans-serif".
       // Default weight is "normal", face is "Arial"
 
-      // NOTE: we *ignore* font-family, as it causes a number of font bugs due the browser inconsistencies
-      var canvas  = makeCanvas(0, 0),
-      ctx     = canvas.getContext("2d");
-
       this.font = (this.style + " " +
                    this.weight + " " +
                    this.size + "px " +
@@ -1355,25 +1352,22 @@
       // PENDING CANVAS V5 API: http://www.whatwg.org/specs/web-apps/current-work/#textmetrics
 
       // build a DOM node with the same styling as the canvas, then measure it
-      var container = document.createElement("div"),
-          parent = document.createElement("span"),
-          image = document.createElement("img");    // hack to get at CSS measuring properties
-      parent.style.font = this.font;                // use the same font settings as the context
-      image.width = 42; image.height = 1;           // we use a dataURL to reduce dependency on external image files
-      image.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWM4MbPgPwAGzwLR05RbqwAAAABJRU5ErkJggg==";
-      container.style.cssText = "position: absolute; top: 0px; left: 0px; zIndex=-1; white-space: pre;";
-      parent.appendChild(document.createTextNode(str));
-      parent.appendChild(image);
-      container.appendChild(parent);
-      document.body.appendChild(container);
+      if (textContainer === undefined) {
+        textContainer = document.createElement("div");
+        textContainer.style.cssText = "position: absolute; top: 0px; left: 0px; visibility: hidden; white-space: pre;";
+        textParent = document.createElement("span");
+        textParent.style.display = "inline";
+        textContainer.appendChild(textParent);
+        document.body.appendChild(textContainer);
+      }
+      textParent.style.font = this.font;                // use the same font settings as the context
+      textParent.textContent = str; // this will blow away any old content
       
       // getting (more accurate) css equivalent of ctx.measureText()
-      image.style.display = "none";
-      parent.style.display= "inline";
+      var bounds = textParent.getBoundingClientRect(); // make a single blocking call
+      this.width       = bounds.width;
+      this.height      = bounds.height;
       this.alphaBaseline = 0;
-      this.width       = parent.offsetWidth;
-      this.height      = parent.offsetHeight;
-      document.body.removeChild(container);       // clean up after ourselves
 
       this.ariaText = " the string "+str+", colored "+colorToSpokenString(color,'solid')+" of size "+ size;
     };
@@ -1430,26 +1424,24 @@
     // http://developer.apple.com/safari/articles/makinggraphicswithcanvas.html
     var StarImage = function(points, outer, inner, style, color) {
       BaseImage.call(this);
-      this.points     = points;
-      this.outer      = outer;
-      this.inner      = inner;
-      this.style      = style;
-      this.color      = color;
-      this.radius     = Math.max(this.inner, this.outer);
-      var vertices   = [];
+      var maxRadius = Math.max(inner, outer);
+      var vertices  = [];
 
       var oneDegreeAsRadian = Math.PI / 180;
       for(var pt = 0; pt < (points * 2) + 1; pt++ ) {
         var rads = ( ( 360 / (2 * points) ) * pt ) * oneDegreeAsRadian - 0.5;
-        var radius = ( pt % 2 === 1 ) ? outer : inner;
-        vertices.push({ x: radius + ( Math.sin( rads ) * radius ),
-                        y: radius + ( Math.cos( rads ) * radius )});
+        var whichRadius = ( pt % 2 === 1 ) ? outer : inner;
+        vertices.push({x:maxRadius + ( Math.sin( rads ) * whichRadius ),
+                       y:maxRadius + ( Math.cos( rads ) * whichRadius )} );
       }
-      this.width  = findWidth(vertices);
-      this.height = findHeight(vertices);
-      this.vertices = translateVertices(vertices);
-      this.ariaText = " a" + colorToSpokenString(color,style) + ", " + points +
-          "pointeded star with inner radius "+inner+" and outer radius "+outer;
+      // calculate width and height of the bounding box
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
+      this.style      = style;
+      this.color      = color;
+      this.vertices   = translateVertices(vertices);
+      this.ariaText   = " a" + colorToSpokenString(color,style) + ", " + points +
+                        "pointed star with inner radius "+inner+" and outer radius "+outer;
     };
 
     StarImage.prototype = heir(BaseImage.prototype);

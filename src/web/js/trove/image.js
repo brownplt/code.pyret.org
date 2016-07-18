@@ -1054,7 +1054,7 @@
 
     f("image-to-color-list", function(maybeImage) {
       checkArity(1, arguments, "image-to-color-list");
-      c("image-width", [maybeImg], [annImage]);
+      c("image-width", [maybeImage], [annImage]);
       var img = checkImage(maybeImage);
       return image.imageToColorList(img);
     });
