@@ -71,12 +71,12 @@
 
   function numMin(a, b) { /* ignore the rest */
     // this ignores other arguments, making reducing on numMin possible
-    return RUNTIME.num_min(a, b, RUNTIME.NumberErrbacks);
+    return RUNTIME.num_min(a, b);
   }
 
   function numMax(a, b) { /* ignore the rest */
     // this ignores other arguments, making reducing on numMin possible
-    return RUNTIME.num_max(a, b, RUNTIME.NumberErrbacks);
+    return RUNTIME.num_max(a, b);
   }
 
   var libNum = {
@@ -455,7 +455,7 @@
       RUNTIME.getParam('d3-port')(
         detached.node(),
         dimension.windowWidth,
-        dimension.windowHeight + 35, // titlebar
+        dimension.windowHeight + 55, // titlebar
         function() {
           restarter.resume(retVal);
         },

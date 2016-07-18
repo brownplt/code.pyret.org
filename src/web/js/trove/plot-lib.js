@@ -126,7 +126,7 @@
     detached.select('.maing')
       .append('text')
       .attr('x', (dimension.marginLeft + dimension.width + dimension.marginRight) / 2)
-      .attr('y', dimension.height + dimension.marginTop + (5 * dimension.marginBottom / 8))
+      .attr('y', dimension.height + dimension.marginTop + (7 * dimension.marginBottom / 11))
       .html(libJS.htmlspecialchars(label))
       .style({
         position: 'absolute',
@@ -144,12 +144,12 @@
     var dimension = getDimension({
       windowWidth: 1000,
       windowHeight: null,
-      width: 471,
-      height: 471,
+      width: 466,
+      height: 466,
       marginLeft: 100,
       marginRight: 100,
-      marginTop: 30,
-      marginBottom: 60,
+      marginTop: 25,
+      marginBottom: 45,
       mode: 'top-left',
     }),
         width = dimension.width,
@@ -766,12 +766,12 @@
     var dimension = getDimension({
       windowWidth: null,
       windowHeight: null,
-      width: 471,
-      height: 471,
+      width: 466,
+      height: 466,
       marginLeft: 100,
       marginRight: 100,
-      marginTop: 20,
-      marginBottom: 70,
+      marginTop: 15,
+      marginBottom: 55,
       mode: 'top-left',
     }),
         width = dimension.width,
@@ -854,12 +854,12 @@
     var dimension = getDimension({
       windowWidth: null,
       windowHeight: null,
-      width: 471,
-      height: 471,
+      width: 466,
+      height: 466,
       marginLeft: 160,
       marginRight: 160,
-      marginTop: 30,
-      marginBottom: 60,
+      marginTop: 25,
+      marginBottom: 45,
       mode: 'center',
     }),
         width = dimension.width,
@@ -875,7 +875,7 @@
 
     var pie = d3.layout.pie()
         .sort(null)
-        .value(function (row) { return row[1]; });
+        .value(function (row) { return scaler(row[1]); });
 
     var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
 
@@ -944,12 +944,12 @@
     var dimension = getDimension({
       windowWidth: null,
       windowHeight: null,
-      width: 471,
-      height: 471,
+      width: 466,
+      height: 466,
       marginLeft: 120,
       marginRight: 30,
-      marginTop: 30,
-      marginBottom: 60,
+      marginTop: 25,
+      marginBottom: 45,
       mode: 'top-left',
     }),
     width = dimension.width,
