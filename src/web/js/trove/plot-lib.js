@@ -1029,9 +1029,9 @@
       'fill': 'none'
     });
     canvas.selectAll('.y.axis path').style({
-      'stroke': 'black',
+      stroke: 'black',
       'stroke-width': 2,
-      'fill': 'none'
+      fill: 'none'
     });
 
     canvas.selectAll('.axis').style({'shape-rendering': 'crispEdges'});
