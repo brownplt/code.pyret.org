@@ -8,11 +8,11 @@
 #   function-plot: function-plot,
 #   is-function-plot: is-function-plot,
 #
-#   plot-function: plot-function,
-#   plot-scatter: plot-scatter,
-#   plot-line: plot-line,
+#   display-function: display-function,
+#   display-scatter: display-scatter,
+#   display-line: display-line,
 #
-#   plot-multi: plot-multi,
+#   display-multi-plot: display-multi-plot,
 #   default-options: default-options,
 #   default-window-options: default-window-options,
 #
@@ -142,16 +142,14 @@ where:
   end) does-not-raise
 end
 
-fun bar-chart(title :: String, tab :: Table, legend :: String) -> Table:
-  _ = grouped-bar-chart(
-    title,
-    block:
-      new-tab = extend tab using value:
-        values: [list: value]
-      end
-      select label, values from new-tab end
-    end,
-    [list: legend])
+fun bar-chart(title :: String, tab :: Table, legend :: String) -> Table block:
+  when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
+    raise('expect a table with two columns: label and value')
+  end
+  shadow tab = transform tab using value:
+    value: [list: value]
+  end
+  _ = P.bar-chart(tab._rows-raw-array, [list: ''], title, false)
   tab
 end
 
@@ -163,7 +161,7 @@ fun grouped-bar-chart(
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
-  P.bar-chart(tab._rows-raw-array, legend, title)
+  P.bar-chart(tab._rows-raw-array, legend, title, true)
   tab
 where:
   grouped-bar-chart(
@@ -224,8 +222,8 @@ where:
     ], plot-options)
 end
 
-fun plot-function(title :: String, f :: PlottableFunction) -> PlottableFunction:
-  _ = plot-multi(
+fun display-function(title :: String, f :: PlottableFunction) -> PlottableFunction:
+  _ = display-multi-plot(
     title,
     [list: function-plot(f, default-options)],
     default-window-options)
@@ -234,8 +232,8 @@ where:
   plot-function('My function', num-sin)
 end
 
-fun plot-scatter(title :: String, tab :: Table) -> Table:
-  _ = plot-multi(
+fun display-scatter(title :: String, tab :: Table) -> Table:
+  _ = display-multi-plot(
     title,
     [list: scatter-plot(tab, default-options)],
     default-window-options)
@@ -251,8 +249,8 @@ where:
   end)
 end
 
-fun plot-line(title :: String, tab :: Table) -> Table:
-  _ = plot-multi(
+fun display-line(title :: String, tab :: Table) -> Table:
+  _ = display-multi-plot(
     title,
     [list: line-plot(tab, default-options)],
     default-window-options)
@@ -268,7 +266,7 @@ where:
   end)
 end
 
-fun plot-multi(
+fun display-multi-plot(
   title :: String,
   plots :: List<Plot>,
   options-generator :: WrappedPlotWindowOptions

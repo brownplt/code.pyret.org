@@ -934,7 +934,7 @@
     callBigBang(detached, dimension, tab, function(){});
   }
 
-  function barChart(table, legend, title) {
+  function barChart(table, legend, title, showLegend) {
     /*
      * Bar Chart
      *
@@ -1002,8 +1002,8 @@
     var yAxis = d3.svg.axis()
         .scale(y)
         .orient('left')
-        .tickFormat(function (d, i) {
-          return prettyNumToStringDigitsForAxis(yAxisDisplayScaler(i));
+        .tickFormat(function (d) {
+          return prettyNumToStringDigitsForAxis(yAxisDisplayScaler(jsnums.fromFixnum(d, RUNTIME.NumberErrbacks)));
         });
 
     x0.domain(data.map(function(d) { return d.label; }));
@@ -1054,31 +1054,33 @@
         .attr('height', function(d) { return height - y(d.value); })
         .style('fill', function(d) { return color(d.name); });
 
-    var legend = canvas.selectAll('.legend')
-      .data(legendData.slice().reverse())
-      .enter().append('g')
-      .attr('class', 'legend')
-      .attr('transform', function(d, i) {
-        return svgTranslate(0, i * 20);
-      });
+    if (RUNTIME.isPyretTrue(showLegend)) {
+      var legend = canvas.selectAll('.legend')
+        .data(legendData.slice().reverse())
+        .enter().append('g')
+        .attr('class', 'legend')
+        .attr('transform', function(d, i) {
+          return svgTranslate(0, i * 20);
+        });
 
-    legend
-      .append('rect')
-      .attr('x', width - 18)
-      .attr('width', 18)
-      .attr('height', 18)
-      .style('fill', color);
+      legend
+        .append('rect')
+        .attr('x', width - 18)
+        .attr('width', 18)
+        .attr('height', 18)
+        .style('fill', color);
 
-    legend
-      .append('text')
-      .attr('x', width - 24)
-      .attr('y', 9)
-      .attr('dy', '.35em')
-      .style({
-        'text-anchor': 'end',
-        'font-size': '10px'
-      })
-      .text(function(d) { return d; });
+      legend
+        .append('text')
+        .attr('x', width - 24)
+        .attr('y', 9)
+        .attr('dy', '.35em')
+        .style({
+          'text-anchor': 'end',
+          'font-size': '10px'
+        })
+        .text(function(d) { return d; });
+    }
 
     putLabel(title, detached, dimension);
     callBigBang(detached, dimension, table, function(){});
