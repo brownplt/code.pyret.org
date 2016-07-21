@@ -39,13 +39,20 @@
       });
       return newobj;
     }
-    var animationDiv = null;
+  var animationDivs = [];
     function closeAnimationIfOpen() {
-      if(animationDiv) {
+    animationDivs.forEach(function(animationDiv) {
         animationDiv.empty();
         animationDiv.dialog("destroy");
-        animationDiv = null;
+      animationDiv.remove();
+    });
+    animationDivs = [];
       }
+  function closeTopAnimationIfOpen() {
+    var animationDiv = animationDivs.pop();
+    animationDiv.empty();
+    animationDiv.dialog("destroy");
+    animationDiv.remove();
     }
     var editors = {};
     var interactionsCount = 0;
@@ -205,13 +212,16 @@
           ct_log(str);
           output.append($("<pre>").addClass("replPrint").text(str));
         });
-      runtime.setParam("current-animation-port", function(dom) {
-          animationDiv = $("<div>").css({"z-index": 10000});
+    var currentZIndex = 15000;
+    runtime.setParam("current-animation-port", function(dom, closeCallback) {
+        var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+        animationDivs.push(animationDiv);
           output.append(animationDiv);
           function onClose() {
-            Jsworld.shutdown({ cleanShutdown: true });
-            showPrompt();
+          Jsworld.shutdownSingle({ cleanShutdown: true });
+          closeTopAnimationIfOpen();
           }
+        closeCallback(closeTopAnimationIfOpen);
           animationDiv.dialog({
             title: 'big-bang',
             position: ["left", "top"],
@@ -225,6 +235,10 @@
             closeOnEscape : true
           });
           animationDiv.append(dom);
+        var dialogMain = animationDiv.parent();
+        dialogMain.css({"z-index": currentZIndex + 1});
+        dialogMain.prev().css({"z-index": currentZIndex});
+        currentZIndex += 2;
         });
 
       var breakButton = options.breakButton;

@@ -776,11 +776,11 @@
             {line: cmloc.start.line, ch: 0},
             {line: cmloc.end.line, ch: endch});
         } else {
-          source = sessionStorage.getItem(cmloc.source)
-            .split("\n")
-            .slice(featured.start.line, featured.end.line + 1)
-            .join("\n");
-          endch = cmSnippet.getLine(cmSnippet.lastLine()).length;
+          var sourceArr = sessionStorage.getItem(cmloc.source)
+              .split("\n")
+              .slice(featured.start.line, featured.end.line + 1);
+          source = sourceArr.join("\n");
+          endch = sourceArr[sourceArr.length - 1].length;
         }
 
         var hack = $("<div>").addClass("repl"); // needed for proper CSS styling of the CM below

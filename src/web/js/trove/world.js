@@ -231,6 +231,9 @@
       var code = e.charCode || e.keyCode;
       var keyname;
       switch(code) {
+      case 8: keyname = "backspace"; break;
+      case 9: keyname = "tab"; break;
+      case 13: keyname = "enter"; break;
       case 16: keyname = "shift"; break;
       case 17: keyname = "control"; break;
       case 19: keyname = "pause"; break;
@@ -245,7 +248,7 @@
       case 40: keyname = "down"; break;
       case 42: keyname = "print"; break;
       case 45: keyname = "insert"; break;
-      case 46: keyname = String.fromCharCode(127); break;
+      case 46: keyname = "delete"; break;
       case 106: keyname = "*"; break;
       case 107: keyname = "+"; break;
       case 109: keyname = "-"; break;

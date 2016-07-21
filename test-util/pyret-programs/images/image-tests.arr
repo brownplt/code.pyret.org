@@ -94,7 +94,7 @@ check "properties":
   image-width(even-overlay) is 40
 
   indigo-text = text-font("Goodbye", 48, "indigo", "Helvetica", "modern", "normal", "normal", false)
-  image-height(indigo-text) is%(within-abs(5)) 55
+  image-height(indigo-text) is%(within-abs(5)) 50
   image-baseline(indigo-text) is 0
 
   image-baseline(rectangle(100, 100, "solid", "black")) is 100
