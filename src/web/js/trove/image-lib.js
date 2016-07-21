@@ -827,16 +827,22 @@
         return false;
       }
 
+      var foundDiff = false;
       for (var i = 0; i < this.children.length; i++) {
         var rec1 = this.children[i];
         var rec2 = other.children[i];
         if (rec1[1] !== rec2[1] ||
             rec1[2] !== rec2[2] ||
-            !equals(rec1[0], rec2[0])) {
-          return false;
+            !rec1[0].equals(rec2[0])) {
+          foundDiff = true
         }
       }
-      return true;
+      if(foundDiff) {
+        return BaseImage.prototype.equals.call(this, other);
+      }
+      else {
+        return true;
+      }
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1218,7 +1224,7 @@
               this.xFactor   === other.xFactor &&
               this.yFactor   === other.yFactor &&
               imageEquals(this.img, other.img) )
-            || BaseImage.prototype.isEqual.call(this, other, aUnionFind);
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
