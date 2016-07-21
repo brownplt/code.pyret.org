@@ -46,6 +46,97 @@
     // FIXME: update toString to handle the primitive field values.
 
     var colorDb = new ColorDb();
+    colorDb.put("DARK-RED", makeColor(139, 0, 0));
+    colorDb.put("FIRE-BRICK", makeColor(178, 34, 34));
+    colorDb.put("DEEP-PINK", makeColor(255, 20, 147));
+    colorDb.put("INDIAN-RED", makeColor(205, 92, 92));
+    colorDb.put("MEDIUM-VIOLET-RED", makeColor(199, 21, 133));
+    colorDb.put("VIOLET-RED", makeColor(208, 32, 144));
+    colorDb.put("LIGHT-CORAL", makeColor(240, 128, 128));
+    colorDb.put("HOT-PINK", makeColor(255, 105, 180));
+    colorDb.put("PALE-VIOLET-RED", makeColor(219, 112, 147));
+    colorDb.put("LIGHT-PINK", makeColor(255, 182, 193));
+    colorDb.put("ROSY-BROWN", makeColor(188, 143, 143));
+    colorDb.put("LAVENDER-BLUSH", makeColor(255, 240, 245));
+    colorDb.put("SADDLE-BROWN", makeColor(139, 69, 19));
+    colorDb.put("DARK-ORANGE", makeColor(255, 140, 0));
+    colorDb.put("DARK-GOLDENRON", makeColor(184, 134, 11));
+    colorDb.put("SANDY-BROWN", makeColor(244, 164, 96));
+    colorDb.put("LIGHT-SALMON", makeColor(255, 160, 122));
+    colorDb.put("DARK-SALMON", makeColor(233, 150, 122));
+    colorDb.put("NAVAJO-WHITE", makeColor(255, 222, 173));
+    colorDb.put("PEACH-PUFF", makeColor(255, 218, 185));
+    colorDb.put("DARK-KHAKI", makeColor(189, 183, 107));
+    colorDb.put("PALE-GOLDENROD", makeColor(238, 232, 170));
+    colorDb.put("BLANCHE-DIAMOND", makeColor(255, 235, 205));
+    colorDb.put("MEDIUM-GOLDENROD", makeColor(234, 234, 173));
+    colorDb.put("PAPAYA-WHIP", makeColor(255, 239, 213));
+    colorDb.put("MISTY-ROSE", makeColor(255, 228, 225));
+    colorDb.put("LEMON-CHIFFON", makeColor(255, 250, 205));
+    colorDb.put("ANTIQUE-WHITE", makeColor(250, 235, 215));
+    colorDb.put("CORN-SILK", makeColor(255, 248, 220));
+    colorDb.put("LIGHT-GOLDENRON-YELLOW", makeColor(250, 250, 210));
+    colorDb.put("OLD-LACE", makeColor(253, 245, 230));
+    colorDb.put("LIGHT-YELLOW", makeColor(255, 255, 224));
+    colorDb.put("FLORAL-WHITE", makeColor(255, 250, 240));
+    colorDb.put("LAWN-GREEN", makeColor(124, 252, 0));
+    colorDb.put("GREEN-YELLOW", makeColor(173, 255, 47));
+    colorDb.put("YELLOW-GREEN", makeColor(154, 205, 50));
+    colorDb.put("MEDIUM-FOREST-GREEN", makeColor(107, 142, 35));
+    colorDb.put("OLIVE-DRAB", makeColor(107, 142, 35));
+    colorDb.put("MEDIUM-FOREST-GREEN", makeColor(107, 142, 35));
+    colorDb.put("DARK-OLIVE-GREEN", makeColor(85, 107, 47));
+    colorDb.put("DARK-SEA-GREEN", makeColor(143, 188, 139));
+    colorDb.put("DARK-GREEN", makeColor(0, 100, 0));
+    colorDb.put("LIME-GREEN", makeColor(50, 205, 50));
+    colorDb.put("FOREST-GREEN", makeColor(34, 139, 34));
+    colorDb.put("SPRING-GREEN", makeColor(0, 255, 127));
+    colorDb.put("MEDIUM-SPRING-GREEN", makeColor(0, 250, 154));
+    colorDb.put("SEA-GREEN", makeColor(46, 139, 87));
+    colorDb.put("MEDIUM-SEA-GREEN", makeColor(60, 179, 113));
+    colorDb.put("LIGHT-GREEN", makeColor(144, 238, 144));
+    colorDb.put("PALE-GREEN", makeColor(152, 251, 152));
+    colorDb.put("MEDIUM-AQUAMARINE", makeColor(102, 205, 170));
+    colorDb.put("LIGHT-SEA-GREEN", makeColor(32, 178, 170));
+    colorDb.put("MEDIUM-TURQUOISE", makeColor(72, 209, 204));
+    colorDb.put("MINT-CREAM", makeColor(245, 255, 250));
+    colorDb.put("ROYAL-BLUE", makeColor(65, 105, 225));
+    colorDb.put("DODGER-BLUE", makeColor(30, 144, 255));
+    colorDb.put("DEEP-SKY-BLUE", makeColor(0, 191, 255));
+    colorDb.put("CORNFLOWER-BLUE", makeColor(100, 149, 237));
+    colorDb.put("STEEL-BLUE", makeColor(70, 130, 180));
+    colorDb.put("LIGHT-SKY-BLUE", makeColor(135, 206, 250));
+    colorDb.put("DARK-TURQUOISE", makeColor(0, 206, 209));
+    colorDb.put("DARKTURQUOISE", makeColor(0, 206, 209));
+    colorDb.put("SKY-BLUE", makeColor(135, 206, 235));
+    colorDb.put("SKYBLUE", makeColor(135, 206, 235));
+    colorDb.put("CADET-BLUE", makeColor(96, 160, 160));
+    colorDb.put("DARK-SLATE-GRAY", makeColor(47, 79, 79));
+    colorDb.put("LIGHT-STEEL-BLUE", makeColor(176, 196, 222));
+    colorDb.put("LIGHT-BLUE", makeColor(173, 216, 230));
+    colorDb.put("POWDER-BLUE", makeColor(176, 224, 230));
+    colorDb.put("PALE-TURQUOISE", makeColor(175, 238, 238));
+    colorDb.put("LIGHT-CYAN", makeColor(224, 255, 255));
+    colorDb.put("ALICE-BLUE", makeColor(240, 248, 255));
+    colorDb.put("MEDIUM-BLUE", makeColor(0, 0, 205));
+    colorDb.put("DARK-BLUE", makeColor(0, 0, 139));
+    colorDb.put("MIDNIGHT-BLUE", makeColor(25, 25, 112));
+    colorDb.put("BLUE-VIOLET", makeColor(138, 43, 226));
+    colorDb.put("MEDIUM-SLATE-BLUE", makeColor(123, 104, 238));
+    colorDb.put("SLATE-BLUE", makeColor(106, 90, 205));
+    colorDb.put("DARK-SLATE-BLUE", makeColor(72, 61, 139));
+    colorDb.put("DARK-VIOLET", makeColor(148, 0, 211));
+    colorDb.put("DARK-ORCHID", makeColor(153, 50, 204));
+    colorDb.put("MEDIUM-PURPLE", makeColor(147, 112, 219));
+    colorDb.put("CORNFLOWER-BLUE", makeColor(68, 64, 108));
+    colorDb.put("MEDIUM-ORCHID", makeColor(186, 85, 211));
+    colorDb.put("DARK-MAGENTA", makeColor(139, 0, 139));
+    colorDb.put("GHOST-WHITE", makeColor(248, 248, 255));
+    colorDb.put("WHITE-SMOKE", makeColor(245, 245, 245));
+    colorDb.put("LIGHT-GRAY", makeColor(211, 211, 211));
+    colorDb.put("DARK-GRAY", makeColor(169, 169, 169));
+    colorDb.put("DIM-GRAY", makeColor(105, 105, 105));
+
     colorDb.put("ORANGE", makeColor(255, 165, 0));
     colorDb.put("RED", makeColor(255, 0, 0));
     colorDb.put("ORANGERED", makeColor(255, 69, 0));
@@ -1324,6 +1415,7 @@
       return s;
     };
 
+    var textContainer, textParent;
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
     var TextImage = function(str, size, color, face, family, style, weight, underline) {
@@ -1340,10 +1432,6 @@
       // example: "bold italic 20px 'Times', sans-serif".
       // Default weight is "normal", face is "Arial"
 
-      // NOTE: we *ignore* font-family, as it causes a number of font bugs due the browser inconsistencies
-      var canvas  = makeCanvas(0, 0),
-      ctx     = canvas.getContext("2d");
-
       this.font = (this.style + " " +
                    this.weight + " " +
                    this.size + "px " +
@@ -1355,25 +1443,22 @@
       // PENDING CANVAS V5 API: http://www.whatwg.org/specs/web-apps/current-work/#textmetrics
 
       // build a DOM node with the same styling as the canvas, then measure it
-      var container = document.createElement("div"),
-          parent = document.createElement("span"),
-          image = document.createElement("img");    // hack to get at CSS measuring properties
-      parent.style.font = this.font;                // use the same font settings as the context
-      image.width = 42; image.height = 1;           // we use a dataURL to reduce dependency on external image files
-      image.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWM4MbPgPwAGzwLR05RbqwAAAABJRU5ErkJggg==";
-      container.style.cssText = "position: absolute; top: 0px; left: 0px; zIndex=-1; white-space: pre;";
-      parent.appendChild(document.createTextNode(str));
-      parent.appendChild(image);
-      container.appendChild(parent);
-      document.body.appendChild(container);
+      if (textContainer === undefined) {
+        textContainer = document.createElement("div");
+        textContainer.style.cssText = "position: absolute; top: 0px; left: 0px; visibility: hidden; white-space: pre;";
+        textParent = document.createElement("span");
+        textParent.style.display = "inline";
+        textContainer.appendChild(textParent);
+        document.body.appendChild(textContainer);
+      }
+      textParent.style.font = this.font;                // use the same font settings as the context
+      textParent.textContent = str; // this will blow away any old content
       
       // getting (more accurate) css equivalent of ctx.measureText()
-      image.style.display = "none";
-      parent.style.display= "inline";
+      var bounds = textParent.getBoundingClientRect(); // make a single blocking call
+      this.width       = bounds.width;
+      this.height      = bounds.height;
       this.alphaBaseline = 0;
-      this.width       = parent.offsetWidth;
-      this.height      = parent.offsetHeight;
-      document.body.removeChild(container);       // clean up after ourselves
 
       this.ariaText = " the string "+str+", colored "+colorToSpokenString(color,'solid')+" of size "+ size;
     };
@@ -1430,26 +1515,24 @@
     // http://developer.apple.com/safari/articles/makinggraphicswithcanvas.html
     var StarImage = function(points, outer, inner, style, color) {
       BaseImage.call(this);
-      this.points     = points;
-      this.outer      = outer;
-      this.inner      = inner;
-      this.style      = style;
-      this.color      = color;
-      this.radius     = Math.max(this.inner, this.outer);
-      var vertices   = [];
+      var maxRadius = Math.max(inner, outer);
+      var vertices  = [];
 
       var oneDegreeAsRadian = Math.PI / 180;
       for(var pt = 0; pt < (points * 2) + 1; pt++ ) {
         var rads = ( ( 360 / (2 * points) ) * pt ) * oneDegreeAsRadian - 0.5;
-        var radius = ( pt % 2 === 1 ) ? outer : inner;
-        vertices.push({ x: radius + ( Math.sin( rads ) * radius ),
-                        y: radius + ( Math.cos( rads ) * radius )});
+        var whichRadius = ( pt % 2 === 1 ) ? outer : inner;
+        vertices.push({x:maxRadius + ( Math.sin( rads ) * whichRadius ),
+                       y:maxRadius + ( Math.cos( rads ) * whichRadius )} );
       }
-      this.width  = findWidth(vertices);
-      this.height = findHeight(vertices);
-      this.vertices = translateVertices(vertices);
-      this.ariaText = " a" + colorToSpokenString(color,style) + ", " + points +
-          "pointeded star with inner radius "+inner+" and outer radius "+outer;
+      // calculate width and height of the bounding box
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
+      this.style      = style;
+      this.color      = color;
+      this.vertices   = translateVertices(vertices);
+      this.ariaText   = " a" + colorToSpokenString(color,style) + ", " + points +
+                        "pointed star with inner radius "+inner+" and outer radius "+outer;
     };
 
     StarImage.prototype = heir(BaseImage.prototype);
