@@ -21,6 +21,9 @@
       args: ["./repl-ui"]
     },
     { "import-type": "builtin",
+      name: "parse-pyret"
+    },
+    { "import-type": "builtin",
       name: "runtime-lib"
     },
     { "import-type": "builtin",
@@ -44,7 +47,7 @@
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
-                      runtimeLib, loadLib, builtinModules, cpoBuiltins,
+                      parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
 
@@ -62,7 +65,7 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules);
 
     function findModule(contextIgnored, dependency) {
       return runtime.safeCall(function() {
