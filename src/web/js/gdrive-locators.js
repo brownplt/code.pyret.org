@@ -5,6 +5,7 @@ define([], function() {
       runtime,
       compileLib,
       compileStructs,
+      parsePyret,
       builtinModules) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
@@ -158,6 +159,8 @@ define([], function() {
         });
       });
     }
+    // Shared GDrive locators require a refresh to be re-fetched
+    var sharedLocatorCache = {};
     function makeSharedGDriveLocator(filename, id) {
       function checkFileResponse(file, filename, restarter) {
         var actualName = file.getName();
@@ -168,10 +171,16 @@ define([], function() {
       function contentRequestFailure(failure) {
         return "Could not load file with name " + filename;
       }
+      var cacheKey = filename + ":" + id;
+
+      if(sharedLocatorCache[cacheKey]) {
+        return sharedLocatorCache[cacheKey];
+      }
 
       // Pause because we'll fetch the Google Drive file object and restart
       // with it to create the actual locator
       runtime.pauseStack(function(restarter) {
+        var ast = undefined;
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
@@ -185,25 +194,32 @@ define([], function() {
           // checkFileResponse throws if there's an error
           return file;
         });
+        var contentsP = Q.all([fileP, fileP.then(function(file) {
+          return file.getContents();
+        })]);
 
-        fileP.then(function(file) {
-
+        contentsP.fail(function(failure) {
+          getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
+        });
+        contentsP.then(function(fileAndContents) {
+          var file = fileAndContents[0];
+          var contents = fileAndContents[1];
+          
           var uri = "shared-gdrive://" + filename + ":" + file.getUniqueId();
+          sessionStorage.setItem(uri, contents);
 
           function needsCompile() { return true; }
 
           function getModule(self) {
-            runtime.pauseStack(function(getModRestart) {
-              var contentsP = file.getContents();
-              contentsP.fail(function(failure) {
-                getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
+            if(ast) { return ast; }
+            else {
+              return runtime.safeCall(function() {
+                return gmf(parsePyret, "surface-parse").app(contents, uri);
+              }, function(ret) {
+                ast = gmf(compileLib, "pyret-ast").app(ret);
+                return ast; 
               });
-              contentsP.then(function(pyretString) {
-                sessionStorage.setItem(uri,pyretString);
-                var ret = gmf(compileLib, "pyret-string").app(pyretString);
-                getModRestart.resume(ret);
-              });
-            });
+            }
           }
 
           function getDependencies(self) {
@@ -249,7 +265,7 @@ define([], function() {
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
 
-          restarter.resume(runtime.makeObject({
+          var locator = runtime.makeObject({
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
             "get-native-modules": m0(getNativeModules),
@@ -273,7 +289,10 @@ define([], function() {
             }),
             "set-compiled": m2(setCompiled),
             "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
-          }));
+          });
+
+          sharedLocatorCache[cacheKey] = locator;
+          restarter.resume(locator);
         });
       });
     }
