@@ -127,11 +127,8 @@ build/web/js/matchkw.js: src/web/js/codemirror/matchkw.js
 build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 	cp $< $@
 
-PHONY_WEBGAZER:
-	cd node_modules/webgazer/build && ./build_library
-
-build/web/js/webgazer.js: PHONY_WEBGAZER
-	cp node_modules/webgazer/build/webgazer.js $@
+build/web/js/webgazer.js: node_modules/webgazer/build/webgazer.js
+	cp $< $@
 
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
