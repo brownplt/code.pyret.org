@@ -126,6 +126,8 @@
  // when someone grants access to both remove dialogue and start webgazer
  startWebGazer = function() {
      removeDialogue();
+     var xprediction = null;
+     var yprediction = "hello";
      localStorage.setItem('allowed', 'true');
      webgazer.begin(newFunc);
      webgazer.setRegression("weightedRidge");
@@ -133,20 +135,23 @@
          if (data == null) {
              return;
          }
-         var xprediction = data.x;
-         var yprediction = data.y;
+         xprediction = data.x;
+         yprediction = data.y;
          var repl = document.getElementById("REPL");
          var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-         if (xprediction < splitLocationX) {
-             // then we change the color of it
-             //gazeDot.style.background = 'red';
-             console.log("left side")
-         }
-         else {
-             // then we give it this color
-             // gazeDot.style.background = 'blue';
-             console.log("right side")
+         var displaySide = false;
+         if (displaySide) {
+             if (xprediction < splitLocationX) {
+                 // then we change the color of it
+                 //gazeDot.style.background = 'red';
+                 console.log("left side")
+             }
+             else {
+                 // then we give it this color
+                 // gazeDot.style.background = 'blue';
+                 console.log("right side")
+             }
          }
      })
      /* shows a square every 100 milliseconds where current prediction is */

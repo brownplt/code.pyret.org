@@ -271,6 +271,10 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
+            // check to see if there was already a timer and stop it
+            if (yprediction === "hello")
+                console.log("we didn't throw an error");
+            // set a new timer
         }
       }
       function setWhileRunning() {
