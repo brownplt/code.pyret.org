@@ -330,6 +330,7 @@ define([], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
             "get-native-modules": m0(getNativeModules),
@@ -717,6 +718,7 @@ define([], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
             "get-native-modules": m0(getNativeModules),
@@ -851,6 +853,7 @@ define([], function() {
           var m2 = runtime.makeMethod2;
 
           var locator = runtime.makeObject({
+            "dialect": m0(dialect),
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
             "get-native-modules": m0(getNativeModules),
