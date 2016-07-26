@@ -252,6 +252,8 @@
       });
       var runContents;
         var timeoutID = null;
+        var setGazeListenerFunction = false;
+        var eventQueue = [];
       function afterRun(cm) {
         return function() {
           outputPending.remove();
@@ -272,39 +274,42 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
+
             // check to see if there was already a timer and stop it
             if (timeoutID != null) {
                 window.clearTimeout(timeoutID);
             }
             webgazer.resume();
-            webgazer.setGazeListener(function(data, elapsedTime) {
-                if (data == null) {
-                    return;
-                }
-                var xprediction = data.x;
-                var yprediction = data.y;
-                var repl = document.getElementById("REPL");
-                var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
+            if (!setGazeListenerFunction) {
+                webgazer.setGazeListener(function(data, elapsedTime) {
+                    if (data == null) {
+                        return;
+                    }
+                    var xprediction = data.x;
+                    var yprediction = data.y;
+                    var repl = document.getElementById("REPL");
+                    var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-                var displaySide = true;
-                if (displaySide) {
-                    if (xprediction < splitLocationX) {
-                        // then we change the color of it
-                        //gazeDot.style.background = 'red';
-                        console.log("left side")
+                    var displaySide = true;
+                    if (displaySide) {
+                        if (xprediction < splitLocationX) {
+                            console.log("left side")
+                        }
+                        else {
+                            console.log("right side")
+                        }
                     }
-                    else {
-                        // then we give it this color
-                        // gazeDot.style.background = 'blue';
-                        console.log("right side")
-                    }
-                }
-            });
+                });
+
+                setGazeListenerFunction = true;
+            } // end setting gaze listener function
+
             // set a new timer
             var numSeconds = 30;
             timeoutID = setTimeout(webgazer.pause, numSeconds * 1000);
         }
       }
+
       function setWhileRunning() {
         runContents = options.runButton.contents();
         options.runButton.empty();
