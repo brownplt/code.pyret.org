@@ -278,6 +278,8 @@
             // check to see if there was already a timer and stop it
             if (timeoutID != null) {
                 window.clearTimeout(timeoutID);
+                if (timeoutID == null)
+                    console.log("timeoutID is indeed null");
             }
             webgazer.resume();
             if (!setGazeListenerFunction) {
@@ -290,12 +292,14 @@
                     var repl = document.getElementById("REPL");
                     var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-                    var displaySide = true;
-                    if (displaySide) {
-                        if (xprediction < splitLocationX) {
+                    var displaySide = !true;
+                    if (xprediction < splitLocationX) {
+                        if (displaySide) {
                             console.log("left side")
                         }
-                        else {
+                    }
+                    else {
+                        if (displaySide) {
                             console.log("right side")
                         }
                     }
