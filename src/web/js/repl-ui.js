@@ -253,6 +253,7 @@
       var runContents;
       function afterRun(cm) {
         return function() {
+            console.log("WE ARE INSIDE OF AFTER RUN FUNCTION");
           outputPending.remove();
           outputPendingHidden = true;
           options.runButton.empty();
@@ -273,7 +274,9 @@
           }, 200);
             // check to see if there was already a timer and stop it
             if (yprediction === "hello")
-                console.log("we didn't throw an error");
+                console.log("we could find yprediction");
+            else
+                console.log("we could not find yprediction from webgazer");
             // set a new timer
         }
       }
