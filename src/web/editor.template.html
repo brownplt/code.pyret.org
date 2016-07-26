@@ -123,39 +123,16 @@
  }
 
  // could remove removing the dialogue, but then would need another function
- var xprediction = null;
- var yprediction = "hello";
  // when someone grants access to both remove dialogue and start webgazer
  startWebGazer = function() {
      removeDialogue();
      localStorage.setItem('allowed', 'true');
-     webgazer.begin(newFunc);
      webgazer.setRegression("weightedRidge");
-     webgazer.setGazeListener(function(data, elapsedTime) {
-         if (data == null) {
-             return;
-         }
-         xprediction = data.x;
-         yprediction = data.y;
-         var repl = document.getElementById("REPL");
-         var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
-
-         var displaySide = false;
-         if (displaySide) {
-             if (xprediction < splitLocationX) {
-                 // then we change the color of it
-                 //gazeDot.style.background = 'red';
-                 console.log("left side")
-             }
-             else {
-                 // then we give it this color
-                 // gazeDot.style.background = 'blue';
-                 console.log("right side")
-             }
-         }
-     })
+     webgazer.begin(newFunc)
      /* shows a square every 100 milliseconds where current prediction is */
              .showPredictionPoints(true); 
+     webgazer.pause();
+     console.log("webgazer should be paused");
  }
 
  neverStartWebGazer = function() {

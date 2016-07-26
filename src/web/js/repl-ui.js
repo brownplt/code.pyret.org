@@ -274,14 +274,32 @@
           }, 200);
             console.log("WE ARE AFTER SETTIMEOUT");
             // check to see if there was already a timer and stop it
-            console.log("here is yprediction: " + yprediction);
-            if (yprediction === "hello") {
-                console.log("we could find yprediction");
-            }
-            else {
-                console.log("we could not find yprediction from webgazer");
-            }
+            webgazer.resume();
+            webgazer.setGazeListener(function(data, elapsedTime) {
+                if (data == null) {
+                    return;
+                }
+                var xprediction = data.x;
+                var yprediction = data.y;
+                var repl = document.getElementById("REPL");
+                var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
+
+                var displaySide = true;
+                if (displaySide) {
+                    if (xprediction < splitLocationX) {
+                        // then we change the color of it
+                        //gazeDot.style.background = 'red';
+                        console.log("left side")
+                    }
+                    else {
+                        // then we give it this color
+                        // gazeDot.style.background = 'blue';
+                        console.log("right side")
+                    }
+                }
+            });
             // set a new timer
+            setTimeout(webgazer.pause, 60000);
         }
       }
       function setWhileRunning() {
