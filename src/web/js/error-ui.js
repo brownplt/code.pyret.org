@@ -188,7 +188,7 @@
                     errorError = $("<span>").addClass("compile-error internal-error highlights-active")
                       .text("An error occurred rendering the reason for the above error; details logged to the console");
                     if(!container.hasClass("internal-error")) {
-                      drawError(errorError, editors, runtime, errorDisp.exn, undefined);
+                      drawError(errorError, editors, runtime, errorDisp, undefined);
                     }
                     container.append(errorError);
                     errorError.trigger('toggleHighlight');

@@ -221,6 +221,7 @@
             Jsworld.shutdown({ cleanShutdown: true });
             closeTopAnimationIfOpen();
           }
+          closeCallback(closeTopAnimationIfOpen);
           animationDiv.dialog({
             title: 'big-bang',
             position: ["left", "top"],

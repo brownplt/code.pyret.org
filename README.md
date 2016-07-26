@@ -22,9 +22,9 @@ PYRET="http://localhost:5000/js/cpo-main.jarr"
 Then you can run
 
 ```
-$ heroku local:run npm install
+$ npm run local-install
 $ ln -s node_modules/pyret-lang pyret
-$ heroku local:run make web-local
+$ npm run build
 ```
 
 and the dependencies will be installed.
@@ -32,7 +32,7 @@ and the dependencies will be installed.
 To run the server, run:
 
 ```
-$ heroku local:run npm start
+$ npm start
 ```
 
 The editor will be served from `http://localhost:5000/editor`.

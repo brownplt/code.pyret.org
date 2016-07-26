@@ -1607,7 +1607,7 @@ tr:nth-child(even){background-color: #f2f2f2}
   position: sticky;
   color: white;
   top: 0;
-  z-index: 1;
+  z-index: 500;
   background-color: hsl(212, 30%, 50%)
 }
 

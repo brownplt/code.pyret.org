@@ -9,7 +9,7 @@ env:
   - SESSION_SECRET=not-so-secret-for-testing
   - USE_STANDALONE_PYRET=true
   - PYRET_RELEASE_BASE="https://s3.amazonaws.com/pyret-horizon/current"
-  - PYRET="http://localhost:5000/js/cpo-main.jarr.gz.js"
+  - PYRET="http://localhost:5000/js/cpo-main.jarr"
   - CURRENT_PYRET_RELEASE=""
   - PORT=5000
   - SAUCE_TEST_TARGET="http://localhost:5000"
@@ -18,9 +18,9 @@ env:
   - secure: m7Tuxlnl9PYxrk0twLy/5sHGFJ+EGi3qxqvlVpwa3PhUMg0ExcZPaTGjgOKrikiVIpKhdy7SIP8ZMQXgbnV7mnLVG3yvxLGW4LyKAfscLmbup1IWwA6RoPdwpPxFwxzzgG/WBDo5Wfs1SLVuE9eyX8BYiT+C1VX/qYPUPuj9bRNIVJkfmiLSpnefs8b5iCKlLtm2CpZv1aGr3ICIuISl7BbtTnu4mOCcjTq26Lgsfg/gf37o3j4XUnLJX4acIfkfMLkn9rCuUcZZj8k5R/CW2W8AHp1/j12LefMkysS0il91+yhGPummmr7eN8MMyEMx+4T9Jzch31sYSQrI5WdBF7UREXRTMyRcRh8ICIW9yu+PjwP2SllCi3ZYHdqQQocVJEvyzi/hE+moINOt+EQIlp0Bo73Ing0r6cXIHCcB1DyIiE2ptZj57PP2a4lJ5yFvDINqxmGGYSR0vdd4+F6a/rOOdzPIFtw180QfYEQhcbPranujOweGZdiD+nv1dutFglPVcgeoYJrHp3jafUKi479+kWrrsRBx3Qh70Jp5CL9/a1Md1rIjhCEaqKmQ6/l7ZWt1hi/KkkxhB8oprYQDoPdsUMZ5gvRxwWIAX7AD/cc478xIeRuBCjWXLGgk/GSL31wgz7kpiOLdq2J9XIzb2e1LWC2bR8aYEW+tP3D+tno=
   matrix:
   - SAUCE_BROWSER="chrome"
-  - SAUCE_BROWSER="firefox"
+#  - SAUCE_BROWSER="firefox"
 #  - SAUCE_BROWSER="safari"
-#  - SAUCE_BROWSER="ie"
+#  - SAUCE_BROWSER="internet explorer"
 node_js:
 - 6.2.1
 before_script:

@@ -193,7 +193,7 @@ function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
     it("should run " + name + " programs from " + program, function(done) {
       var self = this;
       self.browser.get(self.base + "/editor");
-      self.timeout(tests.length * (baseTimeout || 30000));
+      self.timeout(tests.length * (baseTimeout || 40000));
       var programText = String(fs.readFileSync(base + program));
       testFun(programText, self);
       self.browser.call(done);
