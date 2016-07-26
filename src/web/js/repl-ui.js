@@ -251,9 +251,9 @@
         "vertical-align": "middle"
       });
       var runContents;
+        var timeoutID = null;
       function afterRun(cm) {
         return function() {
-            console.log("WE ARE INSIDE OF AFTER RUN FUNCTION");
           outputPending.remove();
           outputPendingHidden = true;
           options.runButton.empty();
@@ -272,8 +272,10 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
-            console.log("WE ARE AFTER SETTIMEOUT");
             // check to see if there was already a timer and stop it
+            if (timeoutID != null) {
+                window.clearTimeout(timeoutID);
+            }
             webgazer.resume();
             webgazer.setGazeListener(function(data, elapsedTime) {
                 if (data == null) {
@@ -299,7 +301,8 @@
                 }
             });
             // set a new timer
-            setTimeout(webgazer.pause, 60000);
+            var numSeconds = 30;
+            timeoutID = setTimeout(webgazer.pause, numSeconds * 1000);
         }
       }
       function setWhileRunning() {
