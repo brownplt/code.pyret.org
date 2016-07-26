@@ -272,11 +272,15 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
+            console.log("WE ARE AFTER SETTIMEOUT");
             // check to see if there was already a timer and stop it
-            if (yprediction === "hello")
+            console.log("here is yprediction: " + yprediction);
+            if (yprediction === "hello") {
                 console.log("we could find yprediction");
-            else
+            }
+            else {
                 console.log("we could not find yprediction from webgazer");
+            }
             // set a new timer
         }
       }
