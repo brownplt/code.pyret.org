@@ -123,11 +123,11 @@
  }
 
  // could remove removing the dialogue, but then would need another function
+ var xprediction = null;
+ var yprediction = "hello";
  // when someone grants access to both remove dialogue and start webgazer
  startWebGazer = function() {
      removeDialogue();
-     var xprediction = null;
-     var yprediction = "hello";
      localStorage.setItem('allowed', 'true');
      webgazer.begin(newFunc);
      webgazer.setRegression("weightedRidge");
