@@ -275,13 +275,28 @@
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
 
-            // check to see if there was already a timer and stop it
-            if (timeoutID != null) {
-                window.clearTimeout(timeoutID);
-                if (timeoutID == null)
-                    console.log("timeoutID is indeed null");
+            /* BEGINNING WEBGAZER ADDITION */
+            var analyzeData = function(queue) {
+                /* given list of eye gazer data, do something!
+                 * For now, we try to guess the behavior of the user.
+                 */
+                console.log("there were " + queue.length + " observations");
             }
+
+            // if we did not do analysis as evidenced by timeoutid not being null
+            if (timeoutID != null) {
+                // clear the timer
+                window.clearTimeout(timeoutID);
+                // do the analysis with a copy of event queue.
+                // This should make things nicer if we want to use web worker or whatever
+                analyzeData(eventQueue.slice(0));
+            }
+
+            // clear eventQueue
+            eventQueue = [];
             webgazer.resume();
+
+            // if we haven't set the gaze listener function before
             if (!setGazeListenerFunction) {
                 webgazer.setGazeListener(function(data, elapsedTime) {
                     if (data == null) {
@@ -310,7 +325,12 @@
 
             // set a new timer
             var numSeconds = 30;
-            timeoutID = setTimeout(webgazer.pause, numSeconds * 1000);
+            timeoutID = setTimeout(() => {
+                webgazer.pause();
+                analyzeData(eventQueue.slice(0));
+                timeoutID = null;
+            },
+                                   numSeconds * 1000);
         }
       }
 
