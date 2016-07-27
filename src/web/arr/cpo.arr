@@ -39,6 +39,7 @@ end
 
 fun make-builtin-js-locator(builtin-name, raw):
   {
+    method dialect(_): "pyret" end,
     method needs-compile(_, _): false end,
     method get-modified-time(self):
       0
@@ -86,6 +87,7 @@ end
 
 fun ast-locator(uri :: String, a :: A.Program):
   {
+    method dialect(self): "pyret" end,
     method needs-compile(self, _): true end,
     method get-modified-time(self): 0 end,
     method get-options(self, options): options end,

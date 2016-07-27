@@ -657,6 +657,10 @@ define([], function() {
 
           var uri = "my-gdrive://" + filename + ":" + file.getUniqueId();
 
+          function dialect(self) {
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return true; }
 
           function getModule(self) {
@@ -795,6 +799,10 @@ define([], function() {
           var uri = "shared-gdrive://" + filename + ":" + file.getUniqueId();
           sessionStorage.setItem(uri, contents);
 
+          function dialect(self) {
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return true; }
 
           function getModule(self) {
@@ -921,6 +929,10 @@ define([], function() {
 
           var uri = "gdrive-js://" + filename + ":" + file.getUniqueId();
 
+          function dialect(self) { 
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return false; }
 
           function getModule(self) {
@@ -974,6 +986,7 @@ define([], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
@@ -1042,6 +1055,10 @@ define([], function() {
 
           var uri = "compiled-gdrive-js://" + filename + ":" + file.getUniqueId();
 
+          function dialect(self) {
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return false; }
 
           function getModule(self) {
@@ -1106,6 +1123,7 @@ define([], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
