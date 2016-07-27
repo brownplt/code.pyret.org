@@ -5861,6 +5861,22 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       };
     }
 
+    function makeBindingsFromSymbols(syms, asis) {
+      if (syms.length === 0) {
+        return [];
+      } else if (syms.length === 1) {
+        return [makeBindingFromSymbol(syms[0], asis)];
+      } else {
+        var result = [];
+        for (var i = 0; i < syms.length - 1; i++) {
+          var sym = syms[i];
+          result.push(makeBindingFromSymbol(sym, asis), commaStx);
+        }
+        result.push(makeBindingFromSymbol(syms[syms.length - 1], asis));
+        return result;
+      }
+    }
+
     // translates (f e1 e2 e3...) into (e1 f (e2 f (e3 ...)))
     // TODO: are some operators left-associative?
     function makeBinopTreeForInfixApplication(infixOperator, exprs) {
@@ -6159,7 +6175,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               pos: blankLoc
             }, {
               name: "args",
-              kids: [].concat([lParenStx], this.args.map(makeBindingFromSymbol), [rParenStx]),
+              kids: [].concat(lParenStx, makeBindingsFromSymbols(this.args), rParenStx),
               pos: this.args.location
             }, {
               name: "return-ann",
@@ -6516,21 +6532,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
 
-      function make_foo_params(fields) {
-        if (fields.length === 0) {
-          return [];
-        } else if (fields.length === 1) {
-          return [makeBindingFromSymbol(fields[0], true)];
-        } else {
-          var result = [];
-          for (var i = 0; i < fields.length - 1; i++) {
-            var field = fields[i];
-            result.push(makeBindingFromSymbol(field, true), commaStx);
-          }
-          result.push(makeBindingFromSymbol(fields[fields.length - 1], true));
-          return result;
-        }
-      }
 
       var make_foo = {
         name: "stmt",
@@ -6554,8 +6555,9 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               }, {
                 name: "args",
                 pos: this.location,
-                kids: [].concat([lParenStx], make_foo_params(this.fields),
-                                [rParenStx])
+                kids: [].concat(lParenStx, 
+                    makeBindingsFromSymbols(this.fields, true),
+                    rParenStx)
               }, {
                 name: "return-ann",
                 pos: this.location,
@@ -6688,8 +6690,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               pos: loc
             }, {
               name: "args",
-              kids: [lParenStx].concat(
-                this.args.map(makeBindingFromSymbol), [rParenStx]),
+              kids: [].concat(lParenStx, makeBindingsFromSymbols(this.args), rParenStx),
               pos: this.args.location
             }, {
               name: "return-ann",
