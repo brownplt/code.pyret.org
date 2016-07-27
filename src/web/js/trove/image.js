@@ -16,6 +16,16 @@
       "is-side-count": "tany",
       "is-step-count": "tany",
       "is-image": "tany",
+      "is-posn": "tany",
+      "make-posn": "tany",
+      "posn-x": "tany",
+      "posn-y": "tany",
+      "is-color": "tany",
+      "make-color": "tany",
+      "color-red": "tany",
+      "color-green": "tany",
+      "color-blue": "tany",
+      "color-alpha": "tany",
       "bitmap-url": "tany",
       "open-image-url": "tany",
       "image-url": "tany",
@@ -59,6 +69,7 @@
       "rectangle": "tany",
       "regular-polygon": "tany",
       "ellipse": "tany",
+      "polygon": "tany",
       "triangle": "tany",
       "triangle-sas": "tany",
       "triangle-sss": "tany",
@@ -358,9 +369,66 @@
       runtime.confirm(maybeImage, runtime.isOpaque);
       return runtime.wrap(image.isImage(maybeImage.val));
     });
-    f("bitmap-url", bitmapURL),
-    f("open-image-url", bitmapURL),
-    f("image-url", bitmapURL),
+
+    f("is-posn", function(maybePosn) {
+      checkArity(1, arguments, "is-posn");
+      return runtime.wrap(image.isPosn(maybePosn));
+    });
+    f("make-posn", function(maybeX, maybeY) {
+      checkArity(2, arguments, "make-posn");
+      var x = checkReal(maybeX);
+      var y = checkReal(maybeY);
+      return runtime.wrap(image.makePosn(
+        jsnums.toFixnum(x), jsnums.toFixnum(y)));
+    });
+    f("posn-x", function(maybePosn) {
+      checkArity(1, arguments, "posn-x");
+      var p = checkPosn(maybePosn);
+      return runtime.wrap(image.posnX(p));
+    });
+    f("posn-y", function(maybePosn) {
+      checkArity(1, arguments, "posn-y");
+      var p = checkPosn(maybePosn);
+      return runtime.wrap(image.posnY(p));
+    });
+    f("is-color", function(maybeColor) {
+      checkArity(1, arguments, "is-color");
+      return runtime.wrap(image.isColor(maybeColor));
+    });
+    f("make-color", function(maybeRed,maybeGreen,maybeBlue,maybeAlpha) {
+      checkArity(arguments.length <= 3? 3: 4, arguments, "make-color");
+      var red = checkByte(maybeRed);
+      var green = checkByte(maybeGreen);
+      var blue = checkByte(maybeBlue);
+      var alpha = maybeAlpha? checkByte(maybeAlpha): 255;
+      return runtime.wrap(image.makeColor(
+      jsnums.toFixnum(red),jsnums.toFixnum(green),jsnums.toFixnum(blue),
+      jsnums.toFixnum(alpha)));
+    });
+    f("color-red", function(maybeColor) {
+      checkArity(1, arguments, "color-red");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorRed(c));
+    });
+    f("color-green", function(maybeColor) {
+      checkArity(1, arguments, "color-green");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorGreen(c));
+    });
+    f("color-blue", function(maybeColor) {
+      checkArity(1, arguments, "color-blue");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorBlue(c));
+    });
+    f("color-alpha", function(maybeColor) {
+      checkArity(1, arguments, "color-alpha");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorAlpha(c));
+    });
+
+    f("bitmap-url", bitmapURL);
+    f("open-image-url", bitmapURL);
+    f("image-url", bitmapURL);
     f("images-difference", function(maybeImage1, maybeImage2) {
       checkArity(2, arguments, "image");
       c("images-difference", [maybeImage1, maybeImage2], [annImage, annImage]);
@@ -842,6 +910,15 @@
       var color = checkColor(maybeColor);
       return makeImage(
         image.makePolygonImage(jsnums.toFixnum(length), jsnums.toFixnum(count), jsnums.toFixnum(1), String(mode), color));
+    });
+
+    f("polygon", function(maybeList, maybeMode, maybeColor) {
+      checkArity(3, arguments, "polygon");
+      var lop = checkListofPosn(maybeList);
+      var mode = checkMode(maybeMode);
+      var color = checkColor(maybeColor);
+      return makeImage(
+        image.makePosnImage(lop, String(mode), color));
     });
 
     f("ellipse", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
