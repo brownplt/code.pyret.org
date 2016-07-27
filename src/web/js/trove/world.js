@@ -35,7 +35,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Image"]],
              "WCOofA"]],
-      "on-draw": "tany",
+      "on-redraw": "tany",
       "stop-when": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
@@ -170,6 +170,7 @@
         // NOTE(joe): don't move this line down, it's *these* args, not
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
+        //console.log('pyretArgs length = ' + pyretArgs.length);
         runtime.run(function(_, _) {
           // NOTE(joe): adding safecall here to get some meaningful caller frame
           // so error messages know where the call is coming from
@@ -474,7 +475,7 @@
 
           "_spyret_big-bang": makeFunction(function(init) {
             if (arguments.length < 1) {
-              throw runtime.ffi.throwArityErrorC(["big-bang"], 1, [init]);
+              throw runtime.ffi.throwArityErrorC(["_spyret_big-bang"], 1, [init]);
             }
             var arr = [], h;
             for (var i = 1; i < arguments.length; i++) {
@@ -500,7 +501,7 @@
           }),
 
           "_spyret_on-tick": makeFunction(function(handler, n) {
-            runtime.ffi.checkArity(arguments.length <= 1? 1: 2, arguments, "on-tick");
+            runtime.ffi.checkArity(arguments.length <= 1? 1: 2, arguments, "_spyret_on-tick");
             runtime.checkFunction(handler);
             var fixN;
             if (arguments.length >= 2) {
@@ -516,9 +517,9 @@
             runtime.checkFunction(drawer);
             return runtime.makeOpaque(new ToDraw(drawer));
           }),
-          "on-draw": makeFunction(function(drawer) {
+          "on-redraw": makeFunction(function(drawer) {
             // spyret alias for to-draw
-            runtime.ffi.checkArity(1, arguments, "on-draw");
+            runtime.ffi.checkArity(1, arguments, "on-redraw");
             runtime.checkFunction(drawer);
             return runtime.makeOpaque(new ToDraw(drawer));
           }),
