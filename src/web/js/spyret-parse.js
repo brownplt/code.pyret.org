@@ -232,7 +232,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // application expression
     function callExpr(func, args, stx) {
       Program.call(this);
-      console.log('new callexpr of ' + func + ' ' + args);
+      //console.log('new callexpr of ' + func + ' ' + args);
       this.func = func;
       this.args = args;
       this.stx = stx;
@@ -558,7 +558,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // Literal values (String, Char, Number, Vector)
     function literal(val) {
       Program.call(this);
-      console.log('new literal of ' + val);
+      //console.log('new literal of ' + val);
       this.val = val;
       this.toString = function() {
         // racket prints booleans using #t and #f
@@ -5512,9 +5512,9 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         pos: blankLoc
       },
       askStx = {
-        name: "ASKCOLON",
-        value: "ask:",
-        key: "'ASKCOLON:ask:",
+        name: "ASK",
+        value: "ask",
+        key: "'ASK:ask",
         pos: blankLoc
       },
       thenStx = {
@@ -5572,27 +5572,48 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               }, {
                 name: "app-args",
                 pos: blankLoc,
-                kids: [lParenStx, {
-                  name: "app-expr",
+                kids: [lParenStx, 
+                
+                {
+                  name: "opt-comma-binops",
                   pos: blankLoc,
-                  kids: [{
-                    name: "id-expr",
+                  kids: [
+                  {
+                    name: "app-expr",
                     pos: blankLoc,
-                    kids: [makeResolvedName("identical", blankLoc, true)]
-                  }, {
-                    name: "app-args",
-                    pos: blankLoc,
-                    kids: [lParenStx, {
+                    kids: [{
                       name: "id-expr",
                       pos: blankLoc,
-                      kids: [makeResolvedName("_spyret_repl_item_value", blankLoc, true)]
+                      kids: [makeResolvedName("identical", blankLoc, true)]
                     }, {
-                      name: "id-expr",
+                      name: "app-args",
                       pos: blankLoc,
-                      kids: [makeResolvedName("nothing", blankLoc, true)]
-                    }, rParenStx]
-                  }],
-                }, rParenStx]
+                      kids: [lParenStx, 
+                      
+                      {
+                        name: "opt-comma-binops",
+                        pos: blankLoc,
+                        kids: [
+                        {
+                          name: "id-expr",
+                          pos: blankLoc,
+                          kids: [makeResolvedName("_spyret_repl_item_value", blankLoc, true)]
+                        }, commaStx, {
+                          name: "id-expr",
+                          pos: blankLoc,
+                          kids: [makeResolvedName("nothing", blankLoc, true)]
+                        }
+                        ]
+                      }, 
+
+                        
+                        rParenStx]
+                    }],
+                  }
+                  ] 
+                }, 
+                
+                rParenStx]
               }]
             }, colonStx, {
               name: "block",
@@ -5610,11 +5631,22 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                   }, {
                     name: "app-args",
                     pos: blankLoc,
-                    kids: [lParenStx, {
-                      name: "id-expr",
+                    kids: [lParenStx, 
+                    
+                    {
+                      name: "opt-comma-binops",
                       pos: blankLoc,
-                      kids: [makeResolvedName("_spyret_repl_item_value", blankLoc, true)]
-                    }, rParenStx]
+                      kids: [
+                      {
+                        name: "id-expr",
+                        pos: blankLoc,
+                        kids: [makeResolvedName("_spyret_repl_item_value", blankLoc, true)]
+                      }
+                      ]
+                    }, 
+
+                    
+                    rParenStx]
                   }]
                 }]
               }]
@@ -5873,10 +5905,24 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           pos: loc
         };
       } else {
+        /* 
+           //temporarily disable this disabling --ds26gte
         throwError({
           errMsg: "Scheme-style symbol ,, not supported: use string instead",
           errArgLocs: [ [sym.val, loc] ]
         });
+        */
+        var psym = '"' + plt.compiler.pyretizeSymbol(sym.val) + '"';
+        result =  {
+          name: "string-expr",
+          pos: loc,
+          kids: [{
+            name: "STRING",
+            value: psym,
+            key: "'STRING:" + psym,
+            pos: loc
+          }]
+        };
         /*
         var psym = "’" + sym.val
         //var psym = pyretizeSymbol(sym.val)
@@ -5973,51 +6019,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       return result
     }
 
-    function makeStructFromMembersObsolete(constructor, elts, loc, quoted) {
-      var fakeArrayCall = new symbolExpr(constructor)
-      var makeListEltFromValue = function(val) {
-        //val can be circular!
-        var k
-        if (val instanceof symbolExpr) {
-          if (quoted) {
-            k = makeLiteralFromSymbol(val)
-          } else {
-            k = val.toPyretAST()
-          }
-        } else if (val instanceof Array) {
-          k = makeStructFromMembers("list", val, loc, quoted)
-        } else {
-          k = val.toPyretAST()
-        }
-        return {
-          name: "list-elt",
-          kids: [k, commaStx],
-          pos: val.location
-        };
-      }
-      var listElts = elts.slice(0, elts.length - 1).map(makeListEltFromValue)
-      var lastElt = (elts.length >= 1) ? makeListEltFromValue(elts[elts.length - 1]) : null
-        // set the location of the constructor call, and add the last elt (if it exists)
-      fakeArrayCall.location = blankLoc;
-      if (lastElt) {
-        listElts.push(lastElt);
-      }
-      // build the object
-      var result = {
-        name: "expr",
-        kids: [{
-          name: "construct-expr",
-          kids: [lBrackStx, {
-            name: "construct-modifier",
-            kids: [],
-            pos: blankLoc
-          }, fakeArrayCall.toPyretAST(), colonStx].concat(listElts, [rBrackStx]),
-          pos: blankLoc
-        }],
-        pos: loc
-      };
-      return result
-    }
+
     // Bytecode generation for jsnums types
     jsnums.BigInteger.prototype.toPyretAST =
       jsnums.Rational.prototype.toPyretAST =
@@ -6225,23 +6227,20 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
+
       function foo_variant_members(fields) {
         if (fields.length === 0) {
-          return []
+          return [];
         } else if (fields.length === 1) {
-          return [foo_variant_member_help(fields[0])]
+          return [foo_variant_member_help(fields[0])];
         } else {
-          var result = []
+          var result = [];
           for (var i = 0; i < fields.length - 1; i++) {
-            var field = fields[i]
-            result.push({
-              name: "list-variant-member",
-              pos: field.position,
-              kids: [foo_variant_member_help(field), commaStx]
-            })
+            var field = fields[i];
+            result.push(foo_variant_member_help(field), commaStx);
           }
-          result.push(foo_variant_member_help(fields[fields.length - 1]))
-          return result
+          result.push(foo_variant_member_help(fields[fields.length - 1]));
+          return result;
         }
       }
 
@@ -6260,12 +6259,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               kids: [] // there are no parameters for racket datatypes
                 ,
               pos: this.stx[0].location
-            }, {
+            }, /* {
               name: "data-mixins",
               kids: [] // there are no mixins for racket datatypes
                 ,
               pos: this.stx[0].location
-            }, colonStx, {
+            }, */ colonStx, {
               name: "data-variant",
               kids: [barStx, {
                 name: "variant-constructor",
@@ -6439,19 +6438,25 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                         pos: this.location
                       }, {
                         name: "app-args",
-                        kids: [lParenStx, {
-                          name: "binop-expr",
+
+                        kids: [lParenStx].concat({
+                          name: "opt-comma-binops",
+                          pos: this.location,
                           kids: [{
-                            name: "expr",
+                            name: "binop-expr",
                             kids: [{
-                              name: "id-expr",
-                              kids: [makeResolvedName("_struct_", this.location)],
+                              name: "expr",
+                              kids: [{
+                                name: "id-expr",
+                                kids: [makeResolvedName("_struct_", this.location)],
+                                pos: this.location
+                              }],
                               pos: this.location
                             }],
                             pos: this.location
-                          }],
-                          pos: this.location
-                        }, rParenStx],
+                          }]
+                        }, [rParenStx]),
+
                         pos: this.location
                       }],
                       pos: this.location
@@ -6496,21 +6501,34 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
       function make_foo_app_args(fields) {
         if (fields.length === 0) {
-          return []
+          return [];
         } else if (fields.length === 1) {
-          return [make_foo_app_arg(fields[0])]
+          return [make_foo_app_arg(fields[0])];
         } else {
-          var result = []
+          var result = [];
           for (var i = 0; i < fields.length - 1; i++) {
-            var field = fields[i]
-            result.push({
-              name: 'app-arg-elt',
-              pos: field.position,
-              kids: [make_foo_app_arg(field), commaStx]
-            })
+            var field = fields[i];
+            result.push(make_foo_app_arg(field), commaStx);
           }
-          result.push(make_foo_app_arg(fields[fields.length - 1]))
-          return result
+          result.push(make_foo_app_arg(fields[fields.length - 1]));
+          return result;
+        }
+      }
+
+
+      function make_foo_params(fields) {
+        if (fields.length === 0) {
+          return [];
+        } else if (fields.length === 1) {
+          return [makeBindingFromSymbol(fields[0], true)];
+        } else {
+          var result = [];
+          for (var i = 0; i < fields.length - 1; i++) {
+            var field = fields[i];
+            result.push(makeBindingFromSymbol(field, true), commaStx);
+          }
+          result.push(makeBindingFromSymbol(fields[fields.length - 1], true));
+          return result;
         }
       }
 
@@ -6536,8 +6554,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               }, {
                 name: "args",
                 pos: this.location,
-                // the first one is list-arg-elt(binding), the rest are just binding's
-                kids: [].concat([lParenStx], this.fields.map(function(x) { return makeBindingFromSymbol(x,true); }),
+                kids: [].concat([lParenStx], make_foo_params(this.fields),
                                 [rParenStx])
               }, {
                 name: "return-ann",
@@ -6578,7 +6595,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                         },  {
                           name: "app-args",
                           pos: this.location,
-                          kids: [lParenStx].concat(make_foo_app_args(this.fields), [rParenStx])
+                          kids: [lParenStx].concat({
+                            name: "opt-comma-binops",
+                            kids: make_foo_app_args(this.fields),
+                            pos: this.location
+                          }, [rParenStx])
+                          //kids: [lParenStx].concat(make_foo_app_args(this.fields), [rParenStx])
                         } ]
                       }]
                     }]
@@ -6975,11 +6997,14 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         };
       }
 
+      console.log('doing condExpr:toPyretAST of ' + this.clauses);
       // make an ifPipe for each non-else clause
       var lastClause = this.clauses[this.clauses.length - 1];
       var hasElse = (lastClause.first && lastClause.first.val === "else");
       var ifClauses = hasElse ? this.clauses.slice(0, this.clauses.length - 1) : this.clauses;
       var branches = ifClauses.map(makeIfPipeBranchfromClause);
+
+      console.log('hasElse = ' + hasElse);
 
       // if there's an else clause, turn it into a block and add it and its syntax to the list of branches
       if (hasElse) {
@@ -6996,7 +7021,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         name: "expr",
         kids: [{
           name: "if-pipe-expr",
-          kids: [askStx].concat(branches, [{
+          kids: [askStx, colonStx].concat(branches, [{
             name: "end",
             kids: [endStx],
             pos: blankLoc
@@ -7252,14 +7277,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       };
     }
     var ws_ast = plt.compiler.toPyretAST(ast, pinfo, provenance, name);
-    if (provenance === "definitions") {
+    if (provenance === "definitions" || provenance === "module") {
       var preimports = [
         plt.compiler.makeImportSnippet('image'),
         plt.compiler.makeImportSnippet('world')
       ];
-      //ws_ast.kids[0].kids = preimports;
-      ws_ast.kids[0].kids.unshift(preimports[1])
-      ws_ast.kids[0].kids.unshift(preimports[0])
+      ws_ast.kids[0].kids.unshift(preimports[0], preimports[1]);
     }
     var ws_ast_j = JSON.stringify(ws_ast);
 
