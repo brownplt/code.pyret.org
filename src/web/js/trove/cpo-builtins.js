@@ -5,7 +5,8 @@
     { "import-type": "builtin", "name": "world" },
     { "import-type": "builtin", "name": "gdrive-sheets" },
     { "import-type": "builtin", "name": "plot" },
-    { "import-type": "builtin", "name": "str-dict" }
+    { "import-type": "builtin", "name": "str-dict" },
+    { "import-type": "builtin", "name": "reactor" }
   ],
   provides: {},
   nativeRequires: [],

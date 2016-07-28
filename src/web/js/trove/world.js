@@ -150,6 +150,23 @@
       });
     }
 
+    function bigBangFromDict(init, dict, tracer) {
+      var handlers = [];
+      function add(k, constr) {
+        if(dict.hasOwnProperty(k)) {
+          handlers.push(runtime.makeOpaque(new constr(dict[k])));
+        }
+      }
+      add("on-tick", OnTick);
+      add("on-mouse", OnTick);
+      add("on-key", OnTick);
+      add("to-draw", ToDraw);
+      add("stop-when", StopWhen);
+      add("close-when-stop", CloseWhenStop);
+
+      return bigBang(init, handlers, tracer);
+    }
+
     var bigBang = function(initW, handlers, tracer) {
       var closeBigBangWindow = null;
       var outerToplevelNode = jQuery('<span/>').css('padding', '0px').get(0);
@@ -612,7 +629,8 @@
         }),
         "internal": {
           WorldConfigOption: WorldConfigOption,
-          adaptWorldFunction: adaptWorldFunction
+          adaptWorldFunction: adaptWorldFunction,
+          bigBangFromDict: bigBangFromDict
         }
       })
     });

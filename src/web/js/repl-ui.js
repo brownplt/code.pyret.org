@@ -213,7 +213,7 @@
           output.append($("<pre>").addClass("replPrint").text(str));
         });
       var currentZIndex = 15000;
-      runtime.setParam("current-animation-port", function(dom) {
+      runtime.setParam("current-animation-port", function(dom, closeCallback) {
           var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
           animationDivs.push(animationDiv);
           output.append(animationDiv);
