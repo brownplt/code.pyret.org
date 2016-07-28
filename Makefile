@@ -144,7 +144,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/es6-shim.js \
           build/web/js/runmode.js \
           build/web/js/webgazer.js \
-	   build/web/js/localforage.js
+          build/web/js/localforage.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
