@@ -130,7 +130,7 @@ build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 build/web/js/webgazer.js: node_modules/webgazer/build/webgazer.js
 	cp $< $@
 
-build/web/js/localforage.js: node_modules/webgazer/build/localforage.js
+build/web/js/localforage.js: node_modules/localforage/src/localforage.js
 	cp $< $@
 
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
@@ -143,7 +143,8 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/colorspaces.js \
           build/web/js/es6-shim.js \
           build/web/js/runmode.js \
-          build/web/js/webgazer.js
+          build/web/js/webgazer.js \
+	   build/web/js/localforage.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
