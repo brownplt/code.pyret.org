@@ -263,6 +263,9 @@
                   if (runtime.isSuccessResult(domResult)) {
                     var dom = domResult.result;
                     dom.addClass("compile-error");
+                    dom.on('click', function(){
+                      dom.trigger('toggleHighlight');
+                    });
                     container.append(dom);
                     dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
                     dom.trigger('toggleHighlight');
