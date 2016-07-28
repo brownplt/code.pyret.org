@@ -130,6 +130,9 @@ build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 build/web/js/webgazer.js: node_modules/webgazer/build/webgazer.js
 	cp $< $@
 
+build/web/js/localforage.js: node_modules/webgazer/build/localforage.js
+	cp $< $@
+
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
           build/web/js/mark-selection.js \
