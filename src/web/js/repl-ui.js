@@ -281,6 +281,13 @@
                  * For now, we try to guess the behavior of the user.
                  */
                 console.log("there were " + queue.length + " observations");
+
+                if (queue.length == 0) {
+                    console.log("good thing this is a test. otherwise we wouldn't do anything");
+                }
+                else {
+                    console.log("here we actually do the analysis.");
+                }
             }
 
             // if we did not do analysis as evidenced by timeoutid not being null
