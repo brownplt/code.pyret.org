@@ -8,6 +8,9 @@
  * The most recently authenticated version of the
  * wrapped Google API
  */
+
+var useOAuth = true;
+
 var gwrap = window.gwrap = {
   // Initialize to a dummy method which loads the wrapper
   load: function(params) {
@@ -66,6 +69,12 @@ function loadAPIWrapper(immediate) {
   assertDefined('clientId');
   assertDefined('apiKey');
   assertDefined('Q');
+
+  if (clientId === '') {
+    console.log('clientId empty; won\'t use OAuth');
+    useOAuth = false;
+  }
+
   // Sanity check passed.
 
   // Custom error type definitions
@@ -146,51 +155,56 @@ function loadAPIWrapper(immediate) {
   function reauth(immediate) {
     console.log('doing reauth ' + immediate);
     var d = Q.defer();
-    if (!clientId) {
-      console.log('ds26gte auth not possible');
-      d.resolve(null);
-    }
-    /*
-    if (!immediate) {
-      // Need to do a login to get a cookie for this user; do it in a popup
-      var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
-      window.addEventListener('message', function(e) {
-        // e.domain appears to not be defined in Firefox
-        if ((e.domain || e.origin) === document.location.origin) {
-          d.resolve(reauth(true));
-        } else {
-          d.resolve(null);
-        }
-      });
-    } else {
-      // The user is logged in, but needs an access token from our server
-      var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
-      newToken.then(function(t) {
-        gapi.auth.setToken({ access_token: t.access_token });
-        d.resolve({ access_token: t.access_token });
-      });
-      newToken.fail(function(t) {
-        d.resolve(null);
-      });
-    }*/
-    if (clientId) {
+    if (!useOAuth) {
+      console.log('reauth/!OAuth2 ' + immediate);
       if (!immediate) {
-        console.log('trying gapi.auth.authorize');
-        gapi.auth.authorize({
-          "client_id": clientId,
-          "scope": SCOPE,
-          "immediate": false
-        }, function(authResult) {
-          if (authResult && !authResult.error) {
-            console.log('ds26gte auth successful');
+        // Need to do a login to get a cookie for this user; do it in a popup
+        var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
+        window.addEventListener('message', function(e) {
+          // e.domain appears to not be defined in Firefox
+          if ((e.domain || e.origin) === document.location.origin) {
             d.resolve(reauth(true));
           } else {
-            console.log('ds26gte auth failed');
             d.resolve(null);
           }
         });
       } else {
-        d.resolve(true);
+        // The user is logged in, but needs an access token from our server
+        var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
+        newToken.then(function(t) {
+          gapi.auth.setToken({ access_token: t.access_token });
+          d.resolve({ access_token: t.access_token });
+        });
+        newToken.fail(function(t) {
+          d.resolve(null);
+        });
+      }
+
+    } else {
+      console.log('reauth/OAuth2 ' + immediate);
+      if (!clientId) {
+        console.log('ds26gte auth not possible');
+        d.resolve(null);
+      }
+      else {
+        if (!immediate) {
+          console.log('trying gapi.auth.authorize');
+          gapi.auth.authorize({
+            "client_id": clientId,
+            "scope": SCOPE,
+            "immediate": false
+          }, function(authResult) {
+            if (authResult && !authResult.error) {
+              console.log('ds26gte auth successful');
+              d.resolve(reauth(true));
+            } else {
+              console.log('ds26gte auth failed');
+              d.resolve(null);
+            }
+          });
+        } else {
+          d.resolve(true);
+        }
       }
     }
 
@@ -273,8 +287,11 @@ function loadAPIWrapper(immediate) {
    */
   function gQ(request, skipAuth) {
     console.log('doing gQ ' + request + ', ' + skipAuth);
-    //var oldAccess = gapi.auth.getToken();
-    //if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
+    var oldAccess;
+    if (!useOAuth) {
+      oldAccess = gapi.auth.getToken();
+      if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
+    }
     var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       // TODO: This should be migrated to a promise
@@ -283,13 +300,11 @@ function loadAPIWrapper(immediate) {
       });
       return d.promise;
     }));
-    /*
-    if (skipAuth) {
+    if (!useOAuth && skipAuth) {
       ret.fin(function() {
         gapi.auth.setToken({ access_token: oldAccess });
       });
     }
-    */
     return ret;
   }
 
@@ -404,8 +419,7 @@ function loadAPIWrapper(immediate) {
     }
   }
 
-  //var initialAuth = reauth(immediate);
-  var initialAuth = reauth(!immediate);
+  var initialAuth = reauth(useOAuth ? !immediate : immediate);
   return initialAuth.then(function(_) {
     /**
      * Creates the API Wrapping module to export
