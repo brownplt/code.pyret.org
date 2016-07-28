@@ -157,9 +157,18 @@
           handlers.push(runtime.makeOpaque(new constr(dict[k])));
         }
       }
-      add("on-tick", OnTick);
-      add("on-mouse", OnTick);
-      add("on-key", OnTick);
+      if(dict.hasOwnProperty("on-tick")) {
+        if(dict.hasOwnProperty("seconds-per-tick")) {
+          var delay = dict["seconds-per-tick"];
+          delay = typeof delay === "number" ? delay : delay.toFixnum();
+          handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], delay * 1000)));
+        }
+        else {
+          handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], DEFAULT_TICK_DELAY * 1000)));
+        }
+      }
+      add("on-mouse", OnMouse);
+      add("on-key", OnKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
       add("close-when-stop", CloseWhenStop);
