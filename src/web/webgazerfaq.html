@@ -39,21 +39,14 @@
             <a target="_blank" href="/editor">editor view</a>,
             a dialogue will ask if you want to grant us access.
             It will disappear when you either grant or deny access.
-            Note that if you do grant us access,
-            your browser will probably verify that you do mean to allow us access to your webcam.
-            Please click confirm.
+            Your browser might ask you one more time.
+            Please click to confirm.
         </p>
         <p>
             We thank you for participating in making Pyret a better system for all.
         </p>
-        <h2>How do I reset my preferences?</h2>
-        <p>
-            You can 
-            <a href="javascript:resetAccessPreferences()">reset your access preferences</a>
-            if you want to change your preferences next time you access the editor.
-        </p>
 
-        <h2>How do I stop allowing access?</h2>
+        <h2 id="Stop-access">How do I stop allowing access?</h2>
         <p>
             First, you need to 
             <a href="javascript:resetAccessPreferences()">reset your access preferences</a>
@@ -61,7 +54,7 @@
             Deny access, and you will be good to go!
         </p>
 
-        <h2>How do I change to allow access?</h2>
+        <h2>How do I allow access if I previously refused to?</h2>
         <p>
             First, you need to 
             <a href="javascript:resetAccessPreferences()">reset your access preferences</a>
@@ -69,23 +62,29 @@
             Allow access, and you will be good to go!
         </p>
 
-        <h2>How do I stop warning messages from popping up?</h2>
+        <h2>Why am I getting pop-up warning messages?</h2>
         <p>
-            Such an occasion might occur when you grant us access,
-            but we still cannot access webcam information.
-            For example, you might not be using a
+            This might happen in two circumstances.
+            You might not be using a 
             <a target="_blank" href="https://webgazer.cs.brown.edu/#support">supported browser</a>
-            or your browser might be blocking access to your webcam.
-            Verify that your browser is not blocking access.
+            but granted us access.
+            We sincerely appreciate your support!
+            If you want to continue using your current browser,
+            <a href="#Stop-access">stop allowing us access</a>.
+            The warning messages should disappear.
         </p>
 
         <p>
-            If this is not the case,
-            <a href="javascript:resetAccessPreferences()">reset your access preferences</a>
-            then next time you are in the editor,
-            deny access.
-            We appreciate your willingness to help.
-            Remember to change your preferences when you get a better spyglass!
+            Another possibility is that
+            your browser is blocking access to your webcam.
+            You can either allow us access in your browser settings or
+            <a href="#Stop-access">stop allowing us access</a>.
+            The warning messages should disappear.
+        </p>
+
+        <p>
+            If you think something else is happening,
+            please <a href="mailto:skynetfalling@brownplt.com">let us know</a>.
         </p>
     </div>
     <script>
