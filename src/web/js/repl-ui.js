@@ -251,9 +251,36 @@
         "vertical-align": "middle"
       });
       var runContents;
-        var timeoutID = null;
+        function classify(queue) {
+            /**
+             * Classify a queue of webgazer data with a given behavior.
+             */
+            console.log("Here is length of queue: " + queue.length);
+            return "testing";
+        }
         var setGazeListenerFunction = false;
         var eventQueue = [];
+        var testNum = 0;
+        const testPrefix = "test";
+
+        var outputTest = (cm, change) => {
+            // only output things once. and stop webgazer.
+            cm.off("change", outputTest);
+            if (eventQueue.length > 0) {
+                console.log("change, so outputting things");
+                // store eventQueue to localforage
+                localforage.setItem(testPrefix + testNum, eventQueue.slice[0], function(err, value) {
+                    console.log("outputted: " + value + ", but wait! " + err);
+                })
+
+                // classify eventQueue
+                console.log("classified that interaction as: " + classify(eventQueue));
+            }
+            // fine to do even if webgazer off, ie, eventQueue is empty
+            // but feels more robust in case wierd inconsistency of eventQueue
+            // webgazer.pause();
+        }
+
       function afterRun(cm) {
         return function() {
           outputPending.remove();
@@ -274,70 +301,40 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
-
             /* BEGINNING WEBGAZER ADDITION */
-            var analyzeData = function(queue) {
-                /* given list of eye gazer data, do something!
-                 * For now, we try to guess the behavior of the user.
-                 */
-                console.log("there were " + queue.length + " observations");
 
-                if (queue.length == 0) {
-                    console.log("good thing this is a test. otherwise we wouldn't do anything");
-                }
-                else {
-                    console.log("here we actually do the analysis.");
-                }
-            }
-
-            // if we did not do analysis as evidenced by timeoutid not being null
-            if (timeoutID != null) {
-                // clear the timer
-                window.clearTimeout(timeoutID);
-                // do the analysis with a copy of event queue.
-                // This should make things nicer if we want to use web worker or whatever
-                analyzeData(eventQueue.slice(0));
-            }
-
-            // clear eventQueue
+            // prepare for new test run
             eventQueue = [];
             webgazer.resume();
+            testNum = testNum + 1;
+
+            // register onchange event
+            // should store the thing to storage, and maybe classify
+            editors["definitions://"].on("change", outputTest);
 
             // if we haven't set the gaze listener function before
             if (!setGazeListenerFunction) {
-                webgazer.setGazeListener(function(data, elapsedTime) {
+                webgazer.setGazeListener((data, elapsedTime) => {
                     if (data == null) {
                         return;
                     }
-                    var xprediction = data.x;
-                    var yprediction = data.y;
+
                     var repl = document.getElementById("REPL");
                     var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-                    var displaySide = !true;
-                    if (xprediction < splitLocationX) {
-                        if (displaySide) {
-                            console.log("left side")
-                        }
+                    var timeData = {
+                        xpos: data.x,
+                        ypos: data.y,
+                        timestamp: elapsedTime,
+                        barpos: splitLocationX
                     }
-                    else {
-                        if (displaySide) {
-                            console.log("right side")
-                        }
-                    }
+
+                    eventQueue.push(timeData);
                 });
 
                 setGazeListenerFunction = true;
             } // end setting gaze listener function
 
-            // set a new timer
-            var numSeconds = 30;
-            timeoutID = setTimeout(() => {
-                webgazer.pause();
-                analyzeData(eventQueue.slice(0));
-                timeoutID = null;
-            },
-                                   numSeconds * 1000);
         }
       }
 
