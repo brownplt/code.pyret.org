@@ -284,7 +284,7 @@
 
             // now find out if they went back and forth quickly
             // can use slice(1) and then index form of map
-            var changingHalfArray = queue.slice(1).map((x, index, arr) => {
+            var changingHalfArray = leftAndRightArray.slice(1).map((x, index, arr) => {
                 if (x == arr[index - 1])
                     return 0;
                 else
@@ -305,14 +305,14 @@
             // only output things once. and stop webgazer.
             cm.off("change", outputTest);
             if (eventQueue.length > 0) {
-                console.log("change, so outputting things");
+                console.log("change, so outputting list of size " + eventQueue.length);
                 // store eventQueue to localforage
                 var otherQueue = eventQueue.slice(0);
                 // classify eventQueue
                 var interactionClass = classify(otherQueue);
 
                 localforage.setItem(testPrefix + testNum, [interactionClass, otherQueue], function(err, value) {
-                    console.log("stored an object of size " + otherQueue.length);
+                    console.log("classified that interaction as " + interactionClass);
                 })
             }
             // fine to do even if webgazer off, ie, eventQueue is empty
