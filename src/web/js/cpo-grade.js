@@ -9,6 +9,7 @@
     "cpo/gdrive-locators"
   ],
   theModule: function(runtime, namespace, uri, cpoIdeHooks, gdriveLocators) {
+    console.log('EVALUATING THE MODULE FOR CPOGRADE');
 
     window.storageAPI.then(function(programCollectionAPI) {
       console.log('programCollectionAPI:', programCollectionAPI);
