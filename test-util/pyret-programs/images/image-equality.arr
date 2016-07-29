@@ -263,10 +263,10 @@ check "equivalences":
 
   triangle(50, "solid", "blue") is-not triangle(50, "outline", "blue")
 
-  c = circle(50, "solid", "blue")
-  color-list-to-bitmap(image-to-color-list(c), 100, 100) is c
+  c2 = circle(50, "solid", "blue")
+  color-list-to-bitmap(image-to-color-list(c2), 100, 100) is c2
   # TODO(joe): pinhole args don't seem to matter
-  color-list-to-image(image-to-color-list(c), 100, 100, 437, 952) is c
+  color-list-to-image(image-to-color-list(c2), 100, 100, 437, 952) is c2
 
 end
 
