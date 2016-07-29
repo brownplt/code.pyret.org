@@ -269,12 +269,13 @@
             if (eventQueue.length > 0) {
                 console.log("change, so outputting things");
                 // store eventQueue to localforage
-                localforage.setItem(testPrefix + testNum, [1,2,3,4], function(err, value) {
-                    console.log("outputted: " + testPrefix + testNum + ": " + value + ", but wait! " + err);
+                var otherQueue = eventQueue.slice(0);
+                localforage.setItem(testPrefix + testNum, otherQueue, function(err, value) {
+                    console.log("stored an object of size " + otherQueue.length);
                 })
 
                 // classify eventQueue
-                console.log("classified that interaction as: " + classify(eventQueue));
+                console.log("classified that interaction as: " + classify(otherQueue));
             }
             // fine to do even if webgazer off, ie, eventQueue is empty
             // but feels more robust in case wierd inconsistency of eventQueue
