@@ -269,7 +269,7 @@
             });
             var sum = leftAndRightArray.reduce((a, b) => a + b, 0);
             var normalizedSum = sum / leftAndRightArray.length;
-            const normalDisLimit = 0.674; // point such that [x,x] is half of the area of std. dist.
+            const normalDisLimit = 0.43; // point such that [x,x] is one third of the area of std. dist.
 
             var classifyFunction = function(x, left, middle, right) {
                 if (x <= -normalDisLimit)
