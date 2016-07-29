@@ -251,12 +251,50 @@
         "vertical-align": "middle"
       });
       var runContents;
+
         function classify(queue) {
             /**
              * Classify a queue of webgazer data with a given behavior.
              */
-            console.log("Here is length of queue: " + queue.length);
-            return "testing";
+            if (queue.length == 0)
+                return "empty list of observations";
+
+            var leftAndRightArray = queue.map((x) => {
+                if (x.xpos < x.barpos)
+                    return -1;
+                else if (x.xpos > x.barpos)
+                    return 1;
+                else
+                    return 0;
+            });
+            var sum = leftAndRightArray.reduce((a, b) => a + b, 0);
+            var normalizedSum = sum / leftAndRightArray.length;
+            const normalDisLimit = 0.674; // point such that [x,x] is half of the area of std. dist.
+
+            var classifyFunction = function(x, left, middle, right) {
+                if (x <= -normalDisLimit)
+                    return left;
+                else if (x < normalDisLimit)
+                    return middle;
+                else
+                    return right;
+            };
+
+            var eyeLocation = classifyFunction(normalizedSum, "editor", "middle", "repl");
+
+            // now find out if they went back and forth quickly
+            // can use slice(1) and then index form of map
+            var changingHalfArray = queue.slice(1).map((x, index, arr) => {
+                if (x == arr[index - 1])
+                    return 0;
+                else
+                    return 1;
+            });
+            var changeHalfSum = changingHalfArray.reduce((a, b) => a + b, 0);
+            var normalizedHalfSum = changeHalfSum / (queue.length - 1) - (1 - 0) / 2;
+            var changeHalfFrequency = classifyFunction(normalizedHalfSum, "not often",
+                                                   "somewhat frequently", "often");
+            return "looking " + eyeLocation + ", switching " + changeHalfFrequency;
         }
         var setGazeListenerFunction = false;
         var eventQueue = [];
