@@ -304,7 +304,6 @@
         var outputTest = (cm, change) => {
             // only output things once. and stop webgazer.
             cm.off("change", outputTest);
-            console.log("inside of outputtest");
             if (eventQueue.length > 0) {
                 console.log("change, so outputting list of size " + eventQueue.length);
                 // store eventQueue to localforage

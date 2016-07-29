@@ -123,6 +123,15 @@
      "Is your webcam turned on?");
  }
 
+ displayRun = function(key) {
+     var jsonStringPromise = localforage.getItem(key).then((x) => JSON.stringify(x));
+     jsonStringPromise.then((x) => console.log(key + x));
+ }
+ displayKeys = function(keys) {
+     for (var i = 0; i < keys.length; i += 1)
+         displayRun(keys[i]);
+ }
+
  // could remove removing the dialogue, but then would need another function
  // when someone grants access to both remove dialogue and start webgazer
  startWebGazer = function() {
