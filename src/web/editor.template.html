@@ -123,6 +123,12 @@
      "Is your webcam turned on?");
  }
 
+ console.log("about to try localforage");
+ localforage.setItem('my array', [1, 2, 'three'], function(err, value) {
+     // This will output `1`.
+     console.log(value[0]);
+ });
+
  // could remove removing the dialogue, but then would need another function
  // when someone grants access to both remove dialogue and start webgazer
  startWebGazer = function() {
