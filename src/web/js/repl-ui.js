@@ -269,8 +269,8 @@
             if (eventQueue.length > 0) {
                 console.log("change, so outputting things");
                 // store eventQueue to localforage
-                localforage.setItem(testPrefix + testNum, eventQueue.slice[0], function(err, value) {
-                    console.log("outputted: " + value + ", but wait! " + err);
+                localforage.setItem(testPrefix + testNum, [1,2,3,4], function(err, value) {
+                    console.log("outputted: " + testPrefix + testNum + ": " + value + ", but wait! " + err);
                 })
 
                 // classify eventQueue
@@ -278,7 +278,7 @@
             }
             // fine to do even if webgazer off, ie, eventQueue is empty
             // but feels more robust in case wierd inconsistency of eventQueue
-            // webgazer.pause();
+            webgazer.pause();
         }
 
       function afterRun(cm) {
