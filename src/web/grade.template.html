@@ -68,9 +68,9 @@
     </div>
   </div>
 
+  <script src="/js/es6-shim.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-
   <script src="/js/loader.js"></script>
   <script src="/js/colorspaces.js"></script>
   <script src="/js/q.js"></script>
@@ -87,18 +87,19 @@
   </script>
   <script src="/js/s-expression-lib.js"></script>
   <script>
-    var sexp_exports = window.module.exports;
-    define("s-expression", [], function() {
-      return sexp_exports;
-    });
+  var sexp_exports = window.module.exports;
+  define("s-expression", [], function() {
+    return sexp_exports;
+  });
   </script>
   <script src="/js/seedrandom.js"></script>
   <script>
-    var seed_exports = window.module.exports;
-    define("seedrandom", [], function() {
-      return seed_exports;
-    });
+  var seed_exports = window.module.exports;
+  define("seedrandom", [], function() {
+    return seed_exports;
+  });
   </script>
+  <script>delete window.module;</script>
   <script src="/js/share.js"></script>
   <script src="/js/google-apis/api-wrapper.js"></script>
   <script src="/js/google-apis/drive.js"></script>
@@ -106,11 +107,11 @@
   <script src="/js/google-apis/sheets.js"></script>
   <script src="/js/authenticate-storage.js"></script>
   <script>
-    var clientId = "";
-    var apiKey = "{{ GOOGLE_API_KEY }}";
-    function handleGoogLoad() {
-      handleClientLoad(clientId, apiKey);
-    }
+  var clientId = "";
+  var apiKey = "{{ GOOGLE_API_KEY }}";
+  function handleGoogLoad() {
+    handleClientLoad(clientId, apiKey);
+  }
   </script>
   <!-- Google API Loader (For picker) -->
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -119,6 +120,9 @@
   <script>console.log(window.performance.now())</script>
   <script src="js/beforePyret.js"></script>
   <script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
+
+  <!-- <script type="text/javascript"
+          src="https://caja.appspot.com/caja.js"></script> -->
   <script type="text/javascript" src="/js/grade.js"></script>
 </body>
 </html>
