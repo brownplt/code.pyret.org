@@ -464,37 +464,37 @@
               // to check the status of the scene object and make sure it's an
               // image.
 
+              var checkImagePred = function(val) {
+                return runtime.isOpaque(val) && isImage(val.val);
+              };
+              var checkImageType = runtime.makeCheckType(checkImagePred, "Image");
+              checkImageType(v);
 
-              if (runtime.isOpaque(v) && isImage(v.val) ) {
-                var theImage = v.val;
-                var width = theImage.getWidth();
-                var height = theImage.getHeight();
+              var theImage = v.val;
+              var width = theImage.getWidth();
+              var height = theImage.getHeight();
 
-                if (! reusableCanvas) {
-                  reusableCanvas = imageLibrary.makeCanvas(width, height);
-                  // Note: the canvas object may itself manage objects,
-                  // as in the case of an excanvas.  In that case, we must make
-                  // sure jsworld doesn't try to disrupt its contents!
-                  reusableCanvas.jsworldOpaque = true;
-                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
-                }
-                if (reusableCanvas.width !== width) {
-                  reusableCanvas.width = width;
-                }
-                if (reusableCanvas.height !== height) {
-                  reusableCanvas.height = height;
-                }
-                var ctx = reusableCanvas.getContext("2d");
-                ctx.save();
-                ctx.fillStyle = "rgba(255,255,255,1)";
-                ctx.fillRect(0, 0, width, height);
-                ctx.restore();
-                theImage.render(ctx, 0, 0);
-                success([toplevelNode, reusableCanvasNode]);
-              } else {
-                // TODO(joe): Maybe torepr below
-                success([toplevelNode, rawJsworld.node_to_tree(String(v))]);
+              if (! reusableCanvas) {
+                reusableCanvas = imageLibrary.makeCanvas(width, height);
+                // Note: the canvas object may itself manage objects,
+                // as in the case of an excanvas.  In that case, we must make
+                // sure jsworld doesn't try to disrupt its contents!
+                reusableCanvas.jsworldOpaque = true;
+                reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
               }
+              if (reusableCanvas.width !== width) {
+                reusableCanvas.width = width;
+              }
+              if (reusableCanvas.height !== height) {
+                reusableCanvas.height = height;
+              }
+              var ctx = reusableCanvas.getContext("2d");
+              ctx.save();
+              ctx.fillStyle = "rgba(255,255,255,1)";
+              ctx.fillRect(0, 0, width, height);
+              ctx.restore();
+              theImage.render(ctx, 0, 0);
+              success([toplevelNode, reusableCanvasNode]);
             });
       };
 
