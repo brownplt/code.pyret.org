@@ -376,7 +376,7 @@
     //////////////////////////////////////////////////////////////////////
     // colorString : hexColor Style -> rgba
     // Style can be a number (0-255), "solid", "outline" or null
-    // non-number is equivalent to a number 255
+    // The above value which is non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
       var alpha = isNaN(aStyle)? 1.0 : aStyle/255;
       return "rgba(" + colorRed(aColor) + "," +
