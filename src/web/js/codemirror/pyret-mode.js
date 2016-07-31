@@ -15,7 +15,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_closing_tokens =
         pyret_closing_keywords.map(toToken("keyword")).concat(
           pyret_closing_builtins.map(toToken("builtin")));
-  const pyret_opening_keywords_colon = ["try", "ref-graph", "block", "table", "load-table"];
+  const pyret_opening_keywords_colon = ["reactor", "try", "ref-graph", "block", "table", "load-table"];
   const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let", "ask",
                                           "cases", "data", "shared", "check",
                                           "except", "letrec", "lam", "method",
@@ -23,6 +23,8 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                                           "sieve", "order"];
   const pyret_opening_keywords = pyret_opening_keywords_colon.concat(pyret_opening_keywords_nocolon);
   const pyret_opening_tokens = pyret_opening_keywords.map(toToken("keyword"));
+  const pyret_openers_closed_by_end = ["FUN", "WHEN", "DO", "FOR", "IF", "BLOCK",
+    "LET", "TABLE", "LOADTABLE", "SELECT", "EXTEND", "SIEVE", "ORDER", "REACTOR"]
   const pyret_keywords =
     wordRegexp(["else if"].concat(pyret_opening_keywords_nocolon, pyret_closing_keywords,
                ["var", "rec", "import", "include", "provide", "type", "newtype",
@@ -419,6 +421,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           || hasTop(ls.tokens, "WANTCOLONORBLOCK"))
         ls.tokens.pop();
       else if (hasTop(ls.tokens, "OBJECT")
+               || hasTop(ls.tokens, "REACTOR")
                || hasTop(ls.tokens, "SHARED")
                || hasTop(ls.tokens, "OBJECTORTUPLE")) {
         if (hasTop(ls.tokens, "OBJECTORTUPLE")) {
@@ -649,6 +652,10 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         ls.tokens.push("BLOCK", "WANTCOLON");
         ls.delimType = pyret_delimiter_type.OPENING;
       }
+    } else if (state.lastToken === "reactor") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("REACTOR", "WANTCOLON");
     } else if (state.lastToken === "table") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
@@ -768,7 +775,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           else ls.curClosed.v++;
         }
         // Things that are counted, and closable by end:
-        else if (top === "FUN" || top === "WHEN" || top === "DO" || top === "FOR" || top === "IF" || top === "BLOCK" || top === "LET" || top === "TABLE" || top === "LOADTABLE" || top === "SELECT" || top === "EXTEND" || top === "SIEVE" || top === "ORDER") {
+        else if (pyret_openers_closed_by_end.indexOf(top) !== -1) {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
           else ls.curClosed.fn++;
