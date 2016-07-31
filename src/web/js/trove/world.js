@@ -157,6 +157,10 @@
           handlers.push(runtime.makeOpaque(new constr(dict[k])));
         }
       }
+      var title = "reactor";
+      if (dict.hasOwnProperty("title")) {
+        title = dict["title"];
+      }
       if(dict.hasOwnProperty("on-tick")) {
         if(dict.hasOwnProperty("seconds-per-tick")) {
           var delay = dict["seconds-per-tick"];
@@ -173,19 +177,23 @@
       add("stop-when", StopWhen);
       add("close-when-stop", CloseWhenStop);
 
-      return bigBang(init, handlers, tracer);
+      return bigBang(init, handlers, tracer, title);
     }
 
-    var bigBang = function(initW, handlers, tracer) {
+    var bigBang = function(initW, handlers, tracer, title) {
       var closeBigBangWindow = null;
       var outerToplevelNode = jQuery('<span/>').css('padding', '0px').get(0);
       // TODO(joe): This obviously can't stay
       if(!runtime.hasParam("current-animation-port")) {
         document.body.appendChild(outerToplevelNode);
       } else {
-        runtime.getParam("current-animation-port")(outerToplevelNode, function(closeWindow) {
-          closeBigBangWindow = closeWindow;
-        });
+        runtime.getParam("current-animation-port")(
+          outerToplevelNode,
+          title,
+          function(closeWindow) {
+            closeBigBangWindow = closeWindow;
+          }
+        );
       }
 
       var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
@@ -582,7 +590,7 @@
             var arr = runtime.ffi.toArray(handlers);
             var initialWorldValue = init;
             arr.map(function(h) { checkHandler(h); });
-            bigBang(initialWorldValue, arr, null);
+            bigBang(initialWorldValue, arr, null, 'big-bang');
             runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
           }, "big-bang"),
           "on-tick": makeFunction(function(handler) {

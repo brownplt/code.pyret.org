@@ -76,7 +76,7 @@
       "empty-image": "tany"
     },
     aliases: { Image: "tany" },
-    datatypes: { Image: "tany" } 
+    datatypes: { Image: "tany" }
   },
   theModule: function(runtime, namespace, uri, image, jsnums) {
     var colorDb = image.colorDb;
@@ -151,7 +151,7 @@
     }
 
     var ann = function(name, pred) {
-      return runtime.makePrimitiveAnn(name, pred); 
+      return runtime.makePrimitiveAnn(name, pred);
     };
 
     var annString = runtime.String;
@@ -237,7 +237,7 @@
     var checkPlaceY = p(isPlaceY, "Y Place");
 
 
-    var annAngle = ann("Angle (a number 0-360)", image.isAngle);
+    var annAngle = ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 
 
@@ -794,7 +794,7 @@
           if (less(sideA + sideC, sideB) ||
               less(sideB + sideC, sideA) ||
               less(sideA + sideB, sideC)) {
-            throwMessage("The given side, angle and side will not form a triangle: " 
+            throwMessage("The given side, angle and side will not form a triangle: "
                          + sideA + ", " + angleB + ", " + sideC);
           }
         }
