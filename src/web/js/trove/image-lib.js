@@ -6,7 +6,7 @@
   provides: {},
   theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums, md5) {
     var gf = RUNTIME.getField;
-    
+
     var image = gf(imageImp, "values");
     var color = gf(image, "color");
     var colorPred = gf(image, "is-Color");
@@ -375,7 +375,8 @@
 
     //////////////////////////////////////////////////////////////////////
     // colorString : hexColor Style -> rgba
-    // Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
+    // Style can be a number (0-255), "solid", "outline" or null
+    // non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
       var alpha = isNaN(aStyle)? 1.0 : aStyle/255;
       return "rgba(" + colorRed(aColor) + "," +
@@ -397,7 +398,7 @@
         var Z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505;
         return [X, Y, Z];
       }
-      
+
       function XYZtoLAB(x, y, z){
         var var_X = x / 95.047;           //ref_X =  95.047   Observer= 2°, Illuminant= D65
         var var_Y = y / 100.000;          //ref_Y = 100.000
@@ -421,7 +422,7 @@
         colorLabs.push({name:p, l:lab.l, a:lab.a, b:lab.b});
       }
     }
- 
+
     //////////////////////////////////////////////////////////////////////
     // colorToSpokenString : hexColor Style -> String
     // Describes the color using the nearest HTML color name
@@ -502,7 +503,7 @@
         var ys = unzipVertices(vertices).ys;
         return Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
     }
- 
+
     // given a list of vertices and a translationX/Y, shift them
     var translateVertices = function(vertices) {
         var vs = unzipVertices(vertices);
@@ -740,7 +741,7 @@
                 slice1.drawImage(c1, x, y, tileW, tileH, 0, 0, tileW, tileH);
                 slice2.clearRect(0, 0, tileW, tileH);
                 slice2.drawImage(c2, x, y, tileW, tileH, 0, 0, tileW, tileH);
-                var d1 = slice1.canvas.toDataURL(), 
+                var d1 = slice1.canvas.toDataURL(),
                     d2 = slice2.canvas.toDataURL(),
                     h1 = md5(d1),  h2 = md5(d2);
                 if(h1 !== h2) return false;
@@ -1139,7 +1140,7 @@
       }
       var sin   = Math.sin(angle * Math.PI / 180);
       var cos   = Math.cos(angle * Math.PI / 180);
-      
+
       // rotate each point as if it were rotated about (0,0)
       var vertices = img.getVertices().map(function(v) {
           return {x: v.x*cos - v.y*sin, y: v.x*sin + v.y*cos };
@@ -1147,7 +1148,7 @@
 
       // extract the xs and ys separately
       var vs = unzipVertices(vertices);
-      
+
       // store the vertices as something private, so this.getVertices() will still return undefined
       this._vertices  = translateVertices(vertices);
       this.img        = img;
@@ -1459,7 +1460,7 @@
       }
       textParent.style.font = this.font;                // use the same font settings as the context
       textParent.textContent = str; // this will blow away any old content
-      
+
       // getting (more accurate) css equivalent of ctx.measureText()
       var bounds = textParent.getBoundingClientRect(); // make a single blocking call
       this.width       = bounds.width;

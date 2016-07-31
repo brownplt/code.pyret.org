@@ -213,7 +213,7 @@
           output.append($("<pre>").addClass("replPrint").text(str));
         });
       var currentZIndex = 15000;
-      runtime.setParam("current-animation-port", function(dom, closeCallback) {
+      runtime.setParam("current-animation-port", function(dom, title, closeCallback) {
           var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
           animationDivs.push(animationDiv);
           output.append(animationDiv);
@@ -223,7 +223,7 @@
           }
           closeCallback(closeTopAnimationIfOpen);
           animationDiv.dialog({
-            title: 'big-bang',
+            title: title,
             position: ["left", "top"],
             bgiframe : true,
             modal : true,
