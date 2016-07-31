@@ -23,8 +23,10 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                                           "sieve", "order"];
   const pyret_opening_keywords = pyret_opening_keywords_colon.concat(pyret_opening_keywords_nocolon);
   const pyret_opening_tokens = pyret_opening_keywords.map(toToken("keyword"));
-  const pyret_openers_closed_by_end = ["FUN", "WHEN", "DO", "FOR", "IF", "BLOCK",
-    "LET", "TABLE", "LOADTABLE", "SELECT", "EXTEND", "SIEVE", "ORDER", "REACTOR"]
+  const pyret_openers_closed_by_end = {"FUN": true, "WHEN": true, "DO": true,
+    "FOR": true, "IF": true, "BLOCK": true, "LET": true, "TABLE": true,
+    "LOADTABLE": true, "SELECT": true, "EXTEND": true, "SIEVE": true,
+    "ORDER": true, "REACTOR": true}
   const pyret_keywords =
     wordRegexp(["else if"].concat(pyret_opening_keywords_nocolon, pyret_closing_keywords,
                ["var", "rec", "import", "include", "provide", "type", "newtype",
@@ -775,7 +777,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
           else ls.curClosed.v++;
         }
         // Things that are counted, and closable by end:
-        else if (pyret_openers_closed_by_end.indexOf(top) !== -1) {
+        else if (pyret_openers_closed_by_end[top] === true) {
           if (ls.curOpened.fn > 0) ls.curOpened.fn--;
           else if (ls.deferedOpened.fn > 0) ls.deferedOpened.fn--;
           else ls.curClosed.fn++;
