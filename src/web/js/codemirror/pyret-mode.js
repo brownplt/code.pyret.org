@@ -36,7 +36,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_booleans = wordRegexp(["true", "false"]);
   const pyret_keywords_hyphen =
     wordRegexp(["provide-types", "type-let", "does-not-raise", "raises-violates",
-                "raises-satisfies", "raises-other-than", "is-not==", "is-not=~", "is-not<=>", "is-not"]);
+                "raises-satisfies", "raises-other-than", "is-roughly", "is-not==", "is-not=~", "is-not<=>", "is-not"]);
   const pyret_keywords_colon =
     wordRegexp(pyret_opening_keywords_colon.concat(["doc", "otherwise", "then", "with", "sharing", "where", "do", "row", "source"]));
   const pyret_single_punctuation =
@@ -49,7 +49,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                               ">": true, ">=": true, "==": true, "<>": true, ".": true, "^": true,
                               "<=>": true, "=~": true,
                               "is": true, "is==": true, "is=~": true, "is<=>": true,
-                              "is-not": true, "is-not==": true, "is-not=~": true, "is-not<=>": true,
+                              "is-roughly": true, "is-not": true, "is-not==": true, "is-not=~": true, "is-not<=>": true,
                               "satisfies": true, "violates": true, "raises": true, "raises-other-than": true,
                               "does-not-raise": true, "raises-satisfies": true, "raises-violates": true
                             }
