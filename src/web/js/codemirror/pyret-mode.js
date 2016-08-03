@@ -19,13 +19,13 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_opening_keywords_nocolon = ["fun", "when", "for", "if", "let", "ask",
                                           "cases", "data", "shared", "check",
                                           "except", "letrec", "lam", "method",
-                                          "examples", "do", "select", "extend",
+                                          "examples", "do", "select", "extend", "transform", "extract",
                                           "sieve", "order"];
   const pyret_opening_keywords = pyret_opening_keywords_colon.concat(pyret_opening_keywords_nocolon);
   const pyret_opening_tokens = pyret_opening_keywords.map(toToken("keyword"));
   const pyret_openers_closed_by_end = {"FUN": true, "WHEN": true, "DO": true,
     "FOR": true, "IF": true, "BLOCK": true, "LET": true, "TABLE": true,
-    "LOADTABLE": true, "SELECT": true, "EXTEND": true, "SIEVE": true,
+    "LOADTABLE": true, "SELECT": true, "EXTEND": true, "SIEVE": true, "TRANSFORM": true, "EXTRACT": true
     "ORDER": true, "REACTOR": true}
   const pyret_keywords =
     wordRegexp(["else if"].concat(pyret_opening_keywords_nocolon, pyret_closing_keywords,
@@ -674,6 +674,14 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
       ls.tokens.push("EXTEND", "WANTCOLON");
+    } else if (state.lastToken === "transform") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("TRANSFORM", "WANTCOLON");
+    } else if (state.lastToken === "extract") {
+      ls.delimType = pyret_delimiter_type.OPENING;
+      ls.deferedOpened.fn++;
+      ls.tokens.push("EXTRACT", "WANTCOLON");
     } else if (state.lastToken === "sieve") {
       ls.delimType = pyret_delimiter_type.OPENING;
       ls.deferedOpened.fn++;
