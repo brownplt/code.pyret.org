@@ -25,7 +25,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_opening_tokens = pyret_opening_keywords.map(toToken("keyword"));
   const pyret_openers_closed_by_end = {"FUN": true, "WHEN": true, "DO": true,
     "FOR": true, "IF": true, "BLOCK": true, "LET": true, "TABLE": true,
-    "LOADTABLE": true, "SELECT": true, "EXTEND": true, "SIEVE": true, "TRANSFORM": true, "EXTRACT": true
+    "LOADTABLE": true, "SELECT": true, "EXTEND": true, "SIEVE": true, "TRANSFORM": true, "EXTRACT": true,
     "ORDER": true, "REACTOR": true}
   const pyret_keywords =
     wordRegexp(["else if"].concat(pyret_opening_keywords_nocolon, pyret_closing_keywords,
