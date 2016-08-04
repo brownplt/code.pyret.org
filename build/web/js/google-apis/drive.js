@@ -263,6 +263,9 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
   function initialize(wrappedDrive) {
     console.log('doing drive.js/initialize');
+    if (!drive) {
+      console.log('drive not found');
+    }
     drive = wrappedDrive;
 
     var list = drive.files.list({

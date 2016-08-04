@@ -183,7 +183,7 @@ function loadAPIWrapper(immediate) {
     } else {
       console.log('reauth/OAuth2 ' + immediate);
       if (!clientId) {
-        console.log('ds26gte auth not possible');
+        console.log('authorization not possible');
         d.resolve(null);
       }
       else {
@@ -195,10 +195,10 @@ function loadAPIWrapper(immediate) {
             "immediate": false
           }, function(authResult) {
             if (authResult && !authResult.error) {
-              console.log('ds26gte auth successful');
+              console.log('authorization successful');
               d.resolve(reauth(true));
             } else {
-              console.log('ds26gte auth failed');
+              console.log('authorization failed');
               d.resolve(null);
             }
           });

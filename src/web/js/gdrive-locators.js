@@ -56,15 +56,15 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          console.log('ds26gte I ' + JSON.stringify(storage));
+          //console.log('ds26gte I ' + JSON.stringify(storage));
           return storage.getFileByName(filename); //makeWeSchemeMyGDriveLocator
         });
         filesP.fail(function(failure) {
-          console.log('ds26gte II ' + failure);
+          //console.log('ds26gte II ' + failure);
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
         });
         var fileP = filesP.then(function(files) {
-          console.log('ds26gte III');
+          //console.log('ds26gte III');
           checkFileResponse(files, restarter);
           // checkFileResponse throws if there's an error
           return files[0];
@@ -214,15 +214,15 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          console.log('ds26gte aI ' + JSON.stringify(storage));
+          //console.log('ds26gte aI ' + JSON.stringify(storage));
           return storage.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
-          console.log('ds26gte aII ' + failure);
+          //console.log('ds26gte aII ' + failure);
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, id /* filename */)));
         });
         var fileP = filesP.then(function(file) {
-          console.log('ds26gte aIII');
+          //console.log('ds26gte aIII');
           //checkFileResponse(file, filename, restarter);
           // checkFileResponse throws if there's an error
           return file;
