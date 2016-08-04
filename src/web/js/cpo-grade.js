@@ -9,31 +9,30 @@
     "cpo/gdrive-locators"
   ],
   theModule: function(runtime, namespace, uri, cpoIdeHooks, gdriveLocators) {
-    console.log('EVALUATING THE MODULE FOR CPOGRADE');
+    var api;
+    var errNoApiMessage = 'Attempted to get file(s) before storageAPI defined';
 
     window.storageAPI.then(function(programCollectionAPI) {
       console.log('programCollectionAPI:', programCollectionAPI);
+      api = programCollectionAPI;
     }, function(err) {
       console.error(err);
     });
 
     function getFile(id) {
-      var filesThunk = function() {
-        return gQ(drive.files.get({fileId: id}));
-      };
-      return req(filesThunk).then(fileBuilder);
+      if (api) {
+        return api.getFileById(id);
+      } else {
+        console.error(errNoApiMessage);
+      }
     }
 
     function getFiles(id) {
-      var childrenThunk = function() {
-        return gQ(drive.children.list({folderId: id}));
-      };
-      return req(childrenThunk)
-        .then(function(directory) {
-          return Q.all(directory.items.map(function(file) {
-            return getFile(file.id);
-          }));
-        });
+      if (api) {
+        return api.getFolderById(id);
+      } else {
+        console.error(errNoApiMessage);
+      }
     }
 
     function gatherSubmissions(id) {

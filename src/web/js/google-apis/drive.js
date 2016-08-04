@@ -182,6 +182,9 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
           return files.filter(function(f) { return f.getName() === name; });
         });
       },
+      getFolderById: function(id) {
+        return drive.children.list({folderId: id}).then(fileBuilder);
+      },
       getSharedFileById: function(id) {
         return drive.files.get({fileId: id}, true).then(makeSharedFile);
       },
