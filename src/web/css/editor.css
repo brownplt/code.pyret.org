@@ -765,6 +765,18 @@ span.rationalRepeat {
    right: 0;
 }
 
+.has-icon .info-icon-top {
+   display: none;
+   position: absolute;
+   top: 0;
+   right: 0;
+}
+
+.has-icon:hover .info-icon-top {
+   cursor: pointer;
+   display: initial;
+}
+
 .has-icon:hover .info-icon {
    cursor: pointer;
    display: initial;
