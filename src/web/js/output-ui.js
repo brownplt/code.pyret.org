@@ -1656,7 +1656,7 @@
       }
       function helper(container, val, values) {
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
-        else if (runtime.ffi.isVSStr(val)) { container.append(runtime.unwrap(runtime.getField(val, "s"))); }
+        else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
           container.addClass("replToggle");
           container.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
