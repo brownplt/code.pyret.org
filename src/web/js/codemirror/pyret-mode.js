@@ -30,7 +30,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
   const pyret_keywords =
     wordRegexp(["else if"].concat(pyret_opening_keywords_nocolon, pyret_closing_keywords,
                ["var", "rec", "import", "include", "provide", "type", "newtype",
-                "from", "lazy", "shadow", "ref",
+                "from", "lazy", "shadow", "ref", "of",
                 "and", "or", "as", "else", "cases", "is==", "is=~", "is<=>", "is", "satisfies", "raises",
                 "violates", "by", "ascending", "descending", "sanitize", "using"]));
   const pyret_booleans = wordRegexp(["true", "false"]);

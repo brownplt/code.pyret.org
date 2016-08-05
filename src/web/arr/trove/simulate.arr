@@ -71,7 +71,7 @@ fun simulate-trace<A>(r :: Reactor<A>, limit :: Number) -> Any:
     else: help(r.react(time-tick), i - 1)
     end
   end
-  help(r, limit)
+  help(r.start-trace(), limit)
 end
 
 fun get-last-two<A>(t :: Lst<A>) -> {A;A} block:
