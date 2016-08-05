@@ -1,27 +1,12 @@
 provide *
-provide-types *
 
 import global as _
 import lists as lists
-import option as O
 include reactors
+include plot
+include image-structs
 
-type List = lists.List
-List = lists.is-List
-empty = lists.empty
-link = lists.link
-is-empty = lists.is-empty
-is-link = lists.is-link
-fold = lists.fold
-
-type Option = O.Option
-none = O.none
-is-none = O.is-none
-some = O.some
-is-some = O.is-some
-
-
-
+type Lst = lists.List
 
 fun difference():
   var last-val = nothing
@@ -75,36 +60,30 @@ fun running-sum():
   }
 end
 
-fun simulate-with-trace<A>(r :: Reactor<A>) -> List<A>:
-  r.start-trace().interact().get-trace()
-end
-
-fun simulate-with-trace-as-table<A>(r :: Reactor<A>) -> Any:
+fun interact-trace<A>(r :: Reactor<A>) -> Any:
   r.start-trace().interact().get-trace-as-table()
 end
 
-#|
-fun run-with-trace<A>(r :: Reactor<A>, limit :: Number) -> List<A>:
+fun simulate-trace<A>(r :: Reactor<A>, limit :: Number) -> Any:
   fun help(shadow r, i):
     if i <= 0: r.get-trace()
-    else if r.is-stopped(): r.get-trace()
+    else if r.is-stopped(): r.get-trace-as-table()
     else: help(r.react(time-tick), i - 1)
     end
   end
   help(r, limit)
 end
-|#
 
-fun get-last-two<A>(t :: List<A>) -> {A;A} block:
+fun get-last-two<A>(t :: Lst<A>) -> {A;A} block:
   l = t.length()
   when l < 2:
     raise("Trace had fewer than two elements (" + tostring(l) + "), cannot get-last-two")
   end
   fun help(shadow t):
     ask:
-      | is-empty(t) or (is-link(t) and is-empty(t.rest)) then:
+      | lists.is-empty(t) or (lists.is-link(t) and lists.is-empty(t.rest)) then:
         raise("Trace had fewer than two elements, cannot get-last-two")
-      | is-link(t) and is-empty(t.rest.rest) then:
+      | lists.is-link(t) and lists.is-empty(t.rest.rest) then:
         {t.first; t.rest.first}
       | otherwise:
         get-last-two(t.rest)
@@ -119,20 +98,20 @@ end
 
 
 #Length
-fun list-length(l :: List) -> Number:
+fun list-length(l :: Lst) -> Number:
   l.length()
 end
 
 #Sum
-fun list-sum(l :: List<Number>) -> Number:
-  cases (List<Number>) l:
+fun list-sum(l :: Lst<Number>) -> Number:
+  cases (Lst<Number>) l:
     |empty => 0
     |link(first, rest) => first + list-sum(rest)
   end
 end
 
 #Average
-fun list-avg(l :: List<Number>) -> Number:
+fun list-avg(l :: Lst<Number>) -> Number:
   doc: "Find the average of a list of numbers"
   if list-length(l) == 0:
     raise("You can't take the average of an empty list")
@@ -142,16 +121,16 @@ fun list-avg(l :: List<Number>) -> Number:
 end
 
 #Min
-fun list-min(l :: List):
+fun list-min(l :: Lst):
   doc: "Find the minimum element of a list according to the built in ordering of elements"
-  cases (List) l:
+  cases (Lst) l:
     |empty => raise("The list is empty")
     |link(first, rest) => min-helper(first, rest)
   end
 end
 
-fun min-helper(curr-min, l :: List):
-  cases (List) l:
+fun min-helper(curr-min, l :: Lst):
+  cases (Lst) l:
     |empty => curr-min
     |link(first, rest) =>
       if first < curr-min:
@@ -163,16 +142,16 @@ fun min-helper(curr-min, l :: List):
 end
 
 #Max
-fun list-max(l :: List):
+fun list-max(l :: Lst):
   doc: "Find the maximum element of a list according to the built in ordering of elements"
-  cases (List) l:
+  cases (Lst) l:
     |empty => raise("The list is empty")
     |link(first, rest) => max-helper(first, rest)
   end
 end
 
-fun max-helper(curr-max, l :: List):
-  cases (List) l:
+fun max-helper(curr-max, l :: Lst):
+  cases (Lst) l:
     |empty => curr-max
     |link(first, rest) =>
       if first > curr-max:
@@ -185,18 +164,18 @@ end
 
 
 #Median
-fun list-median(l :: List):
+fun list-median(l :: Lst):
   doc: "returns the median element of the list"
   sorted = l.sort()
   index = list-length(sorted)
-  cases (List) sorted:
+  cases (Lst) sorted:
     |empty => raise("The list is empty")
     |link(first, rest) => sorted.get(num-floor(index / 2))
   end
 end
 
 # Standard Deviation
-fun list-stdev(l :: List) -> Number:
+fun list-stdev(l :: Lst) -> Number:
   doc: "returns the standard deviation of the list of numbers"
   mean = list-avg(l)
   sq-diff = l.map(lam(k): num-expt((k - mean), 2) end)
@@ -205,9 +184,9 @@ fun list-stdev(l :: List) -> Number:
 end
 
 #Contains:
-fun list-contains(e, l :: List) -> Boolean:
+fun list-contains(e, l :: Lst) -> Boolean:
   doc: "returns true if element e is in the list l and false otherwise"
-  cases (List) l:
+  cases (Lst) l:
     |empty => false
     |link(first, rest) =>
       if first == e:
@@ -219,18 +198,46 @@ fun list-contains(e, l :: List) -> Boolean:
 end
 
 #Distinct
-fun list-distinct(l :: List) -> List:
+fun list-distinct(l :: Lst) -> Lst:
   doc: "returns a list with exactly the distinct elements of the original list removing the first instance"
-  cases (List) l:
-    |empty => empty
+  cases (Lst) l:
+    |empty => lists.empty
     |link(first, rest) =>
       if list-contains(first, rest):
         list-distinct(rest)
       else:
-        link(first, list-distinct(rest))
+        lists.link(first, list-distinct(rest))
       end
   end
 end
 
+colors = [lists.list: blue, green, red, orange, yellow, blue, purple, brown]
+
+fun display-plots(title, infer-bounds, plots):
+  new-plots = for lists.map_n(n from 0, p from plots):
+    c = lam(x): {color: colors.get(num-modulo(n, colors.length())) } end
+    cases(Plot) p:
+      | function-plot(f , _) => function-plot(f, c)
+      | line-plot(points, _) => line-plot(points, c)
+      | scatter-plot(points, _) => scatter-plot(points, c)
+    end
+  end
+  options = if infer-bounds:
+    _.{infer-bounds: true}
+  else:
+    lam(x): x end
+  end
+  display-multi-plot(title, new-plots, options)
+end
+
+make-function-plot = lam(f):
+  function-plot(f, _.{color: blue})
+end
+make-line-plot = lam(t):
+  line-plot(t, _.{color: blue})
+end
+make-scatter-plot = lam(t):
+  scatter-plot(t, _.{color: blue})
+end
 
 
