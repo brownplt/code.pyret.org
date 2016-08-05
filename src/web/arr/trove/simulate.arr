@@ -76,7 +76,7 @@ end
 
 fun replay-trace(t, to-show, seconds-per-tick) block:
   states = extract state from t end
-  when is-empty(states):
+  when lists.is-empty(states):
     raise("No trace to replay")
   end
   initial = {0; states; to-show(states.first)}
@@ -89,7 +89,7 @@ fun replay-trace(t, to-show, seconds-per-tick) block:
         i
       end,
     stop-when: lam({x;shadow states;i}):
-        is-empty(states)
+        lists.is-empty(states)
       end,
     seconds-per-tick: seconds-per-tick
   end.interact()
