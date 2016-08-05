@@ -74,6 +74,29 @@ fun simulate-trace<A>(r :: Reactor<A>, limit :: Number) -> Any:
   help(r.start-trace(), limit)
 end
 
+fun replay(t, to-show, seconds-per-tick) block:
+  states = extract state from t end
+  when is-empty(states):
+    raise("No trace to replay")
+  end
+  initial = {0; states; to-show(states.first)}
+  reactor:
+    init: initial,
+    on-tick: lam({x; shadow states; i}):
+        { x + 1; states.rest; to-show(states.first) }
+      end,
+    to-draw: lam({x;_;i}):
+        i
+      end,
+    stop-when: lam({x;shadow states;i}):
+        is-empty(states)
+      end,
+    seconds-per-tick: seconds-per-tick
+  end.interact()
+end
+
+
+
 fun get-last-two<A>(t :: Lst<A>) -> {A;A} block:
   l = t.length()
   when l < 2:
