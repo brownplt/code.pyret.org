@@ -55,6 +55,46 @@
       }
 
       // HELPERS
+      // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
+      function renderSimpleReason(err) {
+        var ret = Q.defer();
+        runtime.runThunk(function() { 
+          return get(err.exn || err, "render-reason").app(); 
+        }, function(errorDisp) {
+          if (runtime.isSuccessResult(errorDisp)) {
+            runtime.runThunk(function() {
+              return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, err.pyretStack || []);
+            }, function(domResult) {
+              if (runtime.isSuccessResult(domResult)) {
+                var dom = domResult.result;
+                dom.addClass("compile-error");
+                container.append(dom);
+                dom.on('click', function(){
+                  dom.trigger('toggleHighlight');
+                });
+                dom.click();
+                if (err.pyretStack) {
+                  dom.append(outputUI.renderStackTrace(runtime, documents, srcloc, err.pyretStack || []));
+                }
+                ret.resolve(runtime.nothing);
+              } else {
+                container.append($("<span>").addClass("compile-error internal-error")
+                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
+                console.error("renderSimpleReason: renderErrorDisplay failed:", errorDisp);
+                console.log(err);
+                ret.resolve(runtime.nothing);
+              }
+            });
+          } else {
+            container.append($("<span>").addClass("compile-error internal-error")
+                             .text("An error occurred rendering the reason for this error; details logged to the console"));
+            console.error("renderSimpleReason: render-reason failed:", errorDisp);
+            console.log(err);
+            ret.resolve(runtime.nothing);
+          }
+        });
+        return ret.promise;
+      }
 
       // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
       function drawCompileErrors(e) {
@@ -196,45 +236,6 @@
                 }
               });
           });
-        }
-        
-        // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-        function renderSimpleReason(err) {
-          var ret = Q.defer();
-          runtime.runThunk(function() { 
-            return get(err.exn, "render-reason").app(); 
-          }, function(errorDisp) {
-            if (runtime.isSuccessResult(errorDisp)) {
-              runtime.runThunk(function() {
-                return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, err.pyretStack);
-              }, function(domResult) {
-                if (runtime.isSuccessResult(domResult)) {
-                  var dom = domResult.result;
-                  dom.addClass("compile-error");
-                  container.append(dom);
-                  dom.append(outputUI.renderStackTrace(runtime, documents, srcloc, err.pyretStack));
-                  dom.on('click', function(){
-                    dom.trigger('toggleHighlight');
-                  });
-                  dom.click();
-                  ret.resolve(runtime.nothing);
-                } else {
-                  container.append($("<span>").addClass("compile-error internal-error")
-                                   .text("An error occurred rendering the reason for this error; details logged to the console"));
-                  console.error("renderSimpleReason: renderErrorDisplay failed:", errorDisp);
-                  console.log(err);
-                  ret.resolve(runtime.nothing);
-                }
-              });
-            } else {
-              container.append($("<span>").addClass("compile-error internal-error")
-                               .text("An error occurred rendering the reason for this error; details logged to the console"));
-              console.error("renderSimpleReason: render-reason failed:", errorDisp);
-              console.log(err);
-              ret.resolve(runtime.nothing);
-            }
-          });
-          return ret.promise;
         }
 
         // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
