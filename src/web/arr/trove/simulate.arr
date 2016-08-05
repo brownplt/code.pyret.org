@@ -74,7 +74,7 @@ fun simulate-trace<A>(r :: Reactor<A>, limit :: Number) -> Any:
   help(r.start-trace(), limit)
 end
 
-fun replay(t, to-show, seconds-per-tick) block:
+fun replay-trace(t, to-show, seconds-per-tick) block:
   states = extract state from t end
   when is-empty(states):
     raise("No trace to replay")
