@@ -48,15 +48,127 @@ window.stickMessage = function(message) {
   var err = $("<div>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
 };
+window.mkWarningUpper = function(){return $("<div class='warning-upper'>");}
+window.mkWarningLower = function(){return $("<div class='warning-lower'>");}
 
 $(window).bind("beforeunload", function() {
   return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
 });
+
+CodeMirror.defineDocExtension("rangeHandle", function(position, options) {
+  var inclusiveLeft,
+      inclusiveRight,
+      shared;
+  if (options === undefined) {
+    inclusiveLeft = false,
+    inclusiveRight = false;
+    shared = true;
+  } else {
+    if (options.inclusiveLeft !== undefined)
+      inclusiveLeft = options.inclusiveLeft;
+    if (options.inclusiveRight !== undefined)
+      inclusiveRight = options.inclusiveRight;
+    if (options.shared !== undefined)
+      shared = options.shared;
+  }
+  return this.markText(position.from, to,
+    { inclusiveLeft   : inclusiveLeft,
+      inclusiveRight  : inclusiveRight,
+      shared          : shared  });
+});
+
+var Position = function() {
+  function Position(doc, from, to) {
+    this.doc  = doc;
+    this.changeGeneration = doc.changeGeneration();
+    this.from = from;
+    this.to   = to;
+  }
+}();
+
+var Documents = function() {
+  
+  function Documents() {
+    this.documents = new Map();
+  }
+
+  Documents.prototype.posFromSrcloc = function (runtime, srcloc, loc) {
+    return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+      "builtin": function(_) {
+         throw new Error("Cannot get CodeMirror loc from builtin location");
+      },
+      "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+        if (!this.has(source))
+          throw new Error("Cannot get document for this location: ", loc);
+        else return new Position(
+          this.get(source),
+          new CodeMirror.Pos(startL - 1, startCh),
+          new CodeMirror.Pos(  endL - 1, endC + extraCharForZeroWidthLocs));
+      }
+    });
+  };
+  
+  Documents.prototype.has = function (name) {
+    return this.documents.has(name);
+  };
+
+  Documents.prototype.get = function (name) {
+    return this.documents.get(name);
+  };
+
+  Documents.prototype.set = function (name, doc) {
+    return this.documents.set(name, doc);
+  };
+  
+  Documents.prototype.delete = function (name) {
+    return this.documents.delete(name);
+  };
+
+  Documents.prototype.forEach = function (f) {
+    return this.documents.forEach(f);
+  };
+
+  return Documents;
+}();
+
 window.CPO = {
   save: function() {},
-  autoSave: function() {}
+  autoSave: function() {},
+  documents : new Documents()
 };
 $(function() {
+  var highlightEagerness    = sessionStorage.getItem('highlight-eagerness');
+  var highlightColorfulness = sessionStorage.getItem('highlight-colorfulness');
+  if(highlightEagerness !== null) {
+    $("#highlight-eager").prop("checked",   highlightEagerness === 'eager');
+    $("#highlight-lazy").prop("checked",    highlightEagerness === 'lazy');
+  } else {
+    sessionStorage.setItem('highlight-eagerness', 'eager');
+  }
+  if(highlightColorfulness !== null) {
+    $("#highlight-vibrant").prop("checked",  highlightColorfulness === 'vibrant');
+    $("#highlight-drab").prop("checked",     highlightColorfulness === 'drab');
+  } else {
+    sessionStorage.setItem('highlight-colorfulness', 'vibrant');
+  }
+  function logChange() {
+    $(".highlight-settings").trigger('settingChanged',
+      sessionStorage.getItem('highlight-eagerness'),
+      sessionStorage.getItem('highlight-colorfulness'));
+  }
+  $("#highlight-eager").change(function(e) {
+    if(this.checked) {sessionStorage.setItem('highlight-eagerness', 'eager');logChange();}
+  });
+  $("#highlight-lazy").change(function(e) {
+    if(this.checked) {sessionStorage.setItem('highlight-eagerness', 'lazy');logChange();}
+  });
+  $("#highlight-vibrant").change(function(e) {
+    if(this.checked) {sessionStorage.setItem('highlight-colorfulness', 'vibrant');logChange();}
+  });
+  $("#highlight-drab").change(function(e) {
+    if(this.checked) {sessionStorage.setItem('highlight-colorfulness', 'drab');logChange();}
+  });
+
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -123,14 +235,8 @@ $(function() {
 
 
     if (useLineNumbers) {
-      var upperWarning = jQuery("<div>").addClass("warning-upper");
-      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/img/up-arrow.png");
-      upperWarning.append(upperArrow);
-      CM.display.wrapper.appendChild(upperWarning.get(0));
-      var lowerWarning = jQuery("<div>").addClass("warning-lower");
-      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/img/down-arrow.png");
-      lowerWarning.append(lowerArrow);
-      CM.display.wrapper.appendChild(lowerWarning.get(0));
+      CM.display.wrapper.appendChild(mkWarningUpper()[0]);
+      CM.display.wrapper.appendChild(mkWarningLower()[0]);
     }
 
     return {
@@ -319,6 +425,9 @@ $(function() {
       run: CPO.RUN_CODE,
       initialGas: 100
     });
+    
+    CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
+    
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
@@ -334,6 +443,8 @@ $(function() {
       run: CPO.RUN_CODE,
       initialGas: 100
     });
+    
+    CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
   });
 
   programLoaded.fin(function() {

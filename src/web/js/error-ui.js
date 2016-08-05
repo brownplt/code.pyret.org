@@ -28,7 +28,7 @@
     var cases = ffi.cases;
 
     // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-    function drawError(container, editors, runtime, exception, contextFactory) {
+    function drawError(container, documents, runtime, exception) {
       var cases = ffi.cases;
       var get = runtime.getField;
 
@@ -65,16 +65,17 @@
               return get(e, "render-fancy-reason").app(); 
             }, function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
-                var errorID = !contextFactory ? undefined : contextFactory();
                 runtime.runThunk(function() {
-                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
+                  return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, e.pyretStack || []);
                 }, function(domResult) {
                   if (runtime.isSuccessResult(domResult)) {
                     var dom = domResult.result;
                     dom.addClass("compile-error");
                     container.append(dom);
                     dom.on('click', function(){
+                      $(".highlights-active").removeClass("highlights-active");
                       dom.trigger('toggleHighlight');
+                      dom.addClass("highlights-active");
                     });
                     lastError = dom;
                   } else {
@@ -83,7 +84,6 @@
                     console.error("drawCompileError: renderErrorDisplay failed:", errorDisp);;
                     console.log(errorDisp.exn);
                   }
-                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -92,7 +92,6 @@
                 console.error("drawCompileError: render-fancy-reason failed:", errorDisp);;
                 console.log(errorDisp.exn);
                 renderSimpleReason(e).then(function(_) { 
-                  outputUI.runMarks();
                   restarter.resume(runtime.nothing); 
                 });
               }
@@ -104,7 +103,7 @@
             return drawCompileError(e[i]);
           }), 0, e.length);
         }, function(_) {
-          lastError.trigger('toggleHighlight');
+          lastError.click();
         }, "drawCompileErrors: each: drawCompileError");
       }
 
@@ -137,7 +136,7 @@
               .append($("<p>").text("Error: "))
               .append(exnstringContainer)
               .append($("<p>"))
-              .append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
+              .append(outputUI.renderStackTrace(runtime, documents, srcloc, e.pyretStack));
             container.append(dom);
             if(runtime.isPyretVal(e.exn)) {
               outputUI.renderPyretValue(exnstringContainer, runtime, e.exn);
@@ -151,31 +150,27 @@
 
         // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
         function drawPyretRuntimeError() {
-          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
+          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
+          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
+          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, e.pyretStack);
           runtime.pauseStack(function(restarter) {
             runtime.runThunk(
               function() { 
                 return get(e.exn, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); 
               }, function(errorDisp) {
                 if (runtime.isSuccessResult(errorDisp)) {
-                  var errorID = !contextFactory ? undefined : contextFactory();
-                  var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
-                                                                  e.exn.$name == "arity-mismatch" ? 1 : 0, true);
-                  if(highlightMode === "scsh" && highlightLoc != undefined) {
-                    outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
-                  }
                   runtime.runThunk(function() {
-                    return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
+                    return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, e.pyretStack);
                   }, function(result) {
                     if (runtime.isSuccessResult(result)) {
                       var dom = result.result;
-                      dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
+                      dom.append(outputUI.renderStackTrace(runtime, documents, srcloc, e.pyretStack));
                       dom.on('click', function(){
+                        $(".highlights-active").removeClass("highlights-active");
                         dom.trigger('toggleHighlight');
+                        dom.addClass("highlights-active");
                       });
-                      dom.trigger('toggleHighlight');
+                      dom.click();
                       dom.addClass("compile-error");
                       container.append(dom);
                     } else {
@@ -183,21 +178,19 @@
                                  .text("Something went wrong while rendering the error"));
                       console.log("drawPyretRuntimeError: renderErrorDisplay failed:", result.exn);
                     }
-                    outputUI.runMarks();
                     restarter.resume(runtime.nothing);
                   });
                 } else {
                   renderSimpleReason(e).then(function(_) {
-                    errorError = $("<span>").addClass("compile-error internal-error highlights-active")
+                    errorError = $("<span>").addClass("compile-error internal-error")
                       .text("An error occurred rendering the reason for the above error; details logged to the console");
                     if(!container.hasClass("internal-error")) {
-                      drawError(errorError, editors, runtime, errorDisp, undefined);
+                      drawError(errorError, documents, runtime, errorDisp, undefined);
                     }
                     container.append(errorError);
-                    errorError.trigger('toggleHighlight');
+                    errorError.click();
                     console.error("drawPyretRuntimeError: render-fancy-reason failed:", errorDisp);
                     console.log(e.exn);
-                    outputUI.runMarks();
                     restarter.resume(runtime.nothing);
                   });
                 }
@@ -212,21 +205,18 @@
             return get(err.exn, "render-reason").app(); 
           }, function(errorDisp) {
             if (runtime.isSuccessResult(errorDisp)) {
-              var errorID = !contextFactory ? undefined : contextFactory();
               runtime.runThunk(function() {
-                return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, err.pyretStack, errorID);
+                return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, err.pyretStack);
               }, function(domResult) {
                 if (runtime.isSuccessResult(domResult)) {
                   var dom = domResult.result;
                   dom.addClass("compile-error");
                   container.append(dom);
-                  dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, err));
-                  if(contextFactory == undefined) {
-                    dom.on('click', function(){
-                      dom.trigger('toggleHighlight');
-                    });
-                  }
-                  dom.trigger('toggleHighlight');
+                  dom.append(outputUI.renderStackTrace(runtime, documents, srcloc, err.pyretStack));
+                  dom.on('click', function(){
+                    dom.trigger('toggleHighlight');
+                  });
+                  dom.click();
                   ret.resolve(runtime.nothing);
                 } else {
                   container.append($("<span>").addClass("compile-error internal-error")
@@ -249,9 +239,9 @@
 
         // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
         function drawPyretContractFailure(err) {
-          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
+          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
+          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
+          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, exception.pyretStack);
           var isArg = ffi.isFailArg(err);
           var loc = get(err, "loc");
           var reason = get(err, "reason");
@@ -261,24 +251,25 @@
             }, function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 runtime.runThunk(function() {
-                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
+                  return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, exception.pyretStack);
                 }, function(domResult) {
                   if (runtime.isSuccessResult(domResult)) {
                     var dom = domResult.result;
                     dom.addClass("compile-error");
                     dom.on('click', function(){
+                      $(".highlights-active").removeClass("highlights-active");
                       dom.trigger('toggleHighlight');
+                      dom.addClass("highlights-active");
                     });
                     container.append(dom);
-                    dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
-                    dom.trigger('toggleHighlight');
+                    dom.append(outputUI.renderStackTrace(runtime, documents, srcloc, exception.pyretStack));
+                    dom.click();
                   } else {
                     container.append($("<span>").addClass("compile-error")
                                      .text("An error occurred rendering the reason for this error; details logged to the console"));
                     console.error("drawPyretContractFailure: renderErrorDisplay failed:", errorDisp);
                     console.log(errorDisp.exn);
                   }
-                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -286,7 +277,6 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawPyretContractFailure: render-fancy-reason failed", errorDisp);
                 console.log(errorDisp.exn);
-                outputUI.runMarks();
                 restarter.resume(runtime.nothing);
               }
             });
@@ -294,21 +284,23 @@
         }
 
         function drawPyretParseError() {
-          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
+          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
           runtime.pauseStack(function(restarter) {
             runtime.runThunk(function() { 
               return get(e.exn, "render-fancy-reason").app(srclocAvaliable);
             }, function(errorDisp) {
               if (runtime.isSuccessResult(errorDisp)) {
                 runtime.runThunk(function() {
-                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
+                  return outputUI.renderErrorDisplay(documents, runtime, errorDisp.result, e.pyretStack || []);
                 }, function(domResult) {
                   if (runtime.isSuccessResult(domResult)) {
                     var rendering = domResult.result;
                     rendering
                       .addClass("compile-error")
                       .on('click', function(){
+                        $(".highlights-active").removeClass("highlights-active");
                         rendering.trigger('toggleHighlight');
+                        rendering.addClass("highlights-active");
                       })
                       .appendTo(container);
                   } else {
@@ -317,7 +309,6 @@
                     console.error("drawPyretParseError: renderErrorDisplay failed:", errorDisp);
                     console.log(errorDisp.exn);
                   }
-                  outputUI.runMarks();
                   restarter.resume(runtime.nothing);
                 });
               } else {
@@ -325,7 +316,6 @@
                                  .text("An error occurred rendering the reason for this error; details logged to the console"));
                 console.error("drawPyretParseError: render-fancy-reason failed:", errorDisp);
                 console.log(errorDisp.exn);
-                outputUI.runMarks();
                 restarter.resume(runtime.nothing);
               }
             });

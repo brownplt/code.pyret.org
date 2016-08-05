@@ -216,10 +216,10 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs) {
       self.browser.wait(function () {
         return self.browser.isElementPresent(webdriver.By.className("check-results-done-rendering"));
       }, 20000);
-      return response.findElements(webdriver.By.className("check-block-result"));
+      return response.findElements(webdriver.By.className("check-block"));
     });
     var blocksAsSpec = checkBlocks.then(function(cbs) {
-      var tests = cbs.map(function(cb, i) {
+      var tests = cbs.slice(1).map(function(cb, i) {
         return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
           return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
             return tests.length === 0
