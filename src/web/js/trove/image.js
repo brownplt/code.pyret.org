@@ -600,7 +600,7 @@
 
     f("scale", function(maybeFactor, maybeImg) {
       checkArity(2, arguments, "scale");
-      c("scale", [maybeFactor, maybeImg], [annAngle, annImage]);
+      c("scale", [maybeFactor, maybeImg], [runtime.Number, annImage]);
       var factor = checkReal(maybeFactor);
       var img = checkImage(maybeImg);
       return makeImage(image.makeScaleImage(jsnums.toFixnum(factor), jsnums.toFixnum(factor), img));
