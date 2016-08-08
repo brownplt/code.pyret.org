@@ -112,10 +112,12 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     }
 
     // Handle Number Literals
-    const number = new RegExp("^[-+]?[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+    const unsigned_decimal_part = "[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?";
+    const unsigned_rational_part = "[0-9]+/[0-9]+"; 
+    const number = new RegExp("^[-+]?" + unsigned_decimal_part);
     const badNumber = new RegExp("^~?[+-]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?");
-    const roughnum = new RegExp("^~[-+]?[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
-    const rational = new RegExp("^[-+]?[0-9]+/[0-9]+");
+    const roughnum = new RegExp("^~[-+]?"  + "(?:" + unsigned_rational_part + "|" + unsigned_decimal_part + ")");
+    const rational = new RegExp("^[-+]?" + unsigned_rational_part);
     if (stream.match(roughnum))
       return ret(state, 'number', stream.current(), 'roughnum');
     else if (stream.match(rational))

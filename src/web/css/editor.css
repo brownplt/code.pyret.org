@@ -638,6 +638,7 @@ div#font-label:hover{
   padding-bottom: 0.4em;
   color: #1f1180;
   display: inline-block;
+  font-family: monospace;
 }
 
 .replOutput .replOutput {
