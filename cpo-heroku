@@ -9,7 +9,7 @@ heroku apps:destroy $herokuappname
 heroku create $herokuappname
 
 heroku config:set \
-GOOGLE_CLIENT_ID=""125479063721-60sk0v6j638qt41s8em5s3c2q2dk857f.apps.googleusercontent.com \
+GOOGLE_CLIENT_ID="125479063721-60sk0v6j638qt41s8em5s3c2q2dk857f.apps.googleusercontent.com" \
 GOOGLE_CLIENT_SECRET="ZzKh-8L4sRvcewqVBvmMpBXk" \
 GOOGLE_API_KEY="" \
 BASE_URL="https://$herokuappname.herokuapp.com" \
