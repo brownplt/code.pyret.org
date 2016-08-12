@@ -5544,7 +5544,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               name: "let-expr",
               pos: blankLoc,
               kids: [{
-                  name: "binding",
+                  name: "name-binding",
                   pos: blankLoc,
                   kids: [{
                       name: "SHADOW",
@@ -5849,7 +5849,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var psym = sym.val;
       //var psym = pyretizeSymbol(sym.val)
       return {
-        name: "binding",
+        name: "name-binding",
         kids: [{
           name: "SHADOW",
           value: "shadow",

@@ -369,8 +369,8 @@ define([], function() {
 
           var uri = "wescheme-legacy://" + filename;
 
-          //var filename2 = "http://www.wescheme.org/loadProject?publicId=" + filename;
-          var filename2 = "http://231-dot-wescheme-hrd-2.appspot.com/loadProject?publicId=" + filename;
+          var filename2 = "http://www.wescheme.org/loadProject?publicId=" + filename;
+          //var filename2 = "http://231-dot-wescheme-hrd-2.appspot.com/loadProject?publicId=" + filename;
 
           function needsCompile() { return true; }
 
