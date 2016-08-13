@@ -541,7 +541,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         replace(/^#%/, 'ƎHASHPCT').
         replace(/^_/, 'ƎUNDERSCORE').
         replace(/^(\d)/, 'Ǝ$1').
-        replace(/^(debug|new|string-split)$/, 'ƎEMPTY$1')
+        replace(/^(debug|new|string-split|type)$/, 'ƎEMPTY$1')
       }
       return str2
     }
