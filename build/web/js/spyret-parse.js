@@ -6331,7 +6331,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                   name: "args",
                   kids: [
                     lParenStx, {
-                      name: "binding",
+                      name: "name-binding",
                       kids: [makeResolvedName("_struct_", field.location)],
                       pos: field.location
                     },
@@ -6417,7 +6417,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
             }, {
               name: "args",
               kids: [lParenStx, {
-                name: "binding",
+                name: "name-binding",
                 kids: [makeResolvedName("_struct_", this.location)],
                 pos: this.location
               }, rParenStx],
