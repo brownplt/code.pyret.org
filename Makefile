@@ -68,7 +68,10 @@ build/web/neweditor/js/%.js: src/web/neweditor/js/%.js
 build/web/css/codemirror.css: $(CM)/lib/codemirror.css
 	cp $< $@
 
-MISC_CSS = build/web/css/codemirror.css
+build/web/css/foldgutter.css: $(CM)/addon/fold/foldgutter.css
+	cp $< $@
+
+MISC_CSS = build/web/css/codemirror.css build/web/css/foldgutter.css
 
 COPY_GIF := $(patsubst src/web/img/%.gif,build/web/img/%.gif,$(wildcard src/web/img/*.gif))
 
@@ -124,6 +127,12 @@ build/web/js/pyret-fold.js: src/web/js/codemirror/pyret-fold.js
 build/web/js/matchkw.js: src/web/js/codemirror/matchkw.js
 	cp $< $@
 
+build/web/js/foldcode.js: $(CM)/addon/fold/foldcode.js
+	cp $< $@
+
+build/web/js/foldgutter.js: $(CM)/addon/fold/foldgutter.js
+	cp $< $@
+
 build/web/js/pyret-mode.js: src/web/js/codemirror/pyret-mode.js
 	cp $< $@
 
@@ -134,6 +143,8 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/seedrandom.js \
           build/web/js/pyret-fold.js \
           build/web/js/matchkw.js \
+          build/web/js/foldcode.js \
+          build/web/js/foldgutter.js \
           build/web/js/colorspaces.js \
           build/web/js/es6-shim.js \
           build/web/js/runmode.js
