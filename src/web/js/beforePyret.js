@@ -55,58 +55,11 @@ $(window).bind("beforeunload", function() {
   return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
 });
 
-CodeMirror.defineDocExtension("rangeHandle", function(position, options) {
-  var inclusiveLeft,
-      inclusiveRight,
-      shared;
-  if (options === undefined) {
-    inclusiveLeft = false,
-    inclusiveRight = false;
-    shared = true;
-  } else {
-    if (options.inclusiveLeft !== undefined)
-      inclusiveLeft = options.inclusiveLeft;
-    if (options.inclusiveRight !== undefined)
-      inclusiveRight = options.inclusiveRight;
-    if (options.shared !== undefined)
-      shared = options.shared;
-  }
-  return this.markText(position.from, to,
-    { inclusiveLeft   : inclusiveLeft,
-      inclusiveRight  : inclusiveRight,
-      shared          : shared  });
-});
-
-var Position = function() {
-  function Position(doc, from, to) {
-    this.doc  = doc;
-    this.changeGeneration = doc.changeGeneration();
-    this.from = from;
-    this.to   = to;
-  }
-}();
-
 var Documents = function() {
   
   function Documents() {
     this.documents = new Map();
   }
-
-  Documents.prototype.posFromSrcloc = function (runtime, srcloc, loc) {
-    return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
-      "builtin": function(_) {
-         throw new Error("Cannot get CodeMirror loc from builtin location");
-      },
-      "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-        if (!this.has(source))
-          throw new Error("Cannot get document for this location: ", loc);
-        else return new Position(
-          this.get(source),
-          new CodeMirror.Pos(startL - 1, startCh),
-          new CodeMirror.Pos(  endL - 1, endC + extraCharForZeroWidthLocs));
-      }
-    });
-  };
   
   Documents.prototype.has = function (name) {
     return this.documents.has(name);
