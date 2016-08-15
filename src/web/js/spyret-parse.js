@@ -7142,6 +7142,20 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       //console.log('doing requireExpr:toPyretAST ' + this.spec);
       var moduleName = this.spec;
 
+      if (window.COLLECTIONS === undefined) {
+        window.COLLECTIONS = [];
+      }
+
+      if (window.COLLECTIONS[moduleName]) {
+        return {
+          name: "id-expr",
+          kids: [makeResolvedName("nothing", this.location, true)],
+          pos: this.location
+        }
+      } else {
+        window.COLLECTIONS[moduleName] = true;
+      }
+
       // is this a shared WeScheme program?
       function getWeSchemeLegacyModule(name) {
         var m = name.match(/^wescheme\/(\S+)$/);
@@ -7205,7 +7219,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }]
       }
 
-    }
+    };
 
     provideStatement.prototype.toPyretAST = function() {
       return {
