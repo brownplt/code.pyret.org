@@ -355,6 +355,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["empty?"] = "is-empty";
     symbolMap["foldl"] = "_spyret_foldl";
     symbolMap["foldr"] = "_spyret_foldr";
+    symbolMap["for-each"] = "_spyret_for_each";
     symbolMap["length"] = "list-length";
     symbolMap["list->vector"] = "array-from-list";
     symbolMap["list?"] = "is-link";
@@ -453,6 +454,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["unbox"] = "_spyret_unbox";
     symbolMap["set-box!"] = "_spyret_set_box";
 
+    symbolMap["make-hash"] = "_spyret_make_hash";
+    symbolMap["hash?"] = "_spyret_hash_q";
+    symbolMap["hash-ref"] = "_spyret_hash_ref";
+    symbolMap["hash-set!"] = "_spyret_hash_set";
+
     symbolMap["above"] = "_spyret_above";
     symbolMap["above/align"] = "_spyret_above-align";
     symbolMap["angle?"] = "is-angle";
@@ -460,12 +466,14 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["beside/align"] = "_spyret_beside-align";
     symbolMap["big-bang"] = "_spyret_big-bang";
     symbolMap["bitmap/url"] = "bitmap-url";
+    symbolMap["color-list->bitmap"] = "color-list-to-bitmap";
     symbolMap["color-list->image"] = "color-list-to-image";
     symbolMap["color?"] = "is-color";
     symbolMap["image->color-list"] = "image-to-color-list";
     symbolMap["image-color?"] = "is-image-color";
     symbolMap["image?"] = "is-image";
     symbolMap["mode?"] = "is-mode";
+    symbolMap["name->color"] = "name-to-color";
     symbolMap["on-tick"] = "_spyret_on-tick";
     symbolMap["overlay"] = "_spyret_overlay";
     symbolMap["overlay/align"] = "_spyret_overlay-align";
