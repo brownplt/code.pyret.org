@@ -383,7 +383,7 @@
             console.error("srclocAvaliable should not be passed a builtin source location.", srcloc);
             return runtime.pyretFalse;
           },
-          "srcloc": function(filename, _, _, _, _, _, _) {
+          "srcloc": function(filename, _, __, ___, ____, _____, ______) {
             if (documents.has(filename)) {
               return runtime.pyretTrue;
             } else {
@@ -401,7 +401,7 @@
             console.error("maybeLocToAST should not be passed a builtin source location.", loc);
             return runtime.ffi.makeNone();
           },
-          "srcloc": function(filename, start_line, start_col, _, end_line, end_col, _) {
+          "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
             var prelude = ""
             for(var i=1; i < start_line; i++) {prelude += "\n";}
             for(var i=0; i < start_col; i++)  {prelude += " "; }
