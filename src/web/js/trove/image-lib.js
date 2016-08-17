@@ -558,26 +558,26 @@
       ctx.beginPath();
 
       // we care about the stroke because drawing to a canvas is *different* for
-      // fill v. stroke! If it's fill, we can draw on the pixel boundaries and
+      // fill v. stroke! If it's outline, we can draw on the pixel boundaries and
       // stroke within them. If it's stroke, we need to draw _inside_ those 
-      // boudanries, adjusting by a half-pixel towards the center.
-      var isStroke = this.style.toString().toLowerCase() === "outline";
+      // boundaries, adjusting by a half-pixel towards the center.
+      var isSolid = this.style.toString().toLowerCase() !== "outline";
 
       var vertices;
       // pixel-perfect vertices fail on Chrome, and certain versions of FF,
-      // so we only enable the offset if we're not doing the test
-      if(ctx.isEqualityTest || !isStroke){
+      // so we disable the offset for equality tests and solid images
+      if(ctx.isEqualityTest || isSolid){
           vertices = this.vertices;
       } else {
           // find the midpoint of the xs and ys from vertices
-          var midX = findWidth(this.vertices) / 2;
+          var midX = findWidth(this.vertices)  / 2;
           var midY = findHeight(this.vertices) / 2;
 
           // compute 0.5px offsets to ensure that we draw on the pixel
           // and not the pixel boundary
           vertices = this.vertices.map(function(v){
-              return {x: v.x + (v.x <= midX ? 0.5 : -0.5),
-                      y: v.y + (v.y <= midY ? 0.5 : -0.5)};
+              return {x: v.x + (v.x < midX ? 0.5 : -0.5),
+                      y: v.y + (v.y < midY ? 0.5 : -0.5)};
           });
       }
 
@@ -585,12 +585,12 @@
       vertices.forEach(function(v) { ctx.lineTo( x + v.x, y + v.y); });
       ctx.closePath();
 
-      if (isStroke) {
-        ctx.strokeStyle = colorString(this.color);
-        ctx.stroke();
-      } else {
+      if (isSolid) {
         ctx.fillStyle = colorString(this.color, this.style);
         ctx.fill();
+      } else {
+        ctx.strokeStyle = colorString(this.color);
+        ctx.stroke();
       }
       ctx.restore();
     };
@@ -1350,8 +1350,8 @@
     // RectangleImage: Number Number Mode Color -> Image
     var RectangleImage = function(width, height, style, color) {
       BaseImage.call(this);
-      this.width  = width;
-      this.height = height;
+      this.width  = Math.max(1, width);   // an outline rectangle with no delta X or delta Y
+      this.height = Math.max(1, height);  // should still take up one visible pixel
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:0,y:height},{x:0,y:0},{x:width,y:0},{x:width,y:height}];
@@ -1650,8 +1650,8 @@
       // preserve the invariant that all vertex-based images have a style
       this.style  = "outline";
       this.color  = color;
-      this.width  = Math.abs(x);
-      this.height = Math.abs(y);
+      this.width  = Math.max(1, Math.abs(x)); // a line with no delta X should still take up one visible pixel
+      this.height = Math.max(1, Math.abs(y)); // a line with no delta Y should still take up one visible pixel
       this.vertices = vertices;
       this.ariaText = " a" + colorToSpokenString(color,'solid') + " line of width "+x+" and height "+y;
     };
