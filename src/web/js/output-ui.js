@@ -548,12 +548,12 @@
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
         var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var cssColor = colorfulness != "vibrant" ? globalColor : color;
         for(var i = 0; i < anchors.length; i++) {
-          anchors[i].css('background-color',
-            colorfulness != "vibrant" ? globalColor : color);
+          anchors[i].css('background-color', cssColor);
         }
         for(var i = 0; i < positions.length; i++) {
-          positions[i].highlight(colorfulness != "vibrant" ? globalColor : color);
+          positions[i].highlight(cssColor);
         }
       }
     }
@@ -580,13 +580,13 @@
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
         var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var cssColor = colorfulness != "vibrant" ? globalColor : color;
         for(var i = 0; i < anchors.length; i++) {
-          anchors[i].css('background-color', 
-            colorfulness != "vibrant" ? globalColor : color);
+          anchors[i].css('background-color', cssColor);
           anchors[i].addClass('highlight-blink');
         }
         for(var i = 0; i < positions.length; i++) {
-          positions[i].blink(colorfulness != "vibrant" ? globalColor : color);
+          positions[i].blink(cssColor);
         }
       }
     }
@@ -603,8 +603,9 @@
           anchors[i].removeClass('highlight-blink');
         }
         if(colorsHighlighted.has(color)) {
+          var cssColor = colorfulness != "vibrant" ? globalColor : color;
           for(var i = 0; i < positions.length; i++) {
-            positions[i].highlight(colorfulness != "vibrant" ? globalColor : color);
+            positions[i].highlight(cssColor);
           }
         } else {
           for(var i = 0; i < positions.length; i++) {
