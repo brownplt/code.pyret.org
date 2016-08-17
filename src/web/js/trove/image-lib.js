@@ -377,11 +377,12 @@
     // colorString : hexColor Style -> rgba
     // Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
     var colorString = function(aColor, aStyle) {
-      var alpha = isNaN(aStyle)? 1.0 : aStyle/255;
-      return "rgba(" + colorRed(aColor) + "," +
-        colorGreen(aColor) + ", " +
-        colorBlue(aColor) + ", " +
-        alpha + ")";
+      var styleAlpha = isNaN(aStyle)? 1.0 : aStyle/255,
+          colorAlpha = colorAlpha(aColor)/255;
+      return "rgba(" +  colorRed(aColor)   + ", " +
+                        colorGreen(aColor) + ", " +
+                        colorBlue(aColor)  + ", " +
+                        styleAlpha * colorAlpha + ")";
     };
 
     function RGBtoLAB(r, g, b){
