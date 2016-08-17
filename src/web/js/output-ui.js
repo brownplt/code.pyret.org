@@ -413,10 +413,8 @@
                 new CodeMirror.Pos(start_line - 1, start_col),
                 new CodeMirror.Pos(  end_line - 1,   end_col));
             runtime.pauseStack(function(restarter) {
-              runtime.run(function(_, __) {
+              runtime.runThunk(function() {
                 return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
-              }, runtime.namespace, {
-                sync: false
               }, function(result) {
                 if(runtime.isSuccessResult(result)) {
                   restarter.resume(runtime.ffi.makeSome(result.result.dict.block.dict.stmts.dict.first));
