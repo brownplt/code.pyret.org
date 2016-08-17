@@ -670,8 +670,8 @@
       var x2 = jsnums.toFixnum(checkReal(maybeX2));
       var y2 = jsnums.toFixnum(checkReal(maybeY2));
       var color = checkColor(maybeC);
-      var img = checkImage(maybeImg);
-      var line = image.makeLineImage(x2 - x1, y2 - y1, color, true);
+      var img   = checkImage(maybeImg);
+      var line  = image.makeLineImage(x2 - x1, y2 - y1, color, true);
       var leftmost = Math.min(x1, x2);
       var topmost = Math.min(y1, y2);
       return makeImage(image.makeOverlayImage(line, img, -leftmost, -topmost));
