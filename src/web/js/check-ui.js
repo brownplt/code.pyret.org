@@ -482,10 +482,12 @@
       
       }catch(e){console.error(e);}
       
+      // All should only be called on the pyret stack, within `vivifySkeleton` or `vivifySkeletonFallback` fallback.
       let maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
       let srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
       let maybeStackLoc   = runtime.makeFunction(function(n, userFramesOnly) {return runtime.ffi.makeNone();});
       
+      // must be called on the pyret stack
       function vivifySkeletonFallback(restarter, skeleton) { 
         return runtime.runThunk(function() { 
           return get(skeleton.renderable, "render-reason").app(); 
@@ -515,6 +517,7 @@
         });
       }
       
+      // must be called on the pyret stack
       function vivifySkeleton(skeleton) {
         runtime.pauseStack(function(restarter){
           runtime.runThunk(function(){
