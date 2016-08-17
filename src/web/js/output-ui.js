@@ -407,17 +407,24 @@
             for(var i=0; i < start_col; i++)  {prelude += " "; }
             if(!documents.has(filename))
               return runtime.ffi.makeNone();
-            var source = documents.
-              get(filename).
-              getRange(
-                new CodeMirror.Pos(start_line - 1, start_col),
-                new CodeMirror.Pos(  end_line - 1,   end_col));
+            var start = new CodeMirror.Pos(start_line - 1, start_col);
+            var   end = new CodeMirror.Pos(  end_line - 1,   end_col);
+            var source = documents.get(filename).getRange(start, end);
             runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
                 return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
               }, function(result) {
                 if(runtime.isSuccessResult(result)) {
-                  restarter.resume(runtime.ffi.makeSome(result.result.dict.block.dict.stmts.dict.first));
+                  try {
+                    restarter.resume(runtime.ffi.makeSome(result.result.dict.block.dict.stmts.dict.first));
+                  } catch (e) {
+                    console.error(
+                      'Unexpected failure in extracting first expresion in AST: ', e,
+                      'Requested Location: ', {from: start, to: end},
+                      'Program Source: ', source,
+                      'Parse result: ', result);
+                    restarter.resume(runtime.ffi.makeNone());
+                  }
                 } else {
                   restarter.resume(runtime.ffi.makeNone());
                 }
