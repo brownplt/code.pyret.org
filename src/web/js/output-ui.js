@@ -547,17 +547,13 @@
         colorsHighlighted.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
+        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color',
-            sessionStorage.getItem("highlight-colorfulness") != "vibrant" 
-                ? globalColor
-                : color);
+            colorfulness != "vibrant" ? globalColor : color);
         }
         for(var i = 0; i < positions.length; i++) {
-          positions[i].highlight(
-            sessionStorage.getItem("highlight-colorfulness") != "vibrant" 
-                ? globalColor
-                : color);
+          positions[i].highlight(colorfulness != "vibrant" ? globalColor : color);
         }
       }
     }
@@ -583,18 +579,14 @@
         colorsEmphasized.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
+        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', 
-            sessionStorage.getItem("highlight-colorfulness") != "vibrant" 
-              ? globalColor
-              : color);
+            colorfulness != "vibrant" ? globalColor : color);
           anchors[i].addClass('highlight-blink');
         }
         for(var i = 0; i < positions.length; i++) {
-          positions[i].blink(
-            sessionStorage.getItem("highlight-colorfulness") != "vibrant" 
-              ? globalColor
-              : color);
+          positions[i].blink(colorfulness != "vibrant" ? globalColor : color);
         }
       }
     }
@@ -606,15 +598,13 @@
         colorsEmphasized.delete(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
+        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].removeClass('highlight-blink');
         }
         if(colorsHighlighted.has(color)) {
           for(var i = 0; i < positions.length; i++) {
-            positions[i].highlight(
-              sessionStorage.getItem("highlight-colorfulness") != "vibrant" 
-                ? globalColor
-                : color);
+            positions[i].highlight(colorfulness != "vibrant" ? globalColor : color);
           }
         } else {
           for(var i = 0; i < positions.length; i++) {
