@@ -189,8 +189,9 @@
 
         FailingTestSkeleton.prototype.refresh = function refresh() {
           var snippets = this.tombstone.querySelectorAll(".CodeMirror");
-          for (var i = 0; i < snippets.length; i++) {
-            snippets[i].CodeMirror.refresh();
+          for (let i = 0; i < snippets.length; i++) {
+            window.requestAnimationFrame(
+              CodeMirror.prototype.refresh.bind(snippets[i].CodeMirror));
           }
         };
 
@@ -379,7 +380,8 @@
           this.tombstone.appendChild(rendering[0]);
           var snippets = rendering.find(".CodeMirror");
           for (var i = 0; i < snippets.length; i++) {
-            snippets[i].CodeMirror.refresh();
+            window.requestAnimationFrame(
+              CodeMirror.prototype.refresh.bind(snippets[i].CodeMirror));
           }
         };
 
