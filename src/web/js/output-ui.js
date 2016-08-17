@@ -629,11 +629,13 @@
     
     $(".highlight-settings").bind('settingChanged', 
       function (_, eagerness, colorfulness) {
-        colorsHighlighted.forEach(function(color) {
-          unhighlight(color);
-        });
-        colorsEmphasized.forEach(function(color) {
-          demphasize(color);
+        window.requestAnimationFrame(function() {
+          colorsHighlighted.forEach(function(color) {
+            unhighlight(color);
+          });
+          colorsEmphasized.forEach(function(color) {
+            demphasize(color);
+          });
         });
         if (eagerness == 'eager') {
           $(".compile-error.highlights-active, " +
@@ -897,18 +899,24 @@
               else Array.prototype.push.apply(messagePositions.get(color), 
                                               positions);
               anchor.on("click", function (e) {
-                if (positions[0] !== undefined)
-                  positions[0].goto();
-                event.stopPropagation();
+                window.requestAnimationFrame(function() {
+                  if (positions[0] !== undefined)
+                    positions[0].goto();
+                  event.stopPropagation();
+                });
               });
               anchor.on("mouseenter", function () {
-                if (positions[0] !== undefined)
-                  positions[0].hint();
-                emphasize(color);
+                window.requestAnimationFrame(function() {
+                  if (positions[0] !== undefined)
+                    positions[0].hint();
+                  emphasize(color);
+                });
               });
               anchor.on("mouseleave", function () {
-                unhintLoc();
-                demphasize(color);
+                window.requestAnimationFrame(function() {
+                  unhintLoc();
+                  demphasize(color);
+                });
               });
               return anchor;
             }, "highlight: help(contents)");
@@ -959,18 +967,20 @@
         });
 
         rendering.bind('toggleHighlight',function() {
-          colorsHighlighted.forEach(function(color) {
-            unhighlight(color);
-          });
-          colorsEmphasized.forEach(function(color) {
-            demphasize(color);
-          });
-          if(sessionStorage.getItem('highlight-eagerness') != 'lazy') {
-            messageAnchors.forEach(function (_, color) {
-              if (!messageHintedColors.has(color))
-                highlight(color);
+          window.requestAnimationFrame(function() {
+            colorsHighlighted.forEach(function(color) {
+              unhighlight(color);
             });
-          }
+            colorsEmphasized.forEach(function(color) {
+              demphasize(color);
+            });
+            if(sessionStorage.getItem('highlight-eagerness') != 'lazy') {
+              messageAnchors.forEach(function (_, color) {
+                if (!messageHintedColors.has(color))
+                  highlight(color);
+              });
+            }
+          });
         });
 
         return rendering;
