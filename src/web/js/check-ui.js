@@ -501,14 +501,14 @@
                 restarter.resume(runtime.nothing);
               } else {
                 skeleton.vivify(
-                  $("<span>").text("An error occurred rendering the reason for this error; details logged to the console"));
+                  $("<span>").text("Two errors occurred rendering the reason for this error; details logged to the console"));
                 console.error(result);
                 restarter.resume(runtime.nothing);
               }
             });
           } else {
             skeleton.vivify(
-              $("<span>").text("An error occurred rendering the reason for this error; details logged to the console"));
+              $("<span>").text("Three errors occurred displaying the reason for this error; details logged to the console"));
             console.error(result);
             restarter.resume(runtime.nothing);
           }
