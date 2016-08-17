@@ -1310,24 +1310,41 @@ code div {
   display: none;
 }
 
-.test-reason:empty
-.check-block-tests:empty,
+.test-reason:empty,
 .check-block-error:empty {
+  margin: 0 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content:center;
   height: 3em;
-  background-image: url(img/pyret-spin.gif);
+  color: #555;
+  overflow: hidden;
+}
+
+.check-block-error:empty {
+  background-color: rgba(255,255,255,0.4);
+  border-radius: 0.5em;
+  padding: 0.5em;
+}
+
+.test-reason:empty:before,
+.check-block-error:empty:before {
+  content: '';
+  display: block;
+  min-height: 3em;
+  min-width: 3em;
+  background-image: url(/img/pyret-spin.gif);
   background-size: contain;
   background-repeat: no-repeat;
+  flex: 1;
 }
 
-.test-reason:empty > * {
-  opacity: 0;
-  transition: opacity .5s linear;
+.test-reason:empty:after,
+.check-block-error:empty:after {
+  display: block;
+  content: 'Processing Result…';
+  flex: 1.5;
 }
-
-.test-reason:not(:empty) > * {
-  opacity: 1;
-}
-
 
 
 .check-block-header:after {
