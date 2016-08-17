@@ -72,7 +72,7 @@
           }
         });
         
-        positionCache.set(doc.changeGeneration(), {from, to});
+        positionCache.set(doc.changeGeneration(), {from: from, to: to});
       }
       
       Position.prototype.on = function on(type, f) {
