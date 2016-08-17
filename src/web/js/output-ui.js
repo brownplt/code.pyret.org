@@ -415,14 +415,18 @@
                 return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
               }, function(result) {
                 if(runtime.isSuccessResult(result)) {
-                  try {
-                    restarter.resume(runtime.ffi.makeSome(result.result.dict.block.dict.stmts.dict.first));
-                  } catch (e) {
+                  var res = result.result;
+                  res = res && res.dict.block;
+                  res = res && res.dict.stmts;
+                  res = res && res.dict.first;
+                  if (res) {
+                    restarter.resume(runtime.ffi.makeSome(res));
+                  } else {
                     console.error(
-                      'Unexpected failure in extracting first expresion in AST: ', e,
-                      'Requested Location: ', {from: start, to: end},
-                      'Program Source: ', source,
-                      'Parse result: ', result);
+                      'Unexpected failure in extracting first expresion in AST:',
+                      '\nRequested Location:\t', {from: start, to: end},
+                      '\nProgram Source:\t', source,
+                      '\nParse result:\t', result);
                     restarter.resume(runtime.ffi.makeNone());
                   }
                 } else {
