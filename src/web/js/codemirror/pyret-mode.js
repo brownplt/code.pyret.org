@@ -53,9 +53,10 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                                 OPENING : 1,      // Opening token (e.g. "fun", "{")
                                 CLOSING : 2,      // Closing token (e.g. "end", "}")
                                 SUBKEYWORD : 3,   // Subkeyword (e.g. "else if")
-                                OPEN_CONTD : 4,   // Extension of opening keyword (i.e. function names & ":")
+                                OPEN_CONTD : 4,   // Extension of opening keyword (e.g. ":")
                                 CLOSE_CONTD : 5,  // Extension of closing keyword (UNUSED)
-                                SUB_CONTD : 6};    // Extension of subkeyword (i.e. colon after "else if")
+                                SUB_CONTD : 6,    // Extension of subkeyword (i.e. colon after "else if")
+                                FOLD_OPEN_CONTD : 7}; // Extension of opening keyword (acts like OPEN_CONTD *when folding*)
 
   // Contexts in which function-names can be unprefixed
   // (i.e. no "fun" or "method")
@@ -376,9 +377,18 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       ls.nestingsAtLineStart = ls.nestingsAtLineEnd.copy();
     }
     // Special case: period-separated names in for <func>(...) expressions
-    if ((state.lastToken === "name" || state.lastToken === ".") && hasTop(ls.tokens, "WANTCOLONORBLOCK", "FOR")) {
+    // Philip: disabling for now, since this is only useful for staying visible when folding...
+    //         ...not to mention that it's been broken for who-knows-how-long and no one has
+    //         noticed since it's not even really used
+    /*if ((state.lastToken === "name" || state.lastToken === ".") && hasTop(ls.tokens, ["WANTCOLONORBLOCK", "FOR"])) {
       if (inOpening)
         ls.delimType = pyret_delimiter_type.OPEN_CONTD;
+    }*/
+    // Special case: don't hide function-names when folding
+    if ((state.lastToken === "name") && (style === 'function-name')
+        && (hasTop(ls.tokens, ["WANTOPENPAREN", "WANTCLOSEPAREN", "WANTCOLONORBLOCK", "FUN"]))) {
+      if (inOpening) // Slightly redundant, but let's be safe
+        ls.delimType = pyret_delimiter_type.FOLD_OPEN_CONTD;
     }
     // Uncomment if pyret_unprefixed_contexts is ever used again
     /*if (state.lastToken === "name" && style === 'function-name' && isUnprefixedContext(ls.tokens)) {
