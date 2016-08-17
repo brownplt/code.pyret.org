@@ -504,14 +504,14 @@
               } else {
                 skeleton.vivify(
                   $("<span>").text("Two errors occurred rendering the reason for this error; details logged to the console"));
-                console.error(result);
+                console.error("Displaying rendered reason failed in `vivifySkeletonFallback`:", result);
                 restarter.resume(runtime.nothing);
               }
             });
           } else {
             skeleton.vivify(
               $("<span>").text("Three errors occurred displaying the reason for this error; details logged to the console"));
-            console.error(result);
+            console.error("Calling `render-reason` failed in `vivifySkeletonFallback`:", result);
             restarter.resume(runtime.nothing);
           }
         });
@@ -537,10 +537,16 @@
                       result.result.append(outputUI.renderStackTrace(runtime, documents, srcloc, skeleton.pyretStack));
                     skeleton.vivify(result.result);
                     restarter.resume(runtime.nothing);
-                  } else vivifySkeletonFallback(restarter, skeleton);
+                  } else {
+                    console.error("Displaying rendered reason failed in `vivifySkeleton`:", result);
+                    vivifySkeletonFallback(restarter, skeleton, result);
+                  }
                 });
-            } else vivifySkeletonFallback(restarter, skeleton);
-          })
+            } else {
+              console.error("Calling `render-fancy-reason` failed in `vivifySkeletonFallback`:", result);
+              vivifySkeletonFallback(restarter, skeleton, result);
+            }
+          });
         });
       }
       
