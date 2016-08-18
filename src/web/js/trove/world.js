@@ -27,6 +27,14 @@
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number", "Number", "String" ], ["tid", "a"]]],
              "WCOofA"]],
+      "on-tap": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"], "String" ], ["tid", "a"]]],
+             "WCOofA"]],
+      "on-tilt": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"], "Number", "Number" ], ["tid", "a"]]],
+             "WCOofA"]],
       "on-key": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"], "String" ], ["tid", "a"]]],
@@ -303,6 +311,44 @@
     };
 
 
+    /////
+
+    var OnTap = function(handler) {
+      WorldConfigOption.call(this, 'on-tap');
+      this.handler = handler;
+    }
+
+    OnTap.prototype = Object.create(WorldConfigOption.prototype);
+
+    OnTap.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var worldFunction = adaptWorldFunction(that.handler);
+      return rawJsworld.on_tap(
+        function(w, e, success) {
+          worldFunction(w, e, success);
+        });
+    };
+
+    /////
+
+    var OnTilt = function(handler) {
+      WorldConfigOption.call(this, 'on-tilt');
+      this.handler = handler;
+    }
+
+    OnTilt.prototype = Object.create(WorldConfigOption.prototype);
+
+    OnTilt.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var worldFunction = adaptWorldFunction(that.handler);
+      return rawJsworld.on_tilt(
+        function(w, lr, td, success) {
+          worldFunction(w, lr, td, success);
+        });
+    };
+
+
+
 
 
 
@@ -542,6 +588,16 @@
             runtime.ffi.checkArity(1, arguments, "on-mouse");
             runtime.checkFunction(onMouse);
             return runtime.makeOpaque(new OnMouse(onMouse));
+          }),
+          "on-tap": makeFunction(function(onTap) {
+            runtime.ffi.checkArity(1, arguments, "on-tap");
+            runtime.checkFunction(onTap);
+            return runtime.makeOpaque(new OnTap(onTap));
+          }),
+          "on-tilt": makeFunction(function(onTilt) {
+            runtime.ffi.checkArity(1, arguments, "on-tilt");
+            runtime.checkFunction(onMouse);
+            return runtime.makeOpaque(new OnTilt(onTilt));
           }),
           "is-world-config": makeFunction(function(v) {
             runtime.ffi.checkArity(1, arguments, "is-world-config");
