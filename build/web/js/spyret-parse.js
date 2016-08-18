@@ -459,6 +459,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["hash-ref"] = "_spyret_hash_ref";
     symbolMap["hash-set!"] = "_spyret_hash_set";
 
+    symbolMap["struct?"] = "_spyret_struct_p";
+
     symbolMap["above"] = "_spyret_above";
     symbolMap["above/align"] = "_spyret_above-align";
     symbolMap["angle?"] = "is-angle";
@@ -7310,7 +7312,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    console.log('ws_ast_j = ' + ws_ast_j);
+    //console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }
