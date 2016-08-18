@@ -898,6 +898,125 @@
     Jsworld.on_mouse = on_mouse;
 
 
+    function on_tap(press) {
+	return function(thisWorldIndex) {
+            var e;
+            var top;
+
+
+            var f = function(w, k) { press(w, e, k); };
+	    var wrappedPress = function(_e) {
+                if (thisWorldIndex != worldIndex) { return; }
+                e = _e;
+                if (top) { top.focus(); }
+  
+		preventDefault(e);
+		stopPropagation(e);
+              change_world(f, doNothing);
+	    };
+
+	    return {
+		onRegister: function(top_) {
+                    top = top_;
+//                    attachEvent(top, 'mousedown', wrappedPress);
+                    attachEvent(top, 'touchstart', wrappedPress); 
+                },
+		onUnregister: function(top) { 
+//                    detachEvent(top, 'mousedown', wrappedPress);
+                    detachEvent(top, 'touchstart', wrappedPress); 
+                }
+	    };
+	}
+    }
+    Jsworld.on_tap = on_tap;
+
+
+    // devicemotion, deviceorientation
+    //   
+    // http://stackoverflow.com/questions/4378435/how-to-access-accelerometer-gyroscope-data-from-javascript
+    // http://www.murraypicton.com/2011/01/exploring-the-iphones-accelerometer-through-javascript/
+    //
+    // with orientation change content in:
+    //
+    // http://stackoverflow.com/questions/1649086/detect-rotation-of-android-phone-in-the-browser-with-javascript
+    function on_tilt(tilt) {
+	return function(thisWorldIndex) {
+	    var wrappedTilt;
+            var leftRight = 0,    // top/down
+                topDown = 0;   // left/right
+            var tickId;
+            var delay = 1000 / 4; // Send an update four times a second.
+            
+            var f = function(w, k) { tilt(w, leftRight, topDown, k); };
+
+            var reschedule = function() {
+                tickId = setTimeout(function() {
+                  if (thisWorldIndex != worldIndex) { return; }
+                  change_world(f, reschedule);
+                }, delay);
+            };
+
+            if (window.DeviceOrientationEvent) {
+                wrappedTilt = function(e) {
+                    if (thisWorldIndex != worldIndex) { return; }
+		    preventDefault(e);
+		    stopPropagation(e);
+
+                    // Under web browsers that don't have an accelerometer,
+                    // we actually get the null values for beta and gamma.
+                    // We should guard against that.
+                    if (e.gamma === null || e.beta === null) {
+                        if (tickId) { clearTimeout(tickId); tickId = undefined; }
+                        return;
+                    }
+
+                    if (window.orientation === 0) {
+                        // Portrait
+                        leftRight = e.gamma;
+                        topDown = e.beta; 
+                    } else if (window.orientation === 90) {
+                        // Landscape (counterclockwise turn from portrait)
+                        leftRight = e.beta;
+                        topDown = -(e.gamma); 
+                    } else if (window.orientation === -90) {
+                        // Landscape (clockwise turn from portrait)
+                        leftRight = -(e.beta);
+                        topDown = e.gamma; 
+                    } else if (window.orientation === 180) {
+                        // upside down
+                        leftRight = -(e.gamma);
+                        topDown = -(e.beta); 
+                    } else {
+                        // Failsafe: treat as portrait if we don't get a good
+                        // window.orientation.
+                        leftRight = e.gamma;
+                        topDown = e.beta; 
+                    }
+                };
+
+	        return {
+		    onRegister: function(top) { 
+                        attachEvent(window, 'deviceorientation', wrappedTilt); 
+                        reschedule();
+                    },
+		    onUnregister: function(top) { 
+                        if(tickId) { clearTimeout(tickId); }
+                        detachEvent(window, 'deviceorientation', wrappedTilt);
+                    }
+	        };
+            } else {
+                // Otherwise, the environment doesn't support orientation events.
+	        return {
+		    onRegister: function(top) { },
+		    onUnregister: function(top) { }
+	        };
+            }
+	}
+    }
+    Jsworld.on_tilt = on_tilt;
+
+
+
 
 
     var checkDomSexp;
