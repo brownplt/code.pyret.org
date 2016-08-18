@@ -343,6 +343,12 @@ $(function() {
     pyretLoad.type = "text/javascript";
     document.body.appendChild(pyretLoad);
     CPO.editor.focus();
+    $(pyretLoad).on("error", function() {
+      $("#loader").hide();
+      $("#runPart").hide();
+      $("#breakButton").hide();
+      window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+    });
   });
 
 });

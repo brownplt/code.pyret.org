@@ -3,7 +3,11 @@
     { "import-type": "builtin", "name": "base" },
     { "import-type": "builtin", "name": "image" },
     { "import-type": "builtin", "name": "world" },
-    { "import-type": "builtin", "name": "str-dict" }
+    { "import-type": "builtin", "name": "gdrive-sheets" },
+    { "import-type": "builtin", "name": "plot" },
+    { "import-type": "builtin", "name": "str-dict" },
+    { "import-type": "builtin", "name": "reactors" },
+    { "import-type": "builtin", "name": "simulate" }
   ],
   provides: {},
   nativeRequires: [],
