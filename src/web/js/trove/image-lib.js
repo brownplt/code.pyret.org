@@ -379,11 +379,11 @@
     // The above value which is non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
       var styleAlpha = isNaN(aStyle)? 1.0 : aStyle/255,
-          colorAlpha = colorAlpha(aColor)/255;
+          cAlpha = colorAlpha(aColor)/255;
       return "rgba(" +  colorRed(aColor)   + ", " +
                         colorGreen(aColor) + ", " +
                         colorBlue(aColor)  + ", " +
-                        styleAlpha * colorAlpha + ")";
+                        styleAlpha * cAlpha + ")";
     };
 
     function RGBtoLAB(r, g, b){
