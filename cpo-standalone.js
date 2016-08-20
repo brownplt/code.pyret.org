@@ -72,6 +72,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
         runtime.checkTable(val);
         return val;
       };
+      runtime.makePrimAnn("Table", table.isTable);
     },
     "builtin://data-source": function(ds) {
       ds = runtime.getField(runtime.getField(ds, "provide-plus-types"), "values");

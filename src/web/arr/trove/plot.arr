@@ -41,8 +41,6 @@ import string-dict as SD
 OFFSET = 1
 MAX-SAMPLES = 100000
 
-type Table = Any # for now
-
 type PlotOptions = {
   color :: I.Color
 }
@@ -86,6 +84,7 @@ data PlotInternal:
   | scatter-plot-int(points :: TableInt, options :: PlotOptions)
   | function-plot-int(f :: PlottableFunction, options :: PlotOptions)
 end
+
 
 id = {<A>(x :: A): x}
 default-options = id
@@ -364,3 +363,35 @@ fun display-multi-plot(
 
   helper(options)
 end
+
+default-plot-color-list = [list: I.green, I.red, I.orange, I.yellow, I.blue, I.purple, I.brown]
+
+fun display-plots(title, infer-bounds, plots):
+  len = default-plot-color-list.length()
+  new-plots = for map_n(n from 0, p from plots):
+    c = lam(x): {color: default-plot-color-list.get(num-modulo(n, len)) } end
+    cases(Plot) p:
+      | function-plot(f , _) => function-plot(f, c)
+      | line-plot(points, _) => line-plot(points, c)
+      | scatter-plot(points, _) => scatter-plot(points, c)
+    end
+  end
+  options = if infer-bounds:
+    _.{infer-bounds: true}
+  else:
+    lam(x): x end
+  end
+  display-multi-plot(title, new-plots, options)
+end
+
+make-function-plot = lam(f):
+  function-plot(f, _.{color: I.blue})
+end
+make-line-plot = lam(t):
+  line-plot(t, _.{color: I.blue})
+end
+make-scatter-plot = lam(t):
+  scatter-plot(t, _.{color: I.blue})
+end
+
+
