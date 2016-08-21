@@ -40,7 +40,7 @@ The editor will be served from `http://localhost:5000/editor`.
 If you edit JavaScript or HTML files in `src/web`, run
 
 ```
-$ heroku local:run make web
+$ npm run build
 ```
 
 and then refresh the page.
@@ -80,17 +80,19 @@ The instructions for setting up Selenium to open Chrome locally are somewhat
 platform-specific, but you can try just running:
 
 ```
-heroku local:run mocha
+npm install selenium-webdriver mocha chromedriver
+npm run mocha
 ```
 
-with Selenium installed and a development server running.  You can refine this
-with, e.g.
+with Selenium and mocha installed and a development server running.  You can
+refine this with, e.g.
 
 ```
-heroku local:run mocha -g "errors"
+npm run mocha -- -g "errors"
 ```
 
-to only run the tests in `test/errors.js`.
+to only run the tests in `test/errors.js`.  (The extra `--` are to escape the
+portion of the options to pass to the underlying `mocha` command).
 
 Another options to run all the tests on Sauce Labs (https://saucelabs.com).
 You can also get a personal free account with unlimited testing if you only
