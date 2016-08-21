@@ -1104,17 +1104,16 @@
     };
 
     OverlayImage.prototype.equals = function(other) {
-      if (!(other instanceof OverlayImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width    &&
+      return (other instanceof OverlayImage     &&
+              this.width     === other.width    &&
               this.height    === other.height   &&
               this.x1        === other.x1       &&
               this.y1        === other.y1       &&
               this.x2        === other.x2       &&
               this.y2        === other.y2       &&
               imageEquals(this.img1, other.img1) &&
-              imageEquals(this.img2, other.img2) );
+              imageEquals(this.img2, other.img2) )
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
