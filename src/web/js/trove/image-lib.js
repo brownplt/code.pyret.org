@@ -807,13 +807,13 @@
       ctx.rect(x, y, this.width, this.height);
       ctx.clip();
       // Ask every object to render itself inside the region
-      for(i = 0; i < this.children.length; i++) {
-        // then, render the child images
-        childImage = this.children[i][0];
-        childX = this.children[i][1];
-        childY = this.children[i][2];
-        childImage.render(ctx, childX + x, childY + y);
-      }
+        this.children.forEach(function(child) { 
+            // then, render the child images
+            childImage = child[0];
+            childX = child[1];
+            childY = child[2];
+            childImage.render(ctx, childX + x, childY + y);
+        });
       // unclip
       ctx.restore();
 
@@ -824,31 +824,17 @@
     };
 
     SceneImage.prototype.equals = function(other) {
-      if (!(other instanceof SceneImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      if (this.width    !== other.width ||
-          this.height   !== other.height ||
-          this.children.length !== other.children.length) {
-        return false;
-      }
-
-      var foundDiff = false;
-      for (var i = 0; i < this.children.length; i++) {
-        var rec1 = this.children[i];
-        var rec2 = other.children[i];
-        if (rec1[1] !== rec2[1] ||
-            rec1[2] !== rec2[2] ||
-            !rec1[0].equals(rec2[0])) {
-          foundDiff = true
-        }
-      }
-      if(foundDiff) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      else {
-        return true;
-      }
+        return (other instanceof SceneImage     &&
+                this.width    == other.width    &&
+                this.height   == other.height   &&
+                this.children.length == other.children.length && 
+                this.children.every(function(child1, i) {
+                    var child2 = other.children[i];
+                    return (child1[1] == child2[1] &&
+                            child1[2] == child2[2] &&
+                            child1[0].equals(child2[0]));
+                }))
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -929,10 +915,8 @@
     };
 
     FileImage.prototype.equals = function(other) {
-      if (!(other instanceof FileImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.src === other.src);
+        return (other instanceof FileImage) && this.src === other.src
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -976,12 +960,12 @@
     }
     FileVideo.prototype = heir(BaseImage.prototype);
 
-    var videos = {};
+    var videoCache = {};
     FileVideo.makeInstance = function(path, rawVideo) {
       if (! (path in FileVideo)) {
-        videos[path] = new FileVideo(path, rawVideo);
+        videoCache[path] = new FileVideo(path, rawVideo);
       }
-      return videos[path];
+      return videoCache[path];
     };
 
     FileVideo.prototype.render = function(ctx, x, y) {
@@ -1123,12 +1107,12 @@
       if (!(other instanceof OverlayImage)) {
         return BaseImage.prototype.equals.call(this, other);
       }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.x1        === other.x1 &&
-              this.y1        === other.y1 &&
-              this.x2        === other.x2 &&
-              this.y2        === other.y2 &&
+      return (this.width     === other.width    &&
+              this.height    === other.height   &&
+              this.x1        === other.x1       &&
+              this.y1        === other.y1       &&
+              this.x2        === other.x2       &&
+              this.y2        === other.y2       &&
               imageEquals(this.img1, other.img1) &&
               imageEquals(this.img2, other.img2) );
     };
@@ -1179,15 +1163,14 @@
     };
 
     RotateImage.prototype.equals = function(other) {
-      if (!(other instanceof RotateImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.angle     === other.angle &&
-              this.translateX=== other.translateX &&
-              this.translateY=== other.translateY &&
-              imageEquals(this.img, other.img) );
+      return (other instanceof RotateImage          &&
+              this.width     === other.width        &&
+              this.height    === other.height       &&
+              this.angle     === other.angle        &&
+              this.translateX=== other.translateX   &&
+              this.translateY=== other.translateY   &&
+              imageEquals(this.img, other.img) )
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1222,13 +1205,11 @@
     };
 
     ScaleImage.prototype.equals = function(other) {
-      if (!(other instanceof ScaleImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.xFactor   === other.xFactor &&
-              this.yFactor   === other.yFactor &&
+      return (other instanceof ScaleImage       &&
+              this.width     === other.width    &&
+              this.height    === other.height   &&
+              this.xFactor   === other.xFactor  &&
+              this.yFactor   === other.yFactor  &&
               imageEquals(this.img, other.img) )
             || BaseImage.prototype.equals.call(this, other);
     };
@@ -1259,14 +1240,13 @@
     };
 
     CropImage.prototype.equals = function(other) {
-      if (!(other instanceof CropImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.x         === other.x &&
-              this.y         === other.y &&
-              imageEquals(this.img, other.img) );
+        return (other instanceof CropImage      &&
+                this.width     === other.width  &&
+                this.height    === other.height &&
+                this.x         === other.x      &&
+                this.y         === other.y      &&
+                imageEquals(this.img, other.img) )
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1293,10 +1273,9 @@
     };
 
     FrameImage.prototype.equals = function(other) {
-      if (!(other instanceof FrameImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return imageEquals(this.img, other.img);
+      return (other instanceof FrameImage &&
+             BaseImage.prototype.equals.call(this, other) )
+          || imageEquals(this.img, other.img);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1339,13 +1318,12 @@
     };
 
     FlipImage.prototype.equals = function(other) {
-      if (!(other instanceof FlipImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
+      return (other instanceof FlipImage         &&
+              this.width     === other.width     &&
+              this.height    === other.height    &&
               this.direction === other.direction &&
-              imageEquals(this.img, other.img) );
+              imageEquals(this.img, other.img) ) 
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1507,18 +1485,17 @@
     };
 
     TextImage.prototype.equals = function(other) {
-      if (!(other instanceof TextImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.str      === other.str &&
-              this.size     === other.size &&
-              this.face     === other.face &&
-              this.family   === other.family &&
-              this.style    === other.style &&
-              this.weight   === other.weight &&
+      return (other instanceof TextImage        &&
+              this.str      === other.str       &&
+              this.size     === other.size      &&
+              this.face     === other.face      &&
+              this.family   === other.family    &&
+              this.style    === other.style     &&
+              this.weight   === other.weight    &&
+              this.font     === other.font      &&
               this.underline === other.underline &&
-              equals(this.color, other.color) &&
-              this.font === other.font);
+              equals(this.color, other.color))
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
