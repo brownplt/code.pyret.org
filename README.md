@@ -40,7 +40,7 @@ The editor will be served from `http://localhost:5000/editor`.
 If you edit JavaScript or HTML files in `src/web`, run
 
 ```
-$ heroku local:run make web
+$ npm run build
 ```
 
 and then refresh the page.
