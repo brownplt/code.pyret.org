@@ -545,7 +545,7 @@
                   }
                 });
             } else {
-              console.error("Calling `render-fancy-reason` failed in `vivifySkeletonFallback`:", result);
+              console.error("Calling `render-fancy-reason` failed in `vivifySkeleton`:", result);
               vivifySkeletonFallback(restarter, skeleton, result);
             }
           });
