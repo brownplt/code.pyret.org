@@ -474,21 +474,13 @@
 
     // given two arrays of {x,y} structs, determine their equivalence
     var verticesEqual = function(v1, v2){
-      if(v1.length !== v2.length){ return false; }
-      for(var i=0; i< v1.length; i++){
-        if(v1[i].x !== v2[i].x || v1[i].y !== v2[i].y){ return false; }
-      }
-      return true;
+        if(v1.length !== v2.length){ return false; }
+        var v1_str = v1.map(function(o){return "x:"+o.x+",y:"+o.y}).join(","),
+            v2_str = v2.map(function(o){return "x:"+o.x+",y:"+o.y}).join(",");
+        // v1 == rot(v2) if append(v1,v1) includes v2
+        return (v1_str+","+v1_str).includes(v2_str);
     };
-    // given two arrays of xs and ys, zip them into a vertex array
-    var zipVertices = function(xs, ys){
-      if(xs.length !== ys.length){throw new Error('failure in zipVertices');}
-      var vertices = [];
-      for(var i=0; i<xs.length;i++){
-        vertices.push({x: xs[i], y: ys[i]});
-      }
-      return vertices;
-    };
+
     // given an array of (x, y) pairs, unzip them into separate arrays
     var unzipVertices = function(vertices){
         return {xs: vertices.map(function(v) { return v.x }),
@@ -504,7 +496,6 @@
         var ys = unzipVertices(vertices).ys;
         return Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
     }
-
     // given a list of vertices and a translationX/Y, shift them
     var translateVertices = function(vertices) {
         var vs = unzipVertices(vertices);
@@ -601,24 +592,11 @@
     // Constructs a canvas object of a particular width and height.
     var makeCanvas = function(width, height) {
       var canvas = document.createElement("canvas");
-      canvas.width = width;
+      canvas.width  = width;
       canvas.height = height;
-
       canvas.style.width  = canvas.width  + "px";
       canvas.style.height = canvas.height + "px";
-
-      // KLUDGE: IE compatibility uses /js/excanvas.js, and dynamic
-      // elements must be marked this way.
-      if (window && typeof window.G_vmlCanvasManager !== 'undefined') {
-          canvas = window.G_vmlCanvasManager.initElement(canvas);
-      }
-
       return canvas;
-    };
-
-    var withIeHack = function(canvas, f) {
-      var result = f(canvas);
-      return result;
     };
 
     // Images are expected to define a render() method, which is used
@@ -637,16 +615,15 @@
       // document.
       var onAfterAttach = function(event) {
         // jQuery(canvas).unbind('afterAttach', onAfterAttach);
-        var ctx = this.getContext("2d");
+        ctx = this.getContext("2d");
         that.render(ctx, 0, 0);
       };
       jQuery(canvas).bind('afterAttach', onAfterAttach);
 
       // Canvases lose their drawn content on cloning.  data may help us to preserve it.
       jQuery(canvas).data('toRender', onAfterAttach);
-
+      // ARIA: use "image" as default text.
       canvas.ariaText = this.ariaText || "image";
-
       return canvas;
     };
 
@@ -794,7 +771,6 @@
 
     // render: 2d-context primitive-number primitive-number -> void
     SceneImage.prototype.render = function(ctx, x, y) {
-      var i;
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
@@ -1044,28 +1020,19 @@
         y2 = Math.max(placeY, 0);
       }
 
-      // calculate the vertices of this image by translating the verticies of the sub-images
+      // calculate the vertices of this image by translating the vertices of the sub-images
       var i, v1 = img1.getVertices(), v2 = img2.getVertices(), xs = [], ys = [];
-
-      for(i=0; i<v1.length; i++){
-        xs.push(Math.round(v1[i].x + x1));
-        ys.push(Math.round(v1[i].y + y1));
-      }
-      for(i=0; i<v2.length; i++){
-        xs.push(Math.round(v2[i].x + x2));
-        ys.push(Math.round(v2[i].y + y2));
-      }
-
+      v1 = v1.map(function(v){ return {x: v.x + x1, y: v.y + y1}; });
+      v2 = v2.map(function(v){ return {x: v.x + x2, y: v.y + y2}; });
+        
       // store the vertices as something private, so this.getVertices() will still return undefined
-      this._vertices = zipVertices(xs, ys);
-      this.width  = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
-      this.height = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
+      this._vertices = v1.concat(v2);
 
       // store the offsets for rendering
-      this.x1 = Math.floor(x1);
-      this.y1 = Math.floor(y1);
-      this.x2 = Math.floor(x2);
-      this.y2 = Math.floor(y2);
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
       this.img1 = img1;
       this.img2 = img2;
       var positionText;
@@ -1089,6 +1056,8 @@
       } else if(!isNaN(placeY)){
         positionText += " , shifted up by "+placeY;
       }
+      this.width  = findWidth(this._vertices);
+      this.height = findHeight(this._vertices);
       this.ariaText = " an overlay: first image is" + img1.ariaText + positionText + img2.ariaText;
     };
 
@@ -1308,14 +1277,6 @@
       ctx.restore();
     };
 
-    FlipImage.prototype.getWidth = function() {
-      return Math.round(this.width);
-    };
-
-    FlipImage.prototype.getHeight = function() {
-      return Math.round(this.height);
-    };
-
     FlipImage.prototype.equals = function(other) {
       return (other instanceof FlipImage         &&
               this.width     === other.width     &&
@@ -1347,8 +1308,6 @@
       // cos(angle/2-in-radians) * side = half of height
       this.width  = Math.sin(angle/2 * Math.PI / 180) * side * 2;
       this.height = Math.abs(Math.cos(angle/2 * Math.PI / 180)) * side * 2;
-      this.side   = side;
-      this.angle  = angle;
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:this.width/2, y:0},
@@ -1356,7 +1315,6 @@
                        {x:this.width/2, y:this.height},
                        {x:0,            y:this.height/2}];
       this.ariaText = " a"+colorToSpokenString(color,style) + " rhombus of size "+side+" and angle "+angle;
-
     };
     RhombusImage.prototype = heir(BaseImage.prototype);
 
@@ -1369,27 +1327,22 @@
     // rotate a 3/4 quarter turn plus half the angle length to keep bottom base level
     var PolygonImage = function(length, count, step, style, color) {
       BaseImage.call(this);
-      this.outerRadius = Math.floor(length/(2*Math.sin(Math.PI/count)));
-      this.innerRadius = Math.floor(length/(2*Math.tan(Math.PI/count)));
+      this.outerRadius = Math.round(length/(2*Math.sin(Math.PI/count)));
+      this.innerRadius = Math.round(length/(2*Math.tan(Math.PI/count)));
       var adjust = (3*Math.PI/2)+Math.PI/count;
 
       // rotate around outer circle, storing x and y coordinates
-      var radians = 0, xs = [], ys = [];
+      var radians = 0, vertices = [];
       for(var i = 0; i < count; i++) {
         radians = radians + (step*2*Math.PI/count);
-        xs.push(Math.round(this.outerRadius*Math.cos(radians-adjust)));
-        ys.push(Math.round(this.outerRadius*Math.sin(radians-adjust)));
+        vertices.push({ x: Math.round(this.outerRadius*Math.cos(radians-adjust)),
+                        y: Math.round(this.outerRadius*Math.sin(radians-adjust))});
       }
-      var vertices = zipVertices(xs, ys);
 
-      this.width      = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
-      this.height     = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
-      this.length     = length;
-      this.count      = count;
-      this.step       = step;
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
       this.style      = style;
       this.color      = color;
-
       this.vertices = translateVertices(vertices);
       this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
                       +" sided polygon with each side of length "+length;
@@ -1397,19 +1350,11 @@
 
     PolygonImage.prototype = heir(BaseImage.prototype);
 
-    var maybeQuote = function(s) {
-      if (/ /.test(s)) {
-        return "\"" + s + "\"";
-      }
-      return s;
-    };
-
     var textContainer, textParent;
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
     var TextImage = function(str, size, color, face, family, style, weight, underline) {
       BaseImage.call(this);
-      var metrics;
       this.str        = str;
       this.size       = size;   // 18
       this.color      = color;  // red
@@ -1418,14 +1363,10 @@
       this.style      = (style === "slant")? "oblique" : style;  // Racket's "slant" -> CSS's "oblique"
       this.weight     = (weight=== "light")? "lighter" : weight; // Racket's "light" -> CSS's "lighter"
       this.underline  = underline;
+      // NOTE: we *ignore* font-family, as it causes a number of font bugs due the browser inconsistencies
       // example: "bold italic 20px 'Times', sans-serif".
       // Default weight is "normal", face is "Arial"
-
-      this.font = (this.style + " " +
-                   this.weight + " " +
-                   this.size + "px " +
-                   '"'+this.face+'", '+
-                   this.family);
+      this.font = (this.style+" " +this.weight+" "+this.size+"px "+'"'+this.face+'", '+this.family);
 
       // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
       // based off of the amazing work at http://mudcu.be/journal/2011/01/html5-typographic-metrics/#baselineCanvas
@@ -1534,11 +1475,7 @@
       BaseImage.call(this);
       var thirdX = sideB * Math.cos(angleA * Math.PI/180);
       var thirdY = sideB * Math.sin(angleA * Math.PI/180);
-
       var offsetX = 0 - Math.min(0, thirdX); // angleA could be obtuse
-
-      this.width = Math.max(sideC, thirdX) + offsetX;
-      this.height = Math.abs(thirdY);
 
       var vertices = [];
       // if angle < 180 start at the top of the canvas, otherwise start at the bottom
@@ -1551,10 +1488,12 @@
         vertices.push({x: offsetX + sideC, y: -thirdY});
         vertices.push({x: offsetX + thirdX, y: 0});
       }
-      this.vertices = vertices;
 
+      this.width = Math.max(sideC, thirdX) + offsetX;
+      this.height = Math.abs(thirdY);
       this.style = style;
       this.color = color;
+      this.vertices = vertices;
       this.ariaText = " a"+colorToSpokenString(color,style) + " triangle whose base is of length "+sideC
           +", with an angle of " + (angleA%180) + " degrees between it and a side of length "+sideB;
     };
@@ -1595,8 +1534,7 @@
       if (this.style.toString().toLowerCase() === "outline") {
         ctx.strokeStyle = colorString(this.color);
         ctx.stroke();
-      }
-      else {
+      } else {
         ctx.fillStyle = colorString(this.color, this.style);
         ctx.fill();
       }
@@ -1625,11 +1563,11 @@
         if (y >= 0) { vertices = [{x: -x, y:  0}, {x: 0, y: y}]; }
         else        { vertices = [{x: -x, y: -y}, {x: 0, y: 0}]; }
       }
-      // preserve the invariant that all vertex-based images have a style
-      this.style  = "outline";
-      this.color  = color;
+      
       this.width  = Math.max(1, Math.abs(x)); // a line with no delta X should still take up one visible pixel
       this.height = Math.max(1, Math.abs(y)); // a line with no delta Y should still take up one visible pixel
+      this.style  = "outline"; // all vertex-based images must have a style
+      this.color  = color;
       this.vertices = vertices;
       this.ariaText = " a" + colorToSpokenString(color,'solid') + " line of width "+x+" and height "+y;
     };
