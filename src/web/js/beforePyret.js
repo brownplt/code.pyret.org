@@ -90,38 +90,6 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
-  var highlightEagerness    = sessionStorage.getItem('highlight-eagerness');
-  var highlightColorfulness = sessionStorage.getItem('highlight-colorfulness');
-  if(highlightEagerness !== null) {
-    $("#highlight-eager").prop("checked",   highlightEagerness === 'eager');
-    $("#highlight-lazy").prop("checked",    highlightEagerness === 'lazy');
-  } else {
-    sessionStorage.setItem('highlight-eagerness', 'eager');
-  }
-  if(highlightColorfulness !== null) {
-    $("#highlight-vibrant").prop("checked",  highlightColorfulness === 'vibrant');
-    $("#highlight-drab").prop("checked",     highlightColorfulness === 'drab');
-  } else {
-    sessionStorage.setItem('highlight-colorfulness', 'vibrant');
-  }
-  function logChange() {
-    $(".highlight-settings").trigger('settingChanged',
-      sessionStorage.getItem('highlight-eagerness'),
-      sessionStorage.getItem('highlight-colorfulness'));
-  }
-  $("#highlight-eager").change(function(e) {
-    if(this.checked) {sessionStorage.setItem('highlight-eagerness', 'eager');logChange();}
-  });
-  $("#highlight-lazy").change(function(e) {
-    if(this.checked) {sessionStorage.setItem('highlight-eagerness', 'lazy');logChange();}
-  });
-  $("#highlight-vibrant").change(function(e) {
-    if(this.checked) {sessionStorage.setItem('highlight-colorfulness', 'vibrant');logChange();}
-  });
-  $("#highlight-drab").change(function(e) {
-    if(this.checked) {sessionStorage.setItem('highlight-colorfulness', 'drab');logChange();}
-  });
-
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {

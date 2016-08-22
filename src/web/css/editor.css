@@ -625,70 +625,8 @@ div#font-label:hover{
   box-shadow:none;
 }
 
-.highlight-settings {
-  display:flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  float: left;
-  height:100%;
-  padding-left: 0.5em;
-  font-size: 0.75em;
-}
-
-.highlight-setting {
-  display:flex;
-  flex-direction:column;
-  color:white;
-  background-color: #8d8d8d;
-}
-
-.highlight-setting:hover {
-  align-self: baseline;
-  line-height:40px;
-  color: black;
-  background-color: #efefef;
-  box-shadow:0px 2px 3px rgba(0, 0, 0, 0.3)
-}
-
-.highlight-setting > input:checked + label {
-  display:block;
-  font-weight:bold;
-}
-
-.highlight-setting:not(:hover) > input:checked + label:after {
-  content:'\00a0▾';
-}
-
-.highlight-setting:hover > input:checked + label:after {
-  content: '\00a0✓';
-  text-decoration: initial;
-}
-
-.highlight-setting:not(:hover) > input:not(:checked) + label {
-  display:none;
-}
-
-.highlight-setting:hover > header,
-.highlight-setting:hover > label {
-  display:block;
-}
-
-.highlight-setting input {
-  display: none;
-}
-
-.highlight-setting label {
-  cursor: pointer;
-}
-
-.highlight-setting:hover input + label:hover {
-  background-color: #bfbfbf;
-}
-
-.highlight-setting input:checked + label {
-  text-decoration: underline;
-  order: -1;
+#highlight-settings > select {
+  font-size: inherit;
 }
 
 .replPrint {

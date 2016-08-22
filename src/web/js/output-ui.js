@@ -632,15 +632,13 @@
       });
     }
     
-    $(".highlight-settings").bind('settingChanged', 
-      function (_, eagerness, colorfulness) {
-        window.requestAnimationFrame(function() {
-          colorsHighlighted.forEach(function(color) {
-            unhighlight(color);
-          });
-          colorsEmphasized.forEach(function(color) {
-            demphasize(color);
-          });
+    function settingChanged(eagerness, colorfulness) { 
+      window.requestAnimationFrame(function() {
+        colorsHighlighted.forEach(function(color) {
+          unhighlight(color);
+        });
+        colorsEmphasized.forEach(function(color) {
+          demphasize(color);
         });
         if (eagerness == 'eager') {
           $(".compile-error.highlights-active, " +
@@ -648,6 +646,7 @@
                 .first().trigger('toggleHighlight');
         }
       });
+    }
     
     function renderErrorDisplay(documents, runtime, errorDisp, stack, context) {
       var get = runtime.getField;
@@ -972,7 +971,6 @@
         });
 
         rendering.bind('toggleHighlight',function() {
-          window.requestAnimationFrame(function() {
             colorsHighlighted.forEach(function(color) {
               unhighlight(color);
             });
@@ -985,7 +983,6 @@
                   highlight(color);
               });
             }
-          });
         });
 
         return rendering;
@@ -1401,6 +1398,7 @@
       clearEffects: clearEffects,
       unhintLoc: unhintLoc,
       renderErrorDisplay: renderErrorDisplay,
+      settingChanged: settingChanged,
       drawSrcloc: drawSrcloc,
       expandableMore: expandableMore,
       getLastUserLocation: getLastUserLocation,
