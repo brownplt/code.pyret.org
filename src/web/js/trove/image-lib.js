@@ -1517,14 +1517,21 @@
       ctx.save();
       ctx.beginPath();
 
+      // if it's a solid ellipse...
+      var isSolid = this.style.toString().toLowerCase() !== "outline";
+      var adjust = isSolid? 0 : 0.5;
+      // ...account for the 1px border width
+      var width = this.width - adjust, height = this.height - adjust;
+      aX += adjust; aY += adjust;
+
       // Most of this code is taken from:
       // http://webreflection.blogspot.com/2009/01/ellipse-and-circle-for-canvas-2d.html
-      var hB = (this.width / 2) * 0.5522848,
-      vB = (this.height / 2) * 0.5522848,
-      eX = aX + this.width,
-      eY = aY + this.height,
-      mX = aX + this.width / 2,
-      mY = aY + this.height / 2;
+      var hB = (width  / 2) * 0.5522848,
+          vB = (height / 2) * 0.5522848,
+          eX = aX + width,
+          eY = aY + height,
+          mX = aX + width  / 2,
+          mY = aY + height / 2;
       ctx.moveTo(aX, mY);
       ctx.bezierCurveTo(aX, mY - vB, mX - hB, aY, mX, aY);
       ctx.bezierCurveTo(mX + hB, aY, eX, mY - vB, eX, mY);
@@ -1563,7 +1570,7 @@
         if (y >= 0) { vertices = [{x: -x, y:  0}, {x: 0, y: y}]; }
         else        { vertices = [{x: -x, y: -y}, {x: 0, y: 0}]; }
       }
-      
+
       this.width  = Math.max(1, Math.abs(x)); // a line with no delta X should still take up one visible pixel
       this.height = Math.max(1, Math.abs(y)); // a line with no delta Y should still take up one visible pixel
       this.style  = "outline"; // all vertex-based images must have a style
