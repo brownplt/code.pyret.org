@@ -21,6 +21,40 @@
   }
   window.setTimeout(checkIfLoaded, 250);
 
+  function resetForm() {
+    localStorage.clear();
+    drawForm();
+  }
+
+  function saveForm(form) {
+    if (!(localStorage.n > 0)) localStorage.n = 0;
+    localStorage.n++;
+    localStorage[localStorage.n] = $(form).serialize();
+    localStorage["t" + localStorage.n] = new Date;
+  }
+
+  function drawForm() {
+    if (localStorage.n > 0) {
+      $("#pr").html("<option selected disabled>Click to select</option>");
+      for (var i = localStorage.n; i > 0; i--) {
+        $("#pr").append(
+          "<option value=" + i + ">" + localStorage["t" + i] + "</option>");
+      }
+    }
+    else {
+      $("#pr").html("<option selected disabled>No prior runs</option>");
+    }
+  }
+
+  function updateForm() {
+    var s = localStorage[$("#pr").val()];
+    var form_data = s.split("&");
+    $.each(form_data, function(k, v) {
+      var data = v.split("=");
+      $("#" + data[0]).val(decodeURIComponent(data[1]));
+    });
+  }
+
   $(document).on("mouseover", ".tooltip", function() {
     var title = $(this).attr("title");
     $(this).data("tipText", title).removeAttr("title");
@@ -41,19 +75,21 @@
     $(".tt").css({ top: y, left: x });
   });
 
+  $("#reset").on("click", function(e) {
+    resetForm();
+  });
+  $("#prf").on("submit", function(e) {
+    e.preventDefault();
+    updateForm();
+  });
+
   function onCPOGradeLoaded(gradeApi) {
-    gradeApi.drawForm();
-    $("#load").on("click", function(e) {
-      e.preventDefault();
-      gradeApi.saveForm(e);
-      gradeApi.loadAndRenderSubmissions(e);
-    });
+    drawForm();
     $("#cfg").on("submit", function(e) {
       e.preventDefault();
+      saveForm(this);
+      gradeApi.loadAndRenderSubmissions();
     });
-
-    $("#reset").on("click", gradeApi.resetForm);
-    $("#prf").on("submit", gradeApi.updateForm);
   }
 
 })();

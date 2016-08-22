@@ -19,30 +19,50 @@
       console.error(err);
     });
 
+    function promiseRetry(promise, iteration, max) {
+      var deferred = Q.defer();
+      promise.then(function(resolvedObject) {
+        deferred.resolve(resolvedObject);
+      }).fail(function(err) {
+        if (iteration >= max) {
+          deferred.reject(err);
+        } else {
+          // formula from https://gist.github.com/peterherrmann/2700284
+          var timeToWait = (Math.pow(2,n) * 1000) + (Math.round(Math.random() * 1000));
+          console.log("Retrying request in " + (timeToWait / 1000) + " seconds...");
+          setTimeout(function(){
+            console.log("...retrying request now.");
+            promiseRetry(promise, iteration + 1, max);
+          }, timeToWait);
+        }
+      });
+      return deferred.promise;
+    }
+
     function getFile(id) {
       if (api) {
-        return api.getFileById(id);
+        return promiseRetry(api.getFileById(id), 0, 5);
       } else {
         console.error(errNoApiMessage);
       }
     }
 
-    function getFiles(id) {
+    function getFilesInFolder(folderId) {
       if (api) {
-        return api.getFolderById(id);
+        return promiseRetry(api.getFilesInFolder(folderId), 0, 5);
       } else {
         console.error(errNoApiMessage);
       }
     }
 
-    function gatherSubmissions(id) {
+    function gatherSubmissions(submissionsFolderId) {
       var deferred = Q.defer();
       var submissions = {};
 
-      getFiles(id).then(function(students) {
+      getFilesInFolder(submissionsFolderId).then(function(students) {
         return Q.all(students.map(function(student) {
           var name = student.getName();
-          return getFiles(student.getUniqueId()).then(function(dirs) {
+          return getFilesInFolder(student.getUniqueId()).then(function(dirs) {
             return dirs.find(function(dir) {
               return dir.getName() == "final-submission";
             });
@@ -52,19 +72,22 @@
              * and remove this conditional (and below as well).
              */
             if (dir !== undefined) {
-              return getFiles(dir.getUniqueId());
+              return getFilesInFolder(dir.getUniqueId());
             }
             else {
               return null;
             }
           }).then(function(files) {
-            if (files)
+            if (files) {
               submissions[name] = files;
+            }
             return files;
           });
         }));
       }).then(function() {
         deferred.resolve(submissions);
+      }).fail(function(err) {
+        console.error(err);
       });
 
       return deferred.promise;
@@ -72,9 +95,7 @@
 
     function generateJSONFile(result) {
       var o = {};
-
-      var runtime = runner.runtime;
-      if (runner.runtime.isSuccessResult(result)) {
+      if (runtime.isSuccessResult(result)) {
         if (runtime.ffi.isRight(result.result)) {
 
           var checks = runtime.ffi.toArray(
@@ -268,6 +289,9 @@
           return fileObj.getContents().then(function(contents) {
             var subs = {};
             subs[fileName] = fileID;
+            console.log("****************************************************");
+            console.log(contents, subs);
+            console.log("****************************************************");
             return runner.runString(contents, "", subs);
           }).then(thunk);
         };
@@ -277,14 +301,10 @@
       }
     }
 
-    function loadAndRenderSubmissions(e) {
-      e.preventDefault();
-      $("#cfg-container").hide();
-
+    function processSubmission(testSuite) {
       var assignmentID = $("#id").val();
       var implName = $("#implementation").val();
       var testName = $("#test").val();
-      var suiteID = $("#suite").val();
       var goldID = $("#gold").val();
       var coals;
       if ($("#coals").val() === "") {
@@ -296,106 +316,62 @@
         });
       }
 
-      getFile(suiteID).then(function(suiteSubmission) {
-        function toTargets(submission) {
-          var targets = [];
-          var implSubmission = getSubmission(submission, implName);
-          var testSubmission = getSubmission(submission, testName);
-          if (testSubmission !== null && implSubmission !== null) {
+      function toTargets(submission) {
+        var targets = [];
+        var implSubmission = getSubmission(submission, implName);
+        var testSubmission = getSubmission(submission, testName);
+        if (testSubmission !== null && implSubmission !== null) {
+          targets.push({
+            name: "test",
+            eval: makeRunner(
+              testSuite, implName, implSubmission.getUniqueId())
+          });
+          targets.push({
+            name: "gold",
+            eval: makeRunner(testSubmission, implName, goldID)
+          });
+          for (var i = 0; i < coals.length; i++) {
             targets.push({
-              name: "test",
-              eval: makeRunner(
-                suiteSubmission, implName, implSubmission.getUniqueId())
+              name: "coal-" + i,
+              eval: makeRunner(testSubmission, coals[i][0], coals[i][1])
             });
-            targets.push({
-              name: "gold",
-              eval: makeRunner(testSubmission, implName, goldID)
-            });
-            for (var i = 0; i < coals.length; i++) {
-              targets.push({
-                name: "coal-" + i,
-                eval: makeRunner(testSubmission, coals[i][0], coals[i][1])
-              });
-            }
-            return targets;
           }
-          else {
-            return null;
+          return targets;
+        }
+        else {
+          return null;
+        }
+      }
+
+      var submissionsPromise = gatherSubmissions(assignmentID);
+
+      submissionsPromise.then(function(submissions) {
+        for (var student in submissions) {
+          if (submissions.hasOwnProperty(student)) {
+            submissions[student] = toTargets(submissions[student]);
           }
         }
 
-        gatherSubmissions(assignmentID).then(function(submissions) {
-          for (var student in submissions) {
-            if (submissions.hasOwnProperty(student)) {
-              submissions[student] = toTargets(submissions[student]);
-            }
-          }
+        renderSubmissions(submissions);
 
-          renderSubmissions(submissions);
+        $("#frm").submit(function() {
+          generateJSON(submissions);
+        }).show();
+      }).fail(function(f){console.error(f);});
+    };
 
-          $("#frm").submit(function() {
-            generateJSON(submissions);
-          }).show();
-        }).fail(function(f){console.log(f);});
-      });
-    }
+    function loadAndRenderSubmissions() {
+      $("#cfg-container").hide();
+      var suiteID = $("#suite").val();
 
-    function resetForm(e) {
-      e.preventDefault();
-      localStorage.clear();
-      drawForm();
-      console.log("reset");
-    }
-
-    function saveForm(e) {
-      e.preventDefault();
-      if (!(localStorage.n > 0)) localStorage.n = 0;
-      localStorage.n++;
-      localStorage[localStorage.n] = $(this).serialize();
-      localStorage["t" + localStorage.n] = new Date;
-    }
-
-    function drawForm() {
-      if (localStorage.n > 0) {
-        $("#pr").html("<option selected disabled>Click to select</option>");
-        for (var i = localStorage.n; i > 0; i--) {
-          $("#pr").append(
-            "<option value=" + i + ">" + localStorage["t" + i] + "</option>");
-        }
-      }
-      else {
-        $("#pr").html("<option selected disabled>No prior runs</option>");
-      }
-    }
-
-    function updateForm(e) {
-      e.preventDefault();
-      var s = localStorage[$("#pr").val()];
-      var form_data = s.split("&");
-      $.each(form_data, function(k, v) {
-        var data = v.split("=");
-        $("#" + data[0]).val(decodeURIComponent(data[1]));
+      var suiteSubmissionPromise = getFile(suiteID);
+      suiteSubmissionPromise.then(function(testSuite) {
+        processSubmission(testSuite);
       });
     }
 
     window.CPOGRADE = {
-      getFile: getFile,
-      getFiles: getFiles,
-      gatherSubmissions: gatherSubmissions,
-      generateJSON: generateJSON,
-      generateJSONFile: generateJSONFile,
-      makeTarget: makeTarget,
-      runTDs: runTDs,
-      renderSubmissionsHeader: renderSubmissionsHeader,
-      renderSubmissionsRows: renderSubmissionsRows,
-      renderSubmissions: renderSubmissions,
-      getSubmission: getSubmission,
-      makeRunner: makeRunner,
-      loadAndRenderSubmissions: loadAndRenderSubmissions,
-      resetForm: resetForm,
-      saveForm: saveForm,
-      drawForm: drawForm,
-      updateForm: updateForm
+      loadAndRenderSubmissions: loadAndRenderSubmissions
     };
 
     return runtime.makeModuleReturn({}, {});
