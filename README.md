@@ -77,10 +77,12 @@ There are tests in `test-util/` and `test/` that use Selenium to script a
 browser.
 
 The instructions for setting up Selenium to open Chrome locally are somewhat
-platform-specific, but you can try just running:
+platform-specific.  You will need
+[chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) to be on
+your path.  Then run running:
 
 ```
-npm install selenium-webdriver mocha chromedriver
+npm install selenium-webdriver mocha
 npm run mocha
 ```
 
