@@ -1088,7 +1088,6 @@
           });
           return container;
         } else {
-          return runtime.getField(O, "some").app(v); 
           imageDom = img.toDomNode();
           container.append(imageDom);
           $(imageDom).trigger({type: 'afterAttach'});
