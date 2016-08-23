@@ -218,7 +218,7 @@
           animationDivs.push(animationDiv);
           output.append(animationDiv);
           function onClose() {
-            Jsworld.shutdown({ cleanShutdown: true });
+            Jsworld.shutdownSingle({ cleanShutdown: true });
             closeTopAnimationIfOpen();
           }
           closeCallback(closeTopAnimationIfOpen);
