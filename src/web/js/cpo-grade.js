@@ -289,9 +289,6 @@
           return fileObj.getContents().then(function(contents) {
             var subs = {};
             subs[fileName] = fileID;
-            console.log("****************************************************");
-            console.log(contents, subs);
-            console.log("****************************************************");
             return runner.runString(contents, "", subs);
           }).then(thunk);
         };
