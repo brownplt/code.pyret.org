@@ -6,7 +6,7 @@
   provides: {},
   theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums, md5) {
     var gf = RUNTIME.getField;
-    
+
     var image = gf(imageImp, "values");
     var color = gf(image, "color");
     var colorPred = gf(image, "is-Color");
@@ -375,13 +375,15 @@
 
     //////////////////////////////////////////////////////////////////////
     // colorString : hexColor Style -> rgba
-    // Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
+    // Style can be a number (0-255), "solid", "outline" or null
+    // The above value which is non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
-      var alpha = isNaN(aStyle)? 1.0 : aStyle/255;
-      return "rgba(" + colorRed(aColor) + "," +
-        colorGreen(aColor) + ", " +
-        colorBlue(aColor) + ", " +
-        alpha + ")";
+      var styleAlpha = isNaN(aStyle)? 1.0 : aStyle/255,
+          cAlpha = colorAlpha(aColor)/255;
+      return "rgba(" +  colorRed(aColor)   + ", " +
+                        colorGreen(aColor) + ", " +
+                        colorBlue(aColor)  + ", " +
+                        styleAlpha * cAlpha + ")";
     };
 
     function RGBtoLAB(r, g, b){
@@ -397,7 +399,7 @@
         var Z = var_R * 0.0193 + var_G * 0.1192 + var_B * 0.9505;
         return [X, Y, Z];
       }
-      
+
       function XYZtoLAB(x, y, z){
         var var_X = x / 95.047;           //ref_X =  95.047   Observer= 2°, Illuminant= D65
         var var_Y = y / 100.000;          //ref_Y = 100.000
@@ -421,7 +423,7 @@
         colorLabs.push({name:p, l:lab.l, a:lab.a, b:lab.b});
       }
     }
- 
+
     //////////////////////////////////////////////////////////////////////
     // colorToSpokenString : hexColor Style -> String
     // Describes the color using the nearest HTML color name
@@ -472,21 +474,13 @@
 
     // given two arrays of {x,y} structs, determine their equivalence
     var verticesEqual = function(v1, v2){
-      if(v1.length !== v2.length){ return false; }
-      for(var i=0; i< v1.length; i++){
-        if(v1[i].x !== v2[i].x || v1[i].y !== v2[i].y){ return false; }
-      }
-      return true;
+        if(v1.length !== v2.length){ return false; }
+        var v1_str = v1.map(function(o){return "x:"+o.x+",y:"+o.y}).join(","),
+            v2_str = v2.map(function(o){return "x:"+o.x+",y:"+o.y}).join(",");
+        // v1 == rot(v2) if append(v1,v1) includes v2
+        return (v1_str+","+v1_str).includes(v2_str);
     };
-    // given two arrays of xs and ys, zip them into a vertex array
-    var zipVertices = function(xs, ys){
-      if(xs.length !== ys.length){throw new Error('failure in zipVertices');}
-      var vertices = [];
-      for(var i=0; i<xs.length;i++){
-        vertices.push({x: xs[i], y: ys[i]});
-      }
-      return vertices;
-    };
+
     // given an array of (x, y) pairs, unzip them into separate arrays
     var unzipVertices = function(vertices){
         return {xs: vertices.map(function(v) { return v.x }),
@@ -502,7 +496,6 @@
         var ys = unzipVertices(vertices).ys;
         return Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
     }
- 
     // given a list of vertices and a translationX/Y, shift them
     var translateVertices = function(vertices) {
         var vs = unzipVertices(vertices);
@@ -557,36 +550,40 @@
       ctx.save();
       ctx.beginPath();
 
+      // we care about the stroke because drawing to a canvas is *different* for
+      // fill v. stroke! If it's outline, we can draw on the pixel boundaries and
+      // stroke within them. If it's stroke, we need to draw _inside_ those 
+      // boundaries, adjusting by a half-pixel towards the center.
+      var isSolid = this.style.toString().toLowerCase() !== "outline";
+
       var vertices;
       // pixel-perfect vertices fail on Chrome, and certain versions of FF,
-      // so we only enable the offset if we're not doing the test
-      if(ctx.isEqualityTest){
+      // so we disable the offset for equality tests and solid images
+      if(ctx.isEqualityTest || isSolid){
           vertices = this.vertices;
       } else {
           // find the midpoint of the xs and ys from vertices
-          var midX = findWidth(this.vertices) / 2;
+          var midX = findWidth(this.vertices)  / 2;
           var midY = findHeight(this.vertices) / 2;
 
           // compute 0.5px offsets to ensure that we draw on the pixel
           // and not the pixel boundary
           vertices = this.vertices.map(function(v){
-              return {x: v.x + (v.x <= midX ? 0.5 : -0.5),
-                      y: v.y + (v.y <= midY ? 0.5 : -0.5)};
+              return {x: v.x + (v.x < midX ? 0.5 : -0.5),
+                      y: v.y + (v.y < midY ? 0.5 : -0.5)};
           });
       }
 
-      ctx.moveTo(x+vertices[0].x, y+vertices[0].y);
-      for(var i=1; i < vertices.length; i++){
-        ctx.lineTo(x+vertices[i].x, y+vertices[i].y);
-      }
+      ctx.moveTo( x + vertices[0].x, y + vertices[0].y );
+      vertices.forEach(function(v) { ctx.lineTo( x + v.x, y + v.y); });
       ctx.closePath();
 
-      if (this.style.toString().toLowerCase() === "outline") {
-        ctx.strokeStyle = colorString(this.color);
-        ctx.stroke();
-      } else {
+      if (isSolid) {
         ctx.fillStyle = colorString(this.color, this.style);
         ctx.fill();
+      } else {
+        ctx.strokeStyle = colorString(this.color);
+        ctx.stroke();
       }
       ctx.restore();
     };
@@ -595,24 +592,11 @@
     // Constructs a canvas object of a particular width and height.
     var makeCanvas = function(width, height) {
       var canvas = document.createElement("canvas");
-      canvas.width = width;
+      canvas.width  = width;
       canvas.height = height;
-
       canvas.style.width  = canvas.width  + "px";
       canvas.style.height = canvas.height + "px";
-
-      // KLUDGE: IE compatibility uses /js/excanvas.js, and dynamic
-      // elements must be marked this way.
-      if (window && typeof window.G_vmlCanvasManager !== 'undefined') {
-          canvas = window.G_vmlCanvasManager.initElement(canvas);
-      }
-
       return canvas;
-    };
-
-    var withIeHack = function(canvas, f) {
-      var result = f(canvas);
-      return result;
     };
 
     // Images are expected to define a render() method, which is used
@@ -631,16 +615,15 @@
       // document.
       var onAfterAttach = function(event) {
         // jQuery(canvas).unbind('afterAttach', onAfterAttach);
-        var ctx = this.getContext("2d");
+        ctx = this.getContext("2d");
         that.render(ctx, 0, 0);
       };
       jQuery(canvas).bind('afterAttach', onAfterAttach);
 
       // Canvases lose their drawn content on cloning.  data may help us to preserve it.
       jQuery(canvas).data('toRender', onAfterAttach);
-
+      // ARIA: use "image" as default text.
       canvas.ariaText = this.ariaText || "image";
-
       return canvas;
     };
 
@@ -740,7 +723,7 @@
                 slice1.drawImage(c1, x, y, tileW, tileH, 0, 0, tileW, tileH);
                 slice2.clearRect(0, 0, tileW, tileH);
                 slice2.drawImage(c2, x, y, tileW, tileH, 0, 0, tileW, tileH);
-                var d1 = slice1.canvas.toDataURL(), 
+                var d1 = slice1.canvas.toDataURL(),
                     d2 = slice2.canvas.toDataURL(),
                     h1 = md5(d1),  h2 = md5(d2);
                 if(h1 !== h2) return false;
@@ -788,7 +771,6 @@
 
     // render: 2d-context primitive-number primitive-number -> void
     SceneImage.prototype.render = function(ctx, x, y) {
-      var i;
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
@@ -801,13 +783,13 @@
       ctx.rect(x, y, this.width, this.height);
       ctx.clip();
       // Ask every object to render itself inside the region
-      for(i = 0; i < this.children.length; i++) {
-        // then, render the child images
-        childImage = this.children[i][0];
-        childX = this.children[i][1];
-        childY = this.children[i][2];
-        childImage.render(ctx, childX + x, childY + y);
-      }
+        this.children.forEach(function(child) { 
+            // then, render the child images
+            childImage = child[0];
+            childX = child[1];
+            childY = child[2];
+            childImage.render(ctx, childX + x, childY + y);
+        });
       // unclip
       ctx.restore();
 
@@ -818,31 +800,17 @@
     };
 
     SceneImage.prototype.equals = function(other) {
-      if (!(other instanceof SceneImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      if (this.width    !== other.width ||
-          this.height   !== other.height ||
-          this.children.length !== other.children.length) {
-        return false;
-      }
-
-      var foundDiff = false;
-      for (var i = 0; i < this.children.length; i++) {
-        var rec1 = this.children[i];
-        var rec2 = other.children[i];
-        if (rec1[1] !== rec2[1] ||
-            rec1[2] !== rec2[2] ||
-            !rec1[0].equals(rec2[0])) {
-          foundDiff = true
-        }
-      }
-      if(foundDiff) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      else {
-        return true;
-      }
+        return (other instanceof SceneImage     &&
+                this.width    == other.width    &&
+                this.height   == other.height   &&
+                this.children.length == other.children.length && 
+                this.children.every(function(child1, i) {
+                    var child2 = other.children[i];
+                    return (child1[1] == child2[1] &&
+                            child1[2] == child2[2] &&
+                            child1[0].equals(child2[0]));
+                }))
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -923,10 +891,8 @@
     };
 
     FileImage.prototype.equals = function(other) {
-      if (!(other instanceof FileImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.src === other.src);
+        return (other instanceof FileImage) && this.src === other.src
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -970,12 +936,12 @@
     }
     FileVideo.prototype = heir(BaseImage.prototype);
 
-    var videos = {};
+    var videoCache = {};
     FileVideo.makeInstance = function(path, rawVideo) {
       if (! (path in FileVideo)) {
-        videos[path] = new FileVideo(path, rawVideo);
+        videoCache[path] = new FileVideo(path, rawVideo);
       }
-      return videos[path];
+      return videoCache[path];
     };
 
     FileVideo.prototype.render = function(ctx, x, y) {
@@ -1054,28 +1020,19 @@
         y2 = Math.max(placeY, 0);
       }
 
-      // calculate the vertices of this image by translating the verticies of the sub-images
+      // calculate the vertices of this image by translating the vertices of the sub-images
       var i, v1 = img1.getVertices(), v2 = img2.getVertices(), xs = [], ys = [];
-
-      for(i=0; i<v1.length; i++){
-        xs.push(Math.round(v1[i].x + x1));
-        ys.push(Math.round(v1[i].y + y1));
-      }
-      for(i=0; i<v2.length; i++){
-        xs.push(Math.round(v2[i].x + x2));
-        ys.push(Math.round(v2[i].y + y2));
-      }
-
+      v1 = v1.map(function(v){ return {x: v.x + x1, y: v.y + y1}; });
+      v2 = v2.map(function(v){ return {x: v.x + x2, y: v.y + y2}; });
+        
       // store the vertices as something private, so this.getVertices() will still return undefined
-      this._vertices = zipVertices(xs, ys);
-      this.width  = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
-      this.height = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
+      this._vertices = v1.concat(v2);
 
       // store the offsets for rendering
-      this.x1 = Math.floor(x1);
-      this.y1 = Math.floor(y1);
-      this.x2 = Math.floor(x2);
-      this.y2 = Math.floor(y2);
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
       this.img1 = img1;
       this.img2 = img2;
       var positionText;
@@ -1099,6 +1056,8 @@
       } else if(!isNaN(placeY)){
         positionText += " , shifted up by "+placeY;
       }
+      this.width  = findWidth(this._vertices);
+      this.height = findHeight(this._vertices);
       this.ariaText = " an overlay: first image is" + img1.ariaText + positionText + img2.ariaText;
     };
 
@@ -1114,17 +1073,16 @@
     };
 
     OverlayImage.prototype.equals = function(other) {
-      if (!(other instanceof OverlayImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.x1        === other.x1 &&
-              this.y1        === other.y1 &&
-              this.x2        === other.x2 &&
-              this.y2        === other.y2 &&
+      return (other instanceof OverlayImage     &&
+              this.width     === other.width    &&
+              this.height    === other.height   &&
+              this.x1        === other.x1       &&
+              this.y1        === other.y1       &&
+              this.x2        === other.x2       &&
+              this.y2        === other.y2       &&
               imageEquals(this.img1, other.img1) &&
-              imageEquals(this.img2, other.img2) );
+              imageEquals(this.img2, other.img2) )
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1139,7 +1097,7 @@
       }
       var sin   = Math.sin(angle * Math.PI / 180);
       var cos   = Math.cos(angle * Math.PI / 180);
-      
+
       // rotate each point as if it were rotated about (0,0)
       var vertices = img.getVertices().map(function(v) {
           return {x: v.x*cos - v.y*sin, y: v.x*sin + v.y*cos };
@@ -1147,7 +1105,7 @@
 
       // extract the xs and ys separately
       var vs = unzipVertices(vertices);
-      
+
       // store the vertices as something private, so this.getVertices() will still return undefined
       this._vertices  = translateVertices(vertices);
       this.img        = img;
@@ -1173,15 +1131,14 @@
     };
 
     RotateImage.prototype.equals = function(other) {
-      if (!(other instanceof RotateImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.angle     === other.angle &&
-              this.translateX=== other.translateX &&
-              this.translateY=== other.translateY &&
-              imageEquals(this.img, other.img) );
+      return (other instanceof RotateImage          &&
+              this.width     === other.width        &&
+              this.height    === other.height       &&
+              this.angle     === other.angle        &&
+              this.translateX=== other.translateX   &&
+              this.translateY=== other.translateY   &&
+              imageEquals(this.img, other.img) )
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1216,13 +1173,11 @@
     };
 
     ScaleImage.prototype.equals = function(other) {
-      if (!(other instanceof ScaleImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.xFactor   === other.xFactor &&
-              this.yFactor   === other.yFactor &&
+      return (other instanceof ScaleImage       &&
+              this.width     === other.width    &&
+              this.height    === other.height   &&
+              this.xFactor   === other.xFactor  &&
+              this.yFactor   === other.yFactor  &&
               imageEquals(this.img, other.img) )
             || BaseImage.prototype.equals.call(this, other);
     };
@@ -1253,14 +1208,13 @@
     };
 
     CropImage.prototype.equals = function(other) {
-      if (!(other instanceof CropImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
-              this.x         === other.x &&
-              this.y         === other.y &&
-              imageEquals(this.img, other.img) );
+        return (other instanceof CropImage      &&
+                this.width     === other.width  &&
+                this.height    === other.height &&
+                this.x         === other.x      &&
+                this.y         === other.y      &&
+                imageEquals(this.img, other.img) )
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1287,10 +1241,9 @@
     };
 
     FrameImage.prototype.equals = function(other) {
-      if (!(other instanceof FrameImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return imageEquals(this.img, other.img);
+      return (other instanceof FrameImage &&
+             BaseImage.prototype.equals.call(this, other) )
+          || imageEquals(this.img, other.img);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1324,30 +1277,21 @@
       ctx.restore();
     };
 
-    FlipImage.prototype.getWidth = function() {
-      return Math.round(this.width);
-    };
-
-    FlipImage.prototype.getHeight = function() {
-      return Math.round(this.height);
-    };
-
     FlipImage.prototype.equals = function(other) {
-      if (!(other instanceof FlipImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.width     === other.width &&
-              this.height    === other.height &&
+      return (other instanceof FlipImage         &&
+              this.width     === other.width     &&
+              this.height    === other.height    &&
               this.direction === other.direction &&
-              imageEquals(this.img, other.img) );
+              imageEquals(this.img, other.img) ) 
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
     // RectangleImage: Number Number Mode Color -> Image
     var RectangleImage = function(width, height, style, color) {
       BaseImage.call(this);
-      this.width  = width;
-      this.height = height;
+      this.width  = Math.max(1, width);   // an outline rectangle with no delta X or delta Y
+      this.height = Math.max(1, height);  // should still take up one visible pixel
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:0,y:height},{x:0,y:0},{x:width,y:0},{x:width,y:height}];
@@ -1364,8 +1308,6 @@
       // cos(angle/2-in-radians) * side = half of height
       this.width  = Math.sin(angle/2 * Math.PI / 180) * side * 2;
       this.height = Math.abs(Math.cos(angle/2 * Math.PI / 180)) * side * 2;
-      this.side   = side;
-      this.angle  = angle;
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:this.width/2, y:0},
@@ -1373,7 +1315,6 @@
                        {x:this.width/2, y:this.height},
                        {x:0,            y:this.height/2}];
       this.ariaText = " a"+colorToSpokenString(color,style) + " rhombus of size "+side+" and angle "+angle;
-
     };
     RhombusImage.prototype = heir(BaseImage.prototype);
 
@@ -1386,27 +1327,22 @@
     // rotate a 3/4 quarter turn plus half the angle length to keep bottom base level
     var PolygonImage = function(length, count, step, style, color) {
       BaseImage.call(this);
-      this.outerRadius = Math.floor(length/(2*Math.sin(Math.PI/count)));
-      this.innerRadius = Math.floor(length/(2*Math.tan(Math.PI/count)));
+      this.outerRadius = Math.round(length/(2*Math.sin(Math.PI/count)));
+      this.innerRadius = Math.round(length/(2*Math.tan(Math.PI/count)));
       var adjust = (3*Math.PI/2)+Math.PI/count;
 
       // rotate around outer circle, storing x and y coordinates
-      var radians = 0, xs = [], ys = [];
+      var radians = 0, vertices = [];
       for(var i = 0; i < count; i++) {
         radians = radians + (step*2*Math.PI/count);
-        xs.push(Math.round(this.outerRadius*Math.cos(radians-adjust)));
-        ys.push(Math.round(this.outerRadius*Math.sin(radians-adjust)));
+        vertices.push({ x: Math.round(this.outerRadius*Math.cos(radians-adjust)),
+                        y: Math.round(this.outerRadius*Math.sin(radians-adjust))});
       }
-      var vertices = zipVertices(xs, ys);
 
-      this.width      = Math.max.apply(Math, xs) - Math.min.apply(Math, xs);
-      this.height     = Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
-      this.length     = length;
-      this.count      = count;
-      this.step       = step;
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
       this.style      = style;
       this.color      = color;
-
       this.vertices = translateVertices(vertices);
       this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
                       +" sided polygon with each side of length "+length;
@@ -1414,19 +1350,11 @@
 
     PolygonImage.prototype = heir(BaseImage.prototype);
 
-    var maybeQuote = function(s) {
-      if (/ /.test(s)) {
-        return "\"" + s + "\"";
-      }
-      return s;
-    };
-
     var textContainer, textParent;
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
     var TextImage = function(str, size, color, face, family, style, weight, underline) {
       BaseImage.call(this);
-      var metrics;
       this.str        = str;
       this.size       = size;   // 18
       this.color      = color;  // red
@@ -1435,14 +1363,10 @@
       this.style      = (style === "slant")? "oblique" : style;  // Racket's "slant" -> CSS's "oblique"
       this.weight     = (weight=== "light")? "lighter" : weight; // Racket's "light" -> CSS's "lighter"
       this.underline  = underline;
+      // NOTE: we *ignore* font-family, as it causes a number of font bugs due the browser inconsistencies
       // example: "bold italic 20px 'Times', sans-serif".
       // Default weight is "normal", face is "Arial"
-
-      this.font = (this.style + " " +
-                   this.weight + " " +
-                   this.size + "px " +
-                   '"'+this.face+'", '+
-                   this.family);
+      this.font = (this.style+" " +this.weight+" "+this.size+"px "+'"'+this.face+'", '+this.family);
 
       // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
       // based off of the amazing work at http://mudcu.be/journal/2011/01/html5-typographic-metrics/#baselineCanvas
@@ -1459,7 +1383,7 @@
       }
       textParent.style.font = this.font;                // use the same font settings as the context
       textParent.textContent = str; // this will blow away any old content
-      
+
       // getting (more accurate) css equivalent of ctx.measureText()
       var bounds = textParent.getBoundingClientRect(); // make a single blocking call
       this.width       = bounds.width;
@@ -1501,18 +1425,17 @@
     };
 
     TextImage.prototype.equals = function(other) {
-      if (!(other instanceof TextImage)) {
-        return BaseImage.prototype.equals.call(this, other);
-      }
-      return (this.str      === other.str &&
-              this.size     === other.size &&
-              this.face     === other.face &&
-              this.family   === other.family &&
-              this.style    === other.style &&
-              this.weight   === other.weight &&
+      return (other instanceof TextImage        &&
+              this.str      === other.str       &&
+              this.size     === other.size      &&
+              this.face     === other.face      &&
+              this.family   === other.family    &&
+              this.style    === other.style     &&
+              this.weight   === other.weight    &&
+              this.font     === other.font      &&
               this.underline === other.underline &&
-              equals(this.color, other.color) &&
-              this.font === other.font);
+              equals(this.color, other.color))
+            || BaseImage.prototype.equals.call(this, other);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1552,11 +1475,7 @@
       BaseImage.call(this);
       var thirdX = sideB * Math.cos(angleA * Math.PI/180);
       var thirdY = sideB * Math.sin(angleA * Math.PI/180);
-
       var offsetX = 0 - Math.min(0, thirdX); // angleA could be obtuse
-
-      this.width = Math.max(sideC, thirdX) + offsetX;
-      this.height = Math.abs(thirdY);
 
       var vertices = [];
       // if angle < 180 start at the top of the canvas, otherwise start at the bottom
@@ -1569,10 +1488,12 @@
         vertices.push({x: offsetX + sideC, y: -thirdY});
         vertices.push({x: offsetX + thirdX, y: 0});
       }
-      this.vertices = vertices;
 
+      this.width = Math.max(sideC, thirdX) + offsetX;
+      this.height = Math.abs(thirdY);
       this.style = style;
       this.color = color;
+      this.vertices = vertices;
       this.ariaText = " a"+colorToSpokenString(color,style) + " triangle whose base is of length "+sideC
           +", with an angle of " + (angleA%180) + " degrees between it and a side of length "+sideB;
     };
@@ -1596,14 +1517,21 @@
       ctx.save();
       ctx.beginPath();
 
+      // if it's a solid ellipse...
+      var isSolid = this.style.toString().toLowerCase() !== "outline";
+      var adjust = isSolid? 0 : 0.5;
+      // ...account for the 1px border width
+      var width = this.width - 2*adjust, height = this.height - 2*adjust;
+      aX += adjust; aY += adjust;
+
       // Most of this code is taken from:
       // http://webreflection.blogspot.com/2009/01/ellipse-and-circle-for-canvas-2d.html
-      var hB = (this.width / 2) * 0.5522848,
-      vB = (this.height / 2) * 0.5522848,
-      eX = aX + this.width,
-      eY = aY + this.height,
-      mX = aX + this.width / 2,
-      mY = aY + this.height / 2;
+      var hB = (width  / 2) * 0.5522848,
+          vB = (height / 2) * 0.5522848,
+          eX = aX + width,
+          eY = aY + height,
+          mX = aX + width  / 2,
+          mY = aY + height / 2;
       ctx.moveTo(aX, mY);
       ctx.bezierCurveTo(aX, mY - vB, mX - hB, aY, mX, aY);
       ctx.bezierCurveTo(mX + hB, aY, eX, mY - vB, eX, mY);
@@ -1613,8 +1541,7 @@
       if (this.style.toString().toLowerCase() === "outline") {
         ctx.strokeStyle = colorString(this.color);
         ctx.stroke();
-      }
-      else {
+      } else {
         ctx.fillStyle = colorString(this.color, this.style);
         ctx.fill();
       }
@@ -1643,11 +1570,11 @@
         if (y >= 0) { vertices = [{x: -x, y:  0}, {x: 0, y: y}]; }
         else        { vertices = [{x: -x, y: -y}, {x: 0, y: 0}]; }
       }
-      // preserve the invariant that all vertex-based images have a style
-      this.style  = "outline";
+
+      this.width  = Math.max(1, Math.abs(x)); // a line with no delta X should still take up one visible pixel
+      this.height = Math.max(1, Math.abs(y)); // a line with no delta Y should still take up one visible pixel
+      this.style  = "outline"; // all vertex-based images must have a style
       this.color  = color;
-      this.width  = Math.abs(x);
-      this.height = Math.abs(y);
       this.vertices = vertices;
       this.ariaText = " a" + colorToSpokenString(color,'solid') + " line of width "+x+" and height "+y;
     };
