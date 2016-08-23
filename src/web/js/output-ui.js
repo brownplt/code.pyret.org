@@ -41,8 +41,6 @@
       }
     
       function Position(doc, source, from, to, inclusiveLeft, inclusiveRight) {
-        var inclusiveLeft   = false,
-            inclusiveRight  = false;
         if (inclusiveLeft === undefined)
           inclusiveLeft = false;
         if (inclusiveRight === undefined)
