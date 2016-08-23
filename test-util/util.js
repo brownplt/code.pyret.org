@@ -96,7 +96,62 @@ function evalPyretDefinitionsAndWait(driver, toEval) {
   var breakButton = driver.findElement(webdriver.By.id('breakButton'));
   driver.wait(webdriver.until.elementIsDisabled(breakButton));
   return driver.findElement(webdriver.By.id("output"));
-;
+}
+
+
+function checkTableRendersCorrectly(code, driver, test, timeout) {
+  loadAndRunPyret(code, driver, timeout);
+  var replOutput = driver.findElement(webdriver.By.id("output"));
+  // Wait until finished running
+  driver.wait(function() {
+    return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
+      return elements.length > 0;
+    });
+  }, timeout);
+  var maybeTest = replOutput.findElements(webdriver.By.xpath('pre'));
+  return maybeTest.then(function(elements) {
+    if (elements.length > 0) {
+      elements[0].getInnerHtml()
+        .then(function(testsStr) {
+          try {
+            return JSON.parse(testsStr);
+          } catch (e) {
+            if (e instanceof SyntaxError) {
+              throw new Error("Failed to parse tables tests");
+            } else {
+              throw e;
+            }
+          }
+        })
+        .then(function(tests) {
+          var replResults = replOutput.findElements(webdriver.By.xpath('span'));
+          tests.forEach(function(test) {
+            var tbl = test.table,
+                row = test.row,
+                col = test.col,
+                val = test.val;
+            var P = webdriver.promise;
+            var evaled = P.all([evalPyretNoError(driver, tbl),
+                                evalPyretNoError(driver, val)]);
+            evaled.then(function(resps) {
+              return resps[0]
+                .findElement(webdriver.By.xpath("//tbody/tr[" + row + "]"
+                                                + "/td[" + col + "]/span"))
+                .then(function(tableRender) {
+                  return P.all([tableRender.getOuterHtml(), resps[1].getOuterHtml()]);
+                });
+              })
+              .then(function(rendered) {
+                assert.equal(rendered[0], rendered[1],
+                             "Table renders example " + val + " correctly");
+              });
+          });
+        });
+    } else {
+      throw new Error("No tables tests found");
+    }
+  });
+  checkAllTestsPassed(driver, test, timeout);
 }
 
 function loadAndRunPyret(code, driver, timeout) {
@@ -169,14 +224,19 @@ function evalPyret(driver, toEval) {
 
 function evalPyretNoError(driver, toEval) {
   return evalPyret(driver, toEval).then(function(element) {
-    return element.getTagName().then(function(name) {
-      if (name != 'span') {
-        throw new Error("Failed to run Pyret code: " + toEval);
-      } else {
-        return element;
-      }
-    });
-  })
+    return webdriver.promise
+      .all([element.getTagName(), element.getAttribute('class')])
+      .then(function(resp) {
+        var name = resp[0];
+        var clss = resp[1];
+
+        if ((name != 'div') || (clss != 'trace')) {
+          throw new Error("Failed to run Pyret code: " + toEval);
+        } else {
+          return element.findElement(webdriver.By.className("replOutput"));
+        }
+      });
+  });
 }
 
 function testErrorRendersString(it, name, toEval, expectedString) {
@@ -264,6 +324,7 @@ module.exports = {
   teardown: teardown,
   teardownMulti: teardownMulti,
   runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
+  checkTableRendersCorrectly: checkTableRendersCorrectly,
   checkWorldProgramRunsCleanly: checkWorldProgramRunsCleanly,
   doForEachPyretFile: doForEachPyretFile
 }

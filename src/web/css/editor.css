@@ -40,28 +40,28 @@ span.CodeMirror-selectedtext {
   background-color: #ccc!important;
 }
 
-.CodeMirror-matchingbracket { 
-  position: relative; 
+.CodeMirror-matchingbracket {
+  position: relative;
 }
 
 .CodeMirror-matchingbracket::before {
-  content: ""; 
-  position: absolute; 
-  height: 100%; 
+  content: "";
+  position: absolute;
+  height: 100%;
   width: 100%;
-  border: 0px solid rgb(90, 149, 217); 
-  z-index: 1000; 
+  border: 0px solid rgb(90, 149, 217);
+  z-index: 1000;
 }
 
 .CodeMirror-matchingbracket.open::before {
-  border-width: 0.3ex 0px 0px 0.3ex; 
-  border-top-left-radius: 0.4ex; 
-  margin: -0.3ex; 
+  border-width: 0.3ex 0px 0px 0.3ex;
+  border-top-left-radius: 0.4ex;
+  margin: -0.3ex;
 }
 
-.CodeMirror-matchingbracket.close::before { 
-  border-width: 0px 0.3ex 0.3ex 0px; 
-  border-bottom-right-radius: 0.4ex; 
+.CodeMirror-matchingbracket.close::before {
+  border-width: 0px 0.3ex 0.3ex 0px;
+  border-bottom-right-radius: 0.4ex;
   margin: 0.3ex;
 }
 
@@ -132,7 +132,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 div.trace {
- 
+
 }
 div.trace.error {
    background-color: #fff6f2;
@@ -144,7 +144,7 @@ span.trace {
 }
 span.trace:after {
    content: ":";
-}   
+}
 
 
 .test-reason:not(.highlights-active) .highlight {
@@ -193,7 +193,7 @@ span.trace:after {
 .check-block-error > .compile-error:not(.highlights-active) > *,
 .check-block-test.failing-test:not(.highlights-active) .test-reason {
   opacity: 0.5;
- 
+
 }
 
 .check-block-header {
@@ -657,7 +657,7 @@ div#font-label:hover{
 .replOutput:not(.expanded) > dl > .expanded:not(.replOutput),
 .replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
 
-.replOutput.expanded > dl { 
+.replOutput.expanded > dl {
    border: 1px solid gray;
 }
 
@@ -671,24 +671,24 @@ div#font-label:hover{
    padding-right: 0.5em;
 }
 .replOutput > dl > dt { display: inline; }
-.replOutput.expanded dt { 
-   float: left; 
-   clear: left; 
+.replOutput.expanded dt {
+   float: left;
+   clear: left;
    padding: 0 1em;
 }
 .replOutput > dl > dd { display: inline-block; }
 .replOutput.expanded > dl > dd {
    float: left;
 }
-.replOutput > dl > dd:not(:last-of-type):after { 
-   content: ","; 
+.replOutput > dl > dd:not(:last-of-type):after {
+   content: ",";
    padding-right: 0.5em;
 }
 
 /* expandable lists for collections */
 ul.collection { margin: 0; }
-ul.collection > li { 
-   margin-left: 1em; 
+ul.collection > li {
+   margin-left: 1em;
    clear: both;
 }
 ul.collection > li > span.label {
@@ -698,19 +698,19 @@ ul.collection > li > span.label {
 ul.collection > li > span.label:before { padding-left: 0.5em; }
 ul.collection > li > span.label:after { content: ":"; padding-right: 0.5em; }
 ul.collection > li > span.label.expandable:before { content: "\025B8"; }
-ul.collection > li > span.contents { 
-   display: none; 
+ul.collection > li > span.contents {
+   display: none;
    float: left;
 }
 ul.collection > li.expanded > span.contents { display: inline; }
 ul.collection > li.expanded > span.label.expandable:before { content: "\025BE"; }
 
-ul.inlineCollection { 
-  display: inline; 
+ul.inlineCollection {
+  display: inline;
   margin: 0;
 }
-ul.inlineCollection > li { 
-  display: inline; 
+ul.inlineCollection > li {
+  display: inline;
 }
 ul.inlineCollection > li:not(:last-of-type):after {
   content: ", ";
@@ -770,11 +770,23 @@ span.rationalRepeat {
    right: 0;
 }
 
+.has-icon .info-icon-top {
+   display: none;
+   position: absolute;
+   top: 0;
+   right: 0;
+}
+
+.has-icon:hover .info-icon-top {
+   cursor: pointer;
+   display: initial;
+}
+
 .has-icon:hover .info-icon {
    cursor: pointer;
    display: initial;
 }
-   
+
 .error-highlight {
   background-color: #fcc !important;
   border-bottom: 2px solid #F33 !important;
@@ -861,6 +873,32 @@ code div {
   display:inline;
 }
 
+.highlight.emphasize:not(:hover)::before {
+  content : '';
+  position: absolute;
+  margin-left: 1em;
+  height: 1em;
+  width: 1em;
+  box-shadow:0 0 200px 1em black;
+  opacity: 0;
+  border-radius: 100%;
+  animation: emphasize 0.5s 1;
+}
+
+@keyframes emphasize {
+  from {
+  display: block;
+  transform: scale(0);
+  opacity: 1.0;
+  }
+  to {
+  display: block;
+  transform: scale(10);
+  opacity: 0;
+  }
+}
+
+>>>>>>> horizon
 .emphasize-line {
   background-color:#BBB;
   opacity: 1;
@@ -876,7 +914,7 @@ code div {
   }
 }
 
-.underline:not(:hover) { 
+.underline:not(:hover) {
   background-color: initial;
 }
 
@@ -1226,7 +1264,7 @@ code div {
 .check-block-test.failing-test:not(.highlights-active) {background-color: hsl(45, 100%, 94%);overflow: hidden;}
 .check-block-test.passing-test {
   background-color: hsl(90,  50%, 91%);}
-  
+
 .check-block-test.passing-test .cm-snippet {
   margin: 0.5em;
 }
@@ -1474,6 +1512,30 @@ code div {
   position: absolute;
 }
 
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: auto;
+    display: table!important;
+    border:1px black solid;
+    border-radius:1em;
+    overflow:hidden;
+    background:#eee;;
+}
+
+th {
+    background: #ddd;
+}
+
+th, td {
+    text-align: left;
+    padding: 1em;
+    width: auto;
+    border-right:1px white solid;
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+
 /* MODAL */
 /* The Modal (background) */
 .modal {
@@ -1508,7 +1570,7 @@ code div {
 
 /* Add Animation */
 @-webkit-keyframes animatetop {
-  from {top:-300px; opacity:0} 
+  from {top:-300px; opacity:0}
   to {top:0; opacity:1}
 }
 
@@ -1668,8 +1730,8 @@ code div {
   background-color: hsl(0, 30%, 70%);
 }
 
-.stale .compile-error.highlights-active, 
-.stale .compile-error.highlights-active, 
+.stale .compile-error.highlights-active,
+.stale .compile-error.highlights-active,
 .stale .check-block-test.highlights-active {
   border-color: hsl(204, 40%, 74%);
 }

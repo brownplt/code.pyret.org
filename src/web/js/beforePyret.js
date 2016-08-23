@@ -123,6 +123,11 @@ $(function() {
     };
 
     var useLineNumbers = !options.simpleEditor;
+    var useFolding = !options.simpleEditor;
+
+    var gutters = !options.simpleEditor ?
+      ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "test-marker-gutter"] :
+      [];
 
     function reindentAllLines(cm) {
       var last = cm.lineCount();
@@ -145,8 +150,8 @@ $(function() {
       matchKeywords: true,
       matchBrackets: true,
       styleSelectedText: true,
-      foldGutter: true,
-      gutters: ["CodeMirror-linenumbers", "test-marker-gutter"],
+      foldGutter: useFolding,
+      gutters: gutters,
       lineWrapping: true
     };
 
@@ -375,6 +380,12 @@ $(function() {
     pyretLoad.type = "text/javascript";
     document.body.appendChild(pyretLoad);
     CPO.editor.focus();
+    $(pyretLoad).on("error", function() {
+      $("#loader").hide();
+      $("#runPart").hide();
+      $("#breakButton").hide();
+      window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+    });
   });
 
 });
