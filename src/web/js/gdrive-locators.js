@@ -37,7 +37,11 @@ define([], function() {
       }
       return message;
     }
-    function makeMyGDriveLocator(filename) {
+
+    // if given optionalFilesPromise, we assume it will be resolved with an
+    // array of file objects that we'll then use instead of querying gdrive
+    // for the filename
+    function makeMyGDriveLocator(filename, optionalFilesPromise) {
       function checkFileResponse(files, restarter) {
         if(files.length === 0) {
           restarter.error(runtime.ffi.makeMessageException("Could not find module with name " + filename + " in your drive."));
@@ -55,9 +59,10 @@ define([], function() {
       runtime.pauseStack(function(restarter) {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
-        var filesP = storageAPI.then(function(storage) {
-          return storage.getFileByName(filename);
-        });
+        var filesP = optionalFilesPromise ? optionalFilesPromise :
+          storageAPI.then(function(storage) {
+            return storage.getFileByName(filename);
+          });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
         });
