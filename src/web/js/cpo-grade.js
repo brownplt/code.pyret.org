@@ -10,10 +10,10 @@
   ],
   theModule: function(runtime, namespace, uri, cpoIdeHooks, gdriveLocators) {
     var api;
-    var errNoApiMessage = 'Attempted to get file(s) before storageAPI defined';
+    var errNoApiMessage = 'Attempted to get file(s) before gdrive api was ready.';
 
     window.storageAPI.then(function(programCollectionAPI) {
-      console.log('programCollectionAPI:', programCollectionAPI);
+      console.log("gdrive api ready for use by cpo-grade.");
       api = programCollectionAPI;
     }, function(err) {
       console.error(err);
@@ -28,7 +28,7 @@
           deferred.reject(err);
         } else {
           // formula from https://gist.github.com/peterherrmann/2700284
-          var timeToWait = (Math.pow(2,n) * 1000) + (Math.round(Math.random() * 1000));
+          var timeToWait = (Math.pow(2, n) * 1000) + (Math.round(Math.random() * 1000));
           console.log("Retrying request in " + (timeToWait / 1000) + " seconds...");
           setTimeout(function(){
             console.log("...retrying request now.");
@@ -283,6 +283,57 @@
       return null;
     }
 
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+
+    // creates a findModule that behaves as normal except when importing
+    // fileName via the "my-gdrive" protocol, in which case it uses fileObj
+    function createFindModuleFunction(fileName, fileObj) {
+      // because this is serving as a substitute for getFileByName, we create
+      // a promise which resolves with an _array_ of file objects
+      var filesDefer = Q.defer();
+      filesDefer.resolve([fileObj]);
+      var filesPromise = filesDefer.promise;
+
+      // NOTE(awstlaur): this function was copied and modified from the default
+      // findModule found in cpo-repl.js
+      return function(contextIgnored, dependency) {
+          return runtime.safeCall(function() {
+            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+              {
+                builtin: function(name) {
+                  var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+                  if(!raw) {
+                    throw runtime.throwMessageException("Unknown module: " + name);
+                  }
+                  else {
+                    return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+                  }
+                },
+                dependency: function(protocol, args) {
+                  var arr = runtime.ffi.toArray(args);
+                  if (protocol === "my-gdrive") {
+                    if (arr[0] === fileName) {
+                      return constructors.makeMyGDriveLocator(arr[0], filesPromise);
+                    } else {
+                      return constructors.makeMyGDriveLocator(arr[0]);
+                    }
+                  }
+                  else if (protocol === "shared-gdrive") {
+                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                  }
+                  else {
+                    console.error("Unknown import: ", dependency);
+                  }
+
+                }
+              });
+           }, function(l) {
+              return gmf(compileLib, "located").app(l, runtime.nothing);
+           }, "findModule");
+        }
+    }
+
     function makeRunner(fileObj, fileName, fileID) {
       if (fileObj !== null) {
         return function(thunk) {
@@ -370,6 +421,8 @@
     window.CPOGRADE = {
       loadAndRenderSubmissions: loadAndRenderSubmissions
     };
+
+    console.log("cpo-grade loaded.");
 
     return runtime.makeModuleReturn({}, {});
   }
