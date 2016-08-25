@@ -75,7 +75,9 @@
       "name-to-color": "tany",
       "empty-image": "tany"
     },
-    aliases: { },
+    aliases: {
+      "Image": ["local", "Image"]
+    },
     datatypes: { Image: "tany" }
   },
   theModule: function(runtime, namespace, uri, image, jsnums) {
