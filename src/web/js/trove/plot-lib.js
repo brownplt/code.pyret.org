@@ -10,7 +10,8 @@
   provides: {},
   theModule: function(RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
 
-  var gf = RUNTIME.getField;
+  var gf = RUNTIME.getField,
+      cases = RUNTIME.ffi.cases;
   var libNum =       CLIB.libNum,
       libJS =        CLIB.libJS,
       getDimension = CLIB.d3common.getDimension,
@@ -18,7 +19,8 @@
       createDiv =    CLIB.d3common.createDiv,
       createCanvas = CLIB.d3common.createCanvas,
       callBigBang =  CLIB.d3common.callBigBang,
-      stylizeTip =   CLIB.d3common.stylizeTip;
+      stylizeTip =   CLIB.d3common.stylizeTip,
+      imageReturn =  CLIB.imageReturn;
   var d3tip = D3TIP(d3);
 
   function appendAxis(xMin, xMax, yMin, yMax, width, height, canvas) {
@@ -122,52 +124,42 @@
     });
   }
 
-  function putLabel(label, detached, dimension) {
-    detached.select('.maing')
-      .append('text')
-      .attr('x', (dimension.marginLeft + dimension.width + dimension.marginRight) / 2)
-      .attr('y', dimension.height + dimension.marginTop + (7 * dimension.marginBottom / 11))
-      .html(libJS.htmlspecialchars(label))
-      .style({
-        position: 'absolute',
-        'font-size': '8pt',
-        'text-anchor': 'middle'
-      });
-  }
-
-  function genericPlot(scatterPlots, linePlots, windowOptions, title) {
+  function genericPlot(restarter, windowOptions, scatterPlots, linePlots) {
     var xMin = gf(windowOptions, 'x-min'),
         xMax = gf(windowOptions, 'x-max'),
         yMin = gf(windowOptions, 'y-min'),
         yMax = gf(windowOptions, 'y-max');
 
+    function resizer(restarter, windowOptions) {
+      genericPlot(restarter, windowOptions, scatterPlots, linePlots);
+    }
+
     var dimension = getDimension({
-      windowWidth: 1000,
-      windowHeight: null,
-      width: 466,
-      height: 466,
+      minWindowWidth: 805,
+      minWindowHeight: 430,
+      outerMarginRight: 300,
       marginLeft: 100,
       marginRight: 100,
       marginTop: 25,
       marginBottom: 45,
       mode: 'top-left',
-    }),
+    }, windowOptions),
         width = dimension.width,
         height = dimension.height,
         detached = createDiv(),
         canvas = createCanvas(detached, dimension),
         panel = detached.append('div').style({
-          top: '65px',
-          left: '700px'
+          top: '20px',
+          left: width + 100 + 100 + 10 + 'px',
         }),
-        controller = $(panel.append('div').style({
-          top: '90px'
-        }).node()),
+        controller = panel.append('div').style({
+          top: '60px',
+        }),
         coordDisplay = panel.append('div').style({
           top: '0px',
           left: '0px',
           'font-size': '12px',
-          width: '500px'
+          width: '250px'
         }),
         rectangleElement = canvas
           .append('rect')
@@ -181,12 +173,14 @@
             opacity           : '0.3',
           });
 
-    panel.append('div').style({
-      top: '295px',
+    controller.append('div').style({
+      top: '180px',
       left: '50px',
       'font-size': '18px',
-      width: '500px'
+      width: '200px'
     }).text('Number of Samples:');
+
+    controller = $(controller.node());
 
     var xMinC = $('<input/>', {
       type: 'text',
@@ -211,7 +205,7 @@
     var numSamplesC = $('<input/>', {
       type: 'text',
       placeholder: 'num-samples',
-      style: 'left: 90px; top: 240px',
+      style: 'left: 90px; top: 210px',
     }).attr('size', '8');
 
     controller
@@ -236,7 +230,8 @@
     setDefault();
 
     function getNewWindow() {
-      var ret = RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMinC.val()), {
+      // console.log($('.maind3').parent().parent().width(), $('.maind3').parent().parent().height());
+      var ret = cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMinC.val()), {
         none: function() {
           xMinC.addClass('error-bg');
           xMinC.removeClass('ok-bg');
@@ -245,7 +240,7 @@
         some: function(xMin_val) {
           xMinC.removeClass('error-bg');
           xMinC.addClass('ok-bg');
-          return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMaxC.val()), {
+          return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMaxC.val()), {
             none: function() {
               xMaxC.addClass('error-bg');
               xMaxC.removeClass('ok-bg');
@@ -263,7 +258,7 @@
                 return null;
               }
 
-              return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMinC.val()), {
+              return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMinC.val()), {
                 none: function() {
                   yMinC.addClass('error-bg');
                   yMinC.removeClass('ok-bg');
@@ -273,7 +268,7 @@
                   yMinC.removeClass('error-bg');
                   yMinC.addClass('ok-bg');
 
-                  return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMaxC.val()), {
+                  return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMaxC.val()), {
                     none: function() {
                       yMaxC.addClass('error-bg');
                       yMaxC.removeClass('ok-bg');
@@ -291,7 +286,7 @@
                         return null;
                       }
 
-                      return RUNTIME.ffi.cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(numSamplesC.val()), {
+                      return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(numSamplesC.val()), {
                         none: function() {
                           numSamplesC.addClass('error-bg');
                           numSamplesC.removeClass('ok-bg');
@@ -313,8 +308,7 @@
                             'x-max': xMax_val,
                             'y-min': yMin_val,
                             'y-max': yMax_val,
-                            'num-samples': numSamples_val,
-                            'infer-bounds': RUNTIME.pyretTrue,
+                            'num-samples': numSamples_val
                           };
                         }
                       });
@@ -394,7 +388,7 @@
     }));
 
     var redraw = $('<button/>', {
-      text: 'Redraw', style: 'left: 95px; top: 295px'
+      text: 'Redraw', style: 'left: 95px; top: 260px'
     });
 
     controller.append(redraw);
@@ -495,7 +489,6 @@
        * Part of this function is adapted from
        * http://jsfiddle.net/christopheviau/Hwpe3/
        */
-
       var options = plot.options;
       var points = plot.line;
 
@@ -516,7 +509,6 @@
        * Part of this function is adapted from
        * http://alignedleft.com/tutorials/d3/making-a-scatterplot
        */
-
       var tip = d3tip(detached)
           .attr('class', 'd3-tip')
           .direction('e')
@@ -555,20 +547,37 @@
     plotPoints(scatterPlots);
     linePlots.forEach(plotLine);
 
-    putLabel(title, detached, dimension);
     stylizeTip(detached);
-    callBigBang(detached, dimension, RUNTIME.ffi.makeNone(), function(restarter) {
-      redraw.click(function() {
-        var newWindow = getNewWindow();
-        if (newWindow === null) { return; }
-        var toRet = RUNTIME.ffi.makeSome(RUNTIME.makeObject(newWindow));
-        RUNTIME.getParam('remove-d3-port')();
-        restarter.resume(toRet);
-      });
-    });
+    callBigBang(
+      detached,
+      restarter,
+      resizer,
+      windowOptions,
+      dimension,
+      function(restarter) {
+        imageReturn(detached, restarter, function(image) {
+          return RUNTIME.ffi.makeRight(image)
+        });
+      },
+      function(restarter) {
+        redraw.click(function() {
+          var newWindow = getNewWindow();
+          if (newWindow === null) { return; }
+          var toRet = RUNTIME.ffi.makeLeft(
+            RUNTIME.extendObj(
+              RUNTIME.makeSrcloc("dummy location"),
+              windowOptions,
+              newWindow
+            )
+          );
+          RUNTIME.getParam('remove-d3-port')();
+          restarter.resume(toRet);
+        });
+      }
+    );
   }
 
-  function plotMulti(lstOfScatterPlots, lstOfLinePlots, windowOptions, title) {
+  function plotMulti(restarter, windowOptions, lstOfScatterPlots, lstOfLinePlots) {
     var xMin = gf(windowOptions, 'x-min');
     var xMax = gf(windowOptions, 'x-max');
     var yMin = gf(windowOptions, 'y-min');
@@ -670,13 +679,13 @@
     }
 
     function toJSOptions(options) {
-			return {
+      return {
         color:   CLIB.libColor.convertColor(gf(options, 'color')),
         size:    jsnums.toFixnum(gf(options, 'size'), RUNTIME.NumberErrbacks),
         opacity: jsnums.toFixnum(gf(options, 'opacity'), RUNTIME.NumberErrbacks),
         tip:     RUNTIME.isPyretTrue(gf(options, 'tip')),
       };
-		}
+    }
 
     var scatterPoints = [];
     RUNTIME.ffi.toArray(lstOfScatterPlots).forEach(function(scatterPlot) {
@@ -696,6 +705,8 @@
       var points = gf(linePlot, 'points');
       var options = toJSOptions(gf(linePlot, 'options'));
 
+      // To have a line, we need at least two points. If there are less than
+      // two points, let's just do nothing
       if (points.length <= 1) {
         return;
       }
@@ -724,6 +735,11 @@
         }
       }
 
+      // If there is no visible segment, do nothing
+      if (segments.length == 0) {
+        return;
+      }
+
       var combined = [segments[0]];
       for (i = 1; i < segments.length; i++) {
         var currentSegment = segments[i];
@@ -744,16 +760,21 @@
       });
     });
 
-    return genericPlot(scatterPoints, linePlots, windowOptions, title);
+    return genericPlot(restarter, windowOptions, scatterPoints, linePlots);
   }
 
-  function histogram(tab, n, title) {
+  function histogram(restarter, windowOptions, tab, n) {
     /*
      * Plot a histogram
      *
      * Part of this function is adapted from
      * http://www.frankcleary.com/making-an-interactive-histogram-in-d3-js/
      */
+
+    function resizer(restarter, windowOptions) {
+      histogram(restarter, windowOptions, tab, n);
+    }
+
     var data = tab.map(function(row){ return row[0]; });
     var xMin = data.reduce(libNum.numMin);
     var xMax = data.reduce(libNum.numMax);
@@ -763,23 +784,28 @@
         .bins(n).value(dataScaler)(data);
 
     var yMax = d3.max(histogramData, function (d) { return d.y; });
+
     var dimension = getDimension({
-      windowWidth: null,
-      windowHeight: null,
-      width: 466,
-      height: 466,
+      minWindowWidth: 505,
+      minWindowHeight: 430,
       marginLeft: 100,
       marginRight: 100,
       marginTop: 15,
       marginBottom: 55,
       mode: 'top-left',
-    }),
+    }, windowOptions)
         width = dimension.width,
         height = dimension.height,
         detached = createDiv(),
         canvas = createCanvas(detached, dimension);
 
     appendAxis(xMin, xMax, 0, yMax, width, height, canvas);
+
+    canvas
+      .append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('class', 'overlay');
 
     var x = d3.scale.linear()
         .domain([0, 1])
@@ -831,12 +857,12 @@
         d3.select(this).style('fill', 'steelblue');
       });
 
-    putLabel(title, detached, dimension);
+
     stylizeTip(detached);
-    callBigBang(detached, dimension, tab, function(){});
+    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
-  function pieChart(tab, title) {
+  function pieChart(restarter, windowOptions, tab) {
     /*
      * Pie Chart
      *
@@ -846,46 +872,55 @@
      * row[0] => label, row[1] => value
      */
 
-    var sum = tab.map(function (row) { return row[1]; }).reduce(function(a, b) {
-      return jsnums.add(a, b, RUNTIME.NumberErrbacks)
-    });
-    var scaler = libNum.scaler(0, sum, 0, 100, true);
+    function resizer(restarter, windowOptions) {
+      pieChart(restarter, windowOptions, tab);
+    }
+
+    var sum = tab.map(function (row) { return row[1]; })
+      .reduce(function(a, b) {
+        return jsnums.add(a, b, RUNTIME.NumberErrbacks)
+      });
+    var valueScaler = libNum.scaler(0, sum, 0, 100, true);
+
 
     var dimension = getDimension({
-      windowWidth: null,
-      windowHeight: null,
-      width: 466,
-      height: 466,
-      marginLeft: 160,
-      marginRight: 160,
+      minWindowWidth: 600,
+      minWindowHeight: 400,
+      outerMarginLeft: 160,
+      outerMarginRight: 160,
+      marginLeft: 0,
+      marginRight: 0,
       marginTop: 25,
       marginBottom: 45,
       mode: 'center',
-    }),
+    }, windowOptions),
         width = dimension.width,
         height = dimension.height,
         detached = createDiv(),
         canvas = createCanvas(detached, dimension);
 
-    var radius = height / 2;
+    var maxRadius = Math.min(width, height) / 2;
+    var maxRadiusValue = tab.map(function (row) { return row[2]; })
+      .reduce(libNum.numMax);
+    var radiusScaler = libNum.scaler(0, maxRadiusValue, 0, maxRadius, true);
     var color = d3.scale.category20();
     var arc = d3.svg.arc()
-        .outerRadius(radius)
+        .outerRadius(function(row) {
+          return radiusScaler(row.data[2]);
+        })
         .innerRadius(0);
-
     var pie = d3.layout.pie()
         .sort(null)
-        .value(function (row) { return scaler(row[1]); });
+        .value(function (row) { return valueScaler(row[1]); });
 
     var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
-
     var tip = d3tip(detached)
         .attr('class', 'd3-tip')
         .direction('e')
         .offset([0, 20])
         .html(function (d) {
           return 'value: <br />' + prettyNumToStringDigits9(d.data[1]) + '<br />' +
-                 'percent: <br />' + prettyNumToStringDigits9(scaler(d.data[1])) + '%';
+                 'percent: <br />' + prettyNumToStringDigits9(valueScaler(d.data[1])) + '%';
         });
 
     canvas.call(tip);
@@ -906,9 +941,7 @@
         'text-anchor': 'middle'
       })
       .text(function (d) { return d.data[0]; });
-
     g.append('path').attr('class', 'transparent').attr('d', arc);
-
     canvas.selectAll('.arc path')
       .style({
         fill: function (d, i) { return color(i); }
@@ -925,37 +958,38 @@
           .style('opacity', '0.9');
         tip.hide(e);
       });
-
     canvas.selectAll('.transparent').style('opacity', '0');
     canvas.selectAll('text').style({'font-size': '15px'});
 
-    putLabel(title, detached, dimension);
     stylizeTip(detached);
-    callBigBang(detached, dimension, tab, function(){});
+    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
-  function barChart(table, legend, title, showLegend) {
+  function barChart(restarter, windowOptions, table, legend, showLegend) {
     /*
      * Bar Chart
      *
      * Part of this function is adapted from:
      * https://bl.ocks.org/mbostock/3887051
      */
+
+    function resizer(restarter, windowOptions) {
+      barChart(restarter, windowOptions, table, legend, showLegend);
+    }
+
     var dimension = getDimension({
-      windowWidth: null,
-      windowHeight: null,
-      width: 466,
-      height: 466,
+      minWindowWidth: 505,
+      minWindowHeight: 430,
       marginLeft: 120,
       marginRight: 30,
       marginTop: 25,
       marginBottom: 45,
       mode: 'top-left',
-    }),
-    width = dimension.width,
-    height = dimension.height,
-    detached = createDiv(),
-    canvas = createCanvas(detached, dimension);
+    }, windowOptions),
+        width = dimension.width,
+        height = dimension.height,
+        detached = createDiv(),
+        canvas = createCanvas(detached, dimension);
 
     var x0 = d3.scale.ordinal()
         .rangeRoundBands([0, width], 0.1);
@@ -1055,7 +1089,7 @@
         .style('fill', function(d) { return color(d.name); });
 
     if (RUNTIME.isPyretTrue(showLegend)) {
-      var legend = canvas.selectAll('.legend')
+      var legendSvg = canvas.selectAll('.legend')
         .data(legendData.slice().reverse())
         .enter().append('g')
         .attr('class', 'legend')
@@ -1063,14 +1097,14 @@
           return svgTranslate(0, i * 20);
         });
 
-      legend
+      legendSvg
         .append('rect')
         .attr('x', width - 18)
         .attr('width', 18)
         .attr('height', 18)
         .style('fill', color);
 
-      legend
+      legendSvg
         .append('text')
         .attr('x', width - 24)
         .attr('y', 9)
@@ -1082,8 +1116,7 @@
         .text(function(d) { return d; });
     }
 
-    putLabel(title, detached, dimension);
-    callBigBang(detached, dimension, table, function(){});
+    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   return RUNTIME.makeObject({
@@ -1094,7 +1127,7 @@
         histogram: RUNTIME.makeFunction(histogram),
         'pie-chart': RUNTIME.makeFunction(pieChart),
         'plot-multi': RUNTIME.makeFunction(plotMulti),
-        'bar-chart': RUNTIME.makeFunction(barChart)
+        'bar-chart': RUNTIME.makeFunction(barChart),
       })
     })
   });
