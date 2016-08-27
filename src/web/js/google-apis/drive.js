@@ -182,14 +182,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
           return files.filter(function(f) { return f.getName() === name; });
         });
       },
-      getFilesInFolder: function(id) {
-        var self = this;
-        return drive.children.list({folderId: id}).then(function(directory) {
-          return Q.all(directory.items.map(function(file) {
-            return self.getFileById(file.id);
-          }));
-        });
-      },
       getSharedFileById: function(id) {
         return drive.files.get({fileId: id}, true).then(makeSharedFile);
       },
@@ -201,6 +193,9 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
               return filesResult.items.map(fileBuilder);
             });
         });
+      },
+      listChildren: function(id) {
+        return drive.children.list({folderId: id});
       },
       createFile: function(name, opts) {
         opts = opts || {};

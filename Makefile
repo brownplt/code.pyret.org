@@ -116,6 +116,9 @@ build/web/js/seedrandom.js: node_modules/seedrandom/seedrandom.js
 build/web/js/url.js: node_modules/url.js/url.js
 	cp $< $@
 
+build/web/js/mustache.js: node_modules/mustache/mustache.js
+	cp $< $@
+
 build/web/js/require.js: node_modules/requirejs/require.js
 	cp $< $@
 
@@ -156,7 +159,8 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/es6-shim.js \
           build/web/js/runmode.js \
           build/web/js/d3.js \
-          build/web/js/d3-tip.js
+          build/web/js/d3-tip.js \
+          build/web/js/mustache.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 

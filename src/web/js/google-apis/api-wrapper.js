@@ -207,18 +207,21 @@ function loadAPIWrapper(immediate) {
    * @returns {Promise} The wrapped promise
    */
   function failCheck(p) {
-    return p.then(function(result) {
+    var defer = Q.defer();
+    p.then(function(result) {
       // Network error
       if (result && (typeof result.code === "number") && (result.code >= 400)) {
-        console.error("40X Error getting Google API response: ", result);
-        throw new APIResponseError(result);
-      }
-      if (result && result.error) {
-        console.error("Error getting Google API response: ", result);
-        throw new APIResponseError(result);
+        //console.error("40X Error getting Google API response: ", result);
+        defer.reject(new APIResponseError(result));
+      } else if (result && result.error) {
+        //console.error("Error getting Google API response: ", result);
+        defer.reject(new APIResponseError(result));
+      } else {
+        defer.resolve(result);
       }
       return result;
     });
+    return defer.promise;
   }
 
   /**

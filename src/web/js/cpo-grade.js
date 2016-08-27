@@ -1,428 +1,499 @@
+/* global Q */
+
 ({
   requires: [
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./cpo-ide-hooks"]
+    { 'import-type': 'dependency',
+      protocol: 'js-file',
+      args: ['./cpo-ide-hooks']
     }
   ],
   nativeRequires: [
-    "cpo/gdrive-locators"
+    'cpo/gdrive-locators'
   ],
   theModule: function(runtime, namespace, uri, cpoIdeHooks, gdriveLocators) {
+    // JS Doc annotations herein use an approximation the Google Closure
+    // Compiler type expression syntax, but will not be type-checked
+    //
+    // Promise<T> will refer to a promise whose `then`, etc methods
+    // are of type {function(T)}
+
+    /**
+     * @enum {string}
+     */
+    var RunnerType = {
+      TEST: 0, // Run a student implementation against the solution test suite.
+      GOLD: 1, // Run a student test suite against the solution implementation.
+      COAL: 2  // Run a student test suite against a broken implementation.
+    };
+
+    /**
+     * @typedef {{
+     *  name: string,
+     *  id: string
+     * }}
+     *
+     * GDriveFileData
+     */
+    
+    /**
+     * @typedef {{
+     *  name: string,
+     *  id: string
+     * }}
+     *
+     * GDriveFolderData
+     */
+    
+    /**
+     * @typedef {{
+     *   implementation: GDriveFileData,
+     *   test: GDriveFileData,
+     *   student: GDriveFolderData,
+     *   runnerType: RunnerType,
+     *   success: boolean,
+     *   testsPassed: number,
+     *   testsTotal: number
+     * }}
+     * 
+     * GradeRunData
+     */
+    
+    /**
+     * @typedef {{
+     *   student: GDriveFolderData,
+     *   test: GradeRunData,
+     *   gold: GradeRunData,
+     *   coals: Array<GradeRunData>
+     * }}
+     *
+     * StudentGradeRunData
+     */
+    
+    /**
+     * @typedef {{
+     *   implementation: GDriveFileData,
+     *   test: GDriveFileData,
+     *   student: GDriveFolderData,
+     *   runnerType: RunnerType,
+     *   run: function(): Promise<GradeRunData>,
+     *   uniqueId: string
+     * }}
+     *
+     * Runner
+     */
+    
+    /**
+     * @typedef {{
+     *   student: GDriveFolderData,
+     *   test: Runner,
+     *   gold: Runner,
+     *   coals: Array<Runner>,
+     *   uniqueId: string
+     * }}
+     *
+     * StudentRunner
+     */
+
+    /**
+     * Internal helper functions
+     * @type {Object<string,function()>}
+     */
+    var CPOGradeUtil = {
+      /**
+       * Taken from developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+       * @param {number} min
+       * @param {number} max
+       * @return {number}
+       */
+      getRandomIntInclusive: function(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      },
+
+      /**
+       * @param {T} resolveData
+       * @return {Promise<T>}
+       */
+      makeResolvedPromise: function(resolveData) {
+        var deferred = Q.defer();
+        deferred.resolve(resolveData);
+        return deferred.promise;
+      },
+
+      /**
+       * @param {*} error
+       * @return {Promise}
+       */
+      makeRejectedPromise: function(error) {
+        var deferred = Q.defer();
+        deferred.reject(error);
+        return deferred.promise;
+      },
+
+      /**
+       * Create mock student/grade data for testing
+       * @type {Object<string,function()>}
+       */
+      Mock: {
+        /**
+         * @param  {GDriveFileData} implementation
+         * @param  {GDriveFileData} test
+         * @param  {GDriveFolderData} student
+         * @param  {RunnerType} runnerType
+         * @return {GradeRunData}
+         */
+        createMockGradeData: function(implementation, test, student, runnerType) {
+          var testsTotal = (runnerType === RunnerType.TEST) ? 80 : CPOGradeUtil.getRandomIntInclusive(40,100);
+          var testsPassed = CPOGradeUtil.getRandomIntInclusive(0,testsTotal);
+          var success = (CPOGradeUtil.getRandomIntInclusive(0,1) === 1);
+
+          return {
+            implementation: implementation,
+            test: test,
+            student: student,
+            runnerType: runnerType,
+            success: success,
+            testsPassed: testsPassed,
+            testsTotal: testsTotal
+          };
+        },
+
+        /**
+         * @param {number} numCoals
+         * @return {Array<GDriveFileData>}
+         */
+        createMockCoalsFileData: function(numCoals) {
+          var coals = [];
+          for(var i = 0; i < numCoals; i++) {
+            var name = 'coal-' + i + '.arr';
+            var id = name + '-gdrive-id';
+
+            coals[i] = {
+              name: name,
+              id: id
+            };
+          }
+          return coals;
+        },
+
+        /**
+         * @param {GDriveFileData} implementation
+         * @param {GDriveFileData} test
+         * @param {GDriveFolderData} student
+         * @param {RunnerType} runnerType
+         * @return {Runner}
+         */
+        createMockRunner: function(implementation, test, student, runnerType) {
+          var gradeRunData = CPOGradeUtil.Mock.createMockGradeData(implementation, test, student, runnerType);
+          var gradeRunDataPromise = CPOGradeUtil.makeResolvedPromise(gradeRunData);
+
+          var run = function() {
+            return gradeRunDataPromise;
+          };
+
+          var uniqueId = [student.id, implementation.id, test.id, 'Runner'].join('-');
+
+          return {
+            implementation: implementation,
+            test: test,
+            student: student,
+            runnerType: runnerType,
+            run: run,
+            uniqueId: uniqueId
+          };
+        },
+
+        /**
+         * @return {Array<StudentRunner>}
+         */
+        createMockStudentRunners: function() {
+          var studentData = (['A','B','C','D']).map(function(str) {
+            var name = str + '_Surname@brown.edu';
+            var id = str + '-gdrive-id';
+            return {
+              name: name,
+              id: id
+            };
+          });
+
+          var testRunners = studentData.map(function(student) {
+            // Run the student implementation...
+            var implementation = {
+              name: 'assignment-code.arr',
+              id: 'assignment-code-gdrive-id'
+            };
+
+            // ...against the solution test suite.
+            var test = {
+              name:'test-suite.arr',
+              id: 'test-suite-gdrive-id'
+            };
+
+            var runnerType = RunnerType.TEST;
+
+            return CPOGradeUtil.Mock.createMockRunner(implementation, test, student, runnerType);
+          });
+
+          var goldRunners = studentData.map(function(student) {
+            // Run the gold implementation...
+            var implementation = {
+              name: 'gold.arr',
+              id: 'gold-gdrive-id'
+            };
+
+            // ...against the student test suite.
+            var test = {
+              name:'assignment-test.arr',
+              id: 'assignment-test-gdrive-id'
+            };
+
+            var runnerType = RunnerType.GOLD;
+
+            return CPOGradeUtil.Mock.createMockRunner(implementation, test, student, runnerType);
+          });
+
+          var numCoals = CPOGradeUtil.getRandomIntInclusive(3,6);
+
+          var coalRunnerArrays = studentData.map(function(student) {
+            var coalsFileData = CPOGradeUtil.Mock.createMockCoalsFileData(numCoals);
+
+            return coalsFileData.map(function(coalFileData) {
+              // Run the coal implementation...
+              var implementation = {
+                name: coalFileData.name,
+                id: coalFileData.id
+              };
+
+              // ...against the student test suite.
+              var test = {
+                name:'assignment-test.arr',
+                id: 'assignment-test-gdrive-id'
+              };
+
+              var runnerType = RunnerType.COAL;
+
+              return CPOGradeUtil.Mock.createMockRunner(implementation, test, student, runnerType);
+            });
+          });
+
+          var studentRunners = [];
+
+          for (var studentIndex = 0; studentIndex < studentData.length; studentIndex++) {
+            var student = studentData[studentIndex];
+            var test = testRunners[studentIndex];
+            var gold = goldRunners[studentIndex];
+            var coals = coalRunnerArrays[studentIndex];
+
+            studentRunners[studentIndex] = {
+              student: student,
+              test: test,
+              gold: gold,
+              coals: coals,
+              uniqueId: student.id + '-StudentRunner'
+            };
+          }
+
+          return studentRunners;
+        }
+      }
+    };
+
     var api;
     var errNoApiMessage = 'Attempted to get file(s) before gdrive api was ready.';
 
     window.storageAPI.then(function(programCollectionAPI) {
       console.log("gdrive api ready for use by cpo-grade.");
-      api = programCollectionAPI;
+      api = programCollectionAPI.api;      
     }, function(err) {
       console.error(err);
     });
 
-    function promiseRetry(promise, iteration, max) {
-      var deferred = Q.defer();
-      promise.then(function(resolvedObject) {
-        deferred.resolve(resolvedObject);
-      }).fail(function(err) {
-        if (iteration >= max) {
-          deferred.reject(err);
+    /**
+     */
+    var apiRequestRetryHelper = function(request, iteration, max, defer) {
+      var retry = function() {
+        // formula from https://gist.github.com/peterherrmann/2700284
+        var timeToWait = (Math.pow(2, iteration) * 1000) + (Math.round(Math.random() * 1000));
+        console.log("Retrying request in " + (timeToWait / 1000) + " seconds...");
+        setTimeout(function() {
+          apiRequestRetryHelper(request, iteration + 1, max, defer);
+        }, timeToWait);
+      };
+
+      if (iteration > 0) {
+        console.log("...retrying request now.");
+      }
+
+      (request()).then(function(resolvedObject) {
+        defer.resolve(resolvedObject);
+      }).fail(function(apiResponseError) {
+        if ((apiResponseError.message === 'User Rate Limit Exceeded') && (iteration < max)) {
+          retry();
         } else {
-          // formula from https://gist.github.com/peterherrmann/2700284
-          var timeToWait = (Math.pow(2, n) * 1000) + (Math.round(Math.random() * 1000));
-          console.log("Retrying request in " + (timeToWait / 1000) + " seconds...");
-          setTimeout(function(){
-            console.log("...retrying request now.");
-            promiseRetry(promise, iteration + 1, max);
-          }, timeToWait);
+          defer.reject(apiResponseError);
         }
       });
-      return deferred.promise;
-    }
 
-    function getFile(id) {
-      if (api) {
-        return promiseRetry(api.getFileById(id), 0, 5);
-      } else {
-        console.error(errNoApiMessage);
+      return defer.promise;
+    };
+
+    /**
+     */
+    var apiRequestRetry = function(request) {
+      var defer = Q.defer();
+      return apiRequestRetryHelper(request, 0, 3, defer);
+    };
+
+    /**
+     */
+    var idAndApiCheck = function(id) {
+      if (!id || (typeof id !== 'string')) {
+        throw new Error('Cannot get id: ' + id);
+      } else if (!api) {
+        throw new Error(errNoApiMessage);
       }
-    }
+    };
 
-    function getFilesInFolder(folderId) {
-      if (api) {
-        return promiseRetry(api.getFilesInFolder(folderId), 0, 5);
-      } else {
-        console.error(errNoApiMessage);
-      }
-    }
+    /**
+     */
+    var getFile = function(id) {
+      idAndApiCheck(id);
+      var request = function() {
+        return api.getFileById(id);
+      };
+      return apiRequestRetry(request);
+    };
 
-    function gatherSubmissions(submissionsFolderId) {
-      var deferred = Q.defer();
-      var submissions = {};
+    /**
+     */
+    var listChildren = function(id) {
+      idAndApiCheck(id);
+      var request = function() {
+        return api.listChildren(id);
+      };
+      return apiRequestRetry(request);
+    };
 
-      getFilesInFolder(submissionsFolderId).then(function(students) {
-        return Q.all(students.map(function(student) {
-          var name = student.getName();
-          return getFilesInFolder(student.getUniqueId()).then(function(dirs) {
-            return dirs.find(function(dir) {
-              return dir.getName() == "final-submission";
-            });
-          }).then(function(dir) {
-            /*
-             * TODO(fgoodman): Remove gremlin files with preprocessing
-             * and remove this conditional (and below as well).
-             */
-            if (dir !== undefined) {
-              return getFilesInFolder(dir.getUniqueId());
-            }
-            else {
-              return null;
-            }
-          }).then(function(files) {
-            if (files) {
-              submissions[name] = files;
-            }
-            return files;
-          });
-        }));
-      }).then(function() {
-        deferred.resolve(submissions);
+    /**
+     */
+    var getFilesInFolder = function(id) {
+      idAndApiCheck(id);
+      return (listChildren(id)).then(function(directory) {
+        if (directory.items != null) {
+          return Q.all(directory.items.map(function(file) {
+            return getFile(file.id);
+          }));
+        } else {
+          throw new Error('directory.items is null or undefined');
+        }
       }).fail(function(err) {
-        console.error(err);
+        throw err;
+      });
+    };
+
+    /**
+     * @param {string} testSuiteFileID
+     * @param {string} goldFileID
+     * @param {string} coalFolderID
+     * @param {string} submissionsFolderID
+     * @param {string} submissionName
+     * @param {string} implementationName
+     * @param {string} testName
+     * @return {Array<StudentRunner>}
+     */
+    var createStudentRunners = function(testSuiteFileID, goldFileID, coalFolderID,
+      submissionsFolderID, submissionName, implementationName, testName) {
+
+      var testSuiteFilePromise = getFile(testSuiteFileID);
+      var goldFilePromise = getFile(goldFileID);
+      var coalFolderFilesPromise = getFilesInFolder(coalFolderID);
+      var submissionsFolderFilesPromise = getFilesInFolder(submissionsFolderID)
+      .then(function(studentFolders) {
+        var arrayOfPromises = studentFolders.map(function(studentFolder) {
+          var name = studentFolder.getName();
+          var id = studentFolder.getUniqueId();
+          var student = {
+            name: name,
+            id: id
+          };
+          return getFilesInFolder(id).then(function(files) {
+            var submission = files.find(function(file) {
+              return file.getName() === submissionName;
+            });
+            if (!submission) {
+              console.error(files);
+              throw new Error('Could not find "' + submissionName + '" for student "' + student.name + '"');
+            } else {
+              return getFilesInFolder(submission.getUniqueId());
+            }
+          }).then(function(submittedFiles) {
+            var implementation = submittedFiles.find(function(file) {
+              return file.getName() === implementationName;
+            });
+            var test = submittedFiles.find(function(file) {
+              return file.getName() === testName;
+            });
+            return {
+              student: student,
+              implementation: implementation,
+              test: test
+            };
+          });
+        });
+
+        return Q.all(arrayOfPromises);
       });
 
-      return deferred.promise;
-    }
-
-    function generateJSONFile(result) {
-      var o = {};
-      if (runtime.isSuccessResult(result)) {
-        if (runtime.ffi.isRight(result.result)) {
-
-          var checks = runtime.ffi.toArray(
-            runtime.getField(runtime.getField(result.result, "v")
-              .val.result.result, "checks"));
-
-          function toObject(test) {
-            return {
-              isSuccess: test.$name == "success",
-              result: test.$name,
-              code: runtime.getField(test, "code"),
-              loc: runtime.getField(test, "loc").dict
-            };
-          }
-
-          o.isError = false;
-          for (var k = 0; k < checks.length; k++) {
-            o[runtime.getField(checks[k], "name")] =
-              runtime.ffi.toArray(runtime.getField(
-                  checks[k], "test-results")).map(toObject);
-          }
-
-          return o;
-        }
-        else {
-          // TODO: identify this case and handle it
-          console.log("left", result);
-          return {};
-        }
-      }
-      else {
-        console.log("failure result", result);
-        return {
-          isError: true,
-          errorName: result.exn.exn.$name,
-          stack: result.exn.stack,
-          loc: runtime.getField(result.exn.exn, "loc").dict
-        };
-      }
-    }
-
-    function generateJSON(submissions) {
-      var blob = {};
-      console.log(submissions);
-      var sk = Object.keys(submissions);
-      sk.sort();
-      for (var i = 0; i < sk.length; i++) {
-        var student = {};
-        var s = submissions[sk[i]];
-        if (submissions.hasOwnProperty(sk[i]) && s !== null) {
-          var fk = Object.keys(s);
-          fk.sort();
-          for (var j = 0; j < fk.length; j++) {
-            var f = s[fk[j]];
-            if (f.result !== undefined) {
-              student[s[fk[j]].name] = generateJSONFile(f.result);
-            }
-          }
-        }
-        blob[sk[i]] = student;
-      }
-      $("#out").text(JSON.stringify(blob, null, "\t"));
-    }
-
-    function makeTarget(target) {
-      return function() {
-        var targetTD = $(this);
-        targetTD.removeClass("def").css("background-color", "#f7cb2a");
-        $("#tbl td.def, #tbl th.def").addClass("dis").removeClass("def");
-        target.eval(function(result) {
-          if (runner.runtime.isSuccessResult(result)) {
-            targetTD.css("background-color", "#30ba40");
-            if (typeof(result.exn) === "undefined") {
-              targetTD.attr("title", "Run (compile, runtime success)");
-            }
-            else {
-              var r = result.exn.exn.$name;
-              targetTD.attr("title",
-                "Run (compile success, runtime error: " + r + ")");
-            }
-          }
-          else {
-            targetTD.css("background-color", "#de1d10");
-            var r = result.exn.exn.$name;
-            targetTD.attr("title", "Run (compile error: " + r + ")");
-          }
-          console.log("Result:", result);
-          target.result = result;
-          targetTD.addClass("fin");
-          $("#tbl td.dis, #tbl th.dis").addClass("def").removeClass("dis");
+      var registerLogger = function(promise, msg) {
+        return promise.then(function(result) {
+          console.log(msg, result);
+        }).fail(function(result) {
+          console.log(msg + " ERROR");
+          console.error(result);
         });
       };
-    }
 
-    function runTDs(tds) {
-      var i = 0;
-      var interval = setInterval(function() {
-        if (i < tds.length) {
-          if (tds.eq(i).hasClass("def")) {
-            tds.eq(i).click();
-          }
-          if (tds.eq(i).hasClass("fin")) {
-            i++;
-          }
-        }
-        else {
-          clearInterval(interval);
-        }
-      }, 50);
-    }
+      registerLogger(testSuiteFilePromise, "TEST SUITE FILE");
+      registerLogger(goldFilePromise, "GOLD FILE");
+      registerLogger(coalFolderFilesPromise, "COAL FILES");
+      registerLogger(submissionsFolderFilesPromise, "SUBMISSIONS FILES");
 
-    function renderSubmissionsHeader(thead, submissions) {
-      var colspan = 0;
-      for (var student in submissions) {
-        if (submissions.hasOwnProperty(student) &&
-            submissions[student] !== null) {
-          for (; colspan < submissions[student].length; colspan++) {
-            var target = submissions[student][colspan];
-            thead.append($("<th>").html("<div><span>" + target.name +
-                  "</span></div>").addClass("tooltip")
-                .attr("title", "Run All for '" + target.name + "'")
-                .addClass("def").click(
-                function() {
-                  var idx = $(this).index() + 1;
-                  runTDs($(this).parent().parent().parent().find(
-                      "td:not(.nohov):nth-child(" + idx + ")"));
-                }));
-          }
-          break;
-        }
-      }
-      thead.prepend($("<th>").html("<div><span>student</span></div>").click(
-            function () {
-        runTDs($(this).parent().parent().parent().find("td:not(.nohov):not(:first-child)"));
-      }).addClass("def").addClass("tooltip").attr("title", "Run All"));
-      return colspan;
-    }
-
-    function renderSubmissionsRows(tbody, colspan, submissions) {
-      var keys = Object.keys(submissions);
-      keys.sort();
-      for (var i = 0; i < keys.length; i++) {
-        var student = keys[i];
-        if (submissions.hasOwnProperty(student)) {
-          var tr = $("<tr>");
-          var td = $("<td>").text(student).addClass("tooltip")
-            .attr("title", "Run All for '" + student + "'");
-          if (submissions[student] !== null) {
-            for (var j = 0; j < submissions[student].length; j++) {
-              tr.append($("<td>").addClass("def").click(
-                    makeTarget(submissions[student][j]))
-                  .addClass("tooltip")
-                  .attr("title", "Run"));
-            }
-            tr.prepend(td.addClass("def").click(
-                function() {
-                  runTDs($(this).parent().find("td:not(:first-child)"));
-                }));
-          }
-          else {
-            tr.append(td.addClass("nohov"));
-            tr.append($("<td>").attr("colspan", colspan).addClass("nohov"));
-          }
-          tbody.append(tr);
-        }
-      }
-    }
-
-    function renderSubmissions(submissions) {
-      var thead = $("#tbl thead tr");
-      var colspan = renderSubmissionsHeader(thead, submissions);
-
-      var tbody = $("#tbl tbody");
-      tbody.css("height", $("#cfg").height() - thead.height());
-      renderSubmissionsRows(tbody, colspan, submissions);
-    }
-
-    function getSubmission(submission, name) {
-      for (var i = 0; i < submission.length; i++) {
-        if (submission[i].getName() == name) {
-          return submission[i];
-        }
-      }
-
-      return null;
-    }
-
-    var gf = runtime.getField;
-    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-
-    // creates a findModule that behaves as normal except when importing
-    // fileName via the "my-gdrive" protocol, in which case it uses fileObj
-    function createFindModuleFunction(fileName, fileObj) {
-      // because this is serving as a substitute for getFileByName, we create
-      // a promise which resolves with an _array_ of file objects
-      var filesDefer = Q.defer();
-      filesDefer.resolve([fileObj]);
-      var filesPromise = filesDefer.promise;
-
-      // NOTE(awstlaur): this function was copied and modified from the default
-      // findModule found in cpo-repl.js
-      return function(contextIgnored, dependency) {
-          return runtime.safeCall(function() {
-            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
-              {
-                builtin: function(name) {
-                  var raw = cpoModules.getBuiltinLoadableName(runtime, name);
-                  if(!raw) {
-                    throw runtime.throwMessageException("Unknown module: " + name);
-                  }
-                  else {
-                    return gmf(cpo, "make-builtin-js-locator").app(name, raw);
-                  }
-                },
-                dependency: function(protocol, args) {
-                  var arr = runtime.ffi.toArray(args);
-                  if (protocol === "my-gdrive") {
-                    if (arr[0] === fileName) {
-                      return constructors.makeMyGDriveLocator(arr[0], filesPromise);
-                    } else {
-                      return constructors.makeMyGDriveLocator(arr[0]);
-                    }
-                  }
-                  else if (protocol === "shared-gdrive") {
-                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
-                  }
-                  else {
-                    console.error("Unknown import: ", dependency);
-                  }
-
-                }
-              });
-           }, function(l) {
-              return gmf(compileLib, "located").app(l, runtime.nothing);
-           }, "findModule");
-        }
-    }
-
-    function makeRunner(fileObj, fileName, fileID) {
-      if (fileObj !== null) {
-        return function(thunk) {
-          return fileObj.getContents().then(function(contents) {
-            var subs = {};
-            subs[fileName] = fileID;
-            return runner.runString(contents, "", subs);
-          }).then(thunk);
-        };
-      }
-      else {
-        return null;
-      }
-    }
-
-    function processSubmission(testSuite) {
-      var assignmentID = $("#id").val();
-      var implName = $("#implementation").val();
-      var testName = $("#test").val();
-      var goldID = $("#gold").val();
-      var coals;
-      if ($("#coals").val() === "") {
-        coals = [];
-      }
-      else {
-        coals = $("#coals").val().split("\n").map(function(coal) {
-          return coal.split(":");
-        });
-      }
-
-      function toTargets(submission) {
-        var targets = [];
-        var implSubmission = getSubmission(submission, implName);
-        var testSubmission = getSubmission(submission, testName);
-        if (testSubmission !== null && implSubmission !== null) {
-          targets.push({
-            name: "test",
-            eval: makeRunner(
-              testSuite, implName, implSubmission.getUniqueId())
-          });
-          targets.push({
-            name: "gold",
-            eval: makeRunner(testSubmission, implName, goldID)
-          });
-          for (var i = 0; i < coals.length; i++) {
-            targets.push({
-              name: "coal-" + i,
-              eval: makeRunner(testSubmission, coals[i][0], coals[i][1])
-            });
-          }
-          return targets;
-        }
-        else {
-          return null;
-        }
-      }
-
-      var submissionsPromise = gatherSubmissions(assignmentID);
-
-      submissionsPromise.then(function(submissions) {
-        for (var student in submissions) {
-          if (submissions.hasOwnProperty(student)) {
-            submissions[student] = toTargets(submissions[student]);
-          }
-        }
-
-        renderSubmissions(submissions);
-
-        $("#frm").submit(function() {
-          generateJSON(submissions);
-        }).show();
-      }).fail(function(f){console.error(f);});
+      return CPOGradeUtil.Mock.createMockStudentRunners();
     };
 
-    function loadAndRenderSubmissions() {
-      $("#cfg-container").hide();
-      var suiteID = $("#suite").val();
-
-      var suiteSubmissionPromise = getFile(suiteID);
-      suiteSubmissionPromise.then(function(testSuite) {
-        processSubmission(testSuite);
+    /**
+     * @param {StudentRunner} studentRunner
+     * @return {Promise<StudentGradeRunData>}
+     */
+    var runStudentRunner = function(studentRunner) {
+      var testGradeDataPromise = studentRunner.test.run();
+      var goldGradeDataPromise = studentRunner.gold.run();
+      var coalGradeDataPromises = studentRunner.coals.map(function(coalRunner) {
+        return coalRunner.run();
       });
-    }
+      var coalGradeDataArrayPromise = Q.all(coalGradeDataPromises);
+
+      return Q.all([
+        testGradeDataPromise,
+        goldGradeDataPromise,
+        coalGradeDataArrayPromise
+      ]).then(function(promises) {
+        return {
+          student: studentRunner.student,
+          test: promises[0],
+          gold: promises[1],
+          coals: promises[2]
+        };
+      });
+    };
 
     window.CPOGRADE = {
-      loadAndRenderSubmissions: loadAndRenderSubmissions
+      createStudentRunners: createStudentRunners,
+      runStudentRunner: runStudentRunner
     };
 
-    console.log("cpo-grade loaded.");
+    console.log('cpo-grade loaded.');
 
     return runtime.makeModuleReturn({}, {});
   }
