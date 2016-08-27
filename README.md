@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/brownplt/code.pyret.org.svg)](https://travis-ci.org/brownplt/code.pyret.org)
 
 # code.pyret.org
 
