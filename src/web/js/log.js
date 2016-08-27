@@ -6,6 +6,20 @@ var ConsoleBackend = function() {
   };
 };
 
+var IndexedDBBackend = function() {
+  var db = new Dexie('CPO');
+
+  db.version(1).stores({
+    events: 'CPO_eventName, CPO_eventTime, CPO_windowID, CPO_localID, CPO_sessionID'
+  });
+
+  db.open();
+
+  this.log = function(obj) {
+    db.events.add(obj);
+  };
+};
+
 var logger = (function(backend) {
   function guid() {
     var array = new Uint32Array(4);
