@@ -1,6 +1,12 @@
 window.logger = {};
 
-var logger = (function() {
+var ConsoleBackend = function() {
+  this.log = function() {
+    console.log.apply(console, arguments);
+  };
+};
+
+var logger = (function(backend) {
   function guid() {
     var array = new Uint32Array(4);
     window.crypto.getRandomValues(array);
@@ -43,14 +49,14 @@ var logger = (function() {
     obj.CPO_windowID   = identifiers.windowID;
     obj.CPO_localID    = identifiers.localID;
     obj.CPO_sessionID  = identifiers.sessionID;
-    console.log('logger.log', obj);
+    backend.log('logger.log', obj);
   }
   
   return {
     guid  : guid,
     log   : log
   };
-})();
+})(new ConsoleBackend());
 
 CodeMirror.defineInitHook(
   function (cm) {
