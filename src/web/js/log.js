@@ -52,18 +52,25 @@ var logger = (function() {
   };
 })();
 
+CodeMirror.defineInitHook(
+  function (cm) {
+    cm.CPO_editorID = logger.guid();
+    logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
+  });
+
 CodeMirror.defineOption('logging', false, 
   function (cm, new_value) {
     if (new_value != true)
       return;
     cm.on("change", function(cm, change) {
+      change.CPO_editorID = cm.CPO_editorID;
       logger.log('cm_change', change);
     });
     cm.on("focus", function(cm) {
-      logger.log('cm_focus');
+      logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
     });
     cm.on("blur", function(cm) {
-      logger.log('cm_blur');
+      logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
     });
   });
 
@@ -77,6 +84,5 @@ window.addEventListener('unload', function(event) {
 
 // Log tab/window visibility change (kinda unreliable)
 document.addEventListener("visibilitychange", function() {
-  console.log( document.visibilityState );
+  logger.log('pagevis', {visibility: document.visibilityState});
 });
-
