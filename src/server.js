@@ -336,7 +336,7 @@ function start(config, onServerReady) {
         return auth.refreshAccess(u.refresh_token, function(err, newToken) {
           if(err) { res.send(err); res.end(); return; }
           else {
-            res.send({ access_token: newToken });
+            res.send({ access_token: newToken, user_id: req.session["user_id"] });
             res.end();
           }
         });
