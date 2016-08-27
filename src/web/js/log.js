@@ -22,9 +22,12 @@ var IndexedDBBackend = function() {
 
 var logger = (function(backend) {
   function guid() {
-    var array = new Uint32Array(4);
+    var array = new Uint32Array(6);
     window.crypto.getRandomValues(array);
-    return array;
+    return array.reduce(
+      function(previousValue, currentValue) {
+        return previousValue.concat(currentValue.toString(36));
+      }, "");
   }
 
   /* Tab, Session, and Browser Identifiers */
