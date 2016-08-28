@@ -484,74 +484,19 @@
       
       }catch(e){console.error(e);}
       
-      // All should only be called on the pyret stack, within `vivifySkeleton` or `vivifySkeletonFallback` fallback.
-      let maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
-      let srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
-      let maybeStackLoc   = runtime.makeFunction(function(n, userFramesOnly) {return runtime.ffi.makeNone();});
-      
-      // must be called on the pyret stack
-      function vivifySkeletonFallback(restarter, skeleton) { 
-        return runtime.runThunk(function() { 
-          return get(skeleton.renderable, "render-reason").app(); 
-        }, function(result) {
-          if (runtime.isSuccessResult(result)) {
-            runtime.runThunk(function() {
-              return outputUI.renderErrorDisplay(documents, runtime, result.result, []);
-            }, function(result) {
-              if (runtime.isSuccessResult(result)) {
-                if(skeleton.pyretStack)
-                  result.result.append(outputUI.renderStackTrace(runtime, documents, srcloc, skeleton.pyretStack));
-                skeleton.vivify(result.result);
-                restarter.resume(runtime.nothing);
-              } else {
-                skeleton.vivify(
-                  $("<span>").text("Two errors occurred rendering the reason for this error; details logged to the console"));
-                console.error("Displaying rendered reason failed in `vivifySkeletonFallback`:", result);
-                restarter.resume(runtime.nothing);
-              }
-            });
-          } else {
-            skeleton.vivify(
-              $("<span>").text("Three errors occurred displaying the reason for this error; details logged to the console"));
-            console.error("Calling `render-reason` failed in `vivifySkeletonFallback`:", result);
-            restarter.resume(runtime.nothing);
-          }
-        });
-      }
-      
       // must be called on the pyret stack
       function vivifySkeleton(skeleton) {
-        runtime.pauseStack(function(restarter){
-          runtime.runThunk(function(){
-            return get(skeleton.renderable, "render-fancy-reason")
-                    .app((skeleton.hasOwnProperty("maybeStackLoc") ? 
-                            skeleton.maybeStackLoc : maybeStackLoc), 
-                          srclocAvaliable, maybeLocToAST);
-          },
-          function(result) {
-            if (runtime.isSuccessResult(result)) {
-              runtime.runThunk(
-                function(){
-                  return outputUI.renderErrorDisplay(documents, runtime, result.result, []);
-                }, function(result) {
-                  if (runtime.isSuccessResult(result)) {
-                    if(skeleton.pyretStack)
-                      result.result.append(outputUI.renderStackTrace(runtime, documents, srcloc, skeleton.pyretStack));
-                    skeleton.vivify(result.result);
-                    restarter.resume(runtime.nothing);
-                  } else {
-                    console.error("Displaying rendered reason failed in `vivifySkeleton`:", result);
-                    vivifySkeletonFallback(restarter, skeleton, result);
-                  }
-                });
-            } else {
-              console.error("Calling `render-fancy-reason` failed in `vivifySkeleton`:", result);
-              vivifySkeletonFallback(restarter, skeleton, result);
-            }
-          });
+        var error_to_reason = errorUI.error_to_reason;
+        var reason_to_html  = errorUI.reason_to_html;
+        return runtime.pauseStack(function (restarter) {
+          return error_to_reason(runtime, documents, skeleton.renderable, skeleton.pyretStack).
+            then(reason_to_html(runtime, documents, skeleton.pyretStack)).
+            then(function(html) {
+              skeleton.vivify(html);
+            }).done(function () {restarter.resume(runtime.nothing)});
         });
       }
-      
+
       return runtime.safeCall(
         function(){
           return runtime.eachLoop(runtime.makeFunction(function(i) {

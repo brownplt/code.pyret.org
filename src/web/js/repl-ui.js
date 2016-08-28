@@ -124,6 +124,24 @@
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
+
+      function renderAndDisplayError(runtime, error, stack) {
+        var error_to_reason = errorUI.error_to_reason;
+        var reason_to_html  = errorUI.reason_to_html;
+        return runtime.pauseStack(function (restarter) {
+          return error_to_reason(runtime, CPO.documents, error, stack).
+            then(reason_to_html(runtime, CPO.documents, stack)).
+            then(function (html) {
+              html.on('click', function(){
+                $(".highlights-active").removeClass("highlights-active");
+                html.trigger('toggleHighlight');
+                html.addClass("highlights-active");
+              });
+              html.addClass('compile-error').appendTo(output);
+            }).done(function () {restarter.resume(runtime.nothing)});
+        });
+      }
+
       return function(result) {
         var doneDisplay = Q.defer();
         var didError = false;
@@ -131,20 +149,28 @@
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
-            return errorUI.drawError(output, CPO.documents, callingRuntime, result.exn);
+            // Parse Errors
+            renderAndDisplayError(callingRuntime, result.exn.exn);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
             ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
-                var errs = [];
-                var results = ffi.toArray(compileResultErrors);
-                results.forEach(function(r) {
-                  errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
-                });
                 didError = true;
-                return errorUI.drawError(output, CPO.documents, runtime, {exn: errs});
+                // Compile Errors
+                var errors = ffi.toArray(compileResultErrors).
+                  reduce(function (errors, error) {
+                      Array.prototype.push.apply(errors,
+                        ffi.toArray(runtime.getField(error, "problems")));
+                      return errors;
+                    }, []);
+                return callingRuntime.safeCall(
+                  function() {
+                    return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
+                      return renderAndDisplayError(callingRuntime, errors[i]);
+                    }), 0, errors.length);
+                  }, function () {});
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
@@ -166,7 +192,7 @@
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
-                      return errorUI.drawError(output, CPO.documents, rr, runResult.exn);
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -179,7 +205,9 @@
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
-            return errorUI.drawError(output, CPO.documents, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)));
+            return renderAndDisplayError(callingRuntime, CPO.documents,
+              ffi.throwInternalError("Got something other than a Pyret result when running the program.",
+                ffi.makeList(result)));
           }
         }, function(_) {
           if (didError) {
