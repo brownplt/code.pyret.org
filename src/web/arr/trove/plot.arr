@@ -120,7 +120,6 @@ data PlotInternal:
   | function-plot-int(f :: PlottableFunction, options :: PlotOptions)
 end
 
-
 fun sprintf-maker():
   generic-sprintf = lam(arr :: RawArray<Any>):
     raw-array-fold(lam(str, elt, _): str + tostring(elt) end, "", arr, 0)
@@ -136,14 +135,19 @@ fun sprintf-maker():
   }
 end
 
+fun check-base-window-options(options :: BaseWindowOptions) -> Nothing block:
+  when (options.xscale < 0) or (options.xscale > 1):
+    raise('plot: xscale must be between 0 and 1')
+  end
+  when (options.yscale < 0) or (options.yscale > 1):
+    raise('plot: yscale must be between 0 and 1')
+  end
+  nothing
+end
+
 sprintf = sprintf-maker()
 
-id = {<A>(x :: A): x}
-default-options = id
-
-fun posn(x :: Number, y :: Number) -> Posn:
-  [raw-array: x, y]
-end
+default-options = {<A>(x :: A): x}
 
 fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> Image block:
   doc: ```
@@ -159,7 +163,9 @@ fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWi
   when raw-array-length(tab._rows-raw-array) == 0:
     raise('histogram: expect the table to have at least one row')
   end
-  P.histogram(nothing, options-generator(histogram-window-options), tab._rows-raw-array, n)
+  options = options-generator(histogram-window-options)
+  _ = check-base-window-options(options)
+  P.histogram(nothing, options, tab._rows-raw-array, n)
 where:
   histogram(
     table: value :: Number
@@ -206,7 +212,9 @@ fun pie-chart-with-adjustable-radius(
   when raw-array-length(tab._rows-raw-array) == 0:
     raise('pie-chart-with-adjustable-radius: expect the table to have at least one row')
   end
-  P.pie-chart(nothing, options-generator(pie-chart-window-options), tab._rows-raw-array)
+  options = options-generator(pie-chart-window-options)
+  _ = check-base-window-options(options)
+  P.pie-chart(nothing, options, tab._rows-raw-array)
 where:
   pie-chart-with-adjustable-radius(table: label, value, radius
       row: 'asd', 1, 3
@@ -225,7 +233,9 @@ fun bar-chart(
   shadow tab = transform tab using value:
     value: [list: value]
   end
-  P.bar-chart(nothing, options-generator(bar-chart-window-options), tab._rows-raw-array, [list: ''], false)
+  options = options-generator(bar-chart-window-options)
+  _ = check-base-window-options(options)
+  P.bar-chart(nothing, options, tab._rows-raw-array, [list: ''], false)
 end
 
 fun grouped-bar-chart(
@@ -235,7 +245,9 @@ fun grouped-bar-chart(
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
-  P.bar-chart(nothing, options-generator(bar-chart-window-options), tab._rows-raw-array, legend, true)
+  options = options-generator(bar-chart-window-options)
+  _ = check-base-window-options(options)
+  P.bar-chart(nothing, options, tab._rows-raw-array, legend, true)
 where:
   grouped-bar-chart(
     table: label, values
@@ -285,6 +297,9 @@ where:
     infer-bounds: false,
     interact: false
   }
+  fun posn(x :: Number, y :: Number) -> Posn:
+    [raw-array: x, y]
+  end
   generate-xy(function-plot-int(_ + 1, plot-options), win-options)
     is scatter-plot-int([raw-array:
       posn(0, 1),
@@ -338,6 +353,7 @@ fun display-multi-plot(
     plots :: List<Plot>,
     options-generator :: WrappedPlotWindowOptions) -> Image block:
   options = options-generator(plot-window-options)
+  _ = check-base-window-options(options)
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
     raise('plot: x-min and y-min must be strictly less than x-max and y-max respectively')
   end
@@ -350,26 +366,6 @@ fun display-multi-plot(
         ' and do not exceed ',
         num-to-string(MAX_SAMPLES)])
   end
-  # when (options.width < MIN_WIDTH) or
-  #   (options.width > MAX_WIDTH) or
-  #   not(num-is-integer(options.width)):
-  #   raise(
-  #     [sprintf:
-  #       'plot: width must be an integer between ',
-  #       num-to-string(MIN_WIDTH),
-  #       ' and ',
-  #       num-to-string(MAX_WIDTH)])
-  # end
-  # when (options.height < MIN_HEIGHT) or
-  #   (options.height > MAX_HEIGHT) or
-  #   not(num-is-integer(options.height)):
-  #   raise(
-  #     [sprintf:
-  #       'plot: height must be an integer between ',
-  #       num-to-string(MIN_HEIGHT),
-  #       ' and ',
-  #       num-to-string(MAX_HEIGHT)])
-  # end
 
   original-plots = plots
   shadow plots = plots.map(
@@ -472,10 +468,10 @@ fun display-plots(
   end
   options = _.{title: title}
   shadow options = if infer-bounds:
-      {(config): options(config).{infer-bound: true}}
-    else:
-      options
-    end
+    {(config): options(config).{infer-bound: true}}
+  else:
+    options
+  end
   display-multi-plot(new-plots, options)
 end
 

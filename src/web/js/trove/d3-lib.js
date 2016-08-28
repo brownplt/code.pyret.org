@@ -7,7 +7,8 @@
     './build/web/js/d3.js'
   ],
   provides: {},
-  theModule: function(RUNTIME, NAMESPACE, uri, IMAGE, jsnums, d3) {
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums, d3) {
+  'use strict';
 
   function assert(val, msg) {
     if (!val) { throw new Error('Assertion failed: ' + (msg || '')); }
@@ -45,7 +46,7 @@
   }
 
   function getPrettyNumToStringDigits(digits) {
-    return function(num) {
+    return function (num) {
       return jsnums.toStringDigits(num, digits, RUNTIME.NumberErrbacks).replace(/\.?0*$/, '');
     };
   }
@@ -89,10 +90,10 @@
        * @author Paul Lewis
        * @param {Object} opts The params for drawing an image to the canvas
        */
-      if(!opts.canvas) {
+      if (!opts.canvas) {
           throw('A canvas is required');
       }
-      if(!opts.image) {
+      if (!opts.image) {
           throw('Image is required');
       }
 
@@ -237,17 +238,17 @@
   function shuffle(o){
     //+ Jonas Raoni Soares Silva
     //@ http://jsfromhell.com/array/shuffle [v1.0]
-    for(var j, x, i = o.length; i;
+    for (var j, x, i = o.length; i;
         j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
   }
 
   var libData = {
-    'lastElement': lastElement,
-    'flatten': flatten,
-    'fill': fill,
-    'range': range,
-    'shuffle': shuffle
+    lastElement: lastElement,
+    flatten: flatten,
+    fill: fill,
+    range: range,
+    shuffle: shuffle
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -264,7 +265,7 @@
   function convertColor(v) {
 
       function p(pred, name) {
-          return function(val) {
+          return function (val) {
               RUNTIME.makeCheckType(pred, name)(val);
               return val;
           };
@@ -411,7 +412,7 @@
   }
 
   function getImageAsURL(detached) {
-    var svg = detached.select('svg')
+    detached.select('svg')
       .attr('version', 1.1)
       .attr('xmlns', 'http://www.w3.org/2000/svg');
     return 'data:image/svg+xml;base64,' + btoa(detached.node().firstChild.innerHTML);
@@ -465,9 +466,9 @@
     });
 
     if (retValFunc === null) {
-      retValFunc = function(restarter) {
-        imageReturn(detached, restarter, function(x) { return x; });
-      }
+      retValFunc = function (restarter) {
+        imageReturn(detached, restarter, function (x) { return x; });
+      };
     }
 
     if (RUNTIME.isPyretFalse(RUNTIME.getField(windowOptions, 'interact'))) {
@@ -494,10 +495,10 @@
     if (RUNTIME.isNothing(restarter)) {
       pauseStack = RUNTIME.pauseStack;
     } else {
-      pauseStack = function(cb) { cb(restarter) };
+      pauseStack = function (cb) { cb(restarter); };
     }
 
-    pauseStack(function(restarter) {
+    pauseStack(function (restarter) {
       if (extra !== null) {
         extra(restarter);
       }
@@ -506,7 +507,7 @@
       // });
       RUNTIME.getParam('d3-port')(
         detached.node(),
-        function(baseOption) {
+        function (baseOption) {
           baseOption.width = dimension.windowWidth;
           baseOption.height = dimension.windowHeight;
           baseOption.minWidth = dimension.minWindowWidth;
@@ -515,10 +516,10 @@
           baseOption.maxHeight = dimension.maxWindowHeight - 11;
           return baseOption;
         },
-        function(){ retValFunc(restarter) },
+        function (){ retValFunc(restarter); },
         [
           {
-            click: function() {
+            click: function () {
               var width = jsnums.fromFixnum($('.maind3').parent().parent().width());
               var height = jsnums.fromFixnum($('.maind3').parent().parent().height() + 11);
               RUNTIME.getParam('remove-d3-port')();
@@ -532,12 +533,12 @@
                     yscale: yscaler(height),
                   }
                 )
-              )
+              );
             },
             icon: 'ui-icon-arrowthick-2-se-nw'
           },
           {
-            click: function(){ onSave(detached) },
+            click: function (){ onSave(detached); },
             icon: 'ui-icon-disk'
           }
         ]
@@ -575,7 +576,7 @@
   function imageReturn(detached, restarter, hook) {
     var url = getImageAsURL(detached);
     var rawImage = new Image();
-    rawImage.onload = function() {
+    rawImage.onload = function () {
       restarter.resume(
         hook(
           RUNTIME.makeOpaque(
@@ -585,12 +586,11 @@
         )
       );
     };
-    rawImage.onerror = function(e) {
+    rawImage.onerror = function (e) {
       restarter.error(RUNTIME.ffi.makeMessageException("unable to load the image: " + e.message));
     };
     rawImage.src = url;
   }
-
 
   return RUNTIME.makeJSModuleReturn({
     libData: libData,

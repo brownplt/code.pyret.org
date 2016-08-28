@@ -8,12 +8,11 @@
     './build/web/js/d3-tip.js'
   ],
   provides: {},
-  theModule: function(RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
-
+  theModule: function (RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
+  'use strict';
   var gf = RUNTIME.getField,
       cases = RUNTIME.ffi.cases;
   var libNum =       CLIB.libNum,
-      libJS =        CLIB.libJS,
       getDimension = CLIB.d3common.getDimension,
       svgTranslate = CLIB.d3common.svgTranslate,
       createDiv =    CLIB.d3common.createDiv,
@@ -232,25 +231,25 @@
     function getNewWindow() {
       // console.log($('.maind3').parent().parent().width(), $('.maind3').parent().parent().height());
       var ret = cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMinC.val()), {
-        none: function() {
+        none: function () {
           xMinC.addClass('error-bg');
           xMinC.removeClass('ok-bg');
           return null;
         },
-        some: function(xMin_val) {
+        some: function (xMin_val) {
           xMinC.removeClass('error-bg');
           xMinC.addClass('ok-bg');
           return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(xMaxC.val()), {
-            none: function() {
+            none: function () {
               xMaxC.addClass('error-bg');
               xMaxC.removeClass('ok-bg');
               return null;
             },
-            some: function(xMax_val) {
+            some: function (xMax_val) {
               xMaxC.removeClass('error-bg');
               xMaxC.addClass('ok-bg');
 
-              if(jsnums.greaterThanOrEqual(xMin_val, xMax_val, RUNTIME.NumberErrbacks)) {
+              if (jsnums.greaterThanOrEqual(xMin_val, xMax_val, RUNTIME.NumberErrbacks)) {
                 xMinC.addClass('error-bg');
                 xMaxC.addClass('error-bg');
                 xMinC.removeClass('ok-bg');
@@ -259,26 +258,26 @@
               }
 
               return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMinC.val()), {
-                none: function() {
+                none: function () {
                   yMinC.addClass('error-bg');
                   yMinC.removeClass('ok-bg');
                   return null;
                 },
-                some: function(yMin_val) {
+                some: function (yMin_val) {
                   yMinC.removeClass('error-bg');
                   yMinC.addClass('ok-bg');
 
                   return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(yMaxC.val()), {
-                    none: function() {
+                    none: function () {
                       yMaxC.addClass('error-bg');
                       yMaxC.removeClass('ok-bg');
                       return null;
                     },
-                    some: function(yMax_val) {
+                    some: function (yMax_val) {
                       yMaxC.removeClass('error-bg');
                       yMaxC.addClass('ok-bg');
 
-                      if(jsnums.greaterThanOrEqual(xMin_val, xMax_val, RUNTIME.NumberErrbacks)) {
+                      if (jsnums.greaterThanOrEqual(xMin_val, xMax_val, RUNTIME.NumberErrbacks)) {
                         yMinC.addClass('error-bg');
                         yMaxC.addClass('error-bg');
                         yMinC.removeClass('ok-bg');
@@ -287,12 +286,12 @@
                       }
 
                       return cases(RUNTIME.ffi.isOption, 'Option', RUNTIME.string_to_number(numSamplesC.val()), {
-                        none: function() {
+                        none: function () {
                           numSamplesC.addClass('error-bg');
                           numSamplesC.removeClass('ok-bg');
                           return null;
                         },
-                        some: function(numSamples_val) {
+                        some: function (numSamples_val) {
                           numSamplesC.removeClass('error-bg');
                           numSamplesC.addClass('ok-bg');
 
@@ -329,7 +328,7 @@
     controller.append($('<button/>', {
       text: '⇦',
       style: 'left: 100px; top: 70px',
-    }).addClass('xMinGo d3btn').click(function() {
+    }).addClass('xMinGo d3btn').click(function () {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
       }
@@ -344,7 +343,7 @@
     controller.append($('<button/>', {
       text: '⇨',
       style: 'left: 140px; top: 70px',
-    }).addClass('xMaxGo d3btn').click(function() {
+    }).addClass('xMaxGo d3btn').click(function () {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
       }
@@ -359,7 +358,7 @@
     controller.append($('<button/>', {
       text: '⇩',
       style: 'left: 120px; top: 105px',
-    }).addClass('yMinGo d3btn').click(function() {
+    }).addClass('yMinGo d3btn').click(function () {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
       }
@@ -374,7 +373,7 @@
     controller.append($('<button/>', {
       text: '⇧',
       style: 'left: 120px; top: 35px',
-    }).addClass('yMaxGo d3btn').click(function() {
+    }).addClass('yMaxGo d3btn').click(function () {
       if (rectangleElement.attr('style').indexOf('visible') >= 0) {
         rectangleElement.style({visibility: 'hidden'});
       }
@@ -425,7 +424,7 @@
       .attr('width', width)
       .attr('height', height)
       .attr('class', 'overlay')
-      .on('click', function() {
+      .on('click', function () {
         if (!d3.event.shiftKey) { return; }
 
         var coord = d3.mouse(this);
@@ -440,7 +439,7 @@
         yMaxC.val(prettyNumToStringDigits20(jsnums.add(cy, radiusY, RUNTIME.NumberErrbacks)));
 
       })
-      .on('mousedown', function() {
+      .on('mousedown', function () {
         if (isDown) { return; }
         if (d3.event.shiftKey) { return; }
 
@@ -453,7 +452,7 @@
         rectangleElement.style({visibility: 'visible'});
         isDown = true;
       })
-      .on('mousemove', function(){
+      .on('mousemove', function (){
 
         var coord = d3.mouse(this);
         var vX = pixelToX(coord[0]);
@@ -462,12 +461,12 @@
         coordDisplay.html('x: ' + prettyNumToStringDigits20(vX) + '<br/><br/>' +
                           'y: ' + prettyNumToStringDigits20(vY));
 
-        if(isDown) {
+        if (isDown) {
           rectData[1] = { x: coord[0], y: coord[1] };
           updateRect();
         }
       })
-      .on('mouseup', function() {
+      .on('mouseup', function () {
         if (rectData[0].x == rectData[1].x &&
             rectData[0].y == rectData[1].y &&
             rectangleElement.attr('style').indexOf('visible') >= 0) {
@@ -529,15 +528,15 @@
         .append('circle')
         .attr('cx', function (d) { return xToPixel(d[0]); })
         .attr('cy', function (d) { return yToPixel(d[1]); })
-        .attr('r', function(d) { return d[2].size; })
-        .style('fill', function(d) { return d[2].color; })
-        .style('opacity', function(d) { return d[2].opacity; })
-        .on('mouseover', function(d) {
+        .attr('r', function (d) { return d[2].size; })
+        .style('fill', function (d) { return d[2].color; })
+        .style('opacity', function (d) { return d[2].opacity; })
+        .on('mouseover', function (d) {
           if (d[2].tip) {
             tip.show.apply(this, arguments);
           }
         })
-        .on('mouseout', function(d) {
+        .on('mouseout', function (d) {
           if (d[2].tip) {
             tip.hide.apply(this, arguments);
           }
@@ -554,13 +553,13 @@
       resizer,
       windowOptions,
       dimension,
-      function(restarter) {
-        imageReturn(detached, restarter, function(image) {
-          return RUNTIME.ffi.makeRight(image)
+      function (restarter) {
+        imageReturn(detached, restarter, function (image) {
+          return RUNTIME.ffi.makeRight(image);
         });
       },
-      function(restarter) {
-        redraw.click(function() {
+      function (restarter) {
+        redraw.click(function () {
           var newWindow = getNewWindow();
           if (newWindow === null) { return; }
           var toRet = RUNTIME.ffi.makeLeft(
@@ -599,7 +598,7 @@
     function nearest(candidates, origin) {
       var ans = null;
       var optimal = null;
-      candidates.forEach(function(candidate) {
+      candidates.forEach(function (candidate) {
         var distance = dist(candidate, origin);
         if (optimal === null || jsnums.lessThan(distance, optimal, RUNTIME.NumberErrbacks)) {
           optimal = distance;
@@ -645,11 +644,11 @@
         var m = jsnums.divide(jsnums.subtract(near[1], far[1], RUNTIME.NumberErrbacks), jsnums.subtract(near[0], far[0], RUNTIME.NumberErrbacks));
         var c = jsnums.subtract(near[1], jsnums.multiply(m, near[0], RUNTIME.NumberErrbacks), RUNTIME.NumberErrbacks);
 
-        var f = function(x) {
+        var f = function (x) {
           return jsnums.add(jsnums.multiply(m, x, RUNTIME.NumberErrbacks), c, RUNTIME.NumberErrbacks);
         };
 
-        var g = function(y) {
+        var g = function (y) {
           return jsnums.divide(jsnums.subtract(y, c, RUNTIME.NumberErrbacks), m, RUNTIME.NumberErrbacks);
         };
 
@@ -666,7 +665,7 @@
         }
       }
 
-      return nearest(candidates.filter(function(p) {
+      return nearest(candidates.filter(function (p) {
         return jsnums.lessThanOrEqual(pxMin, p[0], RUNTIME.NumberErrbacks) &&
                jsnums.lessThanOrEqual(p[0], pxMax, RUNTIME.NumberErrbacks) &&
                jsnums.lessThanOrEqual(pyMin, p[1], RUNTIME.NumberErrbacks) &&
@@ -688,10 +687,10 @@
     }
 
     var scatterPoints = [];
-    RUNTIME.ffi.toArray(lstOfScatterPlots).forEach(function(scatterPlot) {
+    RUNTIME.ffi.toArray(lstOfScatterPlots).forEach(function (scatterPlot) {
       var points = gf(scatterPlot, 'points');
       var options = toJSOptions(gf(scatterPlot, 'options'));
-      points.forEach(function(point) {
+      points.forEach(function (point) {
         if (inBound(point)) {
           scatterPoints.push(point.concat([options]));
         }
@@ -700,7 +699,7 @@
 
     var linePlots = [];
 
-    RUNTIME.ffi.toArray(lstOfLinePlots).forEach(function(linePlot) {
+    RUNTIME.ffi.toArray(lstOfLinePlots).forEach(function (linePlot) {
       var i;
       var points = gf(linePlot, 'points');
       var options = toJSOptions(gf(linePlot, 'options'));
@@ -736,7 +735,7 @@
       }
 
       // If there is no visible segment, do nothing
-      if (segments.length == 0) {
+      if (segments.length === 0) {
         return;
       }
 
@@ -752,7 +751,7 @@
         }
       }
 
-      combined.forEach(function(segment) {
+      combined.forEach(function (segment) {
         linePlots.push({
           line: segment,
           options: options
@@ -775,7 +774,7 @@
       histogram(restarter, windowOptions, tab, n);
     }
 
-    var data = tab.map(function(row){ return row[0]; });
+    var data = tab.map(function (row){ return row[0]; });
     var xMin = data.reduce(libNum.numMin);
     var xMax = data.reduce(libNum.numMax);
     var dataScaler = libNum.scaler(xMin, xMax, 0, 1, true);
@@ -793,7 +792,7 @@
       marginTop: 15,
       marginBottom: 55,
       mode: 'top-left',
-    }, windowOptions)
+    }, windowOptions),
         width = dimension.width,
         height = dimension.height,
         detached = createDiv(),
@@ -850,10 +849,10 @@
         'fill-opacity': '0.8',
         'shape-rendering': 'crispEdges'
       })
-      .on('mouseover', function (d) {
+      .on('mouseover', function () {
         d3.select(this).style('fill', 'black');
       })
-      .on('mouseout', function (d) {
+      .on('mouseout', function () {
         d3.select(this).style('fill', 'steelblue');
       });
 
@@ -877,8 +876,8 @@
     }
 
     var sum = tab.map(function (row) { return row[1]; })
-      .reduce(function(a, b) {
-        return jsnums.add(a, b, RUNTIME.NumberErrbacks)
+      .reduce(function (a, b) {
+        return jsnums.add(a, b, RUNTIME.NumberErrbacks);
       });
     var valueScaler = libNum.scaler(0, sum, 0, 100, true);
 
@@ -905,7 +904,7 @@
     var radiusScaler = libNum.scaler(0, maxRadiusValue, 0, maxRadius, true);
     var color = d3.scale.category20();
     var arc = d3.svg.arc()
-        .outerRadius(function(row) {
+        .outerRadius(function (row) {
           return radiusScaler(row.data[2]);
         })
         .innerRadius(0);
@@ -1009,10 +1008,10 @@
     var legendData = RUNTIME.ffi.toArray(legend);
 
     var yMax = 0;
-    var data = table.map(function(row) {
+    var data = table.map(function (row) {
       return {
         label: row[0],
-        data: RUNTIME.ffi.toArray(row[1]).map(function(value, i) {
+        data: RUNTIME.ffi.toArray(row[1]).map(function (value, i) {
           yMax = libNum.numMax(yMax, value);
           return {name: legendData[i], value: value};
         })
@@ -1022,13 +1021,13 @@
     var yAxisScaler = libNum.scaler(0, yMax, 0, 1, true);
     var yAxisDisplayScaler = libNum.scaler(0, 1, 0, yMax);
 
-    data = data.map(function(row) {
+    data = data.map(function (row) {
       return {
         label: row.label,
-        data: row.data.map(function(value) {
+        data: row.data.map(function (value) {
           return {name: value.name, value: yAxisScaler(value.value)};
         })
-      }
+      };
     });
 
     var prettyNumToStringDigitsForAxis = libNum.getPrettyNumToStringDigits(5);
@@ -1040,7 +1039,7 @@
           return prettyNumToStringDigitsForAxis(yAxisDisplayScaler(jsnums.fromFixnum(d, RUNTIME.NumberErrbacks)));
         });
 
-    x0.domain(data.map(function(d) { return d.label; }));
+    x0.domain(data.map(function (d) { return d.label; }));
     x1.domain(legendData).rangeRoundBands([0, x0.rangeBand()]);
 
     canvas.append('g')
@@ -1075,25 +1074,25 @@
         .data(data)
       .enter().append('g')
         .attr('class', 'bar')
-        .attr('transform', function(d) {
+        .attr('transform', function (d) {
           return svgTranslate(x0(d.label), 0);
         });
 
     bar.selectAll('rect')
-        .data(function(d) { return d.data; })
+        .data(function (d) { return d.data; })
       .enter().append('rect')
         .attr('width', x1.rangeBand())
-        .attr('x', function(d) { return x1(d.name); })
-        .attr('y', function(d) { return y(d.value); })
-        .attr('height', function(d) { return height - y(d.value); })
-        .style('fill', function(d) { return color(d.name); });
+        .attr('x', function (d) { return x1(d.name); })
+        .attr('y', function (d) { return y(d.value); })
+        .attr('height', function (d) { return height - y(d.value); })
+        .style('fill', function (d) { return color(d.name); });
 
     if (RUNTIME.isPyretTrue(showLegend)) {
       var legendSvg = canvas.selectAll('.legend')
         .data(legendData.slice().reverse())
         .enter().append('g')
         .attr('class', 'legend')
-        .attr('transform', function(d, i) {
+        .attr('transform', function (d, i) {
           return svgTranslate(0, i * 20);
         });
 
@@ -1113,7 +1112,7 @@
           'text-anchor': 'end',
           'font-size': '10px'
         })
-        .text(function(d) { return d; });
+        .text(function (d) { return d; });
     }
 
     callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
