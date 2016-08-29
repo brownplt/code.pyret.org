@@ -111,12 +111,18 @@
     // MUST BE CALLED ON PYRET STACK
     function error_to_html(runtime, documents, error, stack) {
       var errors = [];
+
+      function log_failure(e) {
+        errors.push(e);
+        throw e;
+      }
+
       return getFancyRenderer(runtime, documents, error)(stack).
-        then(reason_to_html(runtime, CPO.documents, stack), errors.push).
+        then(reason_to_html(runtime, CPO.documents, stack), log_failure).
         catch(function (render_or_display_error) {
           errors.push(render_or_display_error);
           return render_reason(runtime, error).
-            then(reason_to_html(runtime, CPO.documents, stack), errors.push);
+            then(reason_to_html(runtime, CPO.documents, stack), log_failure);
         }).
         then(function (html) {
           if (errors.length > 0) {
