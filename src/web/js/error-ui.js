@@ -54,7 +54,7 @@
           if (runtime.isSuccessResult(result)) {
             ret.resolve(result.result);
           } else {
-            ret.resolve(result.exn);
+            ret.reject(result.exn);
           }
         });
       return ret.promise;
@@ -62,16 +62,14 @@
 
     function applyMethod(runtime, value, name, args) {
       return function() {
-        var fun = runtime.getField(value, name);
-        args.length = fun.arity;
-        return fun.app.apply(value, args);
+        return runtime.getField(value, name).app.apply(value, args);
       };
     }
 
     // MUST BE CALLED ON PYRET STACK
     function render_reason(runtime, renderable) {
       return callDeferred(runtime,
-              applyMethod(runtime, renderable, "render-reason"));
+              applyMethod(runtime, renderable, "render-reason", []));
     }
 
     // MUST BE CALLED ON PYRET STACK
