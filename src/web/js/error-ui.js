@@ -61,9 +61,12 @@
     }
 
     function applyMethod(runtime, value, name, args) {
-      return function() {
-        return runtime.getField(value, name).app.apply(value, args);
-      };
+      return runtime.
+        safeThen(function() {
+          return runtime.getField(value, name);
+        }, applyMethod).then(function(fun) {
+          return fun.app.apply(value, args);
+        }).start;
     }
 
     // MUST BE CALLED ON PYRET STACK
