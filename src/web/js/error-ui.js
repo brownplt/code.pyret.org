@@ -113,23 +113,57 @@
     // to internal error
     // MUST BE CALLED ON PYRET STACK
     function error_to_html(runtime, documents, error, stack) {
-      var errors = [];
 
-      function log_failure(e) {
-        errors.push(e);
-        throw e;
+      function torepr(value) {
+        return callDeferred(runtime, function() {
+          return runtime.toReprJS(value, runtime.ReprMethods._torepr);
+        });
       }
 
-      return getFancyRenderer(runtime, documents, error)(stack).
-        then(reason_to_html(runtime, CPO.documents, stack), log_failure).
-        catch(function (render_or_display_error) {
-          errors.push(render_or_display_error);
+      var record = {};
+
+      function log_set(name) {
+        return function (value) {
+          record[name] = value;
+          return value;
+        };
+      }
+
+      function log_torepr(name) {
+        return function (value) {
+          return torepr(value).
+            then(log_set(name)).
+            thenResolve(value).
+            catch(function(repr_error) {
+              console.error("`torepr` errored:", repr_error);
+              return value;
+            });
+        };
+      }
+
+      var errors = [];
+
+      var renderError = function(_) {
+        return getFancyRenderer(runtime, documents, error)(stack);
+      }
+
+      return Q(error).
+        then(log_torepr('error')).
+        then(renderError).
+        then(log_torepr('reason_repr')).
+        catch(function (render_error) {
+          errors.push(e);
+          throw e;
+        }).
+        then(reason_to_html(runtime, CPO.documents, stack)).
+        catch(function (display_error) {
+          errors.push(display_error);
           return render_reason(runtime, error).
-            then(reason_to_html(runtime, CPO.documents, stack), log_failure);
+            then(log_torepr('reason_repr')).
+            then(reason_to_html(runtime, CPO.documents, stack));
         }).
         then(function (html) {
           if (errors.length > 0) {
-            errors.forEach(function(e){console.error(e);});
             html.append($("<p>").text(
               "One or more internal errors prevented us from showing the "
               + "best error message possible. Please report this as a bug."));
@@ -137,10 +171,20 @@
           return html;
         }).
         catch(function (display_error) {
-          console.error(display_error);
+          errors.push(display_error);
           return $("<div>").text(
             "Internal errors prevented this error message from being "
             + "shown. Please report this as a bug.");
+        }).
+        then(function (html) {
+          log_set('html')(html.prop('outerHTML'));
+          return html;
+        }).
+        finally(function (html) {
+          errors.forEach(function (e) {
+            console.error(e);
+          });
+          logger.log('error', record);
         });
     }
 
