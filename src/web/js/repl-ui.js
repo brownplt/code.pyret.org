@@ -126,11 +126,9 @@
       var rr = resultRuntime;
 
       function renderAndDisplayError(runtime, error, stack) {
-        var error_to_reason = errorUI.error_to_reason;
-        var reason_to_html  = errorUI.reason_to_html;
+        var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
-          return error_to_reason(runtime, CPO.documents, error, stack).
-            then(reason_to_html(runtime, CPO.documents, stack)).
+          return error_to_html(runtime, CPO.documents, error, stack).
             then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");

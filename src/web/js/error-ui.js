@@ -105,14 +105,34 @@
       }
     }
 
-    // Calls `render-fancy-reason` and, on failure,
-    // falls back to `render-reason`
+    // Calls `render-fancy-reason` | `reason_to_html`, with fallback
+    // to `render-reason` | `reason_to_html`, with fallback
+    // to internal error
     // MUST BE CALLED ON PYRET STACK
-    function error_to_reason(runtime, documents, error, stack) {
+    function error_to_html(runtime, documents, error, stack) {
+      var errors = [];
       return getFancyRenderer(runtime, documents, error)(stack).
-        catch(function (render_error) {
-          return render_reason(runtime, error);
-        })
+        then(reason_to_html(runtime, CPO.documents, stack), errors.push).
+        catch(function (render_or_display_error) {
+          errors.push(render_or_display_error);
+          return render_reason(runtime, error).
+            then(reason_to_html(runtime, CPO.documents, stack), errors.push);
+        }).
+        then(function (html) {
+          if (errors.length > 0) {
+            errors.forEach(function(e){console.error(e);});
+            html.append($("<p>").text(
+              "One or more internal errors prevented us from showing the "
+              + "best error message possible. Please report this as a bug."));
+          }
+          return html;
+        }).
+        catch(function (display_error) {
+          console.error(display_error);
+          return $("<div>").text(
+            "Internal errors prevented this error message from being "
+            + "shown. Please report this as a bug.");
+        });
     }
 
     // Consumes a reason, produces promise for html
@@ -130,8 +150,7 @@
     }
 
     return runtime.makeJSModuleReturn({
-      error_to_reason: error_to_reason,
-      reason_to_html: reason_to_html
+      error_to_html: error_to_html
     });
   }
 })

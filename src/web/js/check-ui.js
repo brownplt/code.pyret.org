@@ -486,11 +486,9 @@
       
       // must be called on the pyret stack
       function vivifySkeleton(skeleton) {
-        var error_to_reason = errorUI.error_to_reason;
-        var reason_to_html  = errorUI.reason_to_html;
+        var error_to_html = errorUI.error_to_html
         return runtime.pauseStack(function (restarter) {
-          return error_to_reason(runtime, documents, skeleton.renderable, skeleton.pyretStack).
-            then(reason_to_html(runtime, documents, skeleton.pyretStack)).
+          return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack).
             then(function(html) {
               skeleton.vivify(html);
             }).done(function () {restarter.resume(runtime.nothing)});
