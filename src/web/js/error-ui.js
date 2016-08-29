@@ -114,6 +114,8 @@
     // MUST BE CALLED ON PYRET STACK
     function error_to_html(runtime, documents, error, stack) {
 
+      var id = logger.guid();
+
       function torepr(value) {
         return callDeferred(runtime, function() {
           return runtime.toReprJS(value, runtime.ReprMethods._torepr);
@@ -155,12 +157,12 @@
           errors.push(e);
           throw e;
         }).
-        then(reason_to_html(runtime, CPO.documents, stack)).
+        then(reason_to_html(runtime, CPO.documents, stack, id)).
         catch(function (display_error) {
           errors.push(display_error);
           return render_reason(runtime, error).
             then(log_torepr('reason_repr')).
-            then(reason_to_html(runtime, CPO.documents, stack));
+            then(reason_to_html(runtime, CPO.documents, stack, id));
         }).
         then(function (html) {
           if (errors.length > 0) {
@@ -190,14 +192,15 @@
 
     // Consumes a reason, produces promise for html
     // MUST BE CALLED ON PYRET STACK
-    function reason_to_html(runtime, documents, stack) {
+    function reason_to_html(runtime, documents, stack, id) {
       return function (displayable) {
         return callDeferred(runtime, function () {
             return outputUI.renderErrorDisplay(
                     documents,
                     runtime,
                     displayable,
-                    stack || []);
+                    stack || [],
+                    id);
           });
       };
     }

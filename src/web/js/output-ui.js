@@ -621,6 +621,7 @@
     }
     
     function clearEffects() {
+      logger.log("clearedEffects");
       $(".highlights-active").removeClass("highlights-active");
       colorsHighlighted.forEach(function(color) {
         unhighlight(color);
@@ -631,6 +632,10 @@
     }
     
     function settingChanged(eagerness, colorfulness) { 
+      logger.log("highlight_settings_changed",
+        { eagerness: eagerness,
+          colorfulness: colorfulness
+        });
       window.requestAnimationFrame(function() {
         colorsHighlighted.forEach(function(color) {
           unhighlight(color);
@@ -901,6 +906,8 @@
               else Array.prototype.push.apply(messagePositions.get(color), 
                                               positions);
               anchor.on("click", function (e) {
+                logger.log("highlight_anchor_click",
+                  { error_id: context, anchor_id: id });
                 window.requestAnimationFrame(function() {
                   if (positions[0] !== undefined)
                     positions[0].goto();
@@ -908,13 +915,19 @@
                 });
               });
               anchor.on("mouseenter", function () {
+                logger.log("highlight_anchor_mouseenter",
+                  { error_id: context, anchor_id: id });
                 window.requestAnimationFrame(function() {
+                  logger.log("highlight_anchor_hover",
+                    { error_id: context, anchor_id: id });
                   if (positions[0] !== undefined)
                     positions[0].hint();
                   emphasize(color);
                 });
               });
               anchor.on("mouseleave", function () {
+                logger.log("highlight_anchor_mouseleave",
+                  { error_id: context, anchor_id: id });
                 window.requestAnimationFrame(function() {
                   unhintLoc();
                   demphasize(color);
@@ -969,6 +982,11 @@
         });
 
         rendering.bind('toggleHighlight',function() {
+            logger.log("error_highlights_toggled",
+              { error_id: context,
+                eagerness: sessionStorage.getItem('highlight-eagerness'),
+                colorfulness: sessionStorage.getItem('highlight-colorfulness')
+              });
             colorsHighlighted.forEach(function(color) {
               unhighlight(color);
             });
