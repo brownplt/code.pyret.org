@@ -99,45 +99,6 @@ function start(config, onServerReady) {
     }
   });
 
-  app.get("/jsProxy", function(req, response) {
-    var parsed = url.parse(req.url);
-    var jsUrl = decodeURIComponent(parsed.query.slice(0));
-    var gReq = request(jsUrl, function(error, jsResponse, body) {
-      if(error || (jsResponse.statusCode >= 400)) {
-        response.status(400).send({type: "no-js-file", error: "Couldn't load JS file from " + jsUrl});
-        return;
-      }
-      response.send(body);
-    });
-  });
-
-  var okGoogleDomains = [
-    "spreadsheets.google.com",
-    "googleapis.com",
-    "drive.google.com",
-    "googledrive.com"
-  ];
-  function checkGoogle(req, response) {
-    var parsed = url.parse(req.url);
-    var googleUrl = decodeURIComponent(parsed.query.slice(0));
-    var parsedUrl = url.parse(googleUrl);
-    var found = okGoogleDomains.filter(function(v) { return parsedUrl.host === v; });
-    if(found.length === 0) {
-      response.status(400).send({type: "invalid-domain", error: "Refusing to proxy request to domain " + parsedUrl.host});
-      return null;
-    }
-    return googleUrl;
-  }
-
-  function hasMime(response, mimeList) {
-    for (var i = 0; i < mimeList.length; i++) {
-      if (response.indexOf(mimeList[i]) > -1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   app.use(function(req, res, next) {
     var contentType = req.headers['content-type'] || '';
     var mime = contentType.split(';')[0];
@@ -157,101 +118,36 @@ function start(config, onServerReady) {
     });
   });
 
-  app.post("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    if(googleUrl !== null) {
-      var headers = {
-        "Authorization": req.headers["authorization"],
-        "GData-Version": "3.0",
-        "content-type": req.headers["content-type"],
-      };
-      var post = request.post({
-        url: googleUrl,
-        body: req.rawBody,
-        headers: headers
-      });
-      post.pipe(response);
-    }
-  });
-
-  app.put("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    if(googleUrl !== null) {
-      var headers = {
-        "Authorization": req.headers["authorization"],
-        "GData-Version": "3.0",
-        "content-type": req.headers["content-type"],
-        "If-Match": "*",
-      };
-      var put = request.put({
-        url: googleUrl,
-        body: req.rawBody,
-        headers: headers
-      });
-      put.pipe(response);
-    }
-  });
-
-  app.get("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    // Check if the request is expecting a result other than
-    // JSON or XML (and, if so, block it)
-    if(req.accepts && !req.accepts('json') && !req.accepts('atom+xml')) {
-      response.sendStatus(403);
-    }
-    if(googleUrl !== null) {
-      var headers = {
-        "Authorization": req.headers["authorization"],
-        "GData-Version": "3.0",
-        "content-type": req.headers["content-type"],
-      };
-      var get = request.get({
-        url: googleUrl,
-        body: req.rawBody,
-        headers: headers
-      }).on('response', function(res){
-        var contentType = res.headers['content-type'];
-        // Likely to have multiple MIME types, so
-        // we need to check substrings
-        if (hasMime(contentType, ['application/json', 'application/atom+xml'])) {
-          res.headers['X-Pyret-Token'] = req.csrfToken();
-          get.pipe(response);
-        } else {
-          response.sendStatus(403);
-        }
-      });
-    }
-  });
-
-  app.delete("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    if(googleUrl !== null) {
-      req.pipe(request(googleUrl)).pipe(response);
-    }
-  });
-
   app.get("/downloadGoogleFile", function(req, response) {
     var parsed = url.parse(req.url);
     var googleId = decodeURIComponent(parsed.query.slice(0));
-    var googleLink = "https://googledrive.com/host/" + googleId;
-    /*
-    var googleParsed = url.parse(googleLink);
-    console.log(googleParsed);
-    var host = googleParsed['hostname'];
-    if(host !== 'googledrive.com') {
-      response.status(400).send({type: "bad-domain", error: "Tried to get a file from non-Google host " + host});
-      return;
-    }
-    */
-    var gReq = request(googleLink, function(error, googResponse, body) {
+    var drive = gapi.drive('v3');
+    var fileReq = drive.files.get({
+      key: config.google.serverKey,
+      fileId: googleId,
+      alt: 'media'
+    });
+    fileReq.on('response', function(googResponse) {
+      console.log("Response is: ", googResponse);
       var h = googResponse.headers;
-      var ct = h['content-type']
+      var ct = h['content-type'];
+      if(googResponse.statusCode >= 400) {
+        fileReq.pipe(response);
+        return;
+      }
       if(ct.indexOf('text/plain') !== 0) {
         response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
         return;
       }
-      response.set('content-type', 'text/plain');
-      response.send(body);
+
+      // NOTE(joe): These two lines are mostly for debugging in a browser.
+      // If you visit BASE_URL/downloadGoogleFile?<id>, the plaintext
+      // should show up directly.  Force the content type to be text/plain
+      // (in addition to the check above), so that we don't accidentally
+      // serve up pages with anything but plaintext in them.
+      googResponse.headers['content-type'] = 'text/plain';
+      delete googResponse.headers['content-disposition'];
+      fileReq.pipe(response);
     });
   });
 
