@@ -75,16 +75,13 @@ var logger = (function(backend) {
   };
 })(new ConsoleBackend());
 
-CodeMirror.defineInitHook(
-  function (cm) {
-    cm.CPO_editorID = logger.guid();
-    logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
-  });
-
 CodeMirror.defineOption('logging', false, 
   function (cm, new_value) {
     if (new_value != true)
       return;
+    if(!cm.CPO_editorID)
+      cm.CPO_editorID = logger.guid();
+    logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
     cm.on("change", function(cm, change) {
       change.CPO_editorID = cm.CPO_editorID;
       logger.log('cm_change', change);
