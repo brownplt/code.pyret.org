@@ -75,8 +75,10 @@
       "name-to-color": "tany",
       "empty-image": "tany"
     },
-    aliases: { },
-    datatypes: { Image: "tany" }
+    aliases: {
+      "Image": ["local", "Image"]
+    },
+    datatypes: { "Image": ["data", "Image", [], [], {}] }
   },
   theModule: function(runtime, namespace, uri, image, jsnums) {
     var colorDb = image.colorDb;

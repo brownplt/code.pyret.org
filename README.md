@@ -60,17 +60,27 @@ $ ln -s ../pyret-lang pyret
 ## Configuration with Google Auth and Storage
 
 In order to have share links, saving, and other docs-related functionality
-work, you need to add to your `.env` a Google client secret and client ID.
-You can easily make a free one for development at
-https://console.developers.google.com/project.  At that page, make a project,
-then go through
+work, you need to add to your `.env` a Google client secret, a client ID, a
+browser API key, and a server API key.  You'll copy
+`.env.example` to `.env`, and populate several from your dashboard at Google.
 
-    APIs & Auth -> Credentials -> Create New Client Id
+At https://console.developers.google.com/project, make a project, then:
 
-You should set the javascript origins to `http://localhost:5000` and the
-redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
-`.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
-`GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
+- For `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, which are used for
+  authenticating users:
+
+       Credentials -> Create Credentials -> OAuth Client Id
+
+  For development, you should set the javascript origins to
+  `http://localhost:5000` and the redirect URI to
+  `http://localhost:5000/oauth2callback`.
+
+- For `GOOGLE_API_KEY`, which is used in the browser to make certain public
+  requests when users are not logged in yet:
+
+       Credentials -> Create Credentials -> API Key -> Browser Key
+
+  Again, you should use `http://localhost:5000` as the referer for development.
 
 ## Testing with Selenium
 
