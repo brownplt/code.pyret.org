@@ -118,39 +118,6 @@ function start(config, onServerReady) {
     });
   });
 
-  app.get("/downloadGoogleFile", function(req, response) {
-    var parsed = url.parse(req.url);
-    var googleId = decodeURIComponent(parsed.query.slice(0));
-    var drive = gapi.drive('v3');
-    var fileReq = drive.files.get({
-      key: config.google.serverKey,
-      fileId: googleId,
-      alt: 'media'
-    });
-    fileReq.on('response', function(googResponse) {
-      console.log("Response is: ", googResponse);
-      var h = googResponse.headers;
-      var ct = h['content-type'];
-      if(googResponse.statusCode >= 400) {
-        fileReq.pipe(response);
-        return;
-      }
-      if(ct.indexOf('text/plain') !== 0) {
-        response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
-        return;
-      }
-
-      // NOTE(joe): These two lines are mostly for debugging in a browser.
-      // If you visit BASE_URL/downloadGoogleFile?<id>, the plaintext
-      // should show up directly.  Force the content type to be text/plain
-      // (in addition to the check above), so that we don't accidentally
-      // serve up pages with anything but plaintext in them.
-      googResponse.headers['content-type'] = 'text/plain';
-      delete googResponse.headers['content-disposition'];
-      fileReq.pipe(response);
-    });
-  });
-
   app.get("/downloadImg", function(req, response) {
     var parsed = url.parse(req.url);
     var googleLink = decodeURIComponent(parsed.query.slice(0));

@@ -81,15 +81,6 @@ At https://console.developers.google.com/project, make a project, then:
 
   Again, you should use `http://localhost:5000` as the referer for development.
 
-- For `GOOGLE_SERVER_KEY`, which is used on the server to make certain public
-  requests that need to be proxied through code.pyret.org, and cannot be made
-  through the browser:
-
-       Credentials -> Create Credentials -> API Key -> Server Key
-
-  The name you choose is a nickname for your use only, and you don't need to
-  bother whitelisting your IP for development.
-
 ## Testing with Selenium
 
 There are tests in `test-util/` and `test/` that use Selenium to script a

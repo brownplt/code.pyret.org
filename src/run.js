@@ -27,7 +27,6 @@ var res = Q.fcall(function(db) {
     google: {
       clientId: process.env["GOOGLE_CLIENT_ID"],
       clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
-      serverKey: process.env["GOOGLE_SERVER_KEY"],
       redirect: "/oauth2callback"
     }
   }, function(app) {
