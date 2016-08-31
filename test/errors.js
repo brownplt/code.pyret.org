@@ -11,7 +11,7 @@ describe("Rendering errors", function() {
   }
 
   var tests = [
-    ["renderSimpleReasonSimple", "_plus(1, 'x')", "definitions://:1:0-1:13"],
+    ["renderSimpleReasonSimple", "_plus(1, 'x')", "definitions://, 1, 0, 1, 13"],
     ["renderSimpleReasonError",  "_plus(1, 'x')", "An error occurred rendering the reason"],
     
     ["field-not-found", "{}.x", "did not have a field"],
