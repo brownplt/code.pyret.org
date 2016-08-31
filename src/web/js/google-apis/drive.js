@@ -16,13 +16,14 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       return {
         shared: true,
         getContents: function() {
-          var proxyDownloadLink = "/downloadGoogleFile?" + googFileObject.id;
-          return Q($.ajax(proxyDownloadLink, {
-            method: "get",
-            dataType: 'text'
-          })).then(function(response) {
-            return response;
-          });
+          // NOTE(joe): See https://developers.google.com/drive/v2/web/manage-downloads
+          // The `selfLink` field directly returns the resource URL for the file, and
+          // this will work as long as the file is public on the web.
+          var reqUrl = googFileObject.selfLink;
+          return Q($.get(reqUrl, {
+            alt: "media",
+            key: apiKey
+          }));
         },
         getName: function() {
           return googFileObject.title;

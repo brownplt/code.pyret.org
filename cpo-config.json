@@ -9,7 +9,7 @@
       "crypto": "empty:",
       "path": "src/web/js/pathstub",
       "q": "build/web/js/q",
-      "s-expression": "build/web/js/s-expression",
+      "s-expression": "empty:",
       "fs": "build/web/js/fsstub",
       "requirejs": "empty:",
       "seedrandom": "empty:"
