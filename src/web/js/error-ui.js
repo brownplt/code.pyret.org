@@ -154,8 +154,8 @@
         then(renderError).
         then(log_torepr('reason_repr')).
         catch(function (render_error) {
-          errors.push(e);
-          throw e;
+          errors.push(render_error);
+          throw render_error;
         }).
         then(reason_to_html(runtime, CPO.documents, stack, id)).
         catch(function (display_error) {
