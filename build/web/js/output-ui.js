@@ -1374,6 +1374,31 @@
       renderers["cyclic"] = function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
       };
+      renderers.renderTable = function renderTable(val) {
+        debugger;
+        var table = document.createElement("table");
+        table.classList.add('replOutput');
+        var rows = runtime.ffi.toArray(val.dict.rows);
+        var cols = val.dict.headers;
+        var header = document.createElement("tr");
+        for(var i = 0; i < rows.length; i++) {
+          var col = document.createElement("th");
+          col.textContent = cols[i];
+          header.appendChild(col);
+        }
+        table.appendChild(header);
+        for(var i = 0; i < rows.length; i++) {
+          var rowv  = rows[i]
+          var rowel = document.createElement("tr");
+          for(var j = 0; j < cols.length; j++) {
+            var cellel = document.createElement("td");
+            renderPyretValue(cell, runtime, rowv[j]);
+            rowel.appendChild(cellel);
+          }
+          table.appendChild(rowel);
+        }
+        return table;
+      };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
@@ -1630,7 +1655,7 @@
       }
       function helper(container, val, values) {
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
-        else if (runtime.ffi.isVSStr(val)) { container.append(runtime.unwrap(runtime.getField(val, "s"))); }
+        else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
           var name = runtime.unwrap(runtime.getField(val, "name"));
           container.addClass("replToggle");
@@ -1664,6 +1689,85 @@
             helper(container, items[i], values);
           }
           container.append($("<span>").text(")"));
+        } else if (runtime.ffi.isVSSeq(val)) {
+          var items = runtime.ffi.toArray(runtime.getField(val, "items"));
+          for (var i = 0; i < items.length; i++) {
+            helper(container, items[i], values);
+          }
+        } else if (runtime.ffi.isVSTable(val)) {
+          var showText = document.createElement("a");
+          $(showText).text("\uD83D\uDCCB");
+          $(showText).css({
+            'border': '1px solid black',
+            'background': 'white'
+          });
+          $(showText).addClass("info-icon-top");
+          var textDiv = $("<div>").css({"z-index": 15000});
+          $(showText).click(function() {
+            // Do this at the end, so the table is populated
+            textDiv.empty();
+
+            var textLines = tableAsText.map(function(line) {
+              return line.join("\t");
+            });
+            var allText = textLines.join("\n");
+
+            var textBox = $("<textarea>").addClass("auto-highlight");
+            textBox.attr("editable", false);
+            textBox.on("focus", function() { $(this).select(); });
+            textBox.on("mouseup", function() { $(this).select(); });
+            textBox.val(allText);
+
+            textDiv.append(textBox);
+            textDiv.dialog({
+              title: "table data",
+              modal: true,
+              overlay : { opacity: 0.5, background: 'black'},
+              width : "70%",
+              height : "auto",
+              closeOnEscape : true
+            });
+          });
+          var tableAsText = [];
+          var table = document.createElement("table");
+          $(table).append(showText);
+          $(table).addClass("has-icon");
+          $(table).hover(function() {
+            $(showText).show();
+          }, function() {
+            $(showText).hide();
+          });
+          var cols = runtime.getField(val, "headers")
+          var headers = document.createElement("thead");
+          var header = document.createElement("tr");
+          var headersAsText = [];
+          for(var i = 0; i < cols.length; i++) {
+            var col = document.createElement("th");
+            helper($(col), cols[i], values);
+            header.appendChild(col);
+            headersAsText.push($(col).text());
+          }
+          tableAsText.push(headersAsText);
+          headers.appendChild(header);
+          table.appendChild(headers);
+          var body = document.createElement("tbody");
+          var rows = runtime.getField(val, "rows")
+          for(var i = 0; i < rows.length; i++) {
+            var rowAsText = [];
+            tableAsText.push(rowAsText);
+            var rowv  = rows[i]
+            var rowel = document.createElement("tr");
+            for(var j = 0; j < cols.length; j++) {
+              var cellel = document.createElement("td");
+              helper($(cellel), rowv[j], values);
+              rowel.appendChild(cellel);
+              rowAsText.push($(cellel).text());
+            }
+            body.appendChild(rowel);
+          }
+          table.appendChild(body);
+          container.append(table);
+
         } else {
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
@@ -1749,6 +1853,5 @@
       makeMaybeStackLoc: makeMaybeStackLoc,
       makeSrclocAvaliable: makeSrclocAvaliable
     });
-
   }
 })
