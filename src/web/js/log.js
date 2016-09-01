@@ -6,6 +6,14 @@ var ConsoleBackend = function() {
   };
 };
 
+var AJAXBackend = function (url) {
+  this.log = function (name, obj) {
+    var request = new XMLHttpRequest();
+    request.open("POST", url, true);
+    request.send(JSON.stringify(obj));
+  }
+}
+
 var IndexedDBBackend = function() {
   var db = new Dexie('CPO');
 
@@ -73,7 +81,7 @@ var logger = (function(backend) {
     guid  : guid,
     log   : log
   };
-})(new ConsoleBackend());
+})(new AJAXBackend(APP_LOG_URL));
 
 CodeMirror.defineOption('logging', false, 
   function (cm, new_value) {
