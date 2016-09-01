@@ -148,6 +148,8 @@
       });
     var replGlobals = gmf(compileStructs, "standard-globals");
 
+    var defaultOptions = gmf(compileStructs, "default-compile-options");
+
     var replP = Q.defer();
     return runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
@@ -159,6 +161,7 @@
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
           restartInteractions: function(ignoredStr, typeCheck) {
+            var options = defaultOptions.extendWith({"type-check": typeCheck});
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
@@ -168,7 +171,7 @@
                     "make-definitions-locator").app(getDefsForPyret, replGlobals);
                   },
                   function(locator) {
-                    return gf(repl, "restart-interactions").app(locator, typeCheck);
+                    return gf(repl, "restart-interactions").app(locator, options);
                   });
               }, function(result) {
                 ret.resolve(result);
