@@ -65,7 +65,36 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
+
+    // NOTE(joe): In order to yield control quickly, this doesn't pause the
+    // stack in order to save.  It simply sends the save requests and
+    // immediately returns.  This avoids needlessly serializing multiple save
+    // requests when this is called repeatedly from Pyret.
+    function saveGDriveCachedFile(name, content) {
+      var file = storageAPI.then(function(storageAPI) {
+        var existingFile = storageAPI.getCachedFileByName(name);
+        return existingFile.then(function(f) {
+          if(f.length >= 1) {
+            return f[0];
+          }
+          else {
+            return storageAPI.createFile(name, {
+              saveInCache: true,
+              fileExtension: ".js",
+              mimeType: "text/plain"
+            });
+          }
+        });
+      });
+      file.then(function(f) {
+        f.save(content, true);
+      });
+      return runtime.nothing;
+    }
+
+    // NOTE(joe): this function just allocates a closure, so it's stack-safe
+    var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
 
     function findModule(contextIgnored, dependency) {
       return runtime.safeCall(function() {
@@ -101,13 +130,13 @@
               else if (protocol === "shared-gdrive") {
                 return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
               }
+              else if (protocol === "gdrive-js") {
+                return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+              }
               /*
               else if (protocol === "js-http") {
                 // TODO: THIS IS WRONG with the new locator system
                 return http.getHttpImport(runtime, args[0]);
-              }
-              else if (protocol === "gdrive-js") {
-                return constructors.makeGDriveJSLocator(arr[0], arr[1]);
               }
               */
               else {
@@ -161,7 +190,7 @@
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
           restartInteractions: function(ignoredStr, typeCheck) {
-            var options = defaultOptions.extendWith({"type-check": typeCheck});
+            var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
