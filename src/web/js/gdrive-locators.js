@@ -70,13 +70,14 @@ define([], function() {
 
         fileP.then(function(file) {
 
-          var uri = "my-gdrive://" + filename + ":" + file.getUniqueId();
+          var uri = "my-gdrive://" + filename;
 
           function needsCompile() { return true; }
 
+          var contentsP = file.getContents();
+
           function getModule(self) {
             runtime.pauseStack(function(getModRestart) {
-              var contentsP = file.getContents();
               contentsP.fail(function(failure) {
                 getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
               });
@@ -206,7 +207,7 @@ define([], function() {
           var file = fileAndContents[0];
           var contents = fileAndContents[1];
           
-          var uri = "shared-gdrive://" + filename + ":" + file.getUniqueId();
+          var uri = "shared-gdrive://" + file.getName + ":" + file.getUniqueId();
           sessionStorage.setItem(uri, contents);
 
           function needsCompile() { return true; }
@@ -331,7 +332,7 @@ define([], function() {
 
         Q.spread([contentsP, fileP], function(mod, file) {
 
-          var uri = "gdrive-js://" + filename + ":" + file.getUniqueId();
+          var uri = "gdrive-js://" + file.getUniqueId();
 
           var rawModule = gmf(builtinModules, "builtin-raw-locator-from-str").app(mod);
           runtime.safeCall(function() {
