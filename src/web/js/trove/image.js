@@ -78,7 +78,7 @@
     aliases: {
       "Image": ["local", "Image"]
     },
-    datatypes: { Image: "tany" }
+    datatypes: { "Image": ["data", "Image", [], [], {}] }
   },
   theModule: function(runtime, namespace, uri, image, jsnums) {
     var colorDb = image.colorDb;
