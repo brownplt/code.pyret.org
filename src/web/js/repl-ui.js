@@ -454,6 +454,9 @@
 
         interactionsCount = 0;
         replOutputCount = 0;
+        logger.log('run', { name      : "definitions://",
+                            type_check: !!uiOptions["type-check"]
+                          });
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
@@ -483,6 +486,7 @@
         interactionsCount++;
         var thisName = 'interactions://' + interactionsCount;
         CPO.documents.set(thisName, echoCM.getDoc());
+        logger.log('run', { name: thisName });
         var replResult = repl.run(code, thisName);
 //        replResult.then(afterRun(CM));
         var startRendering = replResult.then(function(r) {
