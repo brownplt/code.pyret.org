@@ -66,7 +66,7 @@ var logger = (function(backend) {
     obj.CPO_windowID   = identifiers.windowID;
     obj.CPO_localID    = identifiers.localID;
     obj.CPO_sessionID  = identifiers.sessionID;
-    backend.log('logger.log', obj);
+    backend.log(name, obj);
   }
   
   return {
