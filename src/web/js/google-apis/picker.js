@@ -112,6 +112,13 @@ FilePicker.prototype.initOpen = function(picker) {
         .build();
       this.pickerInstance.setVisible(true);
       $(".picker").css("z-index", 9000);
+      var hidePicker = function(e) {
+        if(e.which === 27) {
+          $(".picker").remove();
+          $(document).unbind("keydown", hidePicker);
+        }
+      };
+      $(document).on("keydown", hidePicker);
     }).bind(this);
 
     return drive.getCollectionFolderId().then(buildInstance);

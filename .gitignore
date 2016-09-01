@@ -1,6 +1,7 @@
 #build/
 **/.tern-port
 *.swp
+.DS_Store
 .env
 compiled/
 node_modules

@@ -17,6 +17,8 @@
     "cookie-parser": "^1.0.1",
     "cookie-session": "^1.0.1",
     "csurf": "^1.1.0",
+    "d3": "~3",
+    "d3-tip": "git://github.com/sorawee/d3-tip",
     "dotenv": "^2.0.0",
     "es6-shim": "0.35.0",
     "eslint": "^2.12.0",
@@ -52,6 +54,7 @@
     "postinstall": "webpack && make -j3 web",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "heroku local:run make web-local",
+    "mocha": "heroku local:run mocha",
     "start": "heroku local:run supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & heroku local:run webpack-dev-server --port 5001"
   },
   "repository": {

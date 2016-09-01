@@ -629,6 +629,7 @@ div#font-label:hover{
   padding-bottom: 0.4em;
   color: #1f1180;
   display: inline-block;
+  font-family: monospace;
 }
 
 .replOutput .replOutput {
@@ -752,6 +753,18 @@ span.rationalRepeat {
    position: absolute;
    bottom: 0;
    right: 0;
+}
+
+.has-icon .info-icon-top {
+   display: none;
+   position: absolute;
+   top: 0;
+   right: 0;
+}
+
+.has-icon:hover .info-icon-top {
+   cursor: pointer;
+   display: initial;
 }
 
 .has-icon:hover .info-icon {
@@ -1420,6 +1433,30 @@ code div {
   margin-left: -1em;
   position: absolute;
 }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: auto;
+    display: table!important;
+    border:1px black solid;
+    border-radius:1em;
+    overflow:hidden;
+    background:#eee;;
+}
+
+th {
+    background: #ddd;
+}
+
+th, td {
+    text-align: left;
+    padding: 1em;
+    width: auto;
+    border-right:1px white solid;
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
 
 /* MODAL */
 /* The Modal (background) */

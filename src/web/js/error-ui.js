@@ -5,9 +5,6 @@
       args: ["./output-ui"]
     },
     { "import-type": "builtin",
-      name: "image-lib"
-    },
-    { "import-type": "builtin",
       name: "srcloc"
     },
     { "import-type": "builtin",
@@ -19,7 +16,7 @@
   ],
   provides: {},
   nativeRequires: [ ],
-  theModule: function(runtime, _, uri, outputUI, image, srclocLib, errorLib, contractsLib) {
+  theModule: function(runtime, _, uri, outputUI, srclocLib, errorLib, contractsLib) {
     var srcloc = runtime.getField(srclocLib, "values");
     var error = runtime.getField(errorLib, "values");
     var contracts = runtime.getField(contractsLib, "values");
@@ -266,6 +263,9 @@
                   if (runtime.isSuccessResult(domResult)) {
                     var dom = domResult.result;
                     dom.addClass("compile-error");
+                    dom.on('click', function(){
+                      dom.trigger('toggleHighlight');
+                    });
                     container.append(dom);
                     dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
                     dom.trigger('toggleHighlight');

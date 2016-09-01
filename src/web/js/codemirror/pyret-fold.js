@@ -252,6 +252,39 @@
       this.curRegion = {start : Pos(this.line, 0), end : Pos(this.line, 0)};
   }
 
+  // For future use
+  /**
+   * Wrapper for a semi-deep copy of TokenTapes
+   * ("semi-deep" meaning that CM objects are not duplicated,
+   *  but all others are)
+   * @param {TokenTape} tt - The TokenTape to clone
+   */
+  function TokenTapeClone(tt) {
+    // Keep clones shallow
+    if (tt instanceof TokenTapeClone) {
+      tt = tt.__wrapped;
+    }
+    this.__wrapped = tt;
+    this.line = tt.line;
+    this.cm = tt.cm;
+    this.min = tt.min;
+    this.max = tt.max;
+    this.lineToks = tt.lineToks.slice(0);
+    this.current = tt.current;
+    this.cachedLine = tt.cachedLine;
+    this.curRegion = {start: tt.curRegion.start, end: tt.curRegion.end};
+  }
+  TokenTapeClone.prototype = Object.create(TokenTape.prototype);
+
+  /**
+   * Creates a copy of this TokenTape.
+   * @see TokenTapeClone
+   * @return {TokenTape} The cloned TokenTape
+   */
+  TokenTape.prototype.clone = function() {
+    return new TokenTapeClone(this);
+  }
+
   /**
    * Internal function which changes the TokenTape's
    * current index to the given number
@@ -362,6 +395,51 @@
   };
 
   /**
+   * Grows this TokenTape to cover any continued keywords
+   * (e.g. if the current keyword is "else if", grows this.curRegion
+   *  to cover the ":" which should be adjacent)...also selects folding-only
+   * token continuations
+   * PRECONDITION: The current token is one of: OPENING, CLOSING, SUBKEYWORD
+   * KNOWN ERROR: Continued tokens on the next line are ignored; will handle in future
+   */
+  TokenTape.prototype.getFoldingContinued = function() {
+    var idx = this.current;
+    var tok = this.lineToks[idx];
+    // Bail out if on last token in line
+    if (this.current === this.lineToks.length - 1)
+      return;
+    // Not on last token; check for continued keywords
+    var contdType;
+    var foldContdType = null;
+    switch(tok.state.lineState.delimType) {
+    case DELIMTYPES.OPENING:
+      contdType = DELIMTYPES.OPEN_CONTD;
+      foldContdType = DELIMTYPES.FOLD_OPEN_CONTD;
+      break;
+    case DELIMTYPES.CLOSING:
+      contdType = DELIMTYPES.CLOSE_CONTD;
+      break;
+    case DELIMTYPES.SUBKEYWORD:
+      contdType = DELIMTYPES.SUB_CONTD;
+      break;
+    default:
+      console.warn("getFoldingContinued called with bad current token");
+      console.warn(tok);
+      return;
+    }
+    while (++idx < this.lineToks.length) {
+      if (!this.lineToks[idx].type) { continue; }
+      if (this.lineToks[idx].state.lineState.delimType === contdType
+          || this.lineToks[idx].state.lineState.delimType === foldContdType) {
+        tok = this.lineToks[idx];
+      } else {
+        break;
+      }
+    }
+    this.curRegion.end = Pos(this.line, tok.end);
+  };
+
+  /**
    * If this TokenTape is currently on a continued version for
    * a keyword, attempts to move backwards to the matching initial
    * keyword. This is only really used during the initial creation
@@ -383,6 +461,10 @@
     var initType;
     switch(contdType) {
     case DELIMTYPES.OPEN_CONTD:
+    // No need for a special method here, since this should
+    // only be called while on a FOLD_OPEN_CONTD token if we
+    // want to support them
+    case DELIMTYPES.FOLD_OPEN_CONTD:
       initType = DELIMTYPES.OPENING;
       break;
     case DELIMTYPES.CLOSE_CONTD:
@@ -390,7 +472,7 @@
       break;
     case DELIMTYPES.SUB_CONTD:
       initType = DELIMTYPES.SUBKEYWORD;
-      break
+      break;
     default:
       console.warn("snapBack called with bad current token");
       console.warn(tok);
@@ -425,6 +507,8 @@
         case DELIMTYPES.CLOSE_CONTD:
         case DELIMTYPES.SUB_CONTD:
           return true;
+        case DELIMTYPES.FOLD_OPEN_CONTD:
+          if (opts.includeFoldContd) return true;
         default:
           break;
         }
@@ -479,8 +563,9 @@
 
   /**
    * Finds the initial token to match from
+   * @param {boolean} folding - Whether folding token continuations should be allowed
    */
-  TokenTape.prototype.findInit = function() {
+  TokenTape.prototype.findInit = function(folding) {
     var cur = this.cur();
     if (!cur) return null;
     var startPos = Pos(this.line, cur.start + 1);
@@ -494,7 +579,7 @@
     if (matches(cur)) {
       return cur;
     }
-    var adj = this.next({includeContd : true});
+    var adj = this.next({includeContd : true, includeFoldContd: folding});
     if (matches(adj)) {
       return adj;
     }
@@ -700,42 +785,94 @@
     }
   };
 
-  CodeMirror.registerHelper("fold", "pyret", function(cm, start) {
-    var ttape = new TokenTape(cm, start.line, 1);
-    var openKw = ttape.cur();
-    if (!openKw || !openKw.state.lineState.delimType !== DELIMTYPES.NONE) {
-      openKw = ttape.next();
-    }
-    for(;;) {
-      if (openKw.state.lineState.delimType === DELIMTYPES.OPENING) {
-        ttape.getContinued();
-        var startPos = ttape.curRegion.end;
-        var close = ttape.findMatchingClose(openKw);
-        return close && close.token && {from: startPos, to: close.token.from};
-      }
-      openKw = ttape.next();
-      if (!openKw || openKw.line !== start.line) return;
-    }
-  });
-
-  CodeMirror.findMatchingKeyword = function(cm, pos, range) {
+  function initializeTape(cm, pos, foldOpen, range) {
     var ttape = new TokenTape(cm, pos.line, pos.ch, range);
-    var start = ttape.findInit();
-    if (!start || cmp(Pos(start.line, start.start), pos) > 0) return;
+    var start = ttape.findInit(foldOpen);
+    if (!start || cmp(Pos(start.line, start.start), pos) > 0) {
+      return {
+        ttape: ttape,
+        didNotMatch: true
+      };
+    }
     var startType = start.state.lineState.delimType;
     switch(startType) {
     case DELIMTYPES.NONE:
-      return;
+      return {
+        ttape: ttape,
+        didNotMatch: true
+      };
     case DELIMTYPES.OPEN_CONTD:
     case DELIMTYPES.CLOSE_CONTD:
     case DELIMTYPES.SUB_CONTD:
-      if (!ttape.snapBack()) return;
+      if (!foldOpen) {
+        if (!ttape.snapBack()) return {
+          ttape: ttape,
+          didNotMatch: true
+        };
+        start = ttape.cur();
+        startType = start.state.lineState.delimType;
+        break;
+      }
+      // ! FALL THROUGH WHEN foldOpen == true !
+    case DELIMTYPES.FOLD_OPEN_CONTD:
+      // If foldOpen is true, we want FOLD_OPEN_CONTD to trigger
+      // snapping as well
+      if (!ttape.snapBack()) return {
+          ttape: ttape,
+          didNotMatch: true
+        };
       start = ttape.cur();
       startType = start.state.lineState.delimType;
     default:
       break;
     }
     var here = {from: Pos(start.line, start.start), to: Pos(start.line, start.end)};
+    return {
+      ttape: ttape,
+      start: start,
+      startType: startType,
+      here: here,
+      didNotMatch: false
+    };
+  }
+
+  CodeMirror.registerHelper("fold", "pyret", function(cm, start) {
+    // This function should fold *lines*, so we always start
+    // looking at the start of the line
+    var lineStart = Pos(start.line, 0);
+    // `range` will fallback onto default in TokenTape constructor
+    var initialized = initializeTape(cm, lineStart, true);
+    var ttape = initialized.ttape;
+    var openKw = ttape.cur();
+
+    function isValid(kw) {
+      return kw && kw.state.lineState.delimType === DELIMTYPES.OPENING;
+    }
+
+    while (openKw && openKw.line === start.line) {
+      // Don't fold parentheses
+      if (isValid(openKw) && !(openKw.string === "(" && openKw.type === "builtin")) {
+        ttape.getFoldingContinued();
+        var startPos = ttape.curRegion.end;
+        var close = ttape.findMatchingClose(openKw);
+        return close && close.token && {from: startPos, to: close.token.from};
+      } else {
+        openKw = ttape.next();
+      }
+    }
+    // If we get here, we ran out of tokens to check on the line
+    return undefined;
+  });
+
+  CodeMirror.findMatchingKeyword = function(cm, pos, range) {
+    var initialized = initializeTape(cm, pos, false, range);
+    if (initialized.didNotMatch) {
+      return null;
+    }
+    var ttape = initialized.ttape;
+    var start = initialized.start;
+    var startType = initialized.startType;
+    var here = initialized.here;
     var other;
     if (startType === DELIMTYPES.CLOSING) {
       other = ttape.findMatchingOpen(start);

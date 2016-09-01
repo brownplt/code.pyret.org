@@ -727,6 +727,10 @@
       }
       add_world_listener(keepRecordUpToDate);
 
+      if(typeof extras.tracer === "function") {
+        add_world_listener(extras.tracer);
+      }
+
 
 
       // Monitor for termination and register the other handlers.
@@ -764,7 +768,6 @@
       change_world(function(w, k2) { k2(init_world); }, doNothing);
     };
     Jsworld.bigBang = bigBang;
-
 
 
 
