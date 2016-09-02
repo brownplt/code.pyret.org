@@ -39,20 +39,20 @@
       });
       return newobj;
     }
-  var animationDivs = [];
+    var animationDivs = [];
     function closeAnimationIfOpen() {
-    animationDivs.forEach(function(animationDiv) {
+      animationDivs.forEach(function(animationDiv) {
         animationDiv.empty();
         animationDiv.dialog("destroy");
+        animationDiv.remove();
+      });
+      animationDivs = [];
+    }
+    function closeTopAnimationIfOpen() {
+      var animationDiv = animationDivs.pop();
+      animationDiv.empty();
+      animationDiv.dialog("destroy");
       animationDiv.remove();
-    });
-    animationDivs = [];
-      }
-  function closeTopAnimationIfOpen() {
-    var animationDiv = animationDivs.pop();
-    animationDiv.empty();
-    animationDiv.dialog("destroy");
-    animationDiv.remove();
     }
     var editors = {};
     var interactionsCount = 0;
@@ -113,8 +113,8 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, editors, rr, 
-                                                        runtime.getField(runResult.result, "checks"), 
+                        return checkUI.drawCheckResults(output, editors, rr,
+                                                        runtime.getField(runResult.result, "checks"),
                                                         makeErrorContext);
                       }, function(_) {
                         outputPending.remove();
@@ -212,18 +212,18 @@
           ct_log(str);
           output.append($("<pre>").addClass("replPrint").text(str));
         });
-    var currentZIndex = 15000;
-    runtime.setParam("current-animation-port", function(dom, closeCallback) {
-        var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
-        animationDivs.push(animationDiv);
+      var currentZIndex = 15000;
+      runtime.setParam("current-animation-port", function(dom, title, closeCallback) {
+          var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+          animationDivs.push(animationDiv);
           output.append(animationDiv);
           function onClose() {
-          Jsworld.shutdownSingle({ cleanShutdown: true });
-          closeTopAnimationIfOpen();
+            Jsworld.shutdownSingle({ cleanShutdown: true });
+            closeTopAnimationIfOpen();
           }
-        closeCallback(closeTopAnimationIfOpen);
+          closeCallback(closeTopAnimationIfOpen);
           animationDiv.dialog({
-            title: 'big-bang',
+            title: title,
             position: ["left", "top"],
             bgiframe : true,
             modal : true,
@@ -235,11 +235,59 @@
             closeOnEscape : true
           });
           animationDiv.append(dom);
-        var dialogMain = animationDiv.parent();
-        dialogMain.css({"z-index": currentZIndex + 1});
-        dialogMain.prev().css({"z-index": currentZIndex});
-        currentZIndex += 2;
+          var dialogMain = animationDiv.parent();
+          dialogMain.css({"z-index": currentZIndex + 1});
+          dialogMain.prev().css({"z-index": currentZIndex});
+          currentZIndex += 2;
         });
+
+      runtime.setParam("d3-port", function(dom, width, height, onExit, onSave) {
+          // duplicate the code for now
+          var animationDiv = $("<div>");
+          animationDivs.push(animationDiv);
+          output.append(animationDiv);
+          function onClose() {
+            onExit();
+            closeTopAnimationIfOpen();
+          }
+          animationDiv.dialog({
+            position: [5, 5],
+            bgiframe : true,
+            modal : true,
+            overlay : { opacity: 0.5, background: 'black'},
+            width : width || "auto",
+            height : height || "auto",
+            close : onClose,
+            closeOnEscape : true,
+            buttons: [
+              {
+                click: onSave(dom),
+                icons: { primary: 'ui-icon-disk' }
+              }
+            ],
+            create: function() {
+              $('.ui-dialog-buttonset').appendTo('.ui-dialog-titlebar');
+              $('.ui-dialog-buttonset button')
+                .removeClass('ui-button-icon-primary')
+                .addClass('ui-button-icon-only ui-dialog-titlebar-close')
+                .css('left', '33px');
+              $('.ui-dialog-buttonpane').css('display', 'none');
+            }
+          }).dialog("widget").draggable({
+            containment: "none",
+            scroll: false,
+          });
+          animationDiv.append(dom);
+          var dialogMain = animationDiv.parent();
+          dialogMain.css({"z-index": currentZIndex + 1});
+          dialogMain.prev().css({"z-index": currentZIndex});
+          currentZIndex += 2;
+      });
+      runtime.setParam("remove-d3-port", function() {
+          closeTopAnimationIfOpen();
+          // don't call .dialog('close'); because that would trigger onClose and thus onExit.
+          // We don't want that to happen.
+      });
 
       var breakButton = options.breakButton;
       container.append(output).append(promptContainer);

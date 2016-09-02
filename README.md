@@ -9,7 +9,7 @@ everything in `.env` is just an environment variable if you really want to
 manage things yourself, but using Heroku tools makes sure you run like things
 do in production.
 
-First, get the Heroku toolbelt (https://toolbelt.heroku.com/).
+First, get the [Heroku toolbelt](https://toolbelt.heroku.com/).
 
 Then, copy `.env.example` to `.env`.  If all you want to do is run Pyret code
 and test out the REPL, you only need to edit a few variables.  If you want to
@@ -40,7 +40,7 @@ The editor will be served from `http://localhost:5000/editor`.
 If you edit JavaScript or HTML files in `src/web`, run
 
 ```
-$ heroku local:run make web
+$ npm run build
 ```
 
 and then refresh the page.
@@ -59,17 +59,27 @@ $ ln -s ../pyret-lang pyret
 ## Configuration with Google Auth and Storage
 
 In order to have share links, saving, and other docs-related functionality
-work, you need to add to your `.env` a Google client secret and client ID.
-You can easily make a free one for development at
-https://console.developers.google.com/project.  At that page, make a project,
-then go through
+work, you need to add to your `.env` a Google client secret, a client ID, a
+browser API key, and a server API key.  You'll copy
+`.env.example` to `.env`, and populate several from your dashboard at Google.
 
-    APIs & Auth -> Credentials -> Create New Client Id
+At https://console.developers.google.com/project, make a project, then:
 
-You should set the javascript origins to `http://localhost:5000` and the
-redirect URI to `http://localhost:5000/oauth2callback`.  Then copy
-`.env.example` to `.env`, and populate the `GOOGLE_CLIENT_ID` and
-`GOOGLE_CLIENT_SECRET` fields from your dashboard at Google.
+- For `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, which are used for
+  authenticating users:
+
+       Credentials -> Create Credentials -> OAuth Client Id
+
+  For development, you should set the javascript origins to
+  `http://localhost:5000` and the redirect URI to
+  `http://localhost:5000/oauth2callback`.
+
+- For `GOOGLE_API_KEY`, which is used in the browser to make certain public
+  requests when users are not logged in yet:
+
+       Credentials -> Create Credentials -> API Key -> Browser Key
+
+  Again, you should use `http://localhost:5000` as the referer for development.
 
 ## Testing with Selenium
 
@@ -77,20 +87,24 @@ There are tests in `test-util/` and `test/` that use Selenium to script a
 browser.
 
 The instructions for setting up Selenium to open Chrome locally are somewhat
-platform-specific, but you can try just running:
+platform-specific.  You will need
+[chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) to be on
+your path.  Then run running:
 
 ```
-heroku local:run mocha
+npm install selenium-webdriver mocha
+npm run mocha
 ```
 
-with Selenium installed and a development server running.  You can refine this
-with, e.g.
+with Selenium and mocha installed and a development server running.  You can
+refine this with, e.g.
 
 ```
-heroku local:run mocha -g "errors"
+npm run mocha -- -g "errors"
 ```
 
-to only run the tests in `test/errors.js`.
+to only run the tests in `test/errors.js`.  (The extra `--` are to escape the
+portion of the options to pass to the underlying `mocha` command).
 
 Another options to run all the tests on Sauce Labs (https://saucelabs.com).
 You can also get a personal free account with unlimited testing if you only
@@ -107,7 +121,7 @@ SAUCE_ACCESS_KEY="deadbeef-2671-11e5-a6a1-206a8a0824be"
 
 (Not my real access key)
 
-First, install the Sauce Connect client for your system from
+Second, install the Sauce Connect client for your system from
 https://docs.saucelabs.com/reference/sauce-connect/.  Follow the instructions
 for starting the server (the default configuration should work fine), using
 the same username and access key, for example, on Ubuntu I run:
@@ -120,13 +134,13 @@ That sets up a tunnel to Sauce Labs, and on the same machine you should now be
 able to run:
 
 ```
-$ foreman run mocha
+$ heroku local:run ./node_modules/mocha/bin/mocha
 ```
 
 To run only a particular file, pass in one of the filenames in `test/`, e.g.
 
 ```
-$ foreman run mocha test/world.js
+$ heroku local:run ./node_modules/mocha/bin/mocha test/world.js
 ```
 
 Check out how `world.js` and `image.js` are written: they look up files from
@@ -154,8 +168,8 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
 4.	Set the config variables found in `.env` (or `.env.example`) on Heroku. You can enter them using `heroku config:set NAME1=VALUE1 NAME2=VALUE2` or in the online control panel.
 5.	Add a Redis Cloud database using `heroku addons:add rediscloud` or at addons.heroku.com. You will likely have to verify first (enter a credit card), but you shouldn’t actually be charged for the most basic level (but check for yourself!).
 6.	Now, still in your code.pyret.org repo, run
-```
- $ git push heroku <localbranch>:master
- $ heroku ps:scale web=1
-```
+
+        $ git push heroku <localbranch>:master
+        $ heroku ps:scale web=1
+
 7.	Now run `heroku open` or visit appname.herokuapp.com.

@@ -75,8 +75,10 @@
       "name-to-color": "tany",
       "empty-image": "tany"
     },
-    aliases: { Image: "tany" },
-    datatypes: { Image: "tany" } 
+    aliases: {
+      "Image": ["local", "Image"]
+    },
+    datatypes: { "Image": ["data", "Image", [], [], {}] }
   },
   theModule: function(runtime, namespace, uri, image, jsnums) {
     var colorDb = image.colorDb;
@@ -151,7 +153,7 @@
     }
 
     var ann = function(name, pred) {
-      return runtime.makePrimitiveAnn(name, pred); 
+      return runtime.makePrimitiveAnn(name, pred);
     };
 
     var annString = runtime.String;
@@ -237,7 +239,7 @@
     var checkPlaceY = p(isPlaceY, "Y Place");
 
 
-    var annAngle = ann("Angle (a number 0-360)", image.isAngle);
+    var annAngle = ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 
 
@@ -600,7 +602,7 @@
 
     f("scale", function(maybeFactor, maybeImg) {
       checkArity(2, arguments, "scale");
-      c("scale", [maybeFactor, maybeImg], [annAngle, annImage]);
+      c("scale", [maybeFactor, maybeImg], [runtime.Number, annImage]);
       var factor = checkReal(maybeFactor);
       var img = checkImage(maybeImg);
       return makeImage(image.makeScaleImage(jsnums.toFixnum(factor), jsnums.toFixnum(factor), img));
@@ -665,15 +667,15 @@
       c("add-line",
         [maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC],
         [annImage, runtime.Number, runtime.Number, runtime.Number, runtime.Number, annColor]);
-      var x1 = checkReal(maybeX1);
-      var y1 = checkReal(maybeY1);
-      var x2 = checkReal(maybeX2);
-      var y2 = checkReal(maybeY2);
+      var x1 = jsnums.toFixnum(checkReal(maybeX1));
+      var y1 = jsnums.toFixnum(checkReal(maybeY1));
+      var x2 = jsnums.toFixnum(checkReal(maybeX2));
+      var y2 = jsnums.toFixnum(checkReal(maybeY2));
       var color = checkColor(maybeC);
-      var img = checkImage(maybeImg);
-      var line = image.makeLineImage(jsnums.toFixnum(x2 - x1), jsnums.toFixnum(y2 - y1), color, true);
+      var img   = checkImage(maybeImg);
+      var line  = image.makeLineImage(x2 - x1, y2 - y1, color, true);
       var leftmost = Math.min(x1, x2);
-      var topmost = Math.min(y1, y2);
+      var topmost  = Math.min(y1, y2);
       return makeImage(image.makeOverlayImage(line, img, -leftmost, -topmost));
     });
 
@@ -794,7 +796,7 @@
           if (less(sideA + sideC, sideB) ||
               less(sideB + sideC, sideA) ||
               less(sideA + sideB, sideC)) {
-            throwMessage("The given side, angle and side will not form a triangle: " 
+            throwMessage("The given side, angle and side will not form a triangle: "
                          + sideA + ", " + angleB + ", " + sideC);
           }
         }
