@@ -7,37 +7,36 @@
   <link rel="stylesheet" href="/css/grade.css">
 </head>
 <body>
+  <h2 id="loading-message" style="display:none">Loading resources from Google Drive...</h2>
   <div class="pure-g">
     <div id="cfg-container">
       <div class="pure-u-1-2">
         <form id="cfg" class="pure-form pure-form-stacked" method="POST">
           <fieldset>
             <legend>CPO/grade Configuration</legend>
-            <button id="openFile" class="blueButton loginOnly">Open</button>
-
             <label for="id">What's the gDrive folder ID of the student submissions?</label>
-            <input name="id" id="id" class="pure-input-1"></input>
+            <input name="id" id="id" class="pure-input-1" placeholder="0Bz8lcSxx1xz6VDZRR1RGV1ZCZXc"></input>
 
-            <label for="submission-name">Submission name? (E.g. "tests" or "final-submission")</label>
-            <input name="submission-name" id="submission-name" class="pure-input-1"></input>
+            <label for="submission-name">Submission name?</label>
+            <input name="submission-name" id="submission-name" class="pure-input-1" placeholder="final-submission"></input>
 
-            <label for="implementation">What's the name of a implementation file? (E.g. "list-drill-code.arr")</label>
-            <input name="implementation" id="implementation" class="pure-input-1"></input>
+            <label for="implementation">What's the name of a implementation file?</label>
+            <input name="implementation" id="implementation" class="pure-input-1" placeholder="list-drill-code.arr"></input>
 
-            <label for="test">What's the name of a test file? (E.g. "list-drill-tests.arr")</label>
-            <input name="test" id="test" class="pure-input-1"></input>
+            <label for="test">What's the name of a test file?)</label>
+            <input name="test" id="test" class="pure-input-1" placeholder="list-drill-tests.arr"></input>
 
             <label for="suite">What's the gDrive file ID of your test suite?</label>
-            <input name="suite" id="suite" class="pure-input-1"></input>
+            <input name="suite" id="suite" class="pure-input-1" placeholder="0Bz8lcSxx1xz6UjVocWlsU1Mxb3M"></input>
 
             <label for="gold">What's the gDrive file ID of your gold?</label>
-            <input name="gold" id="gold" class="pure-input-1"></input>
+            <input name="gold" id="gold" class="pure-input-1" placeholder="0Bz8lcSxx1xz6RW1YUC1JSUdubUU"></input>
 
             <label for="coals">What's the gDrive folder ID of your coals?</label>
-            <input name="coals" id="coals" class="pure-input-1"></input>
+            <input name="coals" id="coals" class="pure-input-1" placeholder="0Bz8lcSxx1xz6dVJZWlF3Y1IxTU0"></input>
 
             <label for="timeout">Timeout, in seconds, for each individual run? (Default is 120 seconds, i.e. 2 minutes.)</label>
-            <input name="timeout" id="timeout" class="pure-input-1"></input>
+            <input name="timeout" id="timeout" class="pure-input-1" placeholder="120"></input>
 
             <button id="load" class="pure-button pure-button-primary" disabled="disabled">Load Submissions</button>
 
@@ -58,7 +57,6 @@
         </form>
       </div>
     </div>
-    <h2 id="loading-message" style="display:none">Loading resources from Google Drive...</h2>
     <div class="pure-u-1">
       <table id="tbl" class="pure-table pure-table-bordered">
       </table>
