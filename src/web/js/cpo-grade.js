@@ -1,16 +1,50 @@
-/* global Q */
+/* global Q $ */
 
 ({
   requires: [
     { 'import-type': 'dependency',
       protocol: 'js-file',
-      args: ['./cpo-ide-hooks']
+      args: ['./cpo-repl']
+    },
+    { 'import-type': 'builtin',
+      name: 'load-lib'
+    },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./check-ui"]
+    },
+    { "import-type": "builtin",
+      name: "option" },
+    { "import-type": "builtin",
+      name: "srcloc" },
+    { "import-type": "builtin",
+      name: "checker" }
+  ],
+  nativeRequires: [],
+  provides: {},
+  theModule: function(runtime, namespace, uri, cpoRepl, loadLib, checkUI, option, srcloc, checker) {
+
+    // copied from error-ui.js in logging branch
+    function callDeferred(runtime, thunk) {
+      var ret = Q.defer();
+      runtime.runThunk(
+        thunk,
+        function (result) {
+          if (runtime.isSuccessResult(result)) {
+            ret.resolve(result.result);
+          } else {
+            ret.reject(result.exn);
+          }
+        });
+      return ret.promise;
     }
-  ],
-  nativeRequires: [
-    'cpo/gdrive-locators'
-  ],
-  theModule: function(runtime, namespace, uri, cpoIdeHooks, gdriveLocators) {
+
+    var ffi = runtime.ffi;
+    option = runtime.getField(option, "values");
+    srcloc = runtime.getField(srcloc, "values");
+    var CH = runtime.getField(checker, "values");
+
+
     // JS Doc annotations herein use an approximation the Google Closure
     // Compiler type expression syntax, but will not be type-checked
     //
@@ -21,9 +55,9 @@
      * @enum {string}
      */
     var RunnerType = {
-      TEST: 0, // Run a student implementation against the solution test suite.
-      GOLD: 1, // Run a student test suite against the solution implementation.
-      COAL: 2  // Run a student test suite against a broken implementation.
+      TEST: 'TEST', // Run a student implementation against the solution test suite.
+      GOLD: 'GOLD', // Run a student test suite against the solution implementation.
+      COAL: 'COAL' // Run a student test suite against a broken implementation.
     };
 
     /**
@@ -98,7 +132,20 @@
      * Internal helper functions
      * @type {Object<string,function()>}
      */
-    var CPOGradeUtil = {
+    var Util = {
+
+      // works for null/undefined as well
+      toString: function(obj) {
+        // if (obj === null) {
+        //   return 'null';
+        // } else if (obj === undefined) {
+        //   return 'undefined';
+        // } else {
+        //   return obj.toString();
+        // }
+        
+        return String(obj);
+      },
       /**
        * Taken from developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
        * @param {number} min
@@ -144,9 +191,9 @@
          * @return {GradeRunData}
          */
         createMockGradeData: function(implementation, test, student, runnerType) {
-          var testsTotal = (runnerType === RunnerType.TEST) ? 80 : CPOGradeUtil.getRandomIntInclusive(40,100);
-          var testsPassed = CPOGradeUtil.getRandomIntInclusive(0,testsTotal);
-          var success = (CPOGradeUtil.getRandomIntInclusive(0,1) === 1);
+          var testsTotal = (runnerType === RunnerType.TEST) ? 80 : Util.getRandomIntInclusive(40,100);
+          var testsPassed = Util.getRandomIntInclusive(0,testsTotal);
+          var success = (Util.getRandomIntInclusive(0,1) === 1);
 
           return {
             implementation: implementation,
@@ -185,14 +232,14 @@
          * @return {Runner}
          */
         createMockRunner: function(implementation, test, student, runnerType) {
-          var gradeRunData = CPOGradeUtil.Mock.createMockGradeData(implementation, test, student, runnerType);
-          var gradeRunDataPromise = CPOGradeUtil.makeResolvedPromise(gradeRunData);
+          var gradeRunData = Util.Mock.createMockGradeData(implementation, test, student, runnerType);
+          var gradeRunDataPromise = Util.makeResolvedPromise(gradeRunData);
 
           var run = function() {
             return gradeRunDataPromise;
           };
 
-          var uniqueId = [student.id, implementation.id, test.id, 'Runner'].join('-');
+          var uniqueId = [student.id, Util.toString(implementation.id), Util.toString(test.id), 'Runner'].join('-');
 
           return {
             implementation: implementation,
@@ -232,7 +279,7 @@
 
             var runnerType = RunnerType.TEST;
 
-            return CPOGradeUtil.Mock.createMockRunner(implementation, test, student, runnerType);
+            return Util.Mock.createMockRunner(implementation, test, student, runnerType);
           });
 
           var goldRunners = studentData.map(function(student) {
@@ -250,13 +297,13 @@
 
             var runnerType = RunnerType.GOLD;
 
-            return CPOGradeUtil.Mock.createMockRunner(implementation, test, student, runnerType);
+            return Util.Mock.createMockRunner(implementation, test, student, runnerType);
           });
 
-          var numCoals = CPOGradeUtil.getRandomIntInclusive(3,6);
+          var numCoals = Util.getRandomIntInclusive(3,6);
 
           var coalRunnerArrays = studentData.map(function(student) {
-            var coalsFileData = CPOGradeUtil.Mock.createMockCoalsFileData(numCoals);
+            var coalsFileData = Util.Mock.createMockCoalsFileData(numCoals);
 
             return coalsFileData.map(function(coalFileData) {
               // Run the coal implementation...
@@ -273,7 +320,7 @@
 
               var runnerType = RunnerType.COAL;
 
-              return CPOGradeUtil.Mock.createMockRunner(implementation, test, student, runnerType);
+              return Util.Mock.createMockRunner(implementation, test, student, runnerType);
             });
           });
 
@@ -296,15 +343,381 @@
 
           return studentRunners;
         }
+      },
+    };
+
+    /**
+     */
+    var createRepl = function(myGDriveOverride, fileObjToRun) {
+      var protocolOverrideMap = {
+        'my-gdrive': myGDriveOverride,
+        'shared-gdrive': {
+          keepAuth: true
+        }
+      };
+      var fileId = fileObjToRun.getUniqueId();
+      var findModule = cpoRepl.createFindModuleFunction(protocolOverrideMap);
+      return (fileObjToRun.getContents()).then(function(stringtoRun) {
+        var thisFileId = fileObjToRun.getUniqueId();
+        DEBUG.assertEqual(fileId, thisFileId);
+        var getDefsForPyret = runtime.makeFunction(function() {
+          return stringtoRun;
+        });
+        return cpoRepl.createRepl(findModule, getDefsForPyret);     
+      });
+    };
+
+    /**
+     */
+    var ReplPromises = {};
+
+    /**
+     */
+    var registerRepl = function(importName, actualImplementation, testFileObj) {
+      if (ReplPromises[importName] == null) {
+        ReplPromises[importName] = {};
       }
+
+      var fileIdToImport = actualImplementation.getUniqueId();
+      if (ReplPromises[importName][fileIdToImport] == null) {
+        ReplPromises[importName][fileIdToImport] = {};
+      }
+
+      var myGDriveOverride = {};
+      myGDriveOverride[importName] = Util.makeResolvedPromise([actualImplementation]);
+      var replPromise = createRepl(myGDriveOverride, testFileObj);
+      var fileIdToRun = testFileObj.getUniqueId();
+      ReplPromises[importName][fileIdToImport][fileIdToRun] = replPromise;
+    };
+
+    var isTestSuccess = function(val) {
+      return runtime.unwrap(runtime.getField(CH, "is-success").app(val));
+    }
+
+    var getCheckResults = function(checkResults) {
+      var checkBlocks = ffi.toArray(checkResults).reverse();
+      if (checkBlocks.length === 0) {
+        return [];
+      }
+
+      var checkTotalAll = 0;
+      var checkPassedAll = 0;
+
+      var checkBlocksErrored = 0;
+
+      var checkBlockReports = checkBlocks.map(function(checkBlock) {
+        var isSome = runtime.getField(option, "is-some");
+        var maybeErr = runtime.getField(checkBlock, "maybe-err");
+        var isError = isSome.app(maybeErr);
+        if (isError) {
+          checkBlocksErrored += 1;
+        }
+
+        var name = runtime.getField(checkBlock, "name");
+        var testResults = runtime.getField(checkBlock, "test-results");
+        var tests = ffi.toArray(testResults).reverse();
+
+        // console.log('THIS CHECK BLOCK HAS ' + tests.length + ' TESTS:', tests);
+
+        var testsInBlock = 0;
+        var testsPassingInBlock = 0;
+
+        tests = tests.map(function(test) {
+          checkTotalAll += 1;
+          testsInBlock += 1;
+          var isSuccess = isTestSuccess(test);
+          if (isSuccess) {
+            checkPassedAll += 1;
+            testsPassingInBlock += 1;
+          }
+          var loc = runtime.getField(test, "loc").dict;
+          var name = test.$name;
+          return {
+            isSuccess: isSuccess,
+            name: name,
+            loc: loc
+          };
+        });
+
+        var error = isError ? runtime.getField(runtime.getField(checkBlock, "maybe-err"),"value").val : null;
+
+        return {
+          isError: isError,
+          error: error,
+          testsPassedInBlock: testsPassingInBlock,
+          testsTotalInBlock: testsInBlock,
+          tests: tests
+        };
+      });
+      var checkBlockCount = checkBlocks.length;
+
+      return {
+        testsPassed: checkPassedAll,
+        testsTotal: checkTotalAll,
+        numCheckBlocks: checkBlockCount,
+        checkBlocks: checkBlockReports
+      };
+    };
+
+    
+    // var lastResortIfPending = function(defer, resolveWith) {
+    //   if (defer.promise.inspect().state === "pending") {
+    //     defer.resolve({
+    //             isError: true,
+    //             failureCase: 'unknown (defer unresolved)',
+    //             exn: resolveWith,
+    //             checks: null
+    //           });
+    //   }
+    // };
+
+    /**
+     * Copied/modified from repl-ui.js:displayResult
+     */
+    var createResultExtractor = function(pyretResult) {
+      var dataDefer = Q.defer();
+      var thunk = function() {
+        var data = {
+          isError: true,
+          failureCase: null,
+          exn: null,
+          checks: null
+        };
+        console.log("Full time including compile/load:", JSON.stringify(pyretResult.stats));
+        if (runtime.isFailureResult(pyretResult)) {
+          data.failureCase = 'isFailureResult(pyretResult)';
+          data.exn = pyretResult.exn;
+          console.log('ABOUT TO RESOLVE DATA:', data);
+          dataDefer.resolve(data);
+          return runtime.nothing;
+        } else if (runtime.isSuccessResult(pyretResult)) {
+          var result = pyretResult.result;
+          console.log('about to descend into cases');
+          ffi.cases(ffi.isEither, "is-Either", result, {
+            left: function(compileResultErrors) {
+              var errs = [];
+              var results = ffi.toArray(compileResultErrors);
+              results.forEach(function(r) {
+                errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
+              });
+              data.failureCase = 'is-left(result)';
+              data.exn = errs;
+              console.log('ABOUT TO RESOLVE DATA:', data);
+              dataDefer.resolve(data);
+              return runtime.nothing;
+            },
+            right: function(v) {
+              var runResult = runtime.getField(loadLib, "internal").getModuleResultResult(v);
+              console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
+              if (runtime.isSuccessResult(runResult)) {
+                runtime.safeCall(function() {
+                  var checks = runtime.getField(runResult.result, "checks");
+                  data.isError = false;
+                  data.checks = getCheckResults(checks);
+                  return runtime.nothing;
+                }, function(safeCallResult) {
+                  console.log('safeCallResult:', safeCallResult);
+                  console.log('ABOUT TO RESOLVE DATA:', data);
+                  dataDefer.resolve(data);
+                  return runtime.nothing;
+                });
+              } else if (runtime.isFailureResult(runResult)) {
+                data.failureCase = 'isFailureResult(runResult)';
+                data.exn = runResult.exn;
+                console.log('ABOUT TO RESOLVE DATA:', data);
+                dataDefer.resolve(data);
+                return runtime.nothing;
+              } else {
+                data.failureCase = 'unknown(runResult)';
+                data.exn = {
+                  unknown: runResult
+                };
+                console.log('ABOUT TO RESOLVE DATA:', data);
+                dataDefer.resolve(data);
+                return runtime.nothing;
+              }
+            }
+          });
+        } else {
+          data.failureCase = 'unknown(pyretResult)';
+          data.exn = {
+            unknown: pyretResult
+          };
+          console.log('ABOUT TO RESOLVE DATA:', data);
+          dataDefer.resolve(data);
+          return runtime.nothing;
+        }
+      };
+
+      return function() {
+        return callDeferred(runtime, thunk)
+          .then(function (result) {
+            console.log('.then:', result);
+            return dataDefer.promise;
+          })
+          .fail(function (error) {
+            console.log('.fail:', error);
+            return dataDefer.promise;
+          });
+      };
+    };
+
+    /**
+     */
+    var DEBUG = {
+      assertEqual: function(obj1, obj2) {
+        if (obj1 !== obj2) {
+          console.error('assertEqual failed:', obj1, obj2);
+          throw new Error('');
+        }
+      },
+      assertRunner: function(runner, expectedImplementationId, expectedTestId) {
+        var actualTestId = runner.test.id;
+        var actualImplementationId = runner.implementation.id;
+        DEBUG.assertEqual(expectedTestId, actualTestId);
+        DEBUG.assertEqual(actualImplementationId, expectedImplementationId);
+      },
+      assertTestNumbersConsistent: function(testsPassed, testsTotal) {
+        console.assert(0 <= testsPassed);
+        console.assert(testsPassed <= testsTotal);
+      }
+    };
+
+    /**
+     */
+    var makeRunner = function(implementationFileObj, testFileObj, student, runnerType, implementationName, timeout) {
+      // TODO, maybe: make typeCheck an option
+      var typeCheck = false;
+
+      var implementationFileObjName = (implementationFileObj === null) ? null : implementationFileObj.getName();
+      var implementationFileObjId = (implementationFileObj === null) ? null : implementationFileObj.getUniqueId();
+      var implementation = {
+        name: implementationFileObjName,
+        id: implementationFileObjId
+      };
+
+      var testFileObjName = (testFileObj === null) ? null : testFileObj.getName();
+      var testFileObjId = (testFileObj === null) ? null : testFileObj.getUniqueId();
+      var test = {
+        name: testFileObjName,
+        id: testFileObjId
+      };
+
+      if (testFileObj !== null) {
+        registerRepl(implementationName, implementationFileObj, testFileObj);
+      }
+      var replPromise = (implementationFileObjId === null || testFileObjId === null) ? null :
+        ReplPromises[implementationName][implementationFileObjId][testFileObjId];
+
+      var uniqueId = [student.id, Util.toString(implementation.id), Util.toString(test.id), 'Runner'].join('-');
+
+      var runnerRecord = {uniqueId: uniqueId};
+
+      var isMissing = (replPromise === null);
+
+      var run = function(onStart, onDoneSuccess, onDoneFailure) {
+        var resultDefer = Q.defer();
+        var resolveRunData = function(runData) {
+          var gradeRunData = {
+            uniqueId: uniqueId,
+            implementation: implementation,
+            test: test,
+            student: student,
+            runnerType: runnerType,
+            runData: runData,
+            time: Date.now()
+          };
+
+          resultDefer.resolve(gradeRunData);
+
+          
+          if (runData.isError) {
+            onDoneFailure(runnerRecord);
+          } else {
+            onDoneSuccess(runnerRecord);
+          }
+        };
+
+        if (isMissing) {
+          onStart(runnerRecord);
+          var runData = {
+            isError: true,
+            failureCase: 'missing',
+            exn: 'Implementation and/or test is missing.',
+            checks: null
+          };
+          resolveRunData(runData);
+          return resultDefer.promise;
+        }
+
+        return replPromise.then(function(jsRepl) {
+          onStart(runnerRecord);
+          var runResultPromise = jsRepl.restartInteractions('', typeCheck);
+          var done = false;
+          var timer = setTimeout(function() {
+            if(!done) {
+              jsRepl.stop();
+              var runData = {
+                isError: true,
+                failureCase: 'timeout',
+                exn: 'timeout exceed max time of ' + timeout,
+                checks: null
+              };
+              resolveRunData(runData);
+            }
+          }, timeout);
+
+          runResultPromise.then(function(pyretResult) {
+            clearTimeout(timer);
+            var extract = createResultExtractor(pyretResult);
+            return extract();
+          }).then(function(runData) {
+            resolveRunData(runData);
+          });
+
+          return resultDefer.promise;
+        });
+      };
+
+      var runner = {
+        implementation: implementation,
+        test: test,
+        student: student,
+        runnerType: runnerType,
+        run: run,
+        uniqueId: uniqueId,
+        isMissing: isMissing
+      };
+
+      // DEBUG.assertRunner(runner, implementationFileObj.getUniqueId(), testFileObj.getUniqueId());
+
+      return runner;
+    };
+
+    var makeStudentRunner = function(testSuiteFile, goldFile, coalFiles, submission, implementationName, timeout) {
+      var student = submission.student;
+      var test = (testSuiteFile === null || submission.implementation === null) ? null : makeRunner(submission.implementation, testSuiteFile, student, RunnerType.TEST, implementationName, timeout);
+      var gold = (goldFile === null || submission.test === null) ? null : makeRunner(goldFile, submission.test, student, RunnerType.GOLD, implementationName, timeout);
+      var coals = coalFiles.map(function(coalFile) {
+        return makeRunner(coalFile, submission.test, student, RunnerType.COAL, implementationName, timeout);
+      });
+      var uniqueId = student.id + '-StudentRunner';
+
+      return {
+        student: student,
+        test: test,
+        gold: gold,
+        coals: coals,
+        uniqueId: uniqueId
+      };
     };
 
     var api;
     var errNoApiMessage = 'Attempted to get file(s) before gdrive api was ready.';
 
     window.storageAPI.then(function(programCollectionAPI) {
-      console.log("gdrive api ready for use by cpo-grade.");
-      api = programCollectionAPI.api;      
+      console.log('gdrive api ready for use by cpo-grade.');
+      api = programCollectionAPI;      
     }, function(err) {
       console.error(err);
     });
@@ -315,14 +728,14 @@
       var retry = function() {
         // formula from https://gist.github.com/peterherrmann/2700284
         var timeToWait = (Math.pow(2, iteration) * 1000) + (Math.round(Math.random() * 1000));
-        console.log("Retrying request in " + (timeToWait / 1000) + " seconds...");
+        console.log('Retrying request in ' + (timeToWait / 1000) + ' seconds...');
         setTimeout(function() {
           apiRequestRetryHelper(request, iteration + 1, max, defer);
         }, timeToWait);
       };
 
       if (iteration > 0) {
-        console.log("...retrying request now.");
+        console.log('...retrying request now.');
       }
 
       (request()).then(function(resolvedObject) {
@@ -392,6 +805,22 @@
       });
     };
 
+    var optionalGetFile = function(id) {
+      if (id.length > 0) {
+        return getFile(id);
+      } else {
+        return Util.makeResolvedPromise(null);
+      }
+    };
+
+    var optionalGetFilesInFolder = function(id) {
+      if (id.length > 0) {
+        return getFilesInFolder(id);
+      } else {
+        return Util.makeResolvedPromise([]);
+      }
+    };
+
     /**
      * @param {string} testSuiteFileID
      * @param {string} goldFileID
@@ -400,15 +829,16 @@
      * @param {string} submissionName
      * @param {string} implementationName
      * @param {string} testName
-     * @return {Array<StudentRunner>}
+     * @param {number} timeout
+     * @return {Promise<Array<StudentRunner>>}
      */
     var createStudentRunners = function(testSuiteFileID, goldFileID, coalFolderID,
-      submissionsFolderID, submissionName, implementationName, testName) {
+      submissionsFolderID, submissionName, implementationName, testName, timeout) {
 
-      var testSuiteFilePromise = getFile(testSuiteFileID);
-      var goldFilePromise = getFile(goldFileID);
-      var coalFolderFilesPromise = getFilesInFolder(coalFolderID);
-      var submissionsFolderFilesPromise = getFilesInFolder(submissionsFolderID)
+      var testSuiteFilePromise = optionalGetFile(testSuiteFileID);
+      var goldFilePromise = optionalGetFile(goldFileID);
+      var coalFilesPromise = optionalGetFilesInFolder(coalFolderID);
+      var submissionsPromise = getFilesInFolder(submissionsFolderID)
       .then(function(studentFolders) {
         var arrayOfPromises = studentFolders.map(function(studentFolder) {
           var name = studentFolder.getName();
@@ -419,21 +849,23 @@
           };
           return getFilesInFolder(id).then(function(files) {
             var submission = files.find(function(file) {
-              return file.getName() === submissionName;
+              return file === null ? false : file.getName() === submissionName;
             });
-            if (!submission) {
-              console.error(files);
-              throw new Error('Could not find "' + submissionName + '" for student "' + student.name + '"');
+            if (submission == null) {
+              console.error('Could not find ' + submissionName + ' for student ' + student.name);
+              return [];
             } else {
               return getFilesInFolder(submission.getUniqueId());
             }
           }).then(function(submittedFiles) {
             var implementation = submittedFiles.find(function(file) {
-              return file.getName() === implementationName;
+              return file === null ? false : file.getName() === implementationName;
             });
             var test = submittedFiles.find(function(file) {
-              return file.getName() === testName;
+              return file === null ? false : file.getName() === testName;
             });
+            implementation = implementation || null;
+            test = test || null;
             return {
               student: student,
               implementation: implementation,
@@ -441,25 +873,26 @@
             };
           });
         });
-
         return Q.all(arrayOfPromises);
       });
-
-      var registerLogger = function(promise, msg) {
-        return promise.then(function(result) {
-          console.log(msg, result);
-        }).fail(function(result) {
-          console.log(msg + " ERROR");
-          console.error(result);
+      
+      var studentRunners =  Q.all([
+        testSuiteFilePromise,
+        goldFilePromise,
+        coalFilesPromise,
+        submissionsPromise
+      ]).then(function(results) {
+        // console.log(results);
+        var testSuiteFile = results[0];
+        var goldFile = results[1];
+        var coalFiles = results[2];
+        var submissions = results[3];
+        return submissions.map(function(submission) {
+          return makeStudentRunner(testSuiteFile, goldFile, coalFiles, submission, implementationName, timeout);
         });
-      };
+      });
 
-      registerLogger(testSuiteFilePromise, "TEST SUITE FILE");
-      registerLogger(goldFilePromise, "GOLD FILE");
-      registerLogger(coalFolderFilesPromise, "COAL FILES");
-      registerLogger(submissionsFolderFilesPromise, "SUBMISSIONS FILES");
-
-      return CPOGradeUtil.Mock.createMockStudentRunners();
+      return studentRunners;
     };
 
     /**
@@ -497,4 +930,4 @@
 
     return runtime.makeModuleReturn({}, {});
   }
-})
+}) // eslint-disable-line semi

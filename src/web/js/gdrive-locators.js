@@ -166,7 +166,7 @@ define([], function() {
     }
     // Shared GDrive locators require a refresh to be re-fetched
     var sharedLocatorCache = {};
-    function makeSharedGDriveLocator(filename, id) {
+    function makeSharedGDriveLocator(filename, id, keepAuth) {
       function checkFileResponse(file, filename, restarter) {
         var actualName = file.getName();
         if(actualName !== filename) {
@@ -189,7 +189,7 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
         var filesP = storageAPI.then(function(storage) {
-          return storage.getSharedFileById(id);
+          return keepAuth ? storage.getSharedFileByIdWithAuth(id) : storage.getSharedFileById(id);
         });
         filesP.fail(function(failure) {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));

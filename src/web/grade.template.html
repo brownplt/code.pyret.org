@@ -15,23 +15,29 @@
             <legend>CPO/grade Configuration</legend>
             <button id="openFile" class="blueButton loginOnly">Open</button>
 
-            <label for="id">What's the gDrive folder ID of your assignment?</label>
-            <input name="id" id="id" class="pure-input-1" value="0B-_f7M_B5NMiQjFLeEo1SVBBUE0"></input>
+            <label for="id">What's the gDrive folder ID of the student submissions?</label>
+            <input name="id" id="id" class="pure-input-1"></input>
 
-            <label for="implementation">What's the name of a implementation file?</label>
-            <input name="implementation" id="implementation" class="pure-input-1" value="list-drill-code.arr"></input>
+            <label for="submission-name">Submission name? (E.g. "tests" or "final-submission")</label>
+            <input name="submission-name" id="submission-name" class="pure-input-1"></input>
 
-            <label for="test">What's the name of a test file?</label>
-            <input name="test" id="test" class="pure-input-1" value="list-drill-tests.arr"></input>
+            <label for="implementation">What's the name of a implementation file? (E.g. "list-drill-code.arr")</label>
+            <input name="implementation" id="implementation" class="pure-input-1"></input>
+
+            <label for="test">What's the name of a test file? (E.g. "list-drill-tests.arr")</label>
+            <input name="test" id="test" class="pure-input-1"></input>
 
             <label for="suite">What's the gDrive file ID of your test suite?</label>
-            <input name="suite" id="suite" class="pure-input-1" value="0B-_f7M_B5NMiOGpHLTN5Rk1aU2c"></input>
+            <input name="suite" id="suite" class="pure-input-1"></input>
 
             <label for="gold">What's the gDrive file ID of your gold?</label>
-            <input name="gold" id="gold" class="pure-input-1" value="0B-_f7M_B5NMiZ1dJclRWMGN3ZTg"></input>
+            <input name="gold" id="gold" class="pure-input-1"></input>
 
             <label for="coals">What's the gDrive folder ID of your coals?</label>
             <input name="coals" id="coals" class="pure-input-1"></input>
+
+            <label for="timeout">Timeout, in seconds, for each individual run? (Default is 300 seconds, i.e. 5 minutes.)</label>
+            <input name="timeout" id="timeout" class="pure-input-1"></input>
 
             <button id="load" class="pure-button pure-button-primary" disabled="disabled">Load Submissions</button>
 
@@ -52,6 +58,7 @@
         </form>
       </div>
     </div>
+    <h2 id="loading-message" style="display:none">Loading resources from Google Drive...</h2>
     <div class="pure-u-1">
       <table id="tbl" class="pure-table pure-table-bordered">
       </table>
@@ -59,10 +66,14 @@
     <div class="pure-u-1">
       <form id="frm" class="pure-form">
         <fieldset>
-          <button id="gen" type="submit" class="pure-button pure-button-primary">Generate JSON</button>
+          <button id="gen" type="submit" class="pure-button pure-button-primary">Run selected</button>
         </fieldset>
-        <textarea id="out" class="pure-input-1" placeholder="Click 'Generate JSON' after running targets"></textarea>
+        <textarea id="out" class="pure-input-1" placeholder="Click 'Run selected' after selecting targets"></textarea>
+        <fieldset>
+          <button id="download" disabled="disabled" class="pure-button pure-button-primary">Download JSON</button>
+        </fieldset>
       </form>
+      <a id="downloadAnchorElem" style="display:none"></a>
     </div>
   </div>
 
@@ -82,6 +93,8 @@
   <script src="/js/matchkw.js"></script>
   <script src="/js/draw.js"></script>
   <script src="/js/mustache.js"></script>
+  <script src="/js/jszip.js"></script>
+  <script src="/js/FileSaver.js"></script>
   <script src="/js/require.js"></script>
   <script>
     window.module = {};
@@ -120,7 +133,10 @@
   <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
   <script>console.log(window.performance.now())</script>
   <!-- <script src="js/beforePyret.js"></script> -->
-  <script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
+  <script>
+    var APP_BASE_URL = "{{{ BASE_URL }}}";
+    storageAPI = storageAPI.then(function(api) { return api.api; });
+  </script>
 
   <!-- <script type="text/javascript"
           src="https://caja.appspot.com/caja.js"></script> -->

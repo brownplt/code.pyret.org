@@ -66,3 +66,16 @@ th:not(:first-child) div {
   padding: 3px;
   position: absolute;
 }
+
+.runner-status-pending: {
+  background-color: #f7cb2a !important;
+}
+
+.runner-status-complete-success {
+  background-color: #30ba40 !important;
+}
+
+.runner-status-complete-failure {
+  background-color: #de1d10 !important;
+}
+

@@ -233,7 +233,9 @@ function loadAPIWrapper(immediate) {
    */
   function gQ(request, skipAuth) {
     var oldAccess = gapi.auth.getToken();
-    if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
+    if (skipAuth) {
+      gapi.auth.setToken({ access_token: null });
+    }
     var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       // TODO: This should be migrated to a promise

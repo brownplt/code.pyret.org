@@ -1,3 +1,4 @@
+/* global APP_BASE_URL storageAPI Q CPO */
 ({
   requires: [
     { "import-type": "dependency",
@@ -16,10 +17,10 @@
       protocol: "file",
       args: ["../arr/cpo.arr"]
     },
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./repl-ui"]
-    },
+    // { "import-type": "dependency",
+    //   protocol: "js-file",
+    //   args: ["./repl-ui"]
+    // },
     { "import-type": "builtin",
       name: "parse-pyret"
     },
@@ -46,7 +47,7 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
-                      compileLib, compileStructs, pyRepl, cpo, replUI,
+                      compileLib, compileStructs, pyRepl, cpo, //replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
@@ -57,7 +58,7 @@
 
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-    var gtf = function(m, f) { return gf(m, "types")[f]; };
+    //var gtf = function(m, f) { return gf(m, "types")[f]; };
 
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules);
 
@@ -81,17 +82,16 @@
         }));
       }
     });
-    var builtinsForPyret = runtime.ffi.makeList(builtins);
-
-    var getDefsForPyret = runtime.makeFunction(function() {
-        return CPO.editor.cm.getValue();
-      });
+    var builtinsForPyret = runtime.ffi.makeList(builtins);    
     var replGlobals = gmf(compileStructs, "standard-globals");
 
-    function createRepl(optionalFindModule) {
+    /**
+     */
+    var createRepl = function(optionalFindModule, optionalGetDefsForPyret) {
       var replDefer = Q.defer();
+
       var findModule;
-      if (typeof optionalFindModule === "function") {
+      if (optionalFindModule != null) {
         findModule = optionalFindModule;
       } else {
         findModule = function(contextIgnored, dependency) {
@@ -125,6 +125,15 @@
               return gmf(compileLib, "located").app(l, runtime.nothing);
            }, "findModule");
         }
+      }
+
+      var getDefsForPyret;
+      if (optionalGetDefsForPyret != null) {
+        getDefsForPyret = optionalGetDefsForPyret;
+      } else {
+        getDefsForPyret = runtime.makeFunction(function() {
+          return CPO.editor.cm.getValue();
+        });
       }
 
       runtime.safeCall(function() {
@@ -180,17 +189,66 @@
             },
             stop: function() {
               runtime.breakAll();
-            },
-            runtime: runtime
+            }
           };
           replDefer.resolve(jsRepl);
         }, "make-repl");
 
       return replDefer.promise;
-    }
+    };
+
+    /**
+     */
+    var createFindModuleFunction = function(protocolOverrideMap) {
+      // NOTE(awstlaur): this function was copied and modified from the default
+      // findModule found in cpo-repl.js
+      return function(contextIgnored, dependency) {
+        return runtime.safeCall(function() {
+          return runtime.ffi.cases(gmf(compileStructs, 'is-Dependency'), 'Dependency', dependency,
+            {
+              builtin: function(name) {
+                var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+                if(!raw) {
+                  throw runtime.throwMessageException('Unknown module: ' + name);
+                }
+                else {
+                  return gmf(cpo, 'make-builtin-js-locator').app(name, raw);
+                }
+              },
+              dependency: function(protocol, args) {
+                var arr = runtime.ffi.toArray(args);
+                var protocolOverride = protocolOverrideMap[protocol];
+                var filesPromise = protocolOverride ? protocolOverride[arr[0]] : null;
+                var keepAuthForShared = protocolOverride ? protocolOverride.keepAuth : null;
+                if (protocol === 'my-gdrive') {
+                  if (filesPromise) {
+                    return constructors.makeMyGDriveLocator(arr[0], filesPromise);
+                  } else {
+                    return constructors.makeMyGDriveLocator(arr[0]);
+                  }
+                }
+                else if (protocol === 'shared-gdrive') {
+                  if (keepAuthForShared) {
+                    return constructors.makeSharedGDriveLocator(arr[0], arr[1], true);
+                  } else {
+                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                  }
+                }
+                else {
+                  console.error('Unknown import: ', dependency);
+                }
+
+              }
+            });
+         }, function(l) {
+            return gmf(compileLib, 'located').app(l, runtime.nothing);
+         }, 'findModule');
+        }
+    };
 
     return runtime.makeJSModuleReturn({
-      createRepl: createRepl
+      createRepl: createRepl,
+      createFindModuleFunction: createFindModuleFunction
     }, {});
   }
 })

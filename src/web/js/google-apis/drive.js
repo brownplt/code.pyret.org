@@ -185,6 +185,9 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       getSharedFileById: function(id) {
         return drive.files.get({fileId: id}, true).then(makeSharedFile);
       },
+      getSharedFileByIdWithAuth: function(id) {
+        return drive.files.get({fileId: id}).then(makeSharedFile);
+      },
       getAllFiles: function() {
         return baseCollection.then(function(bc) {
           return drive.files.list({ q: "trashed=false and '" + bc.id + "' in parents" })

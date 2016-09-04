@@ -1,3 +1,4 @@
+/* global Q $ */
 (function() {
 
   /**
@@ -13,8 +14,9 @@
     thRunAllForName: '<th class="tooltip def" id="{{id}}" title="Run All for {{name}}">{{> nameSpan}}</th>',
     tdRunAllForName: '<td class="tooltip def" id="{{id}}" title="Run All for {{name}}">{{> nameSpan}}</td>',
     tdRun: '<td class="tooltip def" id="{{id}}" title="Run"></td>',
+    tdRunMissing: '<td class="tooltip def" title="Something is missing.">?</td>',
     tableHead: '<thead><tr>{{> thRunAll}}{{#columns}}{{> thNoRunner}}{{/columns}}</tr></thead>',
-    tableRow: '<tr>{{> tdRunAllForName}} {{#cells}} {{> tdRun}} {{/cells}}</tr>',
+    tableRow: '<tr>{{> tdRunAllForName}} {{#cells}} {{#isPresent}} {{> tdRun}} {{/isPresent}} {{^isPresent}} {{> tdRunMissing}} {{/isPresent}} {{/cells}}</tr>',
     tableBody: '<tbody> {{#students}} {{> tableRow}}  {{/students}} </tbody>',
     tableContents: '{{> tableHead}}{{> tableBody}}',
     priorRunsOptions: '<option selected disabled>Click to select</option>{{#options}}<option value="{{value}}">{{text}}</option>{{/options}}',
@@ -32,11 +34,17 @@
 
   /**
    */
-  var RunnerPromises;
+  var Runners;
 
   /**
    */
   var RunnerQueueStatus;
+
+  var Colors = {
+    pending: '#f7cb2a',
+    success: '#30ba40',
+    failure: '#de1d10'
+  };
 
   var LocalStorage = {
     get: function(key) {
@@ -90,20 +98,12 @@
     }
   };
 
-  var savePriorRunsForm = function(form) {
-    var numPriorRuns = LocalStorage.getNumberOfPriorRuns();
-    if (!(numPriorRuns > 0)) {
-      numPriorRuns = 0;
-    }
-    LocalStorage.setNumberOfPriorRuns(numPriorRuns + 1);
-  };
-
   /**
    */
   var setGlobalsEmpty = function() {
     IdToRunner = {};
     IdToStudentRunner = {};
-    RunnerPromises = [];
+    Runners = [];
     RunnerQueueStatus = {};
   };
 
@@ -112,17 +112,32 @@
   var hasBeenQueued = function(runner) {
     return !!(RunnerQueueStatus[runner.uniqueId]);
   };
+  
+  /**
+   */
+  var setRunnerCellBackgroundColor = function(runner, color) {
+    var selector = jQueryIDSelector(runner.uniqueId);
+    $(selector).css('background-color', color);
+  };
+
+  /**
+   */
+  var setRunnerCellBackgroundImage = function(runner, image) {
+    var selector = jQueryIDSelector(runner.uniqueId);
+    $(selector).css('background-image', image);
+    $(selector).css('background-size', '35px 35px');
+    $(selector).css('background-repeat', 'no-repeat');
+  };
 
   /**
    */
   var queueRunner = function(runner) {
     if (!hasBeenQueued(runner)) {
       RunnerQueueStatus[runner.uniqueId] = true;
-      var promise = runner.run();
-      RunnerPromises.push(promise);
-      return true;
+      Runners.push(runner);
+      console.log("queued runner");
+      setRunnerCellBackgroundColor(runner, Colors.pending);
     }
-    return false;
   };
 
   /**
@@ -136,7 +151,9 @@
   var queueStudentRunner = function(studentRunner) {
     var runners = getAllRunners(studentRunner);
     runners.forEach(function(runner) {
-      queueRunner(runner);
+      if (runner !== null) {
+        queueRunner(runner);
+      }
     });
   };
 
@@ -184,8 +201,9 @@
   /**
    */
   var getTemplateTemplateViewForRunner = function(runner) {
-    var id = runner.uniqueId;
+    var id = (runner === null) ? null : runner.uniqueId;
     return {
+      isPresent: (runner !== null) && !(runner.isMissing),
       id: id
     };
   };
@@ -219,7 +237,7 @@
     };
 
     var coals = [];
-    if(!!(studentRunner.coals)) {
+    if (studentRunner.coals) {
       for (var i = 0; i < studentRunner.coals.length; i++) {
         var name = 'coal ' + i;
         var id = 'run-all-' + name;
@@ -248,14 +266,16 @@
   /**
    */
   var onRunnerCellClicked = function(e) {
-    var runner = IdToRunner[e.target.id];
+    var id = e.data.id;
+    var runner = IdToRunner[id];
     queueRunner(runner);
   };
 
   /**
    */
   var onStudentRunnerCellClicked = function(e) {
-    var studentRunner = IdToStudentRunner[e.target.id];
+    var id = e.data.id;
+    var studentRunner = IdToStudentRunner[id];
     queueStudentRunner(studentRunner);
   };
 
@@ -271,12 +291,14 @@
 
     for (var id in IdToRunner) {
       var selector = jQueryIDSelector(id);
-      $(selector).click(onRunnerCellClicked);
+      var eventData = {id: id};
+      $(selector).click(eventData, onRunnerCellClicked);
     }
 
     for (id in IdToStudentRunner) {
       selector = jQueryIDSelector(id);
-      $(selector).click(onStudentRunnerCellClicked);
+      eventData = {id: id};
+      $(selector).click(eventData, onStudentRunnerCellClicked);
     }
 
     $(jQueryIDSelector(RunAllId)).click(function() {
@@ -289,16 +311,95 @@
     });
 
     $('#frm').show();
+
+  };
+
+  var mapPromisesOneAtATime = function(funcs) {
+    var newFuncs = funcs.map(function (f) {
+      return function (accumulated) {
+        var thePromise = f();
+        return thePromise.then(function (data) {
+          accumulated.push(data);
+          return accumulated;
+        });
+      }
+    });
+
+    var accumulator = [];
+
+    return newFuncs.reduce(function (soFar, f) {
+        return soFar.then(f);
+    }, Q(accumulator));
+  };
+
+  var onStart = function(recordWithUniqueId) {
+    setRunnerCellBackgroundImage(recordWithUniqueId, 'url("/img/pyret-spin.gif")');
+  };
+
+  var onDoneSuccess = function(recordWithUniqueId) {
+    //removeClassFromRunnerCell(recordWithUniqueId, 'runner-status-pending');
+    //addClassToRunnerCell(recordWithUniqueId, 'runner-status-complete-success');
+    setRunnerCellBackgroundImage(recordWithUniqueId, '');
+    setRunnerCellBackgroundColor(recordWithUniqueId, Colors.success);
+  };
+
+  var onDoneFailure = function(recordWithUniqueId) {
+    // removeClassFromRunnerCell(recordWithUniqueId, 'runner-status-pending');
+    // addClassToRunnerCell(recordWithUniqueId, 'runner-status-complete-failure');
+    setRunnerCellBackgroundImage(recordWithUniqueId, '');
+    setRunnerCellBackgroundColor(recordWithUniqueId, Colors.failure);
   };
 
   /**
    */
   var generateJSON = function() {
-    Q.all(RunnerPromises).then(function(gradeRunDataArray) {
+    var resultFuncs = Runners.map(function(runner) {
+      return function() {
+        console.log("Running...");
+        return runner.run(onStart, onDoneSuccess, onDoneFailure);
+      }
+    });
+
+    
+    var aggregatePromise = mapPromisesOneAtATime(resultFuncs);
+    aggregatePromise.then(function(gradeRunDataArray) {
+      console.log("...done!");
+      console.log(gradeRunDataArray);
       $("#out").text(JSON.stringify(gradeRunDataArray, null, "\t"));
+      $('#download').removeAttr('disabled');
     }).fail(function(err) {
-      alert('Something went wrong. Open the console to see the error.');
       console.error(err);
+      alert('Something went wrong. Open the console to see the error.');
+    });
+  };
+
+  var makeFileName = function(gradeRunData) {
+    var path = [String(gradeRunData.student.name)];
+    if (gradeRunData.runnerType === 'COAL') {
+      path.push('coals');
+    }
+    path.push(String(gradeRunData.implementation.name) + '.json');
+
+    return path.join('/');
+  };
+
+  /**
+   */
+  var downloadJSON = function() {
+    var jsonString = $('#out').text();
+    var gradeRunDataArray = JSON.parse(jsonString);
+
+    var zip = new JSZip();
+
+    for (var i = 0; i < gradeRunDataArray.length; i++) {     
+      var fileName = makeFileName(gradeRunDataArray[i]);
+      var fileContents = JSON.stringify(gradeRunDataArray[i], null, '\t');
+      zip.file(fileName, fileContents);
+    }
+
+    zip.generateAsync({type: 'blob'})
+    .then(function(content) {
+      saveAs(content, 'grade-data.zip');
     });
   };
 
@@ -361,45 +462,65 @@
       e.preventDefault();
       savePriorRunsForm(this);
       $('#cfg-container').hide();
-      var studentRunners = getStudentRunners();
-      renderTable(studentRunners);
+      $('#loading-message').show();
+      getStudentRunners().then(function(studentRunners) {
+        $('#loading-message').hide();
+        renderTable(studentRunners);
+      }).fail(function(err) {
+        console.error(err);
+        alert(err);
+      });
     });
 
     $('#load').removeAttr('disabled');
 
+    $('#download').click(function(e) {
+      e.preventDefault();
+      downloadJSON();
+    });
+
     /**
      */
     var getStudentRunners = function() {
+      var DEFAULT_TIMEOUT = '300';
+
       var testSuiteFileID = $('#suite').val();
       var goldFileID = $('#gold').val();
       var coalFolderID = $('#coals').val();
       var submissionsFolderID = $('#id').val();
-      var submissionName = 'final-submission'; // TODO: add to form
+      var submissionName = $('#submission-name').val();
       var implementationName = $('#implementation').val();
       var testName = $('#test').val();
 
+      var timeoutString = $('#timeout').val() || DEFAULT_TIMEOUT;
+      var timeoutInSeconds = parseInt(timeoutString, 10);
+      if (isNaN(timeoutInSeconds)) {
+        throw new Error('Could not parse int from "' + timeoutString + '"');
+      }
+      var timeout = timeoutInSeconds * 1000;
+
       return gradeApi.createStudentRunners(testSuiteFileID, goldFileID, coalFolderID,
-        submissionsFolderID, submissionName, implementationName, testName);
+        submissionsFolderID, submissionName, implementationName, testName, timeout);
     };
 
     /**
      */
-    var getAndRunEverything = function() {
-      var studentRunners = getStudentRunners();
-      console.log('studentRunners:', studentRunners);
+    // var getAndRunEverything = function() {
+    //   var studentRunners = getStudentRunners();
+    //   console.log('studentRunners:', studentRunners);
 
-      var studentRunGradeDataPromises = studentRunners.map(function(studentRunner) {
-        return gradeApi.runStudentRunner(studentRunner);
-      });
+    //   var studentRunGradeDataPromises = studentRunners.map(function(studentRunner) {
+    //     return gradeApi.runStudentRunner(studentRunner);
+    //   });
 
-      Q.all(studentRunGradeDataPromises)
-      .then(function(studentGradeRunDataArray) {
-        console.log('gradeRunData:', studentGradeRunDataArray);
-      })
-      .fail(function(err) {
-        console.error(err);
-      });
-    };
+    //   Q.all(studentRunGradeDataPromises)
+    //   .then(function(studentGradeRunDataArray) {
+    //     console.log('gradeRunData:', studentGradeRunDataArray);
+    //   })
+    //   .fail(function(err) {
+    //     console.error(err);
+    //   });
+    // };
   };
 
   $(document).on('mouseover', '.tooltip', function() {
@@ -436,7 +557,7 @@
     scriptTag.src = url;
     scriptTag.type = 'text/javascript';
     document.body.appendChild(scriptTag);
-  }
+  };
 
   var checkIfLoaded = function() {
     if (window.CPOGRADE) {
@@ -446,7 +567,7 @@
     } else {
       window.setTimeout(checkIfLoaded, 250);
     }
-  }
+  };
 
   var startTime = new Date().getTime();
   loadScriptUrl('/js/cpo-grade.jarr');
