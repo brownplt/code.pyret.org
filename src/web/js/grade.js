@@ -482,7 +482,7 @@
     /**
      */
     var getStudentRunners = function() {
-      var DEFAULT_TIMEOUT = '300';
+      var DEFAULT_TIMEOUT = '120';
 
       var testSuiteFileID = $('#suite').val();
       var goldFileID = $('#gold').val();
