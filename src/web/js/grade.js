@@ -1,6 +1,14 @@
 /* global Q $ */
 (function() {
 
+  // temp hack because heroku is hard
+  var process = {
+    env: {
+      PYRET: 'https://s3.amazonaws.com/pyret-grading/cpo-main.jarr.gz.js',
+      PYRET_GRADE: 'https://s3.amazonaws.com/pyret-grading/cpo-grade.jarr.gz.js'
+    }
+  };
+
   /**
    */
   var RunAllId = 'run-all';
@@ -570,7 +578,8 @@
   };
 
   var startTime = new Date().getTime();
-  loadScriptUrl('/js/cpo-grade.jarr');
+  console.log(process.env.PYRET_GRADE)
+  loadScriptUrl(process.env.PYRET_GRADE);
   window.setTimeout(checkIfLoaded, 250);
 
 })();
