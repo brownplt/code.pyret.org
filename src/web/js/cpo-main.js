@@ -57,6 +57,23 @@
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
 
+    var logDetailedOption = $("#detailed-logging");
+
+    if(localStorage.getItem('log-detailed') !== null) {
+      logDetailedOption.prop("checked",
+        localStorage.getItem('log-detailed') == 'true');
+    } else {
+      localStorage.setItem('log-detailed', false);
+    }
+
+    logDetailedOption.on('change', function () {
+      localStorage.setItem('log-detailed', this.checked);
+    });
+
+    setInterval(function() {
+      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
+    }, 100);
+
     runtime.setParam("imgUrlProxy", function(s) {
       return APP_BASE_URL + "/downloadImg?" + s;
     });

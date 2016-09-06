@@ -70,10 +70,14 @@ var Documents = function() {
   };
 
   Documents.prototype.set = function (name, doc) {
+    if(logger.isDetailed)
+      logger.log("doc.set", {name: name, value: doc.getValue()});
     return this.documents.set(name, doc);
   };
   
   Documents.prototype.delete = function (name) {
+    if(logger.isDetailed)
+      logger.log("doc.del", {name: name});
     return this.documents.delete(name);
   };
 
@@ -152,7 +156,8 @@ $(function() {
       styleSelectedText: true,
       foldGutter: useFolding,
       gutters: gutters,
-      lineWrapping: true
+      lineWrapping: true,
+      logging: true
     };
 
     cmOptions = merge(cmOptions, options.cmOptions || {});
