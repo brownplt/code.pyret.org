@@ -82,60 +82,125 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
 
-    function findModule(contextIgnored, dependency) {
-      return runtime.safeCall(function() {
-        return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
-          {
-            builtin: function(name) {
-              var raw = cpoModules.getBuiltinLoadableName(runtime, name);
-              if(!raw) {
-                throw runtime.throwMessageException("Unknown module: " + name);
-              }
-              else {
-                return gmf(cpo, "make-builtin-js-locator").app(name, raw);
-              }
-              /*
-              if (cpoBuiltin.knownCpoModule(name)) {
-                return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
-              }
-              else if(okImports.indexOf(name) === -1) {
-                throw runtime.throwMessageException("Unknown module: " + name);
-              } else {
-                return gmf(compileLib, "located").app(
-                  gmf(builtin, "make-builtin-locator").app(name),
-                  runtime.nothing
-                );
-              }
-              */
-            },
-            dependency: function(protocol, args) {
-              var arr = runtime.ffi.toArray(args);
-              if (protocol === "my-gdrive") {
-                return constructors.makeMyGDriveLocator(arr[0]);
-              }
-              else if (protocol === "shared-gdrive") {
-                return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
-              }
-              /*
-              else if (protocol === "js-http") {
-                // TODO: THIS IS WRONG with the new locator system
-                return http.getHttpImport(runtime, args[0]);
-              }
-              else if (protocol === "gdrive-js") {
-                return constructors.makeGDriveJSLocator(arr[0], arr[1]);
-              }
-              */
-              else {
-                console.error("Unknown import: ", dependency);
-              }
+    // NOTE(joe): In order to yield control quickly, this doesn't pause the
+    // stack in order to save.  It simply sends the save requests and
+    // immediately returns.  This avoids needlessly serializing multiple save
+    // requests when this is called repeatedly from Pyret.
+    function saveGDriveCachedFile(name, content) {
+      var file = storageAPI.then(function(storageAPI) {
+        var existingFile = storageAPI.getCachedFileByName(name);
+        return existingFile.then(function(f) {
+          if(f.length >= 1) {
+            return f[0];
+          }
+          else {
+            return storageAPI.createFile(name, {
+              saveInCache: true,
+              fileExtension: ".js",
+              mimeType: "text/plain"
+            });
+          }
+        });
+      });
+      file.then(function(f) {
+        f.save(content, true);
+      });
+      return runtime.nothing;
+    }
 
+    // NOTE(joe): this function just allocates a closure, so it's stack-safe
+    var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
+
+    function uriFromDependency(dependency) {
+      return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+        {
+          builtin: function(name) {
+            return "builtin://" + name;
+          },
+          dependency: function(protocol, args) {
+            var arr = runtime.ffi.toArray(args);
+            if (protocol === "my-gdrive") {
+              return "my-gdrive://" + arr[0];
             }
-          });
-       }, function(l) {
-          return gmf(compileLib, "located").app(l, runtime.nothing);
-       }, "findModule");
+            else if (protocol === "shared-gdrive") {
+              return "shared-gdrive://" + arr[0] + ":" + arr[1];
+            }
+            else if (protocol === "gdrive-js") {
+              return "gdrive-js://" + arr[1];
+            }
+            else {
+              console.error("Unknown import: ", dependency);
+            }
+          }
+        });
+
+    }
+
+    function makeFindModule() {
+      // The locatorCache memoizes locators for the duration of an
+      // interactions run
+      var locatorCache = {};
+      function findModule(contextIgnored, dependency) {
+        var uri = uriFromDependency(dependency);
+        if(locatorCache.hasOwnProperty(uri)) {
+          return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
+        }
+        return runtime.safeCall(function() {
+          return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+            {
+              builtin: function(name) {
+                var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+                if(!raw) {
+                  throw runtime.throwMessageException("Unknown module: " + name);
+                }
+                else {
+                  return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+                }
+                /*
+                if (cpoBuiltin.knownCpoModule(name)) {
+                  return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
+                }
+                else if(okImports.indexOf(name) === -1) {
+                  throw runtime.throwMessageException("Unknown module: " + name);
+                } else {
+                  return gmf(compileLib, "located").app(
+                    gmf(builtin, "make-builtin-locator").app(name),
+                    runtime.nothing
+                  );
+                }
+                */
+              },
+              dependency: function(protocol, args) {
+                var arr = runtime.ffi.toArray(args);
+                if (protocol === "my-gdrive") {
+                  return constructors.makeMyGDriveLocator(arr[0]);
+                }
+                else if (protocol === "shared-gdrive") {
+                  return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                }
+                else if (protocol === "gdrive-js") {
+                  return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                }
+                /*
+                else if (protocol === "js-http") {
+                  // TODO: THIS IS WRONG with the new locator system
+                  return http.getHttpImport(runtime, args[0]);
+                }
+                */
+                else {
+                  console.error("Unknown import: ", dependency);
+                }
+
+              }
+            });
+         }, function(l) {
+            locatorCache[uri] = l;
+            return gmf(compileLib, "located").app(l, runtime.nothing);
+         }, "findModule");
+      }
+      return runtime.makeFunction(findModule, "cpo-find-module");
     }
 
     // NOTE(joe): This line is "cheating" by mixing runtime levels,
@@ -173,12 +238,12 @@
             builtinsForPyret,
             pyRuntime,
             pyRealm,
-            runtime.makeFunction(findModule));
+            runtime.makeFunction(makeFindModule));
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
           restartInteractions: function(ignoredStr, typeCheck) {
-            var options = defaultOptions.extendWith({"type-check": typeCheck});
+            var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
