@@ -57,21 +57,22 @@
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
 
-    var logDetailedSetting    = localStorage.getItem('log-detailed');
-    var logDetailedOption     = $("#detailed-logging");
+    var logDetailedOption = $("#detailed-logging");
 
-    if(logDetailedSetting !== null) {
-      logDetailedOption.prop("checked", logDetailedSetting);
+    if(localStorage.getItem('log-detailed') !== null) {
+      logDetailedOption.prop("checked",
+        localStorage.getItem('log-detailed') == 'true');
+    } else {
+      localStorage.setItem('log-detailed', false);
     }
 
     logDetailedOption.on('change', function () {
-      sessionStorage.setItem('log-detailed', this.checked);
+      localStorage.setItem('log-detailed', this.checked);
     });
 
     setInterval(function() {
-      logDetailedOption.prop('checked',
-        localStorage.getItem('log-detailed') == 'true');
-    }, 5000);
+      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
+    }, 100);
 
     runtime.setParam("imgUrlProxy", function(s) {
       return APP_BASE_URL + "/downloadImg?" + s;
