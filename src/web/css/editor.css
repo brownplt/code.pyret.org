@@ -648,8 +648,30 @@ div#font-label:hover{
   box-shadow:none;
 }
 
+.highlight-setting-container {
+  background: rgba(100,100,100,0.1);
+  border-radius: 5px;
+}
+
 #highlight-settings > select {
   font-size: inherit;
+}
+
+.highlight-setting-visibility-toggle {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: block;
+  float: right;
+  cursor: pointer;
+}
+
+input.highlight-setting-visibility-toggle:not(checked):before {
+  content: '⚙';
+}
+
+input.highlight-setting-visibility-toggle:checked:before {
+  content: '✖';
 }
 
 .replPrint {

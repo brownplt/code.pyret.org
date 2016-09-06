@@ -204,7 +204,7 @@
           var thisTest = this;
           this.container.addEventListener("click", function (e) {
             thisTest.highlight();
-            e.preventDefault();
+            e.stopPropagation();
           });
           if (this.block.container.classList.contains("expanded")) {
             this.refresh();
