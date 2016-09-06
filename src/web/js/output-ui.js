@@ -1375,31 +1375,6 @@
       renderers["cyclic"] = function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
       };
-      renderers.renderTable = function renderTable(val) {
-        debugger;
-        var table = document.createElement("table");
-        table.classList.add('replOutput');
-        var rows = runtime.ffi.toArray(val.dict.rows);
-        var cols = val.dict.headers;
-        var header = document.createElement("tr");
-        for(var i = 0; i < rows.length; i++) {
-          var col = document.createElement("th");
-          col.textContent = cols[i];
-          header.appendChild(col);
-        }
-        table.appendChild(header);
-        for(var i = 0; i < rows.length; i++) {
-          var rowv  = rows[i]
-          var rowel = document.createElement("tr");
-          for(var j = 0; j < cols.length; j++) {
-            var cellel = document.createElement("td");
-            renderPyretValue(cell, runtime, rowv[j]);
-            rowel.appendChild(cellel);
-          }
-          table.appendChild(rowel);
-        }
-        return table;
-      };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
@@ -1740,18 +1715,41 @@
           table.appendChild(headers);
           var body = document.createElement("tbody");
           var rows = runtime.getField(val, "rows")
-          for(var i = 0; i < rows.length; i++) {
-            var rowAsText = [];
-            tableAsText.push(rowAsText);
-            var rowv  = rows[i]
-            var rowel = document.createElement("tr");
-            for(var j = 0; j < cols.length; j++) {
-              var cellel = document.createElement("td");
-              helper($(cellel), rowv[j], values);
-              rowel.appendChild(cellel);
-              rowAsText.push($(cellel).text());
+          function drawRows(start, end) {
+            var realEnd = end > rows.length ? rows.length : end;
+            for(var i = start; i < realEnd; i++) {
+              var rowAsText = [];
+              tableAsText.push(rowAsText);
+              var rowv  = rows[i]
+              var rowel = document.createElement("tr");
+              for(var j = 0; j < cols.length; j++) {
+                var cellel = document.createElement("td");
+                helper($(cellel), rowv[j], values);
+                rowel.appendChild(cellel);
+                rowAsText.push($(cellel).text());
+              }
+              body.appendChild(rowel);
             }
-            body.appendChild(rowel);
+          }
+          var previewLimit = 10;
+          if(rows.length <= previewLimit) {
+            drawRows(0, rows.length);
+          }
+          else {
+            var clickForMore = document.createElement("a");
+            clickForMore.href = "javascript:void(0)";
+            clickForMore.textContent = "Click to show the remaining " + (rows.length - previewLimit) + " rows...";
+            var clickTR = document.createElement("tr");
+            var clickTD = document.createElement("td");
+            clickTD.colspan = String(rows.length);
+            clickTR.appendChild(clickTD);
+            clickTD.appendChild(clickForMore);
+            $(clickForMore).on("click", function() {
+              body.removeChild(clickTR);
+              drawRows(previewLimit, rows.length);
+            });
+            drawRows(0, previewLimit);
+            body.appendChild(clickTR);
           }
           table.appendChild(body);
           container.append(table);
