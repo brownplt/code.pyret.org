@@ -77,9 +77,19 @@ var logger = (function(backend) {
     backend.log(name, obj);
   }
   
+  var isDetailed = localStorage.getItem('log-detailed') == 'true';
+
   return {
     guid  : guid,
-    log   : log
+    log   : log,
+    get isDetailed () {
+      var nowIsDetailed = localStorage.getItem('log-detailed') == 'true';
+      if (isDetailed != nowIsDetailed) {
+        log('LOG_DETAIL_CHANGED',{detailed: nowIsDetailed});
+        isDetailed = nowIsDetailed;
+      }
+      return nowIsDetailed;
+    }
   };
 })(new AJAXBackend(APP_LOG_URL));
 
@@ -91,14 +101,20 @@ CodeMirror.defineOption('logging', false,
       cm.CPO_editorID = logger.guid();
     logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
     cm.on("change", function(cm, change) {
-      change.CPO_editorID = cm.CPO_editorID;
-      logger.log('cm_change', change);
+      if(logger.isDetailed) {
+        change.CPO_editorID = cm.CPO_editorID;
+        logger.log('cm_change', change);
+      }
     });
     cm.on("focus", function(cm) {
-      logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
+      if(logger.isDetailed) {
+        logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
+      }
     });
     cm.on("blur", function(cm) {
-      logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
+      if(logger.isDetailed) {
+        logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
+      }
     });
   });
 

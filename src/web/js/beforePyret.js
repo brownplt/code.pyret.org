@@ -70,12 +70,14 @@ var Documents = function() {
   };
 
   Documents.prototype.set = function (name, doc) {
-    logger.log("doc.set", {name: name, value: doc.getValue()});
+    if(logger.isDetailed)
+      logger.log("doc.set", {name: name, value: doc.getValue()});
     return this.documents.set(name, doc);
   };
   
   Documents.prototype.delete = function (name) {
-    logger.log("doc.del", {name: name});
+    if(logger.isDetailed)
+      logger.log("doc.del", {name: name});
     return this.documents.delete(name);
   };
 
