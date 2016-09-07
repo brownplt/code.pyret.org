@@ -6,6 +6,10 @@ var ConsoleBackend = function() {
   };
 };
 
+var DummyBackend = function () {
+  this.log = function(_, __){};
+};
+
 var AJAXBackend = function (url) {
   this.log = function (name, obj) {
     var request = new XMLHttpRequest();
@@ -91,7 +95,7 @@ var logger = (function(backend) {
       return nowIsDetailed;
     }
   };
-})(new AJAXBackend(APP_LOG_URL));
+})(new DummyBackend());
 
 CodeMirror.defineOption('logging', false, 
   function (cm, new_value) {
