@@ -234,6 +234,7 @@ function loadAPIWrapper(immediate) {
    * @returns The given promise plus any needed re-authentication
    */
   function authCheck(f) {
+    console.log('doing authCheck');
     function isAuthFailure(result) {
       return result
         && ((result.error && result.error.code && result.error.code === 401)
@@ -267,6 +268,7 @@ function loadAPIWrapper(immediate) {
    * @returns {Promise} The wrapped promise
    */
   function failCheck(p) {
+    console.log('doing failCheck');
     return p.then(function(result) {
       // Network error
       if (result && (typeof result.code === "number") && (result.code >= 400)) {
