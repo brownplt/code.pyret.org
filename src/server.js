@@ -354,6 +354,7 @@ function start(config, onServerReady) {
     var u = requireLogin(req, res);
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        console.log('trying gapi.auth.OAuth2');
         var client = new gapi.auth.OAuth2(
             config.google.clientId,
             config.google.clientSecret,
