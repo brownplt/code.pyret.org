@@ -11,6 +11,8 @@
 
 var useOAuth = true;
 
+//useOAuth = false;
+
 var gwrap = window.gwrap = {
   // Initialize to a dummy method which loads the wrapper
   load: function(params) {
@@ -196,6 +198,7 @@ function loadAPIWrapper(immediate) {
           }, function(authResult) {
             if (authResult && !authResult.error) {
               console.log('authorization successful');
+              // can't be false or makes ∞ loop
               d.resolve(reauth(true));
             } else {
               console.log('authorization failed');

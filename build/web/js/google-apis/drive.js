@@ -1,5 +1,5 @@
 window.createProgramCollectionAPI = function createProgramCollectionAPI(collectionName, immediate) {
-  console.log('doing createProgramCollectionAPI');
+  console.log('doing createProgramCollectionAPI (immediate = ' + immediate + ')');
   function DriveError(err) {
     this.err = err;
   }
@@ -263,10 +263,12 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
   function initialize(wrappedDrive) {
     console.log('doing drive.js/initialize');
+    drive = wrappedDrive;
     if (!drive) {
       console.log('drive not found');
+    } else {
+      console.log('drive found');
     }
-    drive = wrappedDrive;
 
     var list = drive.files.list({
       q: "trashed=false and title = '" + collectionName + "' and "+
