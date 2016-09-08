@@ -653,6 +653,11 @@ div#font-label:hover{
   border-radius: 5px;
 }
 
+#highlight-settings {
+  padding: 0.5em;
+  border-bottom: 3px rgba(0,0,0,0.1) solid;
+}
+
 #highlight-settings > select {
   font-size: inherit;
 }
