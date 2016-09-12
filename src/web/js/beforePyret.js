@@ -48,13 +48,50 @@ window.stickMessage = function(message) {
   var err = $("<div>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
 };
+window.mkWarningUpper = function(){return $("<div class='warning-upper'>");}
+window.mkWarningLower = function(){return $("<div class='warning-lower'>");}
 
 $(window).bind("beforeunload", function() {
   return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
 });
+
+var Documents = function() {
+  
+  function Documents() {
+    this.documents = new Map();
+  }
+  
+  Documents.prototype.has = function (name) {
+    return this.documents.has(name);
+  };
+
+  Documents.prototype.get = function (name) {
+    return this.documents.get(name);
+  };
+
+  Documents.prototype.set = function (name, doc) {
+    if(logger.isDetailed)
+      logger.log("doc.set", {name: name, value: doc.getValue()});
+    return this.documents.set(name, doc);
+  };
+  
+  Documents.prototype.delete = function (name) {
+    if(logger.isDetailed)
+      logger.log("doc.del", {name: name});
+    return this.documents.delete(name);
+  };
+
+  Documents.prototype.forEach = function (f) {
+    return this.documents.forEach(f);
+  };
+
+  return Documents;
+}();
+
 window.CPO = {
   save: function() {},
-  autoSave: function() {}
+  autoSave: function() {},
+  documents : new Documents()
 };
 $(function() {
   function merge(obj, extension) {
@@ -119,7 +156,8 @@ $(function() {
       styleSelectedText: true,
       foldGutter: useFolding,
       gutters: gutters,
-      lineWrapping: true
+      lineWrapping: true,
+      logging: true
     };
 
     cmOptions = merge(cmOptions, options.cmOptions || {});
@@ -128,14 +166,8 @@ $(function() {
 
 
     if (useLineNumbers) {
-      var upperWarning = jQuery("<div>").addClass("warning-upper");
-      var upperArrow = jQuery("<img>").addClass("warning-upper-arrow").attr("src", "/img/up-arrow.png");
-      upperWarning.append(upperArrow);
-      CM.display.wrapper.appendChild(upperWarning.get(0));
-      var lowerWarning = jQuery("<div>").addClass("warning-lower");
-      var lowerArrow = jQuery("<img>").addClass("warning-lower-arrow").attr("src", "/img/down-arrow.png");
-      lowerWarning.append(lowerArrow);
-      CM.display.wrapper.appendChild(lowerWarning.get(0));
+      CM.display.wrapper.appendChild(mkWarningUpper()[0]);
+      CM.display.wrapper.appendChild(mkWarningLower()[0]);
     }
 
     return {
@@ -324,6 +356,9 @@ $(function() {
       run: CPO.RUN_CODE,
       initialGas: 100
     });
+    
+    CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
+    
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
@@ -339,6 +374,8 @@ $(function() {
       run: CPO.RUN_CODE,
       initialGas: 100
     });
+    
+    CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
   });
 
   programLoaded.fin(function() {
