@@ -486,6 +486,14 @@
            position.doc.mode, 
            position.from.line,
            position.doc.lineSep));
+        editor.getDoc().markText(
+          {line: position.from.line, ch: 0},
+          position.from,
+          {className: "highlight-irrelevant"});
+        editor.getDoc().markText(
+          position.to,
+          {line: position.to.line, ch: lines[lines.length - 1].length},
+          {className: "highlight-irrelevant"});
         this.container = container;
         this.position  = position;
         this.editor    = editor;
