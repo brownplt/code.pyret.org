@@ -42,9 +42,9 @@
     
       function Position(doc, source, from, to, inclusiveLeft, inclusiveRight) {
         if (inclusiveLeft === undefined)
-          inclusiveLeft = false;
+          inclusiveLeft = true;
         if (inclusiveRight === undefined)
-          inclusiveRight = false;
+          inclusiveRight = true;
         this.inclusiveLeft  = inclusiveLeft;
         this.inclusiveRight = inclusiveLeft;
         
