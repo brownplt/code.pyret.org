@@ -173,6 +173,12 @@
           }
           return html;
         }).
+        then(function (html) {
+          if (stack && stack.length > 0) {
+            html.append(outputUI.renderStackTrace(runtime, documents, srcloc, stack));
+          }
+          return html;
+        }).
         catch(function (display_error) {
           errors.push(display_error);
           return $("<div>").text(
