@@ -112,13 +112,19 @@
           return;
         if (this.highlighter !== undefined)
           this.highlighter.clear();
-        if (color === undefined)
+        if (color === undefined) {
+          this.highlighter = undefined;
           return;
+        }
         this.highlighter = this.doc.markText(this.from, this.to,
           { inclusiveLeft   : this.inclusiveLeft,
             inclusiveRight  : this.inclusiveRight,
             shared          : false,
+            clearOnEnter    : true,
             css             : "background-color:" + color });
+        this.highlighter.on('clear', function (_) {
+          this.highlighter === undefined;
+        });
       };
       
       Position.prototype.spotlight = function spotlight() {
@@ -638,7 +644,7 @@
         demphasize(color);
       });
     }
-    
+
     function settingChanged(eagerness, colorfulness) { 
       logger.log("highlight_settings_changed",
         { eagerness: eagerness,
