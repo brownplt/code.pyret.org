@@ -420,7 +420,10 @@ span.trace:after {
   display: none;
 }
 
-body {
+body, html {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   margin: 0;
   padding: 0;
 }
@@ -1784,4 +1787,34 @@ tr:nth-child(even){background-color: #f2f2f2}
 .stale .compile-error.highlights-active,
 .stale .check-block-test.highlights-active {
   border-color: hsl(204, 40%, 74%);
+}
+
+.sprite {
+  position: absolute;
+  display: block;
+  height: 1em;
+  width: 1em;
+  font-size: 1em;
+  background: green;
+  color: white;
+  text-align:center;
+  line-height: 1;
+  border-radius: 100%;
+  animation-name: fade-out;
+  animation-iteration-count: 1;
+  transition: transform 0.1s linear;
+  pointer-events: none;
+  z-index: 99999;
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }

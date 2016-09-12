@@ -447,6 +447,14 @@
       var checkBlocksErrored  = checkErroredSkeletons.length;
       var checkTotalAll       = checkPassedAll + testsFailedSkeletons.length;
 
+      var spriteCount = Math.min(30, checkPassedAll);
+      var spriteY  = document.body.scrollHeight;
+      var docWidth = document.body.scrollWidth;
+      var spriteDX = (docWidth - 50) / spriteCount;
+      for(var i = 0; i < spriteCount; i++) {
+        outputUI.makeSprite(docWidth - i * spriteDX, spriteY);
+      }
+
       var summary = $("<div>").addClass("check-block testing-summary");
       // If there was more than one check block, print a message about
       // the grand total of checks and passes.

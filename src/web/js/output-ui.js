@@ -202,6 +202,36 @@
       return container;
     }
 
+    function makeSprite(x, y) {
+      var sprite = document.createElement("div");
+      sprite.classList.add("sprite");
+      sprite.style.left = x + 'px';
+      sprite.style.top = y + 'px';
+      sprite.textContent = '✔';
+      var delay = (Math.random() * 0.5);
+      var durration = (1 + (Math.random() * 1));
+      sprite.style.animationDelay = delay + 's';
+      sprite.style.animationDuration =  durration + 's';
+      var tx = 0;
+      var ty = 0;
+      var running = true;
+      function animate () {
+          tx -= Math.random() * 5 - 0.1;
+          ty -= Math.random() * 5 - 0.1;
+          sprite.style.transform = 'translate('
+            + tx + 'px, '
+            + ty + 'px)';
+          if (running)
+            window.requestAnimationFrame(animate);
+      }
+      window.requestAnimationFrame(animate);
+      sprite.addEventListener('animationend', function () {
+        running = false;
+        sprite.remove();
+      });
+      document.body.appendChild(sprite);
+    }
+
     function getLastUserLocation(runtime, srcloc, documents, e, ix, local) {
       var srclocStack = e.map(runtime.makeSrcloc);
       var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
@@ -1510,6 +1540,7 @@
       installRenderers: installRenderers,
       renderPyretValue: renderPyretValue,
       renderStackTrace: renderStackTrace,
+      makeSprite: makeSprite,
       Position: Position,
       Snippet: Snippet,
       clearEffects: clearEffects,
