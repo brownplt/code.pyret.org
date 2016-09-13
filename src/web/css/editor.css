@@ -1,7 +1,8 @@
-.CodeMirror-lines {
-  padding: 0;
-}
 .CodeMirror, .inlineExample { border: 1px solid black; background: #f8f8f8; color: #eee; }
+.CodeMirror {
+  font-size: 1em;
+  line-height: calc(1em + 2px);
+}
 .replMain .CodeMirror {
   border-top: none;
   border-bottom: none;
@@ -1496,10 +1497,6 @@ code div {
 .stacktrace .cm-snippet {
   cursor: pointer;
   overflow-y: hidden;
-}
-
-.cm-snippet > .CodeMirror {
-  line-height: 1;
 }
 
 .stacktrace .cm-snippet > .CodeMirror {
