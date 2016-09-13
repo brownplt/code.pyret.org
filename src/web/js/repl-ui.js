@@ -475,7 +475,7 @@
             testNum = testNum + 1;
 
             // register onchange event
-            CPO.documents.get["definitions://"].on("change", outputTest);
+            CPO.documents.get( "definitions://" ).on("change", outputTest);
 
             // if we haven't set the gaze listener function before
             if (!setGazeListenerFunction) {
