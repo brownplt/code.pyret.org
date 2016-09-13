@@ -425,7 +425,10 @@
                                                    "somewhat frequently", "often");
             return "looking " + eyeLocation + ", switching " + changeHalfFrequency;
         }
+
         var setGazeListenerFunction = false;
+        const DEBUG_WEBGAZER = false;
+        const KEY_WEBGAZER = "eye";
         var eventQueue = [];
         var testNum = 0;
         const testPrefix = "test";
@@ -434,15 +437,14 @@
             // only output things once. and stop webgazer.
             cm.off("change", outputTest);
             if (eventQueue.length > 0) {
-                console.log("change, so outputting list of size " + eventQueue.length);
+                if (DEBUG_WEBGAZER)
+                    console.log("change, so outputting list of size " + eventQueue.length);
                 // store eventQueue to localforage
                 var otherQueue = eventQueue.slice(0);
                 // classify eventQueue
                 var interactionClass = classify(otherQueue);
 
-                localforage.setItem(testPrefix + testNum, [interactionClass, otherQueue], function(err, value) {
-                    console.log("classified that interaction as " + interactionClass);
-                })
+                logger.log(KEY_WEBGAZER, eventQueue);
             }
             // fine to do even if webgazer off, ie, eventQueue is empty
             // but feels more robust in case wierd inconsistency of eventQueue
