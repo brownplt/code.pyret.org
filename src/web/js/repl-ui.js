@@ -54,7 +54,7 @@
       animationDiv.dialog("destroy");
       animationDiv.remove();
     }
-    var editors = {};
+
     var interactionsCount = 0;
 
     function formatCode(container, src) {
@@ -70,37 +70,105 @@
          50
       );
     }
-
-    var makeErrorContext = (function () {
-      var counter = 0;
-      var makeNew = function () {
-        makeNew.current = "eg-" + counter++
-        return makeNew.current;
+    
+    function mkSwitcher() {
+      var optionEager   = $("<option value='eager'>"  ).text('A.S.A.P.');
+      var optionLazy    = $("<option value='lazy'>"   ).text('on mouseover');
+      var optionVibrant = $("<option value='vibrant'>").text('multiple colors');
+      var optionDrab    = $("<option value='drab'>"   ).text('one color');
+      
+      var eagerSwitcher = $("<select>").
+            append(optionEager).
+            append(optionLazy);
+      var colorSwitcher = $("<select>").
+            append(optionVibrant).
+            append(optionDrab);
+      var settings = $("<div id='highlight-settings'>").
+            append("Show error highlights ").
+            append(eagerSwitcher).
+            append(" with ").
+            append(colorSwitcher).
+            append(".");
+            
+      var highlightEagerness    = sessionStorage.getItem('highlight-eagerness');
+      var highlightColorfulness = sessionStorage.getItem('highlight-colorfulness');
+    
+      if(highlightEagerness !== null) {
+        optionEager.prop("selected",   highlightEagerness === 'eager');
+        optionLazy.prop("selected",    highlightEagerness !== 'eager');
+      } else {
+        optionEager.prop("selected", true);
+        sessionStorage.setItem('highlight-eagerness', 'eager');
       }
-      return makeNew;
-    })();
+      
+      if(highlightColorfulness !== null) {
+        optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
+        optionDrab.prop("selected",     highlightColorfulness !== 'drab');
+      } else {
+        optionEager.prop("vibrant", true);
+        sessionStorage.setItem('highlight-colorfulness', 'vibrant');
+      }
+      
+      function logChange() {
+        sessionStorage.setItem('highlight-eagerness',    eagerSwitcher[0].value);
+        sessionStorage.setItem('highlight-colorfulness', colorSwitcher[0].value);
+        outputUI.settingChanged(eagerSwitcher[0].value, colorSwitcher[0].value);
+      }
+      
+      eagerSwitcher.change(logChange);
+      colorSwitcher.change(logChange);
+      
+      return settings;
+    }
 
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
+
+      function renderAndDisplayError(runtime, error, stack) {
+        var error_to_html = errorUI.error_to_html;
+        return runtime.pauseStack(function (restarter) {
+          return error_to_html(runtime, CPO.documents, error, stack).
+            then(function (html) {
+              html.on('click', function(){
+                $(".highlights-active").removeClass("highlights-active");
+                html.trigger('toggleHighlight');
+                html.addClass("highlights-active");
+              });
+              html.addClass('compile-error').appendTo(output);
+            }).done(function () {restarter.resume(runtime.nothing)});
+        });
+      }
+
       return function(result) {
         var doneDisplay = Q.defer();
+        var didError = false;
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
-            return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+            didError = true;
+            // Parse Errors
+            renderAndDisplayError(callingRuntime, result.exn.exn);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
             ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
-                var errs = [];
-                var results = ffi.toArray(compileResultErrors);
-                results.forEach(function(r) {
-                  errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
-                });
-                return errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
+                didError = true;
+                // Compile Errors
+                var errors = ffi.toArray(compileResultErrors).
+                  reduce(function (errors, error) {
+                      Array.prototype.push.apply(errors,
+                        ffi.toArray(runtime.getField(error, "problems")));
+                      return errors;
+                    }, []);
+                return callingRuntime.safeCall(
+                  function() {
+                    return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
+                      return renderAndDisplayError(callingRuntime, errors[i]);
+                    }), 0, errors.length);
+                  }, function () {});
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
@@ -113,16 +181,16 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, editors, rr,
-                                                        runtime.getField(runResult.result, "checks"),
-                                                        makeErrorContext);
+                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                                                        runtime.getField(runResult.result, "checks"));
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
-                      return errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
+                      didError = true;
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -134,9 +202,18 @@
           else {
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
-            return errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
+            didError = true;
+            return renderAndDisplayError(callingRuntime, CPO.documents,
+              ffi.throwInternalError("Got something other than a Pyret result when running the program.",
+                ffi.makeList(result)));
           }
         }, function(_) {
+          if (didError) {
+            var snippets = output.find(".CodeMirror");
+            for (var i = 0; i < snippets.length; i++) {
+              snippets[i].CodeMirror.refresh();
+            }
+          }
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -178,6 +255,10 @@
           pointer--;
         }
       }
+
+      container.append(mkWarningUpper());
+      container.append(mkWarningLower());
+      container.append(mkSwitcher());
 
       var promptContainer = jQuery("<div class='prompt-container'>");
       var promptArrow = drawPromptArrow();
@@ -379,9 +460,6 @@
           if(cm) {
             cm.setValue("");
             cm.setOption("readonly", false);
-            cm.getDoc().eachLine(function (line) {
-              cm.removeLineClass(line, 'background', 'cptteach-fixed');
-            });
           }
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
@@ -471,15 +549,18 @@
         lastEditorRun = uiOptions.cm || null;
         setWhileRunning();
 
-        editors = {};
-        editors["definitions://"] = uiOptions.cm;
-        function invalidateHighlights(cm, change) {
-          cm.off("change", invalidateHighlights);
-          document.getElementById("main").dataset.highlights = "";
-        }
-        editors["definitions://"].on("change", invalidateHighlights);
+        CPO.documents.forEach(function(doc, name) {
+          if (name.indexOf("interactions://") === 0)
+            CPO.documents.delete(name);
+        });
+        
+        CPO.documents.set("definitions://", uiOptions.cm.getDoc());
+
         interactionsCount = 0;
         replOutputCount = 0;
+        logger.log('run', { name      : "definitions://",
+                            type_check: !!uiOptions["type-check"]
+                          });
         var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
@@ -492,7 +573,6 @@
       };
 
       var runner = function(code) {
-        document.getElementById("main").dataset.highlights = "";
         items.unshift(code);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
@@ -509,7 +589,8 @@
         setWhileRunning();
         interactionsCount++;
         var thisName = 'interactions://' + interactionsCount;
-        editors[thisName] = echoCM;
+        CPO.documents.set(thisName, echoCM.getDoc());
+        logger.log('run', { name: thisName });
         var replResult = repl.run(code, thisName);
 //        replResult.then(afterRun(CM));
         var startRendering = replResult.then(function(r) {
@@ -540,7 +621,7 @@
         }
       }).cm;
 
-      editors['definitions://'] = CM;
+      CPO.documents.set('definitions://', CM.getDoc());
 
       var lastNameRun = 'interactions';
       var lastEditorRun = null;

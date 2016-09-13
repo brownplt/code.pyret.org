@@ -82,7 +82,7 @@ define([], function() {
                 getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
               });
               contentsP.then(function(pyretString) {
-                sessionStorage.setItem(uri,pyretString);
+                CPO.documents.set(uri, new CodeMirror.Doc(pyretString, "pyret"));
                 var ret = gmf(compileLib, "pyret-string").app(pyretString);
                 getModRestart.resume(ret);
               });
@@ -207,8 +207,8 @@ define([], function() {
           var file = fileAndContents[0];
           var contents = fileAndContents[1];
           
-          var uri = "shared-gdrive://" + file.getName() + ":" + file.getUniqueId();
-          sessionStorage.setItem(uri, contents);
+          var uri = "shared-gdrive://" + filename + ":" + file.getUniqueId();
+          CPO.documents.set(uri, new CodeMirror.Doc(contents, "pyret"));
 
           function needsCompile() { return true; }
 
