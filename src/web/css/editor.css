@@ -1398,20 +1398,6 @@ code div {
   background:rgba(255,255,255,0.5);
 }
 
-.test-marker-gutter {
-  left: 0;
-  width: 0px;
-}
-
-.errored-test-marker,
-.failed-test-marker {
-  left: -29px;
-  border-right: 1px black solid;
-  width: 29px;
-  position: absolute;
-  cursor: pointer;
-}
-
 .errored-test-marker {
   background-color: hsla(0, 100%, 50%, 0.5);
 }
@@ -1420,6 +1406,10 @@ code div {
   background-color: hsla(45, 90%, 50%, 0.5);
 }
 
+.failed-test-marker > .CodeMirror-linenumber {
+  cursor: pointer;
+  text-decoration: underline;
+}
 
 .summary-bits {
   color: black;

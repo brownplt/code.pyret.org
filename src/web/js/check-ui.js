@@ -61,18 +61,23 @@
         return {anchor: anchor, handle: handle};
       }
 
-      function makeGutterMarker(spanHandle) {
-        let anchor = document.createElement("div");
-        anchor.textContent = "!";
-        
+      function makeGutterMarker(spanHandle, clickFunc) {
         var editor = spanHandle.doc.getEditor();
         
         var lineHandle = 
-          editor.setGutterMarker(
+          editor.addLineClass(
             spanHandle.from.line,
-            "test-marker-gutter",
-            anchor);
+            "gutter",
+            "failed-test-marker");
             
+        function onClick(cm, line, gutter) {
+          if (cm.getLineNumber(lineHandle) !== line)
+            return;
+          clickFunc();
+        }
+
+        editor.on("gutterClick", onClick);
+
         function onChange(line) {
           var spanLineNo = spanHandle.from;
           if(spanLineNo === undefined)
@@ -83,8 +88,8 @@
           else if (spanLineNo.line != lineNo) {
             line.off("change", onChange);
             line.off("delete", onDelete);
-            editor.setGutterMarker(line, "test-marker-gutter", null);
-            lineHandle = editor.setGutterMarker(spanLineNo.line, "test-marker-gutter", anchor);
+            editor.removeLineClass(lineNo, "gutter", "failed-test-marker");
+            lineHandle = editor.addLineClass(spanLineNo.line, "gutter", "failed-test-marker");
             lineHandle.on("change", onChange);
             lineHandle.on("delete", onDelete);
           }
@@ -95,7 +100,7 @@
           if (spanLineNo === undefined)
             lineHandle = undefined;
           if (lineHandle !== undefined) {
-            lineHandle = editor.setGutterMarker(spanLineNo.line, "test-marker-gutter", anchor);
+            lineHandle = editor.addLineClass(spanLineNo.line, "gutter", "failed-test-marker");
             lineHandle.on("change", onChange);
             lineHandle.on("delete", onDelete);
           }
@@ -103,26 +108,31 @@
         
         lineHandle.on("change", onChange);
         lineHandle.on("delete", onDelete);
-        
+
+        spanHandle.on("clear", function (from, _) {
+          editor.off("gutterClick", onClick);
+          editor.removeLineClass(from.line, "gutter", "failed-test-marker");
+        });
+
         spanHandle.on("hide",
           function(){
             if(lineHandle === undefined)
               return;
+            editor.off("gutterClick", onClick);
             lineHandle.off("change", onChange);
             lineHandle.off("delete", onDelete);
-            editor.setGutterMarker(lineHandle.lineNo(), "test-marker-gutter", null);
+            editor.removeLineClass(lineHandle.lineNo(), "gutter", "failed-test-marker");
             lineHandle = undefined;
           });
 
         spanHandle.on("unhide",
           function(){
-            let spanLine = spanHandle.from.line;
-            lineHandle = editor.setGutterMarker(spanLine, "test-marker-gutter", anchor);
+            lineHandle = editor.addLineClass(spanHandle.from.line, "gutter", "failed-test-marker");
+            editor.on("gutterClick", onClick);
             lineHandle.on("change", onChange);
             lineHandle.on("delete", onDelete);
           });
 
-        return anchor;
       }
       
       function makeTestHeader(testNumber, loc, isPassing) {
@@ -157,9 +167,7 @@
             var doc = documents.get(source);
             var editor   = doc.getEditor();
             if (editor !== undefined) {
-              var anchor = makeGutterMarker(handle);
-              anchor.classList.add("failed-test-marker");
-              anchor.addEventListener("click", function (e) {
+              makeGutterMarker(handle, function () {
                 thisTest.block.showTest(thisTest);
               });
             }
