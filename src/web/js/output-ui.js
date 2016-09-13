@@ -483,7 +483,7 @@
           readOnly:       "nocursor",
           disableInput:   true,
           indentUnit:     2,
-          lineWrapping:   false,
+          lineWrapping:   true,
           lineNumbers:    true,
           viewportMargin: 1,
           scrollbarStyle: "null"});
