@@ -427,7 +427,7 @@
         }
 
         var setGazeListenerFunction = false;
-        const DEBUG_WEBGAZER = false;
+        const DEBUG_WEBGAZER = true;
         const KEY_WEBGAZER = "eye";
         var eventQueue = [];
         var testNum = 0;
@@ -437,11 +437,10 @@
             /**
              * Output webgazer data to logger and stop webgazer.
              */
+            if (DEBUG_WEBGAZER)
+                console.log("change, so outputting list of size " + eventQueue.length);
             cm.off("change", outputTest);
             if (eventQueue.length > 0) {
-                if (DEBUG_WEBGAZER)
-                    console.log("change, so outputting list of size " + eventQueue.length);
-
                 logger.log(KEY_WEBGAZER, eventQueue);
             }
             // fine to do even if webgazer off, ie, eventQueue is empty
@@ -469,12 +468,13 @@
             /* BEGINNING WEBGAZER ADDITION */
 
             // prepare for new test run
+            if (DEBUG_WEBGAZER)
+                console.log("in afterRun");
             eventQueue = [];
             webgazer.resume();
             testNum = testNum + 1;
 
             // register onchange event
-            // should store the thing to storage, and maybe classify
             editors["definitions://"].on("change", outputTest);
 
             // if we haven't set the gaze listener function before
