@@ -331,7 +331,7 @@
       }
 
       function drawUnknownException(e) {
-        container.append($("<div>").text("An unexpected error occurred: " + String(e)));
+        container.append($("<div>").text("An unexpected3 error occurred: " + String(e)));
         console.error("Unexpected error: ", e);
       }
     }

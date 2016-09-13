@@ -2292,6 +2292,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // readSymbolOrNumber : String Number -> symbolExpr | types.Number
     // NOT OPTIMIZED BY V8, due to presence of try/catch
     function readSymbolOrNumber(str, i) {
+      console.log('doing readSymbolOrNumber');
       var startCol = column,
         startRow = line,
         iStart = i;
@@ -2299,8 +2300,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       // non-whitespace characters that do not include:  ( ) { } [ ] , ' ` | \\ " ;
       var symOrNum = new RegExp("(\\|(.|\\n)*\\||\\\\(.|\\n)|[^\\(\\)\\{\\}\\[\\]\\,\\'\\`\\s\\\"\\;])+", 'mg');
       var chunk = symOrNum.exec(str.slice(i))[0];
+      console.log('I');
       // if there's an unescaped backslash at the end, throw an error
       var trailingEscs = /\.*\\+$/.exec(chunk);
+      console.log('II');
       if (trailingEscs && (trailingEscs[0].length % 2 > 0)) {
         i = str.length; // jump to the end of the string
         endOfError = i; // remember where we are, so readList can pick up reading
@@ -2321,10 +2324,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         } // if it's an escape char, skip over it and add the next one
         unescaped += chunk.charAt(j);
       }
+      console.log('III');
       // split the chunk at each |
       var chunks = unescaped.split("|");
       // check for unbalanced |'s, and generate an error that begins at the last one
       // and extends for the remainder of the string
+      console.log('IV');
       if (((chunks.length % 2) === 0)) {
         endOfError = str.length;
         var sizeOfLastChunk = chunks[chunks.length - 1].length + 1, // add 1 for the starting '|'
@@ -2346,12 +2351,14 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         });
       }
 
+      console.log('V');
       // enforce case-sensitivity for non-verbatim sections.
       var filtered = chunks.reduce(function(acc, str, i) {
         // if we're inside a verbatim portion (i is even) *or* we're case sensitive, preserve case
         return acc += (i % 2 || caseSensitiveSymbols) ? str : str.toLowerCase();
       }, "");
 
+      console.log('VI');
       // if it's a newline, adjust line and column trackers
       if (filtered === "\n") {
         line++;
@@ -2362,14 +2369,19 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var special_chars = new RegExp("^$|[\\(\\)\\{\\}\\[\\]\\,\\'\\`\\s\\\"\\\\]", 'g');
       var escaped_nums = new RegExp("^.*\\\\[\\d]*.*|\\|[\\d]*\\|");
       filtered = (escaped_nums.test(chunk) || special_chars.test(filtered) ? "|" + filtered + "|" : filtered);
+      console.log('VII');
 
       var node = undefined;
       // PERF: if it's not trivially a symbol, we take the hit of jsnums.fromSchemeString()
       if ((chunks.length === 1) && !/^[a-zA-Z\-\?]+$/.test(filtered)) {
         // attempt to parse using jsnums.fromSchemeString(), assign to sexp and add location
         // if it's a bad number, throw an error
+        console.log('VIII');
         try {
+          console.log('calling fromSchemeString', filtered);
           var numValue = jsnums.fromSchemeString(filtered, true);
+          console.log('done fromSchemeString');
+          console.log('IX');
           // If it's a number (don't interpret zero as 'false'), that's our node
           if (numValue || numValue === 0) {
             if (numValue instanceof Object) {
@@ -2379,8 +2391,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
             node = new literal(numValue);
             node.stx = filtered;
           }
+          console.log('X');
           // if it's not a number OR a symbol
         } catch (e) {
+          console.log('Xerr');
           endOfError = i; // remember where we are, so readList can pick up reading
           throwError({
             errMsg: ",,: " + e.message,
@@ -2389,9 +2403,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
       if (!node) {
+        console.log('XX');
         node = new symbolExpr(filtered);
       }
       node.location = new Location(startCol, startRow, iStart, i - iStart);
+      console.log('returning from readSymbolOrNumber');
       return node;
     }
     /////////////////////
@@ -7312,7 +7328,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    //console.log('ws_ast_j = ' + ws_ast_j);
+    console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }
