@@ -434,15 +434,13 @@
         const testPrefix = "test";
 
         var outputTest = (cm, change) => {
-            // only output things once. and stop webgazer.
+            /**
+             * Output webgazer data to logger and stop webgazer.
+             */
             cm.off("change", outputTest);
             if (eventQueue.length > 0) {
                 if (DEBUG_WEBGAZER)
                     console.log("change, so outputting list of size " + eventQueue.length);
-                // store eventQueue to localforage
-                var otherQueue = eventQueue.slice(0);
-                // classify eventQueue
-                var interactionClass = classify(otherQueue);
 
                 logger.log(KEY_WEBGAZER, eventQueue);
             }
