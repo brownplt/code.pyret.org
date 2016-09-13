@@ -554,7 +554,7 @@
     var colorsEmphasized      = new Set();
     var colorsHighlighted     = new Set();
     lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-    var globalColor = hueToRGB(lastHue);
+    var globalColor = lastHue;
     
     function highlight(color) {
       if(colorsHighlighted.has(color))
@@ -564,7 +564,7 @@
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
         var colorfulness = sessionStorage.getItem("highlight-colorfulness");
-        var cssColor = colorfulness != "vibrant" ? globalColor : color;
+        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
         }
@@ -596,7 +596,7 @@
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
         var colorfulness = sessionStorage.getItem("highlight-colorfulness");
-        var cssColor = colorfulness != "vibrant" ? globalColor : color;
+        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
           anchors[i].addClass('highlight-blink');
@@ -619,7 +619,7 @@
           anchors[i].removeClass('highlight-blink');
         }
         if(colorsHighlighted.has(color)) {
-          var cssColor = colorfulness != "vibrant" ? globalColor : color;
+          var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
           for(var i = 0; i < positions.length; i++) {
             positions[i].highlight(cssColor);
           }
@@ -902,7 +902,7 @@
               return help(contents, stack);
             }, function(helpContents) {
               var hue = palette(id);
-              var color = hueToRGB(hue);
+              var color = hue;
               var anchor = $("<a>").append(helpContents).addClass("highlight");
               var positions = ffi.toArray(locs).
                 filter(isSrcloc).
