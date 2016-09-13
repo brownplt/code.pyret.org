@@ -427,7 +427,7 @@
         }
 
         var setGazeListenerFunction = false;
-        const DEBUG_WEBGAZER = true;
+        const DEBUG_WEBGAZER = false;
         const KEY_WEBGAZER = "eye";
         var eventQueue = [];
         var testNum = 0;
