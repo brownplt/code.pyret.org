@@ -80,6 +80,7 @@ function start(config, onServerReady) {
   }
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
+  app.get("/faq.html", function(_, res) { res.render("faq.html"); });
 
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
