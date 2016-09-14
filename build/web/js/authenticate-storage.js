@@ -25,6 +25,7 @@ window.handleClientLoad = function handleClientLoad(clientId, apiKey) {
     console.log("Not logged in; proceeding without login info", err);
   });
   define("gdrive-credentials", [], function() {
+    console.log('doing gdrive-credentials function');
     var thisApiKey = apiKey;
     return {
       getCredentials: function() {
