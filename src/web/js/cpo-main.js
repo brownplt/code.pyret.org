@@ -58,7 +58,14 @@
     $("#REPL").append(replContainer);
 
     runtime.setParam("imgUrlProxy", function(s) {
-      return APP_BASE_URL + "/downloadImg?" + s;
+      var a = document.createElement("a");
+      a.href = s;
+      if(a.hostname === "drive.google.com" && a.pathname === "/uc") {
+        return s;
+      }
+      else {
+        return APP_BASE_URL + "/downloadImg?" + s;
+      }
     });
 
     var gf = runtime.getField;
