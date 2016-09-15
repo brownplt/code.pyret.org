@@ -645,7 +645,8 @@
           }, "big-bang"),
 
           "_spyret_big-bang": makeFunction(function(init) {
-            runtime.ffi.checkArity(1, arguments, "_spyret_big-bang");
+            runtime.checkArityAtLeast(2, arguments, "_spyret_big-bang");
+            //runtime.ffi.checkArity(1, arguments, "_spyret_big-bang");
             var arr = [], h;
             for (var i = 1; i < arguments.length; i++) {
               h = arguments[i];
