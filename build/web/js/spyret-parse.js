@@ -523,6 +523,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["display"] = "_spyret_display";
     symbolMap["error"] = "_spyret_error";
 
+    symbolMap["set!"] = "_spyret_dead_code_function";
+
     function pyretizeSymbol(str) {
       var str2
       var str_pyret_name = symbolMap[str]
