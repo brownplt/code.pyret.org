@@ -9,3 +9,5 @@ compiled/
 program-deps.js
 program-require.js
 pyret
+.DS_Store
+test-util/failed-test-screenshots/*

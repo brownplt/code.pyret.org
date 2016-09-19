@@ -14,13 +14,13 @@ function makeStorage(client) {
   }
 
   function getSharedProgram(programId) {
-    var key = "shared_" + sharedProgramId;
+    var key = "shared_" + programId;
     return Q.ninvoke(client, "hgetall", key);
   }
 
   function createSharedProgram(programId, userId) {
-    var key = "shared_" + sharedProgramId;
-    return Q.ninvoke(client, "hmset", [key, "programId", programId, "userId", userId]).then(function(_) { return getSharedProgram(sharedProgramId); });
+    var key = "shared_" + programId;
+    return Q.ninvoke(client, "hmset", [key, "programId", programId, "userId", userId]).then(function(_) { return getSharedProgram(programId); });
   }
 
   return {

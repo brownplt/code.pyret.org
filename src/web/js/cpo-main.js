@@ -21,6 +21,9 @@
       args: ["./repl-ui"]
     },
     { "import-type": "builtin",
+      name: "parse-pyret"
+    },
+    { "import-type": "builtin",
       name: "runtime-lib"
     },
     { "import-type": "builtin",
@@ -44,7 +47,7 @@
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
-                      runtimeLib, loadLib, builtinModules, cpoBuiltins,
+                      parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
 
@@ -54,68 +57,157 @@
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
 
+    var logDetailedOption = $("#detailed-logging");
+
+    if(localStorage.getItem('log-detailed') !== null) {
+      logDetailedOption.prop("checked",
+        localStorage.getItem('log-detailed') == 'true');
+    } else {
+      localStorage.setItem('log-detailed', false);
+    }
+
+    logDetailedOption.on('change', function () {
+      localStorage.setItem('log-detailed', this.checked);
+    });
+
+    setInterval(function() {
+      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
+    }, 100);
+
     runtime.setParam("imgUrlProxy", function(s) {
-      return APP_BASE_URL + "/downloadImg?" + s;
+      var a = document.createElement("a");
+      a.href = s;
+      if(a.hostname === "drive.google.com" && a.pathname === "/uc") {
+        return s;
+      }
+      else {
+        return APP_BASE_URL + "/downloadImg?" + s;
+      }
     });
 
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, builtinModules);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
 
-    function findModule(contextIgnored, dependency) {
-      return runtime.safeCall(function() {
-        return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
-          {
-            builtin: function(name) {
-              var raw = cpoModules.getBuiltinLoadableName(runtime, name);
-              if(!raw) {
-                throw runtime.throwMessageException("Unknown module: " + name);
-              }
-              else {
-                return gmf(cpo, "make-builtin-js-locator").app(name, raw);
-              }
-              /*
-              if (cpoBuiltin.knownCpoModule(name)) {
-                return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
-              }
-              else if(okImports.indexOf(name) === -1) {
-                throw runtime.throwMessageException("Unknown module: " + name);
-              } else {
-                return gmf(compileLib, "located").app(
-                  gmf(builtin, "make-builtin-locator").app(name),
-                  runtime.nothing
-                );
-              }
-              */
-            },
-            dependency: function(protocol, args) {
-              var arr = runtime.ffi.toArray(args);
-              if (protocol === "my-gdrive") {
-                return constructors.makeMyGDriveLocator(arr[0]);
-              }
-              else if (protocol === "shared-gdrive") {
-                return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
-              }
-              /*
-              else if (protocol === "js-http") {
-                // TODO: THIS IS WRONG with the new locator system
-                return http.getHttpImport(runtime, args[0]);
-              }
-              else if (protocol === "gdrive-js") {
-                return constructors.makeGDriveJSLocator(arr[0], arr[1]);
-              }
-              */
-              else {
-                console.error("Unknown import: ", dependency);
-              }
+    // NOTE(joe): In order to yield control quickly, this doesn't pause the
+    // stack in order to save.  It simply sends the save requests and
+    // immediately returns.  This avoids needlessly serializing multiple save
+    // requests when this is called repeatedly from Pyret.
+    function saveGDriveCachedFile(name, content) {
+      var file = storageAPI.then(function(storageAPI) {
+        var existingFile = storageAPI.getCachedFileByName(name);
+        return existingFile.then(function(f) {
+          if(f.length >= 1) {
+            return f[0];
+          }
+          else {
+            return storageAPI.createFile(name, {
+              saveInCache: true,
+              fileExtension: ".js",
+              mimeType: "text/plain"
+            });
+          }
+        });
+      });
+      file.then(function(f) {
+        f.save(content, true);
+      });
+      return runtime.nothing;
+    }
 
+    // NOTE(joe): this function just allocates a closure, so it's stack-safe
+    var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
+
+    function uriFromDependency(dependency) {
+      return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+        {
+          builtin: function(name) {
+            return "builtin://" + name;
+          },
+          dependency: function(protocol, args) {
+            var arr = runtime.ffi.toArray(args);
+            if (protocol === "my-gdrive") {
+              return "my-gdrive://" + arr[0];
             }
-          });
-       }, function(l) {
-          return gmf(compileLib, "located").app(l, runtime.nothing);
-       }, "findModule");
+            else if (protocol === "shared-gdrive") {
+              return "shared-gdrive://" + arr[0] + ":" + arr[1];
+            }
+            else if (protocol === "gdrive-js") {
+              return "gdrive-js://" + arr[1];
+            }
+            else {
+              console.error("Unknown import: ", dependency);
+            }
+          }
+        });
+
+    }
+
+    function makeFindModule() {
+      // The locatorCache memoizes locators for the duration of an
+      // interactions run
+      var locatorCache = {};
+      function findModule(contextIgnored, dependency) {
+        var uri = uriFromDependency(dependency);
+        if(locatorCache.hasOwnProperty(uri)) {
+          return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
+        }
+        return runtime.safeCall(function() {
+          return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+            {
+              builtin: function(name) {
+                var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+                if(!raw) {
+                  throw runtime.throwMessageException("Unknown module: " + name);
+                }
+                else {
+                  return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+                }
+                /*
+                if (cpoBuiltin.knownCpoModule(name)) {
+                  return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
+                }
+                else if(okImports.indexOf(name) === -1) {
+                  throw runtime.throwMessageException("Unknown module: " + name);
+                } else {
+                  return gmf(compileLib, "located").app(
+                    gmf(builtin, "make-builtin-locator").app(name),
+                    runtime.nothing
+                  );
+                }
+                */
+              },
+              dependency: function(protocol, args) {
+                var arr = runtime.ffi.toArray(args);
+                if (protocol === "my-gdrive") {
+                  return constructors.makeMyGDriveLocator(arr[0]);
+                }
+                else if (protocol === "shared-gdrive") {
+                  return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                }
+                else if (protocol === "gdrive-js") {
+                  return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                }
+                /*
+                else if (protocol === "js-http") {
+                  // TODO: THIS IS WRONG with the new locator system
+                  return http.getHttpImport(runtime, args[0]);
+                }
+                */
+                else {
+                  console.error("Unknown import: ", dependency);
+                }
+
+              }
+            });
+         }, function(l) {
+            locatorCache[uri] = l;
+            return gmf(compileLib, "located").app(l, runtime.nothing);
+         }, "findModule");
+      }
+      return runtime.makeFunction(findModule, "cpo-find-module");
     }
 
     // NOTE(joe): This line is "cheating" by mixing runtime levels,
@@ -145,17 +237,20 @@
       });
     var replGlobals = gmf(compileStructs, "standard-globals");
 
+    var defaultOptions = gmf(compileStructs, "default-compile-options");
+
     var replP = Q.defer();
     return runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
             builtinsForPyret,
             pyRuntime,
             pyRealm,
-            runtime.makeFunction(findModule));
+            runtime.makeFunction(makeFindModule));
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
           restartInteractions: function(ignoredStr, typeCheck) {
+            var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
@@ -165,7 +260,7 @@
                     "make-definitions-locator").app(getDefsForPyret, replGlobals);
                   },
                   function(locator) {
-                    return gf(repl, "restart-interactions").app(locator, typeCheck);
+                    return gf(repl, "restart-interactions").app(locator, options);
                   });
               }, function(result) {
                 ret.resolve(result);
@@ -266,14 +361,16 @@
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
       function doRunAction(src) {
-        editor.cm.clearGutter("CodeMirror-linenumbers");
-        var marks = editor.cm.getAllMarks();
-        document.getElementById("main").dataset.highlights = "";
-        editor.cm.eachLine(function(lh){
-          editor.cm.removeLineClass(lh, "background");});
-        for(var i = 0; i < marks.length; i++) {
-          marks[i].clear();
-        }
+        editor.cm.operation(function() {
+          editor.cm.clearGutter("test-marker-gutter");
+          var marks = editor.cm.getAllMarks();
+          document.getElementById("main").dataset.highlights = "";
+          editor.cm.eachLine(function(lh){
+            editor.cm.removeLineClass(lh, "background");});
+          for(var i = 0; i < marks.length; i++) {
+            marks[i].clear();
+          }
+        });
         var sheet = document.getElementById("highlight-styles").sheet;
         for(var i=0; i< sheet.cssRules.length; i++) {
           sheet.deleteRule(i);

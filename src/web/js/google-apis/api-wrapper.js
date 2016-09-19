@@ -145,6 +145,7 @@ function loadAPIWrapper(immediate) {
       var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
       newToken.then(function(t) {
         gapi.auth.setToken({ access_token: t.access_token });
+        logger.log('login', {user_id: t.user_id});
         d.resolve({ access_token: t.access_token });
       });
       newToken.fail(function(t) {
@@ -320,7 +321,7 @@ function loadAPIWrapper(immediate) {
 
     function processDelta() {
       var newKeys = Object.keys(gapi.client)
-            .filter(function(k) {return !preKeys.includes(k);});
+            .filter(function(k) {return (preKeys.indexOf(k) === -1);});
       var ret;
       if (newKeys.length > 1) {
         ret = newKeys.map(processKey);
