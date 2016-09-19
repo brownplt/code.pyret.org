@@ -1568,6 +1568,10 @@ th, td {
     border-right:1px white solid;
 }
 
+th:last-child, td:last-child {
+    padding-right: 2em;
+}
+
 tr:nth-child(even){background-color: #f2f2f2}
 
 /* MODAL */

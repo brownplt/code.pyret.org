@@ -14,7 +14,6 @@
 #
 #   display-multi-plot: display-multi-plot,
 #   default-options: default-options,
-#   default-window-options: default-window-options,
 #
 #   histogram: histogram,
 #   pie-chart: pie-chart,
@@ -33,13 +32,63 @@ provide-types {
 import global as G
 import base as B
 import image-structs as I
+import image as IM
 include lists
 import plot-lib as P
 import either as E
 import string-dict as SD
 
 OFFSET = 1
-MAX-SAMPLES = 100000
+MAX_SAMPLES = 100000
+
+type BaseWindowOptions = {
+  xscale :: Number,
+  yscale :: Number,
+  interact :: Boolean,
+  title :: String
+}
+
+base-window-options :: BaseWindowOptions = {
+  xscale: 0,
+  yscale: 0,
+  interact: true,
+  title: ''
+}
+
+type PlotWindowOptions = {
+  x-min :: Number,
+  x-max :: Number,
+  y-min :: Number,
+  y-max :: Number,
+  num-samples :: Number,
+  infer-bounds :: Boolean,
+  xscale :: Number,
+  yscale :: Number,
+  interact :: Boolean,
+  title :: String
+}
+
+plot-window-options :: PlotWindowOptions = {
+  x-min: -10,
+  x-max: 10,
+  y-min: -10,
+  y-max: 10,
+  num-samples: 1000,
+  infer-bounds: false,
+  xscale: 0,
+  yscale: 0,
+  interact: true,
+  title: ''
+}
+
+type BarChartWindowOptions = BaseWindowOptions
+bar-chart-window-options :: BarChartWindowOptions = base-window-options
+
+type PieChartWindowOptions = BaseWindowOptions
+pie-chart-window-options :: PieChartWindowOptions = base-window-options
+
+type HistogramWindowOptions = BaseWindowOptions
+histogram-window-options :: HistogramWindowOptions = base-window-options
 
 type PlotOptions = {
   color :: I.Color
@@ -49,29 +98,15 @@ plot-options :: PlotOptions = {
   color: I.blue
 }
 
-type PlotWindowOptions = {
-  x-min :: Number,
-  x-max :: Number,
-  y-min :: Number,
-  y-max :: Number,
-  num-samples :: Number,
-  infer-bounds :: Boolean
-}
-
-plot-window-options :: PlotWindowOptions = {
-  x-min: -10,
-  x-max: 10,
-  y-min: -10,
-  y-max: 10,
-  num-samples: 1000,
-  infer-bounds: false
-}
-
 type WrappedPlotOptions = (PlotOptions -> PlotOptions)
 type WrappedPlotWindowOptions = (PlotWindowOptions -> PlotWindowOptions)
+type WrappedBarChartWindowOptions = (BarChartWindowOptions -> BarChartWindowOptions)
+type WrappedPieChartWindowOptions = (PieChartWindowOptions -> PieChartWindowOptions)
+type WrappedHistogramWindowOptions = (HistogramWindowOptions -> HistogramWindowOptions)
 type PlottableFunction = (Number -> Number)
 type Posn = RawArray<Number>
 type TableInt = RawArray<Posn>
+type Image = IM.Image
 
 data Plot:
   | line-plot(points :: Table, options :: WrappedPlotOptions)
@@ -85,17 +120,40 @@ data PlotInternal:
   | function-plot-int(f :: PlottableFunction, options :: PlotOptions)
 end
 
-
-id = {<A>(x :: A): x}
-default-options = id
-default-window-options = id
-
-fun posn(x :: Number, y :: Number) -> Posn:
-  [raw-array: x, y]
+fun sprintf-maker():
+  generic-sprintf = lam(arr :: RawArray<Any>):
+    raw-array-fold(lam(str, elt, _): str + tostring(elt) end, "", arr, 0)
+  end
+  {
+    make5: {(a, b, c, d, e): generic-sprintf([raw-array: a, b, c, d, e])},
+    make4: {(a, b, c, d): generic-sprintf([raw-array: a, b, c, d])},
+    make3: {(a, b, c): generic-sprintf([raw-array: a, b, c])},
+    make2: {(a, b): generic-sprintf([raw-array: a, b])},
+    make1: tostring,
+    make0: {(): ''},
+    make: generic-sprintf
+  }
 end
 
-fun histogram(title :: String, tab :: Table, n :: Number) -> Table block:
-  doc: 'Consume a table with one column: `value`, and a number of bins, and show a histogram'
+fun check-base-window-options(options :: BaseWindowOptions) -> Nothing block:
+  when (options.xscale < 0) or (options.xscale > 1):
+    raise('plot: xscale must be between 0 and 1')
+  end
+  when (options.yscale < 0) or (options.yscale > 1):
+    raise('plot: yscale must be between 0 and 1')
+  end
+  nothing
+end
+
+sprintf = sprintf-maker()
+
+default-options = {<A>(x :: A): x}
+
+fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> Image block:
+  doc: ```
+       Consume a table with one column: `value`, and a number of bins, 
+       and show a histogram
+       ```
   when not(tab._header-raw-array =~ [raw-array: 'value']):
     raise('histogram: expect a table with a column named `value`')
   end
@@ -105,11 +163,11 @@ fun histogram(title :: String, tab :: Table, n :: Number) -> Table block:
   when raw-array-length(tab._rows-raw-array) == 0:
     raise('histogram: expect the table to have at least one row')
   end
-  P.histogram(tab._rows-raw-array, n, title)
-  tab
+  options = options-generator(histogram-window-options)
+  _ = check-base-window-options(options)
+  P.histogram(nothing, options, tab._rows-raw-array, n)
 where:
   histogram(
-    'My histogram',
     table: value :: Number
       row: 1
       row: 1.2
@@ -119,11 +177,10 @@ where:
       row: 3
       row: 6
       row: -1
-    end,
-    4) does-not-raise
+    end, 4, default-options) does-not-raise
 end
 
-fun pie-chart(title :: String, tab :: Table) -> Table block:
+fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> Image block:
   doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('pie-chart: expect a table with columns named `label` and `value`')
@@ -131,40 +188,68 @@ fun pie-chart(title :: String, tab :: Table) -> Table block:
   when raw-array-length(tab._rows-raw-array) == 0:
     raise('pie-chart: expect the table to have at least one row')
   end
-  P.pie-chart(tab._rows-raw-array, title)
-  tab
+  pie-chart-with-adjustable-radius(
+    extend tab: radius: 1 end,
+    options-generator)
 where:
-  pie-chart('My pie chart', table: label, value
-    row: 'asd', 1
-    row: 'dsa', 2
-    row: 'qwe', 3
-  end) does-not-raise
+  pie-chart(table: label, value
+      row: 'asd', 1
+      row: 'dsa', 2
+      row: 'qwe', 3
+    end, default-options) does-not-raise
 end
 
-fun bar-chart(title :: String, tab :: Table, legend :: String) -> Table block:
+fun pie-chart-with-adjustable-radius(
+    tab :: Table,
+    options-generator :: WrappedPieChartWindowOptions) -> Image block:
+  doc: ```
+       Consume a table with three columns: `label`, `value`, and `radius`,
+       and show a pie-chart
+       ```
+  when not(tab._header-raw-array =~ [raw-array: 'label', 'value', 'radius']):
+    raise('pie-chart-with-adjustable-radius: expect a table with columns named `label`, `value`, and `radius`')
+  end
+  when raw-array-length(tab._rows-raw-array) == 0:
+    raise('pie-chart-with-adjustable-radius: expect the table to have at least one row')
+  end
+  options = options-generator(pie-chart-window-options)
+  _ = check-base-window-options(options)
+  P.pie-chart(nothing, options, tab._rows-raw-array)
+where:
+  pie-chart-with-adjustable-radius(table: label, value, radius
+      row: 'asd', 1, 3
+      row: 'dsa', 2, 2
+      row: 'qwe', 3, 1
+    end, default-options) does-not-raise
+end
+
+fun bar-chart(
+    tab :: Table,
+    legend :: String,
+    options-generator :: WrappedBarChartWindowOptions) -> Image block:
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('expect a table with two columns: label and value')
   end
   shadow tab = transform tab using value:
     value: [list: value]
   end
-  _ = P.bar-chart(tab._rows-raw-array, [list: ''], title, false)
-  tab
+  options = options-generator(bar-chart-window-options)
+  _ = check-base-window-options(options)
+  P.bar-chart(nothing, options, tab._rows-raw-array, [list: ''], false)
 end
 
 fun grouped-bar-chart(
-  title :: String,
-  tab :: Table,
-  legend :: List<String>
-) -> Table block:
+    tab :: Table,
+    legend :: List<String>,
+    options-generator :: WrappedBarChartWindowOptions) -> Image block:
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
-  P.bar-chart(tab._rows-raw-array, legend, title, true)
-  tab
+  options = options-generator(bar-chart-window-options)
+  _ = check-base-window-options(options)
+  P.bar-chart(nothing, options, tab._rows-raw-array, legend, true)
 where:
   grouped-bar-chart(
-    'My bar chart',
     table: label, values
       row: 'CA', [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496]
       row: 'TX', [list: 2027307,3277946,1420518,2454721,7017731,5656528,2472223]
@@ -172,20 +257,21 @@ where:
       row: 'FL', [list: 1140516,1938695,925060,1607297,4782119,4746856,3187797]
       row: 'IL', [list: 894368,1558919,725973,1311479,3596343,3239173,1575308]
       row: 'PA', [list: 737462,1345341,679201,1203944,3157759,3414001,1910571]
-    end, [list:
+    end,
+    [list:
       'Under 5 Years',
       '5 to 13 Years',
       '14 to 17 Years',
       '18 to 24 Years',
       '25 to 44 Years',
       '45 to 64 Years',
-      '65 Years and Over']) does-not-raise
+      '65 Years and Over'],
+    default-options) does-not-raise
 end
 
 fun generate-xy(
-  plot :: PlotInternal,
-  win-opt :: PlotWindowOptions
-) -> PlotInternal:
+    plot :: PlotInternal,
+    win-opt :: PlotWindowOptions) -> PlotInternal:
   doc: 'Generate a scatter-plot from an function-plot'
   fraction = (win-opt.x-max - win-opt.x-min) / (win-opt.num-samples - 1)
   cases (PlotInternal) plot:
@@ -208,8 +294,12 @@ where:
     y-min: 0,
     y-max: 100,
     num-samples: 6,
-    infer-bounds: false
+    infer-bounds: false,
+    interact: false
   }
+  fun posn(x :: Number, y :: Number) -> Posn:
+    [raw-array: x, y]
+  end
   generate-xy(function-plot-int(_ + 1, plot-options), win-options)
     is scatter-plot-int([raw-array:
       posn(0, 1),
@@ -221,63 +311,60 @@ where:
     ], plot-options)
 end
 
-fun display-function(title :: String, f :: PlottableFunction) -> PlottableFunction:
-  _ = display-multi-plot(
-    title,
+fun display-function(title :: String, f :: PlottableFunction) -> Image:
+  display-multi-plot(
     [list: function-plot(f, default-options)],
-    default-window-options)
-  f
+    _.{title: title})
 where:
-  plot-function('My function', num-sin)
+  plot-function('My function', num-sin) does-not-raise
 end
 
-fun display-scatter(title :: String, tab :: Table) -> Table:
-  _ = display-multi-plot(
-    title,
+fun display-scatter(title :: String, tab :: Table) -> Image:
+  display-multi-plot(
     [list: scatter-plot(tab, default-options)],
-    default-window-options)
-  tab
+    _.{title: title})
 where:
   plot-scatter('My scatter', table: x, y
-    row: 1, 2
-    row: 1, 3.1
-    row: 4, 1
-    row: 7, 3
-    row: 4, 6
-    row: 2, 5
-  end)
+      row: 1, 2
+      row: 1, 3.1
+      row: 4, 1
+      row: 7, 3
+      row: 4, 6
+      row: 2, 5
+    end) does-not-raise
 end
 
-fun display-line(title :: String, tab :: Table) -> Table:
-  _ = display-multi-plot(
-    title,
+fun display-line(title :: String, tab :: Table) -> Image:
+  display-multi-plot(
     [list: line-plot(tab, default-options)],
-    default-window-options)
-  tab
+    _.{title: title})
 where:
   plot-line('My line', table: x, y
-    row: 1, 2
-    row: 1, 3.1
-    row: 4, 1
-    row: 7, 3
-    row: 4, 6
-    row: 2, 5
-  end)
+      row: 1, 2
+      row: 1, 3.1
+      row: 4, 1
+      row: 7, 3
+      row: 4, 6
+      row: 2, 5
+    end) does-not-raise
 end
 
 fun display-multi-plot(
-  title :: String,
-  plots :: List<Plot>,
-  options-generator :: WrappedPlotWindowOptions
-) -> List<Plot> block:
+    plots :: List<Plot>,
+    options-generator :: WrappedPlotWindowOptions) -> Image block:
   options = options-generator(plot-window-options)
+  _ = check-base-window-options(options)
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
     raise('plot: x-min and y-min must be strictly less than x-max and y-max respectively')
   end
-  when (options.num-samples > MAX-SAMPLES) or
-       (options.num-samples <= 1) or
-       not(num-is-integer(options.num-samples)):
-    raise('plot: num-samples must be an an integer greater than 1 and do not exceed ' + num-to-string(MAX-SAMPLES))
+  when (options.num-samples > MAX_SAMPLES) or
+    (options.num-samples <= 1) or
+    not(num-is-integer(options.num-samples)):
+    raise(
+      [sprintf:
+        'plot: num-samples must be an an integer greater than 1',
+        ' and do not exceed ',
+        num-to-string(MAX_SAMPLES)])
   end
 
   original-plots = plots
@@ -348,50 +435,46 @@ fun display-multi-plot(
   line-plots = partitioned.is-true
   scatter-plots = partitioned.is-false
 
-  fun helper(shadow options :: PlotWindowOptions) -> List<Plot>:
+  fun helper(shadow options :: PlotWindowOptions) -> Image:
     shadow function-plots = function-plots.map(generate-xy(_, options))
-    maybe-new-options = P.plot-multi(
-      function-plots + scatter-plots,
-      line-plots,
+    ret = P.plot-multi(
+      nothing,
       options,
-      title)
-    cases (Option<PlotWindowOptions>) maybe-new-options:
-      | none => original-plots
-      | some(new-options) => helper(new-options)
+      function-plots + scatter-plots,
+      line-plots)
+    cases (Either<PlotWindowOptions, Image>) ret:
+      | left(new-options) => helper(new-options)
+      | right(image) => image
     end
   end
-
   helper(options)
 end
 
-default-plot-color-list = [list: I.green, I.red, I.orange, I.yellow, I.blue, I.purple, I.brown]
+default-plot-color-list = 
+  [list: I.green, I.red, I.orange, I.yellow, I.blue, I.purple, I.brown]
 
-fun display-plots(title, infer-bounds, plots):
+fun display-plots(
+    title :: String,
+    infer-bounds :: Boolean,
+    plots :: List<Plot>) -> Image:
   len = default-plot-color-list.length()
   new-plots = for map_n(n from 0, p from plots):
-    c = lam(x): {color: default-plot-color-list.get(num-modulo(n, len)) } end
+    c = {(x): {color: default-plot-color-list.get(num-modulo(n, len))}}
     cases(Plot) p:
       | function-plot(f , _) => function-plot(f, c)
       | line-plot(points, _) => line-plot(points, c)
       | scatter-plot(points, _) => scatter-plot(points, c)
     end
   end
-  options = if infer-bounds:
-    _.{infer-bounds: true}
+  options = _.{title: title}
+  shadow options = if infer-bounds:
+    {(config): options(config).{infer-bound: true}}
   else:
-    lam(x): x end
+    options
   end
-  display-multi-plot(title, new-plots, options)
+  display-multi-plot(new-plots, options)
 end
 
-make-function-plot = lam(f):
-  function-plot(f, _.{color: I.blue})
-end
-make-line-plot = lam(t):
-  line-plot(t, _.{color: I.blue})
-end
-make-scatter-plot = lam(t):
-  scatter-plot(t, _.{color: I.blue})
-end
-
-
+make-function-plot = function-plot(_, _.{color: I.blue})
+make-line-plot = line-plot(_, _.{color: I.blue})
+make-scatter-plot = scatter-plot(_, _.{color: I.blue})

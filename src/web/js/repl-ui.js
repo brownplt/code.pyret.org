@@ -272,7 +272,7 @@
           currentZIndex += 2;
         });
 
-      runtime.setParam("d3-port", function(dom, width, height, onExit, onSave) {
+      runtime.setParam("d3-port", function(dom, optionMutator, onExit, buttons) {
           // duplicate the code for now
           var animationDiv = $("<div>");
           animationDivs.push(animationDiv);
@@ -281,30 +281,32 @@
             onExit();
             closeTopAnimationIfOpen();
           }
-          animationDiv.dialog({
+          var baseOption = {
             position: [5, 5],
             bgiframe : true,
             modal : true,
-            overlay : { opacity: 0.5, background: 'black'},
-            width : width || "auto",
-            height : height || "auto",
+            overlay : {opacity: 0.5, background: 'black'},
+            width : 'auto',
+            height : 'auto',
             close : onClose,
             closeOnEscape : true,
-            buttons: [
-              {
-                click: onSave(dom),
-                icons: { primary: 'ui-icon-disk' }
-              }
-            ],
             create: function() {
-              $('.ui-dialog-buttonset').appendTo('.ui-dialog-titlebar');
-              $('.ui-dialog-buttonset button')
-                .removeClass('ui-button-icon-primary')
-                .addClass('ui-button-icon-only ui-dialog-titlebar-close')
-                .css('left', '33px');
-              $('.ui-dialog-buttonpane').css('display', 'none');
+
+              // from http://fiddle.jshell.net/JLSrR/116/
+
+              var titlebar = animationDiv.prev();
+              buttons.forEach(function(buttonData) {
+                var button = $('<button/>'),
+                    left = titlebar.find( "[role='button']:last" ).css('left');
+                button.button({icons: {primary: buttonData.icon}, text: false})
+                       .addClass('ui-dialog-titlebar-close')
+                       .css('left', (parseInt(left) + 27) + 'px')
+                       .click(buttonData.click)
+                       .appendTo(titlebar);
+              });
             }
-          }).dialog("widget").draggable({
+          }
+          animationDiv.dialog(optionMutator(baseOption)).dialog("widget").draggable({
             containment: "none",
             scroll: false,
           });
@@ -313,6 +315,7 @@
           dialogMain.css({"z-index": currentZIndex + 1});
           dialogMain.prev().css({"z-index": currentZIndex});
           currentZIndex += 2;
+          return animationDiv;
       });
       runtime.setParam("remove-d3-port", function() {
           closeTopAnimationIfOpen();

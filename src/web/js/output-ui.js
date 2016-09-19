@@ -1106,9 +1106,14 @@
             var dialog = $("<div>");
             dialog.dialog({
               modal: true,
-              height: $(document).height() * .9,
-              width: $(document).width() * .9,
-              resizable: true
+              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
+              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              resizable: true,
+              close: function() {
+                dialog.empty();
+                dialog.dialog("destroy");
+                dialog.remove();
+              }
             });
             dialog.css({"overflow": "scroll"});
             dialog.append($(originalImageDom));
@@ -1366,10 +1371,10 @@
           }
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
-          $(showText).text("\uD83D\uDCCB");
+          $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
           $(showText).css({
-            'border': '1px solid black',
-            'background': 'white'
+            'margin-top': '0.3em',
+            'margin-right': '0.3em'
           });
           $(showText).addClass("info-icon-top");
           var textDiv = $("<div>").css({"z-index": 15000});
