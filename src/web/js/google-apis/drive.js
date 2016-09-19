@@ -12,23 +12,26 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
   var PUBLIC_LINK = "pubLink";
 
   function createAPI(baseCollection) {
-    function makeSharedFile(googFileObject) {
+    function makeSharedFile(googFileObject, fetchFromGoogle) {
       return {
         shared: true,
         getContents: function() {
-          var proxyDownloadLink = "/downloadGoogleFile?" + googFileObject.id;
-          return Q($.ajax(proxyDownloadLink, {
-            method: "get",
-            dataType: 'text'
-          })).then(function(response) {
-            return response;
-          });
+          if(fetchFromGoogle) {
+            var reqUrl = googFileObject.selfLink;
+            return Q($.get(reqUrl, {
+              alt: "media",
+              key: apiKey
+            }));
+          }
+          else {
+            return Q($.ajax("/shared-program-contents?" + googFileObject.selfLink, {
+              method: "get",
+              dataType: "text"
+            }));
+          }
         },
         getName: function() {
           return googFileObject.title;
-        },
-        getDownloadLink: function() {
-          return googFileObject.downloadUrl;
         },
         getModifiedTime: function() {
           return googFileObject.modifiedDate;
@@ -37,16 +40,13 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
           return googFileObject.id;
         }
       };
-
     }
+
     function makeFile(googFileObject, mimeType, fileExtension) {
       return {
         shared: false,
         getName: function() {
           return googFileObject.title;
-        },
-        getDownloadLink: function() {
-          return googFileObject.downloadUrl;
         },
         getModifiedTime: function() {
           return googFileObject.modifiedDate;
@@ -64,7 +64,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             .then(function(files) {
               if(!files.items) { return []; }
               else { return files.items.map(fileBuilder); }
-            });;
+            });
         },
         getContents: function() {
           return Q($.ajax(googFileObject.downloadUrl, {
@@ -86,33 +86,13 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
         makeShareCopy: function() {
           var shareCollection = findOrCreateShareDirectory();
           var newFile = shareCollection.then(function(c) {
-            var sharedTitle = googFileObject.title;
-            return drive.files.copy({
+            return Q($.ajax("/create-shared-file", {
               fileId: googFileObject.id,
-              resource: {
-                "parents": [{id: c.id}],
-                "title": sharedTitle,
-                "properties": [{
-                  "key": BACKREF_KEY,
-                  "value": String(googFileObject.id),
-                  "visibility": "PRIVATE"
-                }]
-              }
-            });
+              title: googFileObject.title,
+              collectionId: c.id
+            }));
           });
-          var updated = newFile.then(function(newFile) {
-            return drive.permissions.insert({
-              fileId: newFile.id,
-              resource: {
-                'role': 'reader',
-                'type': 'anyone',
-                'id': googFileObject.permissionId
-              }
-            });
-          });
-          return Q.all([newFile, updated]).spread(function(fileObj) {
-            return fileBuilder(fileObj);
-          });
+          return fileBuilder(fileObj);
         },
         save: function(contents, newRevision) {
           // NOTE(joe): newRevision: false will cause badRequest errors as of
@@ -183,7 +163,17 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
         });
       },
       getSharedFileById: function(id) {
-        return drive.files.get({fileId: id}, true).then(makeSharedFile);
+        var fromDrive = drive.files.get({fileId: id}, true).then(function(googFileObject) {
+          return makeSharedFile(googFileObject, true);
+        });
+        var fromServer = fromDrive.fail(function() {
+          return Q($.get("/get-shared-file", {
+            sharedProgramId: id
+          })).then(function(googlishFileObject) {
+            return makeSharedFile(googlishFileObject, false); 
+          });
+        });
+        return Q.any([fromDrive, fromServer]);
       },
       getAllFiles: function() {
         return baseCollection.then(function(bc) {

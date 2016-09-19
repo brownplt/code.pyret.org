@@ -12,21 +12,24 @@ function makeStorage(client) {
     console.log("Creating user: ", data);
     return Q.ninvoke(client, "hmset", [data.google_id, "google_id", data.google_id, "refresh_token", data.refresh_token]).then(function(_) { return getUserByGoogleId(data.google_id); });
   }
-  return {
-    getUserByGoogleId: getUserByGoogleId,
-    updateRefreshToken: updateRefreshToken,
-    createUser: createUser
-  };
 
-  function getSharedProgram(sharedProgramId) {
+  function getSharedProgram(programId) {
     var key = "shared_" + sharedProgramId;
     return Q.ninvoke(client, "hgetall", key);
   }
 
-  function createSharedProgram(sharedProgramId, programId, userId) {
+  function createSharedProgram(programId, userId) {
     var key = "shared_" + sharedProgramId;
     return Q.ninvoke(client, "hmset", [key, "programId", programId, "userId", userId]).then(function(_) { return getSharedProgram(sharedProgramId); });
   }
+
+  return {
+    getUserByGoogleId: getUserByGoogleId,
+    updateRefreshToken: updateRefreshToken,
+    createUser: createUser,
+    getSharedProgram: getSharedProgram,
+    createSharedProgram: createSharedProgram
+  };
 }
 
 module.exports = { makeStorage: makeStorage }
