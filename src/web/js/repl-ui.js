@@ -103,7 +103,7 @@
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
-            ffi.cases(ffi.isEither, "is-Either", result, {
+            return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
                 didError = true;
@@ -126,7 +126,7 @@
                 // to use if we have separate compile/run runtimes.  I think
                 // that loadLib will be instantiated with callingRuntime, and
                 // I think that's correct.
-                callingRuntime.pauseStack(function(restarter) {
+                return callingRuntime.pauseStack(function(restarter) {
                   rr.runThunk(function() {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
@@ -366,7 +366,7 @@
       repl.runtime.setParam("onTrace", function(loc, val, url) {
         if (repl.runtime.getParam("currentMainURL") !== url) { return { "onTrace": "didn't match" }; }
         if (repl.runtime.isNothing(val)) { return { "onTrace": "was nothing" }; }
-        repl.runtime.pauseStack(function(restarter) {
+        return repl.runtime.pauseStack(function(restarter) {
           repl.runtime.runThunk(function() {
             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
           }, function(container) {

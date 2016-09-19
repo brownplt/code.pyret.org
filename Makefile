@@ -227,7 +227,7 @@ libpyret:
 
 $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
-	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
     --builtin-js-dir src/web/js/trove/ \
     --builtin-js-dir pyret/src/js/trove/ \
@@ -247,7 +247,7 @@ $(CPOGZ): $(CPOMAIN)
 
 $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;
-	cp pyret/build/phaseA/compiled/*.js ./compiled/
+	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
     --builtin-js-dir src/web/js/trove/ \
     --builtin-js-dir pyret/src/js/trove/ \

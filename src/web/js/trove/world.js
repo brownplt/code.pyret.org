@@ -101,8 +101,8 @@
               k();
             };
           }
-          runtime.safeCall(function() {
-            bigBang(init, handlersArray, tracer);
+          return runtime.safeCall(function() {
+            return bigBang(init, handlersArray, tracer);
           }, function(newVal) {
             return makeReactorRaw(newVal, handlersArray, tracing, trace.concat(thisInteractTrace));
           });
@@ -220,7 +220,7 @@
       }
 
 
-      runtime.pauseStack(function(restarter) {
+      return runtime.pauseStack(function(restarter) {
         rawJsworld.bigBang(
             toplevelNode,
             initW,
@@ -528,7 +528,7 @@
       var that = this;
       var worldFunction = function(world, success) {
         var textNode = jQuery("<pre>");
-        runtime.safeCall(function() {
+        return runtime.safeCall(function() {
           return runtime.toReprJS(world, runtime.ReprMethods._torepr);
         }, function(str) {
           textNode.text(str);
@@ -590,8 +590,8 @@
             var arr = runtime.ffi.toArray(handlers);
             var initialWorldValue = init;
             arr.map(function(h) { checkHandler(h); });
-            bigBang(initialWorldValue, arr, null, 'big-bang');
-            runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
+            return bigBang(initialWorldValue, arr, null, 'big-bang');
+            // runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
           }, "big-bang"),
           "on-tick": makeFunction(function(handler) {
             runtime.ffi.checkArity(1, arguments, "on-tick");

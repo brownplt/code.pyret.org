@@ -295,7 +295,7 @@
       checkArity(1, arguments, "image");
       c("image-url", [maybeUrl], [annString]);
       var url = maybeUrl;
-      runtime.pauseStack(function(restarter) {
+      return runtime.pauseStack(function(restarter) {
         var rawImage = new Image();
         if(runtime.hasParam("imgUrlProxy")) {
           url = runtime.getParam("imgUrlProxy")(url);
