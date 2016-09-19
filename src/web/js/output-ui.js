@@ -1106,9 +1106,14 @@
             var dialog = $("<div>");
             dialog.dialog({
               modal: true,
-              height: $(document).height() * .9,
-              width: $(document).width() * .9,
-              resizable: true
+              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
+              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              resizable: true,
+              close: function() {
+                dialog.empty();
+                dialog.dialog("destroy");
+                dialog.remove();
+              }
             });
             dialog.css({"overflow": "scroll"});
             dialog.append($(originalImageDom));
