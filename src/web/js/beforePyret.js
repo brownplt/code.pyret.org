@@ -345,37 +345,30 @@ $(function() {
   $("#saveButton").click(save);
   shareAPI.makeHoverMenu($("#menu"), $("#menuContents"), false, function(){});
 
-  programLoaded.then(function(c) {
-    var codeContainer = $("<div>").addClass("replMain");
-    $("#main").prepend(codeContainer);
+  var codeContainer = $("<div>").addClass("replMain");
+  $("#main").prepend(codeContainer);
 
-    CPO.editor = CPO.makeEditor(codeContainer, {
-      runButton: $("#runButton"),
-      simpleEditor: false,
-      initial: c,
-      run: CPO.RUN_CODE,
-      initialGas: 100
-    });
-    
+  CPO.editor = CPO.makeEditor(codeContainer, {
+    runButton: $("#runButton"),
+    simpleEditor: false,
+    run: CPO.RUN_CODE,
+    initialGas: 100
+  });
+  CPO.editor.cm.setOption("readOnly", "nocursor");
+  
+  programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
     
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
+    CPO.editor.cm.setValue(c);
+    CPO.editor.cm.setOption("readOnly", false);
   });
 
   programLoaded.fail(function() {
-    var codeContainer = $("<div>").addClass("replMain");
-    $("#main").prepend(codeContainer);
-
-    CPO.editor = CPO.makeEditor(codeContainer, {
-      runButton: $("#runButton"),
-      simpleEditor: false,
-      run: CPO.RUN_CODE,
-      initialGas: 100
-    });
-    
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
+    CPO.editor.cm.setOption("readOnly", false);
   });
 
   var pyretLoad = document.createElement('script');

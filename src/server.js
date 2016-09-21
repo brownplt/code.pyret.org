@@ -405,34 +405,29 @@ function start(config, onServerReady) {
     return drive;
   }
 
-  app.get("/shared-program-contents", function(req, res) {
-    console.log("contents req: ", req.query);
-    var sharedProgramId = req.query.sharedProgramId;
+  function programAndToken(sharedProgramId, res) {
     var program = db.getSharedProgram(sharedProgramId);
-    program.fail(function(err) {
-      res.status(404).send("No account information found.");
-      res.end();
-    });
     var refreshToken = program.then(function(prog) {
-      console.log("Fetching user data: ", prog);
       var uP = db.getUserByGoogleId(prog.userId);
       return uP.then(function(u) {
-        console.log("Got token: ", u);
         return u.refresh_token;
       });
     });
     var both = Q.all([program, refreshToken]);
+    return both;
+  }
+
+  app.get("/shared-program-contents", function(req, res) {
+    var sharedProgramId = req.query.sharedProgramId;
+    var both = programAndToken(sharedProgramId);
     both.fail(function(err) {
-      console.log("Error in getting user/program data: ", err);
       res.status(404).send("No share information found for " + sharedProgramId);
       res.end();
     });
     both.then(function(both) {
       var prog = both[0];
-      console.log(prog);
       var refreshToken = both[1];
       auth.refreshAccess(refreshToken, function(err, newToken) {
-        console.log("refreshAccess: ", err, newToken);
         if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
         else {
           var drive = getDriveClient(newToken, 'v3');
@@ -440,7 +435,6 @@ function start(config, onServerReady) {
             fileId: prog.programId,
             alt: "media"
           }, function(err, response) {
-            console.log(err, response); 
             if(!err) {
               res.status(200);
               res.set("content-type", "text/plain");
@@ -460,33 +454,19 @@ function start(config, onServerReady) {
 
   app.get("/shared-file", function(req, res) {
     var sharedProgramId = req.query.sharedProgramId;
-    var program = db.getSharedProgram(sharedProgramId);
-    var refreshToken = program.then(function(prog) {
-      console.log("Fetching user data: ", prog);
-      var uP = db.getUserByGoogleId(prog.userId);
-      return uP.then(function(u) {
-        console.log("Got token: ", u);
-        return u.refresh_token;
-      });
-    });
-    var both = Q.all([program, refreshToken]);
+    var both = programAndToken(sharedProgramId);
     both.fail(function(err) {
-      console.log("Error in getting user/program data: ", err);
       res.status(404).send("No share information found for " + sharedProgramId);
       res.end();
     });
     both.then(function(both) {
-      console.log(both);
       var prog = both[0];
       var refreshToken = both[1];
-      console.log("Got program and refreshToken, getting access token: ", prog, refreshToken);
       auth.refreshAccess(refreshToken, function(err, newToken) {
-        console.log("refreshAccess: ", err, newToken);
         if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
         else {
           var drive = getDriveClient(newToken, 'v2');
           drive.files.get({fileId: sharedProgramId}, function(err, response) {
-            console.log("Get file: ", err, response);
             if(err) { res.status(400).send("Couldn't access shared file " + id); }
             else {
               res.send({
