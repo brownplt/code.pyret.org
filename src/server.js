@@ -79,9 +79,6 @@ function start(config, onServerReady) {
   app.set('view engine', 'html');
 
   app.use(express.static(__dirname + "/../build/web/"));
-  if(config.development) {
-    app.use(express.static(__dirname + "/../test-util/"));
-  }
 
   app.use(csrf());
 
@@ -125,6 +122,23 @@ function start(config, onServerReady) {
       next();
     });
   });
+
+  if(config.development) {
+    app.use(express.static(__dirname + "/../test-util/"));
+    app.get("/keys", function(req, res) {
+      var keys = db.getKeys(req.query.q);
+      keys.then(function(keys) {
+        res.status(200);
+        res.send(keys.join("<br/>"));
+        res.end();
+      });
+      keys.fail(function(err) {
+        res.status(500);
+        res.send(String(err));
+        res.end();
+      });
+    });
+  }
 
   app.get("/downloadImg", function(req, response) {
     var parsed = url.parse(req.url);
@@ -377,79 +391,101 @@ function start(config, onServerReady) {
     });
   });
 
-  function getDriveClient(token) {
+  function getDriveClient(token, version) {
     var client = new gapi.auth.OAuth2(
         config.google.clientId,
         config.google.clientSecret,
         config.baseUrl + config.google.redirect
       );
     client.setCredentials({
-      access_token: newToken
+      access_token: token
     });
 
-    var drive = gapi.drive({ version: 'v2', auth: client });
+    var drive = gapi.drive({ version: version, auth: client });
     return drive;
   }
 
   app.get("/shared-program-contents", function(req, res) {
-    var parsedLink = url.parse(req.selfLink);
-    console.log(parsedLink);
-    // Don't try redirecting to other places
-    if(parsedLink.hostname !== "drive.google.com") {
-      res.status(401);
-      res.send("Can only fetch contents for Drive files");
-      res.ent();
-      return;
-    }
-    var sharedProgramId = req.sharedProgramId;
+    console.log("contents req: ", req.query);
+    var sharedProgramId = req.query.sharedProgramId;
     var program = db.getSharedProgram(sharedProgramId);
     program.fail(function(err) {
       res.status(404).send("No account information found.");
       res.end();
     });
-    program.then(function(p) {
-      auth.refreshAccess(prog.userId, function(err, newToken) {
+    var refreshToken = program.then(function(prog) {
+      console.log("Fetching user data: ", prog);
+      var uP = db.getUserByGoogleId(prog.userId);
+      return uP.then(function(u) {
+        console.log("Got token: ", u);
+        return u.refresh_token;
+      });
+    });
+    var both = Q.all([program, refreshToken]);
+    both.fail(function(err) {
+      console.log("Error in getting user/program data: ", err);
+      res.status(404).send("No share information found for " + sharedProgramId);
+      res.end();
+    });
+    both.then(function(both) {
+      var prog = both[0];
+      console.log(prog);
+      var refreshToken = both[1];
+      auth.refreshAccess(refreshToken, function(err, newToken) {
         console.log("refreshAccess: ", err, newToken);
         if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
         else {
-          request({
-              url: req.selfLink,
-              headers: {
-                method: "get",
-                dataType: 'text',
-                headers: {'Authorization': 'Bearer ' + gapi.auth.getToken().access_token }
-              }
-            },
-            function(err, response, body) {
-              console.log("Download response: ", err, response, body);
-              if(err) {
-                res.status(400).send("Couldn't access shared file " + id); 
-              }
-              else {
-                res.status(200);
-                res.send(body);
-                res.end();
-              }
-            });
+          var drive = getDriveClient(newToken, 'v3');
+          drive.files.get({
+            fileId: prog.programId,
+            alt: "media"
+          }, function(err, response) {
+            console.log(err, response); 
+            if(!err) {
+              res.status(200);
+              res.set("content-type", "text/plain");
+              res.send(response);
+              res.end();
+            }
+            else {
+              res.status(400);
+              res.send("Unable to fetch shared file");
+              res.end();
+            }
+          });
         }
       })
     })
   });
 
-  app.get("/shared-program", function(req, res) {
-    var sharedProgramId = req.sharedProgramId;
+  app.get("/shared-file", function(req, res) {
+    var sharedProgramId = req.query.sharedProgramId;
     var program = db.getSharedProgram(sharedProgramId);
-    program.fail(function(err) {
+    var refreshToken = program.then(function(prog) {
+      console.log("Fetching user data: ", prog);
+      var uP = db.getUserByGoogleId(prog.userId);
+      return uP.then(function(u) {
+        console.log("Got token: ", u);
+        return u.refresh_token;
+      });
+    });
+    var both = Q.all([program, refreshToken]);
+    both.fail(function(err) {
+      console.log("Error in getting user/program data: ", err);
       res.status(404).send("No share information found for " + sharedProgramId);
       res.end();
     });
-    program.then(function(prog) {
-      auth.refreshAccess(prog.userId, function(err, newToken) {
+    both.then(function(both) {
+      console.log(both);
+      var prog = both[0];
+      var refreshToken = both[1];
+      console.log("Got program and refreshToken, getting access token: ", prog, refreshToken);
+      auth.refreshAccess(refreshToken, function(err, newToken) {
         console.log("refreshAccess: ", err, newToken);
         if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
         else {
-          var drive = getDriveClient(newToken);
-          drive.files.get({fileId: id}, function(err, response) {
+          var drive = getDriveClient(newToken, 'v2');
+          drive.files.get({fileId: sharedProgramId}, function(err, response) {
             console.log("Get file: ", err, response);
             if(err) { res.status(400).send("Couldn't access shared file " + id); }
             else {
@@ -457,7 +493,7 @@ function start(config, onServerReady) {
                 id: response.id,
                 modifiedDate: response.modifiedDate,
                 title: response.title,
-                selfLink: googFileObject.selfLink
+                selfLink: response.selfLink
               });
               res.status(200);
               res.end();

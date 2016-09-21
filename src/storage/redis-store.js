@@ -15,7 +15,8 @@ function makeStorage(client) {
 
   function getSharedProgram(programId) {
     var key = "shared_" + programId;
-    return Q.ninvoke(client, "hgetall", key);
+    console.log("Key to fetch: ", key);
+    return Q.ninvoke(client, "hgetall", [key]);
   }
 
   function createSharedProgram(programId, userId) {
@@ -23,12 +24,17 @@ function makeStorage(client) {
     return Q.ninvoke(client, "hmset", [key, "programId", programId, "userId", userId]).then(function(_) { return getSharedProgram(programId); });
   }
 
+  function getKeys(pattern) {
+    return Q.ninvoke(client, "keys", [pattern]);
+  }
+
   return {
     getUserByGoogleId: getUserByGoogleId,
     updateRefreshToken: updateRefreshToken,
     createUser: createUser,
     getSharedProgram: getSharedProgram,
-    createSharedProgram: createSharedProgram
+    createSharedProgram: createSharedProgram,
+    getKeys: getKeys
   };
 }
 

@@ -378,19 +378,20 @@ $(function() {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
   });
 
+  var pyretLoad = document.createElement('script');
+  console.log(process.env.PYRET);
+  pyretLoad.src = process.env.PYRET;
+  pyretLoad.type = "text/javascript";
+  document.body.appendChild(pyretLoad);
+  $(pyretLoad).on("error", function() {
+    $("#loader").hide();
+    $("#runPart").hide();
+    $("#breakButton").hide();
+    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+  });
+
   programLoaded.fin(function() {
-    var pyretLoad = document.createElement('script');
-    console.log(process.env.PYRET);
-    pyretLoad.src = process.env.PYRET;
-    pyretLoad.type = "text/javascript";
-    document.body.appendChild(pyretLoad);
     CPO.editor.focus();
-    $(pyretLoad).on("error", function() {
-      $("#loader").hide();
-      $("#runPart").hide();
-      $("#breakButton").hide();
-      window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
-    });
   });
 
 });

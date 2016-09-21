@@ -27,7 +27,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             }));
           }
           else {
-            return Q($.ajax("/shared-program-contents?" + googFileObject.selfLink, {
+            return Q($.ajax("/shared-program-contents?sharedProgramId=" + googFileObject.id, {
               method: "get",
               dataType: "text"
             }));
@@ -178,13 +178,19 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
           return makeSharedFile(googFileObject, true);
         });
         var fromServer = fromDrive.fail(function() {
-          return Q($.get("/get-shared-file", {
+          return Q($.get("/shared-file", {
             sharedProgramId: id
           })).then(function(googlishFileObject) {
             return makeSharedFile(googlishFileObject, false); 
           });
         });
-        return Q.any([fromDrive, fromServer]);
+        var result = Q.any([fromDrive, fromServer]);
+        result.then(function(r) {
+          console.log("Got result for shared file: ", r);
+        }, function(r) {
+          console.log("Got failure: ", r); 
+        });
+        return result;
       },
       getFiles: function(c) {
         return c.then(function(bc) {
