@@ -180,6 +180,10 @@ where:
     end, 4, default-options) does-not-raise
 end
 
+fun histogram-image(tab :: Table, n :: Number):
+  histogram(tab, n, _.{ interact: false })
+end
+
 fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> Image block:
   doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
@@ -197,6 +201,10 @@ where:
       row: 'dsa', 2
       row: 'qwe', 3
     end, default-options) does-not-raise
+end
+
+fun pie-chart-image(tab :: Table):
+  pie-chart(tab, _.{interact: false})
 end
 
 fun pie-chart-with-adjustable-radius(
@@ -236,6 +244,10 @@ fun bar-chart(
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
   P.bar-chart(nothing, options, tab._rows-raw-array, [list: ''], false)
+end
+
+fun bar-chart-image(tab :: Table, legend :: String):
+  bar-chart(tab, legend, _.{interact: false})
 end
 
 fun grouped-bar-chart(
