@@ -7,7 +7,8 @@
     './build/web/js/d3.js'
   ],
   provides: {},
-  theModule: function(RUNTIME, NAMESPACE, uri, IMAGE, jsnums, d3) {
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums, d3) {
+  'use strict';
 
   function assert(val, msg) {
     if (!val) { throw new Error('Assertion failed: ' + (msg || '')); }
@@ -26,8 +27,8 @@
      * @param {jsnums} oldY
      * @param {jsnums} newX
      * @param {jsnums} newY
-     * @param {boolean} toInt: if true, the result is converted to fixnum
-     * @return {Function}
+     * @param {boolean} toFixnum: if true, the result is converted to fixnum
+     * @return {jsnums -> jsnums}
      */
     return function (k) {
       var oldDiff = jsnums.subtract(k, oldX, RUNTIME.NumberErrbacks);
@@ -40,26 +41,12 @@
     };
   }
 
-  function adjustInRange(k, vmin, vmax) {
-    /*
-     * Adjust k to be between vmin and vmax if it's not in the range
-     *
-     * @param {jsnums} k
-     * @param {jsnums} vmin
-     * @param {jsnums} vmax
-     * @return {jsnums}
-     */
-    if (jsnums.lessThan(k, vmin, RUNTIME.NumberErrbacks)) return vmin;
-    else if (jsnums.lessThan(vmax, k, RUNTIME.NumberErrbacks)) return vmax;
-    else return k;
-  }
-
   function random(a, b) {
     return Math.floor(Math.random() * (b - a + 1)) + a;
   }
 
   function getPrettyNumToStringDigits(digits) {
-    return function(num) {
+    return function (num) {
       return jsnums.toStringDigits(num, digits, RUNTIME.NumberErrbacks).replace(/\.?0*$/, '');
     };
   }
@@ -81,7 +68,6 @@
 
   var libNum = {
     scaler: scaler,
-    adjustInRange: adjustInRange,
     between: between,
     getPrettyNumToStringDigits: getPrettyNumToStringDigits,
     numMin: numMin,
@@ -104,10 +90,10 @@
        * @author Paul Lewis
        * @param {Object} opts The params for drawing an image to the canvas
        */
-      if(!opts.canvas) {
+      if (!opts.canvas) {
           throw('A canvas is required');
       }
-      if(!opts.image) {
+      if (!opts.image) {
           throw('Image is required');
       }
 
@@ -252,17 +238,17 @@
   function shuffle(o){
     //+ Jonas Raoni Soares Silva
     //@ http://jsfromhell.com/array/shuffle [v1.0]
-    for(var j, x, i = o.length; i;
+    for (var j, x, i = o.length; i;
         j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
   }
 
   var libData = {
-    'lastElement': lastElement,
-    'flatten': flatten,
-    'fill': fill,
-    'range': range,
-    'shuffle': shuffle
+    lastElement: lastElement,
+    flatten: flatten,
+    fill: fill,
+    range: range,
+    shuffle: shuffle
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -279,7 +265,7 @@
   function convertColor(v) {
 
       function p(pred, name) {
-          return function(val) {
+          return function (val) {
               RUNTIME.makeCheckType(pred, name)(val);
               return val;
           };
@@ -333,15 +319,38 @@
   // d3common
   ////////////////////////////////////////////////////////////////////////////
 
-  function getDimension(obj) {
-    obj.svgWidth = obj.width + obj.marginLeft + obj.marginRight;
-    obj.svgHeight = obj.height + obj.marginTop + obj.marginBottom;
-    if (obj.windowWidth === null) {
-      obj.windowWidth = obj.svgWidth;
+  function getDimension(obj, windowOptions) {
+    var xscale = RUNTIME.getField(windowOptions, 'xscale');
+    var yscale = RUNTIME.getField(windowOptions, 'yscale');
+
+    if (!('maxWindowWidth' in obj)) {
+      obj.maxWindowWidth = 1250;
     }
-    if (obj.windowHeight === null) {
-      obj.windowHeight = obj.svgHeight;
+    if (!('maxWindowHeight' in obj)) {
+      obj.maxWindowHeight = 620;
     }
+
+    if (!('outerMarginLeft' in obj)) {
+      obj.outerMarginLeft = 0;
+    }
+    if (!('outerMarginRight' in obj)) {
+      obj.outerMarginRight = 0;
+    }
+    if (!('outerMarginTop' in obj)) {
+      obj.outerMarginTop = 0;
+    }
+    if (!('outerMarginBottom' in obj)) {
+      obj.outerMarginBottom = 0;
+    }
+
+    obj.windowWidth = scaler(0, 1, obj.minWindowWidth, obj.maxWindowWidth, true)(xscale);
+    obj.windowHeight = scaler(0, 1, obj.minWindowHeight, obj.maxWindowHeight, true)(yscale);
+
+    obj.svgWidth = obj.windowWidth - obj.outerMarginLeft - obj.outerMarginRight;
+    obj.svgHeight = obj.windowHeight - obj.outerMarginTop - obj.outerMarginBottom - 55; // title bar
+
+    obj.width = Math.floor(obj.svgWidth - obj.marginLeft - obj.marginRight);
+    obj.height = Math.floor(obj.svgHeight - obj.marginTop - obj.marginBottom);
     return obj;
   }
 
@@ -368,15 +377,20 @@
      */
     var divSvg = detached
       .append('div')
-      .attr('class', 'divsvg'),
+      .attr('class', 'divsvg')
+      .style({
+        left: dimension.outerMarginLeft + 'px',
+        top: dimension.outerMarginTop + 'px',
+        position: 'absolute'
+      }),
         canvas = divSvg
       .append('svg')
       .attr('width', dimension.svgWidth)
       .attr('height', dimension.svgHeight)
-      .style({left: 0, top: 0, position: 'absolute'})
       .append('g')
       .attr('class', 'maing')
       .append('g');
+
 
     var transformation = null;
     switch (dimension.mode) {
@@ -397,70 +411,137 @@
     return canvas.attr('transform', transformation);
   }
 
+  function getImageAsURL(detached) {
+    detached.select('svg')
+      .attr('version', 1.1)
+      .attr('xmlns', 'http://www.w3.org/2000/svg');
+    return 'data:image/svg+xml;base64,' + btoa(detached.node().firstChild.innerHTML);
+  }
+
   function onSave(detached) {
-    return function() {
-      detached = d3.select(detached);
-      var svg = detached.select('svg')
-              .attr('version', 1.1)
-              .attr('xmlns', 'http://www.w3.org/2000/svg'),
+    var svgData = detached.append('div').style('display', 'none');
+    var imgsrc = getImageAsURL(detached);
+    var svg = detached.select('svg');
+    var canvas = detached.append('canvas')
+      .style('display', 'none')
+      .attr('width', svg.attr('width'))
+      .attr('height', svg.attr('height'));
+    svgData.html('<img src="' + imgsrc + '">');
 
-          canvas = detached.append('canvas')
-              .style('display', 'none')
-              .attr('width', svg.attr('width'))
-              .attr('height', svg.attr('height')),
-
-          svgData = detached.append('div')
-              .style('display', 'none'),
-
-          html = detached.node().firstChild.innerHTML,
-
-          imgsrc = 'data:image/svg+xml;base64,' + btoa(html),
-
-          img = '<img src="' + imgsrc + '">';
-
-      svgData.html(img);
-
-      var image = new Image;
-      image.src = imgsrc;
-      image.onload = function () {
-          var opts = {
-              canvas: canvas.node(),
-              image: image
-          };
-          var a = document.createElement('a');
-          a.download = 'sample.png';
-          a.href = drawImage(opts).toDataURL('image/png');
-          a.click();
-
-          // the image's size was doubled everytime we click
-          // the button, so remove all data to prevent this
-          // to happen
-          svgData.remove();
-          canvas.remove();
+    var image = new Image;
+    image.src = imgsrc;
+    image.onload = function () {
+      var opts = {
+        canvas: canvas.node(),
+        image: image
       };
+      var a = document.createElement('a');
+      a.download = 'sample.png';
+      a.href = drawImage(opts).toDataURL('image/png');
+      a.click();
+
+      // somehow the image's size was doubled everytime we click
+      // the button, so remove all data to prevent this
+      // to happen
+      svgData.remove();
+      canvas.remove();
     };
   }
 
-  function callBigBang(detached, dimension, retVal, extra) {
+  function callBigBang(detached, restarter, resizer, windowOptions, dimension, retValFunc, extra) {
+    detached.select('.maing')
+      .append('text')
+      .attr('x', (dimension.marginLeft + dimension.width + dimension.marginRight) / 2)
+      .attr('y', dimension.height + dimension.marginTop + (8 * dimension.marginBottom / 11))
+      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, 'title')))
+      .style({
+        position: 'absolute',
+        'font-size': '8pt',
+        'text-anchor': 'middle'
+      });
+
     detached.selectAll('.overlay').style({
       fill: 'none',
       'pointer-events': 'all',
     });
 
-    RUNTIME.pauseStack(function(restarter) {
-      extra(restarter);
+    if (retValFunc === null) {
+      retValFunc = function (restarter) {
+        imageReturn(detached, restarter, function (x) { return x; });
+      };
+    }
+
+    if (RUNTIME.isPyretFalse(RUNTIME.getField(windowOptions, 'interact'))) {
+      RUNTIME.pauseStack(retValFunc);
+    }
+
+
+    var xscaler = libNum.scaler(
+      dimension.minWindowWidth,
+      dimension.maxWindowWidth,
+      0,
+      1
+    );
+
+    var yscaler = libNum.scaler(
+      dimension.minWindowHeight,
+      dimension.maxWindowHeight,
+      0,
+      1
+    );
+
+    var pauseStack;
+
+    if (RUNTIME.isNothing(restarter)) {
+      pauseStack = RUNTIME.pauseStack;
+    } else {
+      pauseStack = function (cb) { cb(restarter); };
+    }
+
+    pauseStack(function (restarter) {
+      if (extra !== null) {
+        extra(restarter);
+      }
       // detached.selectAll('.d3btn').style({
       //   'margin-right': '5px'
       // });
       RUNTIME.getParam('d3-port')(
         detached.node(),
-        dimension.windowWidth,
-        dimension.windowHeight + 55, // titlebar
-        function() {
-          restarter.resume(retVal);
+        function (baseOption) {
+          baseOption.width = dimension.windowWidth;
+          baseOption.height = dimension.windowHeight;
+          baseOption.minWidth = dimension.minWindowWidth;
+          baseOption.maxWidth = dimension.maxWindowWidth;
+          baseOption.minHeight = dimension.minWindowHeight - 11;
+          baseOption.maxHeight = dimension.maxWindowHeight - 11;
+          return baseOption;
         },
-        onSave,
-        'title goes here'
+        function (){ retValFunc(restarter); },
+        [
+          {
+            click: function () {
+              var width = jsnums.fromFixnum($('.maind3').parent().parent().width());
+              var height = jsnums.fromFixnum($('.maind3').parent().parent().height() + 11);
+              RUNTIME.getParam('remove-d3-port')();
+              resizer(
+                restarter,
+                RUNTIME.extendObj(
+                  RUNTIME.makeSrcloc("dummy location"),
+                  windowOptions,
+                  {
+                    xscale: xscaler(width),
+                    yscale: yscaler(height),
+                  }
+                )
+              );
+            },
+            icon: 'ui-icon-arrowthick-2-se-nw'
+          },
+          {
+            click: function (){ onSave(detached); },
+            icon: 'ui-icon-disk'
+          }
+        ]
       );
     });
   }
@@ -492,13 +573,33 @@
       stylizeTip: stylizeTip
   };
 
+  function imageReturn(detached, restarter, hook) {
+    var url = getImageAsURL(detached);
+    var rawImage = new Image();
+    rawImage.onload = function () {
+      restarter.resume(
+        hook(
+          RUNTIME.makeOpaque(
+            IMAGE.makeFileImage(url, rawImage),
+            IMAGE.imageEquals
+          )
+        )
+      );
+    };
+    rawImage.onerror = function (e) {
+      restarter.error(RUNTIME.ffi.makeMessageException("unable to load the image: " + e.message));
+    };
+    rawImage.src = url;
+  }
+
   return RUNTIME.makeJSModuleReturn({
-      libData: libData,
-      libNum: libNum,
-      libJS: libJS,
-      libColor: libColor,
-      d3common: d3common,
-      assert: assert,
+    libData: libData,
+    libNum: libNum,
+    libJS: libJS,
+    libColor: libColor,
+    d3common: d3common,
+    assert: assert,
+    imageReturn: imageReturn,
   });
 
   }
