@@ -20,58 +20,157 @@
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
     PP = runtime.getField(parsePyret, "values");
-
+    
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
     var shareAPI = makeShareAPI("");
+    
+    var highlightedPositions = [];
 
-    var marksByEditor = {}; // Map from editor-source to {mark-span, callback}
-    function addMark(source, editor, from, to, opts, cb) {
-      if (!marksByEditor[source])
-        marksByEditor[source] = [];
-      if (editor === undefined) {
-        console.trace();
-        console.error("Editor is undefined ", source, from, to, opts, cb);
-      }
-      marksByEditor[source].push({editor: editor, from: from, to: to, opts: opts, cb: cb});
-    }
-
-    function runMarks() {
-      var allMarks = marksByEditor;
-      var chunkSize = 100;
-      marksByEditor = {};
-      for (var source in allMarks) {
-        var marks = allMarks[source];
-        var editor = marks[0].editor; // these should be uniformly the same editor...
-        for (var i = 0; i < Math.ceil(marks.length / chunkSize); i++) {
-          function chunk(start, editor, marks) {
-            return function() {
-              editor.operation(function() {
-                for (var j = start; j < marks.length && j < start + chunkSize; j++) {
-                  //...but we'll use the right editor, just in case
-                  var mark = marks[j];
-                  var handle = mark.editor.markText(mark.from, mark.to, mark.opts);
-                  if (mark.cb)
-                    mark.cb(mark.editor, handle);
-                }
-              });
-            };
-          }
-          util.suspend(chunk(i * chunkSize, editor, marks));
+    var Position = function() {
+      
+      function cached_find(doc, positionCache, textMarker) {
+        var changeGeneration = doc.changeGeneration();
+        if (positionCache.has(changeGeneration))
+          return positionCache.get(changeGeneration);
+        else {
+          var pos = textMarker.find();
+          positionCache.set(changeGeneration, pos);
+          return pos;
         }
       }
-    }
-
-
-    function mapK(inList, f, k, outList) {
-      if (inList.length === 0) { k(outList || []); }
-      else {
-        var newInList = inList.slice(1, inList.length);
-        f(inList[0], function(v) {
-          mapK(newInList, f, k, (outList || []).concat([v]))
+    
+      function Position(doc, source, from, to, inclusiveLeft, inclusiveRight) {
+        if (inclusiveLeft === undefined)
+          inclusiveLeft = true;
+        if (inclusiveRight === undefined)
+          inclusiveRight = true;
+        this.inclusiveLeft  = inclusiveLeft;
+        this.inclusiveRight = inclusiveLeft;
+        
+        this.doc = doc;
+        this.source = source;
+        
+        var textMarker = doc.markText(from, to, this.options);
+        this._textMarker = textMarker;
+          
+        var positionCache = new Map();
+          
+        Object.defineProperty(this, 'from', {
+          get: function() {
+            var pos = cached_find(doc, positionCache, textMarker);
+            return pos !== undefined ? pos.from : undefined;
+          }
         });
+        
+        Object.defineProperty(this, 'to', {
+          get: function() {
+            var pos = cached_find(doc, positionCache, textMarker);
+            return pos !== undefined ? pos.to : undefined;
+          }
+        });
+        
+        positionCache.set(doc.changeGeneration(), {from: from, to: to});
       }
-    }
+      
+      Position.prototype.on = function on(type, f) {
+        this._textMarker.on(type, f);
+      };
+      
+      Position.prototype.off = function on(type, f) {
+        this._textMarker.off(type, f);
+      };
+      
+      Position.prototype.hint = function hint() {
+        if (this.from === undefined 
+            || !(this.doc.getEditor() instanceof CodeMirror)) {
+          flashMessage("This code is not in this editor.");
+        } else {
+          hintLoc(this);
+        }
+      };
+      
+      Position.prototype.goto = function goto() {
+        if (this.from === undefined 
+            || !(this.doc.getEditor() instanceof CodeMirror)) {
+          flashMessage("This code is not in this editor.");
+        } else {
+          this.doc.getEditor().getWrapperElement().scrollIntoView(true);
+          this.doc.getEditor().scrollIntoView(this.from.line, 50);
+          unhintLoc();
+        }
+      };
+      
+      Position.prototype.toString = function toString() {
+        return (this.source 
+          + ":" + this.from.line + ":" + this.from.ch 
+          + "-" + this.to.line   + ":" + this.to.ch);
+      };
+      
+      Position.prototype.highlight = function highlight(color) {
+        if (this.from === undefined)
+          return;
+        if (this.highlighter !== undefined)
+          this.highlighter.clear();
+        if (color === undefined) {
+          this.highlighter = undefined;
+          return;
+        }
+        this.highlighter = this.doc.markText(this.from, this.to,
+          { inclusiveLeft   : this.inclusiveLeft,
+            inclusiveRight  : this.inclusiveRight,
+            shared          : false,
+            clearOnEnter    : true,
+            css             : "background-color:" + color });
+        this.highlighter.on('clear', function (_) {
+          this.highlighter === undefined;
+        });
+      };
+      
+      Position.prototype.spotlight = function spotlight() {
+        return this.doc.markText(this.from, this.to,
+          { inclusiveLeft   : this.inclusiveLeft,
+            inclusiveRight  : this.inclusiveRight,
+            shared          : false,
+            className       : "spotlight" });
+      };
+      
+      Position.prototype.blink = function highlight(color) {
+        if (this.highlighter !== undefined)
+          this.highlighter.clear();
+        if (color === undefined)
+          return;
+        this.highlighter = this.doc.markText(this.from, this.to,
+          { inclusiveLeft   : this.inclusiveLeft,
+            inclusiveRight  : this.inclusiveRight,
+            shared          : false,
+            className       : "highlight-blink",
+            css             : "background-color:" + color + ";" });
+      };
+      
+      Position.fromPyretSrcloc = function (runtime, srcloc, loc, documents, options) {
+        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+          "builtin": function(_) {
+             throw new Error("Cannot get Position from builtin location", loc);
+          },
+          "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
+            if (!documents.has(source))
+              throw new Error("No document for this location: ", loc);
+            else {
+              var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
+              return new Position(
+                documents.get(source),
+                source,
+                new CodeMirror.Pos(startL - 1, startC),
+                new CodeMirror.Pos(  endL - 1, endC + extraCharForZeroWidthLocs),
+                options);
+            }
+          }
+        });
+      };
+
+      return Position;
+    }();
 
     function expandableMore(dom) {
       var container = $("<div>");
@@ -89,7 +188,6 @@
       lessLink.hide();
       return container;
     }
-
 
     function expandable(dom, name) {
       var container = $("<div>");
@@ -110,17 +208,7 @@
       return container;
     }
 
-    //http://stackoverflow.com/a/7627603
-    function cssSanitize(name) {
-      return name.replace(/[^a-z0-9]/g, function(s) {
-          var c = s.charCodeAt(0);
-          if (c == 32) return '-';
-          if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
-          return '__' + ('000' + c.toString(16)).slice(-4);
-      });
-    }
-
-    function getLastUserLocation(runtime, srcloc, editors, e, ix, local) {
+    function getLastUserLocation(runtime, srcloc, documents, e, ix, local) {
       var srclocStack = e.map(runtime.makeSrcloc);
       var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
       var userLocs = srclocStack.filter(function(l) {
@@ -134,278 +222,55 @@
       return probablyErrorLocation;
     }
 
-    var warnDesired = 0;
-    var warnWait = 250;
-    var warnDuration = 5000;
-    var fadeAmt = 0.5;
+    function hintLoc(position) {
+      $(".warning-upper.hinting, .warning-lower.hinting").removeClass("hinting");
+      
+      var editor = position.doc.getEditor();
+      
+      if (!(editor instanceof CodeMirror))
+        throw new Error("Source location not in editor", position);
+      
+      var coord = editor.charCoords(
+        {line: position.from.line, ch:0},
+        position.source === "definitions://" ? "local" : "page");
 
-    function setWarningState(obj) {
-      var opacity = Number(obj.css("opacity"));
-      if (warnDesired !== opacity) {
-        // Only act if the warning is all the way in or out.  The '1'
-        // in the following test is because the initial state is
-        // opacity = 1, though the element is not visible.
-        if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
-          if (warnDesired === 0) {
-            obj[0].style.pointerEvents = "none";
-          } else {
-            obj[0].style.pointerEvents = "all";
-          }
-          if (warnDesired === fadeAmt) {
-            obj.fadeTo("fast", fadeAmt, function() {
-              setTimeout(function() {
-                obj.fadeTo("slow", 0.0);
-                warnDesired = 0;
-              }, warnDuration);});
-          } else {
-            obj.fadeTo("fast", 0.0);
-          }
+        var viewportMin;
+        var viewportMax;
+
+        if (position.source === "definitions://") {
+          var scrollInfo = editor.getScrollInfo();
+          viewportMin = scrollInfo.top;
+          viewportMax = scrollInfo.clientHeight + viewportMin;
+        } else {
+          var repl = document.querySelector('.repl');
+          viewportMin = repl.scrollTop;
+          viewportMax = viewportMin + repl.scrollHeight;
         }
-      }
-    }
 
-    function hintLoc(runtime, editors, srcloc, loc) {
-      var editor = editors[runtime.getField(loc, "source")];
-      if(!editor) { return; }
-      var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-      var locKey = cmlocToCSSClass(cmLoc);
-      var view = editor.getScrollInfo();
-      var charCh = editor.charCoords(cmLoc.start, "local");
-      $("."+locKey).addClass("hover");
-      if (view.top > charCh.top) {
-        warnDesired = fadeAmt;
-        var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
-        setTimeout(function() {setWarningState(warningUpper);}, warnWait);
-      } else if (view.top + view.clientHeight < charCh.bottom) {
-        warnDesired = fadeAmt;
-        var warningLower = jQuery(editor.getWrapperElement()).find(".warning-lower");
-        setTimeout(function() {setWarningState(warningLower);}, warnWait);
-      }
-    }
+        var direction;
+        var TOP     = 0,
+            BOTTOM  = 1;
 
-    function unhintLoc(runtime, editors, srcloc, loc) {
-      var editor = editors[runtime.getField(loc, "source")];
-      if(!editor) { return; }
-      var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-      var locKey = cmlocToCSSClass(cmLoc);
-      $("."+locKey).removeClass("hover");
-      warnDesired = 0;
-      setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
-                 warnWait);
-      setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
-                 warnWait);
-    }
-
-    function gotoLoc(runtime, editors, srcloc, loc) {
-      var editor = editors[runtime.getField(loc, "source")];
-      if(!editor) { return; }
-      var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-      warnDesired = 0;
-      jQuery(".warning-upper").fadeOut("fast");
-      jQuery(".warning-lower").fadeOut("fast");
-      editor.scrollIntoView(cmLoc.start, 100)
-    }
-
-    function hoverSrclocAnchor(runtime, editors, srcloc, elt, loc) {
-      var warnDesired = 0;
-      var warnWait = 250;
-      var warnDuration = 5000;
-      var fadeAmt = 0.5;
-
-      var editor = editors[runtime.getField(loc, "source")];
-      if(!editor) { return; }
-      cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-      var locKey = cmlocToCSSClass(cmLoc);
-      function setWarningState(obj) {
-        var opacity = Number(obj.css("opacity"));
-        if (warnDesired !== opacity) {
-          // Only act if the warning is all the way in or out.  The '1'
-          // in the following test is because the initial state is
-          // opacity = 1, though the element is not visible.
-          if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
-            if (warnDesired === fadeAmt) {
-              obj.fadeTo("fast", fadeAmt, function() {
-                setTimeout(function() {
-                  obj.fadeTo("slow", 0.0);
-                  warnDesired = 0;
-                }, warnDuration) });
-            } else {
-              obj.fadeTo("fast", 0.0);
-            }
-          }
+        if(coord.top < viewportMin) {
+          direction = TOP
+        } else if (coord.top > viewportMax) {
+          direction = BOTTOM;
+        } else {
+          return;
         }
-      }
 
-      elt.on("mouseenter", function() {
-        var view = editor.getScrollInfo();
-        var charCh = editor.charCoords(cmLoc.start, "local");
-        $("."+locKey).addClass("hover");
-        if (view.top > charCh.top) {
-          warnDesired = fadeAmt;
-          var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
-          setTimeout(function() {setWarningState(warningUpper);}, warnWait);
-        } else if (view.top + view.clientHeight < charCh.bottom) {
-          warnDesired = fadeAmt;
-          var warningLower = jQuery(editor.getWrapperElement()).find(".warning-lower");
-          setTimeout(function() {setWarningState(warningLower);}, warnWait);
-        }
-      });
+        var hinter = document.querySelector(
+            ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
+          + " > "
+          + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
 
-      elt.on("mouseleave", function() {
-        $("."+locKey).removeClass("hover");
-        warnDesired = 0;
-        setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
-                   warnWait);
-        setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
-                   warnWait);
-      });
-
-      elt.on("click", function() {
-        warnDesired = 0;
-        jQuery(".warning-upper").fadeOut("fast");
-        jQuery(".warning-lower").fadeOut("fast");
-        editor.scrollIntoView(cmLoc.start, 100)
-      });
+        hinter.classList.add("hinting");
     }
 
-    function hoverLocs(editors, runtime, srcloc, elt, locs, cls) {
-      var get = runtime.getField;
-      var cases = runtime.ffi.cases;
-
-      function highlightSrcloc(s, cls, withMarker) {
-        return runtime.safeCall(function() {
-          return cases(get(srcloc, "is-Srcloc"), "Srcloc", s, {
-            "builtin": function(_) { /* no-op */ },
-            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-              var cmLoc = cmPosFromSrcloc(runtime, srcloc, s);
-              var editor = editors[source];
-              if(editor) {
-                return editor.markText(
-                  cmLoc.start,
-                  cmLoc.end,
-                  { className: cls });
-              } else {
-                return null;
-              }
-            }
-          });
-        }, withMarker, "highlightSrcloc");
-      }
-
-      // There are warnings to show indicating whether the check output
-      // is from a check that is currently off screen.  The problem is
-      // that the repl output is a bunch of little elements, so moving
-      // from one line to another of the check output is likely to
-      // trigger a mouseleave and then a mouseenter event. Showing the
-      // warnings in a sensible way (not having them flicker in and out)
-      // involves ignoring some of these transitions.
-      //
-      // The other problem is that the mouse events are not 100%
-      // reliable. That is, a fast swipe through a bunch of small areas
-      // is probably not going to provide an even number of enter and
-      // leave events. More likely one or more enter and leave events
-      // will be skipped.  So we arrange for a fadeout of the warning
-      // after a few seconds.
-
-      // Set this to the opacity desired for the warning.  This should
-      // be either fadeAmt or zero.
-      var warnDesired = 0;
-      // These are just fixed parameters and can be eliminated if
-      // efficiency demands it.
-      var warnWait = 250;
-      var warnDuration = 5000;
-      var fadeAmt = 0.5;
-
-      function setWarningState(obj) {
-
-        var opacity = Number(obj.css("opacity"));
-
-        if (warnDesired !== opacity) {
-          // Only act if the warning is all the way in or out.  The '1'
-          // in the following test is because the initial state is
-          // opacity = 1, though the element is not visible.
-          if ((opacity === 0) || (opacity === fadeAmt) || (opacity === 1)) {
-            if (warnDesired === fadeAmt) {
-              obj.fadeTo("fast", fadeAmt, function() {
-                setTimeout(function() {
-                  obj.fadeTo("slow", 0.0);
-                  warnDesired = 0;
-                }, warnDuration) });
-            } else {
-              obj.fadeTo("fast", 0.0);
-            }
-          }
-        }
-      }
-      var cases = runtime.ffi.cases;
-      var get = runtime.getField;
-      // CLICK to *cycle* through locations
-      var marks = [];
-      elt.on("mouseenter", function() {
-        var curLoc = locs[locIndex];
-        var editor = editors[get(curLoc, "source")];
-        if(!editor) { return; }
-        if (jQuery(editor.getWrapperElement()).find(".warning-upper").length !== 0) {
-          var view = editor.getScrollInfo();
-          cases(get(srcloc, "is-Srcloc"), "Srcloc", curLoc, {
-            "builtin": function(_) { },
-            "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-              var charCh = editor.charCoords(cmPosFromSrcloc(runtime, srcloc, curLoc).start, "local");
-              if (view.top > charCh.top) {
-                warnDesired = fadeAmt;
-                // We set a timeout so that a quick pass through the area
-                // won't bring up the warning.
-                var warningUpper = jQuery(editor.getWrapperElement()).find(".warning-upper");
-                setTimeout(function() { setWarningState(warningUpper); },
-                           warnWait);
-              } else if (view.top + view.clientHeight < charCh.bottom) {
-                warnDesired = fadeAmt;
-                var warningLower = jQuery(editor.getWrapperElement()).find(".warning-lower");
-                setTimeout(function() { setWarningState(warningLower); },
-                           warnWait);
-              }
-            }
-          });
-        }
-        mapK(locs, function(l, k) { highlightSrcloc(l, cls, k); }, function(ms) {
-          marks = marks.concat(ms.filter(function(m) { return m !==  null; }));
-        });
-      });
-      elt.on("mouseleave", function() {
-        warnDesired = 0;
-        setTimeout(function() { setWarningState(jQuery(".warning-upper"));},
-                   warnWait);
-        setTimeout(function() { setWarningState(jQuery(".warning-lower"));},
-                   warnWait);
-
-        marks.forEach(function(m) { return m && m.clear(); })
-        marks = [];
-      });
-      var locIndex = 0;
-      if (locs.filter(function(e) { return runtime.isObject(e) && get(srcloc, "is-srcloc").app(e); }).length > 0) {
-        elt.on("click", function() {
-          warnDesired = 0;
-          jQuery(".warning-upper").fadeOut("fast");
-          jQuery(".warning-lower").fadeOut("fast");
-          function gotoNextLoc() {
-            var curLoc = locs[locIndex];
-            var editor = editors[get(curLoc, "source")];
-            if(!editor) { return; }
-            function rotateLoc() { locIndex = (locIndex + 1) % locs.length; }
-
-            return cases(get(srcloc, "is-Srcloc"), "Srcloc", curLoc, {
-              "builtin": function(_) { rotateLoc(); gotoNextLoc(); },
-              "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-                editor.scrollIntoView(cmPosFromSrcloc(runtime, srcloc, curLoc).start, 100);
-                rotateLoc();
-              }
-            });
-          }
-          gotoNextLoc();
-        });
-      }
+    function unhintLoc() {
+      $(".warning-upper.hinting, .warning-lower.hinting").removeClass("hinting");
     }
-
+    
     function basename(str) {
        var base = new String(str).substring(str.lastIndexOf('/') + 1);
        if(base.lastIndexOf(".") != -1)
@@ -440,95 +305,19 @@
       var mydriveIndex = filename.indexOf(mydrivePrefix);
       return mydriveIndex === 0;
     }
+
     function isJSImport(filename) {
       var jsdriveIndex = filename.indexOf(jsdrivePrefix);
       return jsdriveIndex === 0;
     }
+
     function getJSFilename(filename) {
       var path = filename.slice(jsdrivePrefix.length);
       var id = basename(path);
       return id;
     }
 
-    function cmlocToCSSClass(cmloc) {
-      return cssSanitize(
-        "" + cmloc.source
-        + "-" + cmloc.start.line
-        + "-" + cmloc.start.ch
-        + "-" + cmloc.end.line
-        + "-" + cmloc.end.ch);
-    }
-
-    function hoverLink(editors, runtime, srcloc, dom, loc, className) {
-      // http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript
-      var cases = runtime.ffi.cases;
-      var get = runtime.getField;
-      if(!runtime.hasField(loc, "source")) {
-        var module = runtime.unwrap(get(loc, "module-name"));
-        dom.attr("title", get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(module) + " if you want more information.");
-        return;
-      }
-      var src = runtime.unwrap(get(loc, "source"));
-      if (!editors.hasOwnProperty(src)) {
-        if(isSharedImport(src)) {
-          /*var url = shareAPI.makeShareUrl(getSharedId(src));
-          var hoverDiv = $("<div>").addClass("module-info-hover").append(
-          get(loc, "format").app(true) +
-          You can see the file ",
-          $("<a>").attr({"href": url, "target": "_blank"}).text("here"),
-          ".");
-          shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});*/
-          var msg = "This code is in a shared module on Google Drive. Click to open the file.";
-          return errorTooltip(dom, msg);
-        }
-        else if(isGDriveImport(src)) {
-          /* var hoverDiv = $("<div>").addClass("module-info-hover").append(
-            get(loc, "format").app(true) +
-          shareAPI.makeHoverMenu(dom, hoverDiv, true, function() {});*/
-          var msg = "This code is in your Google Drive in the file named " + basename(src) + ".";
-          return errorTooltip(dom, msg);
-        }
-        else if(isJSImport(src)) {
-          dom.attr("title", get(loc, "format").app(true) + ":  This code is part of a library defined in " + getJSFilename(src));
-          dom.tooltip();
-          return dom;
-        }
-        else {
-          var msg = get(loc, "format").app(true) + ":  This code is internal to Pyret.  Try searching the documentation for " + basename(get(loc, "source")) + " if you want more information.";
-          return errorTooltip(dom, msg);
-        }
-      }
-      else {
-        hoverLocs(editors, runtime, srcloc, dom, [loc], className);
-      }
-    }
-
-    function errorTooltip(dom, msg){
-      dom.attr("title", msg);
-      dom.tooltip();
-      return dom;
-    }
-
-    function drawCMloc(editors, cmloc) {
-      var srcElem = $("<a>").addClass("srcloc").text(cmloc.source);
-      if(editors.hasOwnProperty(cmloc.source)) {
-        return srcElem;
-      } else if(isSharedImport(cmloc.source)) {
-        var sharedId = getSharedId(cmloc.source);
-        var srcUrl = shareAPI.makeShareUrl(sharedId);
-        return srcElem.attr({href: srcUrl, target: "_blank"});
-      } else if(isGDriveImport(cmloc.source)) {
-        var MyDriveId = getMyDriveId(cmloc.source);
-        var srcUrl = makeMyDriveUrl(MyDriveId);
-        return srcElem.attr({href: srcUrl, target: "_blank"});
-      } else if(isJSImport(cmloc.source)) {
-        return srcElem;
-      } else {
-        return srcElem;
-      }
-    }
-
-    function drawSrcloc(editors, runtime, s) {
+    function drawSrcloc(documents, runtime, s) {
       if (!s) { return $("<span>"); }
       var get = runtime.getField;
       var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
@@ -536,7 +325,7 @@
         return srcElem;
       }
       var src = runtime.unwrap(get(s, "source"));
-      if(!editors.hasOwnProperty(src)) {
+      if(!(documents.has(src) && (documents.get(src).getEditor() !== undefined))) {
         if(isSharedImport(src)) {
           var sharedId = getSharedId(src);
           var srcUrl = shareAPI.makeShareUrl(sharedId);
@@ -550,35 +339,34 @@
         else if(isJSImport(src)) {
           /* NOTE(joe): No special handling here, since it's opaque code */
         }
+        srcElem.on("mouseover", function() {
+          flashMessage("This code is not in this editor.");
+        }).on("mouseleave", clearFlash);
       }
       return srcElem;
     }
-
-    function cmPosFromSrcloc(runtime, srcloc, loc) {
-      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
-        "builtin": function(_) {
-           throw new Error("Cannot get CodeMirror loc from builtin location");
-        },
-        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-          var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
-          return {
-            source: source,
-            start: { line: startL - 1, ch: startC },
-            end: { line: endL - 1, ch: endC + extraCharForZeroWidthLocs }
-          };
-        }
-      });
-    }
-
-    function emphasizeLine(editors, cmloc) {
-      var editor = editors[cmloc.source];
-      if(!editor) return;
-      for(var i = cmloc.start.line; i <= cmloc.end.line; i++) {
-        setTimeout(
-          function(){editor.removeLineClass(this, "background", "emphasize-line");}
-            .bind(editor.addLineClass(i, "background", "emphasize-line")),
-          500);
+    
+    function drawPosition(position) {
+      var srcElem = $("<a>").addClass("srcloc").text(position.toString());
+      if(isSharedImport(position.source)) {
+        var sharedId = getSharedId(position.source);
+        var srcUrl = shareAPI.makeShareUrl(sharedId);
+        return srcElem.attr({href: srcUrl, target: "_blank"});
       }
+      else if(isGDriveImport(position.source)) {
+        var MyDriveId = getMyDriveId(position.source);
+        var srcUrl = makeMyDriveUrl(MyDriveId);
+        srcElem.attr({href: srcUrl, target: "_blank"});
+      }
+      else if(isJSImport(position.source)) {
+        /* NOTE(joe): No special handling here, since it's opaque code */
+      }
+      srcElem.on("mouseover", position.hint);
+      srcElem.on("mouseleave", function() {
+        clearFlash();
+        unhintLoc();
+      });
+      return srcElem;
     }
 
     var converter = $.colorspaces.converter('CIELAB', 'hex');
@@ -592,17 +380,15 @@
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
     
-    function makeSrclocAvaliable(runtime, editors, srcloc) {
+    function makeSrclocAvaliable(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
           "builtin": function(_) {
             console.error("srclocAvaliable should not be passed a builtin source location.", srcloc);
             return runtime.pyretFalse;
           },
-          "srcloc": function(filename, _, _, _, _, _, _) {
-            if(editors.hasOwnProperty(filename)) {
-              return runtime.pyretTrue;
-            } else if (!!sessionStorage.getItem(filename)) {
+          "srcloc": function(filename, _, __, ___, ____, _____, ______) {
+            if (documents.has(filename)) {
               return runtime.pyretTrue;
             } else {
               return runtime.pyretFalse;
@@ -612,70 +398,55 @@
       });
     }
     
-    function getSourceContent(editors, cmloc, tight) {
-      if(editors.hasOwnProperty(cmloc.source)) {
-        if(!tight) {
-          cmloc =
-            {start:{
-              line: cmloc.start.line,
-              ch: 0},
-             end:{
-              line: cmloc.end.line,
-              ch: editors[cmloc.source].getLine(cmloc.end.line).length}};
-        }
-        return editors[cmloc.source].getRange(cmloc.start, cmloc.end);
-      } else {
-        var source = sessionStorage.getItem(cmloc.source);
-        if(!source) {
-          return undefined;
-        }
-        var lines = source.split("\n").slice(cmloc.start.line, cmloc.end.line + 1);
-        if(tight) {
-          lines[lines.length - 1] = lines[lines.length - 1].substr(0, cmloc.end.ch);
-          lines[0] = lines[0].substr(cmloc.start.ch);
-        }
-        return lines.join("\n");
-      }
-    }
-    
-    function makeMaybeLocToAST(runtime, editors, srcloc) {
+    function makeMaybeLocToAST(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
           "builtin": function(_) {
             console.error("maybeLocToAST should not be passed a builtin source location.", loc);
             return runtime.ffi.makeNone();
           },
-          "srcloc": function(filename, start_line, start_col, startCh, endL, endC, endCh) {
+          "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
             var prelude = ""
             for(var i=1; i < start_line; i++) {prelude += "\n";}
             for(var i=0; i < start_col; i++)  {prelude += " "; }
-            var source = getSourceContent(editors, cmPosFromSrcloc(runtime, srcloc, loc), true);
-            if(source === undefined) {
+            if(!documents.has(filename))
               return runtime.ffi.makeNone();
-            } else {
-              runtime.pauseStack(function(restarter) {
-                runtime.run(function(_, __) {
-                  return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
-                }, runtime.namespace, {
-                  sync: false
-                }, function(result) {
-                  if(runtime.isSuccessResult(result)) {
-                    restarter.resume(runtime.ffi.makeSome(result.result.dict.block.dict.stmts.dict.first));
+            var start = new CodeMirror.Pos(start_line - 1, start_col);
+            var   end = new CodeMirror.Pos(  end_line - 1,   end_col);
+            var source = documents.get(filename).getRange(start, end);
+            runtime.pauseStack(function(restarter) {
+              runtime.runThunk(function() {
+                return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
+              }, function(result) {
+                if(runtime.isSuccessResult(result)) {
+                  var res = result.result;
+                  res = res && res.dict.block;
+                  res = res && res.dict.stmts;
+                  res = res && res.dict.first;
+                  if (res) {
+                    restarter.resume(runtime.ffi.makeSome(res));
                   } else {
+                    console.error(
+                      'Unexpected failure in extracting first expresion in AST:',
+                      '\nRequested Location:\t', {from: start, to: end},
+                      '\nProgram Source:\t', source,
+                      '\nParse result:\t', result);
                     restarter.resume(runtime.ffi.makeNone());
                   }
-                });
+                } else {
+                  restarter.resume(runtime.ffi.makeNone());
+                }
               });
-            }
+            });
           }
         });
       });
     }
     
-    function makeMaybeStackLoc(runtime, editors, srcloc, stack) {
+    function makeMaybeStackLoc(runtime, documents, srcloc, stack) {
       return runtime.makeFunction(function(n, userFramesOnly) {
         var probablyErrorLocation;
-        if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, editors, stack, n, false); }
+        if (userFramesOnly) { probablyErrorLocation = getLastUserLocation(runtime, srcloc, documents, stack, n, false); }
         else if (stack.length >= n) { probablyErrorLocation = runtime.makeSrcloc(stack[n]); }
         else { probablyErrorLocation = false; }
         if (probablyErrorLocation) {
@@ -685,278 +456,239 @@
         }
       });
     }
-      
-    function highlightSrcloc(runtime, editors, srcloc, loc, cssColor, context, underline) {
-      if (underline === undefined) underline = true;
-      var styles = document.getElementById("highlight-styles").sheet;
-      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
-        "builtin": function(_) { /* no-op */ },
-        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-          var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-          var locKey = cmlocToCSSClass(cmLoc);
-          var editor = editors[source];
-          if(editor) {
-            styles.insertRule(
-                  ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
-                   + " ." + locKey + " { " + (!!cssColor ? "background-color:" + cssColor : "") +
-                  (underline ? ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid" : "") + ";}",
-                  styles.cssRules.length);
-            addMark(source, editor, cmLoc.start, cmLoc.end,
-                    {className: locKey + " highlight", shared: false});
-          }
-          return undefined;
-        }
-      });
-    }
 
-    function highlightLines(runtime, editors, srcloc, loc, cssColor, context) {
-      var styles = document.getElementById("highlight-styles").sheet;
-      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
-        "builtin": function(_) { /* no-op */ },
-        "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
-          var cmLoc = cmPosFromSrcloc(runtime, srcloc, loc);
-          var locKey = cmlocToCSSClass(cmLoc);
-          var editor = editors[source];
-          if(editor) {
-            styles.insertRule(
-                  ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
-                  + " ." + locKey + " { background-color:" + cssColor + ";}",
-                  0);
-            for(var i=cmLoc.start.line;i<=cmLoc.end.line;i++){
-              editor.addLineClass(i,"background",locKey);
-            }
-            return locKey;
-          } else {
-            return null;
-          }
-        }
-      });
-    }
-
-    function spotlight(editors, cmloc) {
-      if(!(cmloc.source in editors))
-        throw new Error("Cannot spotlight a location not shown in the editor.");
-      var styles = document.getElementById("highlight-styles").sheet;
-      var lockey = "spotlight-" + cmlocToCSSClass(cmloc);
-      addMark(cmloc.source, editors[cmloc.source], cmloc.start, cmloc.end,
-              {className: lockey,
-               inclusiveLeft: false,
-               inclusiveRight:false,
-               shared: false,
-               clearWhenEmpty: true,
-               addToHistory: false});
-      var editorSelector = (cmloc.source == "definitions://"
-        ? " > div.replMain "
-        : " .repl-echo ");
-      styles.insertRule(
-        "#main[data-highlights=" + lockey + "]"
-        + editorSelector + " div.CodeMirror > div > pre > span > span:not(."
-        + lockey + "){opacity:0.4;}", 0);
-      styles.insertRule(
-        "#main[data-highlights=" + lockey + "]"
-        + editorSelector + " span." + lockey + "{background:white!important;"
-                    + "border-top: 0.1em solid white!important;"
-                    + "border-bottom: 0.1em solid white!important; }", 0);
-      return lockey;
-    }
-
-    function snippet(editors, featured, srcloc, ul) {
-      var cmloc = featured;
-      var lockey = "snippet-" + cmlocToCSSClass(cmloc);
-      var snippetWrapper = $("<div>");
-      
-      if(cmloc.source in editors
-       || !!sessionStorage.getItem(cmloc.source)) {
-        snippetWrapper.addClass("cm-snippet");
-        var endch;
-        var source;
-        if (featured.source in editors) {
-          var cmsrc = editors[featured.source];
-          endch = cmsrc.getLine(cmloc.end.line).length;
-          source = cmsrc.getRange(
-            {line: cmloc.start.line, ch: 0},
-            {line: cmloc.end.line, ch: endch});
-        } else {
-          var sourceArr = sessionStorage.getItem(cmloc.source)
-              .split("\n")
-              .slice(featured.start.line, featured.end.line + 1);
-          source = sourceArr.join("\n");
-          endch = sourceArr[sourceArr.length - 1].length;
-        }
-
-        var hack = $("<div>").addClass("repl"); // needed for proper CSS styling of the CM below
-        $(document.body).append(hack.append(snippetWrapper.css("position", "absolute").css("top", "-50000px")));
-        var cmSnippet = CodeMirror(snippetWrapper[0],{
-          value: source,
-          readOnly: "nocursor",
-          disableInput: true,
-          indentUnit: 2,
-          lineWrapping: false,
-          lineNumbers: true,
-          viewportMargin: 0,
-          scrollbarStyle: "null"});
-        cmSnippet.refresh(); // compute initial view
-        snippetWrapper.detach().css("position","").css("top", ""); // undo any CSS stupidity and remove
-        hack.remove(); // from document
-        
-          
-        if(cmloc.source in editors) {
-          var cmsrc = editors[featured.source];
-          addMark(
-            featured.source, cmsrc, cmloc.start, cmloc.end,
-            {className: lockey,
-             inclusiveLeft: false,
-             inclusiveRight:false,
-             shared: false,
-             clearWhenEmpty: true,
-             addToHistory: false},
-            function(cmsrc, handle) {
-              if(cmloc.source.startsWith("interactions")) {
-                cmSnippet.setOption("lineNumberFormatter",
-                                    function(line) {
-                                      return ">";
-                                    });
-              } else {
-                cmSnippet.setOption("lineNumberFormatter",
-                                    function(line) {
-                                      var handleLoc = handle.find();
-                                      return (handleLoc === undefined) ? " ": handleLoc.from.line + line;
-                                    });
-                // Refresh the gutters when a change is made to the source document
-                var refresh = function(cm, change) {
-                  cmsrc.off("change", refresh);
-                  cmSnippet.setOption("lineNumbers",false);
-                  cmSnippet.setOption("lineNumbers",true);
-                };
-                // NOTE(joe): come back to this
-                cmsrc.on("change", refresh);
-                handle.on("clear", function(){cmsrc.off("change", refresh); });
-              }
-            });
-        } else {
-          cmSnippet.setOption("firstLineNumber", cmloc.start.line);
-        }
-        // Fade areas outside featured range
-        cmSnippet.getDoc().markText(
-          {line: 0, ch: 0},
-          {line: 0, ch: cmloc.start.ch},
-          {className: "highlight-irrelevant"});
-        cmSnippet.getDoc().markText(
-          {line: cmloc.end.line - cmloc.start.line, ch: cmloc.end.ch},
-          {line: cmloc.end.line - cmloc.start.line, ch: endch},
-          {className: "highlight-irrelevant"});
-        // render header
-        snippetWrapper.prepend(
-          $("<header>").append(drawCMloc(editors, cmloc)));
-        snippetWrapper[0].cmrefresh = function(){cmSnippet.refresh();};
-        return {wrapper: snippetWrapper.addClass("cm-future-snippet"), editor: cmSnippet, featured: featured};
-      } else {
-        snippetWrapper.append($("<span>").text(runtime.getField(ul, "format").app(runtime.pyretTrue)));
-        snippetWrapper[0].cmrefresh = function(){};
-        return {wrapper: snippetWrapper, featured: featured};
-      }
-    }
-
-    function renderStackTrace(runtime, editors, srcloc, error) {
-      var srclocStack = error.pyretStack.map(runtime.makeSrcloc);
-      var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
-      var userLocs = srclocStack.filter(function(l) { return l && isSrcloc(l); });
-      var contextManager = document.getElementById("main").dataset;
-      var currentHighlight;
-      var container = $("<div>").addClass("stacktrace")
-        .on('mouseenter', function(){
-          if(!contextManager.highlights.startsWith("spotlight")) {
-            currentHighlight = contextManager.highlights;
-            contextManager.highlights = "spotlight";
-          }
-        })
-        .on('mouseleave', function(){
-          contextManager.highlights = currentHighlight;
+    var Snippet = function () {
+      function Snippet(position) {
+        var lines = [];
+        position.doc.eachLine(position.from.line, position.to.line + 1,
+          function (line) {
+            lines.push(line.text);
+          });
+        var container = document.createElement("div");
+        var header = document.createElement("header");
+        container.addEventListener("click", function() {
+          position.goto();
         });
-      if(userLocs.length > 0) {
-        container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
-        function drawStackChunk(i) {
-          if (i >= userLocs.length) return;
-          var j = 0;
-          for (j = 0; j + i < userLocs.length && j < 10; j++) {
-            var ul = userLocs[j + i];
-            var slContainer = $("<div>");
-            var cmLoc = cmPosFromSrcloc(runtime, srcloc, ul);
-            var cmSnippet = snippet(editors, cmLoc, srcloc, ul);
-            if (cmSnippet.editor) {
-              cmSnippet.editor.getWrapperElement().style.height =
-                (cmLoc.start.line == cmLoc.end.line ? "1rem" : "1.5rem");
-              if(editors[cmLoc.source] === undefined) {
-                cmSnippet.wrapper.on("mouseenter", function(e){
-                  contextManager.highlights = "spotlight-external";
-                  flashMessage("This code isn't in this editor.")
-                });
-                cmSnippet.wrapper.on("mouseleave", function(e){
-                  clearFlash();
-                });
-              } else {
-                cmSnippet.wrapper.on("mouseenter",
-                                     (function(key, ul){
-                                       return function(e){
-                                         gotoLoc(runtime, editors, srcloc, ul);
-                                         contextManager.highlights = key;
-                                       };
-                                     })(spotlight(editors, cmLoc), ul));
-              }
-            } else {
-              cmSnippet.wrapper.on("mouseenter", function(e){
-                contextManager.highlights = "spotlight-external";
-                flashMessage("This code isn't in this editor.")
-              });
-              cmSnippet.wrapper.on("mouseleave", function(e){
-                clearFlash();
-              });
-            }
-            slContainer.append(cmSnippet.wrapper);
-            container.append(slContainer);
-            if(cmSnippet.editor)
-              cmSnippet.editor.refresh();
-          }
-          if (j == 10) {
-            var more = $("<a>").text("Show more...");
-            more.on("click", function() {
-              more.remove();
-              drawStackChunk(i + 10);
+        container.addEventListener("mouseover", function() {
+          position.hint();
+        });
+        container.addEventListener("mouseleave", function() {
+          unhintLoc();
+          clearFlash();
+        });
+        $(header).append(drawPosition(position));
+        container.appendChild(header);
+        container.classList.add("cm-snippet");
+        var editor = CodeMirror(container, {
+          readOnly:       "nocursor",
+          disableInput:   true,
+          indentUnit:     2,
+          lineWrapping:   true,
+          lineNumbers:    true,
+          viewportMargin: 1,
+          scrollbarStyle: "null"});
+        editor.swapDoc(new CodeMirror.Doc(
+          lines, 
+           position.doc.mode, 
+           position.from.line,
+           position.doc.lineSep));
+        editor.getDoc().markText(
+          {line: position.from.line, ch: 0},
+          position.from,
+          {className: "highlight-irrelevant"});
+        editor.getDoc().markText(
+          position.to,
+          {line: position.to.line, ch: lines[lines.length - 1].length},
+          {className: "highlight-irrelevant"});
+        this.container = container;
+        this.position  = position;
+        this.editor    = editor;
+        this.doc       = editor.doc;
+      }
+      return Snippet;
+    }();
+    
+    function renderStackTrace(runtime, documents, srcloc, pyretStack) {
+      function isSrcloc(s) { 
+        return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
+      }
+      var container = $("<div>").addClass("stacktrace");
+      container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
+      container.on("mouseover", function () {
+        $("#main").addClass("spotlight");
+      });
+      container.on("mouseleave", function () {
+        $("#main").removeClass("spotlight");
+      });
+      pyretStack.
+        map(runtime.makeSrcloc).
+        filter(isSrcloc).
+        map(function (loc) {
+          if (!documents.has(loc.dict.source)) {
+            return $('<div>').append(drawSrcloc(documents, runtime, loc).css('display', 'block'));
+          } else {
+            var position = Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
+            var snippet  = new Snippet(position);
+            var spotlight;
+            snippet.container.addEventListener("mouseover", function() {
+              if(spotlight !== undefined)
+                return;
+              spotlight = position.spotlight();
             });
-            container.append(more);
+            snippet.container.addEventListener("mouseleave", function() {
+              if(spotlight !== undefined)
+                spotlight.clear();
+              spotlight = undefined;
+            });
+            return $(snippet.container);
           }
+        }).
+        forEach(function(frame) {
+          container.append(frame);
+        });
+      return expandable(container, "program execution trace");
+    }
+    
+    var allHighlightAnchors   = new Map();
+    var allHighlightPositions = new Map();
+    var colorsEmphasized      = new Set();
+    var colorsHighlighted     = new Set();
+    lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+    var globalColor = lastHue;
+    
+    function highlight(color) {
+      if(colorsHighlighted.has(color))
+        return;
+      else {
+        colorsHighlighted.add(color);
+        var anchors   = allHighlightAnchors.get(color);
+        var positions = allHighlightPositions.get(color);
+        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+        for(var i = 0; i < anchors.length; i++) {
+          anchors[i].css('background-color', cssColor);
         }
-        drawStackChunk(0);
-        return expandable(container, "program execution trace");
-      } else {
-        return container;
+        for(var i = 0; i < positions.length; i++) {
+          positions[i].highlight(cssColor);
+        }
       }
     }
+    
+    function unhighlight(color) {
+      if(colorsHighlighted.has(color)) {
+        var anchors   = allHighlightAnchors.get(color);
+        var positions = allHighlightPositions.get(color);
+        for(var i = 0; i < anchors.length; i++) {
+          anchors[i].css('background-color', 'initial');
+        }
+        for(var i = 0; i < positions.length; i++) {
+          positions[i].highlight(undefined);
+        }
+        colorsHighlighted.delete(color)
+      }
+    }
+    
+    function emphasize(color) {
+      if(colorsEmphasized.has(color))
+        return;
+      else {
+        colorsEmphasized.add(color);
+        var anchors   = allHighlightAnchors.get(color);
+        var positions = allHighlightPositions.get(color);
+        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+        for(var i = 0; i < anchors.length; i++) {
+          anchors[i].css('background-color', cssColor);
+          anchors[i].addClass('highlight-blink');
+        }
+        for(var i = 0; i < positions.length; i++) {
+          positions[i].blink(cssColor);
+        }
+      }
+    }
+    
+    function demphasize(color) {
+      if(!colorsEmphasized.has(color))
+        return;
+      else {
+        colorsEmphasized.delete(color);
+        var anchors   = allHighlightAnchors.get(color);
+        var positions = allHighlightPositions.get(color);
+        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        for(var i = 0; i < anchors.length; i++) {
+          anchors[i].removeClass('highlight-blink');
+        }
+        if(colorsHighlighted.has(color)) {
+          var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+          for(var i = 0; i < positions.length; i++) {
+            positions[i].highlight(cssColor);
+          }
+        } else {
+          for(var i = 0; i < positions.length; i++) {
+            positions[i].highlight(undefined);
+          }
+          for(var i = 0; i < anchors.length; i++) {
+            anchors[i].css('background-color', 'initial');
+          }
+        }
+      }
+    }
+    
+    function clearEffects() {
+      logger.log("clearedEffects");
+      $(".highlights-active").removeClass("highlights-active");
+      colorsHighlighted.forEach(function(color) {
+        unhighlight(color);
+      });
+      colorsEmphasized.forEach(function(color) {
+        demphasize(color);
+      });
+    }
 
-    function renderErrorDisplay(editors, runtime, errorDisp, stack, context) {
+    function settingChanged(eagerness, colorfulness) { 
+      logger.log("highlight_settings_changed",
+        { eagerness: eagerness,
+          colorfulness: colorfulness
+        });
+      window.requestAnimationFrame(function() {
+        colorsHighlighted.forEach(function(color) {
+          unhighlight(color);
+        });
+        colorsEmphasized.forEach(function(color) {
+          demphasize(color);
+        });
+        if (eagerness == 'eager') {
+          $(".compile-error.highlights-active, " +
+            ".test-reason.highlights-active > .highlights-active")
+                .first().trigger('toggleHighlight');
+        }
+      });
+    }
+    
+    function renderErrorDisplay(documents, runtime, errorDisp, stack, context) {
       var get = runtime.getField;
       var ffi = runtime.ffi;
       installRenderers(runtime);
-
+      
+      function isSrcloc(s) {
+        return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
+      }
+      
       var makePalette = function(){
         var palette = new Map();
         return function(n){
-          if(n === -1) {
-            return undefined;
-          } else {
-            if(highlightMode == "scsh" || highlightMode == "scmh")
-              return 0;
-            if(!palette.has(n)) {
-              lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-              palette.set(n, lastHue);
-            }
-            return palette.get(n);
+          if(!palette.has(n)) {
+            lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+            palette.set(n, lastHue);
           }
+          return palette.get(n);
         };};
 
       var palette = makePalette();
-      var snippets = new Array();
-      var highlights = new Map();
+      var snippets = new Map();
+      var messageAnchors = new Map();
+      var messagePositions = new Map();
+      var messageHintedColors = new Set();
          
       function help(errorDisp, stack) {
         return ffi.cases(get(ED, "is-ErrorDisplay"), "ErrorDisplay", errorDisp, {
@@ -1021,9 +753,9 @@
           "embed": function(val) {
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
-              var maybeStackLoc   = makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
-              var srclocAvaliable = makeSrclocAvaliable(runtime, editors, srcloc);
-              var maybeLocToAST   = makeMaybeLocToAST(runtime, editors, srcloc);
+              var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, e.pyretStack);
+              var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
+              var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);
               var container = $("<div>").addClass("compile-error");
               runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
@@ -1033,15 +765,11 @@
                     maybeLocToAST);
                 }, function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
-                    var highlightLoc = getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
+                    var highlightLoc = getLastUserLocation(runtime, srcloc, documents, e.pyretStack,
                                                            e.exn.$name == "arity-mismatch" ? 1
                                                            : 0, true);
                     runtime.runThunk(function() {
                       return runtime.safeCall(function() {
-                        if(highlightMode === "scsh" && highlightLoc != undefined) {
-                          highlightSrcloc(runtime, editors, srcloc, highlightLoc, 
-                                          "hsl(0, 100%, 89%);", context);
-                        }
                         return null;
                       }, function(_) {
                         return help(errorDisp.result, e.pyretStack);
@@ -1053,7 +781,7 @@
                           container = $("<div>").append(container);
                         }
                         container.addClass("compile-error");
-                        container.append(renderStackTrace(runtime,editors, srcloc, e));
+                        container.append(renderStackTrace(runtime,documents, srcloc, e.pyretStack));
                         restarter.resume(container);
                       } else {
                         container.add($("<span>").addClass("output-failed")
@@ -1114,15 +842,23 @@
             }, "styled: help(contents)");
           },
           "cmcode": function(loc) {
-            var cmloc = cmPosFromSrcloc(runtime, srcloc, loc);
-            var s = snippet(editors, cmloc, srcloc, loc);
-            snippets.push(s);
-            return s.wrapper;
+            if (!isSrcloc(loc)) {
+              return $("<div>").text("Code not in editor.");
+            } else {
+              var pos = new Position.fromPyretSrcloc(runtime, srcloc, loc, documents,
+                  { inclusiveLeft: false,
+                    inclusiveRight: false });
+              var snippet = new Snippet(pos);
+              if(snippets.has(pos.source))
+                snippets.get(pos.source).push(snippet.doc)
+              else snippets.set(pos.source, [snippet.doc])
+              return $(snippet.container);
+            }
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
             if (userFramesOnly) { 
-              probablyErrorLocation = getLastUserLocation(runtime, srcloc, editors, stack, n, false); 
+              probablyErrorLocation = getLastUserLocation(runtime, srcloc, documents, stack, n, false); 
             } else if (stack.length >= n) { 
               probablyErrorLocation = runtime.makeSrcloc(stack[n]); 
             } else {
@@ -1159,92 +895,77 @@
             }
           },
           "loc": function(loc) {
-            return drawSrcloc(editors, runtime, loc);
+            return drawSrcloc(documents, runtime, loc);
           },
-          "highlight": function(contents, locs, color) {
-            if(highlightMode == "scsh") return help(contents,stack);
-
+          "highlight": function(contents, locs, id) {
             return runtime.safeCall(function () {
               return help(contents, stack);
             }, function(helpContents) {
+              var hue = palette(id);
+              var color = hue;
               var anchor = $("<a>").append(helpContents).addClass("highlight");
-
-              var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
-              var locArray = ffi.toArray(locs).filter(function(l) { return l && isSrcloc(l); });
-              
-              anchor.attr('title',
-                          "Click to scroll source location into view.");
-              
-              var cmLocs = locArray.map(
-                function(l){return cmPosFromSrcloc(runtime, srcloc, l);});
-              
-              var hue = palette(color);
-              var cssColor = hue === undefined ? undefined : hueToRGB(hue);
-              
-              var locClasses = cmLocs.map(
-                function(l){return cmlocToCSSClass(l);});
-              
-              //for (var h = 0; h < locArray.length; h++) {
-              //  anchor.addClass(locClasses[h]);
-              //  var highlight = highlights.get({pl:locArray[h],l:cmLocs[h],c:cssColor});
-              //  if(highlight == undefined) {
-              //    highlights.set({pl:locArray[h],l:cmLocs[h],c:cssColor},
-              //      highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
-              //  }
-              //}
-              for (var h = 0; h < locArray.length; h++) {
-                anchor.addClass(locClasses[h]);
-                var highlight = highlights.get({pl: locArray[h], l: cmLocs[h], c: cssColor});
-                if(highlight == undefined) {
-                  highlights.set({pl: locArray[h], l: cmLocs[h], c: cssColor},
-                                 highlightSrcloc(runtime, editors, srcloc, locArray[h], cssColor, context, true));
-                }
-              }
-              
-              if (hue === undefined) {
-                anchor.on("mouseenter", function() {
-                  for (var i = 0; i < locClasses.length; i++) {
-                    hintLoc(runtime, editors, srcloc, locArray[i]);
-                    $("."+locClasses[i]).css("animation", "pulse-underline 0.4s infinite alternate");
-                  }
+              var positions = ffi.toArray(locs).
+                filter(isSrcloc).
+                map(function(loc){
+                  return Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
                 });
-              } else {
-                anchor.on("mouseenter", function() {
-                  for (var i = 0; i < locClasses.length; i++) {
-                    hintLoc(runtime, editors, srcloc, locArray[i]);
-                    $("."+locClasses[i]).css("animation", "pulse 0.4s infinite alternate");
-                  }
-                });
+              if (id < 0) {
+                messageHintedColors.add(color);
               }
-              
-              anchor.on("click", function() {
-                for (var z = 0; z < locClasses.length; z++) {
-                  var cmloc = cmLocs[z];
-                  var els = document.getElementsByClassName(locClasses[z]);
-                  emphasizeLine(editors, cmloc);
-                }
+              if(!messageAnchors.has(color))
+                messageAnchors.set(color, [anchor]);
+              else messageAnchors.get(color).push(anchor);
+              if(!messagePositions.has(color))
+                messagePositions.set(color, positions);
+              else Array.prototype.push.apply(messagePositions.get(color), 
+                                              positions);
+              anchor.on("click", function (e) {
+                logger.log("highlight_anchor_click",
+                  { error_id: context, anchor_id: id });
+                window.requestAnimationFrame(function() {
+                  if (positions[0] !== undefined)
+                    positions[0].goto();
+                  event.stopPropagation();
+                });
               });
-              
-              anchor.on("mouseleave", function() {
-                for (var i = 0; i < locClasses.length; i++) {
-                  unhintLoc(runtime, editors, srcloc, locArray[i]);
-                  $("."+locClasses[i]).css("animation", "");
-                }
+              anchor.on("mouseenter", function () {
+                logger.log("highlight_anchor_mouseenter",
+                  { error_id: context, anchor_id: id });
+                window.requestAnimationFrame(function() {
+                  logger.log("highlight_anchor_hover",
+                    { error_id: context, anchor_id: id });
+                  if (positions[0] !== undefined)
+                    positions[0].hint();
+                  emphasize(color);
+                });
               });
-              
-              anchor.on("click", function() {
-                gotoLoc(runtime, editors, srcloc, locArray[0]);
+              anchor.on("mouseleave", function () {
+                logger.log("highlight_anchor_mouseleave",
+                  { error_id: context, anchor_id: id });
+                window.requestAnimationFrame(function() {
+                  unhintLoc();
+                  demphasize(color);
+                });
               });
-              
               return anchor;
             }, "highlight: help(contents)");
           },
           "loc-display": function(loc, style, contents) {
             return runtime.safeCall(function () {
-              return help(contents, stack);
-            }, function(inner) {
-              hoverLink(editors, runtime, srcloc, inner, loc, "error-highlight");
-              return inner;
+              if (runtime.hasField(loc, "source")
+                  && documents.has(runtime.getField(loc, "source"))) {
+                return help(runtime.getField(ED, "highlight").app(
+                              contents, 
+                              runtime.ffi.makeList([loc]), 
+                              runtime.makeNumber(Math.floor(Math.random() * -1000 - 1))));
+              } else {
+                  return help(contents).
+                          append(" at (").
+                          append(drawSrcloc(documents, runtime, loc)).
+                          append(")");
+              }
+            }, function(result) {
+              return result;
             }, "loc-display: help(contents)");
           }
         });
@@ -1256,57 +977,43 @@
         if (rendering.length > 0) {
           rendering = $("<div>").append(rendering);
         }
-        snippets.forEach(function(s){
-          if (!s.editor) return;
-          s.editor.operation(function() {
-            highlights.forEach(function(value,key){
-              if(key.l.source != s.featured.source)
-                return;
-              var locKey = cmlocToCSSClass(key.l);
-              s.editor.markText(
-                {line: key.l.start.line - s.featured.start.line, ch: key.l.start.ch},
-                {line: key.l.end.line - s.featured.start.line, ch: key.l.end.ch},
-                {className:"highlight " + locKey,
-                 handleMouseEvents: false, atomic: true});
-              if(!editors[key.l.source]) {
-                var styles = document.getElementById("highlight-styles").sheet;
-                styles.insertRule(
-                  ((context === undefined) ? "" : "#main[data-highlights=" + context + "]")
-                    + " ." + locKey + " { " + (!!key.c ? "background-color:" + key.c : "")
-                    + ";border-bottom: 2px hsla(0, 0%, 0%,.5) solid;}",styles.cssRules.length);
-              };
-              if(!key.c)
-                return;
-              var updated = false;
-              s.editor.on("update", function() {
-                if(updated) return;
-                updated = true;
-                $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseenter", function() {
-                  hintLoc(runtime, editors, srcloc, key.pl);
-                  $("."+cmlocToCSSClass(key.l)).css("animation", "pulse 0.4s infinite alternate");
-                });
-                $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("click", function() {
-                  emphasizeLine(editors, key.l);
-                  gotoLoc(runtime, editors, srcloc, key.pl);
-                });
-                $(s.wrapper).find(".highlight." + cmlocToCSSClass(key.l)).on("mouseleave", function() {
-                  unhintLoc(runtime, editors, srcloc, key.pl);
-                  $("."+cmlocToCSSClass(key.l)).css("animation", "");
-                });
-              });
-            });
+
+        messagePositions.forEach(function(positions, color) {
+          var snippetPositions = [];
+          positions.forEach(function (position) {
+            Array.prototype.push.apply(snippetPositions,
+              (snippets.get(position.source) || []).
+                map(function (doc) {
+                  return new Position(doc, position.source, position.from, position.to);
+                }));
           });
+          Array.prototype.push.apply(positions, snippetPositions);
+          allHighlightPositions.set(color, positions);
         });
 
-        if(context === undefined) 
-          rendering.addClass("highlights-active");
-        else if(context != undefined) {
-          rendering.bind('toggleHighlight',function() {
-            $(".highlights-active").removeClass("highlights-active");
-            document.getElementById("main").dataset.highlights = context;
-            rendering.addClass("highlights-active");
-          });
-        }
+        messageAnchors.forEach(function(anchors, color) {
+          allHighlightAnchors.set(color, anchors);
+        });
+
+        rendering.bind('toggleHighlight',function() {
+            logger.log("error_highlights_toggled",
+              { error_id: context,
+                eagerness: sessionStorage.getItem('highlight-eagerness'),
+                colorfulness: sessionStorage.getItem('highlight-colorfulness')
+              });
+            colorsHighlighted.forEach(function(color) {
+              unhighlight(color);
+            });
+            colorsEmphasized.forEach(function(color) {
+              demphasize(color);
+            });
+            if(sessionStorage.getItem('highlight-eagerness') != 'lazy') {
+              messageAnchors.forEach(function (_, color) {
+                if (!messageHintedColors.has(color))
+                  highlight(color);
+              });
+            }
+        });
 
         return rendering;
       }, "renderErrorDisplay: help(contents)");
@@ -1399,9 +1106,14 @@
             var dialog = $("<div>");
             dialog.dialog({
               modal: true,
-              height: $(document).height() * .9,
-              width: $(document).width() * .9,
-              resizable: true
+              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
+              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              resizable: true,
+              close: function() {
+                dialog.empty();
+                dialog.dialog("destroy");
+                dialog.remove();
+              }
             });
             dialog.css({"overflow": "scroll"});
             dialog.append($(originalImageDom));
@@ -1659,10 +1371,10 @@
           }
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
-          $(showText).text("\uD83D\uDCCB");
+          $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
           $(showText).css({
-            'border': '1px solid black',
-            'background': 'white'
+            'margin-top': '0.3em',
+            'margin-right': '0.3em'
           });
           $(showText).addClass("info-icon-top");
           var textDiv = $("<div>").css({"z-index": 15000});
@@ -1817,24 +1529,15 @@
       installRenderers: installRenderers,
       renderPyretValue: renderPyretValue,
       renderStackTrace: renderStackTrace,
-      addMark: addMark,
-      runMarks: runMarks,
-      hoverLocs: hoverLocs,
-      hoverLink: hoverLink,
-      highlightSrcloc: highlightSrcloc,
-      highlightLines: highlightLines,
-      gotoLoc: gotoLoc,
-      snippet: snippet,
-      hintLoc: hintLoc,
+      Position: Position,
+      Snippet: Snippet,
+      clearEffects: clearEffects,
       unhintLoc: unhintLoc,
-      emphasizeLine: emphasizeLine,
       renderErrorDisplay: renderErrorDisplay,
-      cmPosFromSrcloc: cmPosFromSrcloc,
+      settingChanged: settingChanged,
       drawSrcloc: drawSrcloc,
       expandableMore: expandableMore,
       getLastUserLocation: getLastUserLocation,
-      cssSanitize: cssSanitize,
-      cmlocToCSSClass: cmlocToCSSClass,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
       makeSrclocAvaliable: makeSrclocAvaliable

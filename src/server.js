@@ -82,6 +82,8 @@ function start(config, onServerReady) {
   app.get("/close.html", function(_, res) { res.render("close.html"); });
   app.get("/faq.html", function(_, res) { res.render("faq.html"); });
 
+  app.get("/faq", function(_, res) { res.render("faq.html"); });
+
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
     res.render("index.html", {
@@ -200,7 +202,7 @@ function start(config, onServerReady) {
         return auth.refreshAccess(u.refresh_token, function(err, newToken) {
           if(err) { res.send(err); res.end(); return; }
           else {
-            res.send({ access_token: newToken });
+            res.send({ access_token: newToken, user_id: req.session["user_id"] });
             res.end();
           }
         });
