@@ -36,10 +36,11 @@ var logger = (function(backend) {
   function guid() {
     var array = new Uint32Array(6);
     window.crypto.getRandomValues(array);
-    return array.reduce(
-      function(previousValue, currentValue) {
-        return previousValue.concat(currentValue.toString(36));
-      }, "");
+    var str = "";
+    for(var i = 0; i < array.length; i++) {
+      str.concat(array[i].toString(36));
+    }
+    return str;
   }
 
   /* Tab, Session, and Browser Identifiers */
