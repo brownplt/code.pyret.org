@@ -304,6 +304,45 @@ function start(config, onServerReady) {
 
   });
 
+
+  app.post("/share-image", function(req, res) {
+    var driveFileId = req.body.fileId;
+    var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+    maybeUser.then(function(u) {
+      if(u === null) {
+        res.status(403).send("Invalid or inaccessible user information");
+        return null;
+      }
+      auth.refreshAccess(u.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+          drive.permissions.insert({
+            fileId: driveFileId,
+            resource: {
+              'role': 'reader',
+              'type': 'anyone',
+              'value': 'default',
+              'withLink': true
+            }
+          }, function(err, response) {
+            // Success or failure of permission change is not relevant
+            var sharedProgram = db.createSharedProgram(driveFileId, u.google_id);
+            sharedProgram.then(function(sp) {
+              res.status(200);
+              res.send({
+                id: driveFileId
+              });
+              res.end();
+            });
+            return sharedProgram;
+          });
+        }
+      });
+    });
+
+  });
+
   app.post("/create-shared-program", function(req, res) {
   console.log(req);
     var driveFileId = req.body.fileId;
@@ -319,16 +358,7 @@ function start(config, onServerReady) {
       auth.refreshAccess(u.refresh_token, function(err, newToken) {
         if(err) { res.send(err); res.end(); return; }
         else {
-          var client = new gapi.auth.OAuth2(
-              config.google.clientId,
-              config.google.clientSecret,
-              config.baseUrl + config.google.redirect
-            );
-          client.setCredentials({
-            access_token: newToken
-          });
-
-          var drive = gapi.drive({ version: 'v2', auth: client });
+          var drive = getDriveClient(newToken, 'v2');
 
           var newFileP = Q.defer();
           
@@ -350,21 +380,20 @@ function start(config, onServerReady) {
             }
           });
 
+          // This doesn't have to succeed, and may not for some GAE accounts
           var updatedP = newFileP.promise.then(function(newFile) {
-            console.log(newFile);
             return drive.permissions.insert({
               fileId: newFile.id,
               resource: {
                 'role': 'reader',
                 'type': 'anyone',
-                'id': newFile.permissionId
+                'id': newFile.permissionId,
+                'withLink': true
               }
             });
           });
 
-          var bothP = Q.all([newFileP.promise, updatedP])
-          var done = bothP.then(function(files) {
-            var newFile = files[0];
+          var done = newFileP.promise.then(function(newFile) {
             var sharedProgram = db.createSharedProgram(newFile.id, u.google_id);
             sharedProgram.then(function(sp) {
               res.send({

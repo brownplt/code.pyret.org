@@ -363,12 +363,10 @@ $(function() {
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
     CPO.editor.cm.setValue(c);
-    CPO.editor.cm.setOption("readOnly", false);
   });
 
   programLoaded.fail(function() {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-    CPO.editor.cm.setOption("readOnly", false);
   });
 
   var pyretLoad = document.createElement('script');
@@ -385,6 +383,7 @@ $(function() {
 
   programLoaded.fin(function() {
     CPO.editor.focus();
+    CPO.editor.cm.setOption("readOnly", false);
   });
 
 });

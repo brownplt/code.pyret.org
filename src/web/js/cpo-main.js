@@ -689,7 +689,7 @@
             }
             documents.forEach(function(d, idx) {
               var pathToImg = "\"https://drive.google.com/uc?export=download&id="
-                    + d[picker.Document.ID] + "\"";
+                    + d.id + "\"";
               var outstr = asDefs ? ("img" + curImg + " = ") : "";
               ++curImg;
               outstr += "image-url(" + pathToImg + ")";
