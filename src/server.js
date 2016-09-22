@@ -446,39 +446,61 @@ function start(config, onServerReady) {
     return both;
   }
 
-  app.get("/shared-program-contents", function(req, res) {
-    var sharedProgramId = req.query.sharedProgramId;
-    var both = programAndToken(sharedProgramId);
+  function getSharedContents(id, res, withResponse) {
+    var both = programAndToken(id);
     both.fail(function(err) {
       res.status(404).send("No share information found for " + sharedProgramId);
       res.end();
     });
+    var ret = Q.defer();
     both.then(function(both) {
       var prog = both[0];
       var refreshToken = both[1];
       auth.refreshAccess(refreshToken, function(err, newToken) {
-        if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
+        if(err) { ret.reject("Could not access shared file."); return; }
         else {
           var drive = getDriveClient(newToken, 'v3');
-          drive.files.get({
+          ret.resolve(drive.files.get({
             fileId: prog.programId,
             alt: "media"
-          }, function(err, response) {
-            if(!err) {
-              res.status(200);
-              res.set("content-type", "text/plain");
-              res.send(response);
-              res.end();
-            }
-            else {
-              res.status(400);
-              res.send("Unable to fetch shared file");
-              res.end();
-            }
-          });
+          }));
         }
       })
-    })
+    });
+    return ret.promise;
+  }
+
+  app.get("/shared-program-contents", function(req, res) {
+    var contents = getSharedContents(req.query.sharedProgramId, res);
+    contents.fail(function(err) {
+      res.status(400);
+      res.send("Unable to fetch shared file");
+      res.end();
+    });
+    contents.then(function(response) {
+      if(!response.headers["content-type"] === "text/plain") {
+        res.status(400);
+        res.send("Expected a text file, but got: " + response.headers["content-type"]);
+        res.end();
+      }
+      else {
+        res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
+        response.pipe(res);
+      }
+    });
+  });
+
+  app.get("/shared-image-contents", function(req, res) {
+    var contents = getSharedContents(req.query.sharedImageId, res);
+    contents.then(function(response) {
+      res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
+      response.pipe(res);
+    });
+    contents.fail(function(err) {
+      res.status(400);
+      res.send("Could not fetch shared image");
+      res.end();
+    });
   });
 
   app.get("/shared-file", function(req, res) {
