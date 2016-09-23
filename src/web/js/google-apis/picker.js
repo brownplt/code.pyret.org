@@ -106,7 +106,6 @@ FilePicker.prototype.initOpen = function(picker) {
         .setTitle("Select a Pyret document or an image from Google Drive")
         .addView(pyretView)
         .addView(imageView)
-        .setAppId(clientId)
         .setOAuthToken(gapi.auth.getToken().access_token)
         .setCallback(pickerCallback)
         .build();
