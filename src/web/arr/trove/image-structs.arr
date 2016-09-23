@@ -14,6 +14,10 @@ data Color:
       alpha :: Number)
 end
 
+data Posn:
+  | posn(x :: Number, y :: Number)
+end
+
 orange = color(255, 165, 0, 255)
 red = color(255, 0, 0, 255)
 orange-red = color(255, 69, 0, 255)
