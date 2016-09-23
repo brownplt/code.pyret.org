@@ -206,6 +206,7 @@
       return runtime.isNumber(val) && jsnums.isReal(val) && jsnums.greaterThanOrEqual(val, 0);
     }, "Non-negative Real Number");
 
+    var checkPosn = p(image.isPosn, "Position");
 
     var _checkColor = p(image.isColorOrColorString, "Color");
 
@@ -458,7 +459,8 @@
     f("text-font", function(maybeString, maybeSize, maybeColor, maybeFace,
                             maybeFamily, maybeStyle, maybeWeight, maybeUnderline) {
       checkArity(8, arguments);
-      c("text", [
+                              /*
+      c("text-font", [
           maybeString,
           maybeSize,
           maybeColor,
@@ -476,7 +478,7 @@
           annFontStyle,
           annFontWeight,
           runtime.Boolean
-        ]);
+        ]); */
       var string = checkString(maybeString);
       var size = checkByte(maybeSize);
       var color = checkColor(maybeColor);
