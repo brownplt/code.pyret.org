@@ -447,13 +447,16 @@ function start(config, onServerReady) {
     return both;
   }
 
-  function getSharedContents(id, res, withResponse) {
+  function getSharedContents(id, res) {
+    var ret = Q.defer();
+    if(!id) {
+      ret.reject("No id given");
+      return;
+    }
     var both = programAndToken(id);
     both.fail(function(err) {
-      res.status(404).send("No share information found for " + sharedProgramId);
-      res.end();
+      ret.reject("Fetching shared file failed");
     });
-    var ret = Q.defer();
     both.then(function(both) {
       var prog = both[0];
       var refreshToken = both[1];
