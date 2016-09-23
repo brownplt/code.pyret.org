@@ -10,10 +10,26 @@
     var image = gf(imageImp, "values");
     var color = gf(image, "color");
     var colorPred = gf(image, "is-Color");
+    var posn = gf(image, "posn");
+    var posnPred = gf(image, "is-Posn");
     var isNum = function(n) { return typeof n === "number"; }
     var unwrap = RUNTIME.unwrap;
 
     var hasOwnProperty = {}.hasOwnProperty;
+
+    //////////////////////////////////////////////////////////////////////
+    var makePosn = function(x,y) {
+      if (!(isNum(x) && isNum(y))) {
+        throw new Error("Internal error: non-number in makePosn argList ", [x,y]);
+      }
+      return posn.app(
+        RUNTIME.wrap(x),
+        RUNTIME.wrap(y)
+        );
+    };
+    var isPosn = function(p) { return unwrap(posnPred.app(p)); };
+    var posnX = function(p) { return unwrap(gf(p, "x")); };
+    var posnY = function(p) { return unwrap(gf(p, "y")); };
 
 
     //////////////////////////////////////////////////////////////////////
@@ -1795,6 +1811,11 @@
       isTextImage: isTextImage,
       isFileImage: isFileImage,
       isFileVideo: isFileVideo,
+
+      makePosn: makePosn,
+      isPosn: isPosn,
+      posnX: posnX,
+      posnY: posnY,
 
       makeColor: makeColor,
       isColor: isColor,
