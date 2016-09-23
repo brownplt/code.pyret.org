@@ -147,10 +147,9 @@ define("seedrandom", [], function() {
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-var clientId = "";
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
-  handleClientLoad(clientId, apiKey, LOGGED_IN);
+  handleClientLoad(apiKey);
 }
 </script>
 <!-- Google API Loader (For picker) -->

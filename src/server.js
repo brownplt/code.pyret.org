@@ -285,7 +285,7 @@ function start(config, onServerReady) {
 
   app.get("/editor", function(req, res) {
     res.render("editor.html", {
-      APP_BASE_URL: config.baseUrl,
+      BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
       CSRF_TOKEN: req.csrfToken()
     });
