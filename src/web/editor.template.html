@@ -150,7 +150,7 @@ define("seedrandom", [], function() {
 var clientId = "";
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
-  handleClientLoad(clientId, apiKey);
+  handleClientLoad(clientId, apiKey, LOGGED_IN);
 }
 </script>
 <!-- Google API Loader (For picker) -->

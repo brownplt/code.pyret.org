@@ -285,6 +285,8 @@ function start(config, onServerReady) {
 
   app.get("/editor", function(req, res) {
     res.render("editor.html", {
+      APP_BASE_URL: config.baseUrl,
+      GOOGLE_API_KEY: config.google.apiKey,
       CSRF_TOKEN: req.csrfToken()
     });
   });
@@ -344,11 +346,9 @@ function start(config, onServerReady) {
   });
 
   app.post("/create-shared-program", function(req, res) {
-  console.log(req);
     var driveFileId = req.body.fileId;
     var title = req.body.title;
     var collectionId = req.body.collectionId;
-    console.log(driveFileId, title, collectionId);
     var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
     maybeUser.then(function(u) {
       if(u === null) {
