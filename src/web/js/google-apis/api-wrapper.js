@@ -1,6 +1,5 @@
 // NOTE: Each of the following should be bound in the global scope:
 //   - `gapi'     : Google API Javascript Client
-//   - `clientId' : Google Client ID
 //   - `apiKey'   : Google API Key
 //   - `Q'        : Q Promise Framework
 
@@ -60,7 +59,6 @@ function loadAPIWrapper(immediate) {
     }
   }
   assertDefined('gapi');
-  assertDefined('clientId');
   assertDefined('apiKey');
   assertDefined('Q');
   // Sanity check passed.
