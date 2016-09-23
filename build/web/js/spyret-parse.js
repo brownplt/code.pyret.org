@@ -524,6 +524,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["error"] = "_spyret_error";
 
     symbolMap["set!"] = "_spyret_dead_code_function";
+    symbolMap["save-image"] = "_spyret_dead_code_function";
 
     function pyretizeSymbol(str) {
       var str2
@@ -5694,7 +5695,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         old_module = _module;
         _module = moduleName;
       }
-      //console.log('doing convertToPyretAST ' + provenance + ' ' + moduleName);
+      //console.log('doing convertToPyretAST', programs, provenance, moduleName);
       var requirepreludes = [];
       var defstructs = [];
       var defnonfuns = [];
@@ -5773,6 +5774,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
             helper(b, 1);
           });
         } else if (b.name === "import-stmt") {
+          console.log('requiring', b);
           requirepreludes.push(b);
         } else if (b.name === "require-block") {
           b.kids.forEach(function(b) {
@@ -5793,6 +5795,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       if (provenance === "module") {
         _module = old_module;
       }
+      //console.log('exiting convertToPyretAST');
       return {
         name: "program",
         pos: programs.location,
@@ -5837,6 +5840,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
 
     function moduleQualifiedId(id, asis) {
+      //console.log('doing moduleQualifiedId', id, 'in', _module);
       var it;
       if (!asis && _module && (it = window.COLLECTIONS[_module]) && (it.locals.indexOf(id) >= 0)) {
         return id + it.suffix;
@@ -5846,7 +5850,9 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
 
     function makeResolvedName(name, loc, asis) {
+      //console.log('calling makeResolvedName', name, asis);
       var rname = moduleQualifiedId(name, asis);
+      //console.log('returned', rname);
       return {
         name: "NAME",
         value: rname,
@@ -7017,7 +7023,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var ifClauses = hasElse ? this.clauses.slice(0, this.clauses.length - 1) : this.clauses;
       var branches = ifClauses.map(makeIfPipeBranchfromClause);
 
-      console.log('hasElse = ' + hasElse);
+      //console.log('hasElse = ' + hasElse);
 
       // if there's an else clause, turn it into a block and add it and its syntax to the list of branches
       if (hasElse) {
@@ -7151,20 +7157,23 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     //requireExpr.prototype.collectDefinitions remove
     requireExpr.prototype.toPyretAST = function() {
-      //console.log('doing requireExpr:toPyretAST ' + this.spec);
+      console.log('doing requireExpr:toPyretAST ' + this.spec);
       var moduleName = this.spec;
 
       if (window.COLLECTIONS === undefined) {
+        console.log('initing window.COLLECTIONS to []');
         window.COLLECTIONS = [];
       }
 
-      if (window.COLLECTIONS[moduleName]) {
+      if (window.COLLECTIONS[moduleName] && false) {
+        console.log('window.COLLECTIONS', moduleName, 'exists');
         return {
           name: "id-expr",
           kids: [makeResolvedName("nothing", this.location, true)],
           pos: this.location
         }
       } else {
+        console.log('setting window.COLLECTIONS', moduleName, 'to true');
         window.COLLECTIONS[moduleName] = true;
       }
 
@@ -7270,12 +7279,13 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
   })();
 
   function schemeToPyretAST(code, name, provenance) {
-    console.log('doing schemeToPyretAST of ' + code + ' ' + name + ' ' + provenance);
+    console.log('doing schemeToPyretAST of', code , name, provenance);
     var debug = false;
     //var debug = true;
     provenance = provenance || "definitions";
     if (provenance === "module") {
       if (window.COLLECTIONS === undefined) {
+        console.log('initiing2 window.COLLECTIONS to []');
         window.COLLECTIONS = [];
       }
     }
@@ -7296,9 +7306,13 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       module_localIds = module_definedIds.filter(function(id) {
         return (module_providedIds.indexOf(id) === -1);
       });
+      console.log('setting2 window.COLLECTIONS', name);
+      console.log('localIds =', module_localIds);
+      console.log('providedIds =', module_providedIds);
       window.COLLECTIONS[name] = {
         name: name,
         suffix: 'ƎMODULE-' + plt.compiler.pyretizeSymbol(name),
+        //suffix: '-module-' + plt.compiler.pyretizeSymbol(name),
         locals: module_localIds,
         provides: module_providedIds
       };
@@ -7311,6 +7325,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       ];
       ws_ast.kids[0].kids.unshift(preimports[0], preimports[1]);
     }
+    console.log('finishing schemeToPyretAST of', name, provenance);
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug

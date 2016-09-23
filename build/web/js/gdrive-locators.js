@@ -509,10 +509,16 @@ define([], function() {
             return runtime.makeString("spyret");
           }
 
-          function getModule(self) {
-            runtime.pauseStack(function(getModRestart) {
+          var ast = undefined;
+
+        function getModule(self) {
+          console.log('getModule', filename);
+          if (ast) {
+            return ast;
+          } else {
+            runtime.pauseStack(function(getModRestart) { //vii
               var spyretString;
-              runtime.safeCall(function() {
+              runtime.safeCall(function() { //vi
                 jQuery.ajax({
                   url: filename,
                   success: function(str) {
@@ -520,7 +526,7 @@ define([], function() {
                       var str2 = JSON.parse(str);
                       spyretString = str2.source.src;
                     } else {
-                    spyretString = str;
+                      spyretString = str;
                     }
                   },
                   error: function(error) {
@@ -530,28 +536,39 @@ define([], function() {
                 });
                 return true;
               }, function(_) {
-                runtime.safeCall(function() {
+                runtime.safeCall(function() { //v
+                  console.log('calling schemeToPyretAST');
                   return spyretParse.schemeToPyretAST(spyretString, uri, "module");
                 }, function(sAst) {
-                  return runtime.safeCall(function() {
+                  return runtime.safeCall(function() { //iv
+                    console.log('calling spyret-surface-parse');
                     return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
                   }, function(parsed) {
-                    return runtime.safeCall(function() {
-                      return gmf(replSupport, "make-provide-for-repl").app(parsed);
-                    }, function(pAst) {
-                      return runtime.safeCall(function() {
-                        return gmf(compileLib, "pyret-ast").app(pAst);
-                      }, function(ret) {
-                        getModRestart.resume(ret);
-                      });
-                    });
-                  });
-                });
-              });
-            });
+                    return runtime.safeCall(function() { //iii
+                      return gmf(compileStructs, "standard-globals");
+                    }, function(globals) {
+                      return runtime.safeCall(function() { //ii
+                        console.log('calling make-provide-for-repl-main');
+                        return gmf(replSupport, "make-provide-for-repl-main").app(parsed, globals);
+                      }, function(pAst) {
+                        return runtime.safeCall(function() { //i
+                          console.log('wrapping pyret-ast');
+                          return gmf(compileLib, "pyret-ast").app(pAst);
+                        }, function(ret) {
+                          ast = ret;
+                          getModRestart.resume(ret);
+                        }); //i
+                      }); //ii
+                    }); //iii
+                  }); //iv
+                }); //v
+              }); //vi
+            }); //vii
           }
+        }
 
           function getDependencies(self) {
+            console.log('getDependencies', filename);
             return runtime.safeCall(function() {
               return gf(self, "get-module").app();
             }, function(mod) {

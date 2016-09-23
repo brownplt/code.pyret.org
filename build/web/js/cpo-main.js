@@ -66,6 +66,7 @@
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, pyRepl, spyretParse);
 
     function findModule(contextIgnored, dependency) {
+      console.log('doing findModule');
       return runtime.safeCall(function() {
         return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
           {
@@ -92,8 +93,8 @@
               */
             },
             dependency: function(protocol, args) {
-              console.log('dependency is ' + protocol);
               var arr = runtime.ffi.toArray(args);
+              console.log('dependency is', protocol, arr[0]);
               if (protocol === "wescheme-collection") {
                 return constructors.makeWeSchemeCollectionLocator(arr[0]);
               }
