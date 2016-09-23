@@ -25,6 +25,7 @@ var res = Q.fcall(function(db) {
     sessionSecret: process.env["SESSION_SECRET"],
     db: storage.makeStorage(client),
     google: {
+      apiKey: process.env["GOOGLE_API_KEY"],
       clientId: process.env["GOOGLE_CLIENT_ID"],
       clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
       redirect: "/oauth2callback"
