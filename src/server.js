@@ -1,11 +1,15 @@
 var Q = require("q");
 var gapi = require('googleapis');
 var path = require('path');
+var uuid = require('node-uuid');
+
+var BACKREF_KEY = "originalProgram";
 
 function start(config, onServerReady) {
   var express = require('express');
   var cookieSession = require('cookie-session');
   var cookieParser = require('cookie-parser');
+  var bodyParser = require('body-parser');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
   var request = require('request');
@@ -37,7 +41,8 @@ function start(config, onServerReady) {
   }
 
   app = express();
-
+  app.use(bodyParser.urlencoded({ extended: false }))
+  app.use(bodyParser.json())
 
   // From http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
   /* At the top, with other redirect methods before other routes */
@@ -65,7 +70,6 @@ function start(config, onServerReady) {
     key: "code.pyret.org"
   }));
   app.use(cookieParser());
-  app.use(csrf());
 
   var auth = googleAuth.makeAuth(config);
   var db = config.db;
@@ -75,9 +79,8 @@ function start(config, onServerReady) {
   app.set('view engine', 'html');
 
   app.use(express.static(__dirname + "/../build/web/"));
-  if(config.development) {
-    app.use(express.static(__dirname + "/../test-util/"));
-  }
+
+  app.use(csrf());
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
   app.get("/faq.html", function(_, res) { res.render("faq.html"); });
@@ -120,6 +123,23 @@ function start(config, onServerReady) {
       next();
     });
   });
+
+  if(config.development) {
+    app.use(express.static(__dirname + "/../test-util/"));
+    app.get("/keys", function(req, res) {
+      var keys = db.getKeys(req.query.q);
+      keys.then(function(keys) {
+        res.status(200);
+        res.send(keys.join("<br/>"));
+        res.end();
+      });
+      keys.fail(function(err) {
+        res.status(500);
+        res.send(String(err));
+        res.end();
+      });
+    });
+  }
 
   app.get("/downloadImg", function(req, response) {
     var parsed = url.parse(req.url);
@@ -265,7 +285,11 @@ function start(config, onServerReady) {
   });
 
   app.get("/editor", function(req, res) {
-    res.render("editor.html");
+    res.render("editor.html", {
+      BASE_URL: config.baseUrl,
+      GOOGLE_API_KEY: config.google.apiKey,
+      CSRF_TOKEN: req.csrfToken()
+    });
   });
 
   app.get("/ide", function(req, res) {
@@ -281,6 +305,235 @@ function start(config, onServerReady) {
 
   app.get("/share", function(req, res) {
 
+  });
+
+
+  app.post("/share-image", function(req, res) {
+    var driveFileId = req.body.fileId;
+    var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+    maybeUser.then(function(u) {
+      if(u === null) {
+        res.status(403).send("Invalid or inaccessible user information");
+        return null;
+      }
+      auth.refreshAccess(u.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+          drive.permissions.insert({
+            fileId: driveFileId,
+            resource: {
+              'role': 'reader',
+              'type': 'anyone',
+              'value': 'default',
+              'withLink': true
+            }
+          }, function(err, response) {
+            // Success or failure of permission change is not relevant
+            var sharedProgram = db.createSharedProgram(driveFileId, u.google_id);
+            sharedProgram.then(function(sp) {
+              res.status(200);
+              res.send({
+                id: driveFileId
+              });
+              res.end();
+            });
+            return sharedProgram;
+          });
+        }
+      });
+    });
+
+  });
+
+  app.post("/create-shared-program", function(req, res) {
+    var driveFileId = req.body.fileId;
+    var title = req.body.title;
+    var collectionId = req.body.collectionId;
+    var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+    maybeUser.then(function(u) {
+      if(u === null) {
+        res.status(403).send("Invalid or inaccessible user information");
+        return null;
+      }
+      auth.refreshAccess(u.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+
+          var newFileP = Q.defer();
+          
+          drive.files.copy({
+            fileId: driveFileId,
+            resource: {
+              name: title + " published",
+              parents: [{id: collectionId}],
+              properties: [{
+                "key": BACKREF_KEY,
+                "value": String(driveFileId),
+                "visibility": "PRIVATE"
+              }]
+            }
+          }, function(err, response) {
+            if(err) { newFileP.reject(err); }
+            else {
+              newFileP.resolve(response);
+            }
+          });
+
+          // This doesn't have to succeed, and may not for some GAE accounts
+          var updatedP = newFileP.promise.then(function(newFile) {
+            return drive.permissions.insert({
+              fileId: newFile.id,
+              resource: {
+                'role': 'reader',
+                'type': 'anyone',
+                'id': newFile.permissionId,
+                'withLink': true
+              }
+            });
+          });
+
+          var done = newFileP.promise.then(function(newFile) {
+            var sharedProgram = db.createSharedProgram(newFile.id, u.google_id);
+            sharedProgram.then(function(sp) {
+              res.send({
+                id: newFile.id,
+                modifiedDate: newFile.modifiedDate,
+                title: title
+              });
+              res.end();
+            });
+            return sharedProgram;
+          });
+          done.fail(function(err) {
+            res.status(500);
+            console.error("Failed to create shared file: ", err);
+            res.send("Failed to create shared file");
+            res.end();
+          });
+        }
+      });
+    });
+    maybeUser.fail(function(err) {
+      console.error("Failed to get an access token: ", err);
+      noAuth();
+    });
+  });
+
+  function getDriveClient(token, version) {
+    var client = new gapi.auth.OAuth2(
+        config.google.clientId,
+        config.google.clientSecret,
+        config.baseUrl + config.google.redirect
+      );
+    client.setCredentials({
+      access_token: token
+    });
+
+    var drive = gapi.drive({ version: version, auth: client });
+    return drive;
+  }
+
+  function programAndToken(sharedProgramId, res) {
+    var program = db.getSharedProgram(sharedProgramId);
+    var refreshToken = program.then(function(prog) {
+      var uP = db.getUserByGoogleId(prog.userId);
+      return uP.then(function(u) {
+        return u.refresh_token;
+      });
+    });
+    var both = Q.all([program, refreshToken]);
+    return both;
+  }
+
+  function getSharedContents(id, res, withResponse) {
+    var both = programAndToken(id);
+    both.fail(function(err) {
+      res.status(404).send("No share information found for " + sharedProgramId);
+      res.end();
+    });
+    var ret = Q.defer();
+    both.then(function(both) {
+      var prog = both[0];
+      var refreshToken = both[1];
+      auth.refreshAccess(refreshToken, function(err, newToken) {
+        if(err) { ret.reject("Could not access shared file."); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v3');
+          ret.resolve(drive.files.get({
+            fileId: prog.programId,
+            alt: "media"
+          }));
+        }
+      })
+    });
+    return ret.promise;
+  }
+
+  app.get("/shared-program-contents", function(req, res) {
+    var contents = getSharedContents(req.query.sharedProgramId, res);
+    contents.fail(function(err) {
+      res.status(400);
+      res.send("Unable to fetch shared file");
+      res.end();
+    });
+    contents.then(function(response) {
+      if(!response.headers["content-type"] === "text/plain") {
+        res.status(400);
+        res.send("Expected a text file, but got: " + response.headers["content-type"]);
+        res.end();
+      }
+      else {
+        res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
+        response.pipe(res);
+      }
+    });
+  });
+
+  app.get("/shared-image-contents", function(req, res) {
+    var contents = getSharedContents(req.query.sharedImageId, res);
+    contents.then(function(response) {
+      res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
+      response.pipe(res);
+    });
+    contents.fail(function(err) {
+      res.status(400);
+      res.send("Could not fetch shared image");
+      res.end();
+    });
+  });
+
+  app.get("/shared-file", function(req, res) {
+    var sharedProgramId = req.query.sharedProgramId;
+    var both = programAndToken(sharedProgramId);
+    both.fail(function(err) {
+      res.status(404).send("No share information found for " + sharedProgramId);
+      res.end();
+    });
+    both.then(function(both) {
+      var prog = both[0];
+      var refreshToken = both[1];
+      auth.refreshAccess(refreshToken, function(err, newToken) {
+        if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+          drive.files.get({fileId: sharedProgramId}, function(err, response) {
+            if(err) { res.status(400).send("Couldn't access shared file " + id); }
+            else {
+              res.send({
+                id: response.id,
+                modifiedDate: response.modifiedDate,
+                title: response.title,
+                selfLink: response.selfLink
+              });
+              res.status(200);
+              res.end();
+            }
+          });
+        }
+      });
+    });
   });
 
   app.get("/embeditor", function(req, res) {

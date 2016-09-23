@@ -147,10 +147,9 @@ define("seedrandom", [], function() {
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-var clientId = "";
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
-  handleClientLoad(clientId, apiKey);
+  handleClientLoad(apiKey);
 }
 </script>
 <!-- Google API Loader (For picker) -->
@@ -159,7 +158,17 @@ function handleGoogLoad() {
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
 <script>console.log(window.performance.now())</script>
 <script src="js/beforePyret.js"></script>
-<script>var APP_BASE_URL = "{{{ BASE_URL }}}";</script>
+<script>
+var APP_BASE_URL = "{{{ BASE_URL }}}";
+var CSRF_TOKEN = "{{{ CSRF_TOKEN }}}";
+$.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+  var a = document.createElement("a");
+  a.href = options.url;
+  if(a.origin === APP_BASE_URL) {
+    jqXHR.setRequestHeader('X-CSRF-Token', CSRF_TOKEN);
+  }
+});
+</script>
 
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->

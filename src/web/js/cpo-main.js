@@ -77,11 +77,11 @@
     runtime.setParam("imgUrlProxy", function(s) {
       var a = document.createElement("a");
       a.href = s;
-      if(a.hostname === "drive.google.com" && a.pathname === "/uc") {
+      if(a.origin === window.APP_BASE_URL) {
         return s;
       }
       else {
-        return APP_BASE_URL + "/downloadImg?" + s;
+        return window.APP_BASE_URL + "/downloadImg?" + s;
       }
     });
 
@@ -688,8 +688,8 @@
               placeInEditor("[list:");
             }
             documents.forEach(function(d, idx) {
-              var pathToImg = "\"https://drive.google.com/uc?export=download&id="
-                    + d[picker.Document.ID] + "\"";
+              var pathToImg = '"' + window.APP_BASE_URL + "/shared-image-contents?sharedImageId="
+                + d.id + '"';
               var outstr = asDefs ? ("img" + curImg + " = ") : "";
               ++curImg;
               outstr += "image-url(" + pathToImg + ")";
