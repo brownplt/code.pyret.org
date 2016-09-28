@@ -151,6 +151,26 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       }
     }
 
+    function getSharedFileByIdWithAuthFlag(id, skipAuth) {
+      var fromDrive = drive.files.get({fileId: id}, skipAuth).then(function(googFileObject) {
+        return makeSharedFile(googFileObject, true);
+      });
+      var fromServer = fromDrive.fail(function() {
+        return Q($.get("/shared-file", {
+          sharedProgramId: id
+        })).then(function(googlishFileObject) {
+          return makeSharedFile(googlishFileObject, false); 
+        });
+      });
+      var result = Q.any([fromDrive, fromServer]);
+      result.then(function(r) {
+        console.log("Got result for shared file: ", r);
+      }, function(r) {
+        console.log("Got failure: ", r); 
+      });
+      return result;
+    }
+
     var api = {
       getCollectionLink: function() {
         return baseCollection.then(function(bc) {
@@ -174,26 +194,10 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
         });
       },
       getSharedFileById: function(id) {
-        var fromDrive = drive.files.get({fileId: id}, true).then(function(googFileObject) {
-          return makeSharedFile(googFileObject, true);
-        });
-        var fromServer = fromDrive.fail(function() {
-          return Q($.get("/shared-file", {
-            sharedProgramId: id
-          })).then(function(googlishFileObject) {
-            return makeSharedFile(googlishFileObject, false); 
-          });
-        });
-        var result = Q.any([fromDrive, fromServer]);
-        result.then(function(r) {
-          console.log("Got result for shared file: ", r);
-        }, function(r) {
-          console.log("Got failure: ", r); 
-        });
-        return result;
+        return getSharedFileByIdWithAuthFlag(id, true);
       },
       getSharedFileByIdWithAuth: function(id) {
-        return drive.files.get({fileId: id}).then(makeSharedFile);
+        return getSharedFileByIdWithAuthFlag(id, false);
       },
       getFiles: function(c) {
         return c.then(function(bc) {

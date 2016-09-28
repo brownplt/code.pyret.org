@@ -2,10 +2,17 @@
 (function() {
 
   // temp hack because heroku is hard
+  // var process = {
+  //   env: {
+  //     PYRET: 'https://s3.amazonaws.com/pyret-grading/cpo-main.jarr.gz.js',
+  //     PYRET_GRADE: 'https://s3.amazonaws.com/pyret-grading/cpo-grade.jarr.gz.js'
+  //   }
+  // };
+  
   var process = {
     env: {
-      PYRET: 'https://s3.amazonaws.com/pyret-grading/cpo-main.jarr.gz.js',
-      PYRET_GRADE: 'https://s3.amazonaws.com/pyret-grading/cpo-grade.jarr.gz.js'
+      PYRET: '/js/cpo-main.jarr',
+      PYRET_GRADE: '/js/cpo-grade.jarr'
     }
   };
 
@@ -143,7 +150,7 @@
     if (!hasBeenQueued(runner)) {
       RunnerQueueStatus[runner.uniqueId] = true;
       Runners.push(runner);
-      console.log("queued runner");
+      // console.log("queued runner");
       setRunnerCellBackgroundColor(runner, Colors.pending);
     }
   };
@@ -256,7 +263,8 @@
       }
     }
 
-    return ([test, gold]).concat(coals);
+    var testAndMaybeGold = (studentRunner.gold != null) ? [test, gold] : [test];
+    return testAndMaybeGold.concat(coals);
   };
 
   /**
@@ -363,7 +371,7 @@
   var generateJSON = function() {
     var resultFuncs = Runners.map(function(runner) {
       return function() {
-        console.log("Running...");
+        // console.log("Running...");
         return runner.run(onStart, onDoneSuccess, onDoneFailure);
       }
     });
@@ -371,7 +379,7 @@
     
     var aggregatePromise = mapPromisesOneAtATime(resultFuncs);
     aggregatePromise.then(function(gradeRunDataArray) {
-      console.log("...done!");
+      // console.log("...done!");
       console.log(gradeRunDataArray);
       $("#out").text(JSON.stringify(gradeRunDataArray, null, "\t"));
       $('#download').removeAttr('disabled');

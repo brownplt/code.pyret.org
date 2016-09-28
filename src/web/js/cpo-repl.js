@@ -52,22 +52,22 @@
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
 
-    var logDetailedOption = $("#detailed-logging");
+    // var logDetailedOption = $("#detailed-logging");
 
-    if(localStorage.getItem('log-detailed') !== null) {
-      logDetailedOption.prop("checked",
-        localStorage.getItem('log-detailed') == 'true');
-    } else {
-      localStorage.setItem('log-detailed', false);
-    }
+    // if(localStorage.getItem('log-detailed') !== null) {
+    //   logDetailedOption.prop("checked",
+    //     localStorage.getItem('log-detailed') == 'true');
+    // } else {
+    //   localStorage.setItem('log-detailed', false);
+    // }
 
-    logDetailedOption.on('change', function () {
-      localStorage.setItem('log-detailed', this.checked);
-    });
+    // logDetailedOption.on('change', function () {
+    //   localStorage.setItem('log-detailed', this.checked);
+    // });
 
-    setInterval(function() {
-      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
-    }, 100);
+    // setInterval(function() {
+    //   logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
+    // }, 100);
 
     runtime.setParam("imgUrlProxy", function(s) {
       var a = document.createElement("a");
@@ -230,23 +230,23 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
-    var getDefsForPyret = runtime.makeFunction(function() {
-        return CPO.editor.cm.getValue();
-      });
+    // var getDefsForPyret = runtime.makeFunction(function() {
+    //     return CPO.editor.cm.getValue();
+    //   });
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
 
     /**
      */
-    var createRepl = function(optionalFindModule, optionalGetDefsForPyret) {
+    var createRepl = function(optionalMakeFindModule, optionalGetDefsForPyret) {
       var replDefer = Q.defer();
 
-      var findModule;
-      if (optionalFindModule != null) {
-        findModule = runtime.makeFunction(optionalFindModule, "cpo-find-module");
+      var makeFinder;
+      if (optionalMakeFindModule != null) {
+        makeFinder = optionalMakeFindModule;
       } else {
-        findModule = makeFindModule();
+        makeFinder = makeFindModule;
       }
 
       var getDefsForPyret;
@@ -258,17 +258,18 @@
         });
       }
 
-      return runtime.safeCall(function() {
+      runtime.safeCall(function() {
           return gmf(cpo, "make-repl").app(
               builtinsForPyret,
               pyRuntime,
               pyRealm,
-              runtime.makeFunction(makeFindModule));
+              runtime.makeFunction(makeFinder));
         }, function(repl) {
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
             restartInteractions: function(ignoredStr, typeCheck) {
-              var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
+              //var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
+              var options = defaultOptions.extendWith({"type-check": typeCheck});
               var ret = Q.defer();
               setTimeout(function() {
                 runtime.runThunk(function() {
@@ -323,61 +324,65 @@
 
     /**
      */
-    var createFindModuleFunction = function(protocolOverrideMap) {
-      var locatorCache = {};
-      return function(contextIgnored, dependency) {
-        var uri = uriFromDependency(dependency);
-        if(locatorCache.hasOwnProperty(uri)) {
-          return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
-        }
-        return runtime.safeCall(function() {
-          return runtime.ffi.cases(gmf(compileStructs, 'is-Dependency'), 'Dependency', dependency,
-            {
-              builtin: function(name) {
-                var raw = cpoModules.getBuiltinLoadableName(runtime, name);
-                if(!raw) {
-                  throw runtime.throwMessageException('Unknown module: ' + name);
-                }
-                else {
-                  return gmf(cpo, 'make-builtin-js-locator').app(name, raw);
-                }
-              },
-              dependency: function(protocol, args) {
-                var arr = runtime.ffi.toArray(args);
-                var protocolOverride = protocolOverrideMap[protocol];
-                var filesPromise = protocolOverride ? protocolOverride[arr[0]] : null;
-                var keepAuthForShared = protocolOverride ? protocolOverride.keepAuth : null;
-                if (protocol === 'my-gdrive') {
-                  if (filesPromise) {
-                    return constructors.makeMyGDriveLocator(arr[0], filesPromise);
-                  } else {
-                    return constructors.makeMyGDriveLocator(arr[0]);
+    var createMakeFindModuleFunction = function(protocolOverrideMap) {
+      return function() {
+        var locatorCache = {};
+        var findModule = function(contextIgnored, dependency) {
+          var uri = uriFromDependency(dependency);
+          if(locatorCache.hasOwnProperty(uri)) {
+            return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
+          }
+          return runtime.safeCall(function() {
+            return runtime.ffi.cases(gmf(compileStructs, 'is-Dependency'), 'Dependency', dependency,
+              {
+                builtin: function(name) {
+                  var raw = cpoModules.getBuiltinLoadableName(runtime, name);
+                  if(!raw) {
+                    throw runtime.throwMessageException('Unknown module: ' + name);
+                  }
+                  else {
+                    return gmf(cpo, 'make-builtin-js-locator').app(name, raw);
+                  }
+                },
+                dependency: function(protocol, args) {
+                  var arr = runtime.ffi.toArray(args);
+                  var protocolOverride = protocolOverrideMap[protocol];
+                  var filesPromise = protocolOverride ? protocolOverride[arr[0]] : null;
+                  var keepAuthForShared = protocolOverride ? protocolOverride.keepAuth : null;
+                  if (protocol === 'my-gdrive') {
+                    if (filesPromise) {
+                      return constructors.makeMyGDriveLocator(arr[0], filesPromise);
+                    } else {
+                      return constructors.makeMyGDriveLocator(arr[0]);
+                    }
+                  }
+                  else if (protocol === 'shared-gdrive') {
+                    if (keepAuthForShared) {
+                      return constructors.makeSharedGDriveLocator(arr[0], arr[1], true);
+                    } else {
+                      return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                    }
+                  }
+                  else if (protocol === 'gdrive-js') {
+                    return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                  }
+                  else {
+                    console.error('Unknown import: ', dependency);
                   }
                 }
-                else if (protocol === 'shared-gdrive') {
-                  if (keepAuthForShared) {
-                    return constructors.makeSharedGDriveLocator(arr[0], arr[1], true);
-                  } else {
-                    return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
-                  }
-                }
-                else if (protocol === 'gdrive-js') {
-                  return constructors.makeGDriveJSLocator(arr[0], arr[1]);
-                }
-                else {
-                  console.error('Unknown import: ', dependency);
-                }
-              }
-            });
-         }, function(l) {
-            return gmf(compileLib, 'located').app(l, runtime.nothing);
-         }, 'findModule');
-        }
+              });
+           }, function(l) {
+              return gmf(compileLib, 'located').app(l, runtime.nothing);
+           }, 'findModule');
+          };
+
+          return runtime.makeFunction(findModule, "cpo-find-module");
+      };
     };
 
     return runtime.makeJSModuleReturn({
       createRepl: createRepl,
-      createFindModuleFunction: createFindModuleFunction
+      createMakeFindModuleFunction: createMakeFindModuleFunction
     }, {});
   }
 })

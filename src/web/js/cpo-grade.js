@@ -179,6 +179,15 @@
       },
 
       /**
+       */
+      replaceCurlyQuotes: function(str) {
+        return str.replace(/\u201D/g, "\"")
+                  .replace(/\u201C/g, "\"")
+                  .replace(/\u2019/g, "\'")
+                  .replace(/\u2018/g, "\'");
+      },
+
+      /**
        * Create mock student/grade data for testing
        * @type {Object<string,function()>}
        */
@@ -356,14 +365,15 @@
         }
       };
       var fileId = fileObjToRun.getUniqueId();
-      var findModule = cpoRepl.createFindModuleFunction(protocolOverrideMap);
+      var makeFindModule = cpoRepl.createMakeFindModuleFunction(protocolOverrideMap);
       return (fileObjToRun.getContents()).then(function(stringtoRun) {
+        stringtoRun = Util.replaceCurlyQuotes(stringtoRun);
         var thisFileId = fileObjToRun.getUniqueId();
         DEBUG.assertEqual(fileId, thisFileId);
         var getDefsForPyret = runtime.makeFunction(function() {
           return stringtoRun;
         });
-        return cpoRepl.createRepl(findModule, getDefsForPyret);     
+        return cpoRepl.createRepl(makeFindModule, getDefsForPyret);     
       });
     };
 
@@ -487,12 +497,12 @@
         if (runtime.isFailureResult(pyretResult)) {
           data.failureCase = 'isFailureResult(pyretResult)';
           data.exn = pyretResult.exn;
-          console.log('ABOUT TO RESOLVE DATA:', data);
+          // console.log('ABOUT TO RESOLVE DATA:', data);
           dataDefer.resolve(data);
           return runtime.nothing;
         } else if (runtime.isSuccessResult(pyretResult)) {
           var result = pyretResult.result;
-          console.log('about to descend into cases');
+          // console.log('about to descend into cases');
           ffi.cases(ffi.isEither, "is-Either", result, {
             left: function(compileResultErrors) {
               var errs = [];
@@ -502,7 +512,7 @@
               });
               data.failureCase = 'is-left(result)';
               data.exn = errs;
-              console.log('ABOUT TO RESOLVE DATA:', data);
+              // console.log('ABOUT TO RESOLVE DATA:', data);
               dataDefer.resolve(data);
               return runtime.nothing;
             },
@@ -516,15 +526,15 @@
                   data.checks = getCheckResults(checks);
                   return runtime.nothing;
                 }, function(safeCallResult) {
-                  console.log('safeCallResult:', safeCallResult);
-                  console.log('ABOUT TO RESOLVE DATA:', data);
+                  // console.log('safeCallResult:', safeCallResult);
+                  // console.log('ABOUT TO RESOLVE DATA:', data);
                   dataDefer.resolve(data);
                   return runtime.nothing;
                 });
               } else if (runtime.isFailureResult(runResult)) {
                 data.failureCase = 'isFailureResult(runResult)';
                 data.exn = runResult.exn;
-                console.log('ABOUT TO RESOLVE DATA:', data);
+                // console.log('ABOUT TO RESOLVE DATA:', data);
                 dataDefer.resolve(data);
                 return runtime.nothing;
               } else {
@@ -532,7 +542,7 @@
                 data.exn = {
                   unknown: runResult
                 };
-                console.log('ABOUT TO RESOLVE DATA:', data);
+                // console.log('ABOUT TO RESOLVE DATA:', data);
                 dataDefer.resolve(data);
                 return runtime.nothing;
               }
@@ -543,7 +553,7 @@
           data.exn = {
             unknown: pyretResult
           };
-          console.log('ABOUT TO RESOLVE DATA:', data);
+          // console.log('ABOUT TO RESOLVE DATA:', data);
           dataDefer.resolve(data);
           return runtime.nothing;
         }
@@ -552,11 +562,11 @@
       return function() {
         return callDeferred(runtime, thunk)
           .then(function (result) {
-            console.log('.then:', result);
+            // console.log('.then:', result);
             return dataDefer.promise;
           })
           .fail(function (error) {
-            console.log('.fail:', error);
+            // console.log('.fail:', error);
             return dataDefer.promise;
           });
       };
@@ -668,11 +678,15 @@
           }, timeout);
 
           runResultPromise.then(function(pyretResult) {
+            done = true;
             clearTimeout(timer);
             var extract = createResultExtractor(pyretResult);
             return extract();
           }).then(function(runData) {
             resolveRunData(runData);
+          }).fail(function(err) {
+            console.error(err);
+            throw err;
           });
 
           return resultDefer.promise;
@@ -724,6 +738,26 @@
 
     /**
      */
+    var MAX_REQUESTS_PER_INTERVAL = 10;
+
+    
+    /**
+     */
+    var requestQueue = [];
+
+    /**
+     */
+    var processUpToXRequests = function() {
+      var x = Math.min(MAX_REQUESTS_PER_INTERVAL, requestQueue.length);
+      for (var i = 0; i < x; i++) {
+        // pop and shift give FIFO behavior
+        var nextRequest = requestQueue.shift();
+        nextRequest();
+      }
+    };
+
+    /**
+     */
     var apiRequestRetryHelper = function(request, iteration, max, defer) {
       var retry = function() {
         // formula from https://gist.github.com/peterherrmann/2700284
@@ -738,15 +772,20 @@
         console.log('...retrying request now.');
       }
 
-      (request()).then(function(resolvedObject) {
-        defer.resolve(resolvedObject);
-      }).fail(function(apiResponseError) {
-        if ((apiResponseError.message === 'User Rate Limit Exceeded') && (iteration < max)) {
-          retry();
-        } else {
-          defer.reject(apiResponseError);
-        }
-      });
+      var makeRequest = function() {
+        console.log('making request');
+        (request()).then(function(resolvedObject) {
+          defer.resolve(resolvedObject);
+        }).fail(function(apiResponseError) {
+          if ((apiResponseError.message === 'User Rate Limit Exceeded') && (iteration < max)) {
+            retry();
+          } else {
+            defer.reject(apiResponseError);
+          }
+        });
+      };
+
+      requestQueue.push(makeRequest);
 
       return defer.promise;
     };
@@ -755,7 +794,7 @@
      */
     var apiRequestRetry = function(request) {
       var defer = Q.defer();
-      return apiRequestRetryHelper(request, 0, 3, defer);
+      return apiRequestRetryHelper(request, 0, 6, defer);
     };
 
     /**
@@ -834,6 +873,8 @@
      */
     var createStudentRunners = function(testSuiteFileID, goldFileID, coalFolderID,
       submissionsFolderID, submissionName, implementationName, testName, timeout) {
+
+      setInterval(processUpToXRequests, 1050);
 
       var testSuiteFilePromise = optionalGetFile(testSuiteFileID);
       var goldFilePromise = optionalGetFile(goldFileID);
