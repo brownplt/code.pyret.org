@@ -74,7 +74,9 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
           container.empty();
           showShares(container, originalFile);
         });
-        copied.fail(unexpectedError);
+        copied.fail(function(err) {
+          console.error("Unexpected error in copying file: ", err); 
+        });
       });
       container.append(a);
       if(sharedInstances.length === 0) {

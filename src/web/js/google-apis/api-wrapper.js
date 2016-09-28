@@ -1,6 +1,5 @@
 // NOTE: Each of the following should be bound in the global scope:
 //   - `gapi'     : Google API Javascript Client
-//   - `clientId' : Google Client ID
 //   - `apiKey'   : Google API Key
 //   - `Q'        : Q Promise Framework
 
@@ -60,7 +59,6 @@ function loadAPIWrapper(immediate) {
     }
   }
   assertDefined('gapi');
-  assertDefined('clientId');
   assertDefined('apiKey');
   assertDefined('Q');
   // Sanity check passed.
@@ -145,6 +143,7 @@ function loadAPIWrapper(immediate) {
       var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
       newToken.then(function(t) {
         gapi.auth.setToken({ access_token: t.access_token });
+        logger.log('login', {user_id: t.user_id});
         d.resolve({ access_token: t.access_token });
       });
       newToken.fail(function(t) {

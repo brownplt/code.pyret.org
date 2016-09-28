@@ -56,6 +56,11 @@ COPY_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/*.cs
 build/web/css/%.css: src/web/css/%.css
 	cp $< $@
 
+COPY_FONTS := $(patsubst src/web/%,build/web/%,$(wildcard src/web/css/fonts/*))
+
+build/web/css/fonts/%: src/web/css/fonts/%
+	cp $< $@
+
 COPY_NEW_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/neweditor/css/*.css))
 
 build/web/neweditor/css/%.css: src/web/neweditor/css/%.css
@@ -187,6 +192,7 @@ WEBV = build/web/views
 WEBJS = build/web/js
 WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
+WEBFONTS = $(WEBCSS)/fonts
 WEBIMG = build/web/img
 WEBARR = build/web/arr
 NEWCSS = build/web/neweditor/css
@@ -207,6 +213,9 @@ $(WEBJSGOOG):
 $(WEBCSS):
 	@$(call MKDIR,$(WEBCSS))
 
+$(WEBFONTS):
+	@$(call MKDIR,$(WEBFONTS))
+
 $(WEBIMG):
 	@$(call MKDIR,$(WEBIMG))
 
@@ -219,9 +228,9 @@ $(NEWCSS):
 $(NEWJS):
 	@$(call MKDIR,$(NEWJS))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS) $(CPOGRADE)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS) $(CPOGRADE)
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(NEWCSS) $(NEWJS) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
