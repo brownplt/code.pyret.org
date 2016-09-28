@@ -1453,7 +1453,7 @@
             clickForMore.textContent = "Click to show the remaining " + (rows.length - previewLimit) + " rows...";
             var clickTR = document.createElement("tr");
             var clickTD = document.createElement("td");
-            clickTD.colspan = String(rows.length);
+            clickTD.colSpan = String(rows.length);
             clickTR.appendChild(clickTD);
             clickTD.appendChild(clickForMore);
             $(clickForMore).on("click", function() {
