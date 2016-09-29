@@ -188,6 +188,14 @@
       },
 
       /**
+       */
+      looseFilenameMatch: function(strX, strY) {
+        var xSplit = strX.split('.');
+        var ySplit = strY.split('.');
+        return (xSplit[0] === ySplit[0]);
+      },
+
+      /**
        * Create mock student/grade data for testing
        * @type {Object<string,function()>}
        */
@@ -402,7 +410,7 @@
 
     var isTestSuccess = function(val) {
       return runtime.unwrap(runtime.getField(CH, "is-success").app(val));
-    }
+    };
 
     var getCheckResults = function(checkResults) {
       var checkBlocks = ffi.toArray(checkResults).reverse();
@@ -461,6 +469,8 @@
       });
       var checkBlockCount = checkBlocks.length;
 
+      console.log('Passed ' + checkPassedAll + ' out of ' + checkTotalAll);
+
       return {
         testsPassed: checkPassedAll,
         testsTotal: checkTotalAll,
@@ -491,7 +501,8 @@
           isError: true,
           failureCase: null,
           exn: null,
-          checks: null
+          checks: null,
+          stats: pyretResult.stats
         };
         console.log("Full time including compile/load:", JSON.stringify(pyretResult.stats));
         if (runtime.isFailureResult(pyretResult)) {
@@ -635,7 +646,7 @@
             student: student,
             runnerType: runnerType,
             runData: runData,
-            time: Date.now()
+            timestamp: Date.now()
           };
 
           resultDefer.resolve(gradeRunData);
@@ -900,13 +911,18 @@
             }
           }).then(function(submittedFiles) {
             var implementation = submittedFiles.find(function(file) {
-              return file === null ? false : file.getName() === implementationName;
+              // return file === null ? false : file.getName() === implementationName;
+              return file === null ? false : Util.looseFilenameMatch(file.getName(), implementationName);
             });
             var test = submittedFiles.find(function(file) {
-              return file === null ? false : file.getName() === testName;
+              // return file === null ? false : file.getName() === testName;
+              return file === null ? false : Util.looseFilenameMatch(file.getName(), testName);
             });
-            implementation = implementation || null;
-            test = test || null;
+
+            //fallback: assume submittedFiles === [implfile, testfile]
+            implementation = implementation || submittedFiles[0] || null;
+            test = test || submittedFiles[1] || null;
+
             return {
               student: student,
               implementation: implementation,
