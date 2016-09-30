@@ -415,7 +415,9 @@
             const RIGHT_VALUE = "right";
 
             let classifyDataAsLeftOrRight = (xpos, barpos) => {
-                // change an
+                if (DEBUG_WEBGAZER) {
+                    console.log("instide of classify" + xpos + ", " + barpos)
+                }
                 if (xpos < barpos)
                     return LEFT_VALUE
                 else
@@ -424,10 +426,11 @@
 
             let logWebGazerData = (data) => {
                 // takes data from webgazer and translates into what we will log
-                let value = classifyDataAsLeftOrRight(data.x, data.barpos);
+                let value = classifyDataAsLeftOrRight(data.xpos, data.barpos);
                 if (value != lastValue) {
                     // then we log it!
                     logger.log(KEY_WEBGAZER, value)
+                    console.log("outputted" + value)
                     lastValue = value
                 }
             }
@@ -454,7 +457,7 @@
                     var repl = document.getElementById("REPL");
                     var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-                    var timeData = {
+                    let timeData = {
                         xpos: data.x,
                         ypos: data.y,
                         timestamp: elapsedTime, // logger will keep track of when something was logged
