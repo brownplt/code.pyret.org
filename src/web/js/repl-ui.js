@@ -381,11 +381,8 @@
       });
       var runContents;
 
-        let setGazeListenerFunction = false;
-        const DEBUG_WEBGAZER = false;
-        const KEY_WEBGAZER = "eye";
-        let testNum = 0;
-        const testPrefix = "test";
+      var setGazeListenerFunction = false;
+      var KEY_WEBGAZER = "eye";
 
       function afterRun(cm) {
         return function() {
@@ -404,71 +401,55 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
-            /* BEGINNING WEBGAZER ADDITION */
+          /* BEGINNING WEBGAZER ADDITION */
 
-            // prepare for new test run
-            if (DEBUG_WEBGAZER)
-                console.log("in afterRun");
+          // prepare for new test run
+          var lastValue = undefined;
+          var LEFT_VALUE = 0;
+          var RIGHT_VALUE = 1;
 
-            let lastValue = undefined;
-            const LEFT_VALUE = "left";
-            const RIGHT_VALUE = "right";
+          function classifyDataAsLeftOrRight(xpos, barpos) {
+              if (xpos < barpos)
+                  return LEFT_VALUE;
+              else
+                  return RIGHT_VALUE;
+          }
 
-            let classifyDataAsLeftOrRight = (xpos, barpos) => {
-                if (DEBUG_WEBGAZER) {
-                    console.log("instide of classify" + xpos + ", " + barpos)
-                }
-                if (xpos < barpos)
-                    return LEFT_VALUE
-                else
-                    return RIGHT_VALUE
-            }
+          function logWebGazerData(xpos, barpos) {
+              // takes data from webgazer and translates into what we will log
+              var value = classifyDataAsLeftOrRight(xpos, barpos);
+              if (value !== lastValue) {
+                  // then we log it!
+                  logger.log(KEY_WEBGAZER, value);
+              }
+              lastValue = value;
+          }
 
-            let logWebGazerData = (data) => {
-                // takes data from webgazer and translates into what we will log
-                let value = classifyDataAsLeftOrRight(data.xpos, data.barpos);
-                if (value != lastValue) {
-                    // then we log it!
-                    logger.log(KEY_WEBGAZER, value)
-                    console.log("outputted" + value)
-                    lastValue = value
-                }
-            }
+          webgazer.resume();
 
-            webgazer.resume();
-            testNum = testNum + 1;
+          function pauseWebGazerDataCollection(cm, change) {
+              webgazer.pause();
+              cm.off("change", pauseWebGazerDataCollection);
+          }
 
-            let pauseWebGazerDataCollection = (cm, change) => {
-                webgazer.pause();
-                cm.off("change", pauseWebGazerDataCollection);
-                console.log("webgazer data collection stopped");
-            }
+          // register onchange event: whenever someone makes a change, stop tracking their gaze
+          CPO.documents.get( "definitions://" ).on("change", pauseWebGazerDataCollection);
 
-            // register onchange event: whenever someone makes a change, stop tracking their gaze
-            CPO.documents.get( "definitions://" ).on("change", pauseWebGazerDataCollection);
+          // if we haven't set the gaze listener function before
+          if (!setGazeListenerFunction) {
+              var repl = document.getElementById("REPL");
+              webgazer.setGazeListener(function(data, elapsedTime) {
+                  if (data == null) {
+                      return;
+                  }
 
-            // if we haven't set the gaze listener function before
-            if (!setGazeListenerFunction) {
-                webgazer.setGazeListener((data, elapsedTime) => {
-                    if (data == null) {
-                        return;
-                    }
+                  var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
 
-                    var repl = document.getElementById("REPL");
-                    var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
+                  logWebGazerData(data.x, splitLocationX);
+              });
 
-                    let timeData = {
-                        xpos: data.x,
-                        ypos: data.y,
-                        timestamp: elapsedTime, // logger will keep track of when something was logged
-                        barpos: splitLocationX
-                    }
-
-                    logWebGazerData(timeData);
-                });
-
-                setGazeListenerFunction = true;
-            } // end setting gaze listener function
+              setGazeListenerFunction = true;
+          } // end setting gaze listener function
 
         }
       }
