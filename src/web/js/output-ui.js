@@ -1365,6 +1365,7 @@
       }
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {
+        //console.log('doing renderopaque', JSON.stringify(val));
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
         } else {
@@ -1372,9 +1373,11 @@
         }
       };
       renderers["cyclic"] = function renderCyclic(val) {
+        //console.log('doing renderCyclic');
         return renderText(sooper(renderers, "cyclic", val));
       };
       renderers.renderTable = function renderTable(val) {
+        //console.log('doing renderTable');
         debugger;
         var table = document.createElement("table");
         table.classList.add('replOutput');
@@ -1400,6 +1403,7 @@
         return table;
       };
       renderers.renderImage = function renderImage(img) {
+        //console.log('doing renderImage');
         var container = $("<span>").addClass('replOutput');
         var imageDom;
         var maxWidth = $(document).width() * .375;
@@ -1522,6 +1526,7 @@
       renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
       renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
       renderers["render-array"] = function(top) {
+        //console.log('doing render-array');
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
         // this means we don't get grouping behavior yet, but since that's commented out right now anyway, it's ok
@@ -1595,6 +1600,7 @@
         return container;
       };
       renderers["object"] = function(val, pushTodo) {
+        //console.log('doing render object');
         var keys = [];
         var vals = [];
         for (var field in val.dict) {
@@ -1604,6 +1610,7 @@
         pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
       };
       renderers["render-object"] = function(top) {
+        //console.log('doing render render-object');
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").addClass("expanded").text("Object");
         var openBrace = $("<span>").addClass("collapsed").text("{");
@@ -1625,14 +1632,18 @@
         return container;
       };
       renderers["render-data"] = function renderData(top) {
+        //console.log('doing render-data');
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").text(top.extra.constructorName);
         var openParen = $("<span>").addClass("collapsed").text("(");
         var closeParen = $("<span>").addClass("collapsed").text(")");
         var dl = $("<dl>");
+        //var dl = $("<dl>").addClass("inlineCollection");
+        container.append(openParen);
         container.append(name);
+        container.append($("<span>").text(" "));
         if (top.extra.arity !== -1) {
-          container.append(openParen);
+          //container.append(openParen);
           var numFields = top.extra.fields.length;
           for (var i = 0; i < numFields; i++) {
             dl.append($("<dt>").text(top.extra.fields[i]).addClass("expanded"));
@@ -1654,6 +1665,7 @@
         $(this).toggleClass("inlineCollection");
       }
       function helper(container, val, values) {
+        //console.log('output-ui/helper' );
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
         else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
@@ -1801,6 +1813,7 @@
         // }
       }
       renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
+        //console.log('doing renderValueSkeleton');
         var container = $("<span>").addClass("replOutput");
         return helper(container, top.extra.skeleton, top.done);
       };
@@ -1811,6 +1824,7 @@
     // and also returned
     // NOTE: THIS MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function renderPyretValue(output, runtime, answer) {
+      //console.log('doing renderPyretValue');
       installRenderers(runtime);
       runtime.pauseStack(function(restarter) {
         runtime.runThunk(function() {
