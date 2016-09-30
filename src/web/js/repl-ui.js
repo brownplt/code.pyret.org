@@ -435,8 +435,14 @@
             webgazer.resume();
             testNum = testNum + 1;
 
+            let pauseWebGazerDataCollection = (cm, change) => {
+                webgazer.pause();
+                cm.off("change", pauseWebGazerDataCollection);
+                console.log("webgazer data collection stopped");
+            }
+
             // register onchange event: whenever someone makes a change, stop tracking their gaze
-            CPO.documents.get( "definitions://" ).on("change", webgazer.pause);
+            CPO.documents.get( "definitions://" ).on("change", pauseWebGazerDataCollection);
 
             // if we haven't set the gaze listener function before
             if (!setGazeListenerFunction) {
