@@ -16,6 +16,7 @@
       "reactor": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], "Any"]],
       "big-bang": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], ["tid", "a"]]],
       "_spyret_big-bang": "tany",
+      "animate": "tany",
       "on-tick": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], ["tid", "a"]]],
@@ -656,6 +657,17 @@
             bigBang(init, arr);
             runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
           }),
+
+          "animate": makeFunction(function(f) {
+            runtime.ffi.checkArity(1, arguments, "animate");
+            runtime.checkFunction(f);
+            var arr = [];
+            arr.push(runtime.makeOpaque(new ToDraw(f)));
+            arr.push(runtime.makeOpaque(new OnTick(makeFunction(function(n) { return n+1; }), 
+              Math.floor(DEFAULT_TICK_DELAY * 1000))));
+            bigBang(1, arr);
+            runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
+          }, "animate"),
 
           "on-tick": makeFunction(function(handler) {
             runtime.ffi.checkArity(1, arguments, "on-tick");
