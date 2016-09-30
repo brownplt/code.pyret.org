@@ -5757,7 +5757,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           it.kids.length > 0 && (it = it.kids[0]) &&
           it.name === "NAME" && it.value === "_spyret_check_expect") {
           checkExpects.push(b);
-        } else if (provenance === "repl") {
+        } else if (provenance === "repl" || provenance === "module") {
           otherExps.push(b);
         } else if (b.name === "id-expr" && (it = b.kids[0]) &&
           it.name === "NAME" && it.value === "nothing") {
@@ -5988,7 +5988,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       //console.log('doing makeStructFromMembers ' + elts);
       var fakeArrayCall = new symbolExpr(constructor)
       function makeListEltFromValue(val) {
-        console.log('makeListEltFromValue of val = ' + val);
+        //console.log('makeListEltFromValue of val = ' + val);
         //val can be circular!
         var k
         if (val instanceof symbolExpr) {
@@ -6002,7 +6002,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         } else {
           k = val.toPyretAST()
         }
-        console.log('returning from makeListEltFromValue');
+        //console.log('returning from makeListEltFromValue');
         return k;
         /*
         return {
@@ -6022,7 +6022,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           var result = [];
           for (var i = 0; i < args.length - 1; i++) {
             var arg = args[i];
-            console.log('curr arg = ' + arg);
+            //console.log('curr arg = ' + arg);
             result.push(makeListEltFromValue(arg), commaStx);
           }
           result.push(makeListEltFromValue(args[args.length - 1]));
@@ -6761,7 +6761,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         return makeStructFromMembers("array", this.args, this.location);
       }
       if (this.func.val === "list") {
-        console.log('calling makeStructFromMembers list ' + this.args);
+        //console.log('calling makeStructFromMembers list ' + this.args);
         return makeStructFromMembers("list", this.args, this.location);
       }
 
@@ -7016,7 +7016,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         };
       }
 
-      console.log('doing condExpr:toPyretAST of ' + this.clauses);
+      //console.log('doing condExpr:toPyretAST of ' + this.clauses);
       // make an ifPipe for each non-else clause
       var lastClause = this.clauses[this.clauses.length - 1];
       var hasElse = (lastClause.first && lastClause.first.val === "else");
@@ -7213,7 +7213,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
      // is the enclosing "import-stmt" needed? is the "import-special" enough?
 
-      return {
+      var importStx = {
         name: "import-stmt",
         pos: loc,
         kids: [{
@@ -7239,6 +7239,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           }, rParenStx]
         }]
       }
+
+      return importStx;
 
     };
 
@@ -7285,7 +7287,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     provenance = provenance || "definitions";
     if (provenance === "module") {
       if (window.COLLECTIONS === undefined) {
-        console.log('initiing2 window.COLLECTIONS to []');
+        console.log('initing2 window.COLLECTIONS to []');
         window.COLLECTIONS = [];
       }
     }
