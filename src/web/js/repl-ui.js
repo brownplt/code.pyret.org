@@ -381,7 +381,7 @@
       });
       var runContents;
 
-        function classify(queue) {
+        let classify = function (queue) {
             /**
              * Classify a queue of webgazer data with a given behavior.
              */
@@ -433,13 +433,13 @@
         var testNum = 0;
         const testPrefix = "test";
 
-        var outputTest = (cm, change) => {
+        let outputWebGazerData = (cm, change) => {
             /**
              * Output webgazer data to logger and stop webgazer.
              */
             if (DEBUG_WEBGAZER)
                 console.log("change, so outputting list of size " + eventQueue.length);
-            cm.off("change", outputTest);
+            cm.off("change", outputWebGazerData);
             if (eventQueue.length > 0) {
                 logger.log(KEY_WEBGAZER, eventQueue);
             }
@@ -470,12 +470,34 @@
             // prepare for new test run
             if (DEBUG_WEBGAZER)
                 console.log("in afterRun");
-            eventQueue = [];
+
+            let lastValue; // be sure to reset this when we resume webgazer
+            const LEFT_VALUE = "left";
+            const RIGHT_VALUE = "right";
+
+            let classifyDataAsLeftOrRight = (xpos, barpos) => {
+                // change an
+                if (xpos < barpos)
+                    return LEFT_VALUE
+                else
+                    return RIGHT_VALUE
+            }
+
+            let logWebGazerData = (data) => {
+                // takes data from webgazer and translates into what we will log
+                let value = classifyDataAsLeftOrRight(data.x, data.barpos);
+                if (value != lastValue) {
+                    // then we log it!
+                    logger.log(KEY_WEBGAZER, value)
+                    lastValue = value
+                }
+            }
+
             webgazer.resume();
             testNum = testNum + 1;
 
             // register onchange event
-            CPO.documents.get( "definitions://" ).on("change", outputTest);
+            CPO.documents.get( "definitions://" ).on("change", outputWebGazerData);
 
             // if we haven't set the gaze listener function before
             if (!setGazeListenerFunction) {
@@ -490,11 +512,11 @@
                     var timeData = {
                         xpos: data.x,
                         ypos: data.y,
-                        timestamp: elapsedTime,
+                        timestamp: elapsedTime, // logger will keep track of when something was logged
                         barpos: splitLocationX
                     }
 
-                    eventQueue.push(timeData);
+                    logWebGazerData(timeData);
                 });
 
                 setGazeListenerFunction = true;
