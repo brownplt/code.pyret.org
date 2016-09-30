@@ -668,7 +668,8 @@ div#font-label:hover{
    float: left;
 }
 .replOutput > dl > dd:not(:last-of-type):after {
-   content: ",";
+   /* content: ","; Scheme doesn't use comma separators */
+  content: "";
    padding-right: 0.5em;
 }
 
