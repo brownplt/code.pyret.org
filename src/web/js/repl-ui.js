@@ -381,72 +381,11 @@
       });
       var runContents;
 
-        let classify = function (queue) {
-            /**
-             * Classify a queue of webgazer data with a given behavior.
-             */
-            if (queue.length == 0)
-                return "empty list of observations";
-
-            var leftAndRightArray = queue.map((x) => {
-                if (x.xpos < x.barpos)
-                    return -1;
-                else if (x.xpos > x.barpos)
-                    return 1;
-                else
-                    return 0;
-            });
-            var sum = leftAndRightArray.reduce((a, b) => a + b, 0);
-            var normalizedSum = sum / leftAndRightArray.length;
-            const normalDisLimit = 0.43; // point such that [x,x] is one third of the area of std. dist.
-
-            var classifyFunction = function(x, left, middle, right) {
-                if (x <= -normalDisLimit)
-                    return left;
-                else if (x < normalDisLimit)
-                    return middle;
-                else
-                    return right;
-            };
-
-            var eyeLocation = classifyFunction(normalizedSum, "editor", "middle", "repl");
-
-            // now find out if they went back and forth quickly
-            // can use slice(1) and then index form of map
-            var changingHalfArray = leftAndRightArray.slice(1).map((x, index, arr) => {
-                if (x == arr[index - 1])
-                    return 0;
-                else
-                    return 1;
-            });
-            var changeHalfSum = changingHalfArray.reduce((a, b) => a + b, 0);
-            var normalizedHalfSum = changeHalfSum / (queue.length - 1) - (1 - 0) / 2;
-            var changeHalfFrequency = classifyFunction(normalizedHalfSum, "not often",
-                                                   "somewhat frequently", "often");
-            return "looking " + eyeLocation + ", switching " + changeHalfFrequency;
-        }
-
-        var setGazeListenerFunction = false;
+        let setGazeListenerFunction = false;
         const DEBUG_WEBGAZER = false;
         const KEY_WEBGAZER = "eye";
-        var eventQueue = [];
-        var testNum = 0;
+        let testNum = 0;
         const testPrefix = "test";
-
-        let outputWebGazerData = (cm, change) => {
-            /**
-             * Output webgazer data to logger and stop webgazer.
-             */
-            if (DEBUG_WEBGAZER)
-                console.log("change, so outputting list of size " + eventQueue.length);
-            cm.off("change", outputWebGazerData);
-            if (eventQueue.length > 0) {
-                logger.log(KEY_WEBGAZER, eventQueue);
-            }
-            // fine to do even if webgazer off, ie, eventQueue is empty
-            // but feels more robust in case wierd inconsistency of eventQueue
-            webgazer.pause();
-        }
 
       function afterRun(cm) {
         return function() {
@@ -471,7 +410,7 @@
             if (DEBUG_WEBGAZER)
                 console.log("in afterRun");
 
-            let lastValue; // be sure to reset this when we resume webgazer
+            let lastValue = undefined;
             const LEFT_VALUE = "left";
             const RIGHT_VALUE = "right";
 
@@ -496,8 +435,8 @@
             webgazer.resume();
             testNum = testNum + 1;
 
-            // register onchange event
-            CPO.documents.get( "definitions://" ).on("change", outputWebGazerData);
+            // register onchange event: whenever someone makes a change, stop tracking their gaze
+            CPO.documents.get( "definitions://" ).on("change", webgazer.pause);
 
             // if we haven't set the gaze listener function before
             if (!setGazeListenerFunction) {
