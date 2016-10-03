@@ -19,6 +19,7 @@ CPOMAIN=build/web/js/cpo-main.jarr
 CPOGZ=build/web/js/cpo-main.jarr.gz.js
 CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
 CPOGRADE=build/web/js/cpo-grade.jarr
+CPOGRADEGZ=build/web/js/cpo-grade.jarr.gz.js
 PHASEA=pyret/build/phaseA/pyret.jarr
 
 .PHONY : post-install
@@ -266,6 +267,8 @@ $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr 
 # non-.js extension.
 $(CPOGZ): $(CPOMAIN)
 	gzip -c -f $(CPOMAIN) > $(CPOGZ)
+$(CPOGRADEGZ): $(CPOGRADE)
+	gzip -c -f $(CPOGRADE) > $(CPOGRADEGZ)
 
 $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;

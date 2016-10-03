@@ -2,19 +2,17 @@
 (function() {
 
   // temp hack because heroku is hard
-  // var process = {
-  //   env: {
-  //     PYRET: 'https://s3.amazonaws.com/pyret-grading/cpo-main.jarr.gz.js',
-  //     PYRET_GRADE: 'https://s3.amazonaws.com/pyret-grading/cpo-grade.jarr.gz.js'
-  //   }
-  // };
-  
   var process = {
     env: {
-      PYRET: '/js/cpo-main.jarr',
-      PYRET_GRADE: '/js/cpo-grade.jarr'
+      PYRET_GRADE: 'https://s3.amazonaws.com/pyret-grading/cpo-grade.jarr.gz.js'
     }
   };
+  
+  // var process = {
+  //   env: {
+  //     PYRET_GRADE: '/js/cpo-grade.jarr'
+  //   }
+  // };
 
   /**
    */
