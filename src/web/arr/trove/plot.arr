@@ -480,7 +480,7 @@ fun display-plots(
   end
   options = _.{title: title}
   shadow options = if infer-bounds:
-    {(config): options(config).{infer-bound: true}}
+    {(config): options(config).{infer-bounds: true}}
   else:
     options
   end
