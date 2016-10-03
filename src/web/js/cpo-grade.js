@@ -818,6 +818,9 @@
       }
     };
 
+    var FOLDER_MIME = "mimeType = 'application/vnd.google-apps.folder'";
+    var NOT_FOLDER_MIME = "mimeType != 'application/vnd.google-apps.folder'";
+
     /**
      */
     var getFile = function(id) {
@@ -830,19 +833,19 @@
 
     /**
      */
-    var listChildren = function(id) {
+    var listChildren = function(id, mimeType) {
       idAndApiCheck(id);
       var request = function() {
-        return api.listChildren(id);
+        return api.listChildren(id, mimeType);
       };
       return apiRequestRetry(request);
     };
 
     /**
      */
-    var getFilesInFolder = function(id) {
+    var getFilesInFolder = function(id, mimeType) {
       idAndApiCheck(id);
-      return (listChildren(id)).then(function(directory) {
+      return (listChildren(id, mimeType)).then(function(directory) {
         if (directory.items != null) {
           return Q.all(directory.items.map(function(file) {
             return getFile(file.id);
@@ -863,9 +866,9 @@
       }
     };
 
-    var optionalGetFilesInFolder = function(id) {
+    var optionalGetFilesInFolder = function(id, mimeType) {
       if (id.length > 0) {
-        return getFilesInFolder(id);
+        return getFilesInFolder(id, mimeType);
       } else {
         return Util.makeResolvedPromise([]);
       }
@@ -889,8 +892,8 @@
 
       var testSuiteFilePromise = optionalGetFile(testSuiteFileID);
       var goldFilePromise = optionalGetFile(goldFileID);
-      var coalFilesPromise = optionalGetFilesInFolder(coalFolderID);
-      var submissionsPromise = getFilesInFolder(submissionsFolderID)
+      var coalFilesPromise = optionalGetFilesInFolder(coalFolderID, NOT_FOLDER_MIME);
+      var submissionsPromise = getFilesInFolder(submissionsFolderID, FOLDER_MIME)
       .then(function(studentFolders) {
         var arrayOfPromises = studentFolders.map(function(studentFolder) {
           var name = studentFolder.getName();
@@ -907,7 +910,7 @@
               console.error('Could not find ' + submissionName + ' for student ' + student.name);
               return [];
             } else {
-              return getFilesInFolder(submission.getUniqueId());
+              return getFilesInFolder(submission.getUniqueId(), NOT_FOLDER_MIME);
             }
           }).then(function(submittedFiles) {
             var implementation = submittedFiles.find(function(file) {

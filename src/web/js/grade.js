@@ -24,7 +24,7 @@
    */
   var Templates = {
     nameSpan: '<div><span>{{name}}</span></div>',
-    thNoRunner: '<th class="def" id="{{id}}">{{> nameSpan}}</th>',
+    thNoRunner: '<th class="tooltip def" id="{{id}}" title="{{tooltip_title}}">{{> nameSpan}}</th>',
     thRunAll: '<th class="tooltip def" id="{{runAllId}}" title="Run All">Student</th>',
     thRunAllForName: '<th class="tooltip def" id="{{id}}" title="Run All for {{name}}">{{> nameSpan}}</th>',
     tdRunAllForName: '<td class="tooltip def" id="{{id}}" title="Run All for {{name}}">{{> nameSpan}}</td>',
@@ -243,22 +243,26 @@
   var getColumnsTemplateView = function(studentRunner) {
     var test = {
       name: 'test',
-      id: 'run-all-test'
+      id: 'run-all-test',
+      tooltip_title: studentRunner.test.test.name
     };
 
     var gold = {
       name: 'gold',
-      id: 'run-all-gold'
+      id: 'run-all-gold',
+      tooltip_title: studentRunner.gold.implementation.name
     };
 
     var coals = [];
     if (studentRunner.coals) {
       for (var i = 0; i < studentRunner.coals.length; i++) {
         var name = 'coal ' + i;
-        var id = 'run-all-' + name;
+        var id = 'run-all-coal ' + i;
+        var tooltip_title = studentRunner.coals[i].implementation.name;
         coals[i] = {
           name: name,
-          id: id
+          id: id,
+          tooltip_title: tooltip_title
         };
       }
     }
@@ -481,6 +485,7 @@
       $('#loading-message').show();
       getStudentRunners().then(function(studentRunners) {
         $('#loading-message').hide();
+        console.log('COALS', studentRunners[0].coals);
         renderTable(studentRunners);
       }).fail(function(err) {
         console.error(err);

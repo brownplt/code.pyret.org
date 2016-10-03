@@ -208,8 +208,12 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             });
         });
       },
-      listChildren: function(id) {
-        return drive.children.list({folderId: id});
+      listChildren: function(id, mimeTypeQuery) {
+        var q = "trashed=false";
+        if (mimeTypeQuery) {
+          q += " and " + mimeTypeQuery;
+        }
+        return drive.children.list({folderId: id, q: q});
       },
       getCachedFiles: function() {
         return this.getFiles(cacheCollection);
