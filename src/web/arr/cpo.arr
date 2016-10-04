@@ -37,7 +37,7 @@ fun get-builtin-modules(builtin-mods) block:
   modules
 end
 
-fun make-builtin-js-locator(builtin-name, raw):
+fun make-js-locator-from-raw(raw, check-mode, uri, name):
   {
     method dialect(_): "pyret" end,
     method needs-compile(_, _): false end,
@@ -45,10 +45,10 @@ fun make-builtin-js-locator(builtin-name, raw):
       0
     end,
     method get-options(self, options):
-      options.{ check-mode: false }
+      options.{ check-mode: check-mode }
     end,
     method get-module(_):
-      raise("Should never fetch source for builtin module " + builtin-name)
+      raise("Should never fetch source for raw JS module " + name)
     end,
     method get-extra-imports(self):
       CS.standard-imports
@@ -65,10 +65,10 @@ fun make-builtin-js-locator(builtin-name, raw):
       CS.standard-globals
     end,
 
-    method uri(_): "builtin://" + builtin-name end,
-    method name(_): builtin-name end,
+    method uri(_): uri end,
+    method name(_): name end,
 
-    method set-compiled(_, _): nothing end,
+    method set-compiled(_, _, _): nothing end,
     method get-compiled(self):
       provs = CS.provides-from-raw-provides(self.uri(), {
         uri: self.uri(),
@@ -83,6 +83,10 @@ fun make-builtin-js-locator(builtin-name, raw):
       req-eq(self.uri(), other.uri())
     end
   }
+end
+
+fun make-builtin-js-locator(builtin-name, raw):
+  make-js-locator-from-raw(raw, false, "builtin://" + builtin-name, builtin-name)
 end
 
 fun ast-locator(uri :: String, a :: A.Program):
@@ -102,6 +106,39 @@ fun ast-locator(uri :: String, a :: A.Program):
     method get-compiled(self): none end,
     method _equals(self, other, rec-eq): rec-eq(other.uri(), self.uri()) end
   }
+end
+
+save-protocols = [list: "my-gdrive", "shared-gdrive"]
+
+fun make-on-compile(save-gdrive-file):
+  on-compile = lam(locator, loadable) block:
+    locator.set-compiled(loadable, SD.make-mutable-string-dict())
+    locuri = loadable.provides.from-uri
+    cases(CS.CompileResult) loadable.result-printer:
+      | ok(ccp) => 
+        protocol = string-substring(locuri, 0, string-index-of(locuri, "://"))
+        ask block:
+          | save-protocols.member(protocol) then:
+            save-gdrive-file(locuri, ccp.pyret-to-js-runnable())
+            nothing
+          # We don't save copies of other kinds of modules, which are already
+          # in pure JS.
+          | otherwise: nothing
+        end
+
+      # If the compilation errored, there's nothing meaningful to save, as the
+      # module will have to be recompiled for the program to work anyway
+      | err(_) => nothing
+    end
+    # NOTE(joe): The CLI module loader does an extra step of using
+    # ccp-file here to avoid keeping compiled strings in memory
+    # when not strictly necessary, to reduce overall footprint.
+    # There's an opportunity to do this here by using localStorage,
+    # which is probably best implemented with something like ccp-thunk,
+    # which could easily abstract over many ways of getting a compiled string
+    loadable
+  end
+  on-compile
 end
 
 fun compile-ast(ast, runtime, finder, options) -> E.Either:

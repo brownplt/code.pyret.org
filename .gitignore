@@ -8,5 +8,4 @@ node_modules
 program-deps.js
 program-require.js
 pyret
-src/web/teachpacks
-test/jasmine
+test-util/failed-test-screenshots/*

@@ -12,332 +12,279 @@
     },
     { "import-type": "builtin",
       name: "contracts"
+    },
+    { "import-type": "builtin",
+      name: "checker"
     }
   ],
   provides: {},
   nativeRequires: [ ],
-  theModule: function(runtime, _, uri, outputUI, srclocLib, errorLib, contractsLib) {
+  theModule: function(runtime, _, uri, outputUI, srclocLib, errorLib, contractsLib, checkerLib) {
     var srcloc = runtime.getField(srclocLib, "values");
-    var error = runtime.getField(errorLib, "values");
-    var contracts = runtime.getField(contractsLib, "values");
+
+    var isContractError = function(runtime, v){
+      var contracts = runtime.getField(contractsLib, "values");
+      return runtime.getField(contracts, "is-ContractResult").app(v)
+    };
+
+    var isRuntimeError  = function(runtime, v){
+      var error = runtime.getField(errorLib, "values");
+      return runtime.getField(error, "is-RuntimeError").app(v)
+    };
+
+    var isParseError  = function(runtime, v){
+      var error = runtime.getField(errorLib, "values");
+      return runtime.getField(error, "is-ParseError").app(v)
+    };
+
+    var isTestResult  = function(runtime, v){
+      var error = runtime.getField(checkerLib, "values");
+      return runtime.getField(error, "is-TestResult").app(v)
+    };
 
     var ffi = runtime.ffi;
     var cases = ffi.cases;
 
-    // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-    function drawError(container, editors, runtime, exception, contextFactory) {
-      var cases = ffi.cases;
-      var get = runtime.getField;
-
-      function mkPred(pyretFunName) {
-        return function(val) { return get(error, pyretFunName).app(val); }
-      }
-
-      var isContractError = get(contracts, "is-ContractResult").app;
-
-      // Exception will be one of:
-      // - an Array of compileErrors (this is legacy, but useful for old versions),
-      // - a PyretException with a list of compileErrors
-      // - a PyretException with a stack and a Pyret value error
-      // - something internal and JavaScripty, which we don't want
-      //   users to see but will have a hard time ruling out
-      if (exception instanceof Array) {
-        return drawCompileErrors(exception);
-      } else if (exception.exn instanceof Array) {
-        return drawCompileErrors(exception.exn);
-      } else if(runtime.isPyretException(exception)) {
-        return drawPyretException(exception);
-      } else {
-        return drawUnknownException(exception);
-      }
-
-      // HELPERS
-
-      // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-      function drawCompileErrors(e) {
-        var lastError;
-        function drawCompileError(e) {
-          runtime.pauseStack(function(restarter) {
-            runtime.runThunk(function() {
-              return get(e, "render-fancy-reason").app(); 
-            }, function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                var errorID = !contextFactory ? undefined : contextFactory();
-                runtime.runThunk(function() {
-                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || [], errorID);
-                }, function(domResult) {
-                  if (runtime.isSuccessResult(domResult)) {
-                    var dom = domResult.result;
-                    dom.addClass("compile-error");
-                    container.append(dom);
-                    dom.on('click', function(){
-                      dom.trigger('toggleHighlight');
-                    });
-                    lastError = dom;
-                  } else {
-                    container.append($("<span>").addClass("compile-error internal-error")
-                                     .text("An error occurred rendering the reason for this error; details logged to the console"));
-                    console.error("drawCompileError: renderErrorDisplay failed:", errorDisp);;
-                    console.log(errorDisp.exn);
-                  }
-                  outputUI.runMarks();
-                  restarter.resume(runtime.nothing);
-                });
-              } else {
-                container.append($("<span>").addClass("compile-error internal-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.error("drawCompileError: render-fancy-reason failed:", errorDisp);;
-                console.log(errorDisp.exn);
-                renderSimpleReason(e).then(function(_) { 
-                  outputUI.runMarks();
-                  restarter.resume(runtime.nothing); 
-                });
-              }
-            });
-          });
-        }
-        return runtime.safeCall(function() {
-          return runtime.eachLoop(runtime.makeFunction(function(i) {
-            return drawCompileError(e[i]);
-          }), 0, e.length);
-        }, function(_) {
-          lastError.trigger('toggleHighlight');
-        }, "drawCompileErrors: each: drawCompileError");
-      }
-
-      // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-      function drawPyretException(e) {
-        if(!runtime.isObject(e.exn)) {
-          return drawRuntimeErrorToString(e)();
-        }
-        else if(isContractError(e.exn)) {
-          return drawPyretContractFailure(e.exn);
-        }
-        else if(mkPred("is-RuntimeError")(e.exn)) {
-          return drawPyretRuntimeError();
-        }
-        else if(mkPred("is-ParseError")(e.exn)) {
-          return drawPyretParseError();
-        } else {
-          return drawRuntimeErrorToString(e)();
-        }
-
-        // HELPERS
-
-        // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-        function drawRuntimeErrorToString(e) {
-          return function() {
-            var dom = $("<div>");
-            var exnstringContainer = $("<div>");
-            dom
-              .addClass("compile-error")
-              .append($("<p>").text("Error: "))
-              .append(exnstringContainer)
-              .append($("<p>"))
-              .append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
-            container.append(dom);
-            if(runtime.isPyretVal(e.exn)) {
-              outputUI.renderPyretValue(exnstringContainer, runtime, e.exn);
-            }
-            else {
-              exnstringContainer.text(String(e.exn));
-            }
+    // Helper function. MUST BE CALLED ON PYRET STACK.
+    function callDeferred(runtime, thunk) {
+      var ret = Q.defer();
+      runtime.runThunk(
+        thunk,
+        function (result) {
+          if (runtime.isSuccessResult(result)) {
+            ret.resolve(result.result);
+          } else {
+            ret.reject(result.exn);
           }
-        }
-        
+        });
+      return ret.promise;
+    }
 
-        // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-        function drawPyretRuntimeError() {
-          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
-          runtime.pauseStack(function(restarter) {
-            runtime.runThunk(
-              function() { 
-                return get(e.exn, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); 
-              }, function(errorDisp) {
-                if (runtime.isSuccessResult(errorDisp)) {
-                  var errorID = !contextFactory ? undefined : contextFactory();
-                  var highlightLoc = outputUI.getLastUserLocation(runtime, srcloc, editors, e.pyretStack,
-                                                                  e.exn.$name == "arity-mismatch" ? 1 : 0, true);
-                  if(highlightMode === "scsh" && highlightLoc != undefined) {
-                    outputUI.highlightSrcloc(runtime, editors, srcloc, highlightLoc, "hsl(0, 100%, 89%);", errorID);
-                  }
-                  runtime.runThunk(function() {
-                    return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, errorID);
-                  }, function(result) {
-                    if (runtime.isSuccessResult(result)) {
-                      var dom = result.result;
-                      dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
-                      dom.on('click', function(){
-                        dom.trigger('toggleHighlight');
-                      });
-                      dom.trigger('toggleHighlight');
-                      dom.addClass("compile-error");
-                      container.append(dom);
-                    } else {
-                      container.append($("<span>").addClass("error")
-                                 .text("Something went wrong while rendering the error"));
-                      console.log("drawPyretRuntimeError: renderErrorDisplay failed:", result.exn);
-                    }
-                    outputUI.runMarks();
-                    restarter.resume(runtime.nothing);
-                  });
-                } else {
-                  renderSimpleReason(e).then(function(_) {
-                    errorError = $("<span>").addClass("compile-error internal-error highlights-active")
-                      .text("An error occurred rendering the reason for the above error; details logged to the console");
-                    if(!container.hasClass("internal-error")) {
-                      drawError(errorError, editors, runtime, errorDisp, undefined);
-                    }
-                    container.append(errorError);
-                    errorError.trigger('toggleHighlight');
-                    console.error("drawPyretRuntimeError: render-fancy-reason failed:", errorDisp);
-                    console.log(e.exn);
-                    outputUI.runMarks();
-                    restarter.resume(runtime.nothing);
-                  });
-                }
-              });
-          });
-        }
-        
-        // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-        function renderSimpleReason(err) {
-          var ret = Q.defer();
-          runtime.runThunk(function() { 
-            return get(err.exn, "render-reason").app(); 
-          }, function(errorDisp) {
-            if (runtime.isSuccessResult(errorDisp)) {
-              var errorID = !contextFactory ? undefined : contextFactory();
-              runtime.runThunk(function() {
-                return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, err.pyretStack, errorID);
-              }, function(domResult) {
-                if (runtime.isSuccessResult(domResult)) {
-                  var dom = domResult.result;
-                  dom.addClass("compile-error");
-                  container.append(dom);
-                  dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, err));
-                  if(contextFactory == undefined) {
-                    dom.on('click', function(){
-                      dom.trigger('toggleHighlight');
-                    });
-                  }
-                  dom.trigger('toggleHighlight');
-                  ret.resolve(runtime.nothing);
-                } else {
-                  container.append($("<span>").addClass("compile-error internal-error")
-                                   .text("An error occurred rendering the reason for this error; details logged to the console"));
-                  console.error("renderSimpleReason: renderErrorDisplay failed:", errorDisp);
-                  console.log(err);
-                  ret.resolve(runtime.nothing);
-                }
-              });
-            } else {
-              container.append($("<span>").addClass("compile-error internal-error")
-                               .text("An error occurred rendering the reason for this error; details logged to the console"));
-              console.error("renderSimpleReason: render-reason failed:", errorDisp);
-              console.log(err);
-              ret.resolve(runtime.nothing);
-            }
-          });
-          return ret.promise;
-        }
+    function applyMethod(runtime, value, name, args) {
+      return runtime.
+        safeThen(function() {
+          return runtime.getField(value, name);
+        }, applyMethod).then(function(fun) {
+          return fun.app.apply(value, args);
+        }).start;
+    }
 
-        // NOTE: MUST BE CALLED WHEN RUNNING ON runtime's STACK
-        function drawPyretContractFailure(err) {
-          var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-          var maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, editors, srcloc, e.pyretStack);
-          var isArg = ffi.isFailArg(err);
-          var loc = get(err, "loc");
-          var reason = get(err, "reason");
-          runtime.pauseStack(function(restarter) {
-            runtime.runThunk(function() {
-              return get(err, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST); 
-            }, function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                runtime.runThunk(function() {
-                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack, contextFactory());
-                }, function(domResult) {
-                  if (runtime.isSuccessResult(domResult)) {
-                    var dom = domResult.result;
-                    dom.addClass("compile-error");
-                    dom.on('click', function(){
-                      dom.trigger('toggleHighlight');
-                    });
-                    container.append(dom);
-                    dom.append(outputUI.renderStackTrace(runtime, editors, srcloc, e));
-                    dom.trigger('toggleHighlight');
-                  } else {
-                    container.append($("<span>").addClass("compile-error")
-                                     .text("An error occurred rendering the reason for this error; details logged to the console"));
-                    console.error("drawPyretContractFailure: renderErrorDisplay failed:", errorDisp);
-                    console.log(errorDisp.exn);
-                  }
-                  outputUI.runMarks();
-                  restarter.resume(runtime.nothing);
-                });
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.error("drawPyretContractFailure: render-fancy-reason failed", errorDisp);
-                console.log(errorDisp.exn);
-                outputUI.runMarks();
-                restarter.resume(runtime.nothing);
-              }
-            });
-          });
-        }
+    // MUST BE CALLED ON PYRET STACK
+    function render_reason(runtime, renderable) {
+      return callDeferred(runtime,
+              applyMethod(runtime, renderable, "render-reason", []));
+    }
 
-        function drawPyretParseError() {
-          var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-          runtime.pauseStack(function(restarter) {
-            runtime.runThunk(function() { 
-              return get(e.exn, "render-fancy-reason").app(srclocAvaliable);
-            }, function(errorDisp) {
-              if (runtime.isSuccessResult(errorDisp)) {
-                runtime.runThunk(function() {
-                  return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, e.pyretStack || []);
-                }, function(domResult) {
-                  if (runtime.isSuccessResult(domResult)) {
-                    var rendering = domResult.result;
-                    rendering
-                      .addClass("compile-error")
-                      .on('click', function(){
-                        rendering.trigger('toggleHighlight');
-                      })
-                      .appendTo(container);
-                  } else {
-                    container.append($("<span>").addClass("compile-error")
-                                     .text("An error occurred rendering the reason for this error; details logged to the console"));
-                    console.error("drawPyretParseError: renderErrorDisplay failed:", errorDisp);
-                    console.log(errorDisp.exn);
-                  }
-                  outputUI.runMarks();
-                  restarter.resume(runtime.nothing);
-                });
-              } else {
-                container.append($("<span>").addClass("compile-error")
-                                 .text("An error occurred rendering the reason for this error; details logged to the console"));
-                console.error("drawPyretParseError: render-fancy-reason failed:", errorDisp);
-                console.log(errorDisp.exn);
-                outputUI.runMarks();
-                restarter.resume(runtime.nothing);
-              }
-            });
-          });
-        }
-      }
+    // MUST BE CALLED ON PYRET STACK
+    function render_fancy_reason(runtime, renderable) {
+      return callDeferred(runtime,
+              applyMethod(runtime, renderable, "render-fancy-reason",
+                Array.prototype.slice.call(arguments, 2)));
+    }
 
-      function drawUnknownException(e) {
-        container.append($("<div>").text("An unexpected error occurred: " + String(e)));
-        console.error("Unexpected error: ", e);
+    function getFancyRenderer(runtime, documents, error) {
+      var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
+      if (isRuntimeError(runtime, error)
+       || isContractError(runtime, error)
+       || isTestResult(runtime, error)) {
+        var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
+        return function(stack) {
+          return render_fancy_reason(runtime, error,
+                    outputUI.makeMaybeStackLoc(
+                              runtime,
+                              documents,
+                              srcloc,
+                              stack),
+                    srclocAvaliable, maybeLocToAST);
+        };
+      } else if (isParseError(runtime, error)) {
+        return function(stack) {
+          return render_fancy_reason(runtime, error, srclocAvaliable);
+        };
+      } else {
+        return function(stack) {
+          return render_fancy_reason(runtime, error);
+        };
       }
     }
 
+    // Calls `render-fancy-reason` | `reason_to_html`, with fallback
+    // to `render-reason` | `reason_to_html`, with fallback
+    // to internal error
+    // MUST BE CALLED ON PYRET STACK
+    function error_to_html(runtime, documents, error, stack) {
+
+      var id = logger.guid();
+
+      function torepr(value) {
+        return callDeferred(runtime, function() {
+          return runtime.toReprJS(value, runtime.ReprMethods._torepr);
+        });
+      }
+
+      var record = {};
+
+      function log_set(name) {
+        return function (value) {
+          record[name] = value;
+          return value;
+        };
+      }
+
+      function log_torepr(name) {
+        return function (value) {
+          return torepr(value).
+            then(log_set(name)).
+            thenResolve(value).
+            catch(function(repr_error) {
+              console.error("`torepr` errored:", repr_error);
+              return value;
+            });
+        };
+      }
+
+      var errors = [];
+
+      var renderError = function(_) {
+        return getFancyRenderer(runtime, documents, error)(stack);
+      }
+
+      return Q(error).
+        then(log_torepr('error')).
+        then(renderError).
+        then(log_torepr('reason_repr')).
+        catch(function (render_error) {
+          errors.push(render_error);
+          throw render_error;
+        }).
+        then(reason_to_html(runtime, CPO.documents, stack, id)).
+        catch(function (display_error) {
+          errors.push(display_error);
+          return render_reason(runtime, error).
+            then(log_torepr('reason_repr')).
+            then(reason_to_html(runtime, CPO.documents, stack, id));
+        }).
+        then(function (html) {
+          html.prepend(errorSettings());
+          if (errors.length > 0) {
+            html.append($("<p>").text(
+              "One or more internal errors prevented us from showing the "
+              + "best error message possible. Please report this as a bug."));
+          }
+          return html;
+        }).
+        then(function (html) {
+          if (stack && stack.length > 0) {
+            html.append(outputUI.renderStackTrace(runtime, documents, srcloc, stack));
+          }
+          return html;
+        }).
+        catch(function (display_error) {
+          errors.push(display_error);
+          return $("<div>").text(
+            "Internal errors prevented this error message from being "
+            + "shown. Please report this as a bug.");
+        }).
+        then(function (html) {
+          log_set('html')(html.prop('outerHTML'));
+          return html;
+        }).
+        finally(function (html) {
+          errors.forEach(function (e) {
+            console.error(e);
+          });
+          logger.log('error', record);
+        });
+    }
+
+    // Consumes a reason, produces promise for html
+    // MUST BE CALLED ON PYRET STACK
+    function reason_to_html(runtime, documents, stack, id) {
+      return function (displayable) {
+        return callDeferred(runtime, function () {
+            return outputUI.renderErrorDisplay(
+                    documents,
+                    runtime,
+                    displayable,
+                    stack || [],
+                    id);
+          });
+      };
+    }
+
+    function mkSwitcher() {
+      var optionEager   = $("<option value='eager'>"  ).text('A.S.A.P.');
+      var optionLazy    = $("<option value='lazy'>"   ).text('on mouseover');
+      var optionVibrant = $("<option value='vibrant'>").text('multiple colors');
+      var optionDrab    = $("<option value='drab'>"   ).text('one color');
+
+      var eagerSwitcher = $("<select>").
+            append(optionEager).
+            append(optionLazy);
+      var colorSwitcher = $("<select>").
+            append(optionVibrant).
+            append(optionDrab);
+      var settings = $("<div id='highlight-settings'>").
+            append("Show error highlights ").
+            append(eagerSwitcher).
+            append(" with ").
+            append(colorSwitcher).
+            append(".");
+
+      var highlightEagerness    = sessionStorage.getItem('highlight-eagerness');
+      var highlightColorfulness = sessionStorage.getItem('highlight-colorfulness');
+
+      if(highlightEagerness !== null) {
+        optionEager.prop("selected",   highlightEagerness === 'eager');
+        optionLazy.prop("selected",    highlightEagerness !== 'eager');
+      } else {
+        optionEager.prop("selected", true);
+        sessionStorage.setItem('highlight-eagerness', 'eager');
+      }
+
+      if(highlightColorfulness !== null) {
+        optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
+        optionDrab.prop("selected",     highlightColorfulness !== 'drab');
+      } else {
+        optionEager.prop("vibrant", true);
+        sessionStorage.setItem('highlight-colorfulness', 'vibrant');
+      }
+
+      function logChange() {
+        sessionStorage.setItem('highlight-eagerness',    eagerSwitcher[0].value);
+        sessionStorage.setItem('highlight-colorfulness', colorSwitcher[0].value);
+        outputUI.settingChanged(eagerSwitcher[0].value, colorSwitcher[0].value);
+      }
+
+      eagerSwitcher.change(logChange);
+      colorSwitcher.change(logChange);
+
+      return settings;
+    }
+
+    var switcher = mkSwitcher();
+
+    function errorSettings() {
+      var container = $("<div class='highlight-setting-container'>");
+      var toggle = $("<input type='checkbox' class='highlight-setting-visibility-toggle'>");
+      container.append(toggle);
+      toggle.on('change', function () {
+        if (this.checked) {
+          var prev = switcher.prev();
+          if (prev && prev[0] && prev[0].checked) {
+            prev[0].checked = false;
+            switcher.detach();
+          }
+          container.append(switcher);
+        } else {
+          switcher.detach();
+        }
+      });
+      return container;
+    }
+
     return runtime.makeJSModuleReturn({
-      drawError: drawError
+      error_to_html: error_to_html
     });
   }
 })
