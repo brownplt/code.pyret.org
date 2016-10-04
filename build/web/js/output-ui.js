@@ -1471,6 +1471,8 @@
           });
 
           return outText;
+        } else if (jsnums.isComplexRoughnum(num)) {
+          return renderText(sooper(renderers, "number", num.toSchemeString()));
         } else {
           return renderText(sooper(renderers, "number", num));
         }
