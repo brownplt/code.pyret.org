@@ -21,6 +21,7 @@ var res = Q.fcall(function(db) {
   server.start({
     development: process.env["NODE_ENV"] !== "production",
     baseUrl: process.env["BASE_URL"],
+    logURL: process.env["LOG_URL"],
     port: process.env["PORT"],
     sessionSecret: process.env["SESSION_SECRET"],
     db: storage.makeStorage(client),
