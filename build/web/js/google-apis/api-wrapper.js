@@ -424,8 +424,8 @@ function loadAPIWrapper(immediate) {
     }
   }
 
-  //var initialAuth = reauth(useOAuth ? !immediate : immediate);
-  var initialAuth = reauth(immediate);
+  var initialAuth = reauth(useOAuth ? !immediate : immediate);
+  //var initialAuth = reauth(immediate);
   return initialAuth.then(function(_) {
     /**
      * Creates the API Wrapping module to export
