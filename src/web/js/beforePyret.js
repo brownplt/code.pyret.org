@@ -376,6 +376,7 @@ $(function() {
 
   programLoaded.fin(function() {
     var pyretLoad = document.createElement('script');
+    console.log('process.env is', JSON.stringify(process.env));
     console.log('process.env.PYRET is', process.env.PYRET);
     console.log(process.env.PYRET);
     pyretLoad.src = process.env.PYRET;
