@@ -1,6 +1,5 @@
 // NOTE: Each of the following should be bound in the global scope:
 //   - `gapi'     : Google API Javascript Client
-//   - `clientId' : Google Client ID
 //   - `apiKey'   : Google API Key
 //   - `Q'        : Q Promise Framework
 
@@ -68,7 +67,6 @@ function loadAPIWrapper(immediate) {
     }
   }
   assertDefined('gapi');
-  assertDefined('clientId');
   assertDefined('apiKey');
   assertDefined('Q');
 
@@ -159,6 +157,7 @@ function loadAPIWrapper(immediate) {
     var d = Q.defer();
     if (!useOAuth) {
       console.log('reauth/!OAuth2 ' + immediate);
+
       if (!immediate) {
         // Need to do a login to get a cookie for this user; do it in a popup
         var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
@@ -175,6 +174,7 @@ function loadAPIWrapper(immediate) {
         var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
         newToken.then(function(t) {
           gapi.auth.setToken({ access_token: t.access_token });
+          logger.log('login', {user_id: t.user_id});
           d.resolve({ access_token: t.access_token });
         });
         newToken.fail(function(t) {
@@ -183,6 +183,7 @@ function loadAPIWrapper(immediate) {
       }
 
     } else {
+
       console.log('reauth/OAuth2 ' + immediate);
       if (!clientId) {
         console.log('authorization not possible');
@@ -209,6 +210,7 @@ function loadAPIWrapper(immediate) {
           d.resolve(true);
         }
       }
+
     }
 
     return d.promise;

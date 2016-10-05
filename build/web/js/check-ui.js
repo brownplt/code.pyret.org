@@ -14,8 +14,8 @@
       name: "checker" }
   ],
   provides: {},
-  nativeRequires: [ "pyret-base/js/runtime-util" ],
-  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker, util) {
+  nativeRequires: [],
+  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker) {
 
     option = runtime.getField(option, "values");
     srcloc = runtime.getField(srcloc, "values");
@@ -24,246 +24,436 @@
     function isTestResult(val) { return runtime.unwrap(runtime.getField(CH, "TestResult").app(val)); }
     function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success").app(val)); }
 
-
-    function politely(collection, thunk) {
-      var chunkSize = 100;
-      for (var i = 0; i < Math.ceil(collection.length / chunkSize); i++) {
-        function doChunk(start) {
-          return function() {
-            for (var j = start; j < collection.length && j < start + chunkSize; j++) {
-              thunk(collection[j]);
-            }
-          }
-        }
-        util.suspend(doChunk(i * chunkSize));
-      }
-    }
-
-
     // NOTE: MUST BE CALLED WHILE RUNNING ON runtime's STACK
-    function drawCheckResults(container, editors, runtime, checkResults, contextFactory) {
+    function drawCheckResults(container, documents, runtime, checkResults, contextFactory) {
       var ffi = runtime.ffi;
       var cases = ffi.cases;
       var get = runtime.getField;
-
-      function cssKey(loc) {
-        return outputUI.cmlocToCSSClass(
-                outputUI.cmPosFromSrcloc(runtime, srcloc, loc));
+      
+      var noFramesMaybeStackLoc = 
+        runtime.makeFunction(function(n, userFramesOnly) {
+          return runtime.ffi.makeNone();
+        });
+      
+      function makeNameHandle(text, loc, color) {
+        var anchor = document.createElement("a");
+        anchor.classList.add("hinted-highlight");
+        anchor.textContent = text;
+        var source = get(loc, "source");
+        var handle = undefined;
+        if (documents.has(source)) {
+          handle = outputUI.Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
+          anchor.addEventListener("click", function(e) {
+            handle.goto();
+            e.stopPropagation();
+          });
+          anchor.addEventListener("mouseover", function(e) {
+            handle.hint();
+          });
+          anchor.addEventListener("mouseleave", function(e) {
+            outputUI.unhintLoc();
+          });
+        } else {
+          anchor.addEventListener("click", function(e){
+            window.flashMessage("This code is not in this editor.");
+          });
+        }
+        return {anchor: anchor, handle: handle};
       }
 
-      var checkBlocks = ffi.toArray(checkResults).reverse();
+      function makeGutterMarker(spanHandle, clickFunc) {
+        var editor = spanHandle.doc.getEditor();
+        
+        var lineHandle = 
+          editor.addLineClass(
+            spanHandle.from.line,
+            "gutter",
+            "failed-test-marker");
+            
+        function onClick(cm, line, gutter) {
+          if (cm.getLineNumber(lineHandle) !== line)
+            return;
+          clickFunc();
+        }
+
+        editor.on("gutterClick", onClick);
+
+        function onChange(line) {
+          var spanLineNo = spanHandle.from;
+          if(spanLineNo === undefined)
+            return;
+          var lineNo = line.lineNo();
+          if(lineNo === undefined)
+            return;
+          else if (spanLineNo.line != lineNo) {
+            line.off("change", onChange);
+            line.off("delete", onDelete);
+            editor.removeLineClass(lineNo, "gutter", "failed-test-marker");
+            lineHandle = editor.addLineClass(spanLineNo.line, "gutter", "failed-test-marker");
+            lineHandle.on("change", onChange);
+            lineHandle.on("delete", onDelete);
+          }
+        }
+        
+        function onDelete(line) {
+          var spanLineNo = spanHandle.from;
+          if (spanLineNo === undefined)
+            lineHandle = undefined;
+          if (lineHandle !== undefined) {
+            lineHandle = editor.addLineClass(spanLineNo.line, "gutter", "failed-test-marker");
+            lineHandle.on("change", onChange);
+            lineHandle.on("delete", onDelete);
+          }
+        }
+        
+        lineHandle.on("change", onChange);
+        lineHandle.on("delete", onDelete);
+
+        spanHandle.on("clear", function (from, _) {
+          editor.off("gutterClick", onClick);
+          editor.removeLineClass(from.line, "gutter", "failed-test-marker");
+        });
+
+        spanHandle.on("hide",
+          function(){
+            if(lineHandle === undefined)
+              return;
+            editor.off("gutterClick", onClick);
+            lineHandle.off("change", onChange);
+            lineHandle.off("delete", onDelete);
+            editor.removeLineClass(lineHandle.lineNo(), "gutter", "failed-test-marker");
+            lineHandle = undefined;
+          });
+
+        spanHandle.on("unhide",
+          function(){
+            lineHandle = editor.addLineClass(spanHandle.from.line, "gutter", "failed-test-marker");
+            editor.on("gutterClick", onClick);
+            lineHandle.on("change", onChange);
+            lineHandle.on("delete", onDelete);
+          });
+
+      }
+      
+      function makeTestHeader(testNumber, loc, isPassing) {
+        var header = document.createElement("header");
+        var nameHandle   = makeNameHandle("Test " + testNumber, loc,
+          (isPassing ? "hsl(88, 50%, 76%)" : "hsl(45, 100%, 85%)"));
+        var name   = nameHandle.anchor;
+        var handle = nameHandle.handle;
+        var status = document.createTextNode(isPassing ? ": Passed" : ": Failed");
+        header.appendChild(name);
+        header.appendChild(status);
+        return {header : header, handle : handle};
+      }
+      
+      var lastHighlighted = undefined;
+      
+      var FailingTestSkeleton = function () {
+        function FailingTestSkeleton(test, testNumber) {
+          var container = document.createElement("div");
+          var headerHandle = makeTestHeader(testNumber, get(test, "loc"), false);
+          var header = headerHandle.header;
+          var handle = headerHandle.handle;
+          var tombstone = document.createElement("div");
+          container.classList.add("check-block-test");
+          container.classList.add("failing-test");
+          tombstone.classList.add("test-reason");
+          container.appendChild(header);
+          container.appendChild(tombstone);
+          var thisTest = this;
+          var source = get(get(test, "loc"), "source");
+          if (documents.has(source)) {
+            var doc = documents.get(source);
+            var editor   = doc.getEditor();
+            if (editor !== undefined) {
+              makeGutterMarker(handle, function () {
+                thisTest.block.showTest(thisTest);
+              });
+            }
+          }
+          
+          if(runtime.hasField(test, "actual-exn")) {
+            this.maybeStackLoc = outputUI.makeMaybeStackLoc(
+              runtime, documents, srcloc, get(test, "actual-exn").val.pyretStack);
+          } else {
+            this.maybeStackLoc = noFramesMaybeStackLoc;
+          }
+          this.renderable = test;
+          this.container = container;
+          this.tombstone = tombstone;
+        }
+
+        FailingTestSkeleton.prototype.highlight = function highlight() {
+          outputUI.clearEffects();
+          if (this.rendering) {
+            this.rendering.addClass("highlights-active");
+            this.rendering.trigger("toggleHighlight");
+          }
+          lastHighlighted = this;
+          lastHighlighted.container.classList.add("highlights-active");
+          lastHighlighted.tombstone.classList.add("highlights-active");
+        };
+
+        FailingTestSkeleton.prototype.refresh = function refresh() {
+          var snippets = this.tombstone.querySelectorAll(".CodeMirror");
+          for (var i = 0; i < snippets.length; i++) {
+            window.requestAnimationFrame(
+              CodeMirror.prototype.refresh.bind(snippets[i].CodeMirror));
+          }
+        };
+
+        /* Replace the placeholder for the failing test with the error rendering */
+
+
+        FailingTestSkeleton.prototype.vivify = function vivify(rendering) {
+          this.tombstone.appendChild(rendering[0]);
+          this.rendering = rendering;
+          var thisTest = this;
+          this.container.addEventListener("click", function (e) {
+            thisTest.highlight();
+            e.stopPropagation();
+          });
+          if (this.block.container.classList.contains("expanded")) {
+            this.refresh();
+          } else {
+            this.block.needRefreshing.push(this);
+          }
+        };
+
+        return FailingTestSkeleton;
+      }();
+
+      var PassingTestSkeleton = function () {
+        function PassingTestSkeleton(test, testNumber) {
+          var loc = get(test, "loc");
+          var container = document.createElement("div");
+          var headerHandle = makeTestHeader(testNumber, loc, true);
+          var header = headerHandle.header;
+          var handle = headerHandle.handle;
+          var tombstone = document.createElement("div");
+          container.classList.add("check-block-test");
+          container.classList.add("passing-test");
+          tombstone.classList.add("test-reason");
+          container.appendChild(header);
+          container.appendChild(tombstone);
+          this.handle = handle;
+          this.container = container;
+          this.tombstone = tombstone;
+        }
+
+        PassingTestSkeleton.prototype.highlight = function highlight() {
+          return;
+        };
+
+        /* Replace the placeholder for the failing test with the error rendering */
+        PassingTestSkeleton.prototype.vivify = function vivify() {
+          var snippet  = new outputUI.Snippet(this.handle);
+          this.tombstone.appendChild(snippet.container);
+          if (this.block.container.classList.contains("expanded")) {
+            snippet.editor.refresh();
+          } else {
+            this.block.needRefreshing.push(snippet.editor);
+          }
+        };
+
+        return PassingTestSkeleton;
+      }();
+
+      var expandedCheckBlock = undefined;
+
+      var CheckBlockSkeleton = function () {
+        function CheckBlockSkeleton(name, loc, tests, error) {
+          var _this = this;
+
+          var container = document.createElement("div");
+          var testList = document.createElement("div");
+          var testFrag = document.createDocumentFragment();
+          var header = document.createElement("header");
+          var summary = document.createElement("span");
+
+          for (var i = 0; i < tests.skeletons.length; i++) {
+            var test = tests.skeletons[i];
+            test.block = this;
+            testFrag.appendChild(test.container);
+          }
+
+          if (error !== undefined) {
+            summary.textContent = "An unexpected error halted the check-block before Pyret was finished with it. " + "Some tests may not have run.";
+            var errorTestsSummary = document.createTextNode("Before the unexpected error, " + tests.executed + (tests.executed === 0 ? " tests " : " test ") + "in this block ran" + (tests.executed > 0 ? " (" + tests.passing + " passed):" : "."));
+            testList.appendChild(errorTestsSummary);
+          } else {
+            summary.textContent = tests.executed == 1 && tests.passing == 1 ? "The test in this block passed."
+            // Only one test in block; it fails
+            : tests.executed == 1 && tests.passing == 0 ? "The test in this block failed." : tests.executed == 0 ?
+            //  Huh, a block with no tests?
+            "There were no tests in this block!" : tests.executed == tests.passing ?
+            //  More than one test; all pass.
+            "All " + tests.executed + " tests in this block passed."
+            //  More than one test; some pass
+            : tests.passing + " out of " + tests.executed + " tests passed in this block.";
+          }
+
+          testList.classList.add("check-block-tests");
+          summary.classList.add("check-block-summary");
+
+          header.classList.add("check-block-header");
+          header.title = "Click to view test results.";
+          header.appendChild(makeNameHandle(name, loc, error !== undefined ? "hsl(0, 100%, 85%)" : tests.executed == tests.passing ? "hsl(88, 50%, 76%)" : "hsl(45, 100%, 85%)").anchor);
+
+          container.classList.add("check-block");
+          container.classList.add(error !== undefined ? "check-block-errored" : tests.executed == tests.passing ? "check-block-success" : "check-block-failed");
+          container.appendChild(header);
+          testList.appendChild(testFrag);
+          container.appendChild(summary);
+          container.appendChild(testList);
+
+          var tombstone = undefined;
+          if (error !== undefined) {
+            tombstone = document.createElement("div"); 
+            tombstone.classList.add("check-block-error"); 
+            tombstone.addEventListener("click", function (e) {
+              _this.highlight();
+            });
+            this.renderable = error.exn;
+            container.appendChild(tombstone);
+            this.maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, error.pyretStack);
+            this.pyretStack = error.pyretStack;
+          }
+
+          header.addEventListener("click", function (e) {
+            if (this.container.classList.contains("expanded"))
+              this.hideTests();
+            else
+              this.showTests();
+          }.bind(this));
+
+          this.needRefreshing = new Array();
+          this.container = container;
+          this.tombstone = tombstone;
+        }
+
+        CheckBlockSkeleton.prototype.highlight = function highlight() {
+          if (this.tombstone === undefined) 
+            return;
+          outputUI.clearEffects();
+          lastHighlighted = this;
+          lastHighlighted.tombstone.classList.add("highlights-active");
+          if(this.rendering) {
+            this.rendering.trigger('toggleHighlight');
+            this.rendering.addClass('highlights-active');
+          }
+        };
+
+        CheckBlockSkeleton.prototype.refreshSnippets = function refreshSnippets() {
+          for (var i = 0; i < this.needRefreshing.length; i++) {
+            this.needRefreshing[i].refresh();
+          }
+          this.needRefreshing = new Array();
+        };
+
+        CheckBlockSkeleton.prototype.showTest = function showTest(test) {
+          if (expandedCheckBlock !== undefined) 
+            expandedCheckBlock.hideTests();
+          expandedCheckBlock = this;
+          this.container.classList.add("expanded");
+          this.refreshSnippets();
+          test.container.scrollIntoView(true);
+          test.highlight();
+        };
+
+        CheckBlockSkeleton.prototype.showTests = function showTests() {
+          if (expandedCheckBlock !== undefined) 
+            expandedCheckBlock.hideTests();
+          expandedCheckBlock = this;
+          this.container.classList.add("expanded");
+          this.refreshSnippets();
+        };
+
+        CheckBlockSkeleton.prototype.hideTests = function hideTests() {
+          this.container.classList.remove("expanded");
+          var innerHighlights = $(this.container).find(".highlights-active");
+          if(innerHighlights.length > 0)
+            outputUI.clearEffects();
+          outputUI.clearEffects();
+          lastHighlighted = undefined;
+        };
+        
+        /* Replace the placeholder for the error with the error rendering */
+        CheckBlockSkeleton.prototype.vivify = function vivify(rendering) {
+          if (this.tombstone === undefined) return;
+          this.rendering = rendering;
+          rendering[0].classList.add("compile-error");
+          rendering[0].addEventListener("click", this.highlight);
+          this.tombstone.appendChild(rendering[0]);
+          var snippets = rendering.find(".CodeMirror");
+          for (var i = 0; i < snippets.length; i++) {
+            window.requestAnimationFrame(
+              CodeMirror.prototype.refresh.bind(snippets[i].CodeMirror));
+          }
+        };
+
+        return CheckBlockSkeleton;
+      }();
+    
+      var checkBlocks = ffi.toArray(checkResults);
 
       if (checkBlocks.length === 0)
         return;
-
-      var checkBlockTestReports  = [];
-      var checkBlockErrorReports = [];
-
-      var checkTotalAll = 0;
-      var checkPassedAll = 0;
-
-      var currentlyExpandedBlock = undefined;
-      var resultsContainer = $("<div>").addClass("test-results");
-      var contextManager = document.getElementById("main").dataset;
-
-      /* First, we generate a 'skeleton' into which the actual
-       * test result reasons can be rendered. The `batchOperation` here
-       * batches the `textMarker` calls used for check block and test
-       * title links.                                                 */
-      checkBlocks.map(function(checkBlock){
-        var thisCheckBlockErrored =
-          get(option, "is-some").app(get(checkBlock, "maybe-err"));
-
-        var name =
-          $("<a>")
-          .text(get(checkBlock, "name"))
-          .addClass("hinted-highlight")
-          .addClass(cssKey(get(checkBlock, "loc")));
-
-        var checkBlockReport =
-          $("<div>")
-          .addClass("check-block")
-          .append(
-            $("<header>")
-              .addClass("check-block-header")
-              .append(name));
-        var checkBlockTests =
-          $("<div>").addClass("check-block-tests");
-
-        var tests = ffi.toArray(get(checkBlock, "test-results")).reverse();
-
-        checkBlockReport.on("click", ".check-block-header", function(e) {
-          if (checkBlockReport.hasClass("expanded")
-              && currentlyExpandedBlock === checkBlockReport) {
-            checkBlockReport.removeClass("expanded");
-            contextManager.highlights = "";
-            currentlyExpandedBlock = undefined;
-          } else {
-            if (currentlyExpandedBlock !== undefined)
-              currentlyExpandedBlock.removeClass("expanded");
-            currentlyExpandedBlock = checkBlockReport;
-            checkBlockReport.addClass("expanded");
-          }
-        });
-
-        var testsInBlock = 0,
-        testsPassingInBlock = 0;
-
-        function makeTitle(loc, passed) {
-          var testName =
-            $("<a>")
-            .text("Test " + testsInBlock)
-            .addClass("hinted-highlight");
-
-          var header =
-            $("<header>")
-            .append(testName)
-            .append(": " + (passed ? "Passed" : "Failed"))
-            .attr('title',"Click to scroll editor to test.");
-
-          var source = get(get(checkBlock, "loc"), "source");
-          if(editors.hasOwnProperty(source)){
-            var handle =  editors[source].markText(
-                             { line: get(get(checkBlock, "loc"), "start-line") - 1,
-                               ch:   get(get(checkBlock, "loc"), "start-column") },
-                             { line: get(get(checkBlock, "loc"), "end-line") - 1,
-                               ch:   get(get(checkBlock, "loc"), "end-column") },
-                             { inclusiveLeft:false,
-                               inclusiveRight:false,
-                               type:"range" });
-            header.on("click", function(e){
-              var handleLoc = handle.find();
-              if(source === "definitions://" && handleLoc !== undefined) {
-                editors[source].scrollIntoView(handleLoc.from.line, 100);
-              } else if (source.indexOf("interactions") != -1) {
-                editors[source].getWrapperElement().scrollIntoView(true);
-              }
-            });
-          }
-
-          return header;
-        }
-
-        checkBlockTestReports.push(
-          { elems:
-            tests.map(
-              function(test){
-                checkTotalAll++;
-                testsInBlock++;
-                checkPassedAll += isTestSuccess(test);
-                testsPassingInBlock += isTestSuccess(test);
-                var reason =
-                  $("<div>").addClass("test-reason");
-                var wrapper =
-                  $("<div>")
-                  .addClass("check-block-test")
-                  .append(makeTitle(get(test, "loc"), isTestSuccess(test)))
-                  .addClass(isTestSuccess(test) ? "passing-test" : "failing-test")
-                  .append(reason);
-                wrapper.appendTo(checkBlockTests);
-                return {wrapper: wrapper,
-                        reason : reason };
-              }),
-            tests: tests,
-            block: checkBlockReport });
-
-        if (thisCheckBlockErrored) {
-          var checkBlockError = $("<div>").addClass("check-block-error");
-          checkBlockReport
-            .append(
-              $("<span>")
-                .addClass("check-block-summary")
-                .text("An unexpected error halted the check-block before Pyret was finished with it. Some tests may not have run."))
-            .append(
-              checkBlockTests
-                .prepend(
-                  $("<span>")
-                    .addClass("check-block-summary")
-                    .text("Before the unexpected error, "
-                          + testsInBlock + ((testsInBlock === 0) ? " tests " : " test ")
-                          + "in this block ran"
-                          + ((testsInBlock > 0) ? (" (" + testsPassingInBlock + " passed):")
-                             : "."))))
-            .append(checkBlockError);
-          checkBlockErrorReports.push(
-            { elem:  checkBlockError,
-              error: get(get(checkBlock, "maybe-err"),"value").val,
-              block: checkBlockReport });
-        } else {
-          checkBlockReport
-            .append(
-              $("<span>")
-                .addClass("check-block-summary")
-                .text(
-                  // Only one test in block; it passes.
-                  (testsInBlock == 1 && testsPassingInBlock == 1)
-                    ? "The test in this block passed."
-                  // Only one test in block; it fails
-                    : (testsInBlock == 1 && testsPassingInBlock == 0)
-                    ? "The test in this block failed."
-                    : (testsInBlock == 0)
-                  //  Huh, a block with no tests?
-                    ? "There were no tests in this block!"
-                    : (testsInBlock == testsPassingInBlock)
-                  //  More than one test; all pass.
-                    ? "All " + testsInBlock + " tests in this block passed."
-                  //  More than one test; some pass
-                    : testsPassingInBlock + " out of " + testsInBlock + " tests passed in this block."))
-            .append(checkBlockTests);
-        }
-
-        checkBlockReport.addClass("check-block-result");
-        checkBlockReport.addClass(
-          thisCheckBlockErrored               ? "check-block-errored"
-            : tests.length == testsPassingInBlock ? "check-block-success"
-            :                                       "check-block-failed");
-
-        var source = get(get(checkBlock, "loc"), "source");
-        if(editors.hasOwnProperty(source)){
-          var handle = editors[source].markText(
-                           { line: get(get(checkBlock, "loc"), "start-line") - 1,
-                             ch:   get(get(checkBlock, "loc"), "start-column") },
-                           { line: get(get(checkBlock, "loc"), "end-line") - 1,
-                             ch:   get(get(checkBlock, "loc"), "end-column") },
-                           { inclusiveLeft:false,
-                             inclusiveRight:false,
-                             type:"range" });
-          name.on("click", function(e){
-            var handleLoc = handle.find();
-            if(source === "definitions://" && handleLoc !== undefined) {
-              editors[source].scrollIntoView(handleLoc.from.line, 100);
-            } else if (source.indexOf("interactions") != -1) {
-              editors[source].getWrapperElement().scrollIntoView(true);
+        
+      var checkErroredSkeletons = new Array();
+      var testsFailedSkeletons  = new Array();
+      var testsPassedSkeletons  = new Array();
+      
+      var checkResultsContainer = document.createElement("div");
+      checkResultsContainer.classList.add("test-results");
+      try{
+      for(var i = checkBlocks.length - 1; i >= 0; i--) {
+        var checkBlock = checkBlocks[i];
+        var maybeError  = get(checkBlock, "maybe-err");
+        
+        var testsPassing  = 0;
+        var testsExecuted = 0;
+        
+        var tests = ffi.toArray(get(checkBlock, "test-results")).
+          reverse().
+          map(function(test) {
+            var testSuccess = isTestSuccess(test);
+            testsExecuted++;
+            var skeleton = undefined;
+            if (testSuccess) {
+              testsPassing++;
+              skeleton = new PassingTestSkeleton(test, testsExecuted);
+              testsPassedSkeletons.push(skeleton);
+            } else {
+              skeleton = new FailingTestSkeleton(test, testsExecuted);
+              testsFailedSkeletons.push(skeleton);
             }
+            return skeleton;
           });
-        }
-
-        return checkBlockReport;
-      }).forEach(function(checkBlock){
-        /* Throw the skeleton onto the DOM */
-        resultsContainer.append(checkBlock);
-      });
-
-      var checkBlockCount = checkBlocks.length;
-      var checkBlocksErrored = checkBlockErrorReports.length;
-
-      /* Next, render the summary */
-
-      var onChange =
-        function(cm, change){
-          cm.off("change", onChange);
-          if(resultsContainer.hasClass("stale"))
-            return;
-          resultsContainer.addClass("stale");
-          var staleWarning =
-            $('<div>').addClass('check-block').addClass('stale-warning')
-              .text('This test report is stale and may be inaccurate. Run your code again for an up-to-date report.');
-          resultsContainer.prepend(staleWarning);
-          // This is a little jarring.
-          // staleWarning[0].scrollIntoView(true);
-        };
-      editors["definitions://"].on("change", onChange);
-
+          
+        var endedInError    = get(option, "is-some").app(maybeError);
+        var allTestsPassing = testsPassing === testsExecuted;
+        
+        var error = endedInError ? get(maybeError, "value").val : undefined;
+        
+        var skeleton =
+          new CheckBlockSkeleton(
+            get(checkBlock, "name"), 
+            get(checkBlock, "loc"),
+            { skeletons: tests,
+              passing  : testsPassing,
+              executed : testsExecuted }, error);
+        
+        if (endedInError)
+          checkErroredSkeletons.push(skeleton);
+        checkResultsContainer.appendChild(skeleton.container);
+      }
+      
+      
+      var checkPassedAll      = testsPassedSkeletons.length;
+      var checkBlocksErrored  = checkErroredSkeletons.length;
+      var checkTotalAll       = checkPassedAll + testsFailedSkeletons.length;
 
       var summary = $("<div>").addClass("check-block testing-summary");
       // If there was more than one check block, print a message about
@@ -297,220 +487,42 @@
         }
       }
 
-      /* At this point, we've gone as far as we can without calling
-       * `render-fancy-reason`, and we have summaries for each block, as
-       * well as the summary of overall test outcomes. By adding it to
-       * the `container`, this skeleton becomes visible on the page.  */
-      container.append(resultsContainer.prepend(summary));
 
-      return runtime.safeCall(function(){
-        /* First, we'll render errors that caused check-blocks to exit
-         * unexpectedly, since those are displayed without further user
-         * interaction (unlike typical test results).                 */
-        return runtime.eachLoop(runtime.makeFunction(function(i){
-          var checkBlockErrorReport = checkBlockErrorReports[i];
-          var error = checkBlockErrorReport.error,
-          block = checkBlockErrorReport.block,
-          elem  = checkBlockErrorReport.elem;
-          return runtime.safeCall(function(){
-            return errorUI.drawError(elem, editors, runtime, error, contextFactory);
-          }, function(_) {
-            elem.find(".cm-future-snippet")
-              .each(function(){this.cmrefresh();});
-            var probableErrorLocation =
-              outputUI.getLastUserLocation(
-                runtime,
-                srcloc,
-                editors,
-                error.pyretStack,
-                0,
-                true);
-            if (probableErrorLocation !== undefined
-                && runtime.unwrap(get(srcloc, "is-srcloc").app(probableErrorLocation))
-                && editors.hasOwnProperty(get(probableErrorLocation, "source"))) {
-              var marker =
-                $("<div>")
-                .html("&nbsp;")
-                .addClass("errored-test-marker")
-                .on("click",
-                    function(){
-                      outputUI.runMarks();
-                      block[0].style.animation = "emphasize-error 1s 1";
-                      block.on("animationend", function(){this.style.animation = "";});
-                      elem[0].scrollIntoView(true);
-                      elem.children().trigger('toggleHighlight');
-                    });
-              var errsrc = get(probableErrorLocation, "source");
-              outputUI.addMark(
-                errsrc, editors[errsrc],
-                { line: get(probableErrorLocation, "start-line") - 1,
-                  ch:   get(probableErrorLocation, "start-column") },
-                { line: get(probableErrorLocation, "end-line") - 1,
-                  ch:   get(probableErrorLocation, "end-column") },
-                { inclusiveLeft:false,
-                  inclusiveRight:false},
-                function(editor, handle) {
-                  var gutter =
-                    editor.setGutterMarker(
-                      get(probableErrorLocation, "start-line") - 1,
-                      "test-marker-gutter",
-                      marker[0]);
-                  
-                  handle.on("hide",
-                            function(){
-                              marker.hide();
-                            });
-                  
-                  handle.on("unhide",
-                            function(){
-                              marker.show();
-                            });
-                });
-            } else {
-              console.log("That's unfortunate, we cannot show where this check-block ended in an error: ", 
-                          probablErrorLocation);
-            }
-          }, "draw-error");
-        }, "render checkBlockErrorReports"), 0, checkBlockErrorReports.length);
-      }, function(_) {
-        /* Next, we'll render the individual tests reports of each
-         * check block, and add them to the skeleton as they become
-         * available.                                               */
-        return runtime.safeCall(function(){
-          return runtime.eachLoop(runtime.makeFunction(function(cbtr_index){
-            var checkBlockTestReport = checkBlockTestReports[cbtr_index];
-            var elems = checkBlockTestReport.elems;
-            var tests = checkBlockTestReport.tests;
-            var block = checkBlockTestReport.block;
-            var neverOpened = true;
-            runtime.eachLoop(runtime.makeFunction(function(test_index){
-              var test    = tests[test_index];
-              var reason  = elems[test_index].reason;
-              var wrapper = elems[test_index].wrapper;
-              var context = contextFactory();
-              if (!isTestSuccess(test)) {
-                var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, editors, srcloc);
-                var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, editors, srcloc);
-                var maybeStackLoc   = (runtime.hasField(test, "actual-exn"))
-                  ? (outputUI.makeMaybeStackLoc(runtime, editors, srcloc, get(test, "actual-exn").val.pyretStack))
-                  : (runtime.makeFunction(function(n, userFramesOnly) {
-                    return runtime.ffi.makeNone();
-                  }));
-                runtime.pauseStack(function(restarter) {
-                  runtime.runThunk(
-                    function() {
-                      return get(test, "render-fancy-reason").app(maybeStackLoc, srclocAvaliable, maybeLocToAST);
-                    },
-                    function(errorDisp) {
-                      if (runtime.isSuccessResult(errorDisp)) {
-                        runtime.runThunk(function() {
-                          return runtime.safeCall(function() {
-                            return outputUI.renderErrorDisplay(editors, runtime, errorDisp.result, [], context);
-                          }, function(dom) {
-                            wrapper.on('click', function(){
-                              dom.trigger('toggleHighlight');
-                              wrapper.toggleClass("highlights-active");
-                            });
-                            var loc = get(test, "loc");
-                            if (editors.hasOwnProperty(get(loc, "source"))) {
-                              var marker =
-                                $("<div>")
-                                .html("&nbsp;")
-                                .addClass("failed-test-marker")
-                                .on("click",
-                                    function(){
-                                      if(!block.hasClass("expanded")){
-                                        if (currentlyExpandedBlock !== undefined)
-                                          currentlyExpandedBlock.removeClass("expanded");
-                                        currentlyExpandedBlock = block;
-                                        block.addClass("expanded");
-                                      }
-                                      if(neverOpened) {
-                                        outputUI.runMarks();
-                                        politely(block.find(".cm-future-snippet"),
-                                          function(snip){snip.cmrefresh();});
-                                        neverOpened = false;
-                                      }
-                                      dom[0].style.animation = "emphasize-error 1s 1";
-                                      dom.on("animationend", function(){this.style.animation = "";});
-                                      dom[0].scrollIntoView(true);
-                                      dom.trigger('toggleHighlight');
-                                      wrapper.toggleClass("highlights-active");
-                                    });
-
-                              outputUI.addMark(
-                                get(loc, "source"), editors[get(loc, "source")],
-                                { line: get(loc, "start-line") - 1,
-                                  ch:   get(loc, "start-column") },
-                                { line: get(loc, "end-line") - 1,
-                                  ch:   get(loc, "end-column") },
-                                { inclusiveLeft:false,
-                                  inclusiveRight:false},
-                                function(editor, handle) {
-                                  var gutter =
-                                    editor.setGutterMarker(
-                                      get(loc, "start-line") - 1,
-                                      "test-marker-gutter",
-                                      marker[0]);
-                                  
-                                  handle.on("hide",
-                                            function(){
-                                              marker.hide();
-                                            });
-                                  
-                                  handle.on("unhide",
-                                            function(){
-                                              marker.show();
-                                            });
-                                });
-                            }
-                            reason.replaceWith(dom.addClass("test-reason"));
-                          });
-                        }, function(reasonResult) {
-                          if(test_index === 0) {
-                            block.on("click", ".check-block-header",
-                                     function(e) {
-                                       if(block.hasClass("expanded"))
-                                         wrapper.trigger('click');
-                                     });
-                          }
-                          block.one("click", ".check-block-header", function(e) {
-                            if (currentlyExpandedBlock === block && neverOpened){
-                              outputUI.runMarks();
-                              politely(block.find(".cm-future-snippet"),
-                                       function(snip){snip.cmrefresh();});
-                              neverOpened = false;
-                            }
-                          });
-                          restarter.resume(runtime.nothing);
-                        });
-                      } else {
-                        console.error("ARRRGGH BAD THINGS HAPPENED");
-                        restarter.resume(runtime.nothing);
-                      }
-                    })
-                });
-              } else {
-                var snippet =
-                  outputUI.snippet(editors,
-                                   outputUI.cmPosFromSrcloc(runtime, srcloc, get(test,"loc")))
-                  .wrapper;
-                reason.replaceWith(snippet);
-                block.one("click", ".check-block-header",
-                          function(e) {
-                            snippet[0].cmrefresh();
-                          });
-              }
-            }), 0, tests.length);
-          }), 0, checkBlockTestReports.length)
-        }, function(ans){
-          outputUI.runMarks();
-          resultsContainer.append($("<span class='check-results-done-rendering' style='display:none'></span>"));
-          return ans;
+      container.append($(checkResultsContainer).prepend(summary));
+      
+      }catch(e){console.error(e);}
+      
+      // must be called on the pyret stack
+      function vivifySkeleton(skeleton) {
+        var error_to_html = errorUI.error_to_html
+        return runtime.pauseStack(function (restarter) {
+          return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack).
+            then(function(html) {
+              skeleton.vivify(html);
+            }).done(function () {restarter.resume(runtime.nothing)});
         });
-      });
+      }
+
+      return runtime.safeCall(
+        function(){
+          return runtime.eachLoop(runtime.makeFunction(function(i) {
+            return vivifySkeleton(checkErroredSkeletons[i]);
+          }), 0, checkErroredSkeletons.length);
+        }, function(_) {
+          return runtime.safeCall(function() {
+            return runtime.eachLoop(runtime.makeFunction(function(i) {
+              return vivifySkeleton(testsFailedSkeletons[i]);
+            }), 0, testsFailedSkeletons.length);
+            return runtime.nothing;
+          }, function(_) {
+            for(var i = 0; i < testsPassedSkeletons.length; i++)
+              testsPassedSkeletons[i].vivify();
+            checkResultsContainer.classList.add("check-results-done-rendering");
+            return runtime.nothing;
+          });
+        });
     }
-    
+
     return runtime.makeJSModuleReturn({
       drawCheckResults: drawCheckResults
     });
