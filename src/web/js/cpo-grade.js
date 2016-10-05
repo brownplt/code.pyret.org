@@ -6,6 +6,10 @@
       protocol: 'js-file',
       args: ['./cpo-repl']
     },
+    { "import-type": "dependency",
+      protocol: "file",
+      args: ["../arr/cpo.arr"]
+    },
     { 'import-type': 'builtin',
       name: 'load-lib'
     },
@@ -22,7 +26,10 @@
   ],
   nativeRequires: [],
   provides: {},
-  theModule: function(runtime, namespace, uri, cpoRepl, loadLib, checkUI, option, srcloc, checker) {
+  theModule: function(runtime, namespace, uri, cpoRepl, cpo, loadLib, checkUI, option, srcloc, checker) {
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+    //var gtf = function(m, f) { return gf(m, "types")[f]; };
 
     // copied from error-ui.js in logging branch
     function callDeferred(runtime, thunk) {
@@ -363,13 +370,49 @@
       },
     };
 
+    var sharedGdriveLoadableCache = {};
+
+    var onCompileFunc = function(locator, loadable) {
+      var provides = gf(loadable, "provides");
+      var locUri = gf(provides, "from-uri");
+      var protocol = locUri.substr(0, locUri.indexOf('://'));
+      if (protocol === 'shared-gdrive') {
+        if (sharedGdriveLoadableCache[locUri]) {
+          // console.log('We have this cached: ', locUri);
+        } else {
+          sharedGdriveLoadableCache[locUri] = loadable;
+        }
+      }
+      return loadable;
+    };
+
+    var onCompile = runtime.makeFunction(onCompileFunc, "on-compile-func");
+
+    var getCompiled = function(locator) {
+      // console.log('getCompiled!');
+      var getUri = gf(locator, "uri");
+      // console.log(getUri);
+      var locUri = getUri.app();
+      var protocol = locUri.substr(0, locUri.indexOf('://'));
+      if (protocol === 'shared-gdrive') {
+        // console.log(locUri);
+        var loadable = sharedGdriveLoadableCache[locUri];
+        if (loadable) {
+          // console.log('returning cached loadable!');
+          return runtime.ffi.makeSome(loadable);
+        }
+      }
+      return runtime.ffi.makeNone();
+    };
+
     /**
      */
     var createRepl = function(myGDriveOverride, fileObjToRun) {
       var protocolOverrideMap = {
         'my-gdrive': myGDriveOverride,
         'shared-gdrive': {
-          keepAuth: true
+          keepAuth: true,
+          getCompiled: getCompiled
         }
       };
       var fileId = fileObjToRun.getUniqueId();
@@ -381,7 +424,7 @@
         var getDefsForPyret = runtime.makeFunction(function() {
           return stringtoRun;
         });
-        return cpoRepl.createRepl(makeFindModule, getDefsForPyret);     
+        return cpoRepl.createRepl(makeFindModule, getDefsForPyret, onCompile);
       });
     };
 
@@ -504,7 +547,7 @@
           checks: null,
           stats: pyretResult.stats
         };
-        console.log("Full time including compile/load:", JSON.stringify(pyretResult.stats));
+        //console.log("Full time including compile/load:", JSON.stringify(pyretResult.stats));
         if (runtime.isFailureResult(pyretResult)) {
           data.failureCase = 'isFailureResult(pyretResult)';
           data.exn = pyretResult.exn;
@@ -529,7 +572,7 @@
             },
             right: function(v) {
               var runResult = runtime.getField(loadLib, "internal").getModuleResultResult(v);
-              console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
+              //console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
               if (runtime.isSuccessResult(runResult)) {
                 runtime.safeCall(function() {
                   var checks = runtime.getField(runResult.result, "checks");
@@ -675,25 +718,33 @@
           onStart(runnerRecord);
           var runResultPromise = jsRepl.restartInteractions('', typeCheck);
           var done = false;
+          var timedOut = false;
           var timer = setTimeout(function() {
             if(!done) {
+              timedOut = true;
+              console.error('TIMEOUT');
               jsRepl.stop();
-              var runData = {
-                isError: true,
-                failureCase: 'timeout',
-                exn: 'timeout exceed max time of ' + timeout,
-                checks: null
-              };
-              resolveRunData(runData);
             }
           }, timeout);
 
           runResultPromise.then(function(pyretResult) {
             done = true;
             clearTimeout(timer);
-            var extract = createResultExtractor(pyretResult);
-            return extract();
+            //console.log('TIMER CLEARED');
+            if (timedOut) {
+              console.log('resolving timeout data');
+              return {
+                isError: true,
+                failureCase: 'timeout',
+                exn: 'timeout exceed max time of ' + timeout,
+                checks: null
+              };
+            } else {
+              var extract = createResultExtractor(pyretResult);
+              return extract();
+            }
           }).then(function(runData) {
+            //console.log(runData);
             resolveRunData(runData);
           }).fail(function(err) {
             console.error(err);

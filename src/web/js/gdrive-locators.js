@@ -170,7 +170,7 @@ define([], function() {
     }
     // Shared GDrive locators require a refresh to be re-fetched
     var sharedLocatorCache = {};
-    function makeSharedGDriveLocator(filename, id, keepAuth) {
+    function makeSharedGDriveLocator(filename, id, keepAuth, optionalGetCompiled) {
       function checkFileResponse(file, filename, restarter) {
         var actualName = file.getName();
         if(actualName !== filename) {
@@ -276,6 +276,8 @@ define([], function() {
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
 
+          var getCompiled = optionalGetCompiled || (function() { return runtime.ffi.makeNone(); });
+
           var locator = runtime.makeObject({
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
@@ -299,7 +301,7 @@ define([], function() {
               });
             }),
             "set-compiled": m2(setCompiled),
-            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+            "get-compiled": m1(getCompiled)
           });
 
           sharedLocatorCache[cacheKey] = locator;

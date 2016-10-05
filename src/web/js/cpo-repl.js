@@ -239,24 +239,15 @@
 
     /**
      */
-    var createRepl = function(optionalMakeFindModule, optionalGetDefsForPyret) {
+    var createRepl = function(optionalMakeFindModule, optionalGetDefsForPyret, optionalOnCompile) {
       var replDefer = Q.defer();
 
-      var makeFinder;
-      if (optionalMakeFindModule != null) {
-        makeFinder = optionalMakeFindModule;
-      } else {
-        makeFinder = makeFindModule;
-      }
-
-      var getDefsForPyret;
-      if (optionalGetDefsForPyret != null) {
-        getDefsForPyret = optionalGetDefsForPyret;
-      } else {
-        getDefsForPyret = runtime.makeFunction(function() {
-          return CPO.editor.cm.getValue();
-        });
-      }
+      var makeFinder = optionalMakeFindModule || makeFindModule;
+      var getDefsForPyret = optionalGetDefsForPyret ||
+            (runtime.makeFunction(function() {
+              return CPO.editor.cm.getValue();
+            }));
+      var thisOnCompile = optionalOnCompile || onCompile;
 
       runtime.safeCall(function() {
           return gmf(cpo, "make-repl").app(
@@ -268,8 +259,7 @@
           var jsRepl = {
             runtime: runtime.getField(pyRuntime, "runtime").val,
             restartInteractions: function(ignoredStr, typeCheck) {
-              //var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
-              var options = defaultOptions.extendWith({"type-check": typeCheck});
+              var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": thisOnCompile});
               var ret = Q.defer();
               setTimeout(function() {
                 runtime.runThunk(function() {
@@ -349,6 +339,7 @@
                   var protocolOverride = protocolOverrideMap[protocol];
                   var filesPromise = protocolOverride ? protocolOverride[arr[0]] : null;
                   var keepAuthForShared = protocolOverride ? protocolOverride.keepAuth : null;
+                  var getCompiled = protocolOverride ? protocolOverride.getCompiled : null;
                   if (protocol === 'my-gdrive') {
                     if (filesPromise) {
                       return constructors.makeMyGDriveLocator(arr[0], filesPromise);
@@ -358,9 +349,9 @@
                   }
                   else if (protocol === 'shared-gdrive') {
                     if (keepAuthForShared) {
-                      return constructors.makeSharedGDriveLocator(arr[0], arr[1], true);
+                      return constructors.makeSharedGDriveLocator(arr[0], arr[1], true, getCompiled);
                     } else {
-                      return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                      return constructors.makeSharedGDriveLocator(arr[0], arr[1], false, getCompiled);
                     }
                   }
                   else if (protocol === 'gdrive-js') {
