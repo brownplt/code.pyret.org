@@ -154,6 +154,8 @@ define("seedrandom", [], function() {
 <script>
 var clientId = "{{ GOOGLE_CLIENT_ID }}";
 var apiKey = "{{ GOOGLE_API_KEY }}";
+var env_PYRET = "{{ PYRET }}";
+var env_CURRENT_PYRET_RELEASE = "{{ CURRENT_PYRET_RELEASE }}";
 function handleGoogLoad() {
   console.log('doing handleGoogLoad II', clientId);
   handleClientLoad(clientId, apiKey);
