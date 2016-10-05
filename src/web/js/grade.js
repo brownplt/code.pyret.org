@@ -245,11 +245,11 @@
       tooltip_title: studentRunner.test.test.name
     };
 
-    var gold = {
+    var gold = studentRunner.gold ? ({
       name: 'gold',
       id: 'run-all-gold',
       tooltip_title: studentRunner.gold.implementation.name
-    };
+    }) : null;
 
     var coals = [];
     if (studentRunner.coals) {
