@@ -12,6 +12,8 @@
   border: none;
   padding: 0;
   margin: 0;
+  display: inline-block;
+  vertical-align: top;
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
@@ -397,6 +399,13 @@ span.trace:after {
 .repl-prompt {
   width: 90%;
   display: inline-block;
+}
+
+.repl-echo::before,
+.repl-prompt::before {
+  content: '>';
+  display: inline;
+  line-height: calc(1em + 10px);
 }
 
 .repl-prompt-arrow {
