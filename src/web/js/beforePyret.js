@@ -408,8 +408,10 @@ $(function() {
   console.log('process.env.REDISCLOUD_URL is', process.env.REDISCLOUD_URL);
   console.log('process.env.BASE_URL is', process.env.BASE_URL);
   console.log('process.env.SESSION_SECRET is', process.env.SESSION_SECRET);
+  console.log('process.env.CURRENT_PYRET_RELEASE is', process.env.CURRENT_PYRET_RELEASE);
   console.log('process.env.PYRET is', process.env.PYRET);
   console.log('process.env.PYRET_RELEASE_BASE is', process.env.PYRET_RELEASE_BASE);
+  console.log('clientId is', clientId);
   console.log(process.env.PYRET);
   pyretLoad.src = process.env.PYRET;
   pyretLoad.type = "text/javascript";
