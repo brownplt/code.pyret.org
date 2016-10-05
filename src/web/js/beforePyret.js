@@ -1,6 +1,7 @@
 /* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
 
-var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
+//var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
+var shareAPI = makeShareAPI(env_CURRENT_PYRET_RELEASE);
 
 var url = require('url.js');
 
@@ -412,8 +413,9 @@ $(function() {
   console.log('process.env.PYRET is', process.env.PYRET);
   console.log('process.env.PYRET_RELEASE_BASE is', process.env.PYRET_RELEASE_BASE);
   console.log('clientId is', clientId);
-  console.log(process.env.PYRET);
-  pyretLoad.src = process.env.PYRET;
+  //console.log(process.env.PYRET);
+  //pyretLoad.src = process.env.PYRET;
+  pyretLoad.src = env_PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
   $(pyretLoad).on("error", function() {
@@ -424,7 +426,6 @@ $(function() {
   });
 
   programLoaded.fin(function() {
-    console.log(process.env.PYRET);
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
   });
