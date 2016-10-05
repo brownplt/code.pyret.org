@@ -76,7 +76,7 @@
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
-      function renderAndDisplayError(runtime, error, stack) {
+      function renderAndDisplayError(runtime, error, stack, click) {
         var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
           return error_to_html(runtime, CPO.documents, error, stack).
@@ -87,6 +87,7 @@
                 html.addClass("highlights-active");
               });
               html.addClass('compile-error').appendTo(output);
+              if (click) html.click();
             }).done(function () {restarter.resume(runtime.nothing)});
         });
       }
@@ -99,7 +100,7 @@
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
-            renderAndDisplayError(callingRuntime, result.exn.exn);
+            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -141,7 +142,7 @@
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
-                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack);
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -410,7 +411,12 @@
         logger.log('run', { name      : "definitions://",
                             type_check: !!uiOptions["type-check"]
                           });
-        var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
+        var options = {
+          typeCheck: !!uiOptions["type-check"],
+          checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
+                          // if this becomes a check box somewhere in CPO
+        };
+        var replResult = repl.restartInteractions(src, options);
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
           return r;

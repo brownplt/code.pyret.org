@@ -252,8 +252,12 @@
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
-          restartInteractions: function(ignoredStr, typeCheck) {
-            var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
+          restartInteractions: function(ignoredStr, options) {
+            var pyOptions = defaultOptions.extendWith({
+              "type-check": options.typeCheck,
+              "check-all": options.checkAll,
+              "on-compile": onCompile
+            });
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
@@ -263,7 +267,7 @@
                     "make-definitions-locator").app(getDefsForPyret, replGlobals);
                   },
                   function(locator) {
-                    return gf(repl, "restart-interactions").app(locator, options);
+                    return gf(repl, "restart-interactions").app(locator, pyOptions);
                   });
               }, function(result) {
                 ret.resolve(result);
@@ -310,7 +314,7 @@
       $("#loader").hide();
 
       // NOTE(joe): This forces the loading of all the built-in compiler libs
-      var interactionsReady = repl.restartInteractions();
+      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
       interactionsReady.fail(function(err) {
         console.error("Couldn't start REPL: ", err);
       });
