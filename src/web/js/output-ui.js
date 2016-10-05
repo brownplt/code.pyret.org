@@ -24,6 +24,36 @@
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
     var shareAPI = makeShareAPI("");
+
+    var dialect = 'spyret'
+
+    function unPyretizeSymbol(str) {
+      if (!/Ǝ/.test(str)) {
+        return str;
+      }
+      return str.
+      replace(/ƎSLASH/g, '/').
+      replace(/ƎQUESTION/g, '?').
+      replace(/ƎBANG/g, '!').
+      replace(/ƎPLUS/g, '+').
+      replace(/ƎGT/g, '>').
+      replace(/ƎLT/g, '<').
+      replace(/ƎEQ/g, '=').
+      replace(/ƎSTAR/g, '*').
+      replace(/ƎDOLLAR/g, '$').
+      replace(/ƎCOLON/g, ':').
+      replace(/ƎPCT/g, '%').
+      replace(/ƎAND/g, '&').
+      replace(/ƎAT/g, '@').
+      replace(/ƎHAT/g, '^').
+      replace(/ƎDOT/g, '.').
+      replace(/ƎHASH1/g, '#').
+      replace(/ƎHASHPCT/g, '#%').
+      replace(/ƎUNDERSCORE/g, '_').
+      replace(/ƎEMPTY/g, '').
+      replace(/ƎMODULE.*$/, 'ᵐ').
+      replace(/Ǝ(\d)/g, '$1');
+    }
     
     var highlightedPositions = [];
 
@@ -825,6 +855,9 @@
             }, "optional: help(contents)");
           },
           "text": function(txt) {
+            if (dialect === "spyret") {
+              txt = unPyretizeSymbol(txt);
+            }
             return $("<span>").text(txt);
           },
           "code": function(contents) {
@@ -1060,6 +1093,7 @@
     function installRenderers(runtime) {
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
       function renderText(txt) {
+        console.log('renderText', txt);
         var echo = $("<span>").addClass("replTextOutput");
         echo.text(txt);
         // setTimeout(function() {
@@ -1212,8 +1246,14 @@
         }
         return ret.join('');
       };
-      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
-      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
+      renderers["method"] = function(val) { 
+        var name = unPyretizeSymbol(val.name);
+        return renderText("<method:" + name + ">"); 
+      };
+      renderers["function"] = function(val) { 
+        var name = unPyretizeSymbol(val.name);
+        return renderText("<function:" + name + ">"); 
+      };
       renderers["render-array"] = function(top) {
         //console.log('doing render-array');
         var container = $("<span>").addClass("replToggle replOutput");
@@ -1323,7 +1363,8 @@
       renderers["render-data"] = function renderData(top) {
         //console.log('doing render-data');
         var container = $("<span>").addClass("replToggle replOutput");
-        var name = $("<span>").text(top.extra.constructorName);
+        //var name = $("<span>").text(top.extra.constructorName);
+        var name = $("<span>").text(unPyretizeSymbol(top.extra.constructorName));
         var openParen = $("<span>").addClass("collapsed").text("(");
         var closeParen = $("<span>").addClass("collapsed").text(")");
         var dl = $("<dl>");
