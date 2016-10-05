@@ -411,7 +411,12 @@
         logger.log('run', { name      : "definitions://",
                             type_check: !!uiOptions["type-check"]
                           });
-        var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
+        var options = {
+          typeCheck: !!uiOptions["type-check"],
+          checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
+                          // if this becomes a check box somewhere in CPO
+        };
+        var replResult = repl.restartInteractions(src, options);
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
           return r;
