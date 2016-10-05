@@ -417,10 +417,11 @@ $(function() {
   programLoaded.fin(function() {
     console.log('process.env is', JSON.stringify(process.env));
     console.log('process.env.GOOGLE_CLIENT_ID is', process.env.GOOGLE_CLIENT_ID);
+    console.log('process.env.REDISCLOUD_URL is', process.env.REDISCLOUD_URL);
     console.log('process.env.BASE_URL is', process.env.BASE_URL);
+    console.log('process.env.SESSION_SECRET is', process.env.SESSION_SECRET);
+    console.log('process.env.PYRET is', process.env.PYRET);
     console.log('process.env.PYRET_RELEASE_BASE is', process.env.PYRET_RELEASE_BASE);
-    console.log('process.env.PYRET is', process.env.PYRET);
-    console.log('process.env.PYRET is', process.env.PYRET);
     console.log(process.env.PYRET);
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
