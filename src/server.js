@@ -1,5 +1,4 @@
 var Q = require("q");
-var git = require('git-rev-sync');
 var gapi = require('googleapis');
 var path = require('path');
 var uuid = require('node-uuid');
@@ -17,8 +16,6 @@ function start(config, onServerReady) {
   var mustache = require('mustache-express');
   var url = require('url');
   var fs = require('fs');
-  var git_short  = git.short();
-  var git_branch = git.branch();
 
   function loggedIn(req) {
     var session = req.session;
@@ -86,8 +83,8 @@ function start(config, onServerReady) {
     res.set("Content-Type", "application/javascript");
     res.render(__dirname + "/../build/web/js/log.js", {
       LOG_URL: config.logURL,
-      GIT_REV : git_short,
-      GIT_BRANCH: git_branch
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
     }, function(_, js) {
       res.set("Content-Type", "application/javascript");
       res.send(js);

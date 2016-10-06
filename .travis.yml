@@ -30,6 +30,9 @@ before_script:
 script:
 - echo "Skipping tests"
 #- mocha --harmony
+before_deploy:
+- export GIT_REV=`echo $TRAVIS_COMMIT`
+- export GIT_BRANCH=`echo $TRAVIS_BRANCH`
 install:
 - npm install --ignore-scripts
 - make web
