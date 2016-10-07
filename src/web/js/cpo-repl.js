@@ -344,6 +344,9 @@
                     if (filesPromise) {
                       return constructors.makeMyGDriveLocator(arr[0], filesPromise);
                     } else {
+                      var msg = 'import my-gdrive("' + arr[0] + '"")\n this may be incorrect!';
+                      console.warn(msg);
+                      alert(msg);
                       return constructors.makeMyGDriveLocator(arr[0]);
                     }
                   }
