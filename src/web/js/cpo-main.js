@@ -62,7 +62,7 @@
     replP.then(function(jsRepl) {
       withRepl(jsRepl);
     });
-
+    
     function withRepl(repl) {
 
       console.log("Loaded");
@@ -70,7 +70,7 @@
       $("#loader").hide();
 
       // NOTE(joe): This forces the loading of all the built-in compiler libs
-      var interactionsReady = repl.restartInteractions();
+      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
       interactionsReady.fail(function(err) {
         console.error("Couldn't start REPL: ", err);
       });

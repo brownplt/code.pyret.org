@@ -230,9 +230,11 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
-    // var getDefsForPyret = runtime.makeFunction(function() {
-    //     return CPO.editor.cm.getValue();
+    // var getDefsForPyret = function(source) {
+    //   return runtime.makeFunction(function() {
+    //     return source;
     //   });
+    // };
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
@@ -244,70 +246,76 @@
 
       var makeFinder = optionalMakeFindModule || makeFindModule;
       var getDefsForPyret = optionalGetDefsForPyret ||
-            (runtime.makeFunction(function() {
-              return CPO.editor.cm.getValue();
-            }));
+        (function(source) {
+          return runtime.makeFunction(function() {
+            return source;
+          });
+        });
       var thisOnCompile = optionalOnCompile || onCompile;
 
       runtime.safeCall(function() {
-          return gmf(cpo, "make-repl").app(
-              builtinsForPyret,
-              pyRuntime,
-              pyRealm,
-              runtime.makeFunction(makeFinder));
-        }, function(repl) {
-          var jsRepl = {
-            runtime: runtime.getField(pyRuntime, "runtime").val,
-            restartInteractions: function(ignoredStr, typeCheck) {
-              var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": thisOnCompile});
-              var ret = Q.defer();
-              setTimeout(function() {
-                runtime.runThunk(function() {
-                  return runtime.safeCall(
-                    function() {
-                      return gf(repl,
-                      "make-definitions-locator").app(getDefsForPyret, replGlobals);
-                    },
-                    function(locator) {
-                      return gf(repl, "restart-interactions").app(locator, options);
-                    });
-                }, function(result) {
-                  ret.resolve(result);
-                });
-              }, 0);
-              return ret.promise;
-            },
-            run: function(str, name) {
-              var ret = Q.defer();
-              setTimeout(function() {
-                runtime.runThunk(function() {
-                  return runtime.safeCall(
-                    function() {
-                      return gf(repl,
-                      "make-interaction-locator").app(
-                        runtime.makeFunction(function() { return str; }))
-                    },
-                    function(locator) {
-                      return gf(repl, "run-interaction").app(locator);
-                    });
-                }, function(result) {
-                  ret.resolve(result);
-                }, "make-interaction-locator");
-              }, 0);
-              return ret.promise;
-            },
-            pause: function(afterPause) {
-              runtime.schedulePause(function(resumer) {
-                afterPause(resumer);
+        return gmf(cpo, "make-repl").app(
+            builtinsForPyret,
+            pyRuntime,
+            pyRealm,
+            runtime.makeFunction(makeFinder));
+      }, function(repl) {
+        var jsRepl = {
+          runtime: runtime.getField(pyRuntime, "runtime").val,
+          restartInteractions: function(source, options) {
+            var pyOptions = defaultOptions.extendWith({
+              "type-check": options.typeCheck,
+              "check-all": options.checkAll,
+              "on-compile": thisOnCompile
+            });
+            var ret = Q.defer();
+            setTimeout(function() {
+              runtime.runThunk(function() {
+                return runtime.safeCall(
+                  function() {
+                    return gf(repl,
+                    "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
+                  },
+                  function(locator) {
+                    return gf(repl, "restart-interactions").app(locator, pyOptions);
+                  });
+              }, function(result) {
+                ret.resolve(result);
               });
-            },
-            stop: function() {
-              runtime.breakAll();
-            },
-            runtime: runtime
-          };
-          replDefer.resolve(jsRepl);
-        }, "make-repl");
+            }, 0);
+            return ret.promise;
+          },
+          run: function(str, name) {
+            var ret = Q.defer();
+            setTimeout(function() {
+              runtime.runThunk(function() {
+                return runtime.safeCall(
+                  function() {
+                    return gf(repl,
+                    "make-interaction-locator").app(
+                      runtime.makeFunction(function() { return str; }))
+                  },
+                  function(locator) {
+                    return gf(repl, "run-interaction").app(locator);
+                  });
+              }, function(result) {
+                ret.resolve(result);
+              }, "make-interaction-locator");
+            }, 0);
+            return ret.promise;
+          },
+          pause: function(afterPause) {
+            runtime.schedulePause(function(resumer) {
+              afterPause(resumer);
+            });
+          },
+          stop: function() {
+            runtime.breakAll();
+          },
+          runtime: runtime
+        };
+        replDefer.resolve(jsRepl);
+      }, "make-repl");
 
       return replDefer.promise;
     };
