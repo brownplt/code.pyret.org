@@ -235,9 +235,11 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
-    var getDefsForPyret = runtime.makeFunction(function() {
-        return CPO.editor.cm.getValue();
+    var getDefsForPyret = function(source) {
+      return runtime.makeFunction(function() {
+        return source;
       });
+    };
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
@@ -252,7 +254,7 @@
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
-          restartInteractions: function(ignoredStr, options) {
+          restartInteractions: function(source, options) {
             var pyOptions = defaultOptions.extendWith({
               "type-check": options.typeCheck,
               "check-all": options.checkAll,
@@ -264,7 +266,7 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-definitions-locator").app(getDefsForPyret, replGlobals);
+                    "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
