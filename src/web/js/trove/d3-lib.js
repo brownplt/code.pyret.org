@@ -320,8 +320,8 @@
   ////////////////////////////////////////////////////////////////////////////
 
   function getDimension(obj, windowOptions) {
-    var xscale = RUNTIME.getField(windowOptions, 'xscale');
-    var yscale = RUNTIME.getField(windowOptions, 'yscale');
+    var xscale = RUNTIME.getField(windowOptions, 'extend-x');
+    var yscale = RUNTIME.getField(windowOptions, 'extend-y');
 
     if (!('maxWindowWidth' in obj)) {
       obj.maxWindowWidth = 1250;
@@ -524,8 +524,8 @@
                   RUNTIME.makeSrcloc("dummy location"),
                   windowOptions,
                   {
-                    xscale: xscaler(width),
-                    yscale: yscaler(height),
+                    'extend-x': xscaler(width),
+                    'extend-y': yscaler(height),
                   }
                 )
               );

@@ -39,25 +39,25 @@ import either as E
 import string-dict as SD
 
 OFFSET = 1
-MAX_SAMPLES = 100000
+MAX-SAMPLES = 100000
 
 type BaseWindowOptions = {
-  xscale :: Number,
-  yscale :: Number,
+  extend-x :: Number,
+  extend-y :: Number,
   interact :: Boolean,
   title :: String
 }
 
 base-window-options :: BaseWindowOptions = {
-  xscale: 0,
-  yscale: 0,
+  extend-x: 0,
+  extend-y: 0,
   interact: true,
   title: ''
 }
 
 type AxisWindowOptions = {
-  xscale :: Number,
-  yscale :: Number,
+  extend-x :: Number,
+  extend-y :: Number,
   interact :: Boolean,
   title :: String,
   x-axis :: String,
@@ -70,8 +70,8 @@ axis-window-options :: AxisWindowOptions = base-window-options.{
 }
 
 type PlotWindowOptions = {
-  xscale :: Number,
-  yscale :: Number,
+  extend-x :: Number,
+  extend-y :: Number,
   interact :: Boolean,
   title :: String,
   x-axis :: String,
@@ -155,11 +155,11 @@ fun sprintf-maker():
 end
 
 fun check-base-window-options(options :: BaseWindowOptions) -> Nothing block:
-  when (options.xscale < 0) or (options.xscale > 1):
-    raise('plot: xscale must be between 0 and 1')
+  when (options.extend-x < 0) or (options.extend-x > 1):
+    raise('plot: extend-x must be between 0 and 1')
   end
-  when (options.yscale < 0) or (options.yscale > 1):
-    raise('plot: yscale must be between 0 and 1')
+  when (options.extend-y < 0) or (options.extend-y > 1):
+    raise('plot: extend-y must be between 0 and 1')
   end
   nothing
 end
@@ -199,10 +199,6 @@ where:
     end, 4, default-options) does-not-raise
 end
 
-fun histogram-image(tab :: Table, n :: Number):
-  histogram(tab, n, _.{ interact: false })
-end
-
 fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
   doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
@@ -220,10 +216,6 @@ where:
       row: 'dsa', 2
       row: 'qwe', 3
     end, default-options) does-not-raise
-end
-
-fun pie-chart-image(tab :: Table):
-  pie-chart(tab, _.{interact: false})
 end
 
 fun pie-chart-with-adjustable-radius(
@@ -370,20 +362,20 @@ where:
     ], plot-options)
 end
 
-fun display-function(title :: String, f :: PlottableFunction) -> IM.Image:
-  display-multi-plot(
+fun render-function(title :: String, f :: PlottableFunction) -> IM.Image:
+  render-multi-plot(
     [list: function-plot(f, default-options)],
     _.{title: title})
 where:
-  plot-function('My function', num-sin) does-not-raise
+  render-function('My function', num-sin) does-not-raise
 end
 
-fun display-scatter(title :: String, tab :: Table) -> IM.Image:
-  display-multi-plot(
+fun render-scatter(title :: String, tab :: Table) -> IM.Image:
+  render-multi-plot(
     [list: scatter-plot(tab, default-options)],
     _.{title: title})
 where:
-  plot-scatter('My scatter', table: x, y
+  render-scatter('My scatter', table: x, y
       row: 1, 2
       row: 1, 3.1
       row: 4, 1
@@ -393,12 +385,12 @@ where:
     end) does-not-raise
 end
 
-fun display-line(title :: String, tab :: Table) -> IM.Image:
-  display-multi-plot(
+fun render-line(title :: String, tab :: Table) -> Image:
+  render-multi-plot(
     [list: line-plot(tab, default-options)],
     _.{title: title})
 where:
-  plot-line('My line', table: x, y
+  render-line('My line', table: x, y
       row: 1, 2
       row: 1, 3.1
       row: 4, 1
@@ -408,7 +400,7 @@ where:
     end) does-not-raise
 end
 
-fun display-multi-plot(
+fun render-multi-plot(
     plots :: List<Plot>,
     options-generator :: WrappedPlotWindowOptions) -> IM.Image block:
   options = options-generator(plot-window-options)
@@ -416,14 +408,14 @@ fun display-multi-plot(
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
     raise('plot: x-min and y-min must be strictly less than x-max and y-max respectively')
   end
-  when (options.num-samples > MAX_SAMPLES) or
+  when (options.num-samples > MAX-SAMPLES) or
     (options.num-samples <= 1) or
     not(num-is-integer(options.num-samples)):
     raise(
       [sprintf:
         'plot: num-samples must be an an integer greater than 1',
         ' and do not exceed ',
-        num-to-string(MAX_SAMPLES)])
+        num-to-string(MAX-SAMPLES)])
   end
 
   original-plots = plots
@@ -511,7 +503,7 @@ end
 default-plot-color-list =
   [list: I.green, I.red, I.orange, I.yellow, I.blue, I.purple, I.brown]
 
-fun display-plots(
+fun render-plots(
     title :: String,
     infer-bounds :: Boolean,
     plots :: List<Plot>) -> IM.Image:
@@ -530,7 +522,7 @@ fun display-plots(
   else:
     options
   end
-  display-multi-plot(new-plots, options)
+  render-multi-plot(new-plots, options)
 end
 
 make-function-plot = function-plot(_, _.{color: I.blue})
