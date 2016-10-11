@@ -29,7 +29,7 @@
   theModule: function(runtime, namespace, uri, cpoRepl, cpo, loadLib, checkUI, option, srcloc, checker) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-    //var gtf = function(m, f) { return gf(m, "types")[f]; };
+    var gtf = function(m, f) { return gf(m, "types")[f]; };
 
     // copied from error-ui.js in logging branch
     function callDeferred(runtime, thunk) {
@@ -405,26 +405,51 @@
       return runtime.ffi.makeNone();
     };
 
+    var constructors = cpoRepl.getGDriveLocatorConstructors();
+
     /**
      */
-    var createRepl = function(myGDriveOverride, fileObjToRun) {
-      var protocolOverrideMap = {
-        'my-gdrive': myGDriveOverride,
-        'shared-gdrive': {
-          keepAuth: true,
-          getCompiled: getCompiled
+    var createRepl = function(myGDriveOverride, sourceP) {
+      var protocolImportResolution = function(protocol, args) {
+        var arr = runtime.ffi.toArray(args);
+        if (protocol === 'my-gdrive') {
+          if (myGDriveOverride[arr[0]]) {
+            return constructors.makeMyGDriveLocator(arr[0], myGDriveOverride[arr[0]]);
+          } else {
+            var msg = 'import my-gdrive("' + arr[0] + '"")\n this may be incorrect!';
+            console.warn(msg);
+            alert(msg);
+            return constructors.makeMyGDriveLocator(arr[0]);
+          }
+        }
+        else if (protocol === 'shared-gdrive') {
+          return constructors.makeSharedGDriveLocator(arr[0], arr[1], true, getCompiled);
+        }
+        else if (protocol === 'gdrive-js') {
+          return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+        }
+        else {
+          console.error('Unknown dependency protocol: ', protocol);
         }
       };
-      var fileId = fileObjToRun.getUniqueId();
-      var makeFindModule = cpoRepl.createMakeFindModuleFunction(protocolOverrideMap);
-      return (fileObjToRun.getContents()).then(function(stringtoRun) {
-        stringtoRun = Util.replaceCurlyQuotes(stringtoRun);
-        var thisFileId = fileObjToRun.getUniqueId();
-        DEBUG.assertEqual(fileId, thisFileId);
-        var getDefsForPyret = runtime.makeFunction(function() {
-          return stringtoRun;
+      
+      var makeFindModule = cpoRepl.createMakeFindModuleFunction({
+        dependency: protocolImportResolution
+      });
+
+      var jsReplP = cpoRepl.createRepl({finder: makeFindModule}, onCompile);
+
+      return jsReplP.then(function(jsRepl) {
+        return sourceP.then(function(source) {
+          source = Util.replaceCurlyQuotes(source);
+          return {
+            jsRepl: jsRepl,
+            source: source
+          };
         });
-        return cpoRepl.createRepl(makeFindModule, getDefsForPyret, onCompile);
+      }).fail(function(reason) {
+        console.error('Problem creating repl');
+        throw reason;
       });
     };
 
@@ -446,7 +471,9 @@
 
       var myGDriveOverride = {};
       myGDriveOverride[importName] = Util.makeResolvedPromise([actualImplementation]);
-      var replPromise = createRepl(myGDriveOverride, testFileObj);
+
+      var replPromise = createRepl(myGDriveOverride, testFileObj.getContents());
+
       var fileIdToRun = testFileObj.getUniqueId();
       ReplPromises[importName][fileIdToImport][fileIdToRun] = replPromise;
     };
@@ -478,8 +505,6 @@
         var testResults = runtime.getField(checkBlock, "test-results");
         var tests = ffi.toArray(testResults).reverse();
 
-        // console.log('THIS CHECK BLOCK HAS ' + tests.length + ' TESTS:', tests);
-
         var testsInBlock = 0;
         var testsPassingInBlock = 0;
 
@@ -492,17 +517,21 @@
             testsPassingInBlock += 1;
           }
           var loc = runtime.getField(test, "loc").dict;
-          var name = test.$name;
+          var result = test.$name;
           return {
             isSuccess: isSuccess,
-            name: name,
-            loc: loc
+            result: result,
+            loc: {
+              source: loc.source,
+              line: loc['start-line']
+            }
           };
         });
 
         var error = isError ? runtime.getField(runtime.getField(checkBlock, "maybe-err"),"value").val : null;
 
         return {
+          name: name,
           isError: isError,
           error: error,
           testsPassedInBlock: testsPassingInBlock,
@@ -511,8 +540,6 @@
         };
       });
       var checkBlockCount = checkBlocks.length;
-
-      console.log('Passed ' + checkPassedAll + ' out of ' + checkTotalAll);
 
       return {
         testsPassed: checkPassedAll,
@@ -650,8 +677,10 @@
     /**
      */
     var makeRunner = function(implementationFileObj, testFileObj, student, runnerType, implementationName, timeout) {
-      // TODO, maybe: make typeCheck an option
-      var typeCheck = false;
+      var restartInteractionsOptions = {
+        typeCheck: false,
+        checkAll: false
+      };
 
       var implementationFileObjName = (implementationFileObj === null) ? null : implementationFileObj.getName();
       var implementationFileObjId = (implementationFileObj === null) ? null : implementationFileObj.getUniqueId();
@@ -692,6 +721,12 @@
             timestamp: Date.now()
           };
 
+          if (runData.isError) {
+            console.error(runData.exn);
+          } else {
+            console.log('Passed ' + runData.checks.testsPassed + ' / ' + runData.checks.testsTotal);
+          }
+
           resultDefer.resolve(gradeRunData);
 
           
@@ -714,16 +749,16 @@
           return resultDefer.promise;
         }
 
-        return replPromise.then(function(jsRepl) {
+        return replPromise.then(function(repl) {
           onStart(runnerRecord);
-          var runResultPromise = jsRepl.restartInteractions('', typeCheck);
+          var runResultPromise = repl.jsRepl.restartInteractions(repl.source, restartInteractionsOptions);
           var done = false;
           var timedOut = false;
           var timer = setTimeout(function() {
             if(!done) {
               timedOut = true;
               console.error('TIMEOUT');
-              jsRepl.stop();
+              repl.jsRepl.stop();
             }
           }, timeout);
 
@@ -764,8 +799,6 @@
         uniqueId: uniqueId,
         isMissing: isMissing
       };
-
-      // DEBUG.assertRunner(runner, implementationFileObj.getUniqueId(), testFileObj.getUniqueId());
 
       return runner;
     };

@@ -58,11 +58,72 @@
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
 
-    var replP = cpoRepl.createRepl();
-    replP.then(function(jsRepl) {
-      withRepl(jsRepl);
+    var logDetailedOption = $("#detailed-logging");
+
+    if(localStorage.getItem('log-detailed') !== null) {
+      logDetailedOption.prop("checked",
+        localStorage.getItem('log-detailed') == 'true');
+    } else {
+      localStorage.setItem('log-detailed', false);
+    }
+
+    logDetailedOption.on('change', function () {
+      localStorage.setItem('log-detailed', this.checked);
     });
-    
+
+    setInterval(function() {
+      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
+    }, 100);
+
+    runtime.setParam("imgUrlProxy", function(s) {
+      var a = document.createElement("a");
+      a.href = s;
+      if(a.origin === window.APP_BASE_URL) {
+        return s;
+      }
+      else if(a.hostname === "drive.google.com" && a.pathname === "/uc") {
+        return s;
+      }
+      else {
+        return window.APP_BASE_URL + "/downloadImg?" + s;
+      }
+    });
+
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+    var gtf = function(m, f) { return gf(m, "types")[f]; };
+
+    // NOTE(joe): In order to yield control quickly, this doesn't pause the
+    // stack in order to save.  It simply sends the save requests and
+    // immediately returns.  This avoids needlessly serializing multiple save
+    // requests when this is called repeatedly from Pyret.
+    function saveGDriveCachedFile(name, content) {
+      var file = storageAPI.then(function(storageAPI) {
+        var existingFile = storageAPI.getCachedFileByName(name);
+        return existingFile.then(function(f) {
+          if(f.length >= 1) {
+            return f[0];
+          }
+          else {
+            return storageAPI.createFile(name, {
+              saveInCache: true,
+              fileExtension: ".js",
+              mimeType: "text/plain"
+            });
+          }
+        });
+      });
+      file.then(function(f) {
+        f.save(content, true);
+      });
+      return runtime.nothing;
+    }
+
+    // NOTE(joe): this function just allocates a closure, so it's stack-safe
+    var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
+
+    (cpoRepl.createRepl({}, onCompile)).then(withRepl);
+
     function withRepl(repl) {
 
       console.log("Loaded");

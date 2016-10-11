@@ -1,7 +1,7 @@
 /* global Q $ */
 (function() {
 
-  // temp hack because heroku is hard
+  // temp hack because i don't feel like dealing with webpack
   var process = {
     env: {
       PYRET_GRADE: 'https://s3.amazonaws.com/pyret-grading/cpo-grade.jarr.gz.js'
