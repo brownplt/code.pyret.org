@@ -370,56 +370,71 @@
       },
     };
 
-    var sharedGdriveLoadableCache = {};
+    var loadableCache = {};
 
-    var onCompileFunc = function(locator, loadable) {
-      var provides = gf(loadable, "provides");
-      var locUri = gf(provides, "from-uri");
+    var onCompileFunc = function(locUri, loadable) {
       var protocol = locUri.substr(0, locUri.indexOf('://'));
-      if (protocol === 'shared-gdrive') {
-        if (sharedGdriveLoadableCache[locUri]) {
-          // console.log('We have this cached: ', locUri);
-        } else {
-          sharedGdriveLoadableCache[locUri] = loadable;
+      if (!loadableCache[locUri]) {
+        if (locUri === 'definitions://') {
+          console.error('definitions:// should not be cached!!');
+        }
+        if (protocol !== 'builtin') {
+          loadableCache[locUri] = loadable;
         }
       }
       return loadable;
     };
 
-    var onCompile = runtime.makeFunction(onCompileFunc, "on-compile-func");
-
-    var getCompiled = function(locator) {
-      // console.log('getCompiled!');
-      var getUri = gf(locator, "uri");
-      // console.log(getUri);
-      var locUri = getUri.app();
-      var protocol = locUri.substr(0, locUri.indexOf('://'));
-      if (protocol === 'shared-gdrive') {
-        // console.log(locUri);
-        var loadable = sharedGdriveLoadableCache[locUri];
-        if (loadable) {
-          // console.log('returning cached loadable!');
-          return runtime.ffi.makeSome(loadable);
-        }
+    var getCompiledFunc = function(locUri) {
+      if (locUri === 'definitions://') {
+        console.error('definitions:// should not be cached!!');
       }
+      var loadable = loadableCache[locUri];
+      if (loadable) {
+        // console.log(locUri + ' from cache');
+        return runtime.ffi.makeSome(loadable);
+      }
+      // else {
+      //   console.warn(locUri + ' being compiled [getCompiled]');
+      // }
       return runtime.ffi.makeNone();
+    };
+
+    var onDefinitionsLocator = function(locator, id) {
+      locator.dict['get-compiled'] = runtime.makeMethod1(function(selfLocator) {
+        var locUri = 'definitions://' + id;
+        return getCompiledFunc(locUri);
+      });
+      return locator;
     };
 
     var constructors = cpoRepl.getGDriveLocatorConstructors();
 
     /**
      */
-    var createRepl = function(myGDriveOverride, sourceP) {
+    var createRepl = function(myGDriveOverride, sourceFileObj) {
+      var sourceP = sourceFileObj.getContents();
+      var sourceID = sourceFileObj.getUniqueId();
+
+      var getCompiled = function(locator) {
+        var getUri = gf(locator, "uri");
+        var locUri = getUri.app();
+        var protocol = locUri.substr(0, locUri.indexOf('://'));
+        if (protocol === 'definitions') {
+          locUri = locUri + sourceID
+        }
+        return getCompiledFunc(locUri);
+      };
       var protocolImportResolution = function(protocol, args) {
         var arr = runtime.ffi.toArray(args);
         if (protocol === 'my-gdrive') {
           if (myGDriveOverride[arr[0]]) {
-            return constructors.makeMyGDriveLocator(arr[0], myGDriveOverride[arr[0]]);
+            return constructors.makeMyGDriveLocator(arr[0], myGDriveOverride[arr[0]], getCompiled);
           } else {
             var msg = 'import my-gdrive("' + arr[0] + '"")\n this may be incorrect!';
             console.warn(msg);
             alert(msg);
-            return constructors.makeMyGDriveLocator(arr[0]);
+            return constructors.makeMyGDriveLocator(arr[0], null, getCompiled);
           }
         }
         else if (protocol === 'shared-gdrive') {
@@ -432,12 +447,26 @@
           console.error('Unknown dependency protocol: ', protocol);
         }
       };
-      
+     
       var makeFindModule = cpoRepl.createMakeFindModuleFunction({
         dependency: protocolImportResolution
       });
 
-      var jsReplP = cpoRepl.createRepl({finder: makeFindModule}, onCompile);
+      var onCompile = runtime.makeFunction(function(locator, loadable) {
+        var provides = gf(loadable, "provides");
+        var locUri = gf(provides, "from-uri");
+        var protocol = locUri.substr(0, locUri.indexOf('://'));
+        if (protocol === 'definitions') {
+          locUri = locUri + sourceID;
+        }
+        return onCompileFunc(locUri, loadable);
+      }, "on-compile-func");
+
+      var makeNewDefinitionsLocator = function(locator) {
+        return onDefinitionsLocator(locator, sourceID);
+      };
+
+      var jsReplP = cpoRepl.createRepl({finder: makeFindModule}, onCompile, makeNewDefinitionsLocator);
 
       return jsReplP.then(function(jsRepl) {
         return sourceP.then(function(source) {
@@ -472,7 +501,7 @@
       var myGDriveOverride = {};
       myGDriveOverride[importName] = Util.makeResolvedPromise([actualImplementation]);
 
-      var replPromise = createRepl(myGDriveOverride, testFileObj.getContents());
+      var replPromise = createRepl(myGDriveOverride, testFileObj);
 
       var fileIdToRun = testFileObj.getUniqueId();
       ReplPromises[importName][fileIdToImport][fileIdToRun] = replPromise;

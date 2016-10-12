@@ -42,7 +42,7 @@ define([], function() {
     // if given optionalFilesPromise, we assume it will be resolved with an
     // array of file objects that we'll then use instead of querying gdrive
     // for the filename
-    function makeMyGDriveLocator(filename, optionalFilesPromise) {
+    function makeMyGDriveLocator(filename, optionalFilesPromise, optionalGetCompiled) {
       function checkFileResponse(files, restarter) {
         if(files.length === 0) {
           restarter.error(runtime.ffi.makeMessageException("Could not find module with name " + filename + " in your drive."));
@@ -75,7 +75,9 @@ define([], function() {
 
         fileP.then(function(file) {
 
-          var uri = "my-gdrive://" + filename;
+          var fileId = file.getUniqueId();
+
+          var uri = "my-gdrive://" + filename + ":" + fileId;
 
           function needsCompile() { return true; }
 
@@ -136,6 +138,8 @@ define([], function() {
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
 
+          var getCompiled = optionalGetCompiled || (function() { return runtime.ffi.makeNone(); });
+
           var m0 = runtime.makeMethod0;
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
@@ -163,7 +167,7 @@ define([], function() {
               });
             }),
             "set-compiled": m2(setCompiled),
-            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+            "get-compiled": m1(getCompiled)
           }));
         });
       });

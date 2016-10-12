@@ -176,7 +176,7 @@
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
 
-    function createRepl(makeReplArgs, onCompile) {
+    function createRepl(makeReplArgs, onCompile, optionalTransformDefinitionsLocator) {
       var replP = Q.defer();
       runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
@@ -202,6 +202,9 @@
                     "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
                   },
                   function(locator) {
+                    if (optionalTransformDefinitionsLocator) {
+                      locator = optionalTransformDefinitionsLocator(locator);
+                    }
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
                   });
               }, function(result) {
