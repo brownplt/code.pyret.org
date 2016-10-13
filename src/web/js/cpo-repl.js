@@ -1,4 +1,4 @@
-/* global APP_BASE_URL storageAPI Q CPO */
+/* global storageAPI Q */
 ({
   requires: [
     { "import-type": "dependency",
@@ -11,16 +11,8 @@
     },
     { "import-type": "dependency",
       protocol: "file",
-      args: ["../../../pyret/src/arr/compiler/repl.arr"]
-    },
-    { "import-type": "dependency",
-      protocol: "file",
       args: ["../arr/cpo.arr"]
     },
-    // { "import-type": "dependency",
-    //   protocol: "js-file",
-    //   args: ["./repl-ui"]
-    // },
     { "import-type": "builtin",
       name: "parse-pyret"
     },
@@ -39,22 +31,25 @@
   ],
   nativeRequires: [
     "cpo/gdrive-locators",
-    "cpo/http-imports",
-    "cpo/guess-gas",
-    "cpo/cpo-builtin-modules",
-    "cpo/modal-prompt",
-    "pyret-base/js/runtime"
+    "cpo/cpo-builtin-modules"
   ],
   provides: {},
-  theModule: function(runtime, namespace, uri,
-                      compileLib, compileStructs, pyRepl, cpo, //replUI,
-                      parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
-                      gdriveLocators, http, guessGas, cpoModules, modalPrompt,
-                      rtLib) {
+  theModule: function(runtime, namespace, uri, compileLib, compileStructs, cpo,
+                      parsePyret, runtimeLib, loadLib, builtinModules, _,
+                      gdriveLocators, cpoModules) {
 
+    // NOTE: builtin://cpo-builtins is is unused, but we import it anyway
+    // because not doing so causes a weird bug
+
+    var ffi = runtime.ffi;
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-    var gtf = function(m, f) { return gf(m, "types")[f]; };
+    // var gtf = function(m, f) { return gf(m, "types")[f]; };
+
+    var makeBuiltinJsLocator = gmf(cpo, "make-builtin-js-locator");
+    var cpoMakeRepl          = gmf(cpo, "make-repl");
+    var compileLibLocated    = gmf(compileLib, "located");
+    var isDependencyFunc     = gmf(compileStructs, "is-Dependency");
 
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
 
@@ -65,11 +60,11 @@
           throw runtime.throwMessageException("Unknown module: " + name);
         }
         else {
-          return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+          return makeBuiltinJsLocator.app(name, raw);
         }
       },
       dependency: function(protocol, args) {
-        var arr = runtime.ffi.toArray(args);
+        var arr = ffi.toArray(args);
         if (protocol === "my-gdrive") {
           return constructors.makeMyGDriveLocator(arr[0]);
         }
@@ -86,13 +81,13 @@
     };
 
     var uriFromDependency = function(dependency) {
-      return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
+      return ffi.cases(isDependencyFunc, "Dependency", dependency,
         {
           builtin: function(name) {
             return "builtin://" + name;
           },
           dependency: function(protocol, args) {
-            var arr = runtime.ffi.toArray(args);
+            var arr = ffi.toArray(args);
             if (protocol === "my-gdrive") {
               return "my-gdrive://" + arr[0];
             }
@@ -121,15 +116,15 @@
         var findModule = function(contextIgnored, dependency) {
           var uri = uriFromDependency(dependency);
           if(locatorCache.hasOwnProperty(uri)) {
-            return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
+            return compileLibLocated.app(locatorCache[uri], runtime.nothing);
           }
           return runtime.safeCall(function() {
-            return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
-              dependencyCases);
-           }, function(l) {
-              locatorCache[uri] = l;
-              return gmf(compileLib, "located").app(l, runtime.nothing);
-           }, "findModule");
+            return ffi.cases(isDependencyFunc, "Dependency", dependency, dependencyCases);
+          },
+          function(l) {
+            locatorCache[uri] = l;
+            return compileLibLocated.app(l, runtime.nothing);
+          }, "findModule");
         };
 
         return runtime.makeFunction(findModule, "cpo-find-module");
@@ -158,7 +153,7 @@
         }));
       }
     });
-    var builtinsForPyret = runtime.ffi.makeList(builtins);
+    var builtinsForPyret = ffi.makeList(builtins);
 
     var defaultMakeReplArgs = {
       builtinMods: builtinsForPyret,
@@ -179,7 +174,7 @@
     function createRepl(makeReplArgs, onCompile, optionalTransformDefinitionsLocator) {
       var replP = Q.defer();
       runtime.safeCall(function() {
-        return gmf(cpo, "make-repl").app(
+        return cpoMakeRepl.app(
           (makeReplArgs.builtinMods || defaultMakeReplArgs.builtinMods),
           (makeReplArgs.runtime     || defaultMakeReplArgs.runtime),
           (makeReplArgs.realm       || defaultMakeReplArgs.realm),
@@ -213,15 +208,13 @@
             }, 0);
             return ret.promise;
           },
-          run: function(str, name) {
+          run: function(str/*, name*/) {
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
                 return runtime.safeCall(
                   function() {
-                    return gf(repl,
-                    "make-interaction-locator").app(
-                      runtime.makeFunction(function() { return str; }))
+                    return gf(repl, "make-interaction-locator").app(runtime.makeFunction(function() { return str; }));
                   },
                   function(locator) {
                     return gf(repl, "run-interaction").app(locator);
@@ -239,8 +232,7 @@
           },
           stop: function() {
             runtime.breakAll();
-          },
-          runtime: runtime
+          }
         };
         replP.resolve(jsRepl);
       }, "make-repl");
@@ -258,4 +250,4 @@
       getGDriveLocatorConstructors: getGDriveLocatorConstructors
     }, {});
   }
-})
+})  // eslint-disable-line semi

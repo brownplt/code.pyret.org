@@ -13,28 +13,24 @@
     { 'import-type': 'builtin',
       name: 'load-lib'
     },
-    // { "import-type": "dependency",
-    //   protocol: "js-file",
-    //   args: ["./check-ui"]
-    // },
     { "import-type": "builtin",
       name: "option" },
-    // { "import-type": "builtin",
-    //   name: "srcloc" },
     { "import-type": "builtin",
       name: "checker" }
   ],
   nativeRequires: [],
   provides: {},
-  theModule: function(runtime, namespace, uri, cpoRepl, cpo, loadLib, /*checkUI,*/ option, /*srcloc,*/ checker) {
-    var gf = runtime.getField;
-    //var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-    //var gtf = function(m, f) { return gf(m, "types")[f]; };
+  theModule: function(runtime, namespace, uri, cpoRepl, cpo, loadLib, option,
+                      checker) {
+
     var ffi = runtime.ffi;
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+    // var gtf = function(m, f) { return gf(m, "types")[f]; };
 
     var getModuleResultResult = (gf(loadLib, "internal")).getModuleResultResult;
-    var isSomeFunc = gf(gf(option, "values"), "is-some");
-    var isSuccessFunc = gf(gf(checker, "values"), "is-success");
+    var isSomeFunc = gmf(option, "is-some");
+    var isSuccessFunc = gmf(checker, "is-success");
     
 
     // copied from error-ui.js in logging branch
@@ -589,10 +585,10 @@
         var data = {
           isError: true,
           failureCase: null,
-          checks: null,
-          exn: null,
+          checks: null
+          // exn: null
           // stats: {
-          //   full: pyretResult.stats,
+          //   runAll: pyretResult.stats,
           //   runCompiled: null
           // }
         };
