@@ -1,4 +1,4 @@
-/* global Q $ */
+/* global Q */
 
 ({
   requires: [
@@ -13,23 +13,29 @@
     { 'import-type': 'builtin',
       name: 'load-lib'
     },
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./check-ui"]
-    },
+    // { "import-type": "dependency",
+    //   protocol: "js-file",
+    //   args: ["./check-ui"]
+    // },
     { "import-type": "builtin",
       name: "option" },
-    { "import-type": "builtin",
-      name: "srcloc" },
+    // { "import-type": "builtin",
+    //   name: "srcloc" },
     { "import-type": "builtin",
       name: "checker" }
   ],
   nativeRequires: [],
   provides: {},
-  theModule: function(runtime, namespace, uri, cpoRepl, cpo, loadLib, checkUI, option, srcloc, checker) {
+  theModule: function(runtime, namespace, uri, cpoRepl, cpo, loadLib, /*checkUI,*/ option, /*srcloc,*/ checker) {
     var gf = runtime.getField;
-    var gmf = function(m, f) { return gf(gf(m, "values"), f); };
-    var gtf = function(m, f) { return gf(m, "types")[f]; };
+    //var gmf = function(m, f) { return gf(gf(m, "values"), f); };
+    //var gtf = function(m, f) { return gf(m, "types")[f]; };
+    var ffi = runtime.ffi;
+
+    var getModuleResultResult = (gf(loadLib, "internal")).getModuleResultResult;
+    var isSomeFunc = gf(gf(option, "values"), "is-some");
+    var isSuccessFunc = gf(gf(checker, "values"), "is-success");
+    
 
     // copied from error-ui.js in logging branch
     function callDeferred(runtime, thunk) {
@@ -45,11 +51,6 @@
         });
       return ret.promise;
     }
-
-    var ffi = runtime.ffi;
-    option = runtime.getField(option, "values");
-    srcloc = runtime.getField(srcloc, "values");
-    var CH = runtime.getField(checker, "values");
 
 
     // JS Doc annotations herein use an approximation the Google Closure
@@ -401,7 +402,7 @@
     };
 
     var onDefinitionsLocator = function(locator, id) {
-      locator.dict['get-compiled'] = runtime.makeMethod1(function(selfLocator) {
+      locator.dict['get-compiled'] = runtime.makeMethod1(function() {
         var locUri = 'definitions://' + id;
         return getCompiledFunc(locUri);
       });
@@ -421,7 +422,7 @@
         var locUri = getUri.app();
         var protocol = locUri.substr(0, locUri.indexOf('://'));
         if (protocol === 'definitions') {
-          locUri = locUri + sourceID
+          locUri = locUri + sourceID;
         }
         return getCompiledFunc(locUri);
       };
@@ -453,8 +454,7 @@
       });
 
       var onCompile = runtime.makeFunction(function(locator, loadable) {
-        var provides = gf(loadable, "provides");
-        var locUri = gf(provides, "from-uri");
+        var locUri = gf(gf(loadable, "provides"), "from-uri");
         var protocol = locUri.substr(0, locUri.indexOf('://'));
         if (protocol === 'definitions') {
           locUri = locUri + sourceID;
@@ -507,152 +507,137 @@
       ReplPromises[importName][fileIdToImport][fileIdToRun] = replPromise;
     };
 
-    var isTestSuccess = function(val) {
-      return runtime.unwrap(runtime.getField(CH, "is-success").app(val));
-    };
+    
 
-    var getCheckResults = function(checkResults) {
-      var checkBlocks = ffi.toArray(checkResults).reverse();
-      if (checkBlocks.length === 0) {
-        return [];
+    /**    
+     */
+    var extractTestResults = function(checkBlock)  {
+      var testResults = ffi.toArray(gf(checkBlock, "test-results")).reverse();
+      var tests = new Array(testResults.length);
+      var testsPassed = 0;
+      for (var i = 0; i < testResults.length; i++) {
+        var isSuccess = runtime.unwrap(isSuccessFunc.app(testResults[i]));
+        if (isSuccess) {
+          testsPassed += 1;
+        }
+        tests[i] = {
+          isSuccess: isSuccess,
+          result: testResults[i].$name,
+        };
       }
 
-      var checkTotalAll = 0;
-      var checkPassedAll = 0;
-
-      var checkBlocksErrored = 0;
-
-      var checkBlockReports = checkBlocks.map(function(checkBlock) {
-        var isSome = runtime.getField(option, "is-some");
-        var maybeErr = runtime.getField(checkBlock, "maybe-err");
-        var isError = isSome.app(maybeErr);
-        if (isError) {
-          checkBlocksErrored += 1;
-        }
-
-        var name = runtime.getField(checkBlock, "name");
-        var testResults = runtime.getField(checkBlock, "test-results");
-        var tests = ffi.toArray(testResults).reverse();
-
-        var testsInBlock = 0;
-        var testsPassingInBlock = 0;
-
-        tests = tests.map(function(test) {
-          checkTotalAll += 1;
-          testsInBlock += 1;
-          var isSuccess = isTestSuccess(test);
-          if (isSuccess) {
-            checkPassedAll += 1;
-            testsPassingInBlock += 1;
-          }
-          var loc = runtime.getField(test, "loc").dict;
-          var result = test.$name;
-          return {
-            isSuccess: isSuccess,
-            result: result,
-            loc: {
-              source: loc.source,
-              line: loc['start-line']
-            }
-          };
-        });
-
-        var error = isError ? runtime.getField(runtime.getField(checkBlock, "maybe-err"),"value").val : null;
-
-        return {
-          name: name,
-          isError: isError,
-          error: error,
-          testsPassedInBlock: testsPassingInBlock,
-          testsTotalInBlock: testsInBlock,
-          tests: tests
-        };
-      });
-      var checkBlockCount = checkBlocks.length;
-
       return {
-        testsPassed: checkPassedAll,
-        testsTotal: checkTotalAll,
-        numCheckBlocks: checkBlockCount,
-        checkBlocks: checkBlockReports
+        tests: tests,
+        testsPassed: testsPassed
       };
     };
 
     
-    // var lastResortIfPending = function(defer, resolveWith) {
-    //   if (defer.promise.inspect().state === "pending") {
-    //     defer.resolve({
-    //             isError: true,
-    //             failureCase: 'unknown (defer unresolved)',
-    //             exn: resolveWith,
-    //             checks: null
-    //           });
-    //   }
-    // };
 
+    /**
+     */
+    var extractCheckResult = function(checkBlock) {
+      var testResults = extractTestResults(checkBlock);
+      return {
+        name: gf(checkBlock, "name"),
+        isError: isSomeFunc.app(gf(checkBlock, "maybe-err")),
+        testsPassedInBlock: testResults.testsPassed,
+        testsTotalInBlock: testResults.tests.length,
+        tests: testResults.tests
+      };
+    };
+
+    /**
+     */
+    var extractCheckResults = function(checks) {
+      var checksArray = ffi.toArray(checks).reverse();
+      if (checksArray.length === 0) {
+        return [];
+      }
+
+      var testsTotal = 0;
+      var testsPassed = 0;
+      var checkBlocksErrored = 0;
+
+      var checkBlocks = [];
+      for (var i = 0; i < checksArray.length; i++) {
+        checkBlocks[i] = extractCheckResult(checksArray[i]);
+        testsPassed += checkBlocks[i].testsPassedInBlock;
+        testsTotal += checkBlocks[i].testsTotalInBlock;
+        if (checkBlocks[i].isError) {
+          checkBlocksErrored += 1;
+        }
+      }
+
+      return {
+        testsPassed: testsPassed,
+        testsTotal: testsTotal,
+        numCheckBlocks: checkBlocks.length,
+        checkBlocksErrored: checkBlocksErrored,
+        checkBlocks: checkBlocks
+      };
+    };
+
+    
+    
     /**
      * Copied/modified from repl-ui.js:displayResult
      */
-    var createResultExtractor = function(pyretResult) {
+    var extractResult = function(pyretResult) {
       var dataDefer = Q.defer();
       var thunk = function() {
         var data = {
           isError: true,
           failureCase: null,
-          exn: null,
           checks: null,
-          stats: pyretResult.stats
+          exn: null,
+          // stats: {
+          //   full: pyretResult.stats,
+          //   runCompiled: null
+          // }
         };
-        //console.log("Full time including compile/load:", JSON.stringify(pyretResult.stats));
         if (runtime.isFailureResult(pyretResult)) {
           data.failureCase = 'isFailureResult(pyretResult)';
-          data.exn = pyretResult.exn;
-          // console.log('ABOUT TO RESOLVE DATA:', data);
+          // data.exn = pyretResult.exn;
           dataDefer.resolve(data);
           return runtime.nothing;
         } else if (runtime.isSuccessResult(pyretResult)) {
           var result = pyretResult.result;
-          // console.log('about to descend into cases');
           ffi.cases(ffi.isEither, "is-Either", result, {
-            left: function(compileResultErrors) {
-              var errs = [];
-              var results = ffi.toArray(compileResultErrors);
-              results.forEach(function(r) {
-                errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
-              });
+            left: function(/*compileResultErrors*/) {
+              // var errs = [];
+              // var results = ffi.toArray(compileResultErrors);
+              // results.forEach(function(r) {
+              //   errs = errs.concat(ffi.toArray(gf(r, "problems")));
+              // });
+              // data.exn = errs;
               data.failureCase = 'is-left(result)';
-              data.exn = errs;
-              // console.log('ABOUT TO RESOLVE DATA:', data);
               dataDefer.resolve(data);
               return runtime.nothing;
             },
             right: function(v) {
-              var runResult = runtime.getField(loadLib, "internal").getModuleResultResult(v);
-              //console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
+              var runResult = getModuleResultResult(v);
+              // data.stats.runCompiled = runResult.stats;
               if (runtime.isSuccessResult(runResult)) {
                 runtime.safeCall(function() {
-                  var checks = runtime.getField(runResult.result, "checks");
+                  var checks = gf(runResult.result, "checks");
                   data.isError = false;
-                  data.checks = getCheckResults(checks);
+                  data.checks = extractCheckResults(checks);
                   return runtime.nothing;
-                }, function(safeCallResult) {
-                  // console.log('safeCallResult:', safeCallResult);
-                  // console.log('ABOUT TO RESOLVE DATA:', data);
+                }, function() {
                   dataDefer.resolve(data);
                   return runtime.nothing;
                 });
               } else if (runtime.isFailureResult(runResult)) {
                 data.failureCase = 'isFailureResult(runResult)';
-                data.exn = runResult.exn;
-                // console.log('ABOUT TO RESOLVE DATA:', data);
+                // data.exn = runResult.exn;
                 dataDefer.resolve(data);
                 return runtime.nothing;
               } else {
                 data.failureCase = 'unknown(runResult)';
-                data.exn = {
-                  unknown: runResult
-                };
-                // console.log('ABOUT TO RESOLVE DATA:', data);
+                // data.exn = {
+                //   unknown: runResult
+                // };
                 dataDefer.resolve(data);
                 return runtime.nothing;
               }
@@ -660,26 +645,22 @@
           });
         } else {
           data.failureCase = 'unknown(pyretResult)';
-          data.exn = {
-            unknown: pyretResult
-          };
-          // console.log('ABOUT TO RESOLVE DATA:', data);
+          // data.exn = {
+          //   unknown: pyretResult
+          // };
           dataDefer.resolve(data);
           return runtime.nothing;
         }
       };
 
-      return function() {
-        return callDeferred(runtime, thunk)
-          .then(function (result) {
-            // console.log('.then:', result);
-            return dataDefer.promise;
-          })
-          .fail(function (error) {
-            // console.log('.fail:', error);
-            return dataDefer.promise;
-          });
-      };
+      return callDeferred(runtime, thunk)
+        .then(function () {
+          return dataDefer.promise;
+        })
+        .fail(function (exn) {
+          console.error(exn);
+          return dataDefer.promise;
+        });
     };
 
     /**
@@ -751,7 +732,7 @@
           };
 
           if (runData.isError) {
-            console.error(runData.exn);
+            console.error(runData.failureCase);
           } else {
             console.log('Passed ' + runData.checks.testsPassed + ' / ' + runData.checks.testsTotal);
           }
@@ -804,11 +785,9 @@
                 checks: null
               };
             } else {
-              var extract = createResultExtractor(pyretResult);
-              return extract();
+              return extractResult(pyretResult);
             }
           }).then(function(runData) {
-            //console.log(runData);
             resolveRunData(runData);
           }).fail(function(err) {
             console.error(err);
