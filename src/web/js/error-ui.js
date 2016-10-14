@@ -165,10 +165,17 @@
             then(reason_to_html(runtime, CPO.documents, stack, id));
         }).
         then(function (html) {
+          html.prepend(errorSettings());
           if (errors.length > 0) {
             html.append($("<p>").text(
               "One or more internal errors prevented us from showing the "
               + "best error message possible. Please report this as a bug."));
+          }
+          return html;
+        }).
+        then(function (html) {
+          if (stack && stack.length > 0) {
+            html.append(outputUI.renderStackTrace(runtime, documents, srcloc, stack));
           }
           return html;
         }).
@@ -203,6 +210,77 @@
                     id);
           });
       };
+    }
+
+    function mkSwitcher() {
+      var optionEager   = $("<option value='eager'>"  ).text('A.S.A.P.');
+      var optionLazy    = $("<option value='lazy'>"   ).text('on mouseover');
+      var optionVibrant = $("<option value='vibrant'>").text('multiple colors');
+      var optionDrab    = $("<option value='drab'>"   ).text('one color');
+
+      var eagerSwitcher = $("<select>").
+            append(optionEager).
+            append(optionLazy);
+      var colorSwitcher = $("<select>").
+            append(optionVibrant).
+            append(optionDrab);
+      var settings = $("<div id='highlight-settings'>").
+            append("Show error highlights ").
+            append(eagerSwitcher).
+            append(" with ").
+            append(colorSwitcher).
+            append(".");
+
+      var highlightEagerness    = sessionStorage.getItem('highlight-eagerness');
+      var highlightColorfulness = sessionStorage.getItem('highlight-colorfulness');
+
+      if(highlightEagerness !== null) {
+        optionEager.prop("selected",   highlightEagerness === 'eager');
+        optionLazy.prop("selected",    highlightEagerness !== 'eager');
+      } else {
+        optionEager.prop("selected", true);
+        sessionStorage.setItem('highlight-eagerness', 'eager');
+      }
+
+      if(highlightColorfulness !== null) {
+        optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
+        optionDrab.prop("selected",     highlightColorfulness !== 'drab');
+      } else {
+        optionEager.prop("vibrant", true);
+        sessionStorage.setItem('highlight-colorfulness', 'vibrant');
+      }
+
+      function logChange() {
+        sessionStorage.setItem('highlight-eagerness',    eagerSwitcher[0].value);
+        sessionStorage.setItem('highlight-colorfulness', colorSwitcher[0].value);
+        outputUI.settingChanged(eagerSwitcher[0].value, colorSwitcher[0].value);
+      }
+
+      eagerSwitcher.change(logChange);
+      colorSwitcher.change(logChange);
+
+      return settings;
+    }
+
+    var switcher = mkSwitcher();
+
+    function errorSettings() {
+      var container = $("<div class='highlight-setting-container'>");
+      var toggle = $("<input type='checkbox' class='highlight-setting-visibility-toggle'>");
+      container.append(toggle);
+      toggle.on('change', function () {
+        if (this.checked) {
+          var prev = switcher.prev();
+          if (prev && prev[0] && prev[0].checked) {
+            prev[0].checked = false;
+            switcher.detach();
+          }
+          container.append(switcher);
+        } else {
+          switcher.detach();
+        }
+      });
+      return container;
     }
 
     return runtime.makeJSModuleReturn({

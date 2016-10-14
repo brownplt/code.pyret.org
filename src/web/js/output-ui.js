@@ -42,9 +42,9 @@
     
       function Position(doc, source, from, to, inclusiveLeft, inclusiveRight) {
         if (inclusiveLeft === undefined)
-          inclusiveLeft = false;
+          inclusiveLeft = true;
         if (inclusiveRight === undefined)
-          inclusiveRight = false;
+          inclusiveRight = true;
         this.inclusiveLeft  = inclusiveLeft;
         this.inclusiveRight = inclusiveLeft;
         
@@ -112,13 +112,19 @@
           return;
         if (this.highlighter !== undefined)
           this.highlighter.clear();
-        if (color === undefined)
+        if (color === undefined) {
+          this.highlighter = undefined;
           return;
+        }
         this.highlighter = this.doc.markText(this.from, this.to,
           { inclusiveLeft   : this.inclusiveLeft,
             inclusiveRight  : this.inclusiveRight,
             shared          : false,
+            clearOnEnter    : true,
             css             : "background-color:" + color });
+        this.highlighter.on('clear', function (_) {
+          this.highlighter === undefined;
+        });
       };
       
       Position.prototype.spotlight = function spotlight() {
@@ -477,7 +483,7 @@
           readOnly:       "nocursor",
           disableInput:   true,
           indentUnit:     2,
-          lineWrapping:   false,
+          lineWrapping:   true,
           lineNumbers:    true,
           viewportMargin: 1,
           scrollbarStyle: "null"});
@@ -486,6 +492,14 @@
            position.doc.mode, 
            position.from.line,
            position.doc.lineSep));
+        editor.getDoc().markText(
+          {line: position.from.line, ch: 0},
+          position.from,
+          {className: "highlight-irrelevant"});
+        editor.getDoc().markText(
+          position.to,
+          {line: position.to.line, ch: lines[lines.length - 1].length},
+          {className: "highlight-irrelevant"});
         this.container = container;
         this.position  = position;
         this.editor    = editor;
@@ -540,7 +554,7 @@
     var colorsEmphasized      = new Set();
     var colorsHighlighted     = new Set();
     lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-    var globalColor = hueToRGB(lastHue);
+    var globalColor = lastHue;
     
     function highlight(color) {
       if(colorsHighlighted.has(color))
@@ -550,7 +564,7 @@
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
         var colorfulness = sessionStorage.getItem("highlight-colorfulness");
-        var cssColor = colorfulness != "vibrant" ? globalColor : color;
+        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
         }
@@ -582,7 +596,7 @@
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
         var colorfulness = sessionStorage.getItem("highlight-colorfulness");
-        var cssColor = colorfulness != "vibrant" ? globalColor : color;
+        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
           anchors[i].addClass('highlight-blink');
@@ -605,7 +619,7 @@
           anchors[i].removeClass('highlight-blink');
         }
         if(colorsHighlighted.has(color)) {
-          var cssColor = colorfulness != "vibrant" ? globalColor : color;
+          var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
           for(var i = 0; i < positions.length; i++) {
             positions[i].highlight(cssColor);
           }
@@ -630,7 +644,7 @@
         demphasize(color);
       });
     }
-    
+
     function settingChanged(eagerness, colorfulness) { 
       logger.log("highlight_settings_changed",
         { eagerness: eagerness,
@@ -888,7 +902,7 @@
               return help(contents, stack);
             }, function(helpContents) {
               var hue = palette(id);
-              var color = hueToRGB(hue);
+              var color = hue;
               var anchor = $("<a>").append(helpContents).addClass("highlight");
               var positions = ffi.toArray(locs).
                 filter(isSrcloc).
@@ -1068,31 +1082,6 @@
       renderers["cyclic"] = function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
       };
-      renderers.renderTable = function renderTable(val) {
-        debugger;
-        var table = document.createElement("table");
-        table.classList.add('replOutput');
-        var rows = runtime.ffi.toArray(val.dict.rows);
-        var cols = val.dict.headers;
-        var header = document.createElement("tr");
-        for(var i = 0; i < rows.length; i++) {
-          var col = document.createElement("th");
-          col.textContent = cols[i];
-          header.appendChild(col);
-        }
-        table.appendChild(header);
-        for(var i = 0; i < rows.length; i++) {
-          var rowv  = rows[i]
-          var rowel = document.createElement("tr");
-          for(var j = 0; j < cols.length; j++) {
-            var cellel = document.createElement("td");
-            renderPyretValue(cell, runtime, rowv[j]);
-            rowel.appendChild(cellel);
-          }
-          table.appendChild(rowel);
-        }
-        return table;
-      };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
@@ -1117,9 +1106,14 @@
             var dialog = $("<div>");
             dialog.dialog({
               modal: true,
-              height: $(document).height() * .9,
-              width: $(document).width() * .9,
-              resizable: true
+              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
+              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              resizable: true,
+              close: function() {
+                dialog.empty();
+                dialog.dialog("destroy");
+                dialog.remove();
+              }
             });
             dialog.css({"overflow": "scroll"});
             dialog.append($(originalImageDom));
@@ -1377,10 +1371,10 @@
           }
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
-          $(showText).text("\uD83D\uDCCB");
+          $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
           $(showText).css({
-            'border': '1px solid black',
-            'background': 'white'
+            'margin-top': '0.3em',
+            'margin-right': '0.3em'
           });
           $(showText).addClass("info-icon-top");
           var textDiv = $("<div>").css({"z-index": 15000});
@@ -1433,18 +1427,41 @@
           table.appendChild(headers);
           var body = document.createElement("tbody");
           var rows = runtime.getField(val, "rows")
-          for(var i = 0; i < rows.length; i++) {
-            var rowAsText = [];
-            tableAsText.push(rowAsText);
-            var rowv  = rows[i]
-            var rowel = document.createElement("tr");
-            for(var j = 0; j < cols.length; j++) {
-              var cellel = document.createElement("td");
-              helper($(cellel), rowv[j], values);
-              rowel.appendChild(cellel);
-              rowAsText.push($(cellel).text());
+          function drawRows(start, end) {
+            var realEnd = end > rows.length ? rows.length : end;
+            for(var i = start; i < realEnd; i++) {
+              var rowAsText = [];
+              tableAsText.push(rowAsText);
+              var rowv  = rows[i]
+              var rowel = document.createElement("tr");
+              for(var j = 0; j < cols.length; j++) {
+                var cellel = document.createElement("td");
+                helper($(cellel), rowv[j], values);
+                rowel.appendChild(cellel);
+                rowAsText.push($(cellel).text());
+              }
+              body.appendChild(rowel);
             }
-            body.appendChild(rowel);
+          }
+          var previewLimit = 10;
+          if(rows.length <= previewLimit) {
+            drawRows(0, rows.length);
+          }
+          else {
+            var clickForMore = document.createElement("a");
+            clickForMore.href = "javascript:void(0)";
+            clickForMore.textContent = "Click to show the remaining " + (rows.length - previewLimit) + " rows...";
+            var clickTR = document.createElement("tr");
+            var clickTD = document.createElement("td");
+            clickTD.colSpan = String(rows.length);
+            clickTR.appendChild(clickTD);
+            clickTD.appendChild(clickForMore);
+            $(clickForMore).on("click", function() {
+              body.removeChild(clickTR);
+              drawRows(previewLimit, rows.length);
+            });
+            drawRows(0, previewLimit);
+            body.appendChild(clickTR);
           }
           table.appendChild(body);
           container.append(table);

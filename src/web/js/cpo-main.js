@@ -75,7 +75,17 @@
     }, 100);
 
     runtime.setParam("imgUrlProxy", function(s) {
-      return APP_BASE_URL + "/downloadImg?" + s;
+      var a = document.createElement("a");
+      a.href = s;
+      if(a.origin === window.APP_BASE_URL) {
+        return s;
+      }
+      else if(a.hostname === "drive.google.com" && a.pathname === "/uc") {
+        return s;
+      }
+      else {
+        return window.APP_BASE_URL + "/downloadImg?" + s;
+      }
     });
 
     var gf = runtime.getField;
@@ -225,9 +235,11 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
-    var getDefsForPyret = runtime.makeFunction(function() {
-        return CPO.editor.cm.getValue();
+    var getDefsForPyret = function(source) {
+      return runtime.makeFunction(function() {
+        return source;
       });
+    };
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
@@ -242,18 +254,22 @@
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
-          restartInteractions: function(ignoredStr, typeCheck) {
-            var options = defaultOptions.extendWith({"type-check": typeCheck, "on-compile": onCompile});
+          restartInteractions: function(source, options) {
+            var pyOptions = defaultOptions.extendWith({
+              "type-check": options.typeCheck,
+              "check-all": options.checkAll,
+              "on-compile": onCompile
+            });
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-definitions-locator").app(getDefsForPyret, replGlobals);
+                    "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
                   },
                   function(locator) {
-                    return gf(repl, "restart-interactions").app(locator, options);
+                    return gf(repl, "restart-interactions").app(locator, pyOptions);
                   });
               }, function(result) {
                 ret.resolve(result);
@@ -300,7 +316,7 @@
       $("#loader").hide();
 
       // NOTE(joe): This forces the loading of all the built-in compiler libs
-      var interactionsReady = repl.restartInteractions();
+      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
       interactionsReady.fail(function(err) {
         console.error("Couldn't start REPL: ", err);
       });
@@ -681,8 +697,8 @@
               placeInEditor("[list:");
             }
             documents.forEach(function(d, idx) {
-              var pathToImg = "\"https://drive.google.com/uc?export=download&id="
-                    + d[picker.Document.ID] + "\"";
+              var pathToImg = '"' + window.APP_BASE_URL + "/shared-image-contents?sharedImageId="
+                + d.id + '"';
               var outstr = asDefs ? ("img" + curImg + " = ") : "";
               ++curImg;
               outstr += "image-url(" + pathToImg + ")";

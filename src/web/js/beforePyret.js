@@ -130,7 +130,7 @@ $(function() {
     var useFolding = !options.simpleEditor;
 
     var gutters = !options.simpleEditor ?
-      ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "test-marker-gutter"] :
+      ["CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
       [];
 
     function reindentAllLines(cm) {
@@ -345,52 +345,45 @@ $(function() {
   $("#saveButton").click(save);
   shareAPI.makeHoverMenu($("#menu"), $("#menuContents"), false, function(){});
 
-  programLoaded.then(function(c) {
-    var codeContainer = $("<div>").addClass("replMain");
-    $("#main").prepend(codeContainer);
+  var codeContainer = $("<div>").addClass("replMain");
+  $("#main").prepend(codeContainer);
 
-    CPO.editor = CPO.makeEditor(codeContainer, {
-      runButton: $("#runButton"),
-      simpleEditor: false,
-      initial: c,
-      run: CPO.RUN_CODE,
-      initialGas: 100
-    });
-    
+  CPO.editor = CPO.makeEditor(codeContainer, {
+    runButton: $("#runButton"),
+    simpleEditor: false,
+    run: CPO.RUN_CODE,
+    initialGas: 100
+  });
+  CPO.editor.cm.setOption("readOnly", "nocursor");
+  
+  programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
     
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
+    CPO.editor.cm.setValue(c);
   });
 
   programLoaded.fail(function() {
-    var codeContainer = $("<div>").addClass("replMain");
-    $("#main").prepend(codeContainer);
-
-    CPO.editor = CPO.makeEditor(codeContainer, {
-      runButton: $("#runButton"),
-      simpleEditor: false,
-      run: CPO.RUN_CODE,
-      initialGas: 100
-    });
-    
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
   });
 
+  var pyretLoad = document.createElement('script');
+  console.log(process.env.PYRET);
+  pyretLoad.src = process.env.PYRET;
+  pyretLoad.type = "text/javascript";
+  document.body.appendChild(pyretLoad);
+  $(pyretLoad).on("error", function() {
+    $("#loader").hide();
+    $("#runPart").hide();
+    $("#breakButton").hide();
+    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+  });
+
   programLoaded.fin(function() {
-    var pyretLoad = document.createElement('script');
-    console.log(process.env.PYRET);
-    pyretLoad.src = process.env.PYRET;
-    pyretLoad.type = "text/javascript";
-    document.body.appendChild(pyretLoad);
     CPO.editor.focus();
-    $(pyretLoad).on("error", function() {
-      $("#loader").hide();
-      $("#runPart").hide();
-      $("#breakButton").hide();
-      window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
-    });
+    CPO.editor.cm.setOption("readOnly", false);
   });
 
 });

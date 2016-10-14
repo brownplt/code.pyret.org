@@ -207,7 +207,7 @@ define([], function() {
           var file = fileAndContents[0];
           var contents = fileAndContents[1];
           
-          var uri = "shared-gdrive://" + filename + ":" + file.getUniqueId();
+          var uri = "shared-gdrive://" + file.getName() + ":" + file.getUniqueId();
           CPO.documents.set(uri, new CodeMirror.Doc(contents, "pyret"));
 
           function needsCompile() { return true; }

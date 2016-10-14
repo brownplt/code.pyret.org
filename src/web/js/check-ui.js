@@ -36,11 +36,11 @@
         });
       
       function makeNameHandle(text, loc, color) {
-        let anchor = document.createElement("a");
+        var anchor = document.createElement("a");
         anchor.classList.add("hinted-highlight");
         anchor.textContent = text;
-        let source = get(loc, "source");
-        let handle = undefined;
+        var source = get(loc, "source");
+        var handle = undefined;
         if (documents.has(source)) {
           handle = outputUI.Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
           anchor.addEventListener("click", function(e) {
@@ -61,18 +61,23 @@
         return {anchor: anchor, handle: handle};
       }
 
-      function makeGutterMarker(spanHandle) {
-        let anchor = document.createElement("div");
-        anchor.textContent = "!";
-        
+      function makeGutterMarker(spanHandle, clickFunc) {
         var editor = spanHandle.doc.getEditor();
         
         var lineHandle = 
-          editor.setGutterMarker(
+          editor.addLineClass(
             spanHandle.from.line,
-            "test-marker-gutter",
-            anchor);
+            "gutter",
+            "failed-test-marker");
             
+        function onClick(cm, line, gutter) {
+          if (cm.getLineNumber(lineHandle) !== line)
+            return;
+          clickFunc();
+        }
+
+        editor.on("gutterClick", onClick);
+
         function onChange(line) {
           var spanLineNo = spanHandle.from;
           if(spanLineNo === undefined)
@@ -83,19 +88,19 @@
           else if (spanLineNo.line != lineNo) {
             line.off("change", onChange);
             line.off("delete", onDelete);
-            editor.setGutterMarker(line, "test-marker-gutter", null);
-            lineHandle = editor.setGutterMarker(spanLineNo.line, "test-marker-gutter", anchor);
+            editor.removeLineClass(lineNo, "gutter", "failed-test-marker");
+            lineHandle = editor.addLineClass(spanLineNo.line, "gutter", "failed-test-marker");
             lineHandle.on("change", onChange);
             lineHandle.on("delete", onDelete);
           }
         }
         
         function onDelete(line) {
-          let spanLineNo = spanHandle.from;
+          var spanLineNo = spanHandle.from;
           if (spanLineNo === undefined)
             lineHandle = undefined;
           if (lineHandle !== undefined) {
-            lineHandle = editor.setGutterMarker(spanLineNo.line, "test-marker-gutter", anchor);
+            lineHandle = editor.addLineClass(spanLineNo.line, "gutter", "failed-test-marker");
             lineHandle.on("change", onChange);
             lineHandle.on("delete", onDelete);
           }
@@ -103,41 +108,46 @@
         
         lineHandle.on("change", onChange);
         lineHandle.on("delete", onDelete);
-        
+
+        spanHandle.on("clear", function (from, _) {
+          editor.off("gutterClick", onClick);
+          editor.removeLineClass(from.line, "gutter", "failed-test-marker");
+        });
+
         spanHandle.on("hide",
           function(){
             if(lineHandle === undefined)
               return;
+            editor.off("gutterClick", onClick);
             lineHandle.off("change", onChange);
             lineHandle.off("delete", onDelete);
-            editor.setGutterMarker(lineHandle.lineNo(), "test-marker-gutter", null);
+            editor.removeLineClass(lineHandle.lineNo(), "gutter", "failed-test-marker");
             lineHandle = undefined;
           });
 
         spanHandle.on("unhide",
           function(){
-            let spanLine = spanHandle.from.line;
-            lineHandle = editor.setGutterMarker(spanLine, "test-marker-gutter", anchor);
+            lineHandle = editor.addLineClass(spanHandle.from.line, "gutter", "failed-test-marker");
+            editor.on("gutterClick", onClick);
             lineHandle.on("change", onChange);
             lineHandle.on("delete", onDelete);
           });
 
-        return anchor;
       }
       
       function makeTestHeader(testNumber, loc, isPassing) {
-        let header = document.createElement("header");
-        let nameHandle   = makeNameHandle("Test " + testNumber, loc,
+        var header = document.createElement("header");
+        var nameHandle   = makeNameHandle("Test " + testNumber, loc,
           (isPassing ? "hsl(88, 50%, 76%)" : "hsl(45, 100%, 85%)"));
-        let name   = nameHandle.anchor;
-        let handle = nameHandle.handle;
-        let status = document.createTextNode(isPassing ? ": Passed" : ": Failed");
+        var name   = nameHandle.anchor;
+        var handle = nameHandle.handle;
+        var status = document.createTextNode(isPassing ? ": Passed" : ": Failed");
         header.appendChild(name);
         header.appendChild(status);
         return {header : header, handle : handle};
       }
       
-      let lastHighlighted = undefined;
+      var lastHighlighted = undefined;
       
       var FailingTestSkeleton = function () {
         function FailingTestSkeleton(test, testNumber) {
@@ -157,9 +167,7 @@
             var doc = documents.get(source);
             var editor   = doc.getEditor();
             if (editor !== undefined) {
-              var anchor = makeGutterMarker(handle);
-              anchor.classList.add("failed-test-marker");
-              anchor.addEventListener("click", function (e) {
+              makeGutterMarker(handle, function () {
                 thisTest.block.showTest(thisTest);
               });
             }
@@ -189,7 +197,7 @@
 
         FailingTestSkeleton.prototype.refresh = function refresh() {
           var snippets = this.tombstone.querySelectorAll(".CodeMirror");
-          for (let i = 0; i < snippets.length; i++) {
+          for (var i = 0; i < snippets.length; i++) {
             window.requestAnimationFrame(
               CodeMirror.prototype.refresh.bind(snippets[i].CodeMirror));
           }
@@ -204,7 +212,7 @@
           var thisTest = this;
           this.container.addEventListener("click", function (e) {
             thisTest.highlight();
-            e.preventDefault();
+            e.stopPropagation();
           });
           if (this.block.container.classList.contains("expanded")) {
             this.refresh();
@@ -393,24 +401,24 @@
       if (checkBlocks.length === 0)
         return;
         
-      let checkErroredSkeletons = new Array();
-      let testsFailedSkeletons  = new Array();
-      let testsPassedSkeletons  = new Array();
+      var checkErroredSkeletons = new Array();
+      var testsFailedSkeletons  = new Array();
+      var testsPassedSkeletons  = new Array();
       
-      let checkResultsContainer = document.createElement("div");
+      var checkResultsContainer = document.createElement("div");
       checkResultsContainer.classList.add("test-results");
       try{
-      for(let i = checkBlocks.length - 1; i >= 0; i--) {
-        let checkBlock = checkBlocks[i];
-        let maybeError  = get(checkBlock, "maybe-err");
+      for(var i = checkBlocks.length - 1; i >= 0; i--) {
+        var checkBlock = checkBlocks[i];
+        var maybeError  = get(checkBlock, "maybe-err");
         
-        let testsPassing  = 0;
-        let testsExecuted = 0;
+        var testsPassing  = 0;
+        var testsExecuted = 0;
         
-        let tests = ffi.toArray(get(checkBlock, "test-results")).
+        var tests = ffi.toArray(get(checkBlock, "test-results")).
           reverse().
           map(function(test) {
-            let testSuccess = isTestSuccess(test);
+            var testSuccess = isTestSuccess(test);
             testsExecuted++;
             var skeleton = undefined;
             if (testSuccess) {
@@ -424,12 +432,12 @@
             return skeleton;
           });
           
-        let endedInError    = get(option, "is-some").app(maybeError);
-        let allTestsPassing = testsPassing === testsExecuted;
+        var endedInError    = get(option, "is-some").app(maybeError);
+        var allTestsPassing = testsPassing === testsExecuted;
         
-        let error = endedInError ? get(maybeError, "value").val : undefined;
+        var error = endedInError ? get(maybeError, "value").val : undefined;
         
-        let skeleton =
+        var skeleton =
           new CheckBlockSkeleton(
             get(checkBlock, "name"), 
             get(checkBlock, "loc"),
@@ -507,7 +515,7 @@
             }), 0, testsFailedSkeletons.length);
             return runtime.nothing;
           }, function(_) {
-            for(let i = 0; i < testsPassedSkeletons.length; i++)
+            for(var i = 0; i < testsPassedSkeletons.length; i++)
               testsPassedSkeletons[i].vivify();
             checkResultsContainer.classList.add("check-results-done-rendering");
             return runtime.nothing;

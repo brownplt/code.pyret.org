@@ -6,6 +6,10 @@ var ConsoleBackend = function() {
   };
 };
 
+var DummyBackend = function () {
+  this.log = function(_, __){};
+};
+
 var AJAXBackend = function (url) {
   this.log = function (name, obj) {
     var request = new XMLHttpRequest();
@@ -32,10 +36,11 @@ var logger = (function(backend) {
   function guid() {
     var array = new Uint32Array(6);
     window.crypto.getRandomValues(array);
-    return array.reduce(
-      function(previousValue, currentValue) {
-        return previousValue.concat(currentValue.toString(36));
-      }, "");
+    var str = "";
+    for(var i = 0; i < array.length; i++) {
+      str = str.concat(array[i].toString(36));
+    }
+    return str;
   }
 
   /* Tab, Session, and Browser Identifiers */
@@ -44,7 +49,7 @@ var logger = (function(backend) {
     
     function storedID(storage, type) {
       var id = storage.getItem(type);
-      if (id === null) {
+      if (id === null || id === "") {
         id = _identifiers[type] || guid();
         _identifiers[type] = id;
         storage.setItem(type, id);
@@ -54,14 +59,14 @@ var logger = (function(backend) {
     
     return {
       get localID () {
-        return _identifiers['localID'] || storedID(localStorage, 'localID');
+        return _identifiers['lid'] || storedID(localStorage, 'lid');
       },
       get sessionID () {
-        return _identifiers['sessionID'] || storedID(sessionStorage, 'sessionID');
+        return _identifiers['sid'] || storedID(sessionStorage, 'sid');
       },
       get windowID () {
-        _identifiers['tabID'] = _identifiers['tabID'] || guid();
-        return _identifiers['tabID'];
+        _identifiers['tid'] = _identifiers['tid'] || guid();
+        return _identifiers['tid'];
       }
     };
   })();
@@ -69,11 +74,13 @@ var logger = (function(backend) {
   function log(name, obj) {
     if(!(obj instanceof Object))
       obj = {};
-    obj.CPO_eventName  = name;
-    obj.CPO_eventTime  = Date.now();
-    obj.CPO_windowID   = identifiers.windowID;
-    obj.CPO_localID    = identifiers.localID;
-    obj.CPO_sessionID  = identifiers.sessionID;
+    obj.meta = [  Date.now()
+                , name
+                , identifiers.windowID
+                , identifiers.sessionID
+                , identifiers.localID
+                , "{{GIT_REV}}"
+                , "{{GIT_BRANCH}}"];
     backend.log(name, obj);
   }
   
@@ -91,7 +98,8 @@ var logger = (function(backend) {
       return nowIsDetailed;
     }
   };
-})(new AJAXBackend(APP_LOG_URL));
+})({{#LOG_URL}}new AJAXBackend("{{&LOG_URL}}"){{/LOG_URL}}{{^LOG_URL}}new DummyBackend(){{/LOG_URL}});
+
 
 CodeMirror.defineOption('logging', false, 
   function (cm, new_value) {
