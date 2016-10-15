@@ -51,27 +51,94 @@
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
 
-
-
-
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
 
     var logDetailedOption = $("#detailed-logging");
+    var eyeTrackingOption = $("#eye-tracking");
 
     if(localStorage.getItem('log-detailed') !== null) {
-      logDetailedOption.prop("checked",
-        localStorage.getItem('log-detailed') == 'true');
+      var loggingEnabled = localStorage.getItem('log-detailed') == 'true';
+      logDetailedOption.prop("checked", loggingEnabled);
+      if (!loggingEnabled) { eyeTrackingOption.removeProp('disabled'); }
     } else {
       localStorage.setItem('log-detailed', false);
     }
 
     logDetailedOption.on('change', function () {
       localStorage.setItem('log-detailed', this.checked);
+      if(!this.checked) {
+        eyeTrackingOption.prop('disabled', true);
+        eyeTrackingOption[0].checked = false;
+        localStorage.setItem('eye-tracking', false);
+      } else {
+        eyeTrackingOption.removeProp('disabled');
+      }
     });
 
     setInterval(function() {
       logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
+    }, 100);
+
+    // eyetracking
+    var started = false;
+    function startWebgazer() {
+      if(started) return;
+      if(webgazer.isReady()) {
+        webgazer.resume();
+        started = true;
+      } else {
+        webgazer.setRegression("weightedRidge");
+        var editorElement = CPO.editor.cm.getWrapperElement();
+        var wasLookingAtEditor = null;
+        webgazer.setGazeListener(function(data, elapsedTime) {
+          if (data == null) {return;}
+          var isLookingAtEditor = data.x < editorElement.offsetWidth;
+          if(wasLookingAtEditor != null
+            && wasLookingAtEditor != isLookingAtEditor) {
+            logger.log('gaze', {left: isLookingAtEditor});
+          }
+          wasLookingAtEditor = isLookingAtEditor;
+        });
+        webgazer.begin();
+        started = true;
+      }
+    }
+
+    function stopWebgazer() {
+      if(!started) return;
+      if(webgazer.isReady()) {
+        webgazer.end();
+        started = false;
+      }
+    }
+
+    if(localStorage.getItem('eye-tracking') !== null) {
+      var enabled = localStorage.getItem('eye-tracking') == 'true';
+      eyeTrackingOption.prop("checked", enabled);
+      if (enabled) startWebgazer();
+      else stopWebgazer();
+    } else {
+      localStorage.setItem('eye-tracking', false);
+      stopWebgazer();
+    }
+
+    eyeTrackingOption.on('change', function () {
+      var enabled = this.checked;
+      localStorage.setItem('eye-tracking', enabled);
+      if (enabled) startWebgazer();
+      else stopWebgazer();
+    });
+
+    setInterval(function() {
+      var enabled = localStorage.getItem('eye-tracking') == 'true';
+      eyeTrackingOption[0].checked = enabled;
+      if (enabled) {
+        eyeTrackingOption.removeProp('disabled');
+        startWebgazer();
+      } else {
+        stopWebgazer();
+      }
     }, 100);
 
     runtime.setParam("imgUrlProxy", function(s) {

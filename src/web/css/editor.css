@@ -1782,3 +1782,7 @@ tr:nth-child(even){background-color: #f2f2f2}
 .stale .check-block-test.highlights-active {
   border-color: hsl(204, 40%, 74%);
 }
+
+input[disabled] ~ * {
+  opacity: 0.2;
+}

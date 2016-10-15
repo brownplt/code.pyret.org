@@ -28,7 +28,6 @@
     "googleapis": "^12.4.0",
     "js-md5": "^0.4.1",
     "jwt-simple": "^0.2.0",
-    "localforage": "",
     "lodash": "~2.4.1",
     "mocha": "^2.2.1",
     "mustache": "^0.8.1",

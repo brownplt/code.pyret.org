@@ -333,10 +333,6 @@
         "vertical-align": "middle"
       });
       var runContents;
-
-      var setGazeListenerFunction = false;
-      var KEY_WEBGAZER = "eye";
-
       function afterRun(cm) {
         return function() {
           outputPending.remove();
@@ -354,59 +350,8 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
-          /* BEGINNING WEBGAZER ADDITION */
-
-          // prepare for new test run
-          var lastValue = undefined;
-          var LEFT_VALUE = 0;
-          var RIGHT_VALUE = 1;
-
-          function classifyDataAsLeftOrRight(xpos, barpos) {
-              if (xpos < barpos)
-                  return LEFT_VALUE;
-              else
-                  return RIGHT_VALUE;
-          }
-
-          function logWebGazerData(xpos, barpos) {
-              // takes data from webgazer and translates into what we will log
-              var value = classifyDataAsLeftOrRight(xpos, barpos);
-              if (value !== lastValue) {
-                  // then we log it!
-                  logger.log(KEY_WEBGAZER, value);
-              }
-              lastValue = value;
-          }
-
-          webgazer.resume();
-
-          function pauseWebGazerDataCollection(cm, change) {
-              webgazer.pause();
-              cm.off("change", pauseWebGazerDataCollection);
-          }
-
-          // register onchange event: whenever someone makes a change, stop tracking their gaze
-          CPO.documents.get( "definitions://" ).on("change", pauseWebGazerDataCollection);
-
-          // if we haven't set the gaze listener function before
-          if (!setGazeListenerFunction) {
-              var repl = document.getElementById("REPL");
-              webgazer.setGazeListener(function(data, elapsedTime) {
-                  if (data == null) {
-                      return;
-                  }
-
-                  var splitLocationX = document.body.offsetWidth - repl.offsetWidth;
-
-                  logWebGazerData(data.x, splitLocationX);
-              });
-
-              setGazeListenerFunction = true;
-          } // end setting gaze listener function
-
         }
       }
-
       function setWhileRunning() {
         runContents = options.runButton.contents();
         options.runButton.empty();

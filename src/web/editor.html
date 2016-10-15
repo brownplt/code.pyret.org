@@ -37,6 +37,11 @@
       <label for="detailed-logging">Contribute detailed usage information.</label>
       <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
     </div>
+    <div id="web-gazer">
+      <input id="eye-tracking" type="checkbox" disabled/>
+      <label for="eye-tracking">Enable Eye Tracking (Beta).</label>
+      <a href="/faq#eye-tracking" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+    </div>
     <div id="logout"><a href="/logout">Log out</a></div>
   </div>
   <button id="breakButton" class="blueButton rhs">Stop</button>
@@ -104,14 +109,6 @@
 </div>
 </div>
 <div id="footer"></div>
-<div id="webgazerdialogue">
-    <span>
-        Improve Pyret!
-        <a class="whiteLink" href="javascript:startWebGazer()">Allow access to webcam</a> -
-        <a class="whiteLink" href="javascript:neverStartWebGazer()">Deny access to webcam</a> -
-        <a class="whiteLink" target="_blank" href="/views/webgazerfaq.html">Why are you asking?</a>
-    </span>
-</div>
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -119,57 +116,6 @@
 <script src="/js/loader.js"></script>
 <script src="/js/colorspaces.js"></script>
 <script src="/js/webgazer.js"></script>
-<script>
- newFunc = function() {
-     alert("Is your browser blocking your webcam?\n" +
-     "Is your webcam turned on?");
- }
-
- /* displayRun = function(key) {
-  *     var jsonStringPromise = localforage.getItem(key).then((x) => JSON.stringify(x));
-  *     jsonStringPromise.then((x) => console.log(key + x));
-  * }
-  * displayKeys = function(keys) {
-  *     for (var i = 0; i < keys.length; i += 1)
-  *         displayRun(keys[i]);
-  * }*/
-
- // could remove removing the dialogue, but then would need another function
- // when someone grants access to both remove dialogue and start webgazer
- startWebGazer = function() {
-     removeDialogue();
-     localStorage.setItem('allowed', 'true');
-     webgazer.setRegression("weightedRidge");
-     webgazer.begin(newFunc)
-     /* shows a square every 100 milliseconds where current prediction is */
-             .showPredictionPoints(false); 
-     webgazer.pause();
-     console.log("webgazer should be paused");
- }
-
- neverStartWebGazer = function() {
-     removeDialogue();
-     localStorage.setItem('allowed', 'false');
- }
-
- removeDialogue = function() {
-     var dialogue = document.getElementById("webgazerdialogue");
-     if (dialogue !== null)
-         dialogue.remove();
- }
-
- // if the person has already made decision on access, don't show dialogue
- var webgazerAllowed = localStorage.getItem('allowed');
- if (webgazerAllowed !== null) {
-     // then hide the webgazerDialogue
-     removeDialogue();
-     // if they allowed access
-     if (webgazerAllowed === 'true')
-         startWebGazer();
-     else
-         console.log("previously denied webgazer");
- }
-</script>
 <script src="/js/q.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/foldcode.js"></script>
