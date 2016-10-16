@@ -239,11 +239,11 @@
   /**
    */
   var getColumnsTemplateView = function(studentRunner) {
-    var test = {
+    var test = studentRunner.test ? ({
       name: 'test',
       id: 'run-all-test',
       tooltip_title: studentRunner.test.test.name
-    };
+    }) : null;
 
     var gold = studentRunner.gold ? ({
       name: 'gold',
