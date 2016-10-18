@@ -1,5 +1,6 @@
 import PyretIDE from 'pyret-ide';
 import seedrandom from 'seedrandom';
+import sExpression from 's-expression';
 import 'babel-polyfill';
 import CodeMirror from 'codemirror';
 
@@ -332,10 +333,10 @@ PyretIDE.init({
   },
   runtimeApiLoader() {
     return new Promise((resolve, reject) => {
-
       // this is needed by pyret I guess.
       require('script!requirejs/require.js');
       window.define('seedrandom', [], function() { return seedrandom; });
+      window.define('s-expression', [], function() { return sExpression; });
       loadScriptUrl(process.env.BASE_URL+'/js/cpo-ide-hooks.jarr');
 
       var startTime = new Date().getTime();
