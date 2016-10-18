@@ -15,7 +15,7 @@ function teardownMulti() {
 
 function setupWithName(name) {
   if(this.currentTest) { name = this.currentTest.title; }
-  var browser = process.env.SAUCE_BROWSER || "chrome";
+  var browser = process.env.SAUCE_BROWSER || "phantomjs";
   if (process.env.TRAVIS_JOB_NUMBER != undefined) {
     this.base = process.env.SAUCE_TEST_TARGET;
     this.browser = new webdriver.Builder()
@@ -52,6 +52,8 @@ function setupWithName(name) {
       browserName: browser
     }).build();
   }
+
+  this.browser.manage().window().maximize();
 
   return;
 }
@@ -96,7 +98,62 @@ function evalPyretDefinitionsAndWait(driver, toEval) {
   var breakButton = driver.findElement(webdriver.By.id('breakButton'));
   driver.wait(webdriver.until.elementIsDisabled(breakButton));
   return driver.findElement(webdriver.By.id("output"));
-;
+}
+
+
+function checkTableRendersCorrectly(code, driver, test, timeout) {
+  loadAndRunPyret(code, driver, timeout);
+  var replOutput = driver.findElement(webdriver.By.id("output"));
+  // Wait until finished running
+  driver.wait(function() {
+    return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
+      return elements.length > 0;
+    });
+  }, timeout);
+  var maybeTest = replOutput.findElements(webdriver.By.xpath('pre'));
+  return maybeTest.then(function(elements) {
+    if (elements.length > 0) {
+      elements[0].getInnerHtml()
+        .then(function(testsStr) {
+          try {
+            return JSON.parse(testsStr);
+          } catch (e) {
+            if (e instanceof SyntaxError) {
+              throw new Error("Failed to parse tables tests");
+            } else {
+              throw e;
+            }
+          }
+        })
+        .then(function(tests) {
+          var replResults = replOutput.findElements(webdriver.By.xpath('span'));
+          tests.forEach(function(test) {
+            var tbl = test.table,
+                row = test.row,
+                col = test.col,
+                val = test.val;
+            var P = webdriver.promise;
+            var evaled = P.all([evalPyretNoError(driver, tbl),
+                                evalPyretNoError(driver, val)]);
+            evaled.then(function(resps) {
+              return resps[0]
+                .findElement(webdriver.By.xpath("//tbody/tr[" + row + "]"
+                                                + "/td[" + col + "]/span"))
+                .then(function(tableRender) {
+                  return P.all([tableRender.getOuterHtml(), resps[1].getOuterHtml()]);
+                });
+              })
+              .then(function(rendered) {
+                assert.equal(rendered[0], rendered[1],
+                             "Table renders example " + val + " correctly");
+              });
+          });
+        });
+    } else {
+      throw new Error("No tables tests found");
+    }
+  });
+  checkAllTestsPassed(driver, test.title, timeout);
 }
 
 function loadAndRunPyret(code, driver, timeout) {
@@ -114,20 +171,59 @@ function checkWorldProgramRunsCleanly(code, driver, test, timeout) {
   driver.sleep(5000); // make sure the big-bang can run for 5 seconds
   driver.findElement(webdriver.By.className("ui-icon-closethick"))
     .click();
-  checkAllTestsPassed(driver, test, timeout);
+  checkAllTestsPassed(driver, test.title, timeout);
 }
 
 function runAndCheckAllTestsPassed(code, driver, test, timeout) {
   loadAndRunPyret(code, driver, timeout);
-  checkAllTestsPassed(driver, test, timeout);
+  checkAllTestsPassed(driver, test.title, timeout);
 }
 
-function checkAllTestsPassed(driver, test, timeout) {
+function checkAllTestsPassed(driver, name, timeout) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   driver.wait(function() {
     return replOutput.isElementPresent(webdriver.By.className("testing-summary"));
   }, timeout);
-  return replOutput.findElement(contains("Looks shipshape"));
+  var checkBlocks = replOutput.then(function(response) {
+    driver.wait(function () {
+      return driver.isElementPresent(webdriver.By.className("check-results-done-rendering"));
+    }, 20000);
+    return response.findElements(webdriver.By.className("check-block-result"));
+  });
+  return checkBlocks.then(function(cbs) {
+    return replOutput.findElements(contains("Looks shipshape")).then(function(shipshapes) {
+      if(shipshapes.length >= 1) { return true; }
+      // If no shipshape element, report the failure
+      var blocksAsSpec = checkBlocks.then(function(cbs) {
+        var tests = cbs.map(function(cb, i) {
+          return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
+            return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
+              return tests.length === 0
+                ? Q.all(Array(specs[i].length).fill("Passed"))
+                : Q.all(tests.map(function(t) { return t.getText(); }));
+            });
+          });
+        });
+        return Q.all(tests);
+      });
+      return blocksAsSpec.then(function(spec) {
+        return screenshot(driver, "test-util/failed-test-screenshots/" + name + ".png").then(function() {
+          throw new Error("Expected all tests to pass, but got: " + JSON.stringify(spec));
+        });
+      });
+    });
+  });
+}
+
+// http://stackoverflow.com/a/16882197
+function screenshot(driver, saveAs) {
+  return driver.takeScreenshot().then(function(data){
+     var base64Data = data.replace(/^data:image\/png;base64,/,"")
+     fs.writeFile(saveAs, base64Data, 'base64', function(err) {
+          if(err) console.log(err);
+     });
+     return;
+  });
 }
 
 function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
@@ -169,14 +265,29 @@ function evalPyret(driver, toEval) {
 
 function evalPyretNoError(driver, toEval) {
   return evalPyret(driver, toEval).then(function(element) {
-    return element.getTagName().then(function(name) {
-      if (name != 'span') {
-        throw new Error("Failed to run Pyret code: " + toEval);
-      } else {
-        return element;
-      }
-    });
-  })
+    return webdriver.promise
+      .all([element.getTagName(), element.getAttribute('class')])
+      .then(function(resp) {
+        var name = resp[0];
+        var clss = resp[1];
+
+        if ((name != 'div') || (clss != 'trace')) {
+          throw new Error("Failed to run Pyret code: " + toEval);
+        } else {
+          return element.findElement(webdriver.By.className("replOutput"));
+        }
+      });
+  });
+}
+
+function testRunAndAllTestsPass(it, name, toEval) {
+  it("should pass regression equality for " + name, function() {
+    this.timeout(15000);
+    var self = this;
+    var replOutput = self.browser.findElement(webdriver.By.id("output"));
+    evalPyretDefinitionsAndWait(this.browser, toEval);
+    return checkAllTestsPassed(self.browser, name, 20000);
+  });
 }
 
 function testErrorRendersString(it, name, toEval, expectedString) {
@@ -216,10 +327,10 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs) {
       self.browser.wait(function () {
         return self.browser.isElementPresent(webdriver.By.className("check-results-done-rendering"));
       }, 20000);
-      return response.findElements(webdriver.By.className("check-block-result"));
+      return response.findElements(webdriver.By.className("check-block"));
     });
     var blocksAsSpec = checkBlocks.then(function(cbs) {
-      var tests = cbs.map(function(cb, i) {
+      var tests = cbs.slice(1).map(function(cb, i) {
         return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
           return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
             return tests.length === 0
@@ -259,11 +370,13 @@ module.exports = {
   evalPyret: evalPyret,
   testErrorRendersString: testErrorRendersString,
   testRunsAndHasCheckBlocks: testRunsAndHasCheckBlocks,
+  testRunAndAllTestsPass: testRunAndAllTestsPass,
   setup: setup,
   setupMulti: setupMulti,
   teardown: teardown,
   teardownMulti: teardownMulti,
   runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
+  checkTableRendersCorrectly: checkTableRendersCorrectly,
   checkWorldProgramRunsCleanly: checkWorldProgramRunsCleanly,
   doForEachPyretFile: doForEachPyretFile
 }

@@ -8,7 +8,10 @@ function FilePicker(options) {
 
   this.dataHandler = options.onSelect;
   this.onLoaded = options.onLoaded || function(){};
-  this.onError = options.onError || function(m) { throw new gwrap.GAPIError(m); };
+  this.onError = options.onError || function(m) {
+    console.error(m);
+    throw new gwrap.GAPIError(m);
+  };
   this.onInternalError = options.onInternalError || this.onError;
   this.raisedError = false;
 
@@ -53,18 +56,15 @@ FilePicker.prototype.initOpen = function(picker) {
         break;
       case picker.Type.PHOTO: // Photo
         // Fix photo permissions
-        var permissions = {
-          'role': 'reader',
-          'type': 'anyone',
-          'value': 'default',
-          'withLink': true
-        };
         sel.forEach((function(photo) {
           var fileId = photo[picker.Document.ID];
-          gwrap.drive.permissions.insert({
-            'fileId': fileId,
-            'resource': permissions
-          }).catch(this.onInternalError);
+          Q($.ajax({
+            url: "/share-image",
+            method: "post",
+            data: {
+              fileId: fileId
+            }
+          })).fail(this.onInternalError);
         }).bind(this));
         break;
       default:
@@ -106,12 +106,18 @@ FilePicker.prototype.initOpen = function(picker) {
         .setTitle("Select a Pyret document or an image from Google Drive")
         .addView(pyretView)
         .addView(imageView)
-        .setAppId(clientId)
         .setOAuthToken(gapi.auth.getToken().access_token)
         .setCallback(pickerCallback)
         .build();
       this.pickerInstance.setVisible(true);
       $(".picker").css("z-index", 9000);
+      var hidePicker = function(e) {
+        if(e.which === 27) {
+          $(".picker").remove();
+          $(document).unbind("keydown", hidePicker);
+        }
+      };
+      $(document).on("keydown", hidePicker);
     }).bind(this);
 
     return drive.getCollectionFolderId().then(buildInstance);

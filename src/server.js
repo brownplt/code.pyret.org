@@ -1,11 +1,15 @@
 var Q = require("q");
 var gapi = require('googleapis');
 var path = require('path');
+var uuid = require('node-uuid');
+
+var BACKREF_KEY = "originalProgram";
 
 function start(config, onServerReady) {
   var express = require('express');
   var cookieSession = require('cookie-session');
   var cookieParser = require('cookie-parser');
+  var bodyParser = require('body-parser');
   var csrf = require('csurf');
   var googleAuth = require('./google-auth.js');
   var request = require('request');
@@ -37,7 +41,8 @@ function start(config, onServerReady) {
   }
 
   app = express();
-
+  app.use(bodyParser.urlencoded({ extended: false }))
+  app.use(bodyParser.json())
 
   // From http://stackoverflow.com/questions/7185074/heroku-nodejs-http-to-https-ssl-forced-redirect
   /* At the top, with other redirect methods before other routes */
@@ -65,21 +70,34 @@ function start(config, onServerReady) {
     key: "code.pyret.org"
   }));
   app.use(cookieParser());
-  app.use(csrf());
 
   var auth = googleAuth.makeAuth(config);
   var db = config.db;
 
   app.set('views', __dirname + '/../build/web/views');
   app.engine('html', mustache());
-  app.set('view engine', 'html');
+  app.engine('js', mustache());
+  app.set('view engine', ['html', 'js']);
+
+  app.get("/js/log.js", function(req, res) {
+    res.set("Content-Type", "application/javascript");
+    res.render(__dirname + "/../build/web/js/log.js", {
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
+    }, function(_, js) {
+      res.set("Content-Type", "application/javascript");
+      res.send(js);
+    });
+  });
 
   app.use(express.static(__dirname + "/../build/web/"));
-  if(config.development) {
-    app.use(express.static(__dirname + "/../test-util/"));
-  }
+
+  app.use(csrf());
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
+
+  app.get("/faq", function(_, res) { res.render("faq.html"); });
 
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
@@ -98,45 +116,6 @@ function start(config, onServerReady) {
       res.redirect(redirect);
     }
   });
-
-  app.get("/jsProxy", function(req, response) {
-    var parsed = url.parse(req.url);
-    var jsUrl = decodeURIComponent(parsed.query.slice(0));
-    var gReq = request(jsUrl, function(error, jsResponse, body) {
-      if(error || (jsResponse.statusCode >= 400)) {
-        response.status(400).send({type: "no-js-file", error: "Couldn't load JS file from " + jsUrl});
-        return;
-      }
-      response.send(body);
-    });
-  });
-
-  var okGoogleDomains = [
-    "spreadsheets.google.com",
-    "googleapis.com",
-    "drive.google.com",
-    "googledrive.com"
-  ];
-  function checkGoogle(req, response) {
-    var parsed = url.parse(req.url);
-    var googleUrl = decodeURIComponent(parsed.query.slice(0));
-    var parsedUrl = url.parse(googleUrl);
-    var found = okGoogleDomains.filter(function(v) { return parsedUrl.host === v; });
-    if(found.length === 0) {
-      response.status(400).send({type: "invalid-domain", error: "Refusing to proxy request to domain " + parsedUrl.host});
-      return null;
-    }
-    return googleUrl;
-  }
-
-  function hasMime(response, mimeList) {
-    for (var i = 0; i < mimeList.length; i++) {
-      if (response.indexOf(mimeList[i]) > -1) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   app.use(function(req, res, next) {
     var contentType = req.headers['content-type'] || '';
@@ -157,103 +136,22 @@ function start(config, onServerReady) {
     });
   });
 
-  app.post("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    if(googleUrl !== null) {
-      var headers = {
-        "Authorization": req.headers["authorization"],
-        "GData-Version": "3.0",
-        "content-type": req.headers["content-type"],
-      };
-      var post = request.post({
-        url: googleUrl,
-        body: req.rawBody,
-        headers: headers
+  if(config.development) {
+    app.use(express.static(__dirname + "/../test-util/"));
+    app.get("/keys", function(req, res) {
+      var keys = db.getKeys(req.query.q);
+      keys.then(function(keys) {
+        res.status(200);
+        res.send(keys.join("<br/>"));
+        res.end();
       });
-      post.pipe(response);
-    }
-  });
-
-  app.put("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    if(googleUrl !== null) {
-      var headers = {
-        "Authorization": req.headers["authorization"],
-        "GData-Version": "3.0",
-        "content-type": req.headers["content-type"],
-        "If-Match": "*",
-      };
-      var put = request.put({
-        url: googleUrl,
-        body: req.rawBody,
-        headers: headers
+      keys.fail(function(err) {
+        res.status(500);
+        res.send(String(err));
+        res.end();
       });
-      put.pipe(response);
-    }
-  });
-
-  app.get("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    // Check if the request is expecting a result other than
-    // JSON or XML (and, if so, block it)
-    if(req.accepts && !req.accepts('json') && !req.accepts('atom+xml')) {
-      response.sendStatus(403);
-    }
-    if(googleUrl !== null) {
-      var headers = {
-        "Authorization": req.headers["authorization"],
-        "GData-Version": "3.0",
-        "content-type": req.headers["content-type"],
-      };
-      var get = request.get({
-        url: googleUrl,
-        body: req.rawBody,
-        headers: headers
-      }).on('response', function(res){
-        var contentType = res.headers['content-type'];
-        // Likely to have multiple MIME types, so
-        // we need to check substrings
-        if (hasMime(contentType, ['application/json', 'application/atom+xml'])) {
-          res.headers['X-Pyret-Token'] = req.csrfToken();
-          get.pipe(response);
-        } else {
-          response.sendStatus(403);
-        }
-      });
-    }
-  });
-
-  app.delete("/googleProxy", function(req, response) {
-    var googleUrl = checkGoogle(req, response);
-    if(googleUrl !== null) {
-      req.pipe(request(googleUrl)).pipe(response);
-    }
-  });
-
-  app.get("/downloadGoogleFile", function(req, response) {
-    var parsed = url.parse(req.url);
-    var googleId = decodeURIComponent(parsed.query.slice(0));
-    var googleLink = "https://googledrive.com/host/" + googleId;
-    /*
-    var googleParsed = url.parse(googleLink);
-    console.log(googleParsed);
-    var host = googleParsed['hostname'];
-    if(host !== 'googledrive.com') {
-      response.status(400).send({type: "bad-domain", error: "Tried to get a file from non-Google host " + host});
-      return;
-    }
-    */
-    var gReq = request(googleLink, function(error, googResponse, body) {
-      var h = googResponse.headers;
-      var ct = h['content-type']
-      if(ct.indexOf('text/plain') !== 0) {
-        response.status(400).send({type: "bad-file", error: "Invalid file response " + ct});
-        return;
-      }
-      response.set('content-type', 'text/plain');
-      response.send(body);
     });
-  });
+  }
 
   app.get("/downloadImg", function(req, response) {
     var parsed = url.parse(req.url);
@@ -336,7 +234,7 @@ function start(config, onServerReady) {
         return auth.refreshAccess(u.refresh_token, function(err, newToken) {
           if(err) { res.send(err); res.end(); return; }
           else {
-            res.send({ access_token: newToken });
+            res.send({ access_token: newToken, user_id: req.session["user_id"] });
             res.end();
           }
         });
@@ -399,7 +297,11 @@ function start(config, onServerReady) {
   });
 
   app.get("/editor", function(req, res) {
-    res.render("editor.html");
+    res.render("editor.html", {
+      BASE_URL: config.baseUrl,
+      GOOGLE_API_KEY: config.google.apiKey,
+      CSRF_TOKEN: req.csrfToken()
+    });
   });
 
   app.get("/ide", function(req, res) {
@@ -415,6 +317,238 @@ function start(config, onServerReady) {
 
   app.get("/share", function(req, res) {
 
+  });
+
+
+  app.post("/share-image", function(req, res) {
+    var driveFileId = req.body.fileId;
+    var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+    maybeUser.then(function(u) {
+      if(u === null) {
+        res.status(403).send("Invalid or inaccessible user information");
+        return null;
+      }
+      auth.refreshAccess(u.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+          drive.permissions.insert({
+            fileId: driveFileId,
+            resource: {
+              'role': 'reader',
+              'type': 'anyone',
+              'value': 'default',
+              'withLink': true
+            }
+          }, function(err, response) {
+            // Success or failure of permission change is not relevant
+            var sharedProgram = db.createSharedProgram(driveFileId, u.google_id);
+            sharedProgram.then(function(sp) {
+              res.status(200);
+              res.send({
+                id: driveFileId
+              });
+              res.end();
+            });
+            return sharedProgram;
+          });
+        }
+      });
+    });
+
+  });
+
+  app.post("/create-shared-program", function(req, res) {
+    var driveFileId = req.body.fileId;
+    var title = req.body.title;
+    var collectionId = req.body.collectionId;
+    var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
+    maybeUser.then(function(u) {
+      if(u === null) {
+        res.status(403).send("Invalid or inaccessible user information");
+        return null;
+      }
+      auth.refreshAccess(u.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+
+          var newFileP = Q.defer();
+          
+          drive.files.copy({
+            fileId: driveFileId,
+            resource: {
+              name: title + " published",
+              parents: [{id: collectionId}],
+              properties: [{
+                "key": BACKREF_KEY,
+                "value": String(driveFileId),
+                "visibility": "PRIVATE"
+              }]
+            }
+          }, function(err, response) {
+            if(err) { newFileP.reject(err); }
+            else {
+              newFileP.resolve(response);
+            }
+          });
+
+          // This doesn't have to succeed, and may not for some GAE accounts
+          var updatedP = newFileP.promise.then(function(newFile) {
+            return drive.permissions.insert({
+              fileId: newFile.id,
+              resource: {
+                'role': 'reader',
+                'type': 'anyone',
+                'id': newFile.permissionId,
+                'withLink': true
+              }
+            });
+          });
+
+          var done = newFileP.promise.then(function(newFile) {
+            var sharedProgram = db.createSharedProgram(newFile.id, u.google_id);
+            sharedProgram.then(function(sp) {
+              res.send({
+                id: newFile.id,
+                modifiedDate: newFile.modifiedDate,
+                title: title
+              });
+              res.end();
+            });
+            return sharedProgram;
+          });
+          done.fail(function(err) {
+            res.status(500);
+            console.error("Failed to create shared file: ", err);
+            res.send("Failed to create shared file");
+            res.end();
+          });
+        }
+      });
+    });
+    maybeUser.fail(function(err) {
+      console.error("Failed to get an access token: ", err);
+      noAuth();
+    });
+  });
+
+  function getDriveClient(token, version) {
+    var client = new gapi.auth.OAuth2(
+        config.google.clientId,
+        config.google.clientSecret,
+        config.baseUrl + config.google.redirect
+      );
+    client.setCredentials({
+      access_token: token
+    });
+
+    var drive = gapi.drive({ version: version, auth: client });
+    return drive;
+  }
+
+  function programAndToken(sharedProgramId, res) {
+    var program = db.getSharedProgram(sharedProgramId);
+    var refreshToken = program.then(function(prog) {
+      var uP = db.getUserByGoogleId(prog.userId);
+      return uP.then(function(u) {
+        return u.refresh_token;
+      });
+    });
+    var both = Q.all([program, refreshToken]);
+    return both;
+  }
+
+  function getSharedContents(id, res) {
+    var ret = Q.defer();
+    if(!id) {
+      ret.reject("No id given");
+      return;
+    }
+    var both = programAndToken(id);
+    both.fail(function(err) {
+      ret.reject("Fetching shared file failed");
+    });
+    both.then(function(both) {
+      var prog = both[0];
+      var refreshToken = both[1];
+      auth.refreshAccess(refreshToken, function(err, newToken) {
+        if(err) { ret.reject("Could not access shared file."); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v3');
+          ret.resolve(drive.files.get({
+            fileId: prog.programId,
+            alt: "media"
+          }));
+        }
+      })
+    });
+    return ret.promise;
+  }
+
+  app.get("/shared-program-contents", function(req, res) {
+    var contents = getSharedContents(req.query.sharedProgramId, res);
+    contents.fail(function(err) {
+      res.status(400);
+      res.send("Unable to fetch shared file");
+      res.end();
+    });
+    contents.then(function(response) {
+      if(!response.headers["content-type"] === "text/plain") {
+        res.status(400);
+        res.send("Expected a text file, but got: " + response.headers["content-type"]);
+        res.end();
+      }
+      else {
+        res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
+        response.pipe(res);
+      }
+    });
+  });
+
+  app.get("/shared-image-contents", function(req, res) {
+    var contents = getSharedContents(req.query.sharedImageId, res);
+    contents.then(function(response) {
+      res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
+      response.pipe(res);
+    });
+    contents.fail(function(err) {
+      res.status(400);
+      res.send("Could not fetch shared image");
+      res.end();
+    });
+  });
+
+  app.get("/shared-file", function(req, res) {
+    var sharedProgramId = req.query.sharedProgramId;
+    var both = programAndToken(sharedProgramId);
+    both.fail(function(err) {
+      res.status(404).send("No share information found for " + sharedProgramId);
+      res.end();
+    });
+    both.then(function(both) {
+      var prog = both[0];
+      var refreshToken = both[1];
+      auth.refreshAccess(refreshToken, function(err, newToken) {
+        if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
+        else {
+          var drive = getDriveClient(newToken, 'v2');
+          drive.files.get({fileId: sharedProgramId}, function(err, response) {
+            if(err) { res.status(400).send("Couldn't access shared file " + id); }
+            else {
+              res.send({
+                id: response.id,
+                modifiedDate: response.modifiedDate,
+                title: response.title,
+                selfLink: response.selfLink
+              });
+              res.status(200);
+              res.end();
+            }
+          });
+        }
+      });
+    });
   });
 
   app.get("/embeditor", function(req, res) {

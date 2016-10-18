@@ -1,7 +1,8 @@
 ({
   requires: [
     { "import-type": "builtin", "name": "image-lib" },
-    { "import-type": "builtin", "name": "world-lib" }
+    { "import-type": "builtin", "name": "world-lib" },
+    { "import-type": "builtin", "name": "valueskeleton" }
   ],
   nativeRequires: [],
   provides: {
@@ -12,6 +13,7 @@
                  name: "Image" }
     },
     values: {
+      "reactor": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], "Any"]],
       "big-bang": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], ["tid", "a"]]],
       "on-tick": ["forall", ["a"],
           ["arrow",
@@ -49,8 +51,9 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld) {
+  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld, VSlib) {
     var isImage = imageLibrary.isImage;
+    var VS = runtime.getField(VSlib, "values");
 
     //////////////////////////////////////////////////////////////////////
 
@@ -60,17 +63,137 @@
     var isOpaqueWorldConfigOption = function(v) {
       return runtime.isOpaque(v) && isWorldConfigOption(v.val);
     }
+    var isOpaqueOnTick = function(v) {
+      return runtime.isOpaque(v) && (v.val instanceof OnTick);
+    }
+    var isOpaqueToDraw = function(v) {
+      return runtime.isOpaque(v) && (v.val instanceof ToDraw);
+    }
 
-    var bigBang = function(initW, handlers) {
+    var makeReactor = function(init, handlers) {
+      runtime.ffi.checkArity(2, arguments, "reactor");
+      runtime.checkList(handlers);
+      var arr = runtime.ffi.toArray(handlers);
+      var initialWorldValue = init;
+      arr.map(function(h) { checkHandler(h); });
+      return makeReactorRaw(init, arr, false, []);
+    }
+    var makeReactorRaw = function(init, handlersArray, tracing, trace) {
+      return runtime.makeObject({
+        "get-value": runtime.makeMethod0(function(self) {
+          return init;
+        }),
+        "draw": runtime.makeMethod0(function(self) {
+          var drawer = handlersArray.filter(function(h) {
+            return isOpaqueToDraw(h);
+          })[0];
+          if(drawer === undefined) {
+            runtime.throwMessageException("Tried to draw() a reactor with no to-draw");
+          }
+          return drawer.val.handler.app(init);
+        }),
+        interact: runtime.makeMethod0(function(self) {
+          var thisInteractTrace = [];
+          var tracer = null;
+          if(tracing) {
+            tracer = function(newVal, oldVal, k) {
+              thisInteractTrace.push(newVal);
+              k();
+            };
+          }
+          runtime.safeCall(function() {
+            bigBang(init, handlersArray, tracer);
+          }, function(newVal) {
+            return makeReactorRaw(newVal, handlersArray, tracing, trace.concat(thisInteractTrace));
+          });
+        }),
+        "start-trace": runtime.makeMethod0(function(self) {
+          return makeReactorRaw(init, handlersArray, true, []);
+        }),
+        "stop-trace": runtime.makeMethod0(function(self) {
+          return makeReactorRaw(init, handlersArray, false, []);
+        }),
+        "get-trace": runtime.makeMethod0(function(self) {
+          return runtime.ffi.makeList(trace);
+        }),
+        react: runtime.makeMethod1(function(self, event) {
+          if(event === "tick") {
+            var ticker = handlersArray.filter(function(h) {
+              return isOpaqueOnTick(h);
+            })[0];
+            if(ticker === undefined) {
+              runtime.throwMessageException("Tried to tick a reactor with no on-tick");
+            }
+            else {
+              return runtime.safeCall(function() {
+                return ticker.val.handler.app(init);
+              }, function(result) {
+                var newTrace = trace;
+                if(tracing) {
+                  newTrace = trace.concat([result]);
+                }
+                return makeReactorRaw(result, handlersArray, tracing, newTrace);
+              });
+            }
+          }
+          else {
+            runtime.throwMessageException("Only the literal event \"tick\" is supported");
+          }
+        }),
+        _output: runtime.makeMethod0(function(self) {
+          return runtime.getField(VS, "vs-constr").app(
+            "reactor",
+            runtime.ffi.makeList([
+              runtime.getField(VS, "vs-value").app(init),
+              runtime.getField(VS, "vs-value").app(runtime.ffi.makeList(trace))]));
+        })
+      });
+    }
+
+    function bigBangFromDict(init, dict, tracer) {
+      var handlers = [];
+      function add(k, constr) {
+        if(dict.hasOwnProperty(k)) {
+          handlers.push(runtime.makeOpaque(new constr(dict[k])));
+        }
+      }
+      var title = "reactor";
+      if (dict.hasOwnProperty("title")) {
+        title = dict["title"];
+      }
+      if(dict.hasOwnProperty("on-tick")) {
+        if(dict.hasOwnProperty("seconds-per-tick")) {
+          var delay = dict["seconds-per-tick"];
+          delay = typeof delay === "number" ? delay : delay.toFixnum();
+          handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], delay * 1000)));
+        }
+        else {
+          handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], DEFAULT_TICK_DELAY * 1000)));
+        }
+      }
+      add("on-mouse", OnMouse);
+      add("on-key", OnKey);
+      add("to-draw", ToDraw);
+      add("stop-when", StopWhen);
+      add("close-when-stop", CloseWhenStop);
+
+      return bigBang(init, handlers, tracer, title);
+    }
+
+    var bigBang = function(initW, handlers, tracer, title) {
       var closeBigBangWindow = null;
       var outerToplevelNode = jQuery('<span/>').css('padding', '0px').get(0);
       // TODO(joe): This obviously can't stay
       if(!runtime.hasParam("current-animation-port")) {
         document.body.appendChild(outerToplevelNode);
       } else {
-        runtime.getParam("current-animation-port")(outerToplevelNode, function(closeWindow) {
-          closeBigBangWindow = closeWindow;
-        });
+        runtime.getParam("current-animation-port")(
+          outerToplevelNode,
+          title,
+          function(closeWindow) {
+            closeBigBangWindow = closeWindow;
+          }
+        );
       }
 
       var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
@@ -111,7 +234,8 @@
             },
             {
               closeWhenStop: closeWhenStop,
-              closeBigBangWindow: closeBigBangWindow
+              closeBigBangWindow: closeBigBangWindow,
+              tracer: tracer
             });
       });
     };
@@ -228,6 +352,9 @@
       var code = e.charCode || e.keyCode;
       var keyname;
       switch(code) {
+      case 8: keyname = "backspace"; break;
+      case 9: keyname = "tab"; break;
+      case 13: keyname = "enter"; break;
       case 16: keyname = "shift"; break;
       case 17: keyname = "control"; break;
       case 19: keyname = "pause"; break;
@@ -242,7 +369,7 @@
       case 40: keyname = "down"; break;
       case 42: keyname = "print"; break;
       case 45: keyname = "insert"; break;
-      case 46: keyname = String.fromCharCode(127); break;
+      case 46: keyname = "delete"; break;
       case 106: keyname = "*"; break;
       case 107: keyname = "+"; break;
       case 109: keyname = "-"; break;
@@ -337,37 +464,37 @@
               // to check the status of the scene object and make sure it's an
               // image.
 
+              var checkImagePred = function(val) {
+                return runtime.isOpaque(val) && isImage(val.val);
+              };
+              var checkImageType = runtime.makeCheckType(checkImagePred, "Image");
+              checkImageType(v);
 
-              if (runtime.isOpaque(v) && isImage(v.val) ) {
-                var theImage = v.val;
-                var width = theImage.getWidth();
-                var height = theImage.getHeight();
+              var theImage = v.val;
+              var width = theImage.getWidth();
+              var height = theImage.getHeight();
 
-                if (! reusableCanvas) {
-                  reusableCanvas = imageLibrary.makeCanvas(width, height);
-                  // Note: the canvas object may itself manage objects,
-                  // as in the case of an excanvas.  In that case, we must make
-                  // sure jsworld doesn't try to disrupt its contents!
-                  reusableCanvas.jsworldOpaque = true;
-                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
-                }
-                if (reusableCanvas.width !== width) {
-                  reusableCanvas.width = width;
-                }
-                if (reusableCanvas.height !== height) {
-                  reusableCanvas.height = height;
-                }
-                var ctx = reusableCanvas.getContext("2d");
-                ctx.save();
-                ctx.fillStyle = "rgba(255,255,255,1)";
-                ctx.fillRect(0, 0, width, height);
-                ctx.restore();
-                theImage.render(ctx, 0, 0);
-                success([toplevelNode, reusableCanvasNode]);
-              } else {
-                // TODO(joe): Maybe torepr below
-                success([toplevelNode, rawJsworld.node_to_tree(String(v))]);
+              if (! reusableCanvas) {
+                reusableCanvas = imageLibrary.makeCanvas(width, height);
+                // Note: the canvas object may itself manage objects,
+                // as in the case of an excanvas.  In that case, we must make
+                // sure jsworld doesn't try to disrupt its contents!
+                reusableCanvas.jsworldOpaque = true;
+                reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
               }
+              if (reusableCanvas.width !== width) {
+                reusableCanvas.width = width;
+              }
+              if (reusableCanvas.height !== height) {
+                reusableCanvas.height = height;
+              }
+              var ctx = reusableCanvas.getContext("2d");
+              ctx.save();
+              ctx.fillStyle = "rgba(255,255,255,1)";
+              ctx.fillRect(0, 0, width, height);
+              ctx.restore();
+              theImage.render(ctx, 0, 0);
+              success([toplevelNode, reusableCanvasNode]);
             });
       };
 
@@ -456,15 +583,16 @@
     return makeObject({
       "provide-plus-types": makeObject({
         "values": makeObject({
+          "reactor": makeFunction(makeReactor, "reactor"),
           "big-bang": makeFunction(function(init, handlers) {
             runtime.ffi.checkArity(2, arguments, "big-bang");
             runtime.checkList(handlers);
             var arr = runtime.ffi.toArray(handlers);
             var initialWorldValue = init;
             arr.map(function(h) { checkHandler(h); });
-            bigBang(initialWorldValue, arr);
+            bigBang(initialWorldValue, arr, null, 'big-bang');
             runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
-          }),
+          }, "big-bang"),
           "on-tick": makeFunction(function(handler) {
             runtime.ffi.checkArity(1, arguments, "on-tick");
             runtime.checkFunction(handler);
@@ -518,7 +646,8 @@
         }),
         "internal": {
           WorldConfigOption: WorldConfigOption,
-          adaptWorldFunction: adaptWorldFunction
+          adaptWorldFunction: adaptWorldFunction,
+          bigBangFromDict: bigBangFromDict
         }
       })
     });

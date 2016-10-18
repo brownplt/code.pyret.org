@@ -39,22 +39,22 @@
       });
       return newobj;
     }
-  var animationDivs = [];
+    var animationDivs = [];
     function closeAnimationIfOpen() {
-    animationDivs.forEach(function(animationDiv) {
+      animationDivs.forEach(function(animationDiv) {
         animationDiv.empty();
         animationDiv.dialog("destroy");
-      animationDiv.remove();
-    });
-    animationDivs = [];
-      }
-  function closeTopAnimationIfOpen() {
-    var animationDiv = animationDivs.pop();
-    animationDiv.empty();
-    animationDiv.dialog("destroy");
-    animationDiv.remove();
+        animationDiv.remove();
+      });
+      animationDivs = [];
     }
-    var editors = {};
+    function closeTopAnimationIfOpen() {
+      var animationDiv = animationDivs.pop();
+      animationDiv.empty();
+      animationDiv.dialog("destroy");
+      animationDiv.remove();
+    }
+
     var interactionsCount = 0;
 
     function formatCode(container, src) {
@@ -70,37 +70,57 @@
          50
       );
     }
-
-    var makeErrorContext = (function () {
-      var counter = 0;
-      var makeNew = function () {
-        makeNew.current = "eg-" + counter++
-        return makeNew.current;
-      }
-      return makeNew;
-    })();
+    
 
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
+
+      function renderAndDisplayError(runtime, error, stack, click) {
+        var error_to_html = errorUI.error_to_html;
+        return runtime.pauseStack(function (restarter) {
+          return error_to_html(runtime, CPO.documents, error, stack).
+            then(function (html) {
+              html.on('click', function(){
+                $(".highlights-active").removeClass("highlights-active");
+                html.trigger('toggleHighlight');
+                html.addClass("highlights-active");
+              });
+              html.addClass('compile-error').appendTo(output);
+              if (click) html.click();
+            }).done(function () {restarter.resume(runtime.nothing)});
+        });
+      }
+
       return function(result) {
         var doneDisplay = Q.defer();
+        var didError = false;
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
-            return errorUI.drawError(output, editors, callingRuntime, result.exn, makeErrorContext);
+            didError = true;
+            // Parse Errors
+            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
             ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
-                var errs = [];
-                var results = ffi.toArray(compileResultErrors);
-                results.forEach(function(r) {
-                  errs = errs.concat(ffi.toArray(runtime.getField(r, "problems")));
-                });
-                return errorUI.drawError(output, editors, runtime, {exn: errs}, makeErrorContext);
+                didError = true;
+                // Compile Errors
+                var errors = ffi.toArray(compileResultErrors).
+                  reduce(function (errors, error) {
+                      Array.prototype.push.apply(errors,
+                        ffi.toArray(runtime.getField(error, "problems")));
+                      return errors;
+                    }, []);
+                return callingRuntime.safeCall(
+                  function() {
+                    return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
+                      return renderAndDisplayError(callingRuntime, errors[i]);
+                    }), 0, errors.length);
+                  }, function () {});
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
@@ -113,16 +133,16 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, editors, rr, 
-                                                        runtime.getField(runResult.result, "checks"), 
-                                                        makeErrorContext);
+                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                                                        runtime.getField(runResult.result, "checks"));
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
-                      return errorUI.drawError(output, editors, rr, runResult.exn, makeErrorContext);
+                      didError = true;
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -134,9 +154,18 @@
           else {
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
-            return errorUI.drawError(output, editors, callingRuntime, ffi.makeMessageException("Got something other than a Pyret result when running the program: " + String(result)), makeErrorContext);
+            didError = true;
+            return renderAndDisplayError(callingRuntime, CPO.documents,
+              ffi.throwInternalError("Got something other than a Pyret result when running the program.",
+                ffi.makeList(result)));
           }
         }, function(_) {
+          if (didError) {
+            var snippets = output.find(".CodeMirror");
+            for (var i = 0; i < snippets.length; i++) {
+              snippets[i].CodeMirror.refresh();
+            }
+          }
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -179,8 +208,10 @@
         }
       }
 
+      container.append(mkWarningUpper());
+      container.append(mkWarningLower());
+
       var promptContainer = jQuery("<div class='prompt-container'>");
-      var promptArrow = drawPromptArrow();
       var prompt = jQuery("<span>").addClass("repl-prompt");
       function showPrompt() {
         promptContainer.hide();
@@ -189,7 +220,7 @@
         CM.focus();
         CM.refresh();
       }
-      promptContainer.append(promptArrow).append(prompt);
+      promptContainer.append(prompt);
 
       container.on("click", function(e) {
         if($(CM.getTextArea()).parent().offset().top < e.pageY) {
@@ -212,18 +243,18 @@
           ct_log(str);
           output.append($("<pre>").addClass("replPrint").text(str));
         });
-    var currentZIndex = 15000;
-    runtime.setParam("current-animation-port", function(dom, closeCallback) {
-        var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
-        animationDivs.push(animationDiv);
+      var currentZIndex = 15000;
+      runtime.setParam("current-animation-port", function(dom, title, closeCallback) {
+          var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+          animationDivs.push(animationDiv);
           output.append(animationDiv);
           function onClose() {
-          Jsworld.shutdownSingle({ cleanShutdown: true });
-          closeTopAnimationIfOpen();
+            Jsworld.shutdownSingle({ cleanShutdown: true });
+            closeTopAnimationIfOpen();
           }
-        closeCallback(closeTopAnimationIfOpen);
+          closeCallback(closeTopAnimationIfOpen);
           animationDiv.dialog({
-            title: 'big-bang',
+            title: title,
             position: ["left", "top"],
             bgiframe : true,
             modal : true,
@@ -235,11 +266,62 @@
             closeOnEscape : true
           });
           animationDiv.append(dom);
-        var dialogMain = animationDiv.parent();
-        dialogMain.css({"z-index": currentZIndex + 1});
-        dialogMain.prev().css({"z-index": currentZIndex});
-        currentZIndex += 2;
+          var dialogMain = animationDiv.parent();
+          dialogMain.css({"z-index": currentZIndex + 1});
+          dialogMain.prev().css({"z-index": currentZIndex});
+          currentZIndex += 2;
         });
+
+      runtime.setParam("d3-port", function(dom, optionMutator, onExit, buttons) {
+          // duplicate the code for now
+          var animationDiv = $("<div>");
+          animationDivs.push(animationDiv);
+          output.append(animationDiv);
+          function onClose() {
+            onExit();
+            closeTopAnimationIfOpen();
+          }
+          var baseOption = {
+            position: [5, 5],
+            bgiframe : true,
+            modal : true,
+            overlay : {opacity: 0.5, background: 'black'},
+            width : 'auto',
+            height : 'auto',
+            close : onClose,
+            closeOnEscape : true,
+            create: function() {
+
+              // from http://fiddle.jshell.net/JLSrR/116/
+
+              var titlebar = animationDiv.prev();
+              buttons.forEach(function(buttonData) {
+                var button = $('<button/>'),
+                    left = titlebar.find( "[role='button']:last" ).css('left');
+                button.button({icons: {primary: buttonData.icon}, text: false})
+                       .addClass('ui-dialog-titlebar-close')
+                       .css('left', (parseInt(left) + 27) + 'px')
+                       .click(buttonData.click)
+                       .appendTo(titlebar);
+              });
+            }
+          }
+          animationDiv.dialog(optionMutator(baseOption)).dialog("widget").draggable({
+            containment: "none",
+            scroll: false,
+          });
+          animationDiv.append(dom);
+          var dialogMain = animationDiv.parent();
+          dialogMain.css({"z-index": currentZIndex + 1});
+          dialogMain.prev().css({"z-index": currentZIndex});
+          currentZIndex += 2;
+          return animationDiv;
+      });
+      runtime.setParam("remove-d3-port", function() {
+          closeTopAnimationIfOpen();
+          // don't call .dialog('close'); because that would trigger onClose and thus onExit.
+          // We don't want that to happen.
+      });
 
       var breakButton = options.breakButton;
       container.append(output).append(promptContainer);
@@ -262,9 +344,6 @@
           if(cm) {
             cm.setValue("");
             cm.setOption("readonly", false);
-            cm.getDoc().eachLine(function (line) {
-              cm.removeLineClass(line, 'background', 'cptteach-fixed');
-            });
           }
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
@@ -319,16 +398,24 @@
         lastEditorRun = uiOptions.cm || null;
         setWhileRunning();
 
-        editors = {};
-        editors["definitions://"] = uiOptions.cm;
-        function invalidateHighlights(cm, change) {
-          cm.off("change", invalidateHighlights);
-          document.getElementById("main").dataset.highlights = "";
-        }
-        editors["definitions://"].on("change", invalidateHighlights);
+        CPO.documents.forEach(function(doc, name) {
+          if (name.indexOf("interactions://") === 0)
+            CPO.documents.delete(name);
+        });
+        
+        CPO.documents.set("definitions://", uiOptions.cm.getDoc());
+
         interactionsCount = 0;
         replOutputCount = 0;
-        var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
+        logger.log('run', { name      : "definitions://",
+                            type_check: !!uiOptions["type-check"]
+                          });
+        var options = {
+          typeCheck: !!uiOptions["type-check"],
+          checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
+                          // if this becomes a check box somewhere in CPO
+        };
+        var replResult = repl.restartInteractions(src, options);
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
           return r;
@@ -340,14 +427,13 @@
       };
 
       var runner = function(code) {
-        document.getElementById("main").dataset.highlights = "";
         items.unshift(code);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
         var echo = $("<textarea>");
         echoSpan.append(echo);
-        echoContainer.append(drawPromptArrow()).append(echoSpan);
+        echoContainer.append(echoSpan);
         write(echoContainer);
         var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
         echoCM.setValue(code);
@@ -357,7 +443,8 @@
         setWhileRunning();
         interactionsCount++;
         var thisName = 'interactions://' + interactionsCount;
-        editors[thisName] = echoCM;
+        CPO.documents.set(thisName, echoCM.getDoc());
+        logger.log('run', { name: thisName });
         var replResult = repl.run(code, thisName);
 //        replResult.then(afterRun(CM));
         var startRendering = replResult.then(function(r) {
@@ -388,7 +475,7 @@
         }
       }).cm;
 
-      editors['definitions://'] = CM;
+      CPO.documents.set('definitions://', CM.getDoc());
 
       var lastNameRun = 'interactions';
       var lastEditorRun = null;

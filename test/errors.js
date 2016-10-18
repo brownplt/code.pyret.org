@@ -11,21 +11,21 @@ describe("Rendering errors", function() {
   }
 
   var tests = [
-    ["renderSimpleReasonSimple", "_plus(1, 'x')", "definitions://:1:0-1:13"],
+    ["renderSimpleReasonSimple", "_plus(1, 'x')", "(definitions://, 1, 0, 0, 1, 13, 13)"],
     ["renderSimpleReasonError",  "_plus(1, 'x')", "An error occurred rendering the reason"],
     
     ["field-not-found", "{}.x", "did not have a field"],
-    ["lookup-non-object", "5.x", "non-object value"],
-    ["lookup-constructor-not-object", "data D: d() end\n d.x", "evaluated to a constructor (d)"],
-    ["update-non-obj", "5!{x : 10}", "The reference update expression"],
+    ["lookup-non-object", "5.x", "not an object"],
+    ["lookup-constructor-not-object", "data D: d() end\n d.x", "was a constructor"],
+    ["update-non-obj", "5!{x : 10}", "reference update expression"],
     ["update-non-ref", "{x:5}!{x : 10}", "is not a reference"],
     ["update-non-existent-field", "{x:5}!{y : 10}", "does not exist"],
-    ["no-cases-matched", "cases(List) link(1, empty): | empty => true end", "expects there to always be a branch matching"],
-    ["no-branches-matched", "if 1 == 2: 5 else if 3 == 4: 6 end", "expects that the condition of at least one branch be satisfied"],
-    ["template-not-finished", "fun f(): ... end\nf()", "tried to evaluate an unfinished template"],
-    ["template-not-finished", "fun f(): ... end\nf()", "tried to evaluate an unfinished template"],
-    ["lookup-non-tuple", "5.{1}", "evaluate to a tuple"],
-    ["lookup-large-index", "{1;2}.{3}", "a value could not be found at the given position"],
+    ["no-cases-matched", "cases(List) link(1, empty): | empty => true end", "matched the value"],
+    ["no-branches-matched", "if 1 == 2: 5 else if 3 == 4: 6 end", "the condition of at least one branch be satisfied"],
+    ["template-not-finished", "fun f(): ... end\nf()", "Template expressions cannot be evaluated."],
+    ["template-not-finished", "fun f(): ... end\nf()", "Template expressions cannot be evaluated."],
+    ["lookup-non-tuple", "5.{1}", "was not a tuple value"],
+    ["lookup-large-index", "{1;2}.{3}", "given position"],
 
     ["type-id-used-as-value", "data D: d(x) end\nmy-x = D.x", "but it is defined as a type"],
 
