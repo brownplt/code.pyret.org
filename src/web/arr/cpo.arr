@@ -113,7 +113,7 @@ fun make-on-compile(save-gdrive-file):
     locator.set-compiled(loadable, SD.make-mutable-string-dict())
     locuri = loadable.provides.from-uri
     cases(CS.CompileResult) loadable.result-printer:
-      | ok(ccp) => 
+      | ok(ccp) =>
         protocol = string-substring(locuri, 0, string-index-of(locuri, "://"))
         ask block:
           | save-protocols.member(protocol) then:
@@ -150,7 +150,7 @@ fun compile-ast(ast, runtime, finder, options) -> E.Either:
 end
 
 fun run(runtime, realm, js-source):
-  L.run-program(runtime, realm, js-source)
+  L.run-program(runtime, realm, js-source, {check-all: false})
 end
 
 fun make-repl(builtin-mods, runtime, realm, finder):
@@ -158,4 +158,3 @@ fun make-repl(builtin-mods, runtime, realm, finder):
   repl = R.make-repl(runtime, modules, realm, "cpo-context-currently-unused", finder)
   repl
 end
-
