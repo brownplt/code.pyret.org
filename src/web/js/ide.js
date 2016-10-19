@@ -325,7 +325,13 @@ function makeRuntimeAPI(CPOIDEHooks) {
   };
 }
 
-PyretIDE.init({
+init({
+  firebaseConfig: {
+    apiKey:        process.env.FIREBASE_API_KEY,
+    authDomain:    process.env.FIREBASE_AUTH_DOMAIN,
+    databaseUrl:   process.env.FIREBASE_DB_URL,
+    storageBucket: process.env.FIREBASE_BUCKET,
+  },
   debug: process.env.NODE_ENV !== 'production',
   rootEl: appDiv,
   codemirrorOptions: {

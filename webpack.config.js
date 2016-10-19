@@ -38,6 +38,11 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
+      'process.env.FIREBASE_API_KEY': JSON.stringify(process.env.FIREBASE_API_KEY),
+      'process.env.FIREBASE_AUTH_DOMAIN': JSON.stringify(process.env.FIREBASE_AUTH_DOMAIN),
+      'process.env.FIREBASE_DB_URL': JSON.stringify(process.env.FIREBASE_DB_URL),
+      'process.env.FIREBASE_BUCKET': JSON.stringify(process.env.FIREBASE_BUCKET),
+
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.PYRET': JSON.stringify(process.env.PYRET),
       'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL),
@@ -52,10 +57,6 @@ module.exports = {
   ] : [
     new webpack.HotModuleReplacementPlugin(),
   ]),
-  babel: {
-    presets: ['es2015', 'react'],
-    sourceMaps: true,
-  },
   devServer: IS_PRODUCTION ? false : {
     inline: true,
     hot: true,

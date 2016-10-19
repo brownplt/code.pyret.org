@@ -7,6 +7,7 @@
     "npm": "3.x"
   },
   "dependencies": {
+    "babel-core": "^6.17.0",
     "babel-eslint": "^6.0.4",
     "babel-loader": "^6.2.4",
     "babel-polyfill": "^6.9.1",
@@ -77,5 +78,8 @@
     "url": "git://github.com/brownplt/code.pyret.org"
   },
   "author": "Joe Politz",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel-preset-stage-2": "^6.17.0"
+  }
 }
