@@ -2,7 +2,7 @@ var path = require('path');
 var webpack = webpack = require('webpack');
 
 var IS_PRODUCTION = process.env.NODE_ENV == 'production';
-
+var SRC_DIRECTORY = path.resolve(__dirname, 'src');
 module.exports = {
   output: {
     path: path.resolve(__dirname, "build", "web"),
@@ -17,14 +17,21 @@ module.exports = {
   module: {
     preLoaders: [{
       test: /\.js$/,
-      include: [
-        path.resolve(__dirname, 'src'),
-      ],
+      include: [SRC_DIRECTORY],
       loader: "babel",
       query: {
         cacheDirectory: true
       }
-    }],
+    }].concat(
+      (process.env.COVERAGE || process.env.CONTINUOUS_INTEGRATION) ?
+      [{
+        test: /\.js/,
+        loader: 'isparta',
+        include: SRC_DIRECTORY,
+        exclude: /node_modules/
+      }] :
+      []
+    ),
   },
   resolve: {
     root: [path.resolve("./node_modules")],
