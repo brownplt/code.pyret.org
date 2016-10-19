@@ -23,6 +23,9 @@ env:
 #  - SAUCE_BROWSER="internet explorer"
 node_js:
 - 6.2.1
+cache:
+  directories:
+    - node_modules
 before_script:
 - node src/run.js &
 - sleep 3
