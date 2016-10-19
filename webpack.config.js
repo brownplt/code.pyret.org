@@ -1,8 +1,11 @@
 var path = require('path');
+var fs = require('fs');
 var webpack = webpack = require('webpack');
 
 var IS_PRODUCTION = process.env.NODE_ENV == 'production';
 var SRC_DIRECTORY = path.resolve(__dirname, 'src');
+var IDE_SRC_DIRECTORY = path.resolve(__dirname, 'node_modules', 'pyret-ide', 'src');
+
 module.exports = {
   output: {
     path: path.resolve(__dirname, "build", "web"),
@@ -15,9 +18,22 @@ module.exports = {
     "js/ide": './src/web/js/ide.js',
   },
   module: {
+    loaders: [
+      {test: /\.css$/, loaders: ["style", "css"]},
+      {test:/.png|.jpg|.jpeg|.gif|.svg/, loader: "url-loader?limit=10000"},
+      {test:/.woff|.woff2/, loader: "url-loader?limit=10000"},
+      {test:/.woff|.woff2/, loader: "url-loader?limit=10000"},
+      {test:/.ttf|.eot/, loader: "file-loader"},
+      {test: /\.less$/, loader:'style!css!less'},
+    ],
     preLoaders: [{
       test: /\.js$/,
-      include: [SRC_DIRECTORY],
+      include: [
+        SRC_DIRECTORY,
+        // for some reason, webpack doesn't know how to deal with symlinks
+        // when deciding which loaders to use
+        fs.realpathSync(IDE_SRC_DIRECTORY),
+      ],
       loader: "babel",
       query: {
         cacheDirectory: true
@@ -35,6 +51,9 @@ module.exports = {
   },
   resolve: {
     root: [path.resolve("./node_modules")],
+    alias: {
+      'pyret-ide': path.resolve(IDE_SRC_DIRECTORY, 'pyret-ide'),
+    },
   },
   plugins: [
     new webpack.DefinePlugin({
@@ -61,8 +80,12 @@ module.exports = {
     inline: true,
     hot: true,
     progress: true,
-    contentBase: path.join(__dirname, 'build', 'web'),
-    port: 5001
+    port: 5001,
+    proxy: {
+      "/**": {
+        target: 'http://localhost:5000',
+      }
+    }
   },
   progress: true
 };
