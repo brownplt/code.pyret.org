@@ -1,4 +1,5 @@
-import PyretIDE from 'pyret-ide';
+import React from 'react';
+import { init, LanguageError, UserError, HoverHighlight } from 'pyret-ide';
 import seedrandom from 'seedrandom';
 import sExpression from 's-expression';
 import 'babel-polyfill';
@@ -226,9 +227,89 @@ function makeRuntimeAPI(CPOIDEHooks) {
   function toReprErrorOrDie(value, reject) {
     toReprOrDie(
       value,
-      error => reject(new PyretIDE.UserError(error)),
+      error => reject(new UserError(error)),
       reject
     );
+  }
+  let pass = { app: function() { return true; } };
+  function srclocToHighlight(srcloc, color, target) {
+    return runtime.ffi.cases(pass, "Srcloc", srcloc, {
+      builtin: (name) => ({
+        color: color,
+        span: { from: { line: 0, ch: 0 }, to: { line: 0, ch: 0 } }
+      }),
+      srcloc: (source, sl, sc, sch, el, ec, ech) => ({
+        color: color,
+        span: { from: { line: sl - 1, ch: sc }, to: { line: el - 1, ch: ec } }
+      })
+    });
+  }
+  function makeIDERenderable(pyretErrorDisplay) {
+    let A = runtime.ffi.toArray;
+    return runtime.ffi.cases(pass, "ErrorDisplay", pyretErrorDisplay, {
+
+      "paragraph": (contents) =>
+        <p>{A(contents).map(makeIDERenderable)}</p>,
+
+      "highlight": (contents, locs, color) =>
+        <HoverHighlight
+          color={String(color)}
+          target="definitions://" // TODO(joe): refactor to be per-loc?
+          highlights={A(locs).map(l => srclocToHighlight(l, color, "definitions://"))}
+        >
+          {makeIDERenderable(contents)}
+        </HoverHighlight>,
+
+      "text": (str) => <span>{str}</span>,
+
+      "embed": (val) => <span>Pyret Value</span>,
+
+      "loc-display": (loc, style, contents) => makeIDERenderable(contents),
+
+      "optional": (contents) => makeIDERenderable(contents),
+
+      "code": (contents) => <code>{makeIDERenderable(contents)}</code>,
+
+      "loc": (loc) =>
+        <HoverHighlight
+          color="red"
+          target="definitions://"
+          highlights={[srclocToHighlight(loc, "red", "definitions://")]}
+        >{runtime.getField(loc, "format").app(false)}</HoverHighlight>,
+
+      "maybe-stack-loc": (n, ufo, cwl, cwol) => <span>Maybe Stack Loc</span>,
+
+      "cmcode": (loc) => <span>CM-code</span>,
+
+      "v-sequence": (contents) =>
+        <div>
+          {A(contents).map(makeIDERenderable).map(function(c) { return <div>{c}</div>; })}
+        </div>,
+
+      "bulleted-sequence": (contents) =>
+        <ul>
+          {A(contents).map(makeIDERenderable).map(function(c) { return <li>{c}</li>; })}
+        </ul>,
+
+      "h-sequence": (contents) =>
+        <div>
+          {A(contents).map(makeIDERenderable).map(function(c) { return <span>{c}</span>; })}
+        </div>
+    });
+  }
+  function renderParseError(value, reject) {
+    runtime.runThunk(
+      () => runtime.getField(value, "render-fancy-reason").app(
+        runtime.makeFunction(function() { return false; }, "ide-src-available"),
+      ),
+      (result) => {
+        if(runtime.isSuccessResult(result)) {
+          reject(new LanguageError(makeIDERenderable(result.result)));
+        } else {
+          console.error("Failed while rendering parse error: ", result);
+          reject("Failed while rendering parse error");
+        }
+      });
   }
   return {
     /*
@@ -249,7 +330,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
             if (runtime.isSuccessResult(parseResult)) {
               resolve(parseResult.result);
             } else {
-              toReprErrorOrDie(parseResult.exn.exn, reject);
+              renderParseError(parseResult.exn.exn, reject);
             }
           });
       });
