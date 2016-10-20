@@ -304,7 +304,7 @@ function start(config, onServerReady) {
     });
   });
 
-  app.get("/ide", function(req, res) {
+  app.get(/\/ide(\/.*)?$/, function(req, res) {
     res.render(
       path.resolve(__dirname, "web", "ide.html"),
       {ASSET_BASE_URL: process.env.ASSET_BASE_URL || ''}
@@ -374,7 +374,7 @@ function start(config, onServerReady) {
           var drive = getDriveClient(newToken, 'v2');
 
           var newFileP = Q.defer();
-          
+
           drive.files.copy({
             fileId: driveFileId,
             resource: {
