@@ -205,11 +205,57 @@ function makeRuntimeAPI(CPOIDEHooks) {
       }
     };
   };
+
   // not sure what to do here
-  // renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
-  //   var container = $("<span>").addClass("replOutput");
-  //   return helper(container, top.extra.skeleton, top.done);
-  // };
+  /*
+    @param top {
+      extra :: {
+        skeleton :: ValueSkeleton
+      },
+      done :: Array<RenderedStuff>
+    }
+  */
+  function runP(thunk) {
+    return new Promise((resolve, reject) =>
+      runtime.runThunk(
+        () => thunk(),
+        (result) => {
+          if(runtime.isSuccessResult(result)) {
+            resolve(result.result);
+          }
+          else {
+            reject(result.exn);
+          }
+        }
+      )
+    );
+  }
+  renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
+    console.log(top.extra.skeleton, top.done);
+    let skeleton = top.extra.skeleton;
+    let iter = runtime.getField(skeleton, "items-iterator");
+    function checkSuccess(result, reject) {
+      if(runtime.isFailureResult(result)) {
+        console.error("Error while calling next: ", result);
+        reject(new Error("Error while calling next"));
+        return false;
+      }
+      return true;
+    }
+    if(runtime.ffi.isVSCollectionIter(skeleton)) {
+      return {
+        type: 'lazy-iter',
+        name: runtime.getField(skeleton, "name"),
+        size: runtime.getField(skeleton, "size"),
+        callable: function() {
+          return runP(() => runtime.getField(iter, "next").app())
+            .then((valueskeleton) =>
+              runP(() => runtime.toReprJS(runtime.getField(valueskeleton, "value"), renderers))
+            );
+        },
+      };
+    }
+  };
 
   function toReprOrDie(value, resolve, reject) {
     runtime.runThunk(
@@ -398,11 +444,15 @@ function makeRuntimeAPI(CPOIDEHooks) {
           });
       });
     },
+    /* callable<a> :: (--Host--> Promise<a>) -> Promise<a> */
+    executeCallable(callable) {
+      return callable();
+    },
     stop() {
       // NOTE(joe): This will cause the current parse, compile, OR execute to
       // reject() with a "user break" message.
       runtime.breakAll();
-    }
+    },
   };
 }
 
