@@ -357,6 +357,28 @@ function makeRuntimeAPI(CPOIDEHooks) {
         }
       });
   }
+
+
+  const runQueue = [];
+  var isRunning = false;
+  function dequeueAndRun() {
+    if(runQueue.length === 0) {
+      isRunning = false;
+      return;
+    }
+    const current = runQueue.shift(); 
+    isRunning = true;
+    current.callable()
+      .then((result) => {
+        current.resolve(result);
+        dequeueAndRun();
+      })
+      .catch((reason) => {
+        current.reject(reason);
+        dequeueAndRun();
+      });
+  }
+
   return {
     /*
       @param {string} src - some Pyret code
@@ -446,7 +468,12 @@ function makeRuntimeAPI(CPOIDEHooks) {
     },
     /* callable<a> :: (--Host--> Promise<a>) -> Promise<a> */
     executeCallable(callable) {
-      return callable();
+      return new Promise((resolve, reject) => {
+        runQueue.push({ callable, resolve, reject });
+        if(!isRunning) {
+          dequeueAndRun();
+        }
+      })
     },
     stop() {
       // NOTE(joe): This will cause the current parse, compile, OR execute to
