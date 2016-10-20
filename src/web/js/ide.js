@@ -415,6 +415,7 @@ init({
   },
   debug: process.env.NODE_ENV !== 'production',
   rootEl: appDiv,
+  baseUrl: '/ide',
   codemirrorOptions: {
     mode: 'pyret',
   },
