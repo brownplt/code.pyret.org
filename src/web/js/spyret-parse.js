@@ -515,6 +515,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["false"] = "_spyret_false";
     symbolMap["true"] = "_spyret_true";
     symbolMap["pi"] = "_spyret_pi";
+    symbolMap["tau"] = "_spyret_tau";
     symbolMap["e"] = "_spyret_e";
 
     symbolMap["EXAMPLE"] = "_spyret_check_expect";
