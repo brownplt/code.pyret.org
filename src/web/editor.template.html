@@ -158,8 +158,8 @@ var env_PYRET = "{{ PYRET }}";
 env_PYRET = env_PYRET.replace(/\/\/%26\//, '').replace(/&#x2F;/g, '/');
 var env_CURRENT_PYRET_RELEASE = "{{ CURRENT_PYRET_RELEASE }}";
 function handleGoogLoad() {
-  console.log('doing handleGoogLoad II', clientId);
-  handleClientLoad(clientId, apiKey);
+  console.log('doing editor.html > handleGoogLoad');
+  handleClientLoad(apiKey);
 }
 </script>
 <!-- Google API Loader (For picker) -->

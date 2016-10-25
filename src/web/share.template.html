@@ -30,8 +30,8 @@
 var clientId = "{{ GOOGLE_CLIENT_ID }}";
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
-  //console.log('doing handleGoogLoad III');
-  handleClientLoad(clientId, apiKey);
+  console.log('doing share.html > handleGoogLoad');
+  handleClientLoad(apiKey);
 }
 </script>
 <script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
