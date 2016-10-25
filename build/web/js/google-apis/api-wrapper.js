@@ -8,10 +8,6 @@
  * wrapped Google API
  */
 
-var useOAuth = true;
-
-//useOAuth = false;
-
 var gwrap = window.gwrap = {
   // Initialize to a dummy method which loads the wrapper
   load: function(params) {
@@ -20,7 +16,8 @@ var gwrap = window.gwrap = {
       throw new Error("Google API Wrapper not yet initialized");
     }
     var ret = Q.defer();
-    loadAPIWrapper(params.reauth.immediate)
+    console.log('gwrap calling loadAPIWrapper');
+    loadAPIWrapper(!params.reauth.immediate)
       .then(function(gw) {
         // Shallow copy
         var copy = $.extend({}, params);
@@ -50,7 +47,7 @@ var _GWRAP_APIS = {};
  */
 function loadAPIWrapper(immediate) {
 
-  //console.log('doing loadAPIWrapper ' + immediate);
+  console.log('doing loadAPIWrapper', immediate);
 
   // Sanity check: Make sure aforementioned things are
   //               actually defined.
@@ -69,11 +66,6 @@ function loadAPIWrapper(immediate) {
   assertDefined('gapi');
   assertDefined('apiKey');
   assertDefined('Q');
-
-  if (clientId === '') {
-    console.log('clientId empty; won\'t use OAuth');
-    useOAuth = false;
-  }
 
   // Sanity check passed.
 
@@ -133,19 +125,6 @@ function loadAPIWrapper(immediate) {
 
   // Function definitions
 
-  var OAUTH_SCOPES = ["email",
-                      "https://www.googleapis.com/auth/spreadsheets",
-                      // The `drive` scope allows us to open files
-                      // (particularly spreadsheets)made outside of
-                      // the Pyret ecosystem.
-                      "https://www.googleapis.com/auth/drive",
-                      "https://www.googleapis.com/auth/drive.file",
-                      "https://www.googleapis.com/auth/drive.install",
-                      "https://www.googleapis.com/auth/drive.photos.readonly",
-                      "https://www.googleapis.com/auth/photos"];
-
-  var SCOPE = OAUTH_SCOPES.join(' ');
-
   /**
    * Reauthenticates the current session.
    * @param {boolean} immediate - Whether the user needs to log in with
@@ -153,64 +132,33 @@ function loadAPIWrapper(immediate) {
    * @returns A promise which will resolve following the re-authentication.
    */
   function reauth(immediate) {
-    console.log('doing reauth ' + immediate);
+    console.log('DOING REAUTH', immediate);
     var d = Q.defer();
-    if (!useOAuth) {
-      console.log('reauth/!OAuth2 ' + immediate);
 
-      if (!immediate) {
-        // Need to do a login to get a cookie for this user; do it in a popup
-        var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
-        window.addEventListener('message', function(e) {
-          // e.domain appears to not be defined in Firefox
-          if ((e.domain || e.origin) === document.location.origin) {
-            d.resolve(reauth(true));
-          } else {
-            d.resolve(null);
-          }
-        });
-      } else {
-        // The user is logged in, but needs an access token from our server
-        var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
-        newToken.then(function(t) {
-          gapi.auth.setToken({ access_token: t.access_token });
-          logger.log('login', {user_id: t.user_id});
-          d.resolve({ access_token: t.access_token });
-        });
-        newToken.fail(function(t) {
-          d.resolve(null);
-        });
-      }
-
-    } else {
-
-      console.log('reauth/OAuth2 ' + immediate);
-      if (!clientId) {
-        console.log('authorization not possible');
-        d.resolve(null);
-      }
-      else {
-        if (!immediate) {
-          console.log('trying gapi.auth.authorize');
-          gapi.auth.authorize({
-            "client_id": clientId,
-            "scope": SCOPE,
-            "immediate": false
-          }, function(authResult) {
-            if (authResult && !authResult.error) {
-              console.log('authorization successful');
-              // can't be false or makes ∞ loop
-              d.resolve(reauth(true));
-            } else {
-              console.log('authorization failed');
-              d.resolve(null);
-            }
-          });
+    if (!immediate) {
+      //console.log('need to do login');
+      // Need to do a login to get a cookie for this user; do it in a popup
+      var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
+      window.addEventListener('message', function(e) {
+        // e.domain appears to not be defined in Firefox
+        if ((e.domain || e.origin) === document.location.origin) {
+          d.resolve(reauth(true));
         } else {
-          d.resolve(true);
+          d.resolve(null);
         }
-      }
-
+      });
+    } else {
+      console.log('user logged in, but need access token');
+      // The user is logged in, but needs an access token from our server
+      var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
+      newToken.then(function(t) {
+        gapi.auth.setToken({ access_token: t.access_token });
+        logger.log('login', {user_id: t.user_id});
+        d.resolve({ access_token: t.access_token });
+      });
+      newToken.fail(function(t) {
+        d.resolve(null);
+      });
     }
 
     return d.promise;
@@ -270,7 +218,7 @@ function loadAPIWrapper(immediate) {
    * @returns {Promise} The wrapped promise
    */
   function failCheck(p) {
-    console.log('doing failCheck');
+    //console.log('doing failCheck');
     return p.then(function(result) {
       // Network error
       if (result && (typeof result.code === "number") && (result.code >= 400)) {
@@ -293,12 +241,9 @@ function loadAPIWrapper(immediate) {
    * @returns {Promise} A promise which resolves to the result of the Google query
    */
   function gQ(request, skipAuth) {
-    console.log('doing gQ ' + request + ', ' + skipAuth);
-    var oldAccess;
-    if (!useOAuth) {
-      oldAccess = gapi.auth.getToken();
-      if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
-    }
+    console.log('doing gQ', request, skipAuth);
+    var oldAccess = gapi.auth.getToken();
+    if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
     var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       // TODO: This should be migrated to a promise
@@ -307,7 +252,7 @@ function loadAPIWrapper(immediate) {
       });
       return d.promise;
     }));
-    if (!useOAuth && skipAuth) {
+    if (skipAuth) {
       ret.fin(function() {
         gapi.auth.setToken({ access_token: oldAccess });
       });
@@ -335,6 +280,7 @@ function loadAPIWrapper(immediate) {
                                  + "params.reauth.immediate");
       }
       var reloaded = Q.defer();
+      console.log('loadAPI calling loadAPIWrapper');
       loadAPIWrapper(params.reauth.immediate)
         .then(function(gw) {
           // Shallow copy
@@ -426,8 +372,7 @@ function loadAPIWrapper(immediate) {
     }
   }
 
-  var initialAuth = reauth(useOAuth ? !immediate : immediate);
-  //var initialAuth = reauth(immediate);
+  var initialAuth = reauth(immediate); // or !immediate ?
   return initialAuth.then(function(_) {
     /**
      * Creates the API Wrapping module to export

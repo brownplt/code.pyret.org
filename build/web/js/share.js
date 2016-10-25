@@ -47,7 +47,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   }
 
   function makeShareLink(originalFile) {
-    console.log('doing makeShareLink ' + originalFile);
+    //console.log('doing makeShareLink ' + originalFile);
     var link = $("<div>").append($("<button class=blueButton>").text("Publish..."));
     var shareDiv = $("<div>").addClass("share");
     return makeHoverMenu(link, shareDiv, false,
@@ -57,23 +57,28 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   }
 
   function showShares(container, originalFile) {
-    console.log('doing showShares ' + JSON.stringify(originalFile));
+    //console.log('doing showShares ' + JSON.stringify(originalFile));
     container.empty();
-    var shares = originalFile.getShares();
+    //var shares = originalFile.getShares();
+    var shares = originalFile.then(function(f) { return f.getShares(); });
     container.text("Loading share info...");
     var displayDone = shares.then(function(sharedInstances) {
       container.empty();
       console.log(sharedInstances);
       var a = $("<a>").text("Publish a new copy").attr("href", "javascript:void(0)");
       a.click(function() {
-        var copy = originalFile.makeShareCopy();
+        //var copy = originalFile.makeShareCopy();
+        var copy = originalFile.then(function(f) {
+          //console.log('showShares > originalFile.then', 'calling makeShareCopy');
+          return f.makeShareCopy(); 
+        });
         a.text("Copying...").attr("href", null);
         copy.fail(function(err) {
           console.log("Couldn't make copy: ", err);
           showShares(container, originalFile);
         });
         var copied = copy.then(function(f) {
-          console.log('copied xxx');
+          //console.log('copied xxx');
           container.empty();
           showShares(container, originalFile);
         });
