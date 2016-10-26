@@ -1,6 +1,7 @@
 # NOTE: Needs TWO blank lines here, dunno why
 define \n
 
+
 endef
 ifneq ($(findstring .exe,$(SHELL)),)
 	override SHELL:=$(COMSPEC)$(ComSpec)
