@@ -17,7 +17,7 @@ var gwrap = window.gwrap = {
     }
     var ret = Q.defer();
     console.log('gwrap calling loadAPIWrapper');
-    loadAPIWrapper(!params.reauth.immediate)
+    loadAPIWrapper(params.reauth.immediate) // arg negated? --ds26gte
       .then(function(gw) {
         // Shallow copy
         var copy = $.extend({}, params);
@@ -372,7 +372,7 @@ function loadAPIWrapper(immediate) {
     }
   }
 
-  var initialAuth = reauth(immediate); // or !immediate ?
+  var initialAuth = reauth(immediate); // arg negated? --ds26gte
   return initialAuth.then(function(_) {
     /**
      * Creates the API Wrapping module to export
