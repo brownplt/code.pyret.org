@@ -42,6 +42,7 @@ function makeAuth(config) {
       });
     },
     getAuthUrl: function(afterUrl) {
+      console.log('doing getAuthUrl', afterUrl)
         return oauth2Client.generateAuthUrl({
         // Offline lets us handle refreshing access on our own (rather than
         // popping up a dialog every half hour)
@@ -110,7 +111,7 @@ function makeAuth(config) {
         // from elsewhere, we need to set up polling of Google's public key
         // servers to get the correct public key of the day to validate these
         // tokens cryptographically.
-        console.log('tokens=', tokens);
+        //console.log('tokens=', tokens);
         var decodedId = jwt.decode(tokens.id_token, {}, true);
         console.log('googleId=', decodedId['sub'], 'access=', tokens.access_token, 'refresh=', tokens.refresh_token);
         callback(null, { googleId: decodedId["sub"], access: tokens.access_token, refresh: tokens.refresh_token });
