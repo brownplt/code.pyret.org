@@ -23,7 +23,7 @@ function start(config, onServerReady) {
   }
 
   function requireLogin(req, res) {
-    //console.log('doing requireLogin');
+    console.log('doing requireLogin');
     var login = Q.defer();
     var session = req.session;
     function redirect() {
@@ -97,18 +97,18 @@ function start(config, onServerReady) {
   });
 
   app.get("/login", function(req, res) {
-    //console.log('doing /login');
+    console.log('doing /login');
     var redirect = req.param("redirect") || "/editor";
-    //console.log('redirect=', redirect);
-    //if (req.session) {
-    // console.log('req.session found, user_id=', req.session['user_id']);
-    //}
-    if(!!(req.session && req.session["user_id"])) {
-      //console.log('req.session.user_id =', req.session['user_id']);
+    console.log('redirect=', redirect);
+    if (req.session) {
+      console.log('/login req.session found, user_id=', req.session['user_id']);
+    }
+    if(!(req.session && req.session["user_id"])) { // ! -> !! ? --ds26gte
+      console.log('req.session.user_id =', req.session['user_id']);
       res.redirect(auth.getAuthUrl(redirect));
     }
     else {
-      //console.log('didnt do auth?');
+      console.log('/login didnt do auth?');
       res.redirect(redirect);
     }
   });
@@ -171,19 +171,21 @@ function start(config, onServerReady) {
   });
 
   app.get(config.google.redirect, function(req, res) {
-    //console.log('redirect calling serveRedirect');
+    console.log('redirect calling serveRedirect');
     auth.serveRedirect(req, function(err, data) {
-      //console.log('data=', data);
+      console.log('serveRedirect > fn, data=', data);
       if(err) { res.send({type: "auth error", error: err}); }
       else {
-        //console.log('existingUser=', data.googleId);
+        console.log('existingUserGoogleId=', data.googleId);
         var existingUser = db.getUserByGoogleId(data.googleId);
         existingUser.fail(function(err) {
           console.error("Error on getting user: ", err);
           res.send({type: "DB error", error: err});
         });
         var user = existingUser.then(function(user) {
+          console.log('redirect user=', user);
           if(user === null) {
+            console.log('calling createUser');
             var newUser = db.createUser({
               google_id: data.googleId,
               refresh_token: data.refresh
@@ -220,21 +222,21 @@ function start(config, onServerReady) {
   });
 
   app.get("/getAccessToken", function(req, res) {
-    //console.log('server.js > /getAccessToken > fn');
+    console.log('server.js > /getAccessToken > fn');
     function noAuth() {
       res.status(404).send("No account information found.");
     }
     if(req.session && req.session["user_id"]) {
-      //console.log('req.session.user_id=', req.session['user_id']);
+      console.log('/getAccessToken req.session.user_id=', req.session['user_id']);
       var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
       maybeUser.then(function(u) {
-        //console.log('u=', u);
+        console.log('u=', u);
         if(u === null) {
-          //console.log('getAccessToken u == null!');
+          console.log('/getAccessToken u == null!');
           noAuth();
           return null;
         }
-        //console.log('u.refresh_token=', u.refresh_token);
+        console.log('u.refresh_token=', u.refresh_token);
         return auth.refreshAccess(u.refresh_token, function(err, newToken) {
           if(err) { res.send(err); res.end(); return; }
           else {
@@ -364,14 +366,14 @@ function start(config, onServerReady) {
   });
 
   app.post("/create-shared-program", function(req, res) {
-    //console.log('server.js > /create-shared-program > fn');
+    console.log('server.js > /create-shared-program > fn');
     var driveFileId = req.body.fileId;
     var title = req.body.title;
     var collectionId = req.body.collectionId;
-    //console.log('driveFileId= ', driveFileId, 'title=', title, 'collectionId=', collectionId);
+    console.log('driveFileId= ', driveFileId, 'title=', title, 'collectionId=', collectionId);
     var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
     maybeUser.then(function(u) {
-      //console.log('create-shared-program u == null!');
+      console.log('create-shared-program u == null!');
       if(u === null) {
         res.status(403).send("Invalid or inaccessible user information");
         return null;
