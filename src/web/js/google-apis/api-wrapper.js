@@ -148,15 +148,17 @@ function loadAPIWrapper(immediate) {
         }
       });
     } else {
-      console.log('user logged in, but need access token');
+      console.log('user logged in, but we need access_token');
       // The user is logged in, but needs an access token from our server
       var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
       newToken.then(function(t) {
+        console.log('access_token got', t.access_token);
         gapi.auth.setToken({ access_token: t.access_token });
         logger.log('login', {user_id: t.user_id});
         d.resolve({ access_token: t.access_token });
       });
       newToken.fail(function(t) {
+        console.log('access_token not got');
         d.resolve(null);
       });
     }
