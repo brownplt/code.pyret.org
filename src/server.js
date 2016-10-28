@@ -98,7 +98,6 @@ function start(config, onServerReady) {
 
   app.get("/login", function(req, res) {
     console.log('doing /login');
-    console.log('config.google.redirect=', config.google.redirect);
     var redirect = req.param("redirect") || "/editor";
     console.log('redirect=', redirect);
     if (req.session) {
