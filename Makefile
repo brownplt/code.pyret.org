@@ -220,17 +220,18 @@ libpyret:
 $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
 	cp pyret/build/phaseA/compiled/*.js ./compiled/
-	node pyret/build/phaseA/pyret.jarr \
+	pyret \
+    --compiler pyret/build/phaseA/pyret.jarr \
     --builtin-js-dir src/web/js/trove/ \
     --builtin-js-dir pyret/src/js/trove/ \
-    -allow-builtin-overrides \
+    --allow-builtin-overrides \
     --builtin-arr-dir src/web/arr/trove/ \
     --builtin-arr-dir pyret/src/arr/trove/ \
     --require-config cpo-config.json \
-    --build-runnable src/web/arr/cpo-main.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
-    --outfile $(CPOMAIN) -no-check-mode
+    --outfile $(CPOMAIN) \
+    --program src/web/arr/cpo-main.arr
 
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
 # non-.js extension.
@@ -240,17 +241,18 @@ $(CPOGZ): $(CPOMAIN)
 $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
 	mkdir -p compiled/;
 	cp pyret/build/phaseA/compiled/*.js ./compiled/
-	node pyret/build/phaseA/pyret.jarr \
+	pyret \
+    --compiler pyret/build/phaseA/pyret.jarr \
     --builtin-js-dir src/web/js/trove/ \
     --builtin-js-dir pyret/src/js/trove/ \
-    -allow-builtin-overrides \
+    --allow-builtin-overrides \
     --builtin-arr-dir src/web/arr/trove/ \
     --builtin-arr-dir pyret/src/arr/trove/ \
     --require-config cpo-config.json \
-    --build-runnable src/web/arr/cpo-ide-hooks.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
-    --outfile $(CPOIDEHOOKS) -no-check-mode
+    --outfile $(CPOIDEHOOKS) \
+    --program src/web/arr/cpo-ide-hooks.arr
 
 clean:
 	rm -rf build/
