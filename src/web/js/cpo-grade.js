@@ -83,16 +83,7 @@
      */
     
     /**
-     * @typedef {{
-     *   implementation: GDriveFileData,
-     *   test: GDriveFileData,
-     *   student: GDriveFolderData,
-     *   runnerType: RunnerType,
-     *   success: boolean,
-     *   testsPassed: number,
-     *   testsTotal: number
-     * }}
-     * 
+     * @typedef *
      * GradeRunData
      */
     
