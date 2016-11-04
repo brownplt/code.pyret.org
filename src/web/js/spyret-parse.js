@@ -267,6 +267,17 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     };
     whenUnlessExpr.prototype = heir(Program.prototype);
 
+    function checkExpectExpr(lhs, rhs, stx) {
+      Program.call(this);
+      this.lhs = lhs;
+      this.rhs = rhs;
+      this.stx = stx;
+      this.toString = function() {
+        return "(" + this.stx[0] + " " + this.lhs.toString() + " " + this.rhs.toString() + ")";
+      }
+    };
+    checkExpectExpr.prototype = heir(Program.prototype);
+
     var symbolMap = {};
 
     symbolMap["=~"] = "_spyret_num_equal_tilde";
@@ -519,7 +530,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["e"] = "_spyret_e";
 
     symbolMap["EXAMPLE"] = "_spyret_check_expect";
-    symbolMap["check-expect"] = "_spyret_check_expect";
+    symbolMap["check-expect-orig"] = "_spyret_check_expect";
     symbolMap["check-within"] = "_spyret_check_within";
     symbolMap["display"] = "_spyret_display";
     symbolMap["error"] = "_spyret_error";
@@ -1267,6 +1278,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     plt.compiler.callExpr = callExpr;
     plt.compiler.ifExpr = ifExpr;
     plt.compiler.whenUnlessExpr = whenUnlessExpr;
+    plt.compiler.checkExpectExpr = checkExpectExpr;
     plt.compiler.symbolExpr = symbolExpr;
     plt.compiler.literal = literal;
     plt.compiler.quotedExpr = quotedExpr;
@@ -2466,6 +2478,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     var unquoteSplice = plt.compiler.unquoteSplice;
     var callExpr = plt.compiler.callExpr;
     var whenUnlessExpr = plt.compiler.whenUnlessExpr;
+    var checkExpectExpr = plt.compiler.checkExpectExpr;
     var defFunc = plt.compiler.defFunc;
     var defVar = plt.compiler.defVar;
     var defVars = plt.compiler.defVars;
@@ -3162,6 +3175,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           isSymbolEqualTo("or", peek) ? parseOrExpr(sexp) :
           isSymbolEqualTo("when", peek) ? parseWhenUnlessExpr(sexp) :
           isSymbolEqualTo("unless", peek) ? parseWhenUnlessExpr(sexp) :
+          isSymbolEqualTo("check-expect", peek) ? parseCheckExpectExpr(sexp) :
           isSymbolEqualTo("quote", peek) ? parseQuotedExpr(sexp) :
           isSymbolEqualTo("quasiquote", peek) ? parseQuasiQuotedExpr(sexp) :
           isSymbolEqualTo("unquote", peek) ? parseUnquoteExpr(sexp) :
@@ -3171,6 +3185,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         return expr;
       })();
     }
+
+
 
     function parseWhenUnlessExpr(sexp) {
       // is it just (when)?
@@ -3183,6 +3199,18 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var exprs = sexp.slice(2),
         result = new whenUnlessExpr(parseExpr(sexp[1]), parse(exprs), sexp[0]);
       exprs.location = exprs[0].location; // FIXME: merge the locations
+      result.location = sexp.location;
+      return result;
+    }
+
+    function parseCheckExpectExpr(sexp) {
+      if (sexp.length !== 3) {
+        throwError({
+          errMsg: ",, expected two expressions",
+          errArgLocs: [[sexp[0].val, sexp[0].location]]
+        });
+      }
+      var result = new checkExpectExpr(parseExpr(sexp[1]), parseExpr(sexp[2]), sexp[0]);
       result.location = sexp.location;
       return result;
     }
@@ -4177,7 +4205,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       // NOTE: the desugar.ss module converts use of check-expect into ones that
       // thunk its arguments", and pass an additional location argument.
       ,
-      ["check-expect", 2],
+      ["check-expect-orig", 2],
       ["EXAMPLE", 2],
       ["check-within", 3],
       ["check-error", 2],
@@ -4312,6 +4340,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     var unquoteSplice = plt.compiler.unquoteSplice;
     var callExpr = plt.compiler.callExpr;
     var whenUnlessExpr = plt.compiler.whenUnlessExpr;
+    var checkExpectExpr = plt.compiler.checkExpectExpr;
     var defFunc = plt.compiler.defFunc;
     var defVar = plt.compiler.defVar;
     var defVars = plt.compiler.defVars;
@@ -4548,6 +4577,14 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       if_exp.location = this.location;
       // DON'T desugar the ifExpr -- we don't forceBooleanContext on when/unless!
       return [if_exp, exprsAndPinfo[1]];
+    };
+    checkExpectExpr.prototype.desugar = function(pinfo) {
+      var exprsAndPinfo = desugarProgram([this.lhs, this.rhs], pinfo),
+        lhs = exprsAndPinfo[0][1],
+        rhs = exprsAndPinfo[0][2],
+        newCheckExpectExpr = new checkExpectExpr(lhs, rhs, this.stx);
+      newCheckExpectExpr.location = this.location;
+      return [newCheckExpectExpr, exprsAndPinfo[1]];
     };
     // letrecs become locals
     letrecExpr.prototype.desugar = function(pinfo) {
@@ -5066,6 +5103,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     Program.prototype.collectProvides = function(pinfo) {
       return pinfo;
     };
+
     provideStatement.prototype.collectProvides = function(pinfo) {
       var that = this;
 
@@ -5396,6 +5434,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     var unquoteSplice = plt.compiler.unquoteSplice;
     var callExpr = plt.compiler.callExpr;
     var whenUnlessExpr = plt.compiler.whenUnlessExpr;
+    var checkExpectExpr = plt.compiler.checkExpectExpr;
     var defFunc = plt.compiler.defFunc;
     var defVar = plt.compiler.defVar;
     var defVars = plt.compiler.defVars;
@@ -5542,7 +5581,25 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         value: "otherwise:",
         key: "'OTHERWISECOLON:otherwise:",
         pos: blankLoc
+      },
+      checkColonStx = {
+        name: "CHECKCOLON",
+        value: "check:",
+        key: "'CHECKCOLON:check:",
+        pos: blankLoc
       };
+
+    function wrapCheckTest(b) {
+      return {
+        name: "stmt",
+        pos: blankLoc,
+        kids: [{
+          name: "check-test",
+          pos: blankLoc,
+          kids: [b]
+        }]
+      };
+    }
 
     function wrapPrint(b) {
       return {
@@ -5689,6 +5746,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // provide and import will never be used
 
     function convertToPyretAST(programs, pinfo, provenance, moduleName) {
+      console.log('convertToPyretAST', 'provenance=', provenance, 'moduleName=', moduleName);
       var old_module = _module;
       if (provenance !== "module") {
         _pinfo = pinfo;
@@ -5758,6 +5816,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           it.kids.length > 0 && (it = it.kids[0]) &&
           it.name === "NAME" && it.value === "_spyret_check_expect") {
           checkExpects.push(b);
+        } else if (b.name === "app-expr" || b.name === "expr") {
+          otherExps.push(wrapCheckTest(b));
+        } else if (b.name === "check-expr") {
+          otherExps.push(wrapCheckTest(b));
         } else if (provenance === "repl" || provenance === "module") {
           otherExps.push(b);
         } else if (b.name === "id-expr" && (it = b.kids[0]) &&
@@ -5786,9 +5848,38 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
+
+      if (provenance === 'module') {
+        defnonfuns.push({
+          name: 'let-expr',
+          pos: blankLoc,
+          kids: [letStx, {
+            name: 'toplevel-binding',
+            pos: blankLoc,
+            kids: [{
+              name: 'name-binding',
+              pos: blankLoc,
+              kids: [{
+                name: 'SHADOW',
+                pos: blankLoc,
+                value: 'shadow',
+                key: "'SHADOW:shadow"
+              }, makeResolvedName('result-after-checks1', blankLoc, true)
+              ]
+            }]
+          }, equalsStx, {
+            name: 'id-expr',
+            pos: blankLoc,
+            kids: [makeResolvedName('nothing', blankLoc, true)]
+          }]
+        })
+      }
+            
       var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, checkExpects);
+
       it = {
         name: "block",
+        junk: "junk",
         pos: programs.location,
         kids: kiddos
       };
@@ -6887,6 +6978,48 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           pos: this.location.end()
         }],
         pos: loc
+      };
+    };
+
+    checkExpectExpr.prototype.toPyretAST = function() {
+      var loc = this.location;
+      return {
+        name: 'check-expr',
+        pos: this.location,
+        kids: [ checkColonStx, {
+          name: 'block',
+          pos: loc,
+          kids: [{
+            name: 'stmt',
+            pos: loc,
+            kids: [{
+              name: 'check-test',
+              pos: loc,
+              kids: [{
+                name: 'binop-expr',
+                pos: loc,
+                kids: [this.lhs.toPyretAST()]
+              }, {
+                name: 'check-op',
+                pos: loc,
+                kids: [{
+                  name: 'IS',
+                  pos: blankLoc,
+                  value: 'is',
+                  key: "'IS:is"
+                }]
+              }, {
+                name: 'binop-expr',
+                pos: this.rhs.location,
+                kids: [this.rhs.toPyretAST()]
+              }]
+            }]
+          }]
+        }, {
+          name: 'end',
+          pos: blankLoc,
+          kids: [endStx]
+        }]
       };
     };
 
