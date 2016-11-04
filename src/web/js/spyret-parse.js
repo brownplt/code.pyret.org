@@ -529,7 +529,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["tau"] = "_spyret_tau";
     symbolMap["e"] = "_spyret_e";
 
-    symbolMap["EXAMPLE"] = "_spyret_check_expect";
+    symbolMap["EXAMPLE-orig"] = "_spyret_check_expect";
     symbolMap["check-expect-orig"] = "_spyret_check_expect";
     symbolMap["check-within"] = "_spyret_check_within";
     symbolMap["display"] = "_spyret_display";
@@ -3176,6 +3176,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           isSymbolEqualTo("when", peek) ? parseWhenUnlessExpr(sexp) :
           isSymbolEqualTo("unless", peek) ? parseWhenUnlessExpr(sexp) :
           isSymbolEqualTo("check-expect", peek) ? parseCheckExpectExpr(sexp) :
+          isSymbolEqualTo("EXAMPLE", peek) ? parseCheckExpectExpr(sexp) :
           isSymbolEqualTo("quote", peek) ? parseQuotedExpr(sexp) :
           isSymbolEqualTo("quasiquote", peek) ? parseQuasiQuotedExpr(sexp) :
           isSymbolEqualTo("unquote", peek) ? parseUnquoteExpr(sexp) :
@@ -4206,7 +4207,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       // thunk its arguments", and pass an additional location argument.
       ,
       ["check-expect-orig", 2],
-      ["EXAMPLE", 2],
+      ["EXAMPLE-orig", 2],
       ["check-within", 3],
       ["check-error", 2],
       ["make-hasheq", 0],
