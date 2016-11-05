@@ -128,19 +128,10 @@
      * @type {Object<string,function()>}
      */
     var Util = {
-
-      // works for null/undefined as well
-      toString: function(obj) {
-        // if (obj === null) {
-        //   return 'null';
-        // } else if (obj === undefined) {
-        //   return 'undefined';
-        // } else {
-        //   return obj.toString();
-        // }
-        
+      toString: function(obj) {        
         return String(obj);
       },
+
       /**
        * Taken from developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
        * @param {number} min
@@ -188,183 +179,20 @@
         var xSplit = strX.split('.');
         var ySplit = strY.split('.');
         return (xSplit[0] === ySplit[0]);
-      },
-
-      /**
-       * Create mock student/grade data for testing
-       * @type {Object<string,function()>}
-       */
-      Mock: {
-        /**
-         * @param  {GDriveFileData} implementation
-         * @param  {GDriveFileData} test
-         * @param  {GDriveFolderData} student
-         * @param  {RunnerType} runnerType
-         * @return {GradeRunData}
-         */
-        createMockGradeData: function(implementation, test, student, runnerType) {
-          var testsTotal = (runnerType === RunnerType.TEST) ? 80 : Util.getRandomIntInclusive(40,100);
-          var testsPassed = Util.getRandomIntInclusive(0,testsTotal);
-          var success = (Util.getRandomIntInclusive(0,1) === 1);
-
-          return {
-            implementation: implementation,
-            test: test,
-            student: student,
-            runnerType: runnerType,
-            success: success,
-            testsPassed: testsPassed,
-            testsTotal: testsTotal
-          };
-        },
-
-        /**
-         * @param {number} numCoals
-         * @return {Array<GDriveFileData>}
-         */
-        createMockCoalsFileData: function(numCoals) {
-          var coals = [];
-          for(var i = 0; i < numCoals; i++) {
-            var name = 'coal-' + i + '.arr';
-            var id = name + '-gdrive-id';
-
-            coals[i] = {
-              name: name,
-              id: id
-            };
-          }
-          return coals;
-        },
-
-        /**
-         * @param {GDriveFileData} implementation
-         * @param {GDriveFileData} test
-         * @param {GDriveFolderData} student
-         * @param {RunnerType} runnerType
-         * @return {Runner}
-         */
-        createMockRunner: function(implementation, test, student, runnerType) {
-          var gradeRunData = Util.Mock.createMockGradeData(implementation, test, student, runnerType);
-          var gradeRunDataPromise = Util.makeResolvedPromise(gradeRunData);
-
-          var run = function() {
-            return gradeRunDataPromise;
-          };
-
-          var uniqueId = [student.id, Util.toString(implementation.id), Util.toString(test.id), 'Runner'].join('-');
-
-          return {
-            implementation: implementation,
-            test: test,
-            student: student,
-            runnerType: runnerType,
-            run: run,
-            uniqueId: uniqueId
-          };
-        },
-
-        /**
-         * @return {Array<StudentRunner>}
-         */
-        createMockStudentRunners: function() {
-          var studentData = (['A','B','C','D']).map(function(str) {
-            var name = str + '_Surname@brown.edu';
-            var id = str + '-gdrive-id';
-            return {
-              name: name,
-              id: id
-            };
-          });
-
-          var testRunners = studentData.map(function(student) {
-            // Run the student implementation...
-            var implementation = {
-              name: 'assignment-code.arr',
-              id: 'assignment-code-gdrive-id'
-            };
-
-            // ...against the solution test suite.
-            var test = {
-              name:'test-suite.arr',
-              id: 'test-suite-gdrive-id'
-            };
-
-            var runnerType = RunnerType.TEST;
-
-            return Util.Mock.createMockRunner(implementation, test, student, runnerType);
-          });
-
-          var goldRunners = studentData.map(function(student) {
-            // Run the gold implementation...
-            var implementation = {
-              name: 'gold.arr',
-              id: 'gold-gdrive-id'
-            };
-
-            // ...against the student test suite.
-            var test = {
-              name:'assignment-test.arr',
-              id: 'assignment-test-gdrive-id'
-            };
-
-            var runnerType = RunnerType.GOLD;
-
-            return Util.Mock.createMockRunner(implementation, test, student, runnerType);
-          });
-
-          var numCoals = Util.getRandomIntInclusive(3,6);
-
-          var coalRunnerArrays = studentData.map(function(student) {
-            var coalsFileData = Util.Mock.createMockCoalsFileData(numCoals);
-
-            return coalsFileData.map(function(coalFileData) {
-              // Run the coal implementation...
-              var implementation = {
-                name: coalFileData.name,
-                id: coalFileData.id
-              };
-
-              // ...against the student test suite.
-              var test = {
-                name:'assignment-test.arr',
-                id: 'assignment-test-gdrive-id'
-              };
-
-              var runnerType = RunnerType.COAL;
-
-              return Util.Mock.createMockRunner(implementation, test, student, runnerType);
-            });
-          });
-
-          var studentRunners = [];
-
-          for (var studentIndex = 0; studentIndex < studentData.length; studentIndex++) {
-            var student = studentData[studentIndex];
-            var test = testRunners[studentIndex];
-            var gold = goldRunners[studentIndex];
-            var coals = coalRunnerArrays[studentIndex];
-
-            studentRunners[studentIndex] = {
-              student: student,
-              test: test,
-              gold: gold,
-              coals: coals,
-              uniqueId: student.id + '-StudentRunner'
-            };
-          }
-
-          return studentRunners;
-        }
-      },
+      }
     };
 
+    /**
+     */
     var loadableCache = {};
 
+    /**
+     */
     var onCompileFunc = function(locUri, loadable) {
       var protocol = locUri.substr(0, locUri.indexOf('://'));
       if (!loadableCache[locUri]) {
         if (locUri === 'definitions://') {
-          console.error('definitions:// should not be cached!!');
+          console.warn('caching definitions://');
         }
         if (protocol !== 'builtin') {
           loadableCache[locUri] = loadable;
@@ -373,21 +201,18 @@
       return loadable;
     };
 
+    /**
+     */
     var getCompiledFunc = function(locUri) {
-      if (locUri === 'definitions://') {
-        console.error('definitions:// should not be cached!!');
-      }
       var loadable = loadableCache[locUri];
       if (loadable) {
-        // console.log(locUri + ' from cache');
         return runtime.ffi.makeSome(loadable);
       }
-      // else {
-      //   console.warn(locUri + ' being compiled [getCompiled]');
-      // }
       return runtime.ffi.makeNone();
     };
 
+    /**
+     */
     var onDefinitionsLocator = function(locator, id) {
       locator.dict['get-compiled'] = runtime.makeMethod1(function() {
         var locUri = 'definitions://' + id;
@@ -396,6 +221,8 @@
       return locator;
     };
 
+    /**
+     */
     var constructors = cpoRepl.getGDriveLocatorConstructors();
 
     /**
@@ -413,6 +240,7 @@
         }
         return getCompiledFunc(locUri);
       };
+
       var protocolImportResolution = function(protocol, args) {
         var arr = runtime.ffi.toArray(args);
         if (protocol === 'my-gdrive') {
@@ -652,27 +480,6 @@
 
     /**
      */
-    var DEBUG = {
-      assertEqual: function(obj1, obj2) {
-        if (obj1 !== obj2) {
-          console.error('assertEqual failed:', obj1, obj2);
-          throw new Error('');
-        }
-      },
-      assertRunner: function(runner, expectedImplementationId, expectedTestId) {
-        var actualTestId = runner.test.id;
-        var actualImplementationId = runner.implementation.id;
-        DEBUG.assertEqual(expectedTestId, actualTestId);
-        DEBUG.assertEqual(actualImplementationId, expectedImplementationId);
-      },
-      assertTestNumbersConsistent: function(testsPassed, testsTotal) {
-        console.assert(0 <= testsPassed);
-        console.assert(testsPassed <= testsTotal);
-      }
-    };
-
-    /**
-     */
     var makeRunner = function(implementationFileObj, testFileObj, student, runnerType, implementationName, timeout) {
       var restartInteractionsOptions = {
         typeCheck: false,
@@ -762,7 +569,6 @@
           runResultPromise.then(function(pyretResult) {
             done = true;
             clearTimeout(timer);
-            //console.log('TIMER CLEARED');
             if (timedOut) {
               console.log('resolving timeout data');
               return {
@@ -1001,9 +807,8 @@
               return file === null ? false : Util.looseFilenameMatch(file.getName(), testName);
             });
 
-            //fallback: assume submittedFiles === [implfile, testfile]
-            implementation = implementation || submittedFiles[0] || null;
-            test = test || submittedFiles[1] || null;
+            implementation = implementation || null;
+            test = test || null;
 
             return {
               student: student,
@@ -1021,7 +826,6 @@
         coalFilesPromise,
         submissionsPromise
       ]).then(function(results) {
-        // console.log(results);
         var testSuiteFile = results[0];
         var goldFile = results[1];
         var coalFiles = results[2];
