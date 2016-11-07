@@ -241,7 +241,7 @@
 
       if(highlightColorfulness !== null) {
         optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
-        optionDrab.prop("selected",     highlightColorfulness !== 'drab');
+        optionDrab.prop("selected",     highlightColorfulness === 'drab');
       } else {
         optionEager.prop("vibrant", true);
         localStorage.setItem('highlight-colorfulness',
