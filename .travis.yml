@@ -1,4 +1,7 @@
 language: node_js
+language: ruby
+rvm:
+  - 2.2
 env:
   global:
   - TEST_LOC="sauce"
