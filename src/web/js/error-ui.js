@@ -185,10 +185,6 @@
             "Internal errors prevented this error message from being "
             + "shown. Please report this as a bug.");
         }).
-        then(function (html) {
-          log_set('html')(html.prop('outerHTML'));
-          return html;
-        }).
         finally(function (html) {
           errors.forEach(function (e) {
             console.error(e);
@@ -245,7 +241,7 @@
 
       if(highlightColorfulness !== null) {
         optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
-        optionDrab.prop("selected",     highlightColorfulness !== 'drab');
+        optionDrab.prop("selected",     highlightColorfulness === 'drab');
       } else {
         optionEager.prop("vibrant", true);
         localStorage.setItem('highlight-colorfulness',
