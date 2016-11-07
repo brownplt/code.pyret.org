@@ -30,11 +30,11 @@ before_script:
 - node src/run.js &
 - sleep 3
 addons:
-- apt
-  packages:
-    - ruby2.2
-    - ruby2.2-dev
-    - rubygems
+  apt:
+    packages:
+      - ruby2.2
+      - ruby2.2-dev
+      - rubygems
 #addons:
 #  sauce_connect: true
 script:
