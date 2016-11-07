@@ -1,6 +1,6 @@
-language: node_js
-node_js:
-  - "6"
+language: ruby
+rvm:
+  - 2.2
 env:
   global:
   - TEST_LOC="sauce"
@@ -35,8 +35,7 @@ script:
 - echo "Skipping tests"
 #- mocha --harmony
 before_install:
-- ruby --version
-- gem --version
+- nvm install node
 - gem install heroku
 - export CHROME_BIN=chromium-browser
 - export DISPLAY=:99.0
