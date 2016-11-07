@@ -35,7 +35,10 @@ script:
 - echo "Skipping tests"
 #- mocha --harmony
 before_install:
-- nvm install node
+- . $HOME/.nvm/nvm.sh
+- nvm install stable
+- nvm use stable
+- npm install
 - gem install heroku
 - export CHROME_BIN=chromium-browser
 - export DISPLAY=:99.0
