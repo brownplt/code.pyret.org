@@ -1,4 +1,6 @@
 language: node_js
+node_js:
+  - "6.2.1"
 language: ruby
 rvm:
   - 2.2
@@ -24,8 +26,6 @@ env:
 #  - SAUCE_BROWSER="firefox"
 #  - SAUCE_BROWSER="safari"
 #  - SAUCE_BROWSER="internet explorer"
-node_js:
-- 6.2.1
 cache:
   directories:
     - node_modules
@@ -48,6 +48,8 @@ before_deploy:
 - heroku config:set --app pyret-horizon GIT_REV=$GIT_REV
 - heroku config:set --app pyret-horizon GIT_BRANCH=$GIT_REV
 install:
+- node --version
+- npm --version
 - npm install --ignore-scripts
 - make web
 - make deploy-cpo-main
