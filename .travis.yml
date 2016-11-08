@@ -1,4 +1,6 @@
-language: node_js
+language: ruby
+rvm:
+  - 2.2
 env:
   global:
   - TEST_LOC="sauce"
@@ -21,8 +23,9 @@ env:
 #  - SAUCE_BROWSER="firefox"
 #  - SAUCE_BROWSER="safari"
 #  - SAUCE_BROWSER="internet explorer"
-node_js:
-- 6.2.1
+cache:
+  directories:
+    - node_modules
 before_script:
 - node src/run.js &
 - sleep 3
@@ -32,13 +35,22 @@ script:
 - echo "Skipping tests"
 #- mocha --harmony
 before_install:
+- . $HOME/.nvm/nvm.sh
+- nvm install stable
+- nvm use stable
+- npm install
 - gem install heroku
+- export CHROME_BIN=chromium-browser
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
 before_deploy:
 - export GIT_REV=`echo $TRAVIS_COMMIT`
 - export GIT_BRANCH=`echo $TRAVIS_BRANCH`
 - heroku config:set --app pyret-horizon GIT_REV=$GIT_REV
 - heroku config:set --app pyret-horizon GIT_BRANCH=$GIT_REV
 install:
+- node --version
+- npm --version
 - npm install --ignore-scripts
 - make web
 - make deploy-cpo-main

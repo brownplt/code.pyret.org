@@ -563,7 +563,7 @@
         colorsHighlighted.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var colorfulness = localStorage.getItem("highlight-colorfulness");
         var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
@@ -595,7 +595,7 @@
         colorsEmphasized.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var colorfulness = localStorage.getItem("highlight-colorfulness");
         var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
@@ -614,7 +614,7 @@
         colorsEmphasized.delete(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var colorfulness = localStorage.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].removeClass('highlight-blink');
         }
@@ -998,8 +998,8 @@
         rendering.bind('toggleHighlight',function() {
             logger.log("error_highlights_toggled",
               { error_id: context,
-                eagerness: sessionStorage.getItem('highlight-eagerness'),
-                colorfulness: sessionStorage.getItem('highlight-colorfulness')
+                eagerness: localStorage.getItem('highlight-eagerness'),
+                colorfulness: localStorage.getItem('highlight-colorfulness')
               });
             colorsHighlighted.forEach(function(color) {
               unhighlight(color);
@@ -1007,7 +1007,7 @@
             colorsEmphasized.forEach(function(color) {
               demphasize(color);
             });
-            if(sessionStorage.getItem('highlight-eagerness') != 'lazy') {
+            if(localStorage.getItem('highlight-eagerness') != 'lazy') {
               messageAnchors.forEach(function (_, color) {
                 if (!messageHintedColors.has(color))
                   highlight(color);

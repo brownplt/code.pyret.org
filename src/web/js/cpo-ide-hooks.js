@@ -31,13 +31,14 @@
     }
   ],
   nativeRequires: [
-    "cpo/cpo-builtin-modules"
+    "cpo/cpo-builtin-modules",
+    "pyret-base/js/js-numbers",
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo,
                       runtimeLib, loadLib, cpoBuiltins, parsePyret,
-                      cpoModules
+                      cpoModules, jsnums
   ) {
     window.CPOIDEHooks = {
       runtime: runtime,
@@ -47,7 +48,8 @@
       runtimeLib: runtimeLib,
       compileStructs: compileStructs,
       compileLib: compileLib,
-      cpoModules: cpoModules
+      cpoModules: cpoModules,
+      jsnums: jsnums
     };
     return runtime.makeModuleReturn({}, {});
   }
