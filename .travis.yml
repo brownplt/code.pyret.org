@@ -1,4 +1,6 @@
-language: node_js
+language: ruby
+rvm:
+  - 2.2
 env:
   global:
   - TEST_LOC="sauce"
@@ -22,6 +24,9 @@ env:
 #  - SAUCE_BROWSER="internet explorer"
 node_js:
 - 6.2.1
+cache:
+  directories:
+    - node_modules
 before_script:
 - node src/run.js &
 - sleep 3
@@ -31,6 +36,9 @@ script:
 - echo "Skipping tests"
 #- mocha --harmony
 before_install:
+- . $HOME/.nvm/nvm.sh
+- nvm install stable
+- nvm use stable
 - gem install heroku
 install:
 - npm install --ignore-scripts
