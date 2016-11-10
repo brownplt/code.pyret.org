@@ -1,9 +1,15 @@
-language: node_js
+language: ruby
+rvm:
+  - 2.2
 env:
   - secure: "E19TyEFE1iQSRrZI4w6ahWgFGEFZBiUgxn/Pqq5sQwHlMNpai+bVydDRVlcQ0NsrdPmyXY/4+29wMjsAHbSaiBuqgG5PbtpChJK7a+8583G6CrbkWdZgwkMDpqPQ2IBEWVYeybvl36wuXJ4HNCqImPODWvX1Wxzk5RCK/gM4PNu3OdmQm3+6O8y1N6r0Y/lnqeAxhaZ5wv01/6EE3I3rAbnFxnu0wIJ7AfNV64VRk+tqwYuM5fLXrl6yhelSwp9q5CLEwvvYknBkklHAXbvxc2qo8XfZb6Zb701NyGvFW86Acgo1dytqV+BNmxNj4FfnXj+rxi/SDpiKEifzj5UYLIAgAx/qbxWSHD8SHiOL1WMa7N3vN2Dh+O+9vCLDwtpzbC0kJqxVMei8buAR4pLReZO0OsmHGXDPApoqOdxvQ0Z2VtEWojIWaJSIl0gTaWKAPAE6GMT0zRQcmm6GPXmLpWGc/9MZKJ5lTXQloucRaStRhPYV4x2HNF4vVZmJ0RWQexAX4qsUiaVFs0jdnJTDvgyPWj+f7qJaaqNFfXz9TyP2N8LSjPdGBYfkWIbkv8dXjJCufXX29BbOD5Yq1NcRQxgTnQO1cvXs1/MJOrK8tCAQ/rZUqQakBMg71fhznOm2lejiiingfnq846C1v27KxZzFLnGIOfDUbMAgS1sbGUU="
-node_js:
-- 6.2.1
+script:
+- echo "Skipping tests"
+#- mocha --harmony
 before_install:
+- . $HOME/.nvm/nvm.sh
+- nvm install stable
+- nvm use stable
 - gem install heroku
 install:
 - npm install --ignore-scripts
@@ -13,6 +19,7 @@ script:
 - echo "No tests on deploy branch"
 before_deploy:
 - export SHORT_COMMIT=`echo $TRAVIS_COMMIT | cut -c1-7`
+- heroku config:set --app code-pyret-org CURRENT_PYRET_RELEASE=$SHORT_COMMIT
 - heroku config:set --app code-pyret-org PYRET=https://d251z2akfyabv3.cloudfront.net/releases/$SHORT_COMMIT/cpo-main.jarr.gz.js
 deploy:
 - provider: s3

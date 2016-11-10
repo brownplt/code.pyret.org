@@ -16,6 +16,12 @@
   font-size: 18pt;
   font-family: sans-serif;
 }
+ul {
+  list-style-type: circle;
+}
+h4 {
+  font-weight: bold;
+}
   </style>
 </head>
 <body>
@@ -27,16 +33,16 @@
 </div>
 <div id="main" style="width: 40em; padding-left: 2em;">
 
-<h3>How do we use your Google account?</h3>
+<h3>What permissions does code.pyret.org ask for and why?</h3>
 
 <p>code.pyret.org asks for several permissions when you log in:
 
 <ul>
 
 <li><em>Know who you are on Google</em> and <em>View your email address</em>:
-The site needs to know your Google identity because this is the only way we've
-found to reliably give persistent access to saving to Drive that doesn't expire
-and require popping up new windows while you're editing.  </li>
+The site needs to know your Google identity because this allows us to give
+persistent access to saving to Drive that doesn't expire or require popping up
+new windows while you're editing.  </li>
 
 <li><em>Manage your photos and videos</em> and <em>View the photos, videos, and
 albums in your Google Drive</em>:  This is used to import images into programs
@@ -56,14 +62,6 @@ re-open programs you create.</li>
 </ul>
 
 
-<p> You can always go to <a
-href="https://security.google.com/settings/security/permissions?pli=1">https://security.google.com/settings/security/permissions?pli=1</a>
-and remove all access that code.pyret.org has to your account.
-Your programs and <code>code.pyret.org</code> folder will <em>not</em> be
-deleted if you do so.  You can always manually delete the folder and its
-contents yourself.</p>
-
-
 
 <h3>Where are things stored in my Drive?</h3>
 
@@ -71,7 +69,9 @@ contents yourself.</p>
 The site initially makes a single folder in your Google Drive, called
 <code>code.pyret.org</code>, and stores all of your programs there, with the
 names you choose for them.  They are all created with you as the owner, and
-private to your account.
+private to your account.  There is also a directory called
+<code>code.pyret.org.compiled</code> that is used for caching compiled copies
+of programs.
 </p>
 
 <p>
@@ -83,6 +83,45 @@ will stop working, but any copies others have made will be theirs to keep.
 Each time you publish a program, a new copy is created from its current
 contents.
 </p>
+
+<h3>How can I remove the access code.pyret.org has to my data?</h3>
+
+<p> You can always go to <a
+href="https://security.google.com/settings/security/permissions?pli=1">https://security.google.com/settings/security/permissions?pli=1</a>
+and remove all access that code.pyret.org has to your account.
+Your programs and the created folders will <em>not</em> be
+deleted if you do so.  You can always manually delete the folder and its
+contents yourself.</p>
+
+<h3>How can I see old versions of my programs?</h3>
+
+<p>
+Google Drive automatically stores old versions of your programs as they are
+saved (as it does for all files).  You can follow the instructions at <a
+href="https://support.google.com/drive/answer/2409045?hl=en">Google's
+answer</a> to manage old versions of files that you may have saved over or
+renamed.
+</p>
+
+
+<h3 id="logging">What information is sent back to the Pyret team?</h3>
+
+<p>We collect basic information about your use of code.pyret.org to help us
+improve the language and editor, and enable some debugging.  We send back
+information about errors, authentication, whether features such as the
+type-checker are used, and preferences (such as which mode you choose to
+display highlights with).
+</p>
+
+<p>
+We don't log the contents of your programs by default.
+</p>
+
+<h4 id="detailed-logging">Contributing Detailed Information</h4>
+
+<p>If you opt to contribute detailed usage information under the "More" menu
+(off by default), we will also receive information about the contents of your
+programs and the edits you make.</p>
 
 </div>
 </body>

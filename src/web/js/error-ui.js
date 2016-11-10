@@ -185,10 +185,6 @@
             "Internal errors prevented this error message from being "
             + "shown. Please report this as a bug.");
         }).
-        then(function (html) {
-          log_set('html')(html.prop('outerHTML'));
-          return html;
-        }).
         finally(function (html) {
           errors.forEach(function (e) {
             console.error(e);
@@ -231,28 +227,36 @@
             append(colorSwitcher).
             append(".");
 
-      var highlightEagerness    = sessionStorage.getItem('highlight-eagerness');
-      var highlightColorfulness = sessionStorage.getItem('highlight-colorfulness');
+      var highlightEagerness    = localStorage.getItem('highlight-eagerness');
+      var highlightColorfulness = localStorage.getItem('highlight-colorfulness');
 
       if(highlightEagerness !== null) {
         optionEager.prop("selected",   highlightEagerness === 'eager');
         optionLazy.prop("selected",    highlightEagerness !== 'eager');
       } else {
         optionEager.prop("selected", true);
-        sessionStorage.setItem('highlight-eagerness', 'eager');
+        localStorage.setItem('highlight-eagerness',
+          Math.random() >= 0.5 ? 'eager' : 'lazy');
       }
 
       if(highlightColorfulness !== null) {
         optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
-        optionDrab.prop("selected",     highlightColorfulness !== 'drab');
+        optionDrab.prop("selected",     highlightColorfulness === 'drab');
       } else {
         optionEager.prop("vibrant", true);
-        sessionStorage.setItem('highlight-colorfulness', 'vibrant');
+        localStorage.setItem('highlight-colorfulness',
+          Math.random() >= 0.5 ? 'vibrant' : 'drab');
+      }
+
+      if(highlightEagerness == null || highlightColorfulness == null) {
+        logger.log('random_mode_selected',
+         {eager: eagerSwitcher[0].value,
+          color: colorSwitcher[0].value});
       }
 
       function logChange() {
-        sessionStorage.setItem('highlight-eagerness',    eagerSwitcher[0].value);
-        sessionStorage.setItem('highlight-colorfulness', colorSwitcher[0].value);
+        localStorage.setItem('highlight-eagerness',    eagerSwitcher[0].value);
+        localStorage.setItem('highlight-colorfulness', colorSwitcher[0].value);
         outputUI.settingChanged(eagerSwitcher[0].value, colorSwitcher[0].value);
       }
 

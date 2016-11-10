@@ -76,7 +76,20 @@ function start(config, onServerReady) {
 
   app.set('views', __dirname + '/../build/web/views');
   app.engine('html', mustache());
-  app.set('view engine', 'html');
+  app.engine('js', mustache());
+  app.set('view engine', ['html', 'js']);
+
+  app.get("/js/log.js", function(req, res) {
+    res.set("Content-Type", "application/javascript");
+    res.render(__dirname + "/../build/web/js/log.js", {
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
+    }, function(_, js) {
+      res.set("Content-Type", "application/javascript");
+      res.send(js);
+    });
+  });
 
   app.use(express.static(__dirname + "/../build/web/"));
 
@@ -292,7 +305,7 @@ function start(config, onServerReady) {
     });
   });
 
-  app.get("/ide", function(req, res) {
+  app.get(/\/ide(\/.*)?$/, function(req, res) {
     res.render(
       path.resolve(__dirname, "web", "ide.html"),
       {ASSET_BASE_URL: process.env.ASSET_BASE_URL || ''}
@@ -362,7 +375,7 @@ function start(config, onServerReady) {
           var drive = getDriveClient(newToken, 'v2');
 
           var newFileP = Q.defer();
-          
+
           drive.files.copy({
             fileId: driveFileId,
             resource: {

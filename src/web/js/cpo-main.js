@@ -168,19 +168,6 @@
                 else {
                   return gmf(cpo, "make-builtin-js-locator").app(name, raw);
                 }
-                /*
-                if (cpoBuiltin.knownCpoModule(name)) {
-                  return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
-                }
-                else if(okImports.indexOf(name) === -1) {
-                  throw runtime.throwMessageException("Unknown module: " + name);
-                } else {
-                  return gmf(compileLib, "located").app(
-                    gmf(builtin, "make-builtin-locator").app(name),
-                    runtime.nothing
-                  );
-                }
-                */
               },
               dependency: function(protocol, args) {
                 var arr = runtime.ffi.toArray(args);
