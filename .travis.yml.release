@@ -19,6 +19,10 @@ script:
 - echo "No tests on deploy branch"
 before_deploy:
 - export SHORT_COMMIT=`echo $TRAVIS_COMMIT | cut -c1-7`
+- export GIT_REV=`echo $TRAVIS_COMMIT`
+- export GIT_BRANCH=`echo $TRAVIS_BRANCH`
+- heroku config:set --app code-pyret-org GIT_REV=$GIT_REV
+- heroku config:set --app code-pyret-org GIT_BRANCH=$GIT_REV
 - heroku config:set --app code-pyret-org CURRENT_PYRET_RELEASE=$SHORT_COMMIT
 - heroku config:set --app code-pyret-org PYRET=https://d251z2akfyabv3.cloudfront.net/releases/$SHORT_COMMIT/cpo-main.jarr.gz.js
 deploy:
