@@ -537,7 +537,7 @@ define([], function() {
                 return true;
               }, function(_) {
                 runtime.safeCall(function() { //v
-                  console.log('calling schemeToPyretAST');
+                  console.log('calling schemeToPyretAST of', spyretString);
                   return spyretParse.schemeToPyretAST(spyretString, uri, "module");
                 }, function(sAst) {
                   return runtime.safeCall(function() { //iv
