@@ -76,7 +76,7 @@
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
-      function renderAndDisplayError(runtime, error, stack) {
+      function renderAndDisplayError(runtime, error, stack, click) {
         var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
           return error_to_html(runtime, CPO.documents, error, stack).
@@ -87,6 +87,7 @@
                 html.addClass("highlights-active");
               });
               html.addClass('compile-error').appendTo(output);
+              if (click) html.click();
             }).done(function () {restarter.resume(runtime.nothing)});
         });
       }
@@ -99,7 +100,7 @@
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
-            renderAndDisplayError(callingRuntime, result.exn.exn);
+            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -141,7 +142,7 @@
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
-                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack);
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -211,7 +212,6 @@
       container.append(mkWarningLower());
 
       var promptContainer = jQuery("<div class='prompt-container'>");
-      var promptArrow = drawPromptArrow();
       var prompt = jQuery("<span>").addClass("repl-prompt");
       function showPrompt() {
         promptContainer.hide();
@@ -220,7 +220,7 @@
         CM.focus();
         CM.refresh();
       }
-      promptContainer.append(promptArrow).append(prompt);
+      promptContainer.append(prompt);
 
       container.on("click", function(e) {
         if($(CM.getTextArea()).parent().offset().top < e.pageY) {
@@ -272,7 +272,7 @@
           currentZIndex += 2;
         });
 
-      runtime.setParam("d3-port", function(dom, width, height, onExit, onSave) {
+      runtime.setParam("d3-port", function(dom, optionMutator, onExit, buttons) {
           // duplicate the code for now
           var animationDiv = $("<div>");
           animationDivs.push(animationDiv);
@@ -281,30 +281,32 @@
             onExit();
             closeTopAnimationIfOpen();
           }
-          animationDiv.dialog({
+          var baseOption = {
             position: [5, 5],
             bgiframe : true,
             modal : true,
-            overlay : { opacity: 0.5, background: 'black'},
-            width : width || "auto",
-            height : height || "auto",
+            overlay : {opacity: 0.5, background: 'black'},
+            width : 'auto',
+            height : 'auto',
             close : onClose,
             closeOnEscape : true,
-            buttons: [
-              {
-                click: onSave(dom),
-                icons: { primary: 'ui-icon-disk' }
-              }
-            ],
             create: function() {
-              $('.ui-dialog-buttonset').appendTo('.ui-dialog-titlebar');
-              $('.ui-dialog-buttonset button')
-                .removeClass('ui-button-icon-primary')
-                .addClass('ui-button-icon-only ui-dialog-titlebar-close')
-                .css('left', '33px');
-              $('.ui-dialog-buttonpane').css('display', 'none');
+
+              // from http://fiddle.jshell.net/JLSrR/116/
+
+              var titlebar = animationDiv.prev();
+              buttons.forEach(function(buttonData) {
+                var button = $('<button/>'),
+                    left = titlebar.find( "[role='button']:last" ).css('left');
+                button.button({icons: {primary: buttonData.icon}, text: false})
+                       .addClass('ui-dialog-titlebar-close')
+                       .css('left', (parseInt(left) + 27) + 'px')
+                       .click(buttonData.click)
+                       .appendTo(titlebar);
+              });
             }
-          }).dialog("widget").draggable({
+          }
+          animationDiv.dialog(optionMutator(baseOption)).dialog("widget").draggable({
             containment: "none",
             scroll: false,
           });
@@ -313,6 +315,7 @@
           dialogMain.css({"z-index": currentZIndex + 1});
           dialogMain.prev().css({"z-index": currentZIndex});
           currentZIndex += 2;
+          return animationDiv;
       });
       runtime.setParam("remove-d3-port", function() {
           closeTopAnimationIfOpen();
@@ -407,7 +410,12 @@
         logger.log('run', { name      : "definitions://",
                             type_check: !!uiOptions["type-check"]
                           });
-        var replResult = repl.restartInteractions(src, !!uiOptions["type-check"]);
+        var options = {
+          typeCheck: !!uiOptions["type-check"],
+          checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
+                          // if this becomes a check box somewhere in CPO
+        };
+        var replResult = repl.restartInteractions(src, options);
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
           return r;
@@ -425,7 +433,7 @@
         var echoSpan = $("<span>").addClass("repl-echo");
         var echo = $("<textarea>");
         echoSpan.append(echo);
-        echoContainer.append(drawPromptArrow()).append(echoSpan);
+        echoContainer.append(echoSpan);
         write(echoContainer);
         var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
         echoCM.setValue(code);

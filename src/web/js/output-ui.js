@@ -563,7 +563,7 @@
         colorsHighlighted.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var colorfulness = localStorage.getItem("highlight-colorfulness");
         var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
@@ -595,7 +595,7 @@
         colorsEmphasized.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var colorfulness = localStorage.getItem("highlight-colorfulness");
         var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
@@ -614,7 +614,7 @@
         colorsEmphasized.delete(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = sessionStorage.getItem("highlight-colorfulness");
+        var colorfulness = localStorage.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].removeClass('highlight-blink');
         }
@@ -998,8 +998,8 @@
         rendering.bind('toggleHighlight',function() {
             logger.log("error_highlights_toggled",
               { error_id: context,
-                eagerness: sessionStorage.getItem('highlight-eagerness'),
-                colorfulness: sessionStorage.getItem('highlight-colorfulness')
+                eagerness: localStorage.getItem('highlight-eagerness'),
+                colorfulness: localStorage.getItem('highlight-colorfulness')
               });
             colorsHighlighted.forEach(function(color) {
               unhighlight(color);
@@ -1007,7 +1007,7 @@
             colorsEmphasized.forEach(function(color) {
               demphasize(color);
             });
-            if(sessionStorage.getItem('highlight-eagerness') != 'lazy') {
+            if(localStorage.getItem('highlight-eagerness') != 'lazy') {
               messageAnchors.forEach(function (_, color) {
                 if (!messageHintedColors.has(color))
                   highlight(color);
@@ -1106,9 +1106,14 @@
             var dialog = $("<div>");
             dialog.dialog({
               modal: true,
-              height: $(document).height() * .9,
-              width: $(document).width() * .9,
-              resizable: true
+              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
+              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              resizable: true,
+              close: function() {
+                dialog.empty();
+                dialog.dialog("destroy");
+                dialog.remove();
+              }
             });
             dialog.css({"overflow": "scroll"});
             dialog.append($(originalImageDom));
@@ -1366,10 +1371,10 @@
           }
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
-          $(showText).text("\uD83D\uDCCB");
+          $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
           $(showText).css({
-            'border': '1px solid black',
-            'background': 'white'
+            'margin-top': '0.3em',
+            'margin-right': '0.3em'
           });
           $(showText).addClass("info-icon-top");
           var textDiv = $("<div>").css({"z-index": 15000});
@@ -1448,7 +1453,7 @@
             clickForMore.textContent = "Click to show the remaining " + (rows.length - previewLimit) + " rows...";
             var clickTR = document.createElement("tr");
             var clickTD = document.createElement("td");
-            clickTD.colspan = String(rows.length);
+            clickTD.colSpan = String(rows.length);
             clickTR.appendChild(clickTD);
             clickTD.appendChild(clickForMore);
             $(clickForMore).on("click", function() {

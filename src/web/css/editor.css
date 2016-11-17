@@ -12,6 +12,7 @@
   border: none;
   padding: 0;
   margin: 0;
+  vertical-align: top;
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
@@ -395,8 +396,16 @@ span.trace:after {
 }
 
 .repl-prompt {
-  width: 90%;
+  width: 100%;
   display: inline-block;
+}
+
+.repl-echo::before,
+.repl-prompt::before {
+  content: '>';
+  display: inline;
+  line-height: calc(1em + 10px);
+  float: left;
 }
 
 .repl-prompt-arrow {
@@ -406,7 +415,7 @@ span.trace:after {
 }
 
 .repl-echo {
-  width: 90%;
+  width: 100%;
   display: inline-block;
 }
 
@@ -1566,6 +1575,10 @@ th, td {
     padding: 1em;
     width: auto;
     border-right:1px white solid;
+}
+
+th:last-child, td:last-child {
+    padding-right: 2em;
 }
 
 tr:nth-child(even){background-color: #f2f2f2}
