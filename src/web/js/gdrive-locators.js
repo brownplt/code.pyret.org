@@ -548,8 +548,9 @@ define([], function() {
                       return gmf(compileStructs, "standard-globals");
                     }, function(globals) {
                       return runtime.safeCall(function() { //ii
-                        console.log('calling make-provide-for-repl-main');
-                        return gmf(replSupport, "make-provide-for-repl-main").app(parsed, globals);
+                        console.log('calling make-provide-for-repl-no-main');
+                        //return gmf(replSupport, "make-provide-for-repl-main").app(parsed, globals);
+                        return gmf(replSupport, "make-provide-for-repl").app(parsed);
                       }, function(pAst) {
                         return runtime.safeCall(function() { //i
                           console.log('wrapping pyret-ast');
