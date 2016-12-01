@@ -1,5 +1,4 @@
-({
-  requires: [
+({ requires: [
     { "import-type": "dependency",
       protocol: "file",
       args: ["../../../pyret/src/arr/compiler/compile-lib.arr"]
@@ -51,6 +50,8 @@
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib, spyretParse) {
+
+    var dialect = "spyret";
 
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -258,8 +259,10 @@
 
     var getDefsForPyret = runtime.makeFunction(function() {
         var ws_str = CPO.editor.cm.getValue();
-        var ws_str_j = spyretParse.schemeToPyretAST(ws_str, "definitions");
-        return ws_str_j;
+        if (dialect === 'spyret') {
+          ws_str = spyretParse.schemeToPyretAST(ws_str, "definitions");
+        }
+        return ws_str;
       });
     var replGlobals = gmf(compileStructs, "standard-globals");
 
@@ -287,7 +290,8 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-spyret-definitions-locator").app(getDefsForPyret, replGlobals);
+                    (dialect === "spyret" ? "make-spyret-definitions-locator" : "make-definitions-locator")
+                    ).app(getDefsForPyret, replGlobals);
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
@@ -305,10 +309,14 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-spyret-interaction-locator").app(
+                    (dialect === "spyret" ? "make-spyret-interaction-locator" : "make-interaction-locator")
+                    ).app(
                       runtime.makeFunction(function() {
-                        var ws_str_j = spyretParse.schemeToPyretAST(str, name, "repl");
-                        return ws_str_j;
+                        var ws_str = str;
+                        if (dialect === "spyret") {
+                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl");
+                        }
+                        return ws_str;
                         }))
                   },
                   function(locator) {
@@ -316,7 +324,8 @@
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, "make-spyret-interaction-locator");
+              }, (dialect === "spyret" ? "make-spyret-interaction-locator" : "make-interaction-locator)
+              );
             }, 0);
             return ret.promise;
           },
