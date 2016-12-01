@@ -7383,21 +7383,25 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           key: "'INCLUDE:include",
           pos: loc
         }, {
-          // (import-special NAME LPAREN STRING (COMMA STRING)* RPAREN)
-          // what is the exact signature of the "import-special" kids?
-          name: "import-special",
-          pos: loc,
+          name: 'import-source',
+          pos: blankLoc,
           kids: [{
-            name: "NAME",
-            value: protocol,
-            key: "'NAME:" + protocol,
-            pos: loc
-          }, lParenStx, {
-            name: "STRING",
-            value: fileNameStr,
-            key: "'STRING:" + fileNameStr,
-            pos: loc
-          }, rParenStx]
+            // (import-special NAME LPAREN STRING (COMMA STRING)* RPAREN)
+            // what is the exact signature of the "import-special" kids?
+            name: "import-special",
+            pos: loc,
+            kids: [{
+              name: "NAME",
+              value: protocol,
+              key: "'NAME:" + protocol,
+              pos: loc
+            }, lParenStx, {
+              name: "STRING",
+              value: fileNameStr,
+              key: "'STRING:" + fileNameStr,
+              pos: loc
+            }, rParenStx]
+          }]
         }]
       }
 
