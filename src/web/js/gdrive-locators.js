@@ -37,7 +37,7 @@ define([], function() {
       return message;
     }
     function makeWeSchemeMyGDriveLocator(filename) {
-      console.log('doing makeWeSchemeMyGDriveLocator ' + filename);
+      //console.log('doing makeWeSchemeMyGDriveLocator ' + filename);
       function checkFileResponse(files, restarter) {
         if(files.length === 0) {
           restarter.error(runtime.ffi.makeMessageException("Could not find module with name " + filename + " in your drive."));
@@ -83,9 +83,9 @@ define([], function() {
           var ast = undefined;
 
           function getModule(self) { 
-            console.log('doing makeWeSchemeMyGDriveLocator > getModule');
+            //console.log('doing makeWeSchemeMyGDriveLocator > getModule');
             if (ast !== undefined) {
-              console.log('reusing ast');
+              //console.log('reusing ast');
               return ast;
             } else {
               runtime.pauseStack(function(getModRestart) {
@@ -94,21 +94,21 @@ define([], function() {
                   getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
                 });
                 contentsP.then(function(spyretString) {
-                  console.log('operating on ' + spyretString);
+                  //console.log('operating on ' + spyretString);
                   return runtime.safeCall(function() {
-                    console.log('calling schemeToPyretAST');
+                    //console.log('calling schemeToPyretAST');
                     return spyretParse.schemeToPyretAST(spyretString, uri, "module");
                   }, function(sAst) {
                     return runtime.safeCall(function() {
-                      console.log('calling spyret-surface-parse');
+                      //console.log('calling spyret-surface-parse');
                       return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
                     }, function(parsed) {
                       return runtime.safeCall(function() {
-                        console.log('calling make-provide-for-repl');
+                        //console.log('calling make-provide-for-repl');
                         return gmf(replSupport, "make-provide-for-repl").app(parsed);
                       }, function(pAst) {
                         return runtime.safeCall(function() {
-                          console.log('wrapping pyret-ast');
+                          //console.log('wrapping pyret-ast');
                           return gmf(compileLib, "pyret-ast").app(pAst);
                         }, function(ret) {
                           ast = ret;
@@ -196,7 +196,7 @@ define([], function() {
       });
     }
     function makeWeSchemeSharedGDriveLocator(/* filename, */ id) {
-      console.log('doing makeWeSchemeSharedGDriveLocator '  + id);
+      //console.log('doing makeWeSchemeSharedGDriveLocator '  + id);
       function checkFileResponse(file, filename, restarter) {
         var actualName = file.getName();
         if(actualName !== filename) {
@@ -242,9 +242,9 @@ define([], function() {
           var ast = undefined;
 
           function getModule(self) {
-            console.log('doing makeWeSchemeSharedGDriveLocator > getModule');
+            //console.log('doing makeWeSchemeSharedGDriveLocator > getModule');
             if (ast !== undefined) {
-              console.log('reusing ast');
+              //console.log('reusing ast');
               return ast;
             } else {
               runtime.pauseStack(function(getModRestart) {
@@ -253,24 +253,24 @@ define([], function() {
                   getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
                 });
                 contentsP.then(function(spyretString) {
-                  console.log('operating on ' + spyretString);
+                  //console.log('operating on ' + spyretString);
                   return runtime.safeCall(function() {
                     sessionStorage.setItem(uri,spyretString);
                   }, function(_) {
                     return runtime.safeCall(function() {
-                      console.log('calling schemeToPyretAST');
+                      //console.log('calling schemeToPyretAST');
                       return spyretParse.schemeToPyretAST(spyretString, uri, "module");
                     }, function(sAst) {
                       return runtime.safeCall(function() {
-                        console.log('calling spyret-surface-parse');
+                        //console.log('calling spyret-surface-parse');
                         return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
                       }, function(parsed) {
                         return runtime.safeCall(function() {
-                          console.log('calling make-provide-for-repl');
+                          //console.log('calling make-provide-for-repl');
                           return gmf(replSupport, "make-provide-for-repl").app(parsed);
                         }, function(pAst) {
                           return runtime.safeCall(function() {
-                            console.log('wrapping pyret-ast');
+                            //console.log('wrapping pyret-ast');
                             return gmf(compileLib, "pyret-ast").app(pAst);
                           }, function(ret) {
                             ast = ret;
@@ -359,7 +359,7 @@ define([], function() {
       });
     }
     function makeWeSchemeLegacyLocator(filename) {
-     console.log('doing makeWeSchemeLegacyLocator ' + filename);
+     //console.log('doing makeWeSchemeLegacyLocator ' + filename);
 
       // Pause because we'll fetch the Google Drive file object and restart
       // with it to create the actual locator
@@ -386,11 +386,11 @@ define([], function() {
                   url: filename2,
                   crossDomain: true,
                   success: function(str) {
-                    console.log('legacy string = ' + JSON.stringify(str));
+                    //console.log('legacy string = ' + JSON.stringify(str));
                     var str2 = str;
                     //var str2 = JSON.parse(str);
                     spyretString = str2.source.src;
-                    console.log('Scheme string = ' + spyretString);
+                    //console.log('Scheme string = ' + spyretString);
                   },
                   error: function(error) {
                     getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
@@ -493,7 +493,7 @@ define([], function() {
       });
     }
     function makeWeSchemeCollectionLocator(filename) {
-     console.log('doing makeWeSchemeCollectionLocator ' + filename);
+     //console.log('doing makeWeSchemeCollectionLocator ' + filename);
 
       // Pause because we'll fetch the Google Drive file object and restart
       // with it to create the actual locator
@@ -512,7 +512,7 @@ define([], function() {
           var ast = undefined;
 
         function getModule(self) {
-          console.log('getModule', filename);
+          //console.log('getModule', filename);
           if (ast) {
             return ast;
           } else {
@@ -537,23 +537,24 @@ define([], function() {
                 return true;
               }, function(_) {
                 runtime.safeCall(function() { //v
-                  console.log('calling schemeToPyretAST of', spyretString);
+                  //console.log('calling schemeToPyretAST');
                   return spyretParse.schemeToPyretAST(spyretString, uri, "module");
                 }, function(sAst) {
                   return runtime.safeCall(function() { //iv
-                    console.log('calling spyret-surface-parse');
+                    //console.log('calling spyret-surface-parse');
                     return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
                   }, function(parsed) {
                     return runtime.safeCall(function() { //iii
                       return gmf(compileStructs, "standard-globals");
                     }, function(globals) {
                       return runtime.safeCall(function() { //ii
-                        console.log('calling make-provide-for-repl-no-main');
+                        //console.log('calling make-provide-for-repl');
                         //return gmf(replSupport, "make-provide-for-repl-main").app(parsed, globals);
-                        return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                        //return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                        return parsed;
                       }, function(pAst) {
                         return runtime.safeCall(function() { //i
-                          console.log('wrapping pyret-ast');
+                          //console.log('wrapping pyret-ast');
                           return gmf(compileLib, "pyret-ast").app(pAst);
                         }, function(ret) {
                           ast = ret;
@@ -569,7 +570,7 @@ define([], function() {
         }
 
           function getDependencies(self) {
-            console.log('getDependencies', filename);
+            //console.log('getDependencies', filename);
             return runtime.safeCall(function() {
               return gf(self, "get-module").app();
             }, function(mod) {

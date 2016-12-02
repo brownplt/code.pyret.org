@@ -5760,13 +5760,15 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         old_module = _module;
         _module = moduleName;
       }
-      //console.log('doing convertToPyretAST', programs, provenance, moduleName);
+      //ds26gte
+      console.log('doing convertToPyretAST', programs, provenance, moduleName);
       var requirepreludes = [];
       var defstructs = [];
       var defnonfuns = [];
       var defuns = [];
       var otherExps = [];
       var checkExpects = [];
+      var newCheckExpects = [];
       var it;
 
       var localFunIds = [];
@@ -5779,7 +5781,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      //console.log('localFunIds = ' + localFunIds);
+      //ds26gte
+      console.log('localFunIds = ' + localFunIds);
 
       function refersToLocalFunId(b) {
         if (b.name === "NAME" && b.value && localFunIds.indexOf(b.value) > -1) {
@@ -5801,20 +5804,33 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           //defstruct contents
           defstructs.push(b);
         } else if (b.name === "let-expr" &&
+          b.kids.length > 1 && 
+          (it = b.kids[0]) && it.name === "toplevel-binding") {
+          //console.log("checking " + it.kids[0].kids[1].value)
+          if (refersToLocalFunId(b)) {
+            //console.log('referred to local fun id');
+            otherExps.push(wrapStmt(b));
+          } else {
+            //console.log('did not refer to local fun id');
+            defnonfuns.push(wrapStmt(b));
+          }
+        } else if (false && b.name === "let-expr" &&
           b.kids.length > 1 && (it = b.kids[0]) && it.name === "let" &&
           (it = b.kids[1]) && it.name === "toplevel-binding") {
           //console.log("checking " + it.kids[0].kids[1].value)
           if (refersToLocalFunId(b)) {
             //console.log('referred to local fun id');
-            otherExps.push(b);
+            otherExps.push(wrapStmt(b));
           } else {
             //console.log('did not refer to local fun id');
-            defnonfuns.push(b);
+            defnonfuns.push(wrapStmt(b));
           }
         } else if (b.name === "stmt" &&
           b.kids.length > 0 && (it = b.kids[0]) &&
           (it.name === "data-expr" || it.name === "fun-expr")) {
           defuns.push(b);
+          } else if (b.name === 'stmt' && b.voidstatement) {
+            /* toss */ ;
         } else if (b.name === "app-expr" &&
           b.kids.length > 0 && (it = b.kids[0]) && it.name === "expr" &&
           it.kids.length > 0 && (it = it.kids[0]) && it.name === "expr" &&
@@ -5825,7 +5841,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         } else if (b.name === "app-expr" || b.name === "expr") {
           otherExps.push(wrapCheckTest(b));
         } else if (b.name === "check-expr") {
-          otherExps.push(wrapStmt(b));
+          //otherExps.push(wrapStmt(b));
+          console.log('pushing a check-expect');
+          newCheckExpects.push(b.kids[1].kids[0]);
+          console.log('done pushing a check-expect');
         } else if (provenance === "repl" || provenance === "module") {
           otherExps.push(b);
         } else if (b.name === "id-expr" && (it = b.kids[0]) &&
@@ -5836,6 +5855,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
+      //ds26gte
+      console.log('starting for');
       for (i = 0; i < programs.length; i++) {
         var b = programs[i].toPyretAST();
         if (b.name === "block") {
@@ -5843,7 +5864,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
             helper(b, 1);
           });
         } else if (b.name === "import-stmt") {
-          console.log('requiring', JSON.stringify(b));
+          //console.log('requiring', JSON.stringify(b));
           requirepreludes.push(b);
         } else if (b.name === "require-block") {
           b.kids.forEach(function(b) {
@@ -5854,7 +5875,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      
       /*
       if (provenance === 'module' && window.checkExpectFlagSet === undefined ) {
         window.checkExpectFlagSet = true;
@@ -5883,7 +5903,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         })
       }
       */
-      
 
       /*
       if (provenance === 'module' && window.checkExpectFlagSet === undefined ) {
@@ -5910,11 +5929,27 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
       */
 
-      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, checkExpects);
+      var finalCheckExpects = [];
+      if (newCheckExpects.length > 0) {
+        finalCheckExpects = wrapStmt({
+          name: 'check-expr',
+          pos: blankLoc,
+          kids: [ checkColonStx, {
+            name: 'block',
+            pos: blankLoc,
+            kids: newCheckExpects
+          }, endStx]
+        });
+      }
+
+      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, checkExpects, finalCheckExpects);
+
+      //ds26gte
+      console.log('kiddos calced = ', kiddos);
 
       it = {
         name: "block",
-        junk: "junk",
+        wholeprogram: "1",
         pos: programs.location,
         kids: kiddos
       };
@@ -5976,7 +6011,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
     }
 
-    function moduleQualifiedIdPROPOSED(id) {
+    function moduleQualifiedIdMAYBE(id) {
       return "" + id;
     }
 
@@ -5993,10 +6028,21 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
 
     // given a symbol, make a binding (used for let-expr, fun-expr, lam-expr...)
-    function makeBindingFromSymbol(sym, asis) {
+    function makeBindingFromSymbol(sym, asis, toplevel) {
       var loc = sym.location;
       var psym = sym.val;
       //var psym = pyretizeSymbol(sym.val)
+      if (false && toplevel) {
+        return {
+          name: 'binding',
+          pos: loc,
+          kids: [{
+            name: 'name-binding',
+            kids: [makeResolvedName(psym, loc, asis)],
+            pos: loc
+          }]
+        };
+      } else {
       return {
         name: "name-binding",
         kids: [{
@@ -6008,6 +6054,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         makeResolvedName(psym, loc, asis)],
         pos: loc
       };
+      }
     }
 
     function makeBindingsFromSymbols(syms, asis) {
@@ -6361,9 +6408,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     defVar.prototype.toPyretAST = function() {
       return {
         name: "let-expr",
-        kids: [letStx, {
+        kids: [//letStx,
+          {
           name: "toplevel-binding",
-          kids: [makeBindingFromSymbol(this.name)],
+          kids: [makeBindingFromSymbol(this.name, false, true)],
           pos: this.name.location
         }, equalsStx].concat(this.expr.toPyretAST()),
         pos: this.location
@@ -7039,15 +7087,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                   value: 'is',
                   key: "'IS:is"
                 }]
-              }, 
+              },
                 this.rhs.toPyretAST()]
             }]
           }]
-        }, {
-          name: 'end',
-          pos: blankLoc,
-          kids: [endStx]
-        }]
+        }, endStx]
       };
     };
 
@@ -7416,10 +7460,59 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       var fileNameStr = types.toWrittenString(fileName);
+      console.log('RE protocol=', protocol);
+      console.log('RE filename=', fileName);
 
      // is the enclosing "import-stmt" needed? is the "import-special" enough?
 
-      var importStx = {
+      var importStx;
+
+      if (protocol === 'DISABLE-wescheme-collection') {
+        //var reqTimeSfx = 'ƎMODULE-' + plt.compiler.pyretizeSymbol(protocol + '://' + fileName);
+        var reqTimeSfx =  plt.compiler.pyretizeSymbol(protocol + '://' + fileName);
+        console.log('RE suffix=', reqTimeSfx);
+
+        importStx = {
+      "name": "import-stmt",
+      "kids": [{
+        "name": "IMPORT",
+        "value": "import",
+        "key": "'IMPORT:import",
+        "pos": loc
+      }, {
+        "name": "import-source",
+        "kids": [{
+          "name": "import-special",
+          "kids": [{
+            "name": "NAME",
+            "value": protocol,
+            "key": "'NAME:" + protocol,
+            "pos": loc
+          }, lParenStx, {
+            "name": "STRING",
+            "value": fileNameStr,
+            "key": "'STRING:" + fileNameStr,
+            "pos": loc
+          }, rParenStx],
+          "pos": loc
+        }],
+        "pos": loc
+      }, {
+        "name": "AS",
+        "value": "as",
+        "key": "'AS:as",
+        "pos": loc
+      }, {
+        "name": "NAME",
+        "value": reqTimeSfx,
+        "key": "'NAME:" + reqTimeSfx,
+        "pos": loc
+      }],
+      "pos": loc
+    };
+
+      } else {
+      importStx = {
         name: "import-stmt",
         pos: loc,
         kids: [{
@@ -7447,7 +7540,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               pos: loc
             }, rParenStx]
           }]
-        }
+        }]
+      };
       }
 
       return importStx;
@@ -7456,9 +7550,14 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     provideStatement.prototype.toPyretAST = function() {
       return {
-        name: "id-expr",
-        kids: [makeResolvedName("nothing", this.location, true)],
-        pos: this.location
+        name: 'stmt',
+        voidstatement: '1',
+        pos: this.location,
+        kids: [{
+          name: "id-expr",
+          kids: [makeResolvedName("nothing", this.location, true)],
+          pos: this.location
+        }]
       }
     };
 
@@ -7483,7 +7582,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
     }
 
-    function makeProvideSnippet(varName) {
+    function makeProvideSnippetOBSOLETE(varName) {
       return {
         "name": "provide-stmt",
         "kids": [{
@@ -7570,6 +7669,24 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
     }
 
+    function makeProvideSnippet() {
+      return {
+        "name": "provide-stmt",
+        "pos": blankLoc,
+        "kids": [{
+          "name": "PROVIDE",
+          "value": "provide",
+          "key": "'PROVIDE:provide",
+          "pos": blankLoc
+        }, {
+          "name": "STAR",
+          "value": " *",
+          "key": "'STAR: *",
+          "pos": blankLoc
+        }],
+      };
+    }
+
     /////////////////////
     /* Export Bindings */
     /////////////////////
@@ -7606,9 +7723,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       module_localIds = module_definedIds.filter(function(id) {
         return (module_providedIds.indexOf(id) === -1);
       });
-      console.log('setting2 window.COLLECTIONS', name);
-      console.log('localIds =', module_localIds);
-      console.log('providedIds =', module_providedIds);
+      console.log('setting to window.COLLECTIONS', name);
+      console.log('localIds =', JSON.stringify(module_localIds));
+      console.log('providedIds =', JSON.stringify(module_providedIds));
+      console.log('AST suffix=', 'ƎMODULE-' + plt.compiler.pyretizeSymbol(name));
       window.COLLECTIONS[name] = {
         name: name,
         suffix: 'ƎMODULE-' + plt.compiler.pyretizeSymbol(name),
@@ -7618,6 +7736,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       };
     }
     var ws_ast = plt.compiler.toPyretAST(ast, pinfo, provenance, name);
+
     if (provenance === "definitions" || provenance === "module") {
       var preimports = [
         plt.compiler.makeImportSnippet('image'),
@@ -7625,12 +7744,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       ];
       ws_ast.kids[0].kids.unshift(preimports[0], preimports[1]);
     }
+
     if (provenance === 'module') {
       // can't we have this in definitions window too?
-      for (var i = 0; i < module_providedIds.length; i++) {
-        ws_ast.kids[0].kids.unshift(plt.compiler.makeProvideSnippet(module_providedIds[i]));
-      }
+      ws_ast.kids[0].kids.unshift(plt.compiler.makeProvideSnippet());
     }
+
     console.log('finishing schemeToPyretAST of', 'name=', name, 'provenance=', provenance);
     var ws_ast_j = JSON.stringify(ws_ast);
 

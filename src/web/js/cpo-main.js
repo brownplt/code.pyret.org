@@ -324,7 +324,7 @@
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, (dialect === "spyret" ? "make-spyret-interaction-locator" : "make-interaction-locator)
+              }, (dialect === "spyret" ? "make-spyret-interaction-locator" : "make-interaction-locator")
               );
             }, 0);
             return ret.promise;
