@@ -21,8 +21,8 @@
     srcloc = runtime.getField(srcloc, "values");
     var CH = runtime.getField(checker, "values");
 
-    function isTestResult(val) { return runtime.unwrap(runtime.getField(CH, "TestResult").app(val)); }
-    function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success").app(val)); }
+    function isTestResult(val) { return runtime.unwrap(runtime.getField(CH, "TestResult")(val)); }
+    function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success")(val)); }
 
     // NOTE: MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function drawCheckResults(container, documents, runtime, checkResults, contextFactory) {
@@ -432,7 +432,7 @@
             return skeleton;
           });
           
-        var endedInError    = get(option, "is-some").app(maybeError);
+        var endedInError    = get(option, "is-some")(maybeError);
         var allTestsPassing = testsPassing === testsExecuted;
         
         var error = endedInError ? get(maybeError, "value").val : undefined;

@@ -121,7 +121,7 @@
     }
 
     // NOTE(joe): this function just allocates a closure, so it's stack-safe
-    var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
+    var onCompile = gmf(cpo, "make-on-compile")(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
 
     function uriFromDependency(dependency) {
       return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
@@ -155,7 +155,7 @@
       function findModule(contextIgnored, dependency) {
         var uri = uriFromDependency(dependency);
         if(locatorCache.hasOwnProperty(uri)) {
-          return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
+          return gmf(compileLib, "located")(locatorCache[uri], runtime.nothing);
         }
         return runtime.safeCall(function() {
           return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
@@ -166,7 +166,7 @@
                   throw runtime.throwMessageException("Unknown module: " + name);
                 }
                 else {
-                  return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+                  return gmf(cpo, "make-builtin-js-locator")(name, raw);
                 }
               },
               dependency: function(protocol, args) {
@@ -194,7 +194,7 @@
             });
          }, function(l) {
             locatorCache[uri] = l;
-            return gmf(compileLib, "located").app(l, runtime.nothing);
+            return gmf(compileLib, "located")(l, runtime.nothing);
          }, "findModule");
       }
       return runtime.makeFunction(findModule, "cpo-find-module");
@@ -204,7 +204,7 @@
     // and uses the same runtime for the compiler and running code.
     // Usually you can only get a new Runtime by calling create, but
     // here we magic the current runtime into one.
-    var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+    var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand")(
       runtime.makeObject({
         "runtime": runtime.makeOpaque(runtime)
       }));
@@ -233,7 +233,7 @@
 
     var replP = Q.defer();
     return runtime.safeCall(function() {
-        return gmf(cpo, "make-repl").app(
+        return gmf(cpo, "make-repl")(
             builtinsForPyret,
             pyRuntime,
             pyRealm,
@@ -253,10 +253,10 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
+                    "make-definitions-locator")(getDefsForPyret(source), replGlobals);
                   },
                   function(locator) {
-                    return gf(repl, "restart-interactions").app(locator, pyOptions);
+                    return gf(repl, "restart-interactions")(locator, pyOptions);
                   });
               }, function(result) {
                 ret.resolve(result);
@@ -271,11 +271,11 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-interaction-locator").app(
+                    "make-interaction-locator")(
                       runtime.makeFunction(function() { return str; }))
                   },
                   function(locator) {
-                    return gf(repl, "run-interaction").app(locator);
+                    return gf(repl, "run-interaction")(locator);
                   });
               }, function(result) {
                 ret.resolve(result);

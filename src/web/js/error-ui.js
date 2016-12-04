@@ -24,22 +24,22 @@
 
     var isContractError = function(runtime, v){
       var contracts = runtime.getField(contractsLib, "values");
-      return runtime.getField(contracts, "is-ContractResult").app(v)
+      return runtime.getField(contracts, "is-ContractResult")(v)
     };
 
     var isRuntimeError  = function(runtime, v){
       var error = runtime.getField(errorLib, "values");
-      return runtime.getField(error, "is-RuntimeError").app(v)
+      return runtime.getField(error, "is-RuntimeError")(v)
     };
 
     var isParseError  = function(runtime, v){
       var error = runtime.getField(errorLib, "values");
-      return runtime.getField(error, "is-ParseError").app(v)
+      return runtime.getField(error, "is-ParseError")(v)
     };
 
     var isTestResult  = function(runtime, v){
       var error = runtime.getField(checkerLib, "values");
-      return runtime.getField(error, "is-TestResult").app(v)
+      return runtime.getField(error, "is-TestResult")(v)
     };
 
     var ffi = runtime.ffi;
@@ -65,7 +65,7 @@
         safeThen(function() {
           return runtime.getField(value, name);
         }, applyMethod).then(function(fun) {
-          return fun.app.apply(value, args);
+          return fun.apply(value, args);
         }).start;
     }
 

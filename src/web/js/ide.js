@@ -60,7 +60,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
                 throw runtime.throwMessageException("Unknown module: " + name);
               }
               else {
-                return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+                return gmf(cpo, "make-builtin-js-locator")(name, raw);
               }
             },
             dependency: function(protocol, args) {
@@ -70,7 +70,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
         );
       },
       function(l) {
-        return gmf(compileLib, "located").app(l, runtime.nothing);
+        return gmf(compileLib, "located")(l, runtime.nothing);
       },
       "findModule"
     );
@@ -83,7 +83,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
   // magic the current runtime into one.
   // Someday Pyret will be quick enough that we won't need to save theses
   // seconds of instantiation.
-  var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand").app(
+  var pyRuntime = gf(gf(runtimeLib, "internal").brandRuntime, "brand")(
     runtime.makeObject({
       "runtime": runtime.makeOpaque(runtime)
     }));
@@ -104,21 +104,21 @@ function makeRuntimeAPI(CPOIDEHooks) {
   function parse(source, uri) {
     var parse = gmf(parsePyret, "surface-parse");
     return runtime.safeTail(function() {
-      return parse.app(source, uri);
+      return parse(source, uri);
     });
   }
 
   function compile(ast) {
     var compileAst = gmf(cpo, "compile-ast");
     return runtime.safeTail(function() {
-      return compileAst.app(ast, pyRuntime, pyFindModule, gmf(compileStructs, "default-compile-options"));
+      return compileAst(ast, pyRuntime, pyFindModule, gmf(compileStructs, "default-compile-options"));
     });
   }
 
   function run(jsSrc) {
     var run = gmf(cpo, "run");
     return runtime.safeTail(function() {
-      return run.app(pyRuntime, pyRealm, jsSrc);
+      return run(pyRuntime, pyRealm, jsSrc);
     });
   }
 
@@ -275,7 +275,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
           color="red"
           target="definitions://"
           highlights={[srclocToHighlight(loc, "red", "definitions://")]}
-        >{runtime.getField(loc, "format").app(false)}</HoverHighlight>,
+        >{runtime.getField(loc, "format")(false)}</HoverHighlight>,
 
       "maybe-stack-loc": (n, ufo, cwl, cwol) => <span>Maybe Stack Loc</span>,
 
@@ -299,7 +299,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
   }
   function renderParseError(value, reject) {
     runtime.runThunk(
-      () => runtime.getField(value, "render-fancy-reason").app(
+      () => runtime.getField(value, "render-fancy-reason")(
         runtime.makeFunction(function() { return false; }, "ide-src-available"),
       ),
       (result) => {

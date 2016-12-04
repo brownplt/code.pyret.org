@@ -210,7 +210,7 @@
 
     function getLastUserLocation(runtime, srcloc, documents, e, ix, local) {
       var srclocStack = e.map(runtime.makeSrcloc);
-      var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s)); }
+      var isSrcloc = function(s) { return runtime.unwrap(runtime.getField(srcloc, "is-srcloc")(s)); }
       var userLocs = srclocStack.filter(function(l) {
         if(!(l && isSrcloc(l))) { return false; }
         var source = runtime.getField(l, "source");
@@ -320,7 +320,7 @@
     function drawSrcloc(documents, runtime, s) {
       if (!s) { return $("<span>"); }
       var get = runtime.getField;
-      var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+      var srcElem = $("<a>").addClass("srcloc").text(get(s, "format")(true));
       if(!runtime.hasField(s, "source")) {
         return srcElem;
       }
@@ -416,7 +416,7 @@
             var source = documents.get(filename).getRange(start, end);
             runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
-                return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
+                return runtime.getField(PP, "surface-parse")(prelude + source, filename);
               }, function(result) {
                 if(runtime.isSuccessResult(result)) {
                   var res = result.result;
@@ -510,7 +510,7 @@
     
     function renderStackTrace(runtime, documents, srcloc, pyretStack) {
       function isSrcloc(s) { 
-        return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
+        return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc")(s));
       }
       var container = $("<div>").addClass("stacktrace");
       container.append($("<p>").text("Evaluation in progress when the error occurred (most recent first):"));
@@ -671,7 +671,7 @@
       installRenderers(runtime);
       
       function isSrcloc(s) {
-        return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
+        return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc")(s));
       }
       
       var makePalette = function(){
@@ -759,7 +759,7 @@
               var container = $("<div>").addClass("compile-error");
               runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
-                  return runtime.getField(e.exn, "render-fancy-reason").app(
+                  return runtime.getField(e.exn, "render-fancy-reason")(
                     maybeStackLoc,
                     srclocAvaliable,
                     maybeLocToAST);
@@ -867,7 +867,7 @@
             if (probablyErrorLocation) {
               runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
-                  return contentsWithLoc.app(probablyErrorLocation);
+                  return contentsWithLoc(probablyErrorLocation);
                 }, function(out) {
                   if (runtime.isSuccessResult(out)) {
                     runtime.runThunk(function() { 
@@ -954,7 +954,7 @@
             return runtime.safeCall(function () {
               if (runtime.hasField(loc, "source")
                   && documents.has(runtime.getField(loc, "source"))) {
-                return help(runtime.getField(ED, "highlight").app(
+                return help(runtime.getField(ED, "highlight")(
                               contents, 
                               runtime.ffi.makeList([loc]), 
                               runtime.makeNumber(Math.floor(Math.random() * -1000 - 1))));

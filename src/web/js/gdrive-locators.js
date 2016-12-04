@@ -83,7 +83,7 @@ define([], function() {
               });
               contentsP.then(function(pyretString) {
                 CPO.documents.set(uri, new CodeMirror.Doc(pyretString, "pyret"));
-                var ret = gmf(compileLib, "pyret-string").app(pyretString);
+                var ret = gmf(compileLib, "pyret-string")(pyretString);
                 getModRestart.resume(ret);
               });
             });
@@ -91,20 +91,20 @@ define([], function() {
 
           function getDependencies(self) {
             return runtime.safeCall(function() {
-              return gf(self, "get-module").app();
+              return gf(self, "get-module")();
             }, function(mod) {
               return runtime.safeTail(function() {
-                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+                return gmf(compileLib, "get-standard-dependencies")(mod, uri);
               });
             });
           }
 
           function getProvides(self) {
             return runtime.safeCall(function() {
-              return gf(self, "get-module").app();
+              return gf(self, "get-module")();
             }, function(mod) {
               return runtime.safeTail(function() {
-                return gmf(compileLib, "get-provides").app(mod, uri);
+                return gmf(compileLib, "get-provides")(mod, uri);
               });
             });
           }
@@ -148,10 +148,10 @@ define([], function() {
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
               return runtime.safeCall(function() {
-                return runtime.getField(other, "uri").app();
+                return runtime.getField(other, "uri")();
               }, function(otherstr) {
                 return runtime.safeTail(function() {
-                  return rec.app(otherstr, uri);
+                  return rec(otherstr, uri);
                 })
               });
             }),
@@ -216,9 +216,9 @@ define([], function() {
             if(ast) { return ast; }
             else {
               return runtime.safeCall(function() {
-                return gmf(parsePyret, "surface-parse").app(contents, uri);
+                return gmf(parsePyret, "surface-parse")(contents, uri);
               }, function(ret) {
-                ast = gmf(compileLib, "pyret-ast").app(ret);
+                ast = gmf(compileLib, "pyret-ast")(ret);
                 return ast; 
               });
             }
@@ -226,20 +226,20 @@ define([], function() {
 
           function getDependencies(self) {
             return runtime.safeCall(function() {
-              return gf(self, "get-module").app();
+              return gf(self, "get-module")();
             }, function(mod) {
               return runtime.safeTail(function() {
-                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+                return gmf(compileLib, "get-standard-dependencies")(mod, uri);
               });
             });
           }
 
           function getProvides(self) {
             return runtime.safeCall(function() {
-              return gf(self, "get-module").app();
+              return gf(self, "get-module")();
             }, function(mod) {
               return runtime.safeTail(function() {
-                return gmf(compileLib, "get-provides").app(mod, uri);
+                return gmf(compileLib, "get-provides")(mod, uri);
               });
             });
           }
@@ -282,10 +282,10 @@ define([], function() {
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
               return runtime.safeCall(function() {
-                return runtime.getField(other, "uri").app();
+                return runtime.getField(other, "uri")();
               }, function(otherstr) {
                 return runtime.safeTail(function() {
-                  return rec.app(otherstr, uri);
+                  return rec(otherstr, uri);
                 })
               });
             }),
@@ -334,9 +334,9 @@ define([], function() {
 
           var uri = "gdrive-js://" + file.getUniqueId();
 
-          var rawModule = gmf(builtinModules, "builtin-raw-locator-from-str").app(mod);
+          var rawModule = gmf(builtinModules, "builtin-raw-locator-from-str")(mod);
           runtime.safeCall(function() {
-            return gmf(cpo, "make-js-locator-from-raw").app(
+            return gmf(cpo, "make-js-locator-from-raw")(
               rawModule,
               true,
               uri,
@@ -396,18 +396,18 @@ define([], function() {
               var define = function(deps, callback) {
                 var realDeps = deps.map(function(d) {
                   if(d.indexOf("@my-gdrive") === 0) {
-                    return gmf(compileStructs, "dependency").app(
+                    return gmf(compileStructs, "dependency")(
                       "my-gdrive",
                       runtime.ffi.makeList([d.slice(11)]));
                   }
                   else if(d.indexOf("@shared-gdrive") === 0) {
                     var pieces = d.split("/");
-                    return gmf(compileStructs, "dependency").app(
+                    return gmf(compileStructs, "dependency")(
                       "shared-gdrive",
                       runtime.ffi.makeList([pieces[1], pieces[2]]));
                   }
                   else if(d.indexOf("trove/") === 0) {
-                    return gmf(compileStructs, "builtin").app(
+                    return gmf(compileStructs, "builtin")(
                       d.slice(6)
                     );
                   }
@@ -423,7 +423,7 @@ define([], function() {
             runtime.pauseStack(function(rs) {
               runtime.loadBuiltinModules([util.modBuiltin("string-dict")], "gdrive-js-locator", function(stringDict) {
                 var sdo = gmf(stringDict, "make-string-dict");
-                restarter.resume(gmf(compileStructs, "provides").app(sdo.app(), sdo.app()));
+                restarter.resume(gmf(compileStructs, "provides")(sdo(), sdo()));
               });
             });
           }
@@ -460,10 +460,10 @@ define([], function() {
             "name": m0(name),
             "_equals": m2(function(self, other, rec) {
               return runtime.safeCall(function() {
-                return runtime.getField(other, "uri").app();
+                return runtime.getField(other, "uri")();
               }, function(otherstr) {
                 return runtime.safeTail(function() {
-                  return rec.app(otherstr, uri);
+                  return rec(otherstr, uri);
                 })
               });
             }),
@@ -474,7 +474,7 @@ define([], function() {
                 var define = function(_, callback) {
                   restarter.resume(
                     runtime.ffi.makeSome(
-                      gmf(compileLib, "pre-loaded").app(
+                      gmf(compileLib, "pre-loaded")(
                         gmf(compileStructs, "minimal-builtins"),
 //                        mod.contents)));
                         runtime.makeOpaque(callback))));

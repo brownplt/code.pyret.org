@@ -42,11 +42,11 @@
     var SHEET_TYPES;
 
     function applyBrand(brand, val) {
-      return runtime.getField(brand, "brand").app(val);
+      return runtime.getField(brand, "brand")(val);
     }
 
     function hasBrand(brand, val) {
-      return runtime.getField(brand, "test").app(val);
+      return runtime.getField(brand, "test")(val);
     }
 
     var brandWS = runtime.namedBrander("sheet", ["worksheet: worksheet brander"]);
@@ -325,7 +325,7 @@
           sanitizer = runtime.builtin_sanitizers.empty_only;
         }
         if (schema.isOption) {
-          sanitizer = runtime.builtin_sanitizers.option.app(sanitizer);
+          sanitizer = runtime.builtin_sanitizers.option(sanitizer);
         }
         return sanitizer;
       }
@@ -444,7 +444,7 @@
       checkSpreadsheet(ss);
       runtime.checkString(name);
       runtime.checkBoolean(skipHeaders);
-      return runtime.getField(ss, 'sheet-by-name').app(name, skipHeaders);
+      return runtime.getField(ss, 'sheet-by-name')(name, skipHeaders);
     }
 
     function spreadsheetSheetByIndex(ss, idx, skipHeaders) {
@@ -452,7 +452,7 @@
       checkSpreadsheet(ss);
       runtime.checkNumber(idx);
       runtime.checkBoolean(skipHeaders);
-      return runtime.getField(ss, 'sheet-by-index').app(idx, skipHeaders);
+      return runtime.getField(ss, 'sheet-by-index')(idx, skipHeaders);
     }
 
     function makePyretSpreadsheet(ss) {

@@ -90,7 +90,7 @@
           if(drawer === undefined) {
             runtime.throwMessageException("Tried to draw() a reactor with no to-draw");
           }
-          return drawer.val.handler.app(init);
+          return drawer.val.handler(init);
         }),
         interact: runtime.makeMethod0(function(self) {
           var thisInteractTrace = [];
@@ -126,7 +126,7 @@
             }
             else {
               return runtime.safeCall(function() {
-                return ticker.val.handler.app(init);
+                return ticker.val.handler(init);
               }, function(result) {
                 var newTrace = trace;
                 if(tracing) {
@@ -141,11 +141,11 @@
           }
         }),
         _output: runtime.makeMethod0(function(self) {
-          return runtime.getField(VS, "vs-constr").app(
+          return runtime.getField(VS, "vs-constr")(
             "reactor",
             runtime.ffi.makeList([
-              runtime.getField(VS, "vs-value").app(init),
-              runtime.getField(VS, "vs-value").app(runtime.ffi.makeList(trace))]));
+              runtime.getField(VS, "vs-value")(init),
+              runtime.getField(VS, "vs-value")(runtime.ffi.makeList(trace))]));
         })
       });
     }

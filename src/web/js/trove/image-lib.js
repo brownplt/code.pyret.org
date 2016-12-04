@@ -22,7 +22,7 @@
       if ([r,g,b,a].filter(isNum).length !== 4) {
         throw new Error("Internal error: non-number in makeColor argList ", [r, g, b, a]);
       }
-      return color.app(
+      return color(
         RUNTIME.wrap(r),
         RUNTIME.wrap(g),
         RUNTIME.wrap(b),
@@ -340,7 +340,7 @@
       }
       return c;
     };
-    var isColor = function(c) { return unwrap(colorPred.app(c)); };
+    var isColor = function(c) { return unwrap(colorPred(c)); };
     var colorRed = function(c) { return unwrap(gf(c, "red")); }
     var colorGreen = function(c) { return unwrap(gf(c, "green")); };
     var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
