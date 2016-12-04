@@ -227,15 +227,15 @@
             append(colorSwitcher).
             append(".");
 
-      var highlightEagerness    = localStorage.getItem('highlight-eagerness');
-      var highlightColorfulness = localStorage.getItem('highlight-colorfulness');
+      var highlightEagerness    = localSettings.getItem('highlight-eagerness');
+      var highlightColorfulness = localSettings.getItem('highlight-colorfulness');
 
       if(highlightEagerness !== null) {
         optionEager.prop("selected",   highlightEagerness === 'eager');
         optionLazy.prop("selected",    highlightEagerness !== 'eager');
       } else {
         optionEager.prop("selected", true);
-        localStorage.setItem('highlight-eagerness',
+        localSettings.setItem('highlight-eagerness',
           Math.random() >= 0.5 ? 'eager' : 'lazy');
       }
 
@@ -244,7 +244,7 @@
         optionDrab.prop("selected",     highlightColorfulness === 'drab');
       } else {
         optionEager.prop("vibrant", true);
-        localStorage.setItem('highlight-colorfulness',
+        localSettings.setItem('highlight-colorfulness',
           Math.random() >= 0.5 ? 'vibrant' : 'drab');
       }
 
@@ -255,8 +255,8 @@
       }
 
       function logChange() {
-        localStorage.setItem('highlight-eagerness',    eagerSwitcher[0].value);
-        localStorage.setItem('highlight-colorfulness', colorSwitcher[0].value);
+        localSettings.setItem('highlight-eagerness',    eagerSwitcher[0].value);
+        localSettings.setItem('highlight-colorfulness', colorSwitcher[0].value);
         outputUI.settingChanged(eagerSwitcher[0].value, colorSwitcher[0].value);
       }
 
