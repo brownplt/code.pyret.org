@@ -1207,8 +1207,8 @@
         }
         return ret.join('');
       };
-      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
-      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
+      renderers["method"] = function(val) { return renderText("<method:" + runtime.unmungeFunName(val.name) + ">"); };
+      renderers["function"] = function(val) { return renderText("<function:" + runtime.unmungeFunName(val.name) + ">"); };
       renderers["render-array"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
