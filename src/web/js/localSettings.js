@@ -13,7 +13,7 @@ window.localSettings = function() {
     localStorage.setItem(e.key, e.newValue);
   });
 
-  function onChanged(key, f) {
+  function change(key, f) {
     window.addEventListener('storage', function(e) {
       if (e.storageArea === localStorage) { return; }
       f(e.oldValue, e.newValue);
