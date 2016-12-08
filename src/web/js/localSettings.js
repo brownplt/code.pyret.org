@@ -8,27 +8,33 @@ window.localSettings = function() {
     });
   });
 
-  window.addEventListener('storage', function(e) {
-    if (e.storageArea === sessionStorage) { return; }
-    localStorage.setItem(e.key, e.newValue);
-  });
+  var cache = new Map();
+  var listeners = new Map();
 
   function change(key, f) {
+    listeners.set(key, f);
     window.addEventListener('storage', function(e) {
-      if (e.storageArea === localStorage) { return; }
+      if (e.storageArea !== localStorage) { return; }
+      cache.set(e.key, e.newValue);
       f(e.oldValue, e.newValue);
     });
   }
 
   return {
+    change: change,
     getItem: function (key) {
-      var value = sessionStorage.getItem(key);
-      if (!value) {
-        value = localStorage.getItem(key);
-        if (!!value) { sessionStorage.setItem(key, value); }
+      if (!cache.has(key)) {
+        var value = localStorage.getItem(key);
+        if (value) { cache.set(key, value.toString()); }
+        return value;
+      } else {
+        return cache.get(key);
       }
-      return value;
     },
-    setItem: sessionStorage.setItem.bind(sessionStorage),
+    setItem: function (key, value) {
+      var oldValue = cache.get(key);
+      localStorage.setItem(key, value);
+      if(listeners.has(key)) {listeners.get(key)(oldValue, value.toString());}
+    }
   };
 }();
