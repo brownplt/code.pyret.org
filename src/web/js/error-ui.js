@@ -186,6 +186,9 @@
             + "shown. Please report this as a bug.");
         }).
         finally(function (html) {
+          if (errors.length > 0) {
+            record.disp_errors = errors;
+          }
           errors.forEach(function (e) {
             console.error(e);
           });
