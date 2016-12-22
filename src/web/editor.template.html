@@ -11,19 +11,45 @@
   <link rel="stylesheet" href="/css/shared.css"></link>
   <link rel="stylesheet" href="/css/editor.css"></link>
   <link rel="stylesheet" href="/css/font-awesome.min.path-fixed.css"></link>
-  <link rel="icon" type="image/png" href="/img/pyret-icon.png">
+  <!-- <link rel="icon" type="image/png" href="/img/pyret-icon.png"> -->
+  <link rel="icon" type="image/png" href="/img/BigLogo.png">
   <style id="highlight-styles"></style>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
 </head>
 <body>
-<div id="header">
+<div id="headerone">
   <a id="logo" href="http://www.pyret.org/"></a>
+  WeScheme::
+</div>
+<div id="headertwo">
+  <div id="runPart" class="blueButton lhs">
+    <span id="runDropdown" class="dropdown rhs">↴</span>
+    <button id="runButton" class="blueButton lhs"></button>
+  </div>
+  <ul id="run-dropdown-content">
+    <li id="select-run">Run</li>
+    <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
+  </ul>
+  <button id="breakButton" class="blueButton lhs">stop</button>
+  <button id="saveButton" class="blueButton lhs loginOnly"></button>
+  <button id="openFile" class="blueButton lhs loginOnly"></button>
+  <select id="modeButton" class="blueButton lhs">
+    <option value="false">Text</option>
+    <option value="blocks">Blocks</option>
+  </select>
+</div>
+<div id="headerthree">
+  <!--
+  <a id="logo" href="http://www.pyret.org/"></a>
+  -->
   <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
   <div id="program-name-container" class="loginOnly">
     <input id="program-name" type="text" placeholder="Program Name"></input>
   </div>
+  <!--
   <button id="saveButton" class="blueButton loginOnly">Save</button>
   <button id="openFile" class="blueButton loginOnly">Open</button>
+  -->
   <div id="shareContainer"></div>
   <div id="menu"><button class="blueButton">More ▾</a></div>
   <div id="menuContents" style="display: none; z-index: 8990;">
@@ -40,6 +66,7 @@
     </div>
     <div id="logout"><a href="/logout">Log out</a></div>
   </div>
+  <!--
   <select id="modeButton" class="blueButton rhs">
     <option value="false">Text</option>
     <option value="blocks">Blocks</option>
@@ -53,6 +80,7 @@
     <li id="select-run">Run</li>
     <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
   </ul>
+  -->
 </div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>

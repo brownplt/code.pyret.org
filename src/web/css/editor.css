@@ -418,7 +418,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 40px;
+  padding-top: 60px; /* 40px */
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -434,7 +434,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 40px;
+  padding-top: 60px; /* 40px */
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -478,6 +478,11 @@ body {
 }
 
 #saveButton {
+  background: url("/img/spyret-save.png") 15px 5px no-repeat;
+}
+
+#openFile {
+  background: url("/img/spyret-share.png") 15px 5px no-repeat;
 }
 
 #shareContainer {
@@ -1158,24 +1163,32 @@ code div {
 }
 
 #runButton, #breakButton {
-  width: 150px;
+  width: 50px; /*150px; */
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
 #runButton{
-  background: #317BCF;
+   /* background: #317BCF;  */
+   background: url("/img/spyret-run.png") 15px 5px no-repeat; 
+}
+
+#select-run{
+  background: url("/img/spyret-run.png") 15px 5px no-repeat;
 }
 
 #runButton:hover{
-  background:#0060CE;
+  /* background:#0060CE; */
+  background: #75328a;
 }
 
 #breakButton{
-  background:#CF3B31;
+ /* background:#CF3B31; */
+  background: url("/img/spyret-break.png") 15px 5px no-repeat;
 }
 
 #breakButton:hover{
-  background:#B30C00;
+  /* background:#B30C00; */
+  background: #75328a;
 }
 
 #runButton:hover,
