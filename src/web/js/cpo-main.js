@@ -260,7 +260,7 @@
     var getDefsForPyret = runtime.makeFunction(function() {
         var ws_str = CPO.editor.cm.getValue();
         if (dialect === 'spyret') {
-          ws_str = spyretParse.schemeToPyretAST(ws_str, "definitions");
+          ws_str = spyretParse.schemeToPyretAST(ws_str, "definitions", "definitions");
         }
         return ws_str;
       });
@@ -302,7 +302,8 @@
             }, 0);
             return ret.promise;
           },
-          run: function(str, name) {
+          run: function(str, name, lineNo) {
+            console.log('doing cpo-main > run');
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
@@ -314,7 +315,7 @@
                       runtime.makeFunction(function() {
                         var ws_str = str;
                         if (dialect === "spyret") {
-                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl");
+                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl", lineNo);
                         }
                         return ws_str;
                         }))
