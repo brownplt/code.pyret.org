@@ -161,7 +161,7 @@ em {
 
 #headerone {
   position: fixed;
-  z-index: 9000;
+  z-index: 9001;
   top: 0;
   width: 100%;
   height: 20px;

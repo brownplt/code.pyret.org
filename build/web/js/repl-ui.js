@@ -70,6 +70,12 @@
          50
       );
     }
+
+                        /*
+    var definitionsDoneFlag = false;
+    function definitionsDone() {
+      return definitionsDoneFlag;
+    }*/
     
 
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
@@ -169,6 +175,11 @@
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
+        //console.log('process present?', typeof(process));
+        //console.log('window present?', typeof(window));
+        //console.log('global present?', typeof(global));
+        //console.log('setting definitionsDoneFlag', !didError);
+        //definitionsDoneFlag = !didError;
         window.definitionsDone = !didError;
         return doneDisplay.promise;
       }
@@ -505,6 +516,7 @@
 
     return runtime.makeJSModuleReturn({
       makeRepl: makeRepl,
+      //definitionsDone: definitionsDone,
       makeEditor: CPO.makeEditor
     });
 

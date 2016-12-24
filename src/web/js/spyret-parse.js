@@ -5804,7 +5804,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           //defstruct contents
           defstructs.push(b);
         } else if (b.name === "let-expr" &&
-          b.kids.length > 1 && 
+          b.kids.length > 1 &&
           (it = b.kids[0]) && it.name === "toplevel-binding") {
           //console.log("checking " + it.kids[0].kids[1].value)
           if (refersToLocalFunId(b)) {
@@ -7695,9 +7695,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     plt.compiler.toPyretAST = convertToPyretAST;
   })();
 
- 
-  function schemeToPyretAST(code, name, provenance, lineNo) {
-    console.log('doing schemeToPyretAST of', code , 'name=', name, 'provenance=',  provenance, 'lineNo=', lineNo);
+  function schemeToPyretAST(code, name, provenance, lineNo
+    //, definitionsDone
+  ) {
+    //console.log('doing schemeToPyretAST of', code , 'name=', name, 'provenance=',  provenance, 'lineNo=', lineNo, 'definitionsDone= ', window.definitionsDone);
     var debug = false;
     //var debug = true;
     //follg may not be needed
@@ -7739,22 +7740,19 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
     var ws_ast = plt.compiler.toPyretAST(ast, pinfo, provenance, name);
 
-    if (
-      (provenance === 'definitions') ||
+    if ((provenance === 'definitions') ||
         (provenance === 'module') ||
-        (provenance === 'repl' && lineNo === 1 && !window.definitionsDone)
-      //|| provenance === "definitions" || provenance === "module"
-    ) {
+        (provenance === 'repl' && lineNo === 1 && !window.definitionsDone)) {
       var preimports = [
         plt.compiler.makeImportSnippet('image'),
         plt.compiler.makeImportSnippet('world')
       ];
-      console.log('added import snippets');
+      //console.log('added import snippets');
       ws_ast.kids[0].kids.unshift(preimports[0], preimports[1]);
+      if (code === '') {
+        window.definitionsDone = true;
+      }
     }
-
-
-
 
     if (provenance === 'module') {
       // can't we have this in definitions window too?

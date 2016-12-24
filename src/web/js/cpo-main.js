@@ -303,7 +303,6 @@
             return ret.promise;
           },
           run: function(str, name, lineNo) {
-            console.log('doing cpo-main > run');
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {

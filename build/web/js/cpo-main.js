@@ -315,7 +315,9 @@
                       runtime.makeFunction(function() {
                         var ws_str = str;
                         if (dialect === "spyret") {
-                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl", lineNo);
+                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl", lineNo
+                            //, replUI.definitionsDone()
+                          );
                         }
                         return ws_str;
                         }))

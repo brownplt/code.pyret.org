@@ -70,7 +70,6 @@
          50
       );
     }
-    
 
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
@@ -133,7 +132,7 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                        return checkUI.drawCheckResults(output, CPO.documents, rr,
                                                         runtime.getField(runResult.result, "checks"));
                       }, function(_) {
                         outputPending.remove();
@@ -404,7 +403,7 @@
           if (name.indexOf("interactions://") === 0)
             CPO.documents.delete(name);
         });
-        
+
         CPO.documents.set("definitions://", uiOptions.cm.getDoc());
 
         interactionsCount = 0;
