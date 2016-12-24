@@ -299,7 +299,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap[">="] = "_spyret_ge";
     symbolMap["abs"] = "num-abs";
     symbolMap["acos"] = "num-acos";
-    symbolMap["add1"] = "num-add1";
+    symbolMap["add1"] = "_spyret_add1";
     symbolMap["asin"] = "num-asin";
     symbolMap["atan"] = "num-atan";
     symbolMap["ceiling"] = "num-ceiling";
@@ -340,7 +340,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["sinh"] = "_spyret_sinh";
     symbolMap["sqr"] = "num-sqr";
     symbolMap["sqrt"] = "num-sqrt";
-    symbolMap["sub1"] = "num-sub1";
+    symbolMap["sub1"] = "_spyret_sub1";
     symbolMap["tan"] = "num-tan";
     symbolMap["truncate"] = "num-truncate";
     symbolMap["zero?"] = "_spyret_zero_p";
@@ -5782,7 +5782,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       //ds26gte
-      console.log('localFunIds = ' + localFunIds);
+      //console.log('localFunIds = ' + localFunIds);
 
       function refersToLocalFunId(b) {
         if (b.name === "NAME" && b.value && localFunIds.indexOf(b.value) > -1) {
@@ -5842,9 +5842,9 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           otherExps.push(wrapCheckTest(b));
         } else if (b.name === "check-expr") {
           //otherExps.push(wrapStmt(b));
-          console.log('pushing a check-expect');
+          //console.log('pushing a check-expect');
           newCheckExpects.push(b.kids[1].kids[0]);
-          console.log('done pushing a check-expect');
+          //console.log('done pushing a check-expect');
         } else if (provenance === "repl" || provenance === "module") {
           otherExps.push(b);
         } else if (b.name === "id-expr" && (it = b.kids[0]) &&
@@ -5856,7 +5856,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       //ds26gte
-      console.log('starting for');
+      //console.log('starting for');
       for (i = 0; i < programs.length; i++) {
         var b = programs[i].toPyretAST();
         if (b.name === "block") {
@@ -5945,7 +5945,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, checkExpects, finalCheckExpects);
 
       //ds26gte
-      console.log('kiddos calced = ', kiddos);
+      //console.log('kiddos calced = ', kiddos);
 
       it = {
         name: "block",
@@ -7407,11 +7407,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     //requireExpr.prototype.collectDefinitions remove
     requireExpr.prototype.toPyretAST = function() {
-      console.log('doing requireExpr:toPyretAST ' + this.spec);
+      //console.log('doing requireExpr:toPyretAST ' + this.spec);
       var moduleName = this.spec;
 
       if (window.COLLECTIONS === undefined) {
-        console.log('initing window.COLLECTIONS to []');
+        //console.log('initing window.COLLECTIONS to []');
         window.COLLECTIONS = [];
       }
 
@@ -7423,7 +7423,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           pos: this.location
         }
       } else {
-        console.log('setting window.COLLECTIONS', moduleName, 'to true');
+        //console.log('setting window.COLLECTIONS', moduleName, 'to true');
         window.COLLECTIONS[moduleName] = true;
       }
 
@@ -7460,8 +7460,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       var fileNameStr = types.toWrittenString(fileName);
-      console.log('RE protocol=', protocol);
-      console.log('RE filename=', fileName);
+      //console.log('RE protocol=', protocol);
+      //console.log('RE filename=', fileName);
 
      // is the enclosing "import-stmt" needed? is the "import-special" enough?
 
@@ -7470,7 +7470,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       if (protocol === 'DISABLE-wescheme-collection') {
         //var reqTimeSfx = 'ƎMODULE-' + plt.compiler.pyretizeSymbol(protocol + '://' + fileName);
         var reqTimeSfx =  plt.compiler.pyretizeSymbol(protocol + '://' + fileName);
-        console.log('RE suffix=', reqTimeSfx);
+        //console.log('RE suffix=', reqTimeSfx);
 
         importStx = {
       "name": "import-stmt",
@@ -7695,14 +7695,16 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     plt.compiler.toPyretAST = convertToPyretAST;
   })();
 
-  function schemeToPyretAST(code, name, provenance) {
-    console.log('doing schemeToPyretAST of', code , 'name=', name, 'provenance=',  provenance);
+ 
+  function schemeToPyretAST(code, name, provenance, lineNo) {
+    console.log('doing schemeToPyretAST of', code , 'name=', name, 'provenance=',  provenance, 'lineNo=', lineNo);
     var debug = false;
     //var debug = true;
+    //follg may not be needed
     provenance = provenance || "definitions";
     if (provenance === "module") {
       if (window.COLLECTIONS === undefined) {
-        console.log('initing2 window.COLLECTIONS to []');
+        //console.log('initing2 window.COLLECTIONS to []');
         window.COLLECTIONS = [];
       }
     }
@@ -7723,10 +7725,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       module_localIds = module_definedIds.filter(function(id) {
         return (module_providedIds.indexOf(id) === -1);
       });
-      console.log('setting to window.COLLECTIONS', name);
-      console.log('localIds =', JSON.stringify(module_localIds));
-      console.log('providedIds =', JSON.stringify(module_providedIds));
-      console.log('AST suffix=', 'ƎMODULE-' + plt.compiler.pyretizeSymbol(name));
+      //console.log('setting to window.COLLECTIONS', name);
+      //console.log('localIds =', JSON.stringify(module_localIds));
+      //console.log('providedIds =', JSON.stringify(module_providedIds));
+      //console.log('AST suffix=', 'ƎMODULE-' + plt.compiler.pyretizeSymbol(name));
       window.COLLECTIONS[name] = {
         name: name,
         suffix: 'ƎMODULE-' + plt.compiler.pyretizeSymbol(name),
@@ -7737,13 +7739,22 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
     var ws_ast = plt.compiler.toPyretAST(ast, pinfo, provenance, name);
 
-    if (provenance === "definitions" || provenance === "module") {
+    if (
+      (provenance === 'definitions') ||
+        (provenance === 'module') ||
+        (provenance === 'repl' && lineNo === 1 && !window.definitionsDone)
+      //|| provenance === "definitions" || provenance === "module"
+    ) {
       var preimports = [
         plt.compiler.makeImportSnippet('image'),
         plt.compiler.makeImportSnippet('world')
       ];
+      console.log('added import snippets');
       ws_ast.kids[0].kids.unshift(preimports[0], preimports[1]);
     }
+
+
+
 
     if (provenance === 'module') {
       // can't we have this in definitions window too?
@@ -7754,7 +7765,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
-    console.log('ws_ast_j = ' + ws_ast_j);
+    //console.log('ws_ast_j = ' + ws_ast_j);
 
     return ws_ast_j;
   }

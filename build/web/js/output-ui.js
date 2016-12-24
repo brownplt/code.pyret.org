@@ -1093,7 +1093,7 @@
     function installRenderers(runtime) {
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
       function renderText(txt) {
-        console.log('renderText', txt);
+        //console.log('renderText', txt);
         var echo = $("<span>").addClass("replTextOutput");
         echo.text(txt);
         // setTimeout(function() {

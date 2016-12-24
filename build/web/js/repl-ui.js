@@ -169,7 +169,8 @@
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
-      return doneDisplay.promise;
+        window.definitionsDone = !didError;
+        return doneDisplay.promise;
       }
     }
 
@@ -446,7 +447,7 @@
         var thisName = 'interactions://' + interactionsCount;
         CPO.documents.set(thisName, echoCM.getDoc());
         logger.log('run', { name: thisName });
-        var replResult = repl.run(code, thisName);
+        var replResult = repl.run(code, thisName, interactionsCount);
 //        replResult.then(afterRun(CM));
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
