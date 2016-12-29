@@ -303,7 +303,6 @@
             return ret.promise;
           },
           run: function(str, name, lineNo) {
-            console.log('doing cpo-main > run');
             var ret = Q.defer();
             setTimeout(function() {
               runtime.runThunk(function() {
@@ -315,9 +314,7 @@
                       runtime.makeFunction(function() {
                         var ws_str = str;
                         if (dialect === "spyret") {
-                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl", lineNo
-                            //, replUI.definitionsDone()
-                          );
+                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl", lineNo);
                         }
                         return ws_str;
                         }))

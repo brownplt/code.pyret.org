@@ -71,18 +71,19 @@
       );
     }
 
-                        /*
-    var definitionsDoneFlag = false;
-    function definitionsDone() {
-      return definitionsDoneFlag;
-    }*/
-    
+    function pyretizeSpyretLoc(spyretLoc) {
+      return runtime.makeSrcloc([spyretLoc.source,
+        spyretLoc.startRow, spyretLoc.startCol, spyretLoc.startChar,
+        spyretLoc.endRow, spyretLoc.endCol, spyretLoc.endChar
+      ])
+    }
 
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
       function renderAndDisplayError(runtime, error, stack, click) {
+        //console.log('doing renderAndDisplayError', error);
         var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
           return error_to_html(runtime, CPO.documents, error, stack).
@@ -104,9 +105,46 @@
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
+            //console.log('ds26gte was failure result', result);
             didError = true;
+            var thisExn = undefined;
             // Parse Errors
-            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
+            if (typeof(result.exn) === 'string') {
+              //console.log('quite possibly a spyret-parse-error');
+              var spyretExn = JSON.parse(result.exn);
+              if (spyretExn.type === 'spyret-parse-error') {
+                //console.log('dealing with a spyret parse error');
+                var spyretErrPkt = spyretExn.errPkt;
+                var spyretErrMsg = "";
+                var spyretErrArgLocs = [];
+                if (spyretErrPkt) {
+                  spyretErrMsg = spyretErrPkt.errMsg || "";
+                  spyretErrArgLocs = spyretErrPkt.errArgLocs || [];
+                }
+                // get spyretErrArgs & spyretErrLocs from spyretErrArgLocs
+                var spyretErrArgs = [];
+                var spyretErrLocs = [];
+                var it;
+                for (var i = 0; i < spyretErrArgLocs.length; i++) {
+                  it = spyretErrArgLocs[i];
+                  spyretErrArgs.push(it[0]);
+                  spyretErrLocs.push(pyretizeSpyretLoc(it[1]));
+                }
+                var spyretErrArgsList = ffi.makeList(spyretErrArgs);
+                var spyretErrLocsList = ffi.makeList(spyretErrLocs);
+                //console.log('calling ffi.err');
+                var thisPyretExn = ffi.makeSpyretParseException(spyretErrMsg, spyretErrArgsList,
+                  spyretErrLocsList);
+                thisExn = thisPyretExn.exn;
+                //console.log('thisExn = ', thisExn);
+              } else {
+                //console.log('stringy exception that isnt a spyret parse error!');
+              }
+            } else {
+              thisExn = result.exn.exn;
+            }
+            //console.log('calling renderAndDisplayError I');
+            renderAndDisplayError(callingRuntime, thisExn, undefined, true);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -124,6 +162,7 @@
                 return callingRuntime.safeCall(
                   function() {
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
+                      //console.log('calling renderAndDisplayError Ia');
                       return renderAndDisplayError(callingRuntime, errors[i]);
                     }), 0, errors.length);
                   }, function () {});
@@ -139,7 +178,7 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                        return checkUI.drawCheckResults(output, CPO.documents, rr,
                                                         runtime.getField(runResult.result, "checks"));
                       }, function(_) {
                         outputPending.remove();
@@ -148,6 +187,7 @@
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
+                      //console.log('calling renderAndDisplayError II', runResult.exn.exn)
                       return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
                     }
                   }, function(_) {
@@ -161,6 +201,7 @@
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
+            //console.log('calling renderAndDisplayError III');
             return renderAndDisplayError(callingRuntime, CPO.documents,
               ffi.throwInternalError("Got something other than a Pyret result when running the program.",
                 ffi.makeList(result)));
@@ -175,11 +216,6 @@
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
-        //console.log('process present?', typeof(process));
-        //console.log('window present?', typeof(window));
-        //console.log('global present?', typeof(global));
-        //console.log('setting definitionsDoneFlag', !didError);
-        //definitionsDoneFlag = !didError;
         window.definitionsDone = !didError;
         return doneDisplay.promise;
       }
@@ -415,7 +451,7 @@
           if (name.indexOf("interactions://") === 0)
             CPO.documents.delete(name);
         });
-        
+
         CPO.documents.set("definitions://", uiOptions.cm.getDoc());
 
         interactionsCount = 0;
@@ -516,7 +552,6 @@
 
     return runtime.makeJSModuleReturn({
       makeRepl: makeRepl,
-      //definitionsDone: definitionsDone,
       makeEditor: CPO.makeEditor
     });
 
