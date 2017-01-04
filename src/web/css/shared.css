@@ -272,7 +272,7 @@ em {
 
 .blueButton {
 /*  darker blue option #2a348b */
- /*   background-color: rgba(0,0,0,0.3); */
+    background-color: #C8C8C8;
     border: none;
     border-radius: 0px;
     color: #fff;
@@ -289,7 +289,6 @@ em {
 .greenButton {
   height: 100%;
   float: left;
-  width: 125px;
   font-size:14px;
   font-family: Lato, Century Gothic, Arial, Helvetica, sans-serif;
   border: none;

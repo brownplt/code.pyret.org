@@ -433,7 +433,7 @@ body {
   left: 50%;
   right: 0;
   width: 50%;
-  top:0;
+  top:0; /* should this be 27px? */
   height: 100%;
   max-height: 100%;
   padding-top: 70px; /* 40px */
@@ -442,6 +442,24 @@ body {
   -moz-box-sizing: border-box;
   margin:0;
 }
+
+.replContainer {
+  background: transparent url("/img/spyret-blank.gif") no-repeat right bottom;
+}
+
+.replContainer .repl:hover {
+  background: transparent url("/img/spyret-interactions.png") no-repeat right bottom;
+}
+
+#main .replMain .CodeMirror {
+  z-index: 19500;
+  background: transparent url("/img/spyret-fadeIcon.png") no-repeat right bottom;
+}
+
+#main .replMain .CodeMirror:hover {
+  background: transparent url("/img/spyret-fadeWords.png") no-repeat right bottom;
+}
+
 
 #main {
   width: 100%;
@@ -464,14 +482,13 @@ body {
 
 #program-name-container input {
   display: inline-block;
-  height: 40px;
-  padding: 5px;
-  vertical-align:top;
-  border:none;
-  font-size: 18px;
+  height: 19px;
+  margin: 1px 5px;
+  border: 1px inset;
+  font-size: 13px;
   background: #FEFEFE;
-  float:left;
-  height: 100%;
+  float: left;
+  width: 200px;
   box-sizing: border-box;
 }
 
@@ -481,8 +498,9 @@ body {
 
 #runButton, #breakButton, #saveButton, #openFile, #undoButton, #redoButton {
   background-repeat: no-repeat;
-  background-position: 20% 50%;
+  background-position: 35px 5px;
   background-color: transparent;
+  width: 125px;
 }
 
 #runButton{
@@ -1191,9 +1209,9 @@ code div {
 }
 
 #runButton, #breakButton, #saveButton, #openFile, #undoButton, #redoButton {
-  text-align: center;
-  vertical-align: center;
-  width: 100px;
+  text-align: left;
+  padding-left: 55px;
+  width: 125px;
 }
 
 /*
