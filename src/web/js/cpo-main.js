@@ -403,8 +403,25 @@
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
 
+      $("runStyleButton").change(function(e) {
+        if (e.target.value === "run") {
+          currentAction = "run";
+        } else if (e.target.value === "tc-run") {
+          currentAction = "tc-run";
+        }
+        doRunAction(editor.cm.getValue());
+      });
+
       $("#modeButton").change(function(e) {
         editor.cm.changeMode(e.target.value);
+      });
+
+      $("#undoButton").click(function() {
+        editor.cm.undo();
+      });
+
+      $("#redoButton").click(function() {
+        editor.cm.redo();
       });
 
       function doRunAction(src) {
