@@ -418,7 +418,8 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 60px; /* 40px */
+  /* padding-top = sum of the 3 headers' heights */
+  padding-top: 70px; /* 40px */
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -434,7 +435,7 @@ body {
   top:0;
   height: 100%;
   max-height: 100%;
-  padding-top: 60px; /* 40px */
+  padding-top: 70px; /* 40px */
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -477,12 +478,38 @@ body {
   display: inline-block;
 }
 
+#runButton, #breakButton, #saveButton, #openFile, #undoButton, #redoButton {
+  background-repeat: no-repeat;
+  background-position: 20% 50%;
+  background-color: transparent;
+}
+
+#runButton{
+   background-image: url("/img/spyret-run.png") ;
+}
+
+#breakButton{
+  background-image: url("/img/spyret-break.png") ;
+}
+
 #saveButton {
-  background: url("/img/spyret-save.png") 15px 5px no-repeat;
+  background-image: url("/img/spyret-save.png") ;
 }
 
 #openFile {
-  background: url("/img/spyret-share.png") 15px 5px no-repeat;
+  background-image: url("/img/spyret-share.png") ;
+}
+
+#undoButton {
+  background-image: url("/img/spyret-undo.png") ;
+}
+
+#redoButton {
+  background-image: url("/img/spyret-redo.png") ;
+}
+
+#undoButton, #redoButton {
+  background-size: 13px;
 }
 
 #shareContainer {
@@ -1162,42 +1189,36 @@ code div {
   background: #336600;
 }
 
-#runButton, #breakButton {
-  width: 50px; /*150px; */
-  box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
+#runButton, #breakButton, #saveButton, #openFile, #undoButton, #redoButton {
+  text-align: center;
+  vertical-align: center;
+  width: 100px;
 }
 
-#runButton{
-   /* background: #317BCF;  */
-   background: url("/img/spyret-run.png") 15px 5px no-repeat; 
-}
-
-#select-run{
-  background: url("/img/spyret-run.png") 15px 5px no-repeat;
-}
-
-#runButton:hover{
-  /* background:#0060CE; */
+/*
+#runButton:hover, #breakButton:hover, #saveButton:hover, #openFile:hover, #modeButton:hover {
   background: #75328a;
 }
+*/
 
-#breakButton{
- /* background:#CF3B31; */
-  background: url("/img/spyret-break.png") 15px 5px no-repeat;
-}
-
+/*
 #breakButton:hover{
-  /* background:#B30C00; */
   background: #75328a;
 }
+*/
 
-#runButton:hover,
-#breakButton:hover{
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+#runPart:hover,
+#breakPart:hover,
+#savePart:hover,
+#openPart:hover,
+#modePart:hover {
+  background: #75328a;
+/*  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2); */
 }
 
+/*
 #runButton:disabled, #breakButton:disabled{
-  width: 150px;
+   width: 150px;
   background: none;
   box-shadow: none;
 }
@@ -1207,9 +1228,10 @@ code div {
   background: none;
   box-shadow: none;
 }
+*/
 
-#runPart {
-  background: #317BCF;
+#runPart, #runStylePart, #breakPart, #savePart, #openPart, #modePart {
+  /* background: #317BCF; */
   padding: 0;
   margin: 0;
 }
@@ -1225,19 +1247,22 @@ code div {
 }
 
 #run-dropdown-content {
+  /*
   position: absolute;
   right: 153px;
   top: 40px;
   margin: 0;
   width: 172px;
+  */
   display: none;
+  z-index: 9100;
 }
 
 #run-dropdown-content li {
   color: #eeeeee;
   font-family: sans-serif;
   font-size: 15px;
-  height: 23px;
+  /* height: 23px; */
   background: #317BCF;
   padding: 5px;
   box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
@@ -1369,7 +1394,6 @@ code div {
   content: 'Processing Result…';
   flex: 1.5;
 }
-
 
 .check-block-header:after {
   position: absolute;

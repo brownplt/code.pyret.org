@@ -19,24 +19,44 @@
 <body>
 <div id="headerone">
   <a id="logo" href="http://www.pyret.org/"></a>
-  WeScheme::
+  <span id=headeronelegend>WeScheme::</span>
+  <span id=headeronedoclink><a href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
 </div>
 <div id="headertwo">
-  <div id="runPart" class="blueButton lhs">
-    <span id="runDropdown" class="dropdown rhs">↴</span>
-    <button id="runButton" class="blueButton lhs"></button>
+  <div id="runPart" class="greenButton lhs">
+    <button id="runButton" class="greenButton lhs">Run</button>
+    <!--
+    <span id="runDropdown" class="dropdown lhs">↴</span>
+    <ul id="run-dropdown-content">
+      <li id="select-run">Run</li>
+      <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
+    </ul>
+    -->
   </div>
-  <ul id="run-dropdown-content">
-    <li id="select-run">Run</li>
-    <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
-  </ul>
-  <button id="breakButton" class="blueButton lhs">stop</button>
-  <button id="saveButton" class="blueButton lhs loginOnly"></button>
-  <button id="openFile" class="blueButton lhs loginOnly"></button>
-  <select id="modeButton" class="blueButton lhs">
-    <option value="false">Text</option>
-    <option value="blocks">Blocks</option>
-  </select>
+  <!--
+  <div id="runStylePart" class="greenButton lhs">
+    <select id="runStyleButton" class="greenButton lhs">
+      <option value="run">Run</option>
+      <option value="tc-run">Type-check and run<sup>(beta)</sup></option>
+    </select>
+  </div>
+  -->
+  <div id="breakPart" class="greenButton lhs">
+    <button id="breakButton" class="greenButton lhs">Stop</button>
+  </div>
+  <!-- class loginOnly for the follg two? -->
+  <div id="savePart" class="greenButton lhs">
+    <button id="saveButton" class="greenButton lhs">Save</button>
+  </div>
+  <div id="openPart" class="greenButton lhs">
+    <button id="openFile" class="greenButton lhs">Open</button>
+  </div>
+  <div id="modePart" class="greenButton rhs">
+    <select id="modeButton" class="greenButton lhs">
+      <option value="false">Text</option>
+      <option value="blocks">Blocks</option>
+    </select>
+  </div>
 </div>
 <div id="headerthree">
   <!--
@@ -51,7 +71,7 @@
   <button id="openFile" class="blueButton loginOnly">Open</button>
   -->
   <div id="shareContainer"></div>
-  <div id="menu"><button class="blueButton">More ▾</a></div>
+  <div id="menu"><button class="blueButton">More ▾</button></div>
   <div id="menuContents" style="display: none; z-index: 8990;">
     <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
     <div id="docs"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
@@ -66,6 +86,8 @@
     </div>
     <div id="logout"><a href="/logout">Log out</a></div>
   </div>
+  <button id="undoButton" class="blueButton lhs">Undo</button>
+  <button id="redoButton" class="blueButton lhs">Redo</button>
   <!--
   <select id="modeButton" class="blueButton rhs">
     <option value="false">Text</option>

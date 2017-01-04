@@ -164,18 +164,21 @@ em {
   z-index: 9001;
   top: 0;
   width: 100%;
-  height: 20px;
+  height: 30px;
   background: #000;
   color: #fff;
   box-sizing: border-box;
   -mox-box-sizing: border-box;
   box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
+  vertical-align: center;
 }
+
+
 
 #headertwo {
   position: fixed;
   z-index: 9000;
-  top: 20px;
+  top: 30px;
   width: 100%;
   height: 20px;
   background: #b6d990;
@@ -187,7 +190,7 @@ em {
 #headerthree {
   position: fixed;
   z-index: 9000;
-  top: 40px;
+  top: 50px;
   width: 100%;
   height: 20px; /* 40px; */
   background:#C8C8C8;
@@ -208,14 +211,25 @@ em {
   font-family: sans-serif;
 }
 
+#headeronelegend {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+#headeronedoclink {
+  color: #dcdcdc;
+}
+
 #logo{
-  height:100%;
+  height: 100%; /* 85%; */
   /* background: url("/img/pyret-logo.png") 15px 5px no-repeat; */
-  background: url("/img/BigLogo.png") 15px 5px no-repeat;
-  background-size: 30px 30px;
+  /* background: url("/img/BigLogo.png") 15px 5px no-repeat; */
+  background: url("/img/BigLogo.png") 2px 2px no-repeat; 
+  /* background-size: 30px 30px; */
+  background-size: 25px 25px;
   display:block;
   float:left;
-  width: 60px;
+  width: 40px; /* 60px; */
 }
 
 #menu {
@@ -260,12 +274,20 @@ em {
     margin:0px 1px;
 }
 
+.greenButton {
+  height: 100%;
+  float: left;
+}
+
+/*
 .blueButton:hover {
     cursor: pointer;
     box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.6); 
 }
+*/
 
+/*
 .blueButton:disabled {
     background-color: none;
     border: none;
@@ -273,6 +295,7 @@ em {
     cursor: default;
     box-shadow: none;
 }
+*/
 
 .lhs {
   float: left;
