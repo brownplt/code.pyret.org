@@ -444,20 +444,20 @@ body {
 }
 
 .replContainer {
-  background: transparent url("/img/spyret-blank.gif") no-repeat right bottom;
+  background: transparent url("/img/spyret-blank.gif") no-repeat right 90%;
 }
 
 .replContainer .repl:hover {
-  background: transparent url("/img/spyret-interactions.png") no-repeat right bottom;
+  background: transparent url("/img/spyret-interactions.png") no-repeat right 90%;
 }
 
 #main .replMain .CodeMirror {
   z-index: 19500;
-  background: transparent url("/img/spyret-fadeIcon.png") no-repeat right bottom;
+  background: transparent url("/img/spyret-fadeIcon.png") no-repeat right 90%;
 }
 
 #main .replMain .CodeMirror:hover {
-  background: transparent url("/img/spyret-fadeWords.png") no-repeat right bottom;
+  background: transparent url("/img/spyret-fadeWords.png") no-repeat right 90%;
 }
 
 
@@ -516,7 +516,7 @@ body {
 }
 
 #openFile {
-  background-image: url("/img/spyret-share.png") ;
+  background-image: url("/img/spyret-images.gif") ;
 }
 
 #undoButton {
@@ -607,7 +607,7 @@ body {
 #docs *,
 #issues *,
 #discuss *,
-#logout * {
+#logoutObsolete * {
   color: #000;
   font-family: sans-serif;
   text-decoration: none;
