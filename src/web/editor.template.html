@@ -19,8 +19,9 @@
 <body>
 <div id="headerone">
   <a id="logo" href="http://www.pyret.org/"></a>
-  <span id=headeronelegend>WeScheme::</span>
-  <span id=headeronedoclink><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
+  <span id=headeronelegend>Patch ::</span>
+  <span class="headeronedoclink"><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
+  <span class="headeronedoclink" id="logout"><a href="/logout">Log out</a></span>
 </div>
 <div id="headertwo">
   <div id="runPart" class="greenButton lhs">
@@ -51,12 +52,14 @@
   <div id="openPart" class="greenButton lhs">
     <button id="openFile" class="greenButton lhs">Open</button>
   </div>
+  <!--
   <div id="modePart" class="greenButton rhs">
     <select id="modeButton" class="greenButton lhs">
       <option value="false">Text</option>
       <option value="blocks">Blocks</option>
     </select>
   </div>
+  -->
 </div>
 <div id="headerthree">
   <!--
@@ -84,7 +87,7 @@
       <label for="detailed-logging">Contribute detailed usage information.</label>
       <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
     </div>
-    <div id="logout"><a href="/logout">Log out</a></div>
+    <!-- <div id="logout"><a href="/logout">Log out</a></div> -->
   </div>
   <button id="undoButton" class="blueButton lhs"></button>
   <button id="redoButton" class="blueButton lhs"></button>

@@ -222,14 +222,19 @@ em {
   font-family: Lato, Century Gothic, Arial, Helvetica, sans-serif;
 }
 
-#headeronedoclink, #headeronedoclink a, #headeronedoclink a:visited {
-  color: #dcdcdc;
+.headeronedoclink {
+  text-align: right;
+  width: 180px;
+}
+
+.headeronedoclink, .headeronedoclink a, .headeronedoclink a:visited {
+  color: #fff; /* #dcdcdc; */
   font-size: 24px;
   font-weight: lighter;
   text-decoration: none;
 }
 
-#headeronedoclink a:hover {
+.headeronedoclink a:hover {
   text-decoration: underline;
 }
 
