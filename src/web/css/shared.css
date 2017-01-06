@@ -16,7 +16,7 @@ em {
   width: 50%;
   height: 100%;
   z-index: 8700;
-  background: url('/img/pyret-spin.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
+  background: url('/img/spyret-treadmill-run.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
   background-size: 50px 50px;
 }
 
@@ -224,10 +224,16 @@ em {
 
 .headeronedoclink {
   text-align: right;
-  width: 180px;
+  width: 200px;
 }
 
-.headeronedoclink, .headeronedoclink a, .headeronedoclink a:visited {
+.headeronelogoutlink {
+  text-align: right;
+  width: 100px;
+}
+
+.headeronedoclink, .headeronedoclink a, .headeronedoclink a:visited ,
+.headeronelogoutlink, .headeronelogoutlink a, .headeronelogoutlink a:visited {
   color: #fff; /* #dcdcdc; */
   font-size: 24px;
   font-weight: lighter;
