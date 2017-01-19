@@ -279,11 +279,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
   function initialize(wrappedDrive) {
     drive = wrappedDrive;
-
-    var list = drive.files.list({
-      q: "trashed=false and title = '" + collectionName + "' and "+
-         "mimeType = '" + FOLDER_MIME + "'"
-    });
     var baseCollection = findOrCreateDirectory(collectionName);
     return createAPI(baseCollection);
   }
