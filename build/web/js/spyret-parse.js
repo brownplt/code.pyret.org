@@ -377,6 +377,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["null?"] = "is-empty";
     symbolMap["ormap"] = "_spyret_ormap"; // any, but variadic
     symbolMap["pair?"] = "is-link";
+    symbolMap["quicksort"] = "_spyret_quicksort";
     symbolMap["remove"] = "_spyret_remove";
 
     symbolMap["eighth"] = "_spyret_eighth";
