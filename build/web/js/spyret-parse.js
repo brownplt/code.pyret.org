@@ -320,8 +320,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["integer?"] = "_spyret_integer_p";
     symbolMap["lcm"] = "_spyret_lcm";
     symbolMap["log"] = "num-log";
-    symbolMap["max"] = "num-max";
-    symbolMap["min"] = "num-min";
+    symbolMap["max"] = "_spyret_max";
+    symbolMap["min"] = "_spyret_min";
     symbolMap["modulo"] = "num-modulo";
     symbolMap["negative?"] = "num-is-negative";
     symbolMap["number->string"] = "num-tostring";
