@@ -13,9 +13,10 @@
   nativeRequires: [
     "pyret-base/js/runtime-util",
     "pyret-base/js/js-numbers",
-    "cpo/share"
+    "cpo/share",
+    "cpo/spyret-parse"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share, spyretParse) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
@@ -25,7 +26,7 @@
     // version or something else?
     var shareAPI = makeShareAPI("");
 
-    var dialect = 'spyret'
+    var dialect = 'spyret';
 
     function unPyretizeSymbol(str) {
       if (!/Ǝ/.test(str)) {
@@ -446,7 +447,15 @@
             var source = documents.get(filename).getRange(start, end);
             runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
-                return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
+                //console.log('output-ui calling surface-parse');
+                if (dialect === 'spyret') {
+                  //console.log('arg=', prelude+source);
+                  return runtime.getField(PP, "spyret-surface-parse").app(
+                    spyretParse.schemeToPyretAST(prelude + source, filename, "??"), 
+                    filename);
+                } else {
+                  return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
+                }
               }, function(result) {
                 if(runtime.isSuccessResult(result)) {
                   var res = result.result;

@@ -335,6 +335,7 @@
     colorDb.put("DIM GRAY", makeColor(105, 105, 105));
     colorDb.put("DIMGRAY", makeColor(105, 105, 105));
     colorDb.put("BLACK", makeColor(0, 0, 0));
+    colorDb.put("TRANSPARENT", makeColor(0, 0, 0, 0));
 
     // clone: object -> object
     // Copies an object.  The new object should respond like the old

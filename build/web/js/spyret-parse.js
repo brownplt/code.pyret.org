@@ -1484,6 +1484,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // reads multiple sexps encoded into this string and converts them to a SExp
     // datum
     function readProg(str, strSource) {
+      //console.log('doing readProg', str, strSource);
       var i = 0;
       startCol = column = 0;
       startRow = line = 1, // initialize all position indices
@@ -1500,7 +1501,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
         i = chewWhiteSpace(str, sexp.location.startChar + sexp.location.span);
       }
-      sexps.location = new Location(startCol, startRow, 0, i, source);
+      //console.log('startCol=', startCol);
+      //console.log('startRow=', startRow);
+      //sexps.location = new Location(startCol, startRow, 0, i, source);
+      sexps.location = new Location(0, 1, 0, i, source);
+      //console.log('prog loc=', sexps.location);
       return sexps;
     }
 
@@ -2414,6 +2419,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     /* Export Bindings */
     /////////////////////
     plt.compiler.lex = function(str, strSource, debug) {
+      //console.log('doing lex', str, strSource);
       var start = new Date().getTime();
       try {
         var sexp = readProg(str, strSource);
@@ -2529,6 +2535,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     // parse* : sexp list -> Program list
     function parseStar(sexps) {
+      //console.log('doing parseStar', sexps);
       function parseSExp(sexp) {
         return isDefinition(sexp) ? parseDefinition(sexp) :
           isExpr(sexp) ? parseExpr(sexp) :
@@ -2544,6 +2551,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     // parse : sexp list -> Program list
     function parse(sexp) {
+      //console.log('doing parse', sexp);
       return (sexp.length === 0) ? [] :
         (!isCons(sexp)) ?
         throwError({
@@ -2779,6 +2787,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
 
     function parseExpr(sexp) {
+      //console.log('doing parseExpr', sexp);
       return isCons(sexp) ? parseExprList(sexp) :
         parseExprSingleton(sexp);
     }
@@ -3678,6 +3687,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     /* Export Bindings */
     /////////////////////
     plt.compiler.parse = function(sexp, debug) {
+      //console.log('doing plt.compiler.parse', sexp);
       var start = new Date().getTime();
       try {
         var AST = parse(sexp);
@@ -5753,6 +5763,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     function convertToPyretAST(programs, pinfo, provenance, moduleName) {
       console.log('convertToPyretAST', 'provenance=', provenance, 'moduleName=', moduleName);
+      //console.log('programs=', programs);
+      //console.log('programs.location=', programs.location);
       var old_module = _module;
       if (provenance !== "module") {
         _pinfo = pinfo;
@@ -5761,13 +5773,13 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         _module = moduleName;
       }
       //ds26gte
-      console.log('doing convertToPyretAST', programs, provenance, moduleName);
+      //console.log('doing convertToPyretAST', programs, provenance, moduleName);
       var requirepreludes = [];
       var defstructs = [];
       var defnonfuns = [];
       var defuns = [];
       var otherExps = [];
-      var checkExpects = [];
+      //var checkExpects = [];
       var newCheckExpects = [];
       var it;
 
@@ -5831,14 +5843,15 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           defuns.push(b);
           } else if (b.name === 'stmt' && b.voidstatement) {
             /* toss */ ;
-        } else if (b.name === "app-expr" &&
+
+        } /* else if (b.name === "app-expr" &&
           b.kids.length > 0 && (it = b.kids[0]) && it.name === "expr" &&
           it.kids.length > 0 && (it = it.kids[0]) && it.name === "expr" &&
           it.kids.length > 0 && (it = it.kids[0]) && it.name === "id-expr" &&
           it.kids.length > 0 && (it = it.kids[0]) &&
           it.name === "NAME" && it.value === "_spyret_check_expect") {
           checkExpects.push(b);
-        } else if (b.name === "app-expr" || b.name === "expr") {
+        } */ else if (b.name === "app-expr" || b.name === "expr") {
           otherExps.push(wrapCheckTest(b));
         } else if (b.name === "check-expr") {
           //otherExps.push(wrapStmt(b));
@@ -5942,7 +5955,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         });
       }
 
-      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, checkExpects, finalCheckExpects);
+      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, //checkExpects,
+        finalCheckExpects);
 
       //ds26gte
       //console.log('kiddos calced = ', kiddos);
@@ -7083,7 +7097,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                 pos: loc,
                 kids: [{
                   name: 'IS',
-                  pos: blankLoc,
+                  pos: loc,
                   value: 'is',
                   key: "'IS:is"
                 }]
@@ -7091,7 +7105,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                 this.rhs.toPyretAST()]
             }]
           }]
-        }, endStx]
+        }, {
+          name: 'end',
+          kids: [endStx],
+          pos: loc
+        }]
       };
     };
 
@@ -7693,6 +7711,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     plt.compiler.makeImportSnippet = makeImportSnippet;
     plt.compiler.makeProvideSnippet = makeProvideSnippet;
     plt.compiler.toPyretAST = convertToPyretAST;
+    plt.compiler.convertToPyretAST = convertToPyretAST;
+
   })();
 
   function schemeToPyretAST(code, name, provenance, lineNo
@@ -7719,6 +7739,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
     var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
     var program = astAndPinfo[0];
+    console.log('ast=', ast);
+    console.log('program=', program);
     var pinfo = plt.compiler.analyze(program, debug);
     if (provenance === "module") {
       module_providedIds = pinfo.providedIds;
@@ -7738,7 +7760,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         provides: module_providedIds
       };
     }
-    var ws_ast = plt.compiler.toPyretAST(ast, pinfo, provenance, name);
+    var ws_ast = plt.compiler.convertToPyretAST(ast, pinfo, provenance, name);
 
     if ((provenance === 'definitions') ||
         (provenance === 'module') ||
