@@ -530,8 +530,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["tau"] = "_spyret_tau";
     symbolMap["e"] = "_spyret_e";
 
-    symbolMap["EXAMPLE-orig"] = "_spyret_check_expect";
-    symbolMap["check-expect-orig"] = "_spyret_check_expect";
     symbolMap["check-within"] = "_spyret_check_within";
     symbolMap["display"] = "_spyret_display";
     symbolMap["error"] = "_spyret_error";
@@ -4215,8 +4213,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       // NOTE: the desugar.ss module converts use of check-expect into ones that
       // thunk its arguments", and pass an additional location argument.
       ,
-      ["check-expect-orig", 2],
-      ["EXAMPLE-orig", 2],
       ["check-within", 3],
       ["check-error", 2],
       ["make-hasheq", 0],
@@ -5780,8 +5776,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var defnonfuns = [];
       var defuns = [];
       var otherExps = [];
-      //var checkExpects = [];
-      var newCheckExpects = [];
+      var checkExpects = [];
       var it;
 
       var localFunIds = [];
@@ -5794,6 +5789,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
+      var localVarIds = [];
+
       //ds26gte
       //console.log('localFunIds = ' + localFunIds);
 
@@ -5802,6 +5799,16 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           return true;
         }
         if (b.kids && b.kids.some(refersToLocalFunId)) {
+          return true;
+        }
+        return false;
+      }
+
+      function refersToLocalVarId(b) {
+        if (b.name === 'NAME' && b.value && localVarIds.indexOf(b.value) > -1) {
+          return true;
+        }
+        if (b.kids && b.kids.some(refersToLocalVarId)) {
           return true;
         }
         return false;
@@ -5817,23 +5824,19 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           //defstruct contents
           defstructs.push(b);
         } else if (b.name === "let-expr" &&
-          b.kids.length > 1 &&
-          (it = b.kids[0]) && it.name === "toplevel-binding") {
+                   b.kids.length > 1 &&
+                   (it = b.kids[0]) && it.name === "toplevel-binding") {
           //console.log("checking " + it.kids[0].kids[1].value)
-          if (refersToLocalFunId(b)) {
+          if (refersToLocalFunId(b) || refersToLocalVarId(b)) {
             //console.log('referred to local fun id');
             otherExps.push(wrapStmt(b));
-          } else {
-            //console.log('did not refer to local fun id');
-            defnonfuns.push(wrapStmt(b));
-          }
-        } else if (false && b.name === "let-expr" &&
-          b.kids.length > 1 && (it = b.kids[0]) && it.name === "let" &&
-          (it = b.kids[1]) && it.name === "toplevel-binding") {
-          //console.log("checking " + it.kids[0].kids[1].value)
-          if (refersToLocalFunId(b)) {
-            //console.log('referred to local fun id');
-            otherExps.push(wrapStmt(b));
+            //console.log('this one =', JSON.stringify(it));
+            if ((it = it.kids) && it.length > 0 &&
+                (it = it[0].kids) && it.length > 1 &&
+                (it = it[1]) && it.name === 'NAME') {
+                  //console.log('pushing local var', it.value);
+               localVarIds.push(moduleQualifiedId(it.value));
+            }
           } else {
             //console.log('did not refer to local fun id');
             defnonfuns.push(wrapStmt(b));
@@ -5845,19 +5848,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           } else if (b.name === 'stmt' && b.voidstatement) {
             /* toss */ ;
 
-        } /* else if (b.name === "app-expr" &&
-          b.kids.length > 0 && (it = b.kids[0]) && it.name === "expr" &&
-          it.kids.length > 0 && (it = it.kids[0]) && it.name === "expr" &&
-          it.kids.length > 0 && (it = it.kids[0]) && it.name === "id-expr" &&
-          it.kids.length > 0 && (it = it.kids[0]) &&
-          it.name === "NAME" && it.value === "_spyret_check_expect") {
-          checkExpects.push(b);
-        } */ else if (b.name === "app-expr" || b.name === "expr") {
+        } else if (b.name === "app-expr" || b.name === "expr") {
           otherExps.push(wrapCheckTest(b));
         } else if (b.name === "check-expr") {
           //otherExps.push(wrapStmt(b));
           //console.log('pushing a check-expect');
-          newCheckExpects.push(b.kids[1].kids[0]);
+          checkExpects.push(b.kids[1].kids[0]);
           //console.log('done pushing a check-expect');
         } else if (provenance === "repl" || provenance === "module") {
           otherExps.push(b);
@@ -5889,74 +5885,20 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      /*
-      if (provenance === 'module' && window.checkExpectFlagSet === undefined ) {
-        window.checkExpectFlagSet = true;
-        defnonfuns.push({
-          name: 'let-expr',
-          pos: blankLoc,
-          kids: [letStx, {
-            name: 'toplevel-binding',
-            pos: blankLoc,
-            kids: [{
-              name: 'name-binding',
-              pos: blankLoc,
-              kids: [{
-                name: 'SHADOW',
-                pos: blankLoc,
-                value: 'shadow',
-                key: "'SHADOW:shadow"
-              }, makeResolvedName('result-after-checks1', blankLoc, true)
-              ]
-            }]
-          }, equalsStx, {
-            name: 'id-expr',
-            pos: blankLoc,
-            kids: [makeResolvedName('nothing', blankLoc, true)]
-          }]
-        })
-      }
-      */
-
-      /*
-      if (provenance === 'module' && window.checkExpectFlagSet === undefined ) {
-        window.checkExpectFlagSet = true;
-        defnonfuns.push({
-          name: 'let-expr',
-          pos: blankLoc,
-          kids: [letStx, {
-              name: 'name-binding',
-              pos: blankLoc,
-              kids: [{
-                name: 'SHADOW',
-                pos: blankLoc,
-                value: 'shadow',
-                key: "'SHADOW:shadow"
-              }, makeResolvedName('result-after-checks1', blankLoc, true)
-              ]
-            } , equalsStx, {
-            name: 'id-expr',
-            pos: blankLoc,
-            kids: [makeResolvedName('nothing', blankLoc, true)]
-          }]
-        })
-      }
-      */
-
       var finalCheckExpects = [];
-      if (newCheckExpects.length > 0) {
+      if (checkExpects.length > 0) {
         finalCheckExpects = wrapStmt({
           name: 'check-expr',
           pos: blankLoc,
           kids: [ checkColonStx, {
             name: 'block',
             pos: blankLoc,
-            kids: newCheckExpects
+            kids: checkExpects
           }, endStx]
         });
       }
 
-      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps, //checkExpects,
+      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps,
         finalCheckExpects);
 
       //ds26gte
@@ -7740,8 +7682,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
     var astAndPinfo = plt.compiler.desugar(ast, undefined, debug);
     var program = astAndPinfo[0];
-    console.log('ast=', ast);
-    console.log('program=', program);
+    //console.log('ast=', ast);
+    //console.log('program=', program);
     var pinfo = plt.compiler.analyze(program, debug);
     if (provenance === "module") {
       module_providedIds = pinfo.providedIds;
@@ -7782,7 +7724,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       ws_ast.kids[0].kids.unshift(plt.compiler.makeProvideSnippet());
     }
 
-    console.log('finishing schemeToPyretAST of', 'name=', name, 'provenance=', provenance);
+    //console.log('finishing schemeToPyretAST of', 'name=', name, 'provenance=', provenance);
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug
