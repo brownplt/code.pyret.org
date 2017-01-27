@@ -167,7 +167,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/d3.js \
           build/web/js/d3-tip.js
 
-MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png build/web/img/BigLogo.png build/web/img/spyret-break.png build/web/img/spyret-run.png build/web/img/spyret-save.png build/web/img/spyret-share.png build/web/img/spyret-undo.png build/web/img/spyret-redo.png build/web/img/spyret-blank.gif build/web/img/spyret-interactions.png build/web/img/spyret-fadeIcon.png build/web/img/spyret-fadeWords.png build/web/img/spyret-images.gif build/web/img/spyret-treadmill-run.gif build/web/img/googledrive.png
+MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png build/web/img/BigLogo.png build/web/img/spyret-break.png build/web/img/spyret-run.png build/web/img/spyret-save.png build/web/img/spyret-share.png build/web/img/spyret-undo.png build/web/img/spyret-redo.png build/web/img/spyret-blank.gif build/web/img/spyret-interactions.png build/web/img/spyret-fadeIcon.png build/web/img/spyret-fadeWords.png build/web/img/spyret-treadmill-run.gif build/web/img/googledrive.png
 
 build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
