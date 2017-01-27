@@ -258,10 +258,19 @@
     var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"baseline\", or \"middle\")", isPlaceY);
     var checkPlaceY = p(isPlaceY, "Y Place");
 
-
     var annAngle = ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 
+    var canonicalizeAngle = function(angle) {
+      angle = checkReal(angle);
+      while (jsnums.lessThan(angle, 0)) {
+        angle += 360;
+      }
+      while (jsnums.greaterThanOrEqual(angle, 360)) {
+        angle -= 360;
+      }
+      return angle;
+    };
 
     var annListColor = ann("List<Color>", function(val) {
       return runtime.ffi.isList(val);
@@ -269,7 +278,6 @@
     var checkListofColor = p(function(val) {
       return ffi.makeList(ffi.toArray(val).map(checkColor));
     }, "List<Color>");
-
 
     var checkMode = p(isMode, "Mode");
     var annMode = ann("Mode (\"outline\" or \"solid\")", isMode);
@@ -766,8 +774,8 @@
 
     f("rotate", function(maybeAngle, maybeImg) {
       checkArity(2, arguments, "rotate");
-      c("rotate", [maybeAngle, maybeImg], [annAngle, annImage]);
-      var angle = checkAngle(maybeAngle);
+      c("rotate", [maybeAngle, maybeImg], [annNumber, annImage]);
+      var angle = canonicalizeAngle(maybeAngle);
       var img = checkImage(maybeImg);
       return makeImage(image.makeRotateImage(jsnums.toFixnum(-angle), img));
     });
