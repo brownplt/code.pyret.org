@@ -1,3 +1,3 @@
 spyret-images.png
-build/web/js/*
-build/web/js/googleapis/*
+build/web/js/*.js
+build/web/js/googleapis/*.js
