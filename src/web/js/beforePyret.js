@@ -57,11 +57,11 @@ $(window).bind("beforeunload", function() {
 });
 
 var Documents = function() {
-  
+
   function Documents() {
     this.documents = new Map();
   }
-  
+
   Documents.prototype.has = function (name) {
     return this.documents.has(name);
   };
@@ -75,7 +75,7 @@ var Documents = function() {
       logger.log("doc.set", {name: name, value: doc.getValue()});
     return this.documents.set(name, doc);
   };
-  
+
   Documents.prototype.delete = function (name) {
     if(logger.isDetailed)
       logger.log("doc.del", {name: name});
@@ -285,7 +285,7 @@ $(function() {
   });
 
   function setTitle(progName) {
-    document.title = progName + " - code.pyret.org";
+    document.title = "Patch Editor: " + progName;
   }
   CPO.setTitle = setTitle;
 
@@ -389,10 +389,10 @@ $(function() {
     initialGas: 100
   });
   CPO.editor.cm.setOption("readOnly", "nocursor");
-  
+
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-    
+
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
