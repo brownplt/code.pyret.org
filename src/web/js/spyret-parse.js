@@ -1483,7 +1483,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // reads multiple sexps encoded into this string and converts them to a SExp
     // datum
     function readProg(str, strSource) {
-      //console.log('doing readProg', str, strSource);
+      console.log('doing readProg', str, strSource);
       var i = 0;
       startCol = column = 0;
       startRow = line = 1, // initialize all position indices
@@ -1505,6 +1505,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       //sexps.location = new Location(startCol, startRow, 0, i, source);
       sexps.location = new Location(0, 1, 0, i, source);
       //console.log('prog loc=', sexps.location);
+      console.log('returning from readProg');
       return sexps;
     }
 
@@ -2418,7 +2419,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     /* Export Bindings */
     /////////////////////
     plt.compiler.lex = function(str, strSource, debug) {
-      //console.log('doing lex', str, strSource);
+      console.log('doing lex', str, strSource);
       var start = new Date().getTime();
       try {
         var sexp = readProg(str, strSource);
@@ -3607,6 +3608,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     }
 
     function parseRequire(sexp) {
+      //console.log('doing parseRequire', sexp);
       // is it (require)?
       if (sexp.length < 2) {
         throwError({
@@ -3652,6 +3654,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
       var req = new requireExpr(sexp[1], sexp[0]);
       req.location = sexp.location;
+      //console.log('returning from parseRequire');
       return req;
     }
 
@@ -7095,14 +7098,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // the rest become letrec-bindings,
     // and the body becomes a block
     letrecExpr.prototype.toPyretAST = function() {
-      console.log('doing letrecExpr..toPyretAST');
-      function makeLetRecBindingExprFromCouple(couple) {
-        return {
-          name: "letrec-binding",
-          kids: [makeTopLetExprFromCouple(couple), commaStx],
-          pos: couple.location
-        };
-      }
       var loc = this.location,
         bodyBlock = {
           name: "block",
@@ -7610,6 +7605,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
   function schemeToPyretAST(code, name, provenance, lineNo
     //, definitionsDone
   ) {
+    if (!code) { code = ''; }
     //console.log('doing schemeToPyretAST of', code , 'name=', name, 'provenance=',  provenance, 'lineNo=', lineNo, 'definitionsDone= ', window.definitionsDone);
     var debug = false;
     //var debug = true;
@@ -7684,7 +7680,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
   return {
     schemeToPyretAST: schemeToPyretAST,
-    types: types
+    types: types,
+    symbolMap: plt.compiler.symbolMap
   }
 
 });
