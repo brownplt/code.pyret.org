@@ -513,6 +513,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["y-place?"] = "is-y-place";
 
     symbolMap["key=?"] = "is-key-equal";
+    symbolMap["mouse=?"] = "is-mouse-equal";
 
     symbolMap["apply"] = "_spyret_apply";
     symbolMap["compose"] = "_spyret_compose";
