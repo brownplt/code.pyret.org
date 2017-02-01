@@ -82,7 +82,7 @@ define([], function() {
 
           var ast = undefined;
 
-          function getModule(self) { 
+          function getModule(self) {
             //console.log('doing makeWeSchemeMyGDriveLocator > getModule');
             if (ast !== undefined) {
               //console.log('reusing ast');
@@ -367,10 +367,20 @@ define([], function() {
         // We start by setting up the fetch of the file; lots of methods will
         // close over this.
 
-          var uri = "wescheme-legacy://" + filename;
+        var uri = "wescheme-legacy://" + filename;
+        var httpProto = window.location.protocol;
+        //console.log('httpProto=', httpProto);
+        var filename2;
 
-          var filename2 = "http://www.wescheme.org/loadProject?publicId=" + filename;
-          //var filename2 = "http://231-dot-wescheme-hrd-2.appspot.com/loadProject?publicId=" + filename;
+        if (httpProto === 'http:') {
+          //console.log('using wescheme.org');
+          filename2 = 'http://www.wescheme.org/loadProject?publicId=' + filename;
+        } else {
+          //console.log('using wescheme-hrd-2');
+          filename2 = 'https://wescheme-hrd-2.appspot.com/loadProject?publicId=' + filename;
+        }
+
+        //var filename2 = "http://231-dot-wescheme-hrd-2.appspot.com/loadProject?publicId=" + filename;
 
           function needsCompile() { return true; }
 
@@ -386,11 +396,11 @@ define([], function() {
                   url: filename2,
                   crossDomain: true,
                   success: function(str) {
-                    //console.log('legacy string = ' + JSON.stringify(str));
+                    console.log('legacy string = ' + JSON.stringify(str));
                     var str2 = str;
-                    //var str2 = JSON.parse(str);
+                    //var str2 = JSON.parse(str); //not needed
                     spyretString = str2.source.src;
-                    //console.log('Scheme string = ' + spyretString);
+                    console.log('Scheme string = ' + spyretString);
                   },
                   error: function(error) {
                     getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
@@ -815,7 +825,7 @@ define([], function() {
         contentsP.then(function(fileAndContents) {
           var file = fileAndContents[0];
           var contents = fileAndContents[1];
-          
+
           var uri = "shared-gdrive://" + file.getName() + ":" + file.getUniqueId();
           CPO.documents.set(uri, new CodeMirror.Doc(contents, "pyret"));
 
@@ -832,7 +842,7 @@ define([], function() {
                 return gmf(parsePyret, "surface-parse").app(contents, uri);
               }, function(ret) {
                 ast = gmf(compileLib, "pyret-ast").app(ret);
-                return ast; 
+                return ast;
               });
             }
           }
