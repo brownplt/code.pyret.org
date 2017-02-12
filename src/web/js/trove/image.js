@@ -377,8 +377,8 @@
     });
     f("is-image", function(maybeImage) {
       checkArity(1, arguments, "is-image");
-      runtime.confirm(maybeImage, runtime.isOpaque);
-      return runtime.wrap(image.isImage(maybeImage.val));
+      //runtime.confirm(maybeImage, runtime.isOpaque);
+      return runtime.wrap(runtime.isOpaque(maybeImage) && image.isImage(maybeImage.val));
     });
 
     f("is-posn", function(maybePosn) {
@@ -700,12 +700,19 @@
     }),
 
     f("empty-scene", function(maybeWidth, maybeHeight) {
-      checkArity(2, arguments, "empty-scene");
-      c("empty-scene", [maybeWidth, maybeHeight], [annNumNonNegative, annNumNonNegative]);
+      //checkArity(2, arguments, "empty-scene");
+      //c("empty-scene", [maybeWidth, maybeHeight], [annNumNonNegative, annNumNonNegative]);
+      if (arguments.length < 2 || arguments.length > 3) {
+        throw runtime.ffi.throwArityErrorC(["empty-scene"], 2, [maybeWidth, maybeHeight]);
+        }
       var width = checkNonNegativeReal(maybeWidth);
       var height = checkNonNegativeReal(maybeHeight);
+      var color = false;
+      if (arguments.length === 3) {
+        color = checkColor(arguments[2]);
+      }
       return makeImage(
-        image.makeSceneImage(jsnums.toFixnum(width), jsnums.toFixnum(height), [], true));
+        image.makeSceneImage(jsnums.toFixnum(width), jsnums.toFixnum(height), [], true, color));
     });
     f("put-image", function(maybePicture, maybeX, maybeY, maybeBackground) {
       checkArity(4, arguments, "put-image");
