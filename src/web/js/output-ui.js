@@ -435,7 +435,7 @@
       });
     }
 
-    function makeMaybeLocToAST(runtime, documents, srcloc) {
+    function makeMaybeLocToAST(runtime, documents, srcloc, possTestResult) {
       return runtime.makeFunction(function(loc) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
           "builtin": function(_) {
@@ -457,7 +457,7 @@
                 if (dialect === 'spyret') {
                   //console.log('arg=', prelude+source);
                   return runtime.getField(PP, "spyret-surface-parse").app(
-                    spyretParse.schemeToPyretAST(prelude + source, filename, "??"),
+                    spyretParse.schemeToPyretAST(prelude + source, filename, possTestResult),
                     filename);
                 } else {
                   return runtime.getField(PP, "surface-parse").app(prelude + source, filename);

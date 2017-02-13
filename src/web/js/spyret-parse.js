@@ -379,6 +379,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["pair?"] = "is-link";
     symbolMap["quicksort"] = "_spyret_quicksort";
     symbolMap["remove"] = "_spyret_remove";
+    symbolMap["range"] = "range-by";
 
     symbolMap["eighth"] = "_spyret_eighth";
     symbolMap["fifth"] = "_spyret_fifth";
@@ -1484,7 +1485,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     // reads multiple sexps encoded into this string and converts them to a SExp
     // datum
     function readProg(str, strSource) {
-      console.log('doing readProg', str, strSource);
+      //console.log('doing readProg', str, strSource);
       var i = 0;
       startCol = column = 0;
       startRow = line = 1, // initialize all position indices
@@ -1506,7 +1507,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       //sexps.location = new Location(startCol, startRow, 0, i, source);
       sexps.location = new Location(0, 1, 0, i, source);
       //console.log('prog loc=', sexps.location);
-      console.log('returning from readProg');
       return sexps;
     }
 
@@ -2420,7 +2420,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     /* Export Bindings */
     /////////////////////
     plt.compiler.lex = function(str, strSource, debug) {
-      console.log('doing lex', str, strSource);
+      //console.log('doing lex', str, strSource);
       var start = new Date().getTime();
       try {
         var sexp = readProg(str, strSource);
@@ -5925,15 +5925,21 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
       var finalCheckExpects = [];
       if (checkExpects.length > 0) {
-        finalCheckExpects = wrapStmt({
-          name: 'check-expr',
-          pos: blankLoc,
-          kids: [ checkColonStx, {
-            name: 'block',
+
+        if (provenance === 'test-result') {
+          finalCheckExpects = checkExpects;
+        } else {
+
+          finalCheckExpects = wrapStmt({
+            name: 'check-expr',
             pos: blankLoc,
-            kids: checkExpects
-          }, endStx]
-        });
+            kids: [ checkColonStx, {
+              name: 'block',
+              pos: blankLoc,
+              kids: checkExpects
+            }, endStx]
+          });
+        }
       }
 
       var kiddos = defstructs.concat(defnonfuns, defuns, otherExps,
