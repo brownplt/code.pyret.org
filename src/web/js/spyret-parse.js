@@ -409,6 +409,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     //symbolMap["string=?"] = "equal-always";
     symbolMap["explode"] = "string-explode";
     symbolMap["list->string"] = "_spyret_list_to_string";
+    symbolMap["make-string"] = "_spyret_make_string";
     symbolMap["string"] = "_spyret_string";
     symbolMap["string->list"] = "string-explode";
     symbolMap["string->number"] = "_spyret_string_to_number";
