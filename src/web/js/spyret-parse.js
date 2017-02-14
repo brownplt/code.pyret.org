@@ -379,6 +379,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["pair?"] = "is-link";
     symbolMap["quicksort"] = "_spyret_quicksort";
     symbolMap["remove"] = "_spyret_remove";
+    symbolMap['remove-all'] = '_spyret_remove-all';
     symbolMap["range"] = "range-by";
 
     symbolMap["eighth"] = "_spyret_eighth";
@@ -4037,6 +4038,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       ["list*", 1, true],
       ["list-ref", 2],
       ["remove", 2],
+      ['remove-all', 2],
       ["member", 2],
       ["member?", 2],
       ["memq", 2],
