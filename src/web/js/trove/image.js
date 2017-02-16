@@ -1312,6 +1312,8 @@
 
     values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true));
     return runtime.makeObject({
+      'defined-values': {},
+      'defined-types': {},
       "provide-plus-types": runtime.makeObject({
         types: {
           "Image": runtime.makePrimitiveAnn("Image", checkImagePred),
