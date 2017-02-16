@@ -595,6 +595,8 @@
     var makeFunction = runtime.makeFunction;
 
     return makeObject({
+      'defined-values': {},
+      'defined-types': {},
       "provide-plus-types": makeObject({
         "values": makeObject({
           "reactor": makeFunction(makeReactor, "reactor"),
