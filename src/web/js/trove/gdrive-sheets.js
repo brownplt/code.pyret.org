@@ -8,7 +8,7 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri, table, list, t){
-    var List = function(thing) { 
+    var List = function(thing) {
       return t.tyapp(t.libName("lists", "List"), [thing]);
     };
     // Tables not yet in the Typechecker, AFAIK
@@ -32,7 +32,7 @@
       aliases: {},
       datatypes: {}
     };*/
-    
+
     var F = runtime.makeFunction;
     var O = runtime.makeObject;
 
@@ -460,7 +460,7 @@
         ss.worksheetsInfo.map(function(ws) {
           return runtime.makeString(ws.properties.title);
         }));
-      
+
       function sheetByName(name, skipHeaders) {
         runtime.ffi.checkArity(2, arguments, "sheet-by-name");
         runtime.checkString(name);
@@ -470,7 +470,7 @@
         });
         //return loadWorksheet(function(){return ss.getByName(name, skipHeaders);});
       }
-      
+
       function sheetByPos(idx, skipHeaders) {
         runtime.ffi.checkArity(2, arguments, "sheet-by-index");
         runtime.checkNumber(idx);
@@ -505,7 +505,7 @@
         'add-sheet': F(addSheet)
       }));
     }
-    
+
     function createSpreadsheet(name) {
       runtime.ffi.checkArity(1, arguments, "create-spreadsheet");
       runtime.checkString(name);
@@ -527,7 +527,7 @@
     }
 
     function loadSpreadsheet(loader) {
-      
+
       runtime.pauseStack(function(resumer) {
         sheetsAPI.then(function(api) {
           SHEET_TYPES = api.TYPES;
@@ -563,6 +563,8 @@
     }
 
     return O({
+      'defined-values': {},
+      'defined-types': {},
       'provide-plus-types': O({
         'types': {
         },

@@ -93,7 +93,7 @@ define(["pyret-base/js/type-util"], function(t) {
 
                     return RUNTIME.makeObject({
                       name: k,
-                      typ: t.toPyret(RUNTIME, expanded)
+                      value: t.bindToPyret(RUNTIME, expanded)
                     });
                   });
                 }
