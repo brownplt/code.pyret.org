@@ -371,6 +371,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["list->vector"] = "array-from-list";
     symbolMap["list?"] = "is-link";
     symbolMap["map"] = "_spyret_map";
+    symbolMap["member?"] = "list-member-p";
     symbolMap["member"] = "list-member";
     symbolMap["memq"] = "list-member";
     symbolMap["memv"] = "list-member";
