@@ -92,13 +92,11 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     return style;
   }
 
-
   function tokenBase(stream, state) {
     if (stream.eatSpace())
       return "IGNORED-SPACE";
 
     var ch = stream.peek();
-
 
     // Handle Comments
     if (ch === '#') {
@@ -114,7 +112,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
 
     // Handle Number Literals
     const unsigned_decimal_part = "[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?";
-    const unsigned_rational_part = "[0-9]+/[0-9]+"; 
+    const unsigned_rational_part = "[0-9]+/[0-9]+";
     const number = new RegExp("^[-+]?" + unsigned_decimal_part);
     const badNumber = new RegExp("^~?[+-]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?");
     const roughnum = new RegExp("^~[-+]?"  + "(?:" + unsigned_rational_part + "|" + unsigned_decimal_part + ")");
@@ -145,7 +143,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                  "\\\\[01234567]{1,3}" +
                  "|\\\\x[0-9a-fA-F]{1,2}" +
                  "|\\\\u[0-9a-fA-f]{1,4}" +
-                 "|\\\\[\\\\nrt\"\']" +
+                 "|\\\\[\\\\bnrt\"\']" +
                  "|[^\\\\\"\n\r])*\"");
     const squot_str =
       new RegExp("^\'(?:" +
@@ -856,7 +854,6 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     // ls.print();
   }
 
-
   const INDENTATION = new Indent(1, 2, 2, 1, 1, 1, 1/*could be 0*/, 1, 1, 1, 1, 1, 1.5);
 
   function copyState(oldState) {
@@ -913,7 +910,6 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       return indent * indentUnit;
     }
   }
-
 
   var external = {
     startState: function(basecolumn) {
