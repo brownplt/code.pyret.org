@@ -35,7 +35,7 @@
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
     "pyret-ide": "git://github.com/pcardune/pyret-ide#master-builds",
-    "pyret-lang": "git://github.com/ds26gte/pyret-lang.git#latitude-provide",
+    "pyret-lang": "git://github.com/ds26gte/pyret-lang.git#latitude-provide-merge",
     "q": "~1.4.1",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
