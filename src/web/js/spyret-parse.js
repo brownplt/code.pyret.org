@@ -309,13 +309,13 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["current-seconds"] = "_spyret_current_seconds";
     symbolMap["denominator"] = "_spyret_denominator";
     symbolMap["even?"] = "_spyret_even_p";
-    symbolMap["exact->inexact"] = "num-to-complexroughnum";
+    symbolMap["exact->inexact"] = "_spyret_exact_to_inexact";
     symbolMap["exact?"] = "num-is-complexrational";
     symbolMap["exp"] = "num-exp";
     symbolMap["expt"] = "num-expt";
     symbolMap["floor"] = "num-floor";
     symbolMap["gcd"] = "_spyret_gcd";
-    symbolMap["inexact->exact"] = "num-to-complexrational";
+    symbolMap["inexact->exact"] = "_spyret_inexact_to_exact";
     symbolMap["inexact?"] = "num-is-complexroughnum";
     symbolMap["integer?"] = "_spyret_integer_p";
     symbolMap["lcm"] = "_spyret_lcm";
@@ -324,7 +324,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["min"] = "_spyret_min";
     symbolMap["modulo"] = "num-modulo";
     symbolMap["negative?"] = "num-is-negative";
-    symbolMap["number->string"] = "num-tostring";
+    symbolMap["number->string"] = "_spyret_number_to_string";
     symbolMap["number?"] = "is-number";
     symbolMap["numerator"] = "_spyret_numerator";
     symbolMap["odd?"] = "_spyret_odd_p";
