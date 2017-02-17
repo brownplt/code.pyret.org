@@ -84,10 +84,12 @@
 
     function getFancyRenderer(runtime, documents, error) {
       var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
+      var testResultP = isTestResult(runtime, error);
       if (isRuntimeError(runtime, error)
        || isContractError(runtime, error)
-       || isTestResult(runtime, error)) {
-        var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
+       || testResultP) {
+        var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc,
+                                                         (testResultP && "test-result"));
         return function(stack) {
           return render_fancy_reason(runtime, error,
                     outputUI.makeMaybeStackLoc(
@@ -137,7 +139,6 @@
             then(log_set(name)).
             thenResolve(value).
             catch(function(repr_error) {
-              console.error("`torepr` errored:", repr_error);
               return value;
             });
         };

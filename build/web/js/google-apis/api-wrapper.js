@@ -158,7 +158,7 @@ function loadAPIWrapper(immediate) {
         d.resolve({ access_token: t.access_token });
       });
       newToken.fail(function(t) {
-        console.log('access_token not got');
+        console.log('!! access_token not got');
         d.resolve(null);
       });
     }
