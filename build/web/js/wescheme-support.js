@@ -1515,7 +1515,24 @@ define(['pyret-base/js/js-numbers'], function(jsnums) {
             ret.push('\\\\');
             break;
           default:
-            if (val >= 32 && val <= 126) {
+            if ((val >= 32 && val <= 126) ||
+                (val >= 0xc0 && val <= 0xd6) ||
+                (val >= 0xd8 && val <= 0xf6) ||
+                (val >= 0xf8 && val <= 0xff) ||
+                (val >= 0x100 && val <= 0x147) ||
+                (val >= 0x14a && val <= 0x17f) ||
+                (val >= 0x180 && val <= 0x1bf) ||
+                (val >= 0x1cd && val <= 0x24f) ||
+                (val >= 0x393 && val <= 0x394) ||
+                (val === 0x398) || (val === 0x39b) || (val === 0x39e) ||
+                (val === 0x3a0) || (val === 0x3a3) || (val === 0x3a6) ||
+                (val >= 0x3a8 || val <= 0x3a9) ||
+                (val >= 0x3b1 || val <= 0x3b8) ||
+                (val >= 0x3ba || val <= 0x3be) ||
+                (val >= 0x3c0 || val <= 0x3c4) ||
+                (val >= 0x3c6 || val <= 0x3c9) ||
+                (val >= 0x3d1 || val <= 0x3d2)
+            ) {
               ret.push(s.charAt(i));
             } else {
               var numStr = val.toString(16).toUpperCase();
