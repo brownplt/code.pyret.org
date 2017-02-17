@@ -1311,17 +1311,9 @@
     });
 
     values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true));
-    return runtime.makeObject({
-      'defined-values': {},
-      'defined-types': {},
-      "provide-plus-types": runtime.makeObject({
-        types: {
-          "Image": runtime.makePrimitiveAnn("Image", checkImagePred),
-          "Scene": runtime.makePrimitiveAnn("Scene", checkScenePred)
-        },
-        values: runtime.makeObject(values),
-      }),
-      answer: runtime.namespace.get("nothing")
-    });
+    return runtime.makeModuleReturn(values, {
+        "Image": runtime.makePrimitiveAnn("Image", checkImagePred),
+        "Scene": runtime.makePrimitiveAnn("Scene", checkScenePred)
+      });
   }
 })
