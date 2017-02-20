@@ -7,19 +7,17 @@ class GoogleAPI {
      */
     load = (clientId, discoveryDocs, scope) => {
       return new Promise((resolve, reject) => {
-        loadScript(GOOGLE_API_URL, () => {
-          window.gapi.load('client:auth2', () => {
-            window.gapi.load('picker', () => {
-              window.gapi.client.init({
-                discoveryDocs: discoveryDocs,
-                clientId: clientId,
-                scope: scope
-              }).then(function () {
-                resolve();
-              });
-            });
-          });
-        });
+
+        gwrap.load({name: 'drive',
+                    version: 'v3',
+                    reauth: {
+                      immediate: true
+                    },
+                    callback: function(drive) {
+                      console.log("Drive loaded");
+                      resolve(drive);
+                    }});
+
       });
     }
 
@@ -27,21 +25,24 @@ class GoogleAPI {
      *  Return whether the user is signed in.
      */
     isSignedIn = () => {
-      return window.gapi.auth2.getAuthInstance().isSignedIn.get();
+      // TODO
+      return false;
     }
 
     /**
      *  Sign in the user upon button click.
      */
     signIn = (event) => {
-      return window.gapi.auth2.getAuthInstance().signIn();
+      return reauth(false);
+      // return window.gapi.auth2.getAuthInstance().signIn();
     }
 
     /**
      *  Sign out the user upon button click.
      */
     signOut = (event) => {
-      return window.gapi.auth2.getAuthInstance().signOut();
+      throw "Can't sign out yet."
+      //return window.gapi.auth2.getAuthInstance().signOut();
     }
 
     createAppFolder = (appName) => {

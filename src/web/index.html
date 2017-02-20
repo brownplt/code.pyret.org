@@ -6,6 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="/img/pyret-icon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="/js/codemirror.js"></script>
+    <script src="/js/q.js"></script>
+    <script src="/js/require.js"></script>
+    <script>
+    var apiKey = "{{{ GOOGLE_API_KEY }}}";
+    var EDITOR_REDIRECT_URL = "{{{ BASE_URL }}}" + "/editor#program=";
+    </script>
+    <script src="/js/localSettings.js"></script>
+    <script src="/js/log.js"></script>
+    <script src="/js/google-apis/api-wrapper.js"></script>
+    <!-- Google API Loader (For picker) -->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <!-- GAPI Client -->
+    <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+
   </head>
   <body>
     <div id="root"></div>

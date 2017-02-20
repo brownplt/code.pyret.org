@@ -2,22 +2,24 @@ import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
 import {CLIENT_ID, DISCOVERY_DOCS, SCOPES, FILE_EXT, APP_NAME, AUTH_FLOW, API_KEY} from './config.js';
 import File from './File';
-import {EDITOR_REDIRECT_URL} from './config.js';
 
 class StudentDashboard extends Component {
   constructor() {
     super();
 
+    this.state = {apiLoaded: true, signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
+
     if (AUTH_FLOW === 'client') {
       this.api = new GoogleAPI();
-      this.api.load(CLIENT_ID, DISCOVERY_DOCS, SCOPES).then(this.apiLoaded);
+      this.api.load(CLIENT_ID, DISCOVERY_DOCS, SCOPES).then(() => {});
+      //this.apiLoaded();
     }
   }
 
-  componentWillMount = () => {
+/*  componentWillMount = () => {
     this.setState({apiLoaded: false, signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''});
   }
-
+*/
   apiLoaded = () => {
     this.setState({apiLoaded: true});
     if (this.api.isSignedIn()) {

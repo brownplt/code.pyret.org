@@ -21,7 +21,7 @@ export const APP_DATA_FILENAME = 'pyret-app-data.json';
 
 // Redirect url for code IDE editor.
 // Format should be 'http://your.company.com/editor?gdrivefileid='
-export const EDITOR_REDIRECT_URL = 'http://code.pyret.org/editor#program=';
+// export const EDITOR_REDIRECT_URL = 'http://code.pyret.org/editor#program=';
 
 // Either use client or server auth flow
 export const AUTH_FLOW = 'client';

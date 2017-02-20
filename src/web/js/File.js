@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import {EDITOR_REDIRECT_URL} from './config.js';
 
 class File extends Component {
   render = () => {
