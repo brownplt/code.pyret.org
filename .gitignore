@@ -9,3 +9,4 @@ program-deps.js
 program-require.js
 pyret
 test-util/failed-test-screenshots/*
+.coverage/

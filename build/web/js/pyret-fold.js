@@ -62,7 +62,12 @@
     }
     close = (typeof(close) === 'string') ? close : close.string;
     if (DELIMS.indexOf(open) != -1) {
-      return (ENDDELIM.indexOf(close) != -1);
+      if (ENDDELIM.indexOf(close) != -1) {
+        return true;
+      }
+      // Otherwise, we fall back on SPECIALDELIM
+      // (this allows 'provide' to be closed by either
+      //  'end' or '*')
     }
     for (var i = 0; i < SPECIALDELIM.length; i++) {
       if (open === SPECIALDELIM[i].start)

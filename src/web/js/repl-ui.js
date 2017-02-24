@@ -260,7 +260,6 @@
       container.append(mkWarningLower());
 
       var promptContainer = jQuery("<div class='prompt-container'>");
-      var promptArrow = drawPromptArrow();
       var prompt = jQuery("<span>").addClass("repl-prompt");
       function showPrompt() {
         promptContainer.hide();
@@ -269,7 +268,7 @@
         CM.focus();
         CM.refresh();
       }
-      promptContainer.append(promptArrow).append(prompt);
+      promptContainer.append(prompt);
 
       container.on("click", function(e) {
         if($(CM.getTextArea()).parent().offset().top < e.pageY) {
@@ -482,7 +481,7 @@
         var echoSpan = $("<span>").addClass("repl-echo");
         var echo = $("<textarea>");
         echoSpan.append(echo);
-        echoContainer.append(drawPromptArrow()).append(echoSpan);
+        echoContainer.append(echoSpan);
         write(echoContainer);
         var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
         echoCM.setValue(code);
