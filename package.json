@@ -66,6 +66,8 @@
     "url.js": "^1.0.2",
     "webpack": "^1.13.1",
     "webpack-dev-server": "^1.14.1"
+    "load-script": "^1.0.0",
+    "babel-preset-stage-2": "^6.17.0"
   },
   "scripts": {
     "local-install": "heroku local:run npm install",
@@ -82,9 +84,5 @@
     "url": "git://github.com/brownplt/code.pyret.org"
   },
   "author": "Joe Politz",
-  "license": "Apache-2.0",
-  "devDependencies": {
-    "load-script": "^1.0.0",
-    "babel-preset-stage-2": "^6.17.0"
-  }
+  "license": "Apache-2.0"
 }
