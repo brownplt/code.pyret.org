@@ -1,4 +1,5 @@
-({ requires: [
+({
+  requires: [
     { "import-type": "dependency",
       protocol: "file",
       args: ["../../../pyret/src/arr/compiler/compile-lib.arr"]
@@ -58,20 +59,20 @@
 
     var logDetailedOption = $("#detailed-logging");
 
-    if(localStorage.getItem('log-detailed') !== null) {
+    if(localSettings.getItem('log-detailed') !== null) {
       logDetailedOption.prop("checked",
-        localStorage.getItem('log-detailed') == 'true');
+        localSettings.getItem('log-detailed') == 'true');
     } else {
-      localStorage.setItem('log-detailed', false);
+      localSettings.setItem('log-detailed', false);
     }
 
     logDetailedOption.on('change', function () {
-      localStorage.setItem('log-detailed', this.checked);
+      localSettings.setItem('log-detailed', this.checked);
     });
 
-    setInterval(function() {
-      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
-    }, 100);
+    localSettings.change("log-detailed", function(_, newValue) {
+      logDetailedOption[0].checked = newValue == 'true';
+    });
 
     runtime.setParam("imgUrlProxy", function(s) {
       var a = document.createElement("a");
@@ -179,19 +180,6 @@
                 else {
                   return gmf(cpo, "make-builtin-js-locator").app(name, raw);
                 }
-                /*
-                if (cpoBuiltin.knownCpoModule(name)) {
-                  return cpoBuiltin.cpoBuiltinLocator(runtime, compileLib, compileStructs, name);
-                }
-                else if(okImports.indexOf(name) === -1) {
-                  throw runtime.throwMessageException("Unknown module: " + name);
-                } else {
-                  return gmf(compileLib, "located").app(
-                    gmf(builtin, "make-builtin-locator").app(name),
-                    runtime.nothing
-                  );
-                }
-                */
               },
               dependency: function(protocol, args) {
                 var arr = runtime.ffi.toArray(args);
@@ -257,13 +245,15 @@
     });
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
-    var getDefsForPyret = runtime.makeFunction(function() {
-        var ws_str = CPO.editor.cm.getValue();
-        if (dialect === 'spyret') {
-          ws_str = spyretParse.schemeToPyretAST(ws_str, "definitions", "definitions");
+    var getDefsForPyret = function(source) {
+      return runtime.makeFunction(function() {
+        var ws_str = source;
+        if (dialect === 'spyret' && ws_str) {
+          ws_str = spyretParse.schemeToPyretAST(ws_str, 'definitions', 'definitions');
         }
         return ws_str;
       });
+    };
     var replGlobals = gmf(compileStructs, "standard-globals");
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
@@ -278,7 +268,7 @@
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
-          restartInteractions: function(ignoredStr, options) {
+          restartInteractions: function(source, options) {
             var pyOptions = defaultOptions.extendWith({
               "type-check": options.typeCheck,
               "check-all": options.checkAll,
@@ -290,8 +280,9 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    (dialect === "spyret" ? "make-spyret-definitions-locator" : "make-definitions-locator")
-                    ).app(getDefsForPyret, replGlobals);
+                    (dialect === 'spyret'? 'make-spyret-definitions-locator'
+                        : "make-definitions-locator")
+                    ).app(getDefsForPyret(source), replGlobals);
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
@@ -309,23 +300,24 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    (dialect === "spyret" ? "make-spyret-interaction-locator" : "make-interaction-locator")
+                    (dialect === 'spyret'? 'make-spyret-interaction-locator'
+                      : "make-interaction-locator")
                     ).app(
                       runtime.makeFunction(function() {
                         var ws_str = str;
-                        if (dialect === "spyret") {
-                          var ws_str = spyretParse.schemeToPyretAST(str, name, "repl", lineNo);
+                        if (dialect === 'spyret') {
+                          ws_str = spyretParse.schemeToPyretAST(str, name, 'repl', lineNo);
                         }
                         return ws_str;
-                        }))
+                      }))
                   },
                   function(locator) {
                     return gf(repl, "run-interaction").app(locator);
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, (dialect === "spyret" ? "make-spyret-interaction-locator" : "make-interaction-locator")
-              );
+              }, (dialect === 'spyret'? 'make-spyret-interaction-locator'
+                : "make-interaction-locator"));
             }, 0);
             return ret.promise;
           },

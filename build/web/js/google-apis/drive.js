@@ -289,10 +289,12 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       console.log('drive found');
     }
 
+    /*
     var list = drive.files.list({
       q: "trashed=false and title = '" + collectionName + "' and "+
          "mimeType = '" + FOLDER_MIME + "'"
     });
+    */
     var baseCollection = findOrCreateDirectory(collectionName);
     return createAPI(baseCollection);
   }

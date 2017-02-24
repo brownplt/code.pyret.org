@@ -94,8 +94,8 @@ function start(config, onServerReady) {
 
   app.use(express.static(__dirname + "/../build/web/"));
 
-  //app.use(csrf());
-  app.use(csrf({ ignoreMethods: ['GET', 'HEAD', 'OPTIONS', 'POST'] }));
+  app.use(csrf());
+  //app.use(csrf({ ignoreMethods: ['GET', 'HEAD', 'OPTIONS', 'POST'] }));
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
 
@@ -112,43 +112,13 @@ function start(config, onServerReady) {
   app.get("/login", function(req, res) {
     console.log('doing /login');
     var redirect = req.param("redirect") || "/editor";
-    console.log('redirect=', redirect);
-    if (req.session) {
-      console.log('/login req.session found, user_id=', req.session['user_id']);
-    }
-    if (req.session && req.session['user_id']) {
-      console.log('/login user found')
-      var maybeUser = db.getUserByGoogleId(req.session['user_id']);
-      maybeUser.then(function(u) {
-        if (!u) {
-          console.log('/login maybeuser need auth');
-          res.redirect(auth.getAuthUrl(redirect));
-        } else {
-          console.log('/login maybeuser already auth');
-          res.redirect(redirect);
-        }
-      });
-      maybeUser.fail(function(err) {
-        console.log('/login maybeuser not found');
-        res.redirect(auth.getAuthUrl(redirect));
-      });
-    } else {
-      console.log('/login user not found');
-      res.redirect(auth.getAuthUrl(redirect));
-    }
-    
-
-
-    /*
-    if(!(req.session && req.session["user_id"])) { // ! -> !! ? --ds26gte
-      console.log('req.session.user_id =', req.session['user_id']);
+    if(!(req.session && req.session["user_id"])) {
       res.redirect(auth.getAuthUrl(redirect));
     }
     else {
       console.log('/login didnt do auth?');
       res.redirect(redirect);
     }
-    */
   });
 
   app.use(function(req, res, next) {
@@ -218,7 +188,7 @@ function start(config, onServerReady) {
         var existingUser = db.getUserByGoogleId(data.googleId);
         existingUser.fail(function(err) {
           console.error("Error on getting user: ", err);
-          res.send({type: "DB error2", error: err});
+          res.send({type: "DB error", error: err});
         });
         var user = existingUser.then(function(user) {
           console.log('redirect user=', user);
