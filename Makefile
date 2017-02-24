@@ -95,8 +95,7 @@ build/web/js/d3-tip.js: node_modules/d3-tip/index.js
 	cp $< $@
 
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
-	(cd src/web/js; `npm bin`/webpack beforePyret.js j.js)
-	cp src/web/js/j.js $@
+	`npm bin`/webpack
 
 build/web/js/q.js: node_modules/q/q.js
 	cp $< $@
