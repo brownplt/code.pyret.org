@@ -14,6 +14,7 @@ module.exports = {
   },
   devtool: IS_PRODUCTION ? 'source-map' : 'inline-source-map',
   entry: {
+    "js/index": './src/web/js/index.js',
     "js/beforePyret": './src/web/js/beforePyret.js',
 //    "js/ide": './src/web/js/ide.js',
   },

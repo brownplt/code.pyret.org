@@ -84,6 +84,7 @@
   "author": "Joe Politz",
   "license": "Apache-2.0",
   "devDependencies": {
+    "load-script": "^1.0.0",
     "babel-preset-stage-2": "^6.17.0"
   }
 }
