@@ -9,27 +9,29 @@ class StudentDashboard extends Component {
 
     this.state = {apiLoaded: true, signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
 
-    if (AUTH_FLOW === 'client') {
-      this.api = new GoogleAPI();
-      this.api.load(CLIENT_ID, DISCOVERY_DOCS, SCOPES).then(() => {});
-      //this.apiLoaded();
-    }
+    this.api = new GoogleAPI();
+    this.api.load().then((resp) => {
+      console.log('hello');
+      console.log(resp);
+      this.setState({signedIn: true});
+      this.updateRecentFiles();
+    });
   }
 
 /*  componentWillMount = () => {
     this.setState({apiLoaded: false, signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''});
   }
 */
-  apiLoaded = () => {
-    this.setState({apiLoaded: true});
-    if (this.api.isSignedIn()) {
-      this.setState({signedIn: true});
-      this.updateRecentFiles();
-    }
-  }
+  // apiLoaded = () => {
+  //   this.setState({apiLoaded: true});
+  //   if (this.api.isSignedIn()) {
+  //     this.setState({signedIn: true});
+  //   }
+  // }
 
   handleSignInClick = (event) => {
-    this.api.signIn().then(() => {
+    this.api.signIn().then((resp) => {
+      console.log(resp);
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
@@ -108,7 +110,7 @@ class StudentDashboard extends Component {
       window.location.assign(EDITOR_REDIRECT_URL + fileId);
     }
   }
-
+  //<i id='loading-spinner' className={'fa fa-circle-o-notch fast-spin fa-3x fa-fw ' + (this.state.apiLoaded ? 'hidden' : '')}></i>
   render = () => {
     return (
       <div className='wrap'>
@@ -123,7 +125,6 @@ class StudentDashboard extends Component {
             </div>
           </div>
         </div>
-        <i id='loading-spinner' className={'fa fa-circle-o-notch fast-spin fa-3x fa-fw ' + (this.state.apiLoaded ? 'hidden' : '')}></i>
         <div id='file-picker-modal' className={'container ' + (this.state.signedIn ? '' : 'hidden')}>
           <div id='file-picker-modal-tabs'>
             <h2 id='recent-files' className={'tab ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
