@@ -10,7 +10,7 @@ class StudentDashboard extends Component {
     this.state = {signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
 
     this.api = new GoogleAPI();
-    this.api.load().then(() => {
+    this.api.load().then((resp) => {
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
@@ -116,22 +116,25 @@ class StudentDashboard extends Component {
           </div>
         </div>
         <i id='loading-spinner' className={'fa fa-circle-o-notch fast-spin fa-3x fa-fw ' + (this.state.signedIn ? 'hidden' : '')}></i>
-        <div id='file-picker-modal' className={'container ' + (this.state.signedIn ? '' : 'hidden')}>
+        <div id='file-picker-modal' className={'modal-wrap container ' + (this.state.signedIn ? '' : 'hidden')}>
           <div id='file-picker-modal-tabs'>
             <h2 id='recent-files' className={'tab ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
             <h2 id='template-files' className={'tab ' + ((this.state.activeTab === 'template-files') ? 'active' : '')} onClick={this.handleTabClick}>Templates</h2>
+            <h2 id='new-file' className={'tab ' + ((this.state.activeTab === 'new-file') ? 'active' : '')} onClick={this.handleTabClick}>New File</h2>
           </div>
-          <div id='file-picker-modal-body'>
+          <div id='file-picker-modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
             <div className='file-list cf'>
-              {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />})}
+              {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
             </div>
           </div>
-          <div id='file-picker-modal-footer' className='cf'>
-            <form className='floatable left' onSubmit={this.handleCreateNewFile}>
+          <div className={'modal-body ' + ((this.state.activeTab === 'new-file') ? '' : 'hidden')}>
+            <form onSubmit={this.handleCreateNewFile}>
               <input className='form' type='text' value={this.state.newFileName} onChange={this.handleNewFilenameChange} />
               <span className='arr-ext'>.arr</span>
               <input id='new-file' className='button ' type='submit' value='New file' />
             </form>
+          </div>
+          <div id='file-picker-modal-footer' className='cf'>
             <div className='button-wrapper floatable right'>
               <button id='select-file' onClick={this.handleSelectFileClick} >Select From Drive</button>
             </div>

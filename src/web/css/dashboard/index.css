@@ -27,10 +27,6 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
     font-size: 1rem;
 }
 
-.hidden {
-    display: none;
-}
-
 .container {
     max-width: 1024px;
     margin: 0px auto;
@@ -80,17 +76,18 @@ button:hover, .button:hover {
     opacity: .7;
 }
 
-#new-file {
-    background: #008BD8;
-}
-
 #select-file {
     background: #CA3434;
 }
 
-#file-picker-modal, #loading-spinner {
+.modal-wrap, #loading-spinner {
     padding: 16pt;
     margin: 0px auto;
+}
+
+.modal-body {
+    border: 2px solid #ddd;
+    padding: 16pt;
 }
 
 .fast-spin {
@@ -102,6 +99,7 @@ button:hover, .button:hover {
     height: 48pt;
     background: #fff;
     border: 2px solid #ddd;
+    border-bottom: none;
 }
 
 #file-picker-modal-footer {
@@ -180,8 +178,12 @@ input.form {
   text-overflow: ellipsis;
 }
 
+.hidden {
+    display: none;
+}
+
 @media only screen and (min-width: 480px) {
-    #file-picker-modal, #loading-spinner {
+    .modal-wrap, #loading-spinner {
         padding: 48pt;
         margin: 0px auto;
     }
