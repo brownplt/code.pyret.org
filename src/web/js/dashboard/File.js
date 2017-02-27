@@ -13,7 +13,7 @@ class File extends Component {
   }
 
   handleFileClick = () => {
-    window.location.assign(EDITOR_REDIRECT_URL + this.props.id);
+    window.open(EDITOR_REDIRECT_URL + this.props.id, '_newtab');
   }
 }
 

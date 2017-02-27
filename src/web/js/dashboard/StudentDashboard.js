@@ -74,7 +74,7 @@ class StudentDashboard extends Component {
         if (files.length === 0) {
           this.api.createAppFolder(APP_NAME).then((resp) => {
             return this.api.createNewFile(resp.result.id, this.state.newFileName + '.arr').then((resp)=> {
-              window.location.assign(EDITOR_REDIRECT_URL + resp.result.id);
+              window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
             });
           });
         }
@@ -82,7 +82,7 @@ class StudentDashboard extends Component {
         // App Folder already existed
         else {
           return this.api.createNewFile(files[0].id, this.state.newFileName + '.arr').then((resp) => {
-            window.location.assign(EDITOR_REDIRECT_URL + resp.result.id);
+            window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
           });
         }
       });
@@ -97,7 +97,7 @@ class StudentDashboard extends Component {
   pickerCallback = (data) => {
     if (data.action === window.google.picker.Action.PICKED) {
       var fileId = data.docs[0].id;
-      window.location.assign(EDITOR_REDIRECT_URL + fileId);
+      window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
     }
   }
 
