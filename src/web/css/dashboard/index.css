@@ -78,6 +78,7 @@ button:hover, .button:hover {
 
 #select-file {
     background: #CA3434;
+    margin: 0px 16pt;
 }
 
 .modal-wrap, #loading-spinner {
@@ -91,21 +92,15 @@ button:hover, .button:hover {
 }
 
 .fast-spin {
+    margin-top: 16pt;
     -webkit-animation: fa-spin 500ms infinite linear;
     animation: fa-spin 500ms infinite linear;
 }
 
 #file-picker-modal-tabs {
-    height: 48pt;
     background: #fff;
     border: 2px solid #ddd;
     border-bottom: none;
-}
-
-#file-picker-modal-footer {
-    padding: 0px 24pt;
-    text-align: left;
-    border: 2px solid #ddd;
 }
 
 input.form {

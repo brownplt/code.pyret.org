@@ -16,10 +16,6 @@ class StudentDashboard extends Component {
     });
   }
 
-  componentWillMount = () => {
-    this.setState({signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''});
-  }
-
   handleSignInClick = (event) => {
     this.api.signIn().then((resp) => {
       this.setState({signedIn: true});
@@ -28,9 +24,8 @@ class StudentDashboard extends Component {
   }
 
   handleSignOutClick = (event) => {
-    this.api.signOut().then(() => {
-      this.setState({signedIn: false});
-    });
+    this.setState({signedIn: false});
+    window.location.replace('/logout');
   }
 
   handleTabClick = (event) => {
@@ -90,11 +85,18 @@ class StudentDashboard extends Component {
   }
 
   handleSelectFileClick = (event) => {
-    this.api.createPicker(CLIENT_ID, API_KEY, this.pickerCallback);
+    this.api.createPicker((data) => {
+      if (data.action === window.google.picker.Action.PICKED) {
+        var fileId = data.docs[0].id;
+        window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
+        window.picker.setVisible(false);
+      }
+    });
   }
 
   // A simple callback implementation.
   pickerCallback = (data) => {
+    console.log(data);
     if (data.action === window.google.picker.Action.PICKED) {
       var fileId = data.docs[0].id;
       window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
@@ -115,12 +117,18 @@ class StudentDashboard extends Component {
             </div>
           </div>
         </div>
-        <i id='loading-spinner' className={'fa fa-circle-o-notch fast-spin fa-3x fa-fw ' + (this.state.signedIn ? 'hidden' : '')}></i>
+        <div id='loading-spinner' className={this.state.signedIn ? 'hidden' : ''}>
+          <h1>Waiting for login...</h1>
+          <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
+        </div>
         <div id='file-picker-modal' className={'modal-wrap container ' + (this.state.signedIn ? '' : 'hidden')}>
-          <div id='file-picker-modal-tabs'>
-            <h2 id='recent-files' className={'tab ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
-            <h2 id='template-files' className={'tab ' + ((this.state.activeTab === 'template-files') ? 'active' : '')} onClick={this.handleTabClick}>Templates</h2>
-            <h2 id='new-file' className={'tab ' + ((this.state.activeTab === 'new-file') ? 'active' : '')} onClick={this.handleTabClick}>New File</h2>
+          <div id='file-picker-modal-tabs' className='cf'>
+            <h2 id='recent-files' className={'tab floatable left ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
+            <h2 id='template-files' className={'tab floatable left ' + ((this.state.activeTab === 'template-files') ? 'active' : '')} onClick={this.handleTabClick}>Templates</h2>
+            <h2 id='new-file' className={'tab floatable left ' + ((this.state.activeTab === 'new-file') ? 'active' : '')} onClick={this.handleTabClick}>New File</h2>
+            <div className='button-wrapper floatable right'>
+              <button id='select-file' onClick={this.handleSelectFileClick} >Select From Drive</button>
+            </div>
           </div>
           <div id='file-picker-modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
             <div className='file-list cf'>
@@ -133,11 +141,6 @@ class StudentDashboard extends Component {
               <span className='arr-ext'>.arr</span>
               <input id='new-file' className='button ' type='submit' value='New file' />
             </form>
-          </div>
-          <div id='file-picker-modal-footer' className='cf'>
-            <div className='button-wrapper floatable right'>
-              <button id='select-file' onClick={this.handleSelectFileClick} >Select From Drive</button>
-            </div>
           </div>
         </div>
       </div>

@@ -104,16 +104,19 @@ class GoogleAPI {
   }
 
   // Create and render a Google Picker object for selecting a file.
-  createPicker = (client_id, api_key, callback) => {
-    var picker = new window.google.picker.PickerBuilder()
-      .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
-      .setAppId(client_id)
-      .setOAuthToken(window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token)
-      .addView(new window.google.picker.View(window.google.picker.ViewId.DOCS))
-      .setDeveloperKey(api_key)
-      .setCallback(callback)
-      .build();
-    picker.setVisible(true);
+  createPicker = (callback) => {
+    window.gapi.load('picker', function(){
+      window.picker = new window.google.picker.PickerBuilder()
+        .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
+        .setTitle("Select a Pyret document")
+        .addView(new window.google.picker.View(window.google.picker.ViewId.DOCS))
+        .setOAuthToken(window.gapi.auth.getToken().access_token)
+        .setCallback(callback)
+        .setOrigin(window.location.protocol + '//' + window.location.host)
+        .build();
+
+      window.picker.setVisible(true);
+    });
   }
 }
 
