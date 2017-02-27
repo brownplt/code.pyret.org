@@ -157,9 +157,12 @@ input.form {
     background: rgba(0,0,0,.15);
 }
 
-.file i {
-    font-size: 2rem;
+.file img {
+    width: 35%;
     padding-bottom: 8pt;
+    filter: grayscale(100%);
+    -webkit-filter: grayscale(100%);
+    opacity: .4;
 }
 
 .file p {

@@ -5,8 +5,8 @@ class File extends Component {
     return (
         <div className='file-wrapper'>
           <div className="file" onClick={this.handleFileClick}>
-              <i className="fa fa-file-code-o" aria-hidden="true"></i>
-              <p className='truncate'>{this.props.name}</p>
+            <img src='/img/pyret-logo.png'/>
+            <p className='truncate'>{this.props.name}</p>
           </div>
         </div>
     );
