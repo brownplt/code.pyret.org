@@ -1,37 +1,27 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
-import {CLIENT_ID, DISCOVERY_DOCS, SCOPES, FILE_EXT, APP_NAME, AUTH_FLOW, API_KEY} from './config.js';
+import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
 import File from './File';
 
 class StudentDashboard extends Component {
   constructor() {
     super();
 
-    this.state = {apiLoaded: true, signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
+    this.state = {signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
 
     this.api = new GoogleAPI();
-    this.api.load().then((resp) => {
-      console.log('hello');
-      console.log(resp);
+    this.api.load().then(() => {
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
   }
 
-/*  componentWillMount = () => {
-    this.setState({apiLoaded: false, signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''});
+  componentWillMount = () => {
+    this.setState({signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''});
   }
-*/
-  // apiLoaded = () => {
-  //   this.setState({apiLoaded: true});
-  //   if (this.api.isSignedIn()) {
-  //     this.setState({signedIn: true});
-  //   }
-  // }
 
   handleSignInClick = (event) => {
     this.api.signIn().then((resp) => {
-      console.log(resp);
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
@@ -110,7 +100,7 @@ class StudentDashboard extends Component {
       window.location.assign(EDITOR_REDIRECT_URL + fileId);
     }
   }
-  //<i id='loading-spinner' className={'fa fa-circle-o-notch fast-spin fa-3x fa-fw ' + (this.state.apiLoaded ? 'hidden' : '')}></i>
+
   render = () => {
     return (
       <div className='wrap'>
@@ -125,6 +115,7 @@ class StudentDashboard extends Component {
             </div>
           </div>
         </div>
+        <i id='loading-spinner' className={'fa fa-circle-o-notch fast-spin fa-3x fa-fw ' + (this.state.signedIn ? 'hidden' : '')}></i>
         <div id='file-picker-modal' className={'container ' + (this.state.signedIn ? '' : 'hidden')}>
           <div id='file-picker-modal-tabs'>
             <h2 id='recent-files' className={'tab ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
