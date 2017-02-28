@@ -1421,7 +1421,8 @@ define(['pyret-base/js/js-numbers'], function(jsnums) {
     }
 
     Str.prototype.toWrittenString = function(cache) {
-      return escapeString(this.toString());
+      //return escapeString(this.toString());
+      return '"' + this.toString() + '"';
     }
 
     Str.prototype.toDisplayedString = Str.prototype.toString;
@@ -1483,6 +1484,7 @@ define(['pyret-base/js/js-numbers'], function(jsnums) {
     };
 
     var replaceUnprintableStringChars = function(s) {
+      //console.log('doing replaceUnprintableStringChars', s);
       var ret = [];
       for (var i = 0; i < s.length; i++) {
         var val = s.charCodeAt(i);
@@ -1835,7 +1837,8 @@ define(['pyret-base/js/js-numbers'], function(jsnums) {
         return "#<undefined>";
       }
       if (typeof(x) == 'string') {
-        return escapeString(x.toString());
+        //return escapeString(x.toString());
+        return '"' + x.toString() + '"';
       }
       if (typeof(x) != 'object' && typeof(x) != 'function') {
         return x.toString();
