@@ -1758,6 +1758,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       var chr, datum = "";
       while (i < str.length && str.charAt(i) !== '"') {
         chr = str.charAt(i++);
+        //console.log('readstring chr=', chr);
         // track line/char values while we scan
         if (chr === "\n") {
           line++;
@@ -1774,6 +1775,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               chr = '\u0007';
               break;
             case /b/.test(chr):
+              //console.log('backspace read');
               chr = '\b';
               break;
             case /t/.test(chr):
@@ -1789,6 +1791,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
               chr = '\f';
               break;
             case /r/.test(chr):
+              //console.log('return read');
               chr = '\r';
               break;
             case /e/.test(chr):
@@ -1843,6 +1846,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           errArgLocs: [["read", new Location(startCol, startRow, iStart, 1)]]
         });
       }
+      //console.log('datum=', datum);
       var strng = new literal(new types.string(datum));
       i++;
       column++; // move forward to include the ending quote

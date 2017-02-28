@@ -618,6 +618,10 @@
             e.stopImmediatePropagation();
             e.preventDefault();
           }
+        } else if (e.keyCode === 27) { // ESCAPE pressed
+          $('#breakButton').click();
+          e.stopImmediatePropagation();
+          e.preventDefault();
         }
       });
 

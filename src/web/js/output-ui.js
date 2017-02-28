@@ -1243,6 +1243,7 @@
             case 11: ret.push('\\v'); break;
             case 12: ret.push('\\f'); break;
             case 13: ret.push('\\r'); break;
+            case 32: ret.push(' '); break;
             case 34: ret.push('\\"'); break;
             case 92: ret.push('\\\\'); break;
             default:

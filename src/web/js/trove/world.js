@@ -213,7 +213,7 @@
 
       var configs = [];
       var isOutputConfigSeen = false;
-      var closeWhenStop = false;
+      var closeWhenStop = true;
 
       for (var i = 0 ; i < handlers.length; i++) {
         if (isOpaqueCloseWhenStopConfig(handlers[i])) {
@@ -295,6 +295,7 @@
         // NOTE(joe): don't move this line down, it's *these* args, not
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
+        //console.log('pyretArgs=', pyretArgs);
         //console.log('pyretArgs length = ' + pyretArgs.length);
         runtime.run(function(_, _) {
           // NOTE(joe): adding safecall here to get some meaningful caller frame
@@ -302,6 +303,7 @@
           return runtime.safeCall(function() {
             return worldFunction.app.apply(null, pyretArgs);
           }, function(result) {
+            //console.log('result=', result);
             return result;
           }, "big-bang");
         }, runtime.namespace,
@@ -355,11 +357,13 @@
       var code = e.charCode || e.keyCode;
       var keyname;
       switch(code) {
-      case 8: keyname = "backspace"; break;
+      case 8: keyname = "\b"; break;
       case 9: keyname = "tab"; break;
-      case 13: keyname = "enter"; break;
+      case 10: keyname = "newline"; break;
+      case 13: keyname = "\r"; break;
       case 16: keyname = "shift"; break;
       case 17: keyname = "control"; break;
+      case 18: keyname = "alt"; break;
       case 19: keyname = "pause"; break;
       case 27: keyname = "escape"; break;
       case 33: keyname = "prior"; break;
@@ -401,6 +405,7 @@
         }
         break;
       }
+      //console.log('getKeyCodeName returning', keyname);
       return keyname;
     }
     //////////////////////////////////////////////////////////////////////
@@ -706,6 +711,7 @@
           runtime.ffi.checkArity(2, arguments, "is-key-equal");
           runtime.checkString(key1);
           runtime.checkString(key2);
+          //console.log('doing is-key-equal', key1, key1.charCodeAt(0), key2, key2.charCodeAt(0));
           return key1.toString().toLowerCase() === key2.toString().toLowerCase();
         }),
         "is-mouse-equal": makeFunction(function(mouse1, mouse2) {

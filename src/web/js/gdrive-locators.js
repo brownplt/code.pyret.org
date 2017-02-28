@@ -396,11 +396,11 @@ define([], function() {
                   url: filename2,
                   crossDomain: true,
                   success: function(str) {
-                    console.log('legacy string = ' + JSON.stringify(str));
+                    //console.log('legacy string = ' + JSON.stringify(str));
                     var str2 = str;
                     //var str2 = JSON.parse(str); //not needed
                     spyretString = str2.source.src;
-                    console.log('Scheme string = ' + spyretString);
+                    //console.log('Scheme string = ' + spyretString);
                   },
                   error: function(error) {
                     getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
