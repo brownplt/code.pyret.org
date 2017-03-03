@@ -5,15 +5,15 @@ class File extends Component {
     return (
         <div className='file-wrapper'>
           <div className="file" onClick={this.handleFileClick}>
-              <i className="fa fa-file-code-o" aria-hidden="true"></i>
-              <p className='truncate'>{this.props.name}</p>
+            <img src='/img/pyret-logo.png'/>
+            <p className='truncate'>{this.props.name}</p>
           </div>
         </div>
     );
   }
 
   handleFileClick = () => {
-    window.location.assign(EDITOR_REDIRECT_URL + this.props.id);
+    window.open(EDITOR_REDIRECT_URL + this.props.id, '_newtab');
   }
 }
 

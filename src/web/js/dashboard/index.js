@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import StudentDashboard from './StudentDashboard';
-import '../css/index.css';
+import '../../css/dashboard/index.css';
 
 ReactDOM.render(
   <StudentDashboard />,
