@@ -209,7 +209,9 @@
         );
       }
 
-      var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode).get(0);
+      var toplevelNode = jQuery('<span/>').css('padding', '0px').appendTo(outerToplevelNode)
+        .attr('tabindex', 1).focus()
+        .get(0);
 
       var configs = [];
       var isOutputConfigSeen = false;

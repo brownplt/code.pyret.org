@@ -315,12 +315,14 @@
           });
           animationDiv.append(dom);
           var dialogMain = animationDiv.parent();
+        /*
           dialogMain.on('keydown', function(e) {
             if ($(document.activeElement).is('button') &&
                 e.keyCode === 32) {
               e.preventDefault();
             }
           });
+          */
           dialogMain.css({"z-index": currentZIndex + 1});
           dialogMain.prev().css({"z-index": currentZIndex});
           currentZIndex += 2;
