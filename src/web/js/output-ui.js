@@ -26,7 +26,7 @@
     // version or something else?
     var shareAPI = makeShareAPI("");
 
-    var dialect = 'spyret';
+    var dialect = 'patch';
 
     function unPyretizeSymbol(str) {
       if (!/Ǝ/.test(str)) {
@@ -454,7 +454,7 @@
             runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
                 //console.log('output-ui calling surface-parse');
-                if (dialect === 'spyret') {
+                if (dialect === 'patch') {
                   //console.log('arg=', prelude+source);
                   return runtime.getField(PP, "spyret-surface-parse").app(
                     spyretParse.schemeToPyretAST(prelude + source, filename, possTestResult),
@@ -870,7 +870,7 @@
             }, "optional: help(contents)");
           },
           "text": function(txt) {
-            if (dialect === "spyret") {
+            if (dialect === "patch") {
               txt = unPyretizeSymbol(txt);
             }
             return $("<span>").text(txt);

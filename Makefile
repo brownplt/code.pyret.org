@@ -139,7 +139,7 @@ build/web/js/foldcode.js: $(CM)/addon/fold/foldcode.js
 build/web/js/foldgutter.js: $(CM)/addon/fold/foldgutter.js
 	cp $< $@
 
-build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
+build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/patch.js
 	cp $< $@
 
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \

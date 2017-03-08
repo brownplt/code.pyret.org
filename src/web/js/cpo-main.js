@@ -52,7 +52,7 @@
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib, spyretParse) {
 
-    var dialect = "spyret";
+    var dialect = "patch";
 
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -248,7 +248,7 @@
     var getDefsForPyret = function(source) {
       return runtime.makeFunction(function() {
         var ws_str = source;
-        if (dialect === 'spyret' && ws_str) {
+        if (dialect === 'patch' && ws_str) {
           ws_str = spyretParse.schemeToPyretAST(ws_str, 'definitions', 'definitions');
         }
         return ws_str;
@@ -280,7 +280,7 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    (dialect === 'spyret'? 'make-spyret-definitions-locator'
+                    (dialect === 'patch'? 'make-spyret-definitions-locator'
                         : "make-definitions-locator")
                     ).app(getDefsForPyret(source), replGlobals);
                   },
@@ -300,12 +300,12 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    (dialect === 'spyret'? 'make-spyret-interaction-locator'
+                    (dialect === 'patch'? 'make-spyret-interaction-locator'
                       : "make-interaction-locator")
                     ).app(
                       runtime.makeFunction(function() {
                         var ws_str = str;
-                        if (dialect === 'spyret') {
+                        if (dialect === 'patch') {
                           ws_str = spyretParse.schemeToPyretAST(str, name, 'repl', lineNo);
                         }
                         return ws_str;
@@ -316,7 +316,7 @@
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, (dialect === 'spyret'? 'make-spyret-interaction-locator'
+              }, (dialect === 'patch'? 'make-spyret-interaction-locator'
                 : "make-interaction-locator"));
             }, 0);
             return ret.promise;
