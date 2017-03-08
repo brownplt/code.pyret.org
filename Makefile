@@ -159,7 +159,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png build/web/img/BigLogo.png build/web/img/patch-break.png build/web/img/patch-run.png build/web/img/patch-save.png build/web/img/patch-share.png build/web/img/patch-undo.png build/web/img/patch-redo.png build/web/img/patch-blank.gif build/web/img/patch-interactions.png build/web/img/patch-fadeIcon.png build/web/img/patch-fadeWords.png build/web/img/patch-treadmill-run.gif build/web/img/googledrive.png
 
-build/web/img/%: pyret/img/%
+build/web/img/%: node_modules/pyret-lang/img/%
 	cp $< $@
 
 COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
