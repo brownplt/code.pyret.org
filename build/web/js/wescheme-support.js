@@ -1484,7 +1484,7 @@ define(['pyret-base/js/js-numbers'], function(jsnums) {
     };
 
     var replaceUnprintableStringChars = function(s) {
-      console.log('doing replaceUnprintableStringChars', s);
+      //console.log('doing replaceUnprintableStringChars', s);
       var ret = [];
       for (var i = 0; i < s.length; i++) {
         var val = s.charCodeAt(i);

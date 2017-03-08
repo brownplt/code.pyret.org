@@ -71,10 +71,10 @@
       );
     }
 
-    function pyretizeSpyretLoc(spyretLoc) {
-      return runtime.makeSrcloc([spyretLoc.source,
-        spyretLoc.startRow, spyretLoc.startCol, spyretLoc.startChar,
-        spyretLoc.endRow, spyretLoc.endCol, spyretLoc.endChar
+    function pyretizePatchLoc(patchLoc) {
+      return runtime.makeSrcloc([patchLoc.source,
+        patchLoc.startRow, patchLoc.startCol, patchLoc.startChar,
+        patchLoc.endRow, patchLoc.endCol, patchLoc.endChar
       ])
     }
 
@@ -110,35 +110,35 @@
             var thisExn = undefined;
             // Parse Errors
             if (typeof(result.exn) === 'string') {
-              //console.log('quite possibly a spyret-parse-error');
-              var spyretExn = JSON.parse(result.exn);
-              if (spyretExn.type === 'spyret-parse-error') {
-                //console.log('dealing with a spyret parse error');
-                var spyretErrPkt = spyretExn.errPkt;
-                var spyretErrMsg = "";
-                var spyretErrArgLocs = [];
-                if (spyretErrPkt) {
-                  spyretErrMsg = spyretErrPkt.errMsg || "";
-                  spyretErrArgLocs = spyretErrPkt.errArgLocs || [];
+              //console.log('quite possibly a patch-parse-error');
+              var patchExn = JSON.parse(result.exn);
+              if (patchExn.type === 'patch-parse-error') {
+                //console.log('dealing with a Patch parse error');
+                var patchErrPkt = patchExn.errPkt;
+                var patchErrMsg = "";
+                var patchErrArgLocs = [];
+                if (patchErrPkt) {
+                  patchErrMsg = patchErrPkt.errMsg || "";
+                  patchErrArgLocs = patchErrPkt.errArgLocs || [];
                 }
-                // get spyretErrArgs & spyretErrLocs from spyretErrArgLocs
-                var spyretErrArgs = [];
-                var spyretErrLocs = [];
+                // get patchErrArgs & patchErrLocs from patchErrArgLocs
+                var patchErrArgs = [];
+                var patchErrLocs = [];
                 var it;
-                for (var i = 0; i < spyretErrArgLocs.length; i++) {
-                  it = spyretErrArgLocs[i];
-                  spyretErrArgs.push(it[0]);
-                  spyretErrLocs.push(pyretizeSpyretLoc(it[1]));
+                for (var i = 0; i < patchErrArgLocs.length; i++) {
+                  it = patchErrArgLocs[i];
+                  patchErrArgs.push(it[0]);
+                  patchErrLocs.push(pyretizePatchLoc(it[1]));
                 }
-                var spyretErrArgsList = ffi.makeList(spyretErrArgs);
-                var spyretErrLocsList = ffi.makeList(spyretErrLocs);
+                var patchErrArgsList = ffi.makeList(patchErrArgs);
+                var patchErrLocsList = ffi.makeList(patchErrLocs);
                 //console.log('calling ffi.err');
-                var thisPyretExn = ffi.makeSpyretParseException(spyretErrMsg, spyretErrArgsList,
-                  spyretErrLocsList);
+                var thisPyretExn = ffi.makePatchParseException(patchErrMsg, patchErrArgsList,
+                  patchErrLocsList);
                 thisExn = thisPyretExn.exn;
                 //console.log('thisExn = ', thisExn);
               } else {
-                //console.log('stringy exception that isnt a spyret parse error!');
+                //console.log('stringy exception that isnt a Patch parse error!');
               }
             } else {
               thisExn = result.exn.exn;
@@ -383,7 +383,7 @@
       container.append(output).append(promptContainer);
 
       var img = $("<img>").attr({
-        "src": "/img/spyret-treadmill-run.gif",
+        "src": "/img/patch-treadmill-run.gif",
         "width": "18px",
       }).css({
         "vertical-align": "middle"

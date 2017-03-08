@@ -452,20 +452,20 @@ body {
 }
 
 .replContainer {
-  background: transparent url("/img/spyret-blank.gif") no-repeat right 90%;
+  background: transparent url("/img/patch-blank.gif") no-repeat right 90%;
 }
 
 .replContainer .repl:hover {
-  background: transparent url("/img/spyret-interactions.png") no-repeat right 90%;
+  background: transparent url("/img/patch-interactions.png") no-repeat right 90%;
 }
 
 #main .replMain .CodeMirror {
   z-index: 19500;
-  background: transparent url("/img/spyret-fadeIcon.png") no-repeat right 90%;
+  background: transparent url("/img/patch-fadeIcon.png") no-repeat right 90%;
 }
 
 #main .replMain .CodeMirror:hover {
-  background: transparent url("/img/spyret-fadeWords.png") no-repeat right 90%;
+  background: transparent url("/img/patch-fadeWords.png") no-repeat right 90%;
 }
 
 
@@ -513,15 +513,15 @@ body {
 }
 
 #runButton{
-   background-image: url("/img/spyret-run.png") ;
+   background-image: url("/img/patch-run.png") ;
 }
 
 #breakButton{
-  background-image: url("/img/spyret-break.png") ;
+  background-image: url("/img/patch-break.png") ;
 }
 
 #saveButton {
-  background-image: url("/img/spyret-save.png") ;
+  background-image: url("/img/patch-save.png") ;
 }
 
 #openFile {
@@ -529,11 +529,11 @@ body {
 }
 
 #undoButton {
-  background-image: url("/img/spyret-undo.png") ;
+  background-image: url("/img/patch-undo.png") ;
 }
 
 #redoButton {
-  background-image: url("/img/spyret-redo.png") ;
+  background-image: url("/img/patch-redo.png") ;
 }
 
 #undoButton, #redoButton {
@@ -1410,7 +1410,7 @@ code div {
   display: block;
   min-height: 3em;
   min-width: 3em;
-  background-image: url(/img/spyret-treadmill-run.gif);
+  background-image: url(/img/patch-treadmill-run.gif);
   background-size: contain;
   background-repeat: no-repeat;
   flex: 1;

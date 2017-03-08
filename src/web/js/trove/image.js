@@ -34,23 +34,23 @@
       "text": "tany",
       "text-font": "tany",
       "overlay": "tany",
-      "_spyret_overlay": "tany",
+      "_patch_overlay": "tany",
       "overlay-xy": "tany",
       "overlay-align": "tany",
-      "_spyret_overlay-align": "tany",
+      "_patch_overlay-align": "tany",
       "underlay": "tany",
-      "_spyret_underlay": "tany",
+      "_patch_underlay": "tany",
       "underlay-xy": "tany",
       "underlay-align": "tany",
-      "_spyret_underlay-align": "tany",
+      "_patch_underlay-align": "tany",
       "beside": "tany",
-      "_spyret_beside": "tany",
+      "_patch_beside": "tany",
       "beside-align": "tany",
-      "_spyret_beside-align": "tany",
+      "_patch_beside-align": "tany",
       "above": "tany",
-      "_spyret_above": "tany",
+      "_patch_above": "tany",
       "above-align": "tany",
-      "_spyret_above-align": "tany",
+      "_patch_above-align": "tany",
       "empty-scene": "tany",
       "put-image": "tany",
       "place-image": "tany",
@@ -509,7 +509,7 @@
       return makeImage(image.makeOverlayImage(img1, img2, "middle", "middle"));
     });
 
-    f("_spyret_overlay", function(maybeImg1) {
+    f("_patch_overlay", function(maybeImg1) {
       if (arguments.length < 2) {
         throw runtime.ffi.throwArityErrorC(["overlay"], 2, [maybeImg1]);
       }
@@ -545,7 +545,7 @@
       return makeImage(image.makeOverlayImage(img1, img2, String(placeX), String(placeY)));
     });
 
-    f("_spyret_overlay-align", function(maybePlaceX, maybePlaceY, maybeImg1) {
+    f("_patch_overlay-align", function(maybePlaceX, maybePlaceY, maybeImg1) {
       if (arguments.length < 4) {
         throw runtime.ffi.throwArityErrorC(["overlay-align"], 4, [maybePlaceX, maybePlaceY, maybeImg1]);
       }
@@ -566,7 +566,7 @@
       return makeImage(image.makeOverlayImage(img2, img1, "middle", "middle"));
     });
 
-    f("_spyret_underlay", function(maybeImg1) {
+    f("_patch_underlay", function(maybeImg1) {
       if (arguments.length < 2) {
         throw runtime.ffi.throwArityErrorC(["underlay"], 2, [maybeImg1]);
       }
@@ -602,7 +602,7 @@
       return makeImage(image.makeOverlayImage(img2, img1, String(placeX), String(placeY)));
     });
 
-    f("_spyret_underlay-align", function(maybePlaceX, maybePlaceY, maybeImg1) {
+    f("_patch_underlay-align", function(maybePlaceX, maybePlaceY, maybeImg1) {
       if (arguments.length < 4) {
         throw runtime.ffi.throwArityErrorC(["underlay-align"], 4, [maybePlaceX, maybePlaceY, maybeImg1]);
       }
@@ -623,7 +623,7 @@
       return makeImage(image.makeOverlayImage(img1, img2, "beside", "middle"));
     });
 
-    f("_spyret_beside", function(maybeImg1) {
+    f("_patch_beside", function(maybeImg1) {
       if (arguments.length < 2) {
         throw runtime.ffi.throwArityErrorC(["overlay"], 2, [maybeImg1]);
       }
@@ -645,7 +645,7 @@
       return makeImage(image.makeOverlayImage(img1, img2, "beside", String(placeY)));
     });
 
-    f("_spyret_beside-align", function(maybePlaceY, maybeImg1) {
+    f("_patch_beside-align", function(maybePlaceY, maybeImg1) {
       if (arguments.length < 3) {
         throw runtime.ffi.throwArityErrorC(["beside-align"], 3, [maybePlaceY, maybeImg1]);
       }
@@ -665,7 +665,7 @@
       return makeImage(image.makeOverlayImage(img1, img2, "middle", "above"));
     });
 
-    f("_spyret_above", function(maybeImg1) {
+    f("_patch_above", function(maybeImg1) {
       if (arguments.length < 2) {
         throw runtime.ffi.throwArityErrorC(["above"], 2, [maybeImg1]);
       }
@@ -687,7 +687,7 @@
       return makeImage(image.makeOverlayImage(img1, img2, String(placeX), "above"));
     });
 
-    f("_spyret_above-align", function(maybePlaceX, maybeImg1) {
+    f("_patch_above-align", function(maybePlaceX, maybeImg1) {
       if (arguments.length < 3) {
         throw runtime.ffi.throwArityErrorC(["above-align"], 3, [maybePlaceX, maybeImg1]);
       }

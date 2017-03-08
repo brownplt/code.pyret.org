@@ -43,14 +43,14 @@
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
     "pyret-base/js/runtime",
-    "cpo/spyret-parse"
+    "cpo/patch-parse"
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
-                      rtLib, spyretParse) {
+                      rtLib, patchParse) {
 
     var dialect = "patch";
 
@@ -92,7 +92,7 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, pyRepl, spyretParse, cpo);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, pyRepl, patchParse, cpo);
 
     // NOTE(joe): In order to yield control quickly, this doesn't pause the
     // stack in order to save.  It simply sends the save requests and
@@ -249,7 +249,7 @@
       return runtime.makeFunction(function() {
         var ws_str = source;
         if (dialect === 'patch' && ws_str) {
-          ws_str = spyretParse.schemeToPyretAST(ws_str, 'definitions', 'definitions');
+          ws_str = patchParse.patchToPyretAST(ws_str, 'definitions', 'definitions');
         }
         return ws_str;
       });
@@ -280,7 +280,7 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    (dialect === 'patch'? 'make-spyret-definitions-locator'
+                    (dialect === 'patch'? 'make-patch-definitions-locator'
                         : "make-definitions-locator")
                     ).app(getDefsForPyret(source), replGlobals);
                   },
@@ -300,13 +300,13 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    (dialect === 'patch'? 'make-spyret-interaction-locator'
+                    (dialect === 'patch'? 'make-patch-interaction-locator'
                       : "make-interaction-locator")
                     ).app(
                       runtime.makeFunction(function() {
                         var ws_str = str;
                         if (dialect === 'patch') {
-                          ws_str = spyretParse.schemeToPyretAST(str, name, 'repl', lineNo);
+                          ws_str = patchParse.patchToPyretAST(str, name, 'repl', lineNo);
                         }
                         return ws_str;
                       }))
@@ -316,7 +316,7 @@
                   });
               }, function(result) {
                 ret.resolve(result);
-              }, (dialect === 'patch'? 'make-spyret-interaction-locator'
+              }, (dialect === 'patch'? 'make-patch-interaction-locator'
                 : "make-interaction-locator"));
             }, 0);
             return ret.promise;

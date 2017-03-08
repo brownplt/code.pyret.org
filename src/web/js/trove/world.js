@@ -15,7 +15,7 @@
     values: {
       "reactor": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], "Any"]],
       "big-bang": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], ["tid", "a"]]],
-      "_spyret_big-bang": "tany",
+      "_patch_big-bang": "tany",
       "animate": "tany",
       "on-tick": ["forall", ["a"],
           ["arrow",
@@ -25,7 +25,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number" ], ["tid", "a"]]],
              "WCOofA"]],
-      "_spyret_on-tick": "tany",
+      "_patch_on-tick": "tany",
       "on-mouse": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number", "Number", "String" ], ["tid", "a"]]],
@@ -614,9 +614,9 @@
           runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
         }, "big-bang"),
 
-        "_spyret_big-bang": makeFunction(function(init) {
-          runtime.checkArityAtLeast(2, arguments, "_spyret_big-bang");
-          //runtime.ffi.checkArity(1, arguments, "_spyret_big-bang");
+        "_patch_big-bang": makeFunction(function(init) {
+          runtime.checkArityAtLeast(2, arguments, "_patch_big-bang");
+          //runtime.ffi.checkArity(1, arguments, "_patch_big-bang");
           var arr = [], h;
           for (var i = 1; i < arguments.length; i++) {
             h = arguments[i];
@@ -651,8 +651,8 @@
           return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
         }),
 
-        "_spyret_on-tick": makeFunction(function(handler, n) {
-          runtime.ffi.checkArity(arguments.length <= 1? 1: 2, arguments, "_spyret_on-tick");
+        "_patch_on-tick": makeFunction(function(handler, n) {
+          runtime.ffi.checkArity(arguments.length <= 1? 1: 2, arguments, "_patch_on-tick");
           runtime.checkFunction(handler);
           var fixN;
           if (arguments.length >= 2) {
@@ -669,7 +669,7 @@
           return runtime.makeOpaque(new ToDraw(drawer));
         }),
         "on-redraw": makeFunction(function(drawer) {
-          // spyret alias for to-draw
+          // Patch alias for to-draw
           runtime.ffi.checkArity(1, arguments, "on-redraw");
           runtime.checkFunction(drawer);
           return runtime.makeOpaque(new ToDraw(drawer));

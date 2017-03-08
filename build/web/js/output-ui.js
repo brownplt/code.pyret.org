@@ -14,9 +14,9 @@
     "pyret-base/js/runtime-util",
     "pyret-base/js/js-numbers",
     "cpo/share",
-    "cpo/spyret-parse"
+    "cpo/patch-parse"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share, spyretParse) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share, patchParse) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
@@ -26,7 +26,7 @@
     // version or something else?
     var shareAPI = makeShareAPI("");
 
-    var dialect = 'spyret';
+    var dialect = 'patch';
 
     function unPyretizeSymbol(str) {
       if (!/Ǝ/.test(str)) {
@@ -57,8 +57,8 @@
     }
 
     function unPyretizeProcName(str) {
-      return Object.keys(spyretParse.symbolMap).filter(
-        function(key) {return spyretParse.symbolMap[key] === str})[0] ||
+      return Object.keys(patchParse.symbolMap).filter(
+        function(key) {return patchParse.symbolMap[key] === str})[0] ||
         unPyretizeSymbol(str);
     }
 
@@ -454,10 +454,10 @@
             runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
                 //console.log('output-ui calling surface-parse');
-                if (dialect === 'spyret') {
+                if (dialect === 'patch') {
                   //console.log('arg=', prelude+source);
-                  return runtime.getField(PP, "spyret-surface-parse").app(
-                    spyretParse.schemeToPyretAST(prelude + source, filename, possTestResult),
+                  return runtime.getField(PP, "patch-surface-parse").app(
+                    patchParse.patchToPyretAST(prelude + source, filename, possTestResult),
                     filename);
                 } else {
                   return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
@@ -870,7 +870,7 @@
             }, "optional: help(contents)");
           },
           "text": function(txt) {
-            if (dialect === "spyret") {
+            if (dialect === "patch") {
               txt = unPyretizeSymbol(txt);
             }
             return $("<span>").text(txt);
@@ -1243,6 +1243,7 @@
             case 11: ret.push('\\v'); break;
             case 12: ret.push('\\f'); break;
             case 13: ret.push('\\r'); break;
+            case 32: ret.push(' '); break;
             case 34: ret.push('\\"'); break;
             case 92: ret.push('\\\\'); break;
             default:

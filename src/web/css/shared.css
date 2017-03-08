@@ -16,7 +16,7 @@ em {
   width: 50%;
   height: 100%;
   z-index: 8700;
-  background: url('/img/spyret-treadmill-run.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
+  background: url('/img/patch-treadmill-run.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
   background-size: 50px 50px;
 }
 

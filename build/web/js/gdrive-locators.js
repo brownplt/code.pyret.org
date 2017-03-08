@@ -5,7 +5,7 @@ define([], function() {
       compileLib,
       compileStructs,
       parsePyret,
-      builtinModules, replSupport, spyretParse, cpo) {
+      builtinModules, replSupport, patchParse, cpo) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     function fileRequestFailure(failure, filename) {
@@ -77,7 +77,7 @@ define([], function() {
           function needsCompile() { return true; }
 
           function dialect(self) {
-            return runtime.makeString("spyret");
+            return runtime.makeString("patch");
           }
 
           var ast = undefined;
@@ -93,15 +93,15 @@ define([], function() {
                 contentsP.fail(function(failure) {
                   getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
                 });
-                contentsP.then(function(spyretString) {
-                  //console.log('operating on ' + spyretString);
+                contentsP.then(function(patchString) {
+                  //console.log('operating on ' + patchString);
                   return runtime.safeCall(function() {
-                    //console.log('calling schemeToPyretAST');
-                    return spyretParse.schemeToPyretAST(spyretString, uri, "module");
+                    //console.log('calling patchToPyretAST');
+                    return patchParse.patchToPyretAST(patchString, uri, "module");
                   }, function(sAst) {
                     return runtime.safeCall(function() {
-                      //console.log('calling spyret-surface-parse');
-                      return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
+                      //console.log('calling patch-surface-parse');
+                      return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
                     }, function(parsed) {
                       return runtime.safeCall(function() {
                         //console.log('calling make-provide-for-repl');
@@ -236,7 +236,7 @@ define([], function() {
           function needsCompile() { return true; }
 
           function dialect(self) {
-            return runtime.makeString('spyret');
+            return runtime.makeString('patch');
           }
 
           var ast = undefined;
@@ -252,18 +252,18 @@ define([], function() {
                 contentsP.fail(function(failure) {
                   getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
                 });
-                contentsP.then(function(spyretString) {
-                  //console.log('operating on ' + spyretString);
+                contentsP.then(function(patchString) {
+                  //console.log('operating on ' + patchString);
                   return runtime.safeCall(function() {
-                    sessionStorage.setItem(uri,spyretString);
+                    sessionStorage.setItem(uri,patchString);
                   }, function(_) {
                     return runtime.safeCall(function() {
-                      //console.log('calling schemeToPyretAST');
-                      return spyretParse.schemeToPyretAST(spyretString, uri, "module");
+                      //console.log('calling patchToPyretAST');
+                      return patchParse.patchToPyretAST(patchString, uri, "module");
                     }, function(sAst) {
                       return runtime.safeCall(function() {
-                        //console.log('calling spyret-surface-parse');
-                        return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
+                        //console.log('calling patch-surface-parse');
+                        return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
                       }, function(parsed) {
                         return runtime.safeCall(function() {
                           //console.log('calling make-provide-for-repl');
@@ -385,12 +385,12 @@ define([], function() {
           function needsCompile() { return true; }
 
           function dialect(self) {
-            return runtime.makeString("spyret");
+            return runtime.makeString("patch");
           }
 
           function getModule(self) {
             runtime.pauseStack(function(getModRestart) {
-              var spyretString;
+              var patchString;
               runtime.safeCall(function() {
                 jQuery.ajax({
                   url: filename2,
@@ -399,8 +399,8 @@ define([], function() {
                     //console.log('legacy string = ' + JSON.stringify(str));
                     var str2 = str;
                     //var str2 = JSON.parse(str); //not needed
-                    spyretString = str2.source.src;
-                    //console.log('Scheme string = ' + spyretString);
+                    patchString = str2.source.src;
+                    //console.log('Scheme string = ' + patchString);
                   },
                   error: function(error) {
                     getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
@@ -410,10 +410,10 @@ define([], function() {
                 return true;
               }, function(_) {
                 runtime.safeCall(function() {
-                  return spyretParse.schemeToPyretAST(spyretString, uri, "module");
+                  return patchParse.patchToPyretAST(patchString, uri, "module");
                 }, function(sAst) {
                   return runtime.safeCall(function() {
-                    return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
+                    return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
                   }, function(parsed) {
                     return runtime.safeCall(function() {
                       return gmf(replSupport, "make-provide-for-repl").app(parsed);
@@ -516,7 +516,7 @@ define([], function() {
           function needsCompile() { return true; }
 
           function dialect(self) {
-            return runtime.makeString("spyret");
+            return runtime.makeString("patch");
           }
 
           var ast = undefined;
@@ -527,16 +527,16 @@ define([], function() {
             return ast;
           } else {
             runtime.pauseStack(function(getModRestart) { //vii
-              var spyretString;
+              var patchString;
               runtime.safeCall(function() { //vi
                 jQuery.ajax({
                   url: filename,
                   success: function(str) {
                     if (false) {
                       var str2 = JSON.parse(str);
-                      spyretString = str2.source.src;
+                      patchString = str2.source.src;
                     } else {
-                      spyretString = str;
+                      patchString = str;
                     }
                   },
                   error: function(error) {
@@ -547,12 +547,12 @@ define([], function() {
                 return true;
               }, function(_) {
                 runtime.safeCall(function() { //v
-                  //console.log('calling schemeToPyretAST');
-                  return spyretParse.schemeToPyretAST(spyretString, uri, "module");
+                  //console.log('calling patchToPyretAST');
+                  return patchParse.patchToPyretAST(patchString, uri, "module");
                 }, function(sAst) {
                   return runtime.safeCall(function() { //iv
-                    //console.log('calling spyret-surface-parse');
-                    return gmf(compileLib, "spyret-surface-parse").app(sAst, uri);
+                    //console.log('calling patch-surface-parse');
+                    return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
                   }, function(parsed) {
                     return runtime.safeCall(function() { //iii
                       return gmf(compileStructs, "standard-globals");
