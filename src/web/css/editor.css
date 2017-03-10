@@ -1461,7 +1461,11 @@ code div {
   background-color: hsla(45, 90%, 50%, 0.5);
 }
 
-.failed-test-marker > .CodeMirror-linenumber {
+.passed-test-marker {
+  background-color: hsla(88, 49%, 76%, 0.5);
+}
+
+.failed-test-marker,.passed-test-marker > .CodeMirror-linenumber {
   cursor: pointer;
   text-decoration: underline;
 }
