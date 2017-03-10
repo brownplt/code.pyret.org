@@ -61,22 +61,28 @@
         return {anchor: anchor, handle: handle};
       }
 
-      function makeGutterMarker(spanHandle, clickFunc, passedP, highlightedP) {
-        //passedP, highlightedP used to mark and unmark passing tests
+      function highlightPassingTestGutter(spanHandle, highlightedP) {
+        var editor = spanHandle.doc.getEditor();
+        var lineHandle;
+        if (highlightedP) {
+          editor.removeLineClass(spanHandle.from.line, 'gutter', 'passed-test-marker');
+          lineHandle = editor.addLineClass(spanHandle.from.line, 'gutter',
+            'highlighted-passed-test-marker');
+        } else {
+          editor.removeLineClass(spanHandle.from.line, 'gutter', 'highlighted-passed-test-marker');
+          lineHandle = editor.addLineClass(spanHandle.from.line, 'gutter',
+            'passed-test-marker');
+        }
+      }
+
+      function makeGutterMarker(spanHandle, clickFunc, passedP) {
         var editor = spanHandle.doc.getEditor();
 
-        var lineHandle;
-
-        if (passedP) {
-          lineHandle = editor[highlightedP ? 'removeLineClass' : 'addLineClass'](
-            spanHandle.from.line, 'gutter', 'passed-test-marker');
-        } else {
-          lineHandle =
+        var lineHandle =
           editor.addLineClass(
             spanHandle.from.line,
             "gutter",
-            "failed-test-marker");
-        }
+            passedP ? "passed-test-marker" : "failed-test-marker");
 
         function onClick(cm, line, gutter) {
           if (cm.getLineNumber(lineHandle) !== line)
@@ -253,12 +259,13 @@
             var doc = documents.get(source);
             var editor   = doc.getEditor();
             if (editor !== undefined) {
+              makeGutterMarker(handle, function () {
+                thisTest.block.showTest(thisTest);
+              }, 'passed');
               thisTest.passingTestHighlighted = false;
               thisTest.passingTestVivify = function() {
-                makeGutterMarker(handle, function () {
-                  thisTest.block.showTest(thisTest);
-                }, 'passed', thisTest.passingTestHighlighted);
                 thisTest.passingTestHighlighted = !thisTest.passingTestHighlighted;
+                highlightPassingTestGutter(handle, thisTest.passingTestHighlighted);
               }
             }
           }
