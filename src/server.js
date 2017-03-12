@@ -116,8 +116,9 @@ function start(config, onServerReady) {
       res.redirect(auth.getAuthUrl(redirect));
     }
     else {
-      console.log('/login didnt do auth?');
-      res.redirect(redirect);
+      console.log('/login didnt do getAuthUrl');
+      res.redirect(auth.getAuthUrl(redirect)); //for now
+      //res.redirect(redirect);
     }
   });
 
@@ -238,7 +239,7 @@ function start(config, onServerReady) {
       console.log('/getAccessToken req.session.user_id=', req.session['user_id']);
       var maybeUser = db.getUserByGoogleId(req.session["user_id"]);
       maybeUser.then(function(u) {
-        console.log('u=', u);
+        console.log('getUserbyGoogleId returned u=', u);
         if(u === null) {
           console.log('/getAccessToken u == null!');
           noAuth();
@@ -333,7 +334,6 @@ function start(config, onServerReady) {
   app.get("/share", function(req, res) {
 
   });
-
 
   app.post("/share-image", function(req, res) {
     var driveFileId = req.body.fileId;
