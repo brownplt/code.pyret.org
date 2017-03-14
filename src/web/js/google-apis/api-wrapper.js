@@ -156,6 +156,7 @@ function loadAPIWrapper(immediate) {
         gapi.auth.setToken({ access_token: t.access_token });
         logger.log('login', {user_id: t.user_id});
         d.resolve({ access_token: t.access_token });
+        $('#openFile').css('display', 'block');
       });
       newToken.fail(function(t) {
         console.log('!! access_token not got');

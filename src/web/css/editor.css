@@ -526,6 +526,7 @@ body {
 
 #openFile {
   background-image: url("/img/googledrive.png") ;
+  display: none;
 }
 
 #undoButton {
