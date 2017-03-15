@@ -59,21 +59,40 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   function showShares(container, originalFile) {
     //console.log('doing showShares ' + JSON.stringify(originalFile));
     container.empty();
-    var shares = originalFile.getShares();
+    //var shares = originalFile.getShares();
     //var shares = originalFile.then(function(f) { return f.getShares(); });
+    var originalFilePromiseP = false;
+    if (!originalFile.getShares) {
+      //console.log('originalFile is probly a promise');
+      originalFilePromiseP = true;
+    }
+    var shares;
+    if (originalFilePromiseP) {
+      shares = originalFile.then(function(f) { return f.getShares(); });
+    } else {
+      shares = originalFile.getShares();
+    }
     container.text("Loading share info...");
     var displayDone = shares.then(function(sharedInstances) {
       container.empty();
       console.log(sharedInstances);
       var a = $("<a>").text("Publish a new copy").attr("href", "javascript:void(0)");
       a.click(function() {
-        var copy = originalFile.makeShareCopy();
+        //var copy = originalFile.makeShareCopy();
         /*
         var copy = originalFile.then(function(f) {
           //console.log('showShares > originalFile.then', 'calling makeShareCopy');
-          return f.makeShareCopy(); 
+          return f.makeShareCopy();
         });
         */
+        var copy;
+        if (originalFilePromiseP) {
+          copy = originalFile.then(function(f) {
+            return f.makeShareCopy();
+          });
+        } else {
+          copy = originalFile.makeShareCopy();
+        }
         a.text("Copying...").attr("href", null);
         copy.fail(function(err) {
           console.log("Couldn't make copy: ", err);
@@ -85,7 +104,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
           showShares(container, originalFile);
         });
         copied.fail(function(err) {
-          console.error("Unexpected error in copying file: ", err); 
+          console.error("Unexpected error in copying file: ", err);
         });
       });
       container.append(a);

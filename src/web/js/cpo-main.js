@@ -248,7 +248,7 @@
     var getDefsForPyret = function(source) {
       return runtime.makeFunction(function() {
         var ws_str = source;
-        if (dialect === 'patch' && ws_str) {
+        if (dialect === 'patch') {
           ws_str = patchParse.patchToPyretAST(ws_str, 'definitions', 'definitions');
         }
         return ws_str;

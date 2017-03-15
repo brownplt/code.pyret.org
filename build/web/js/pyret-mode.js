@@ -32,11 +32,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                ["var", "rec", "import", "include", "type", "newtype",
                 "from", "lazy", "shadow", "ref", "of",
                 "and", "or", "as", "else", "cases", "is==", "is=~", "is<=>", "is", "satisfies", "raises",
-                "violates", "by", "ascending", "descending", "sanitize", "using",
-               //Patch
-                 "begin", "case", "cond", "define", "define-struct", "define-values",
-                 "lambda", "λ", "let*", "local", "quasiquote", "quote",
-                 "unless", "unquote", "unquote-splicing" ]));
+                "violates", "by", "ascending", "descending", "sanitize", "using"]));
   const pyret_booleans = wordRegexp(["true", "false"]);
   const pyret_keywords_hyphen =
     wordRegexp(["provide-types", "type-let", "does-not-raise", "raises-violates",
@@ -97,11 +93,13 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     return style;
   }
 
+
   function tokenBase(stream, state) {
     if (stream.eatSpace())
       return "IGNORED-SPACE";
 
     var ch = stream.peek();
+
 
     // Handle Comments
     if (ch === '#') {
@@ -109,26 +107,15 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
         state.tokenizer = tokenizeBlockComment;
         state.commentNestingDepth = 1;
         return ret(state, "COMMENT-START", state.lastContent, 'comment');
-      } /* else {
+      } else {
         stream.skipToEnd();
         return ret(state, "COMMENT", state.lastContent, 'comment');
-      } */
-    }
-
-    if (ch === ';') {
-      stream.skipToEnd();
-      return ret(state, 'COMMENT', state.lastContent, 'comment');
-    }
-
-    if (ch === "'") {
-      if (stream.match("'", true)) {
-        return ret(state, "'", "'", 'builtin');
       }
     }
 
     // Handle Number Literals
     const unsigned_decimal_part = "[0-9]+(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?";
-    const unsigned_rational_part = "[0-9]+/[0-9]+";
+    const unsigned_rational_part = "[0-9]+/[0-9]+"; 
     const number = new RegExp("^[-+]?" + unsigned_decimal_part);
     const badNumber = new RegExp("^~?[+-]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?");
     const roughnum = new RegExp("^~[-+]?"  + "(?:" + unsigned_rational_part + "|" + unsigned_decimal_part + ")");
@@ -159,9 +146,8 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                  "\\\\[01234567]{1,3}" +
                  "|\\\\x[0-9a-fA-F]{1,2}" +
                  "|\\\\u[0-9a-fA-f]{1,4}" +
-                 "|\\\\[\\\\bnrt\"\']" +
+                 "|\\\\[\\\\nrt\"\']" +
                  "|[^\\\\\"\n\r])*\"");
-    /*
     const squot_str =
       new RegExp("^\'(?:" +
                  "\\\\[01234567]{1,3}" +
@@ -169,14 +155,13 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
                  "|\\\\u[0-9a-fA-f]{1,4}" +
                  "|\\\\[\\\\nrt\"\']" +
                  "|[^\\\\\'\n\r])*\'");
-    */
     const unterminated_string = new RegExp("^[\"\'].*");
 
     var match;
     if ((match = stream.match(dquot_str, true))) {
       return ret(state, 'string', match[0], 'string');
-    /*} else if ((match = stream.match(squot_str, true))) {
-      return ret(state, 'string', match[0], 'string'); */
+    } else if ((match = stream.match(squot_str, true))) {
+      return ret(state, 'string', match[0], 'string');
     } else if (stream.match(/^```/, true)) {
       state.tokenizer = tokenStringTriple;
       state.inString = stream.column();
@@ -262,8 +247,8 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     }
   }
 
-  //var tokenStringDouble = mkTokenString('"');
-  //var tokenStringSingle = mkTokenString("'");
+  var tokenStringDouble = mkTokenString('"');
+  var tokenStringSingle = mkTokenString("'");
 
   function tokenStringTriple(stream, state) {
     while (!stream.eol()) {
@@ -882,6 +867,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
     // ls.print();
   }
 
+
   const INDENTATION = new Indent(1, 2, 2, 1, 1, 1, 1/*could be 0*/, 1, 1, 1, 1, 1, 1.5);
 
   function copyState(oldState) {
@@ -938,6 +924,7 @@ CodeMirror.defineMode("pyret", function(config, parserConfig) {
       return indent * indentUnit;
     }
   }
+
 
   var external = {
     startState: function(basecolumn) {

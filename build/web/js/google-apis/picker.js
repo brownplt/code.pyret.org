@@ -103,7 +103,7 @@ FilePicker.prototype.initOpen = function(picker) {
       this.pickerInstance = new picker.PickerBuilder()
         //.enableFeature(picker.Feature.NAV_HIDDEN)
         .enableFeature(picker.Feature.MULTISELECT_ENABLED)
-        .setTitle("Select a Pyret document or an image from Google Drive")
+        .setTitle("Select a code file or an image from Google Drive")
         .addView(pyretView)
         .addView(imageView)
         .setOAuthToken(gapi.auth.getToken().access_token)
@@ -122,8 +122,6 @@ FilePicker.prototype.initOpen = function(picker) {
 
     return drive.getCollectionFolderId().then(buildInstance);
   }).bind(this);
-
-  
 
   return (function() {
     this.raisedError = false;
