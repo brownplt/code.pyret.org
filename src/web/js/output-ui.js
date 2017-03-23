@@ -898,10 +898,10 @@
               anchor.on("click", function (e) {
                 logger.log("highlight_anchor_click",
                   { error_id: context, anchor_id: id });
+                e.stopPropagation();
                 window.requestAnimationFrame(function() {
                   if (positions[0] !== undefined)
                     positions[0].goto();
-                  event.stopPropagation();
                 });
               });
               anchor.on("mouseenter", function () {
