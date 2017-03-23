@@ -165,7 +165,6 @@
             then(reason_to_html(runtime, CPO.documents, stack, id));
         }).
         then(function (html) {
-          html.prepend(errorSettings());
           if (errors.length > 0) {
             html.append($("<p>").text(
               "One or more internal errors prevented us from showing the "
@@ -209,85 +208,6 @@
                     id);
           });
       };
-    }
-
-    function mkSwitcher() {
-      var optionEager   = $("<option value='eager'>"  ).text('A.S.A.P.');
-      var optionLazy    = $("<option value='lazy'>"   ).text('on mouseover');
-      var optionVibrant = $("<option value='vibrant'>").text('multiple colors');
-      var optionDrab    = $("<option value='drab'>"   ).text('one color');
-
-      var eagerSwitcher = $("<select>").
-            append(optionEager).
-            append(optionLazy);
-      var colorSwitcher = $("<select>").
-            append(optionVibrant).
-            append(optionDrab);
-      var settings = $("<div id='highlight-settings'>").
-            append("Show error highlights ").
-            append(eagerSwitcher).
-            append(" with ").
-            append(colorSwitcher).
-            append(".");
-
-      var highlightEagerness    = localSettings.getItem('highlight-eagerness');
-      var highlightColorfulness = localSettings.getItem('highlight-colorfulness');
-
-      if(highlightEagerness !== null) {
-        optionEager.prop("selected",   highlightEagerness === 'eager');
-        optionLazy.prop("selected",    highlightEagerness !== 'eager');
-      } else {
-        optionEager.prop("selected", true);
-        localSettings.setItem('highlight-eagerness',
-          Math.random() >= 0.5 ? 'eager' : 'lazy');
-      }
-
-      if(highlightColorfulness !== null) {
-        optionVibrant.prop("selected",  highlightColorfulness === 'vibrant');
-        optionDrab.prop("selected",     highlightColorfulness === 'drab');
-      } else {
-        optionEager.prop("vibrant", true);
-        localSettings.setItem('highlight-colorfulness',
-          Math.random() >= 0.5 ? 'vibrant' : 'drab');
-      }
-
-      if(highlightEagerness == null || highlightColorfulness == null) {
-        logger.log('random_mode_selected',
-         {eager: eagerSwitcher[0].value,
-          color: colorSwitcher[0].value});
-      }
-
-      function logChange() {
-        localSettings.setItem('highlight-eagerness',    eagerSwitcher[0].value);
-        localSettings.setItem('highlight-colorfulness', colorSwitcher[0].value);
-        outputUI.settingChanged(eagerSwitcher[0].value, colorSwitcher[0].value);
-      }
-
-      eagerSwitcher.change(logChange);
-      colorSwitcher.change(logChange);
-
-      return settings;
-    }
-
-    var switcher = mkSwitcher();
-
-    function errorSettings() {
-      var container = $("<div class='highlight-setting-container'>");
-      var toggle = $("<input type='checkbox' class='highlight-setting-visibility-toggle'>");
-      container.append(toggle);
-      toggle.on('change', function () {
-        if (this.checked) {
-          var prev = switcher.prev();
-          if (prev && prev[0] && prev[0].checked) {
-            prev[0].checked = false;
-            switcher.detach();
-          }
-          container.append(switcher);
-        } else {
-          switcher.detach();
-        }
-      });
-      return container;
     }
 
     return runtime.makeJSModuleReturn({

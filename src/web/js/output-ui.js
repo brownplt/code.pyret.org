@@ -554,7 +554,6 @@
     var colorsEmphasized      = new Set();
     var colorsHighlighted     = new Set();
     lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-    var globalColor = lastHue;
 
     function highlight(color) {
       if(colorsHighlighted.has(color))
@@ -563,8 +562,7 @@
         colorsHighlighted.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = localSettings.getItem("highlight-colorfulness");
-        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+        var cssColor = hueToRGB(color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
         }
@@ -595,8 +593,7 @@
         colorsEmphasized.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = localSettings.getItem("highlight-colorfulness");
-        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+        var cssColor = hueToRGB(color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
           anchors[i].addClass('highlight-blink');
@@ -614,12 +611,11 @@
         colorsEmphasized.delete(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = localSettings.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].removeClass('highlight-blink');
         }
         if(colorsHighlighted.has(color)) {
-          var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+          var cssColor = hueToRGB(color);
           for(var i = 0; i < positions.length; i++) {
             positions[i].highlight(cssColor);
           }
@@ -642,26 +638,6 @@
       });
       colorsEmphasized.forEach(function(color) {
         demphasize(color);
-      });
-    }
-
-    function settingChanged(eagerness, colorfulness) {
-      logger.log("highlight_settings_changed",
-        { eagerness: eagerness,
-          colorfulness: colorfulness
-        });
-      window.requestAnimationFrame(function() {
-        colorsHighlighted.forEach(function(color) {
-          unhighlight(color);
-        });
-        colorsEmphasized.forEach(function(color) {
-          demphasize(color);
-        });
-        if (eagerness == 'eager') {
-          $(".compile-error.highlights-active, " +
-            ".test-reason.highlights-active > .highlights-active")
-                .first().trigger('toggleHighlight');
-        }
       });
     }
 
@@ -997,22 +973,17 @@
 
         rendering.bind('toggleHighlight',function() {
             logger.log("error_highlights_toggled",
-              { error_id: context,
-                eagerness: localSettings.getItem('highlight-eagerness'),
-                colorfulness: localSettings.getItem('highlight-colorfulness')
-              });
+              { error_id: context });
             colorsHighlighted.forEach(function(color) {
               unhighlight(color);
             });
             colorsEmphasized.forEach(function(color) {
               demphasize(color);
             });
-            if(localSettings.getItem('highlight-eagerness') != 'lazy') {
-              messageAnchors.forEach(function (_, color) {
-                if (!messageHintedColors.has(color))
-                  highlight(color);
-              });
-            }
+            messageAnchors.forEach(function (_, color) {
+              if (!messageHintedColors.has(color))
+                highlight(color);
+            });
         });
 
         return rendering;
@@ -1534,7 +1505,6 @@
       clearEffects: clearEffects,
       unhintLoc: unhintLoc,
       renderErrorDisplay: renderErrorDisplay,
-      settingChanged: settingChanged,
       drawSrcloc: drawSrcloc,
       expandableMore: expandableMore,
       getLastUserLocation: getLastUserLocation,
