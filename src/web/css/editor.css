@@ -847,7 +847,7 @@ a.highlight {
 
 /* NOTE(joe): this stops output in the REPL from covering the divider */
 #output {
-  overflow-x:scroll;
+  overflow-x:auto;
 }
 
 #output .highlight {
