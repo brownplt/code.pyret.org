@@ -845,6 +845,11 @@ a.highlight {
   color: #000 !important;
 }
 
+/* NOTE(joe): this stops output in the REPL from covering the divider */
+#output {
+  overflow-x:scroll;
+}
+
 #output .highlight {
   cursor: pointer;
 }
