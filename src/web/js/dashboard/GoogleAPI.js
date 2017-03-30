@@ -237,6 +237,30 @@ class GoogleAPI {
 
   }
 
+  /** To create, distribute and manage assignments 
+  assignment_info{
+    id: int
+    name: string
+    class: int
+    doc_id: string //id of the template drive file
+    opened: int [] //student id's that have opened
+    submitted: int [] //student id's that have submitted
+  }
+  */
+
+  createAssignment = () => {
+    // create an assignment file
+
+  }
+
+  createAssignmentCopy = () => {
+    // make a copy of a file for distribution of assignments
+  }
+
+  distributeAssignment = () => {
+    // distribute assignments to students of a particular class
+  }
+
 
 }
 
