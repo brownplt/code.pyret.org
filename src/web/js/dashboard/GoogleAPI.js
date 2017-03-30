@@ -39,6 +39,14 @@ class GoogleAPI {
     });
   }
 
+  // for use while testing
+  removeFileOrFolder = (id) => {
+    return window.gapi.client.drive.files.delete({
+      'fileId': id,
+    });
+  }
+
+  // ACTUAL FUNCTION: lists all files in appDataFolder with name = appName
   getAppFolderID = (appName) => {
     return window.gapi.client.drive.files.list({
       q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
@@ -46,7 +54,7 @@ class GoogleAPI {
   }
 
   createNewFile = (parentFolderId, fileName) => {
-    var reqOpts = {
+    return window.gapi.client.request({
       'path': '/drive/v3/files',
       'method': 'POST',
       'body': {
@@ -54,8 +62,7 @@ class GoogleAPI {
         'mimeType': 'text/plain',
         'name': fileName
       }
-    };
-    return window.gapi.client.request(reqOpts);
+    });
   }
 
   /**
@@ -75,6 +82,12 @@ class GoogleAPI {
     });
   }
 
+  getFileInFolder = (fileName, folderID) => {
+    return window.gapi.client.drive.files.list({
+      q: 'not trashed and name="' + fileName + '" and "' + folderID + '" in parents'
+    });
+  }
+
   createAppDataFile = (appDataFilename) => {
     return window.gapi.client.drive.files.create({
       resource: {
@@ -84,6 +97,7 @@ class GoogleAPI {
     });
   }
 
+  // Note: name says "appData" but you can use on any file I think
   getAppDataFileContent = (fileId) => {
     return window.gapi.client.drive.files.get({
       fileId: fileId,
@@ -93,7 +107,7 @@ class GoogleAPI {
   }
 
   saveAppData = (fileId, appData) => {
-    return window.gapi.client.drive.files.update({
+    return window.gapi.client.request({
       path: '/upload/drive/v3/files/' + fileId,
       method: 'PATCH',
       params: {
@@ -102,6 +116,18 @@ class GoogleAPI {
       body: JSON.stringify(appData)
     });
   }
+
+  // old version, used incorrect API call...keeping it around for now.
+  // saveAppData = (fileId, appData) => {
+  //   return window.gapi.client.drive.files.update({
+  //     path: '/upload/drive/v3/files/' + fileId,
+  //     method: 'PATCH',
+  //     params: {
+  //       uploadType: 'media'
+  //     },
+  //     body: JSON.stringify(appData)
+  //   });
+  // }
 
   // Create and render a Google Picker object for selecting a file.
   createPicker = (callback) => {
@@ -118,6 +144,100 @@ class GoogleAPI {
       window.picker.setVisible(true);
     });
   }
+
+  getPyretData = () => {
+    this.getAppFolderID("pyret").then((folderID) => {
+      // extract folder id from response. We can use files[0] because the precondition 
+      // is that we have a pyret folder
+      folderID = JSON.parse(folderID.body).files[0].id
+      console.log("folderID: " + folderID)
+      return this.getFileInFolder("pyretinfo.json", folderID).then((fileID) => {
+        fileID = JSON.parse(fileID.body).files[0].id
+        console.log("fileID: " + fileID)
+        return this.getAppDataFileContent(fileID)
+      })
+    })
+  }
+
+  /**
+  Create a new class. Classes are specified as follows:
+  
+  student_info:
+  {
+      id: int
+      first_name: string
+      last_name: string
+      email: string
+      classes: int []
+  }
+
+  All of these fields are required to execute this method. If one is missing, an error will be thrown
+  */
+  addClass = (class_info) => {
+    // if no app folder, create
+    // if no classinfo.json, create
+    // get contents of pyretinfo.json in appDataFolder/pyret
+    getPyretData().then((pyretinfo) => {
+      // add a class
+      
+    })
+  }
+
+  removeClass = (class_id) => {
+
+  }
+
+  getClass = (class_id) => {
+
+  }
+
+  updateClass = (class_id, class_info) => {
+
+  }
+
+
+
+
+
+/**
+  Create a new student. Students are specified as follows:
+  
+  student_info:
+  {
+    id: int
+    first_name: string
+    last_name: string
+    email: string
+    classes: int []
+  }
+
+  All of these fields are required to execute this method. If one is missing, an error will be thrown
+  */
+  addStudent = (student_info) => {
+
+  }
+
+  removeStudent = (student_id) => {
+      //needs to remove student from all classes they are in
+  }
+
+  geStudent = (student_id) => {
+
+  }
+
+  updateStudent = (student_info) => {
+
+  }
+
+  addStudentToClass = (student_id, class_id) => {
+
+  }
+
+  removeStudentFromClass = (student_id, class_id) => {
+
+  }
+
+
 }
 
 export default GoogleAPI;
