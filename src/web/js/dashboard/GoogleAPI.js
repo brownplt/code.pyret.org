@@ -162,6 +162,13 @@ class GoogleAPI {
     })
   }
 
+  savePyretData = (newData) => {
+    return this.getPyretDataFileID().then((response) => {
+      var fileID = JSON.parse(response.body).files[0].id
+      return this.saveAppData(fileID, JSON.stringify(newData))
+    })
+  }
+
   /**
   Create a new class with the given name. The new class has no students or assignments.
   */
@@ -182,10 +189,7 @@ class GoogleAPI {
       data.classList.push(classInfo)
 
       //send data back to google
-      return this.getPyretDataFileID().then((response) => {
-        var fileID = JSON.parse(response.body).files[0].id
-        return this.saveAppData(fileID, JSON.stringify(data))
-      })
+      return this.savePyretData(data)
     })
   }
 
@@ -199,19 +203,34 @@ class GoogleAPI {
     })
   }
 
-  removeClass = (class_id) => {
-
+  /**
+  Removes a class with the given id from the list of classes, if it exists
+  */
+  removeClass = (classID) => {
+   return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      delete data.classID
+      return ths.savePyretData(data)
+    }) 
   }
 
-
-
-  updateClass = (class_id, class_info) => {
-
+  /**
+  Sets the object representing the class with id classID to be the object classInfo
+  */
+  updateClass = (classID, classInfo) => {
+    //TODO: validate the class info
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      if (classID in data.classList[classID]){
+        data.classList[classID] = classInfo
+      }
+      else {
+        //TODO: not sure what's the best way to throw an error here.
+        return undefined
+      }
+      return ths.savePyretData(data)
+    }) 
   }
-
-
-
-
 
 /**
   Create a new student. Students are specified as follows:
