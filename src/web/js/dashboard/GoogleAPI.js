@@ -170,23 +170,52 @@ class GoogleAPI {
   }
 
   /**
+  Intended to be used on login. If a pyret data file does not exist, it is created.
+  */
+  initializePyretData = () => {
+    // if folder doesn't exist, create it
+    return this.getAppFolderID("pyret").then((response) => {
+      if (JSON.parse(response.body).files.length === 0) {
+        return this.createAppFolder("pyret")
+      }
+    }).then((folderResponse) => {
+      // there was no folder, so create the file
+      var newFolderId = JSON.parse(folderResponse.body).id
+      return this.createNewFile(newFolderId, "pyretinfo.json")
+    }).then((fileResponse) => {
+      var newFileId = JSON.parse(fileResponse.body).id
+      var baseData = {
+        nextClassID: 0,
+        nextStudentID: 0,
+        nextAssignmentID: 0,
+        classList: {},
+        studentList: {},
+        assignmentList: {}
+      }
+      return this.saveAppData(newFileId, baseData)
+    }) 
+  }
+
+  /**
   Create a new class with the given name. The new class has no students or assignments.
   */
   addClass = (className) => {
     // get contents of pyretinfo.json in appDataFolder/pyret
-    this.getPyretData().then((response) => {
+    return this.getPyretData().then((response) => {
       //modify data
       var data = JSON.parse(response.result)
-      
+
       var classInfo = {
-        id: data.nextClassID,
+        id: data.nextClassID, //technically indexed by this now but I'll leave it here too
         name: className,
         students: [],
         assignments: []
       };
 
       data.nextClassID += 1
-      data.classList.push(classInfo)
+      // old version was using arrays. updated to use object for easy access via ID
+      // data.classList.push(classInfo)
+      data.classList[classInfo.id] = classInfo
 
       //send data back to google
       return this.savePyretData(data)
@@ -209,8 +238,8 @@ class GoogleAPI {
   removeClass = (classID) => {
    return this.getPyretData().then((response) => {
       var data = JSON.parse(response.result)
-      delete data.classID
-      return ths.savePyretData(data)
+      delete data.classList[classID]
+      return this.savePyretData(data)
     }) 
   }
 
@@ -221,53 +250,133 @@ class GoogleAPI {
     //TODO: validate the class info
     return this.getPyretData().then((response) => {
       var data = JSON.parse(response.result)
-      if (classID in data.classList[classID]){
+      if (classID in data.classList){
         data.classList[classID] = classInfo
       }
       else {
         //TODO: not sure what's the best way to throw an error here.
         return undefined
       }
-      return ths.savePyretData(data)
+      return this.savePyretData(data)
     }) 
   }
 
 /**
-  Create a new student. Students are specified as follows:
+  Create a new student, with no classes. Students are specified as follows:
   
   student_info:
   {
-    id: int
+    // the function handles assigning an id
     first_name: string
     last_name: string
     email: string
-    classes: int []
   }
 
   All of these fields are required to execute this method. If one is missing, an error will be thrown
   */
-  addStudent = (student_info) => {
+  addStudent = (studentInfo) => {
+    // validation
+    for (var key in studentInfo) {
+      if (key !== "firstName" &&
+          key !== "lastName" &&
+          key !== "email"){
+        //TODO: not sure of best way to throw an error
+        return undefined
+      }
+    }
 
+    this.getPyretData().then((response) => {
+      //modify data
+      var data = JSON.parse(response.result)
+      
+      studentInfo.id = data.nextStudentID
+      studentInfo.classes = []
+      
+      console.log(studentInfo)
+
+      data.nextStudentID += 1
+
+      //data.studentList.push(studentInfo)
+      data.studentList[studentInfo.id] = studentInfo
+
+      //send data back to google
+      return this.savePyretData(data)
+    })
   }
 
-  removeStudent = (student_id) => {
-      //needs to remove student from all classes they are in
+  removeStudent = (studentID) => {
+    //needs to remove student from all classes they are in
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      if (studentID in data.studentList){
+        for (key in data.classList){
+          var index = data.classList[key].students.indexOf(studentID)
+          if (index !== undefined){
+            data.classList[key].students.splice(index, 1)
+          }
+        }
+        var index = data.studentList.indexOf(studentID)
+        data.studentList.splice(index, 1)
+      }
+      return this.savePyretData(data)
+    }) 
   }
 
-  geStudent = (student_id) => {
-
+  getStudent = (studentID) => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      return data.studentList[studentID]
+    })
   }
 
-  updateStudent = (student_info) => {
-
+  updateStudent = (studentID, studentInfo) => {
+    //TODO: validate the student info
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      if (studentID in data.studentList){
+        data.studentList[studentID] = studentInfo
+      }
+      else {
+        //TODO: not sure what's the best way to throw an error here.
+        return undefined
+      }
+      return this.savePyretData(data)
+    }) 
   }
 
-  addStudentToClass = (student_id, class_id) => {
-
+  addExistingStudentToClass = (studentID, classID) => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      
+      if (classID in data.classList && studentID in data.studentList){
+        data.classList[classID].students.push(studentID)
+        console.log(data.studentList[studentID])
+        data.studentList[studentID].classes.push(classID)
+      }
+      else {
+        //TODO: not sure what's the best way to throw an error here.
+        return undefined
+      }
+      return this.savePyretData(data)
+    })
   }
 
-  removeStudentFromClass = (student_id, class_id) => {
-
+  removeExistingStudentFromClass = (studentID, classID) => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      
+      if (classID in data.classList && studentID in data.studentList){
+        var studentIndex = data.classList[classID].students.indexOf(studentID)
+        var classIndex = data.studentList[studentID].classes.indexOf(classID)
+        data.classList[classID].students.splice(studentIndex, 1)
+        data.studentList[studentID].classes.splice(classID, 1)
+      }
+      else {
+        //TODO: not sure what's the best way to throw an error here.
+        return undefined
+      }
+      return this.savePyretData(data)
+    })
   }
 
   /** To create, distribute and manage assignments 
