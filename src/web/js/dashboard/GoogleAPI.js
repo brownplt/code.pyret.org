@@ -145,41 +145,57 @@ class GoogleAPI {
     });
   }
 
-  getPyretData = () => {
-    this.getAppFolderID("pyret").then((folderID) => {
+  getPyretDataFileID = () => {
+    return this.getAppFolderID("pyret").then((folderID) => {
       // extract folder id from response. We can use files[0] because the precondition 
       // is that we have a pyret folder
       folderID = JSON.parse(folderID.body).files[0].id
-      console.log("folderID: " + folderID)
-      return this.getFileInFolder("pyretinfo.json", folderID).then((fileID) => {
-        fileID = JSON.parse(fileID.body).files[0].id
-        console.log("fileID: " + fileID)
-        return this.getAppDataFileContent(fileID)
+      return this.getFileInFolder("pyretinfo.json", folderID)
+    })
+  }
+
+  //keeping this around to keep calls clean in getters/setters
+  getPyretData = () => {
+    return this.getPyretDataFileID().then((response) => {
+      var fileID = JSON.parse(response.body).files[0].id
+      return this.getAppDataFileContent(fileID)
+    })
+  }
+
+  /**
+  Create a new class with the given name. The new class has no students or assignments.
+  */
+  addClass = (className) => {
+    // get contents of pyretinfo.json in appDataFolder/pyret
+    this.getPyretData().then((response) => {
+      //modify data
+      var data = JSON.parse(response.result)
+      
+      var classInfo = {
+        id: data.nextClassID,
+        name: className,
+        students: [],
+        assignments: []
+      };
+
+      data.nextClassID += 1
+      data.classList.push(classInfo)
+
+      //send data back to google
+      return this.getPyretDataFileID().then((response) => {
+        var fileID = JSON.parse(response.body).files[0].id
+        return this.saveAppData(fileID, JSON.stringify(data))
       })
     })
   }
 
   /**
-  Create a new class. Classes are specified as follows:
-  
-  student_info:
-  {
-      id: int
-      first_name: string
-      last_name: string
-      email: string
-      classes: int []
-  }
-
-  All of these fields are required to execute this method. If one is missing, an error will be thrown
+  Attempts to get the class with id = classID. Returns undefined if the id does not exist.
   */
-  addClass = (class_info) => {
-    // if no app folder, create
-    // if no classinfo.json, create
-    // get contents of pyretinfo.json in appDataFolder/pyret
-    getPyretData().then((pyretinfo) => {
-      // add a class
-      
+  getClass = (classID) => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      return data.classList[classID]
     })
   }
 
@@ -187,9 +203,7 @@ class GoogleAPI {
 
   }
 
-  getClass = (class_id) => {
 
-  }
 
   updateClass = (class_id, class_info) => {
 
