@@ -116,19 +116,7 @@ class GoogleAPI {
       body: JSON.stringify(appData)
     });
   }
-
-  // old version, used incorrect API call...keeping it around for now.
-  // saveAppData = (fileId, appData) => {
-  //   return window.gapi.client.drive.files.update({
-  //     path: '/upload/drive/v3/files/' + fileId,
-  //     method: 'PATCH',
-  //     params: {
-  //       uploadType: 'media'
-  //     },
-  //     body: JSON.stringify(appData)
-  //   });
-  // }
-
+  
   // Create and render a Google Picker object for selecting a file.
   createPicker = (callback) => {
     window.gapi.load('picker', function(){
