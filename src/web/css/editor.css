@@ -651,37 +651,6 @@ div#font-label:hover{
   box-shadow:none;
 }
 
-.highlight-setting-container {
-  background: rgba(100,100,100,0.1);
-  border-radius: 5px;
-}
-
-#highlight-settings {
-  padding: 0.5em;
-  border-bottom: 3px rgba(0,0,0,0.1) solid;
-}
-
-#highlight-settings > select {
-  font-size: inherit;
-}
-
-.highlight-setting-visibility-toggle {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  display: block;
-  float: right;
-  cursor: pointer;
-}
-
-input.highlight-setting-visibility-toggle:not(checked):before {
-  content: '⚙';
-}
-
-input.highlight-setting-visibility-toggle:checked:before {
-  content: '✖';
-}
-
 .replPrint {
   font-family: monospace;
   padding-top: 0;
@@ -724,7 +693,7 @@ input.highlight-setting-visibility-toggle:checked:before {
    padding-right: 0.5em;
 }
 .replOutput > dl > dt { display: inline; }
-.replOutput.expanded dt {
+.replOutput.expanded > dl > dt {
    float: left;
    clear: left;
    padding: 0 1em;
@@ -874,6 +843,11 @@ span.rationalRepeat {
 
 a.highlight {
   color: #000 !important;
+}
+
+/* NOTE(joe): this stops output in the REPL from covering the divider */
+#output {
+  overflow-x:auto;
 }
 
 #output .highlight {
@@ -1579,6 +1553,7 @@ th, td {
 
 th:last-child, td:last-child {
     padding-right: 2em;
+    border-right: unset;
 }
 
 tr:nth-child(even){background-color: #f2f2f2}

@@ -84,13 +84,13 @@ var logger = (function(backend) {
     backend.log(name, obj);
   }
   
-  var isDetailed = localStorage.getItem('log-detailed') == 'true';
+  var isDetailed = localSettings.getItem('log-detailed') == 'true';
 
   return {
     guid  : guid,
     log   : log,
     get isDetailed () {
-      var nowIsDetailed = localStorage.getItem('log-detailed') == 'true';
+      var nowIsDetailed = localSettings.getItem('log-detailed') == 'true';
       if (isDetailed != nowIsDetailed) {
         log('LOG_DETAIL_CHANGED',{detailed: nowIsDetailed});
         isDetailed = nowIsDetailed;

@@ -59,20 +59,20 @@
 
     var logDetailedOption = $("#detailed-logging");
 
-    if(localStorage.getItem('log-detailed') !== null) {
+    if(localSettings.getItem('log-detailed') !== null) {
       logDetailedOption.prop("checked",
-        localStorage.getItem('log-detailed') == 'true');
+        localSettings.getItem('log-detailed') == 'true');
     } else {
-      localStorage.setItem('log-detailed', false);
+      localSettings.setItem('log-detailed', false);
     }
 
     logDetailedOption.on('change', function () {
-      localStorage.setItem('log-detailed', this.checked);
+      localSettings.setItem('log-detailed', this.checked);
     });
 
-    setInterval(function() {
-      logDetailedOption[0].checked = localStorage.getItem('log-detailed') == 'true';
-    }, 100);
+    localSettings.change("log-detailed", function(_, newValue) {
+      logDetailedOption[0].checked = newValue == 'true';
+    });
 
     runtime.setParam("imgUrlProxy", function(s) {
       var a = document.createElement("a");

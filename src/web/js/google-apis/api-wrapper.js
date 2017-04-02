@@ -31,6 +31,41 @@ var gwrap = window.gwrap = {
   }
 };
 
+/**
+ * Reauthenticates the current session.
+ * @param {boolean} immediate - Whether the user needs to log in with
+ *        Google (if false, the user will receive a refreshed access token).
+ * @returns A promise which will resolve following the re-authentication.
+ */
+function reauth(immediate) {
+  var d = Q.defer();
+  if (!immediate) {
+    // Need to do a login to get a cookie for this user; do it in a popup
+    var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
+    window.addEventListener('message', function(e) {
+      // e.domain appears to not be defined in Firefox
+      if ((e.domain || e.origin) === document.location.origin) {
+        d.resolve(reauth(true));
+      } else {
+        d.resolve(null);
+      }
+    });
+  } else {
+    // The user is logged in, but needs an access token from our server
+    var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
+    newToken.then(function(t) {
+      gapi.auth.setToken({ access_token: t.access_token });
+      logger.log('login', {user_id: t.user_id});
+      d.resolve({ access_token: t.access_token });
+    });
+    newToken.fail(function(t) {
+      d.resolve(null);
+    });
+  }
+  return d.promise;
+}
+window.reauth = reauth;
+
 // GAPI Client APIs whose methods have been wrapped with calls to gQ
 // (This is kept in the global state to avoid unneeded reloading)
 var _GWRAP_APIS = {};
@@ -118,40 +153,6 @@ function loadAPIWrapper(immediate) {
   APIResponseError.prototype.constructor = APIResponseError;
 
   // Function definitions
-
-  /**
-   * Reauthenticates the current session.
-   * @param {boolean} immediate - Whether the user needs to log in with
-   *        Google (if false, the user will receive a refreshed access token).
-   * @returns A promise which will resolve following the re-authentication.
-   */
-  function reauth(immediate) {
-    var d = Q.defer();
-    if (!immediate) {
-      // Need to do a login to get a cookie for this user; do it in a popup
-      var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
-      window.addEventListener('message', function(e) {
-        // e.domain appears to not be defined in Firefox
-        if ((e.domain || e.origin) === document.location.origin) {
-          d.resolve(reauth(true));
-        } else {
-          d.resolve(null);
-        }
-      });
-    } else {
-      // The user is logged in, but needs an access token from our server
-      var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
-      newToken.then(function(t) {
-        gapi.auth.setToken({ access_token: t.access_token });
-        logger.log('login', {user_id: t.user_id});
-        d.resolve({ access_token: t.access_token });
-      });
-      newToken.fail(function(t) {
-        d.resolve(null);
-      });
-    }
-    return d.promise;
-  }
 
   /**
    * Reauthenticates the current session with Google.

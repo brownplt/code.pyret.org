@@ -1,27 +1,27 @@
-# provide  {
-#   line-plot: line-plot,
-#   is-line-plot: is-line-plot,
-#
-#   scatter-plot: scatter-plot,
-#   is-scatter-plot: is-scatter-plot,
-#
-#   function-plot: function-plot,
-#   is-function-plot: is-function-plot,
-#
-#   display-function: display-function,
-#   display-scatter: display-scatter,
-#   display-line: display-line,
-#
-#   display-multi-plot: display-multi-plot,
-#   default-options: default-options,
-#
-#   histogram: histogram,
-#   pie-chart: pie-chart,
-#   bar-chart: bar-chart,
-#   grouped-bar-chart: grouped-bar-chart
-# } end
+provide  {
+  line-plot: line-plot,
+  is-line-plot: is-line-plot,
 
-provide *
+  scatter-plot: scatter-plot,
+  is-scatter-plot: is-scatter-plot,
+
+  function-plot: function-plot,
+  is-function-plot: is-function-plot,
+
+  display-function: display-function,
+  display-scatter: display-scatter,
+  display-line: display-line,
+
+  display-multi-plot: display-multi-plot,
+  default-options: default-options,
+
+  histogram: histogram,
+  pie-chart: pie-chart,
+  bar-chart: bar-chart,
+  grouped-bar-chart: grouped-bar-chart,
+  dot-chart: dot-chart,
+  box-chart: box-chart,
+} end
 
 provide-types {
   Plot :: Plot,
@@ -55,40 +55,58 @@ base-window-options :: BaseWindowOptions = {
   title: ''
 }
 
+type AxisWindowOptions = {
+  xscale :: Number,
+  yscale :: Number,
+  interact :: Boolean,
+  title :: String,
+  x-axis :: String,
+  y-axis :: String
+}
+
+axis-window-options :: AxisWindowOptions = base-window-options.{
+  x-axis: '',
+  y-axis: '',
+}
+
 type PlotWindowOptions = {
+  xscale :: Number,
+  yscale :: Number,
+  interact :: Boolean,
+  title :: String,
+  x-axis :: String,
+  y-axis :: String,
   x-min :: Number,
   x-max :: Number,
   y-min :: Number,
   y-max :: Number,
   num-samples :: Number,
-  infer-bounds :: Boolean,
-  xscale :: Number,
-  yscale :: Number,
-  interact :: Boolean,
-  title :: String
+  infer-bounds :: Boolean
 }
 
-plot-window-options :: PlotWindowOptions = {
+plot-window-options :: PlotWindowOptions = axis-window-options.{
   x-min: -10,
   x-max: 10,
   y-min: -10,
   y-max: 10,
   num-samples: 1000,
   infer-bounds: false,
-  xscale: 0,
-  yscale: 0,
-  interact: true,
-  title: ''
 }
 
-type BarChartWindowOptions = BaseWindowOptions
-bar-chart-window-options :: BarChartWindowOptions = base-window-options
+type BarChartWindowOptions = AxisWindowOptions
+bar-chart-window-options :: BarChartWindowOptions = axis-window-options
 
 type PieChartWindowOptions = BaseWindowOptions
 pie-chart-window-options :: PieChartWindowOptions = base-window-options
 
-type HistogramWindowOptions = BaseWindowOptions
-histogram-window-options :: HistogramWindowOptions = base-window-options
+type DotChartWindowOptions = AxisWindowOptions
+dot-chart-window-options :: DotChartWindowOptions = axis-window-options
+
+type BoxChartWindowOptions = AxisWindowOptions
+box-chart-window-options :: BoxChartWindowOptions = axis-window-options
+
+type HistogramWindowOptions = AxisWindowOptions
+histogram-window-options :: HistogramWindowOptions = axis-window-options
 
 type PlotOptions = {
   color :: I.Color
@@ -103,10 +121,11 @@ type WrappedPlotWindowOptions = (PlotWindowOptions -> PlotWindowOptions)
 type WrappedBarChartWindowOptions = (BarChartWindowOptions -> BarChartWindowOptions)
 type WrappedPieChartWindowOptions = (PieChartWindowOptions -> PieChartWindowOptions)
 type WrappedHistogramWindowOptions = (HistogramWindowOptions -> HistogramWindowOptions)
+type WrappedDotChartWindowOptions = (DotChartWindowOptions -> DotChartWindowOptions)
+type WrappedBoxChartWindowOptions = (BoxChartWindowOptions -> BoxChartWindowOptions)
 type PlottableFunction = (Number -> Number)
 type Posn = RawArray<Number>
 type TableInt = RawArray<Posn>
-type Image = IM.Image
 
 data Plot:
   | line-plot(points :: Table, options :: WrappedPlotOptions)
@@ -149,9 +168,9 @@ sprintf = sprintf-maker()
 
 default-options = {<A>(x :: A): x}
 
-fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> Image block:
+fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> IM.Image block:
   doc: ```
-       Consume a table with one column: `value`, and a number of bins, 
+       Consume a table with one column: `value`, and a number of bins,
        and show a histogram
        ```
   when not(tab._header-raw-array =~ [raw-array: 'value']):
@@ -165,7 +184,7 @@ fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWi
   end
   options = options-generator(histogram-window-options)
   _ = check-base-window-options(options)
-  P.histogram(nothing, options, tab._rows-raw-array, n)
+  P.histogram(options, tab._rows-raw-array, n)
 where:
   histogram(
     table: value :: Number
@@ -184,7 +203,7 @@ fun histogram-image(tab :: Table, n :: Number):
   histogram(tab, n, _.{ interact: false })
 end
 
-fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> Image block:
+fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
   doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('pie-chart: expect a table with columns named `label` and `value`')
@@ -209,7 +228,7 @@ end
 
 fun pie-chart-with-adjustable-radius(
     tab :: Table,
-    options-generator :: WrappedPieChartWindowOptions) -> Image block:
+    options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
   doc: ```
        Consume a table with three columns: `label`, `value`, and `radius`,
        and show a pie-chart
@@ -222,7 +241,7 @@ fun pie-chart-with-adjustable-radius(
   end
   options = options-generator(pie-chart-window-options)
   _ = check-base-window-options(options)
-  P.pie-chart(nothing, options, tab._rows-raw-array)
+  P.pie-chart(options, tab._rows-raw-array)
 where:
   pie-chart-with-adjustable-radius(table: label, value, radius
       row: 'asd', 1, 3
@@ -233,8 +252,7 @@ end
 
 fun bar-chart(
     tab :: Table,
-    legend :: String,
-    options-generator :: WrappedBarChartWindowOptions) -> Image block:
+    options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('expect a table with two columns: label and value')
   end
@@ -243,23 +261,23 @@ fun bar-chart(
   end
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
-  P.bar-chart(nothing, options, tab._rows-raw-array, [list: ''], false)
+  P.bar-chart(options, tab._rows-raw-array, [list: ''], false)
 end
 
-fun bar-chart-image(tab :: Table, legend :: String):
-  bar-chart(tab, legend, _.{interact: false})
+fun bar-chart-image(tab :: Table):
+  bar-chart(tab, _.{interact: false})
 end
 
 fun grouped-bar-chart(
     tab :: Table,
     legend :: List<String>,
-    options-generator :: WrappedBarChartWindowOptions) -> Image block:
+    options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
-  P.bar-chart(nothing, options, tab._rows-raw-array, legend, true)
+  P.bar-chart(options, tab._rows-raw-array, legend, true)
 where:
   grouped-bar-chart(
     table: label, values
@@ -279,6 +297,35 @@ where:
       '45 to 64 Years',
       '65 Years and Over'],
     default-options) does-not-raise
+end
+
+fun dot-chart(
+    tab :: Table,
+    options-generator :: WrappedDotChartWindowOptions) -> IM.Image block:
+  when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
+    raise('expect a table with two columns: label and values')
+  end
+  extend tab using value:
+    _dummy: block:
+      when (value < 0) or (value > 40):
+        raise("a value in dot-chart " + num-to-string(value) + " is not in the range")
+      end
+    end
+  end
+  options = options-generator(dot-chart-window-options)
+  _ = check-base-window-options(options)
+  P.dot-chart(options, tab._rows-raw-array)
+end
+
+fun box-chart(
+    tab :: Table,
+    options-generator :: WrappedBoxChartWindowOptions) -> IM.Image block:
+  when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
+    raise('expect a table with two columns: label and values')
+  end
+  options = options-generator(dot-chart-window-options)
+  _ = check-base-window-options(options)
+  P.box-chart(options, tab._rows-raw-array)
 end
 
 fun generate-xy(
@@ -323,7 +370,7 @@ where:
     ], plot-options)
 end
 
-fun display-function(title :: String, f :: PlottableFunction) -> Image:
+fun display-function(title :: String, f :: PlottableFunction) -> IM.Image:
   display-multi-plot(
     [list: function-plot(f, default-options)],
     _.{title: title})
@@ -331,7 +378,7 @@ where:
   plot-function('My function', num-sin) does-not-raise
 end
 
-fun display-scatter(title :: String, tab :: Table) -> Image:
+fun display-scatter(title :: String, tab :: Table) -> IM.Image:
   display-multi-plot(
     [list: scatter-plot(tab, default-options)],
     _.{title: title})
@@ -346,7 +393,7 @@ where:
     end) does-not-raise
 end
 
-fun display-line(title :: String, tab :: Table) -> Image:
+fun display-line(title :: String, tab :: Table) -> IM.Image:
   display-multi-plot(
     [list: line-plot(tab, default-options)],
     _.{title: title})
@@ -363,7 +410,7 @@ end
 
 fun display-multi-plot(
     plots :: List<Plot>,
-    options-generator :: WrappedPlotWindowOptions) -> Image block:
+    options-generator :: WrappedPlotWindowOptions) -> IM.Image block:
   options = options-generator(plot-window-options)
   _ = check-base-window-options(options)
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
@@ -447,14 +494,13 @@ fun display-multi-plot(
   line-plots = partitioned.is-true
   scatter-plots = partitioned.is-false
 
-  fun helper(shadow options :: PlotWindowOptions) -> Image:
+  fun helper(shadow options :: PlotWindowOptions) -> IM.Image:
     shadow function-plots = function-plots.map(generate-xy(_, options))
     ret = P.plot-multi(
-      nothing,
       options,
       function-plots + scatter-plots,
       line-plots)
-    cases (Either<PlotWindowOptions, Image>) ret:
+    cases (Either<PlotWindowOptions, IM.Image>) ret:
       | left(new-options) => helper(new-options)
       | right(image) => image
     end
@@ -462,13 +508,13 @@ fun display-multi-plot(
   helper(options)
 end
 
-default-plot-color-list = 
+default-plot-color-list =
   [list: I.green, I.red, I.orange, I.yellow, I.blue, I.purple, I.brown]
 
 fun display-plots(
     title :: String,
     infer-bounds :: Boolean,
-    plots :: List<Plot>) -> Image:
+    plots :: List<Plot>) -> IM.Image:
   len = default-plot-color-list.length()
   new-plots = for map_n(n from 0, p from plots):
     c = {(x): {color: default-plot-color-list.get(num-modulo(n, len))}}
