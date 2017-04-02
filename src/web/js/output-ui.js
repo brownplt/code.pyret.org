@@ -1421,10 +1421,15 @@
           else {
             var clickForMore = document.createElement("a");
             clickForMore.href = "javascript:void(0)";
-            clickForMore.textContent = "Click to show the remaining " + (rows.length - previewLimit) + " rows...";
+            var remaining = rows.length - previewLimit;
+            if (remaining == 1) {
+              clickForMore.textContent = "Click to show the remaining row";
+            } else {
+              clickForMore.textContent = "Click to show the remaining " + remaining + " rows...";
+            }
             var clickTR = document.createElement("tr");
             var clickTD = document.createElement("td");
-            clickTD.colSpan = String(rows.length);
+            clickTD.colSpan = String(rows[0].length);
             clickTR.appendChild(clickTD);
             clickTD.appendChild(clickForMore);
             $(clickForMore).on("click", function() {

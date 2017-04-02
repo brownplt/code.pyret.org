@@ -1553,6 +1553,7 @@ th, td {
 
 th:last-child, td:last-child {
     padding-right: 2em;
+    border-right: unset;
 }
 
 tr:nth-child(even){background-color: #f2f2f2}
