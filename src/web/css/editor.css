@@ -693,7 +693,7 @@ div#font-label:hover{
    padding-right: 0.5em;
 }
 .replOutput > dl > dt { display: inline; }
-.replOutput.expanded dt {
+.replOutput.expanded > dl > dt {
    float: left;
    clear: left;
    padding: 0 1em;
