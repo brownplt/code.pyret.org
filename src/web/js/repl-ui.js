@@ -100,7 +100,7 @@
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
-            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
+            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
