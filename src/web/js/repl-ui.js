@@ -120,7 +120,7 @@
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
                       return renderAndDisplayError(callingRuntime, errors[i]);
                     }), 0, errors.length);
-                  }, function () {});
+                  }, function (result) { return result; }, "renderMultipleErrors");
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
