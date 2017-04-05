@@ -351,65 +351,18 @@
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_key(
         function(w, e, success) {
-          worldFunction(w, getKeyCodeName(e), success);
+          var keyChar;
+          if (e.type === 'keydown') {
+            //console.log('keydown pressed');
+            keyChar = rawJsworld.getKeyCodeName(e);
+          } else {
+            //console.log('altkey pressed');
+            keyChar = String.fromCharCode(e.which).replace(/[^\x00-\xFE]+/g, '');
+          }
+          worldFunction(w, keyChar, success);
         });
     };
 
-    var getKeyCodeName = function(e) {
-      var code = e.charCode || e.keyCode;
-      var keyname;
-      switch(code) {
-      case 8: keyname = "\b"; break;
-      case 9: keyname = "tab"; break;
-      case 10: keyname = "newline"; break;
-      case 13: keyname = "\r"; break;
-      case 16: keyname = "shift"; break;
-      case 17: keyname = "control"; break;
-      case 18: keyname = "alt"; break;
-      case 19: keyname = "pause"; break;
-      case 27: keyname = "escape"; break;
-      case 33: keyname = "prior"; break;
-      case 34: keyname = "next"; break;
-      case 35: keyname = "end"; break;
-      case 36: keyname = "home"; break;
-      case 37: keyname = "left"; break;
-      case 38: keyname = "up"; break;
-      case 39: keyname = "right"; break;
-      case 40: keyname = "down"; break;
-      case 42: keyname = "print"; break;
-      case 45: keyname = "insert"; break;
-      case 46: keyname = "delete"; break;
-      case 106: keyname = "*"; break;
-      case 107: keyname = "+"; break;
-      case 109: keyname = "-"; break;
-      case 110: keyname = "."; break;
-      case 111: keyname = "/"; break;
-      case 144: keyname = "numlock"; break;
-      case 145: keyname = "scroll"; break;
-      case 186: keyname = ";"; break;
-      case 187: keyname = "="; break;
-      case 188: keyname = ","; break;
-      case 189: keyname = "-"; break;
-      case 190: keyname = "."; break;
-      case 191: keyname = "/"; break;
-      case 192: keyname = "`"; break;
-      case 219: keyname = "["; break;
-      case 220: keyname = "\\"; break;
-      case 221: keyname = "]"; break;
-      case 222: keyname = "'"; break;
-      default:
-        if (code >= 96 && code <= 105) {
-          keyname = (code - 96).toString();
-        } else if (code >= 112 && code <= 123) {
-          keyname = "f" + (code - 111);
-        } else {
-          keyname = String.fromCharCode(code).toLowerCase();
-        }
-        break;
-      }
-      //console.log('getKeyCodeName returning', keyname);
-      return keyname;
-    }
     //////////////////////////////////////////////////////////////////////
 
     var OnMouse = function(handler) {
