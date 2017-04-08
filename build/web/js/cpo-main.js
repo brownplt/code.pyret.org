@@ -246,7 +246,6 @@
     var builtinsForPyret = runtime.ffi.makeList(builtins);
 
     var getDefsForPyret = function(source) {
-      console.log('doing getDefsForPyret', source);
       return runtime.makeFunction(function() {
         var ws_str = source;
         if (dialect === 'patch') {

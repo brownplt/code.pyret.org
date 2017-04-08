@@ -7617,7 +7617,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     //, definitionsDone
   ) {
     if (!code) { code = ''; }
-    console.log('doing patchToPyretAST of', code , 'name=', name, 'provenance=',  provenance, 'lineNo=', lineNo, 'definitionsDone= ', window.definitionsDone);
+    //console.log('doing patchToPyretAST of', code , 'name=', name, 'provenance=',  provenance, 'lineNo=', lineNo, 'definitionsDone= ', window.definitionsDone);
     var debug = false;
     //var debug = true;
     //follg may not be needed
@@ -7680,7 +7680,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       ws_ast.kids[0].kids.unshift(plt.compiler.makeProvideSnippet());
     }
 
-    console.log('finishing patchToPyretAST of', 'name=', name, 'provenance=', provenance);
+    //console.log('finishing patchToPyretAST of', 'name=', name, 'provenance=', provenance);
     var ws_ast_j = JSON.stringify(ws_ast);
 
     //debug

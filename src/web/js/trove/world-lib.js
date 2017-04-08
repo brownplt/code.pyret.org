@@ -801,7 +801,7 @@
         }
         break;
       }
-      //console.log('getKeyCodeName returning', keyname);
+      //console.log('getKeyCodeName', e.type, e.key, ' returning', keyname);
       return keyname;
     }
     Jsworld.getKeyCodeName = getKeyCodeName;
@@ -814,10 +814,11 @@
         var wrappedPress = function(e) {
           if (thisWorldIndex != worldIndex) { return; }
           if(e.keyCode === 27) { return; } // Escape events are not for world; the environment handles them
-          //console.log('e=', e);
+          //console.log('wP e=', e.type, e.key);
           if (e.type === 'keydown' && (e.key !== 'Compose') && (e.key !== 'Backspace')) {
-            //console.log('nonalt keydown', e);
-            return false;
+            //regular alpha, not altgr or backspace
+            //console.log('wP nonalt keydown', e);
+            return false; // try keypress instead
           }
           stopPropagation(e);
           preventDefault(e);
@@ -829,7 +830,7 @@
             jQuery(top).attr('tabindex', 1);
             jQuery(top).focus();
             attachEvent(top, 'keypress', wrappedPress);
-            //keydown event seems to be needed for backspace recognition
+            //keydown event needed for backspace recognition, as it doesnt cause keypress
             attachEvent(top, 'keydown', wrappedPress);
           },
           onUnregister: function(top) {
