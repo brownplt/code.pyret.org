@@ -358,6 +358,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     symbolMap["andmap"] = "_patch_andmap";
     symbolMap["append"] = "_patch_append";
+    symbolMap["argmax"] = "_patch_argmax";
     symbolMap["assoc"] = "list-assoc";
     symbolMap["assq"] = "list-assoc";
     symbolMap["assv"] = "list-assoc";
@@ -379,6 +380,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["ormap"] = "_patch_ormap"; // any, but variadic
     symbolMap["pair?"] = "is-link";
     symbolMap["quicksort"] = "_patch_quicksort";
+    symbolMap["sort"] = "_patch_quicksort";
     symbolMap["remove"] = "_patch_remove";
     symbolMap['remove-all'] = '_patch_remove-all';
     symbolMap["range"] = "range-by";
