@@ -544,15 +544,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["set!"] = "_patch_dead_code_function";
     symbolMap["save-image"] = "_patch_dead_code_function";
 
-    function pyretizeSymbol(str) {
-      var str2
-      var str_pyret_name = symbolMap[str]
-      if (str_pyret_name) {
-        str2 = str_pyret_name
-      } else if (str.length === 1) {
-        str2 = str
-      } else {
-        str2 = str.replace(/\//g, 'ƎSLASH').
+    //dummy procedures
+    symbolMap['record?'] = '_patch_void';
+
+    function pyretizeSymbolAux(str) {
+      var str2;
+      str2 = str.replace(/\//g, 'ƎSLASH').
         replace(/\?/g, 'ƎQUESTION').
         replace(/!/g, 'ƎBANG').
         replace(/\+/g, 'ƎPLUS').
@@ -572,7 +569,19 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         replace(/^#%/, 'ƎHASHPCT').
         replace(/^_/, 'ƎUNDERSCORE').
         replace(/^(\d)/, 'Ǝ$1').
-        replace(/^(debug|new|string-split|type)$/, 'ƎEMPTY$1')
+        replace(/^(debug|new|repeat|string-split|type)$/, 'ƎEMPTY$1')
+      return str2;
+    }
+
+    function pyretizeSymbol(str) {
+      var str2
+      var str_pyret_name = symbolMap[str]
+      if (str_pyret_name) {
+        str2 = str_pyret_name
+      } else if (str.length === 1) {
+        str2 = str
+      } else {
+        str2 = pyretizeSymbolAux(str);
       }
       return str2
     }
@@ -1296,6 +1305,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     plt.compiler.unsupportedExpr = unsupportedExpr;
 
     plt.compiler.pyretizeSymbol = pyretizeSymbol;
+    plt.compiler.pyretizeSymbolAux = pyretizeSymbolAux;
     plt.compiler.symbolMap = symbolMap;
 
     plt.compiler.pinfo = pinfo;
@@ -6461,6 +6471,17 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           return result;
         }
       }
+
+      function unPyretizeStructName(sym) {
+        var vval = sym.verbatimVal;
+        var sval = symbolMap[vval];
+        if (sval || vval.length === 1) {
+          sym.val = plt.compiler.pyretizeSymbolAux(vval);
+        }
+      }
+
+      unPyretizeStructName(this.name);
+      this.fields.forEach(unPyretizeStructName);
 
       var foo_orig_name = this.name.val;
 
