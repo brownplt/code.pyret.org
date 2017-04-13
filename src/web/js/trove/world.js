@@ -628,7 +628,7 @@
           return runtime.makeOpaque(new ToDraw(drawer));
         }),
         "stop-when": makeFunction(function(stopper) {
-          runtime.ffi.checkArity(1, arguments, "stop-when");
+          runtime.checkArityAtLeast(1, arguments, "stop-when");
           runtime.checkFunction(stopper);
           return runtime.makeOpaque(new StopWhen(stopper));
         }),

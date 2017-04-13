@@ -270,6 +270,7 @@
           runtime: runtime.getField(pyRuntime, "runtime").val,
           restartInteractions: function(source, options) {
             var pyOptions = defaultOptions.extendWith({
+              //"ignore-unbound": true,
               "type-check": options.typeCheck,
               "check-all": options.checkAll,
               "on-compile": onCompile

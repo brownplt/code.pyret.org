@@ -119,6 +119,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       this.name = name;
       this.fields = fields;
       this.stx = stx;
+      console.log('new defStruct', name, fields);
       this.toString = function() {
         return "(define-struct " + this.name.toString() + " (" + this.fields.toString() + "))";
       };
@@ -358,6 +359,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
 
     symbolMap["andmap"] = "_patch_andmap";
     symbolMap["append"] = "_patch_append";
+    symbolMap["argmax"] = "_patch_argmax";
     symbolMap["assoc"] = "list-assoc";
     symbolMap["assq"] = "list-assoc";
     symbolMap["assv"] = "list-assoc";
@@ -379,6 +381,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["ormap"] = "_patch_ormap"; // any, but variadic
     symbolMap["pair?"] = "is-link";
     symbolMap["quicksort"] = "_patch_quicksort";
+    symbolMap["sort"] = "_patch_quicksort";
     symbolMap["remove"] = "_patch_remove";
     symbolMap['remove-all'] = '_patch_remove-all';
     symbolMap["range"] = "range-by";
@@ -542,15 +545,12 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["set!"] = "_patch_dead_code_function";
     symbolMap["save-image"] = "_patch_dead_code_function";
 
-    function pyretizeSymbol(str) {
-      var str2
-      var str_pyret_name = symbolMap[str]
-      if (str_pyret_name) {
-        str2 = str_pyret_name
-      } else if (str.length === 1) {
-        str2 = str
-      } else {
-        str2 = str.replace(/\//g, 'ƎSLASH').
+    //dummy procedures
+    symbolMap['record?'] = '_patch_void';
+
+    function pyretizeSymbolAux(str) {
+      var str2;
+      str2 = str.replace(/\//g, 'ƎSLASH').
         replace(/\?/g, 'ƎQUESTION').
         replace(/!/g, 'ƎBANG').
         replace(/\+/g, 'ƎPLUS').
@@ -570,7 +570,19 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         replace(/^#%/, 'ƎHASHPCT').
         replace(/^_/, 'ƎUNDERSCORE').
         replace(/^(\d)/, 'Ǝ$1').
-        replace(/^(debug|new|string-split|type)$/, 'ƎEMPTY$1')
+        replace(/^(debug|new|repeat|string-split|type)$/, 'ƎEMPTY$1')
+      return str2;
+    }
+
+    function pyretizeSymbol(str) {
+      var str2
+      var str_pyret_name = symbolMap[str]
+      if (str_pyret_name) {
+        str2 = str_pyret_name
+      } else if (str.length === 1) {
+        str2 = str
+      } else {
+        str2 = pyretizeSymbolAux(str);
       }
       return str2
     }
@@ -1294,6 +1306,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     plt.compiler.unsupportedExpr = unsupportedExpr;
 
     plt.compiler.pyretizeSymbol = pyretizeSymbol;
+    plt.compiler.pyretizeSymbolAux = pyretizeSymbolAux;
     plt.compiler.symbolMap = symbolMap;
 
     plt.compiler.pinfo = pinfo;
@@ -4495,6 +4508,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       return [newDefVars, exprAndPinfo[1]];
     };
     defStruct.prototype.desugar = function(pinfo) {
+      console.log('doing defstruct.prototype.desugar', this.name, this.fields);
       var that = this,
         ids = ['make-' + this.name.val, this.name.val + '?', this.name.val + '-ref', this.name.val + '-set!'],
         idSymbols = ids.map(function(id) {
@@ -6437,6 +6451,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     defStruct.prototype.toPyretAST = function() {
 
       function foo_variant_member_help(field) {
+        console.log('doing foo_variant_member_help', field);
         return {
           name: "variant-member",
           pos: field.location,
@@ -6459,6 +6474,22 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
           return result;
         }
       }
+
+      function unPyretizeStructName(sym) {
+        console.log('unPyretizeStructName', sym.val);
+        var vval = sym.verbatimVal;
+        var sval = symbolMap[vval];
+        if (plt.compiler.pyretizeSymbolAux === undefined) {
+          console.log('pyretizeSymbolAux not defined');
+        }
+        if (sval || vval.length === 1) {
+          sym.val = plt.compiler.pyretizeSymbolAux(vval);
+        }
+        console.log('now=', sym.val);
+      }
+
+      unPyretizeStructName(this.name);
+      this.fields.forEach(unPyretizeStructName);
 
       var foo_orig_name = this.name.val;
 
