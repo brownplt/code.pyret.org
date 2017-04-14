@@ -221,6 +221,16 @@ class GoogleAPI {
   }
 
   /**
+  Gets all of this teacher's classes
+  */
+  getAllClasses = () => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      return data.classList
+    })
+  }
+
+  /**
   Removes a class with the given id from the list of classes, if it exists
   */
   removeClass = (classID) => {
@@ -317,6 +327,27 @@ class GoogleAPI {
     })
   }
 
+  getAllStudents = () => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      return data.studentList
+    }) 
+  }
+
+  getStudentsInClass = (classID) => {
+    return this.getClass(classID).then((classInfo) => {
+      var studentIDs = classInfo["students"]  
+      return this.getAllStudents().then((studentInfo) => {
+        var courseRoster = []
+        for (var i = 0; i < studentIDs.length; i++){
+          var studentObject = studentInfo[studentIDs[i]] 
+          courseRoster.append(studentObject)
+        }
+        return courseRoster 
+      })
+    })
+  }
+
   updateStudent = (studentID, studentInfo) => {
     //TODO: validate the student info
     return this.getPyretData().then((response) => {
@@ -372,11 +403,32 @@ class GoogleAPI {
     id: int
     name: string
     class: int
-    doc_id: string //id of the template drive file
+    docID: string //id of the template drive file
     opened: int [] //student id's that have opened
     submitted: int [] //student id's that have submitted
   }
   */
+
+  getAllAssignments = () => {
+    return this.getPyretData().then((response) => {
+      var data = JSON.parse(response.result)
+      return data.assignmentList
+    })
+  }
+
+  getAssingmentsInClass = (classID) => {
+    return this.getClass(classID).then((classInfo) => {
+      var assignmentIDs = classInfo["assignments"]  
+      return this.getAllAssignments().then((assingmentInfo) => {
+        var assignmentObjects = []
+        for (var i = 0; i < assignmentIDs.length; i++){
+          var assignmentObject = assignmentInfo[assignmentIDs[i]] 
+          assignmentObjects.append(assignmentObject)
+        }
+        return assignmentObjects
+      })
+    })
+  }
 
   createAssignment = () => {
     // create an assignment file
