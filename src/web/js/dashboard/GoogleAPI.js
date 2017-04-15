@@ -191,7 +191,9 @@ class GoogleAPI {
     // get contents of pyretinfo.json in appDataFolder/pyret
     return this.getPyretData().then((response) => {
       //modify data
-      var data = JSON.parse(response.result)
+      //var data = JSON.parse(response.result)
+
+      var data = response.result
 
       var classInfo = {
         id: data.nextClassID, //technically indexed by this now but I'll leave it here too
@@ -215,8 +217,7 @@ class GoogleAPI {
   */
   getClass = (classID) => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
-      return data.classList[classID]
+      return response.result.classList[classID]
     })
   }
 
@@ -225,8 +226,7 @@ class GoogleAPI {
   */
   getAllClasses = () => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
-      return data.classList
+      return response.result.classList
     })
   }
 
