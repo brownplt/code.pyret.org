@@ -14,7 +14,8 @@ module.exports = {
   },
   devtool: IS_PRODUCTION ? 'source-map' : 'inline-source-map',
   entry: {
-    "js/dashboard/index": './src/web/js/dashboard/index.js',
+    "js/dashboard/StudentDashboard": './src/web/js/dashboard/StudentDashboard.js',
+    "js/dashboard/TeacherDashboard": './src/web/js/dashboard/TeacherDashboard.js',
     "js/beforePyret": './src/web/js/beforePyret.js',
 //    "js/ide": './src/web/js/ide.js',
   },
