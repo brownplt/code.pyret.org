@@ -23,15 +23,8 @@ class GoogleAPI {
     });
   }
 
-  /**
-   *  Sign out the user upon button click.
-   */
-  signOut = (event) => {
-    throw "Can't sign out yet.";
-  }
-
   createAppFolder = (appName) => {
-    return window.gapi.client.drive.files.create({
+    return gapi.client.drive.files.create({
       resource: {
         'name' : appName,
         'mimeType' : 'application/vnd.google-apps.folder'
@@ -48,7 +41,7 @@ class GoogleAPI {
 
   // ACTUAL FUNCTION: lists all files in appDataFolder with name = appName
   getAppFolderID = (appName) => {
-    return window.gapi.client.drive.files.list({
+    return gapi.client.drive.files.list({
       q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
     });
   }
@@ -69,14 +62,14 @@ class GoogleAPI {
    * list files w/ extension [ext].
    */
   getRecentFilesByExt = (ext) => {
-    return window.gapi.client.drive.files.list({
+    return gapi.client.drive.files.list({
       fields: "files(id, name)",
       q: 'not trashed and fileExtension="' + ext + '"',
     });
   }
 
   getAppDataFileID = (appDataFilename) => {
-    return window.gapi.client.drive.files.list({
+    return gapi.client.drive.files.list({
       q: 'not trashed and name="' + appDataFilename + '"',
       spaces: 'appDataFolder'
     });
@@ -89,7 +82,7 @@ class GoogleAPI {
   }
 
   createAppDataFile = (appDataFilename) => {
-    return window.gapi.client.drive.files.create({
+    return gapi.client.drive.files.create({
       resource: {
         name: appDataFilename,
         parents: ['appDataFolder']
@@ -99,7 +92,7 @@ class GoogleAPI {
 
   // Note: name says "appData" but you can use on any file I think
   getAppDataFileContent = (fileId) => {
-    return window.gapi.client.drive.files.get({
+    return gapi.client.drive.files.get({
       fileId: fileId,
       // Download a file — files.get with alt=media file resource
       alt: 'media'
@@ -113,29 +106,29 @@ class GoogleAPI {
       params: {
         uploadType: 'media'
       },
-      body: JSON.stringify(appData)
+      body: appData
     });
   }
-  
+
   // Create and render a Google Picker object for selecting a file.
   createPicker = (callback) => {
-    window.gapi.load('picker', function(){
-      window.picker = new window.google.picker.PickerBuilder()
-        .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
+    gapi.load('picker', function(){
+      picker = new google.picker.PickerBuilder()
+        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
         .setTitle("Select a Pyret document")
-        .addView(new window.google.picker.View(window.google.picker.ViewId.DOCS))
-        .setOAuthToken(window.gapi.auth.getToken().access_token)
+        .addView(new google.picker.View(google.picker.ViewId.DOCS))
+        .setOAuthToken(gapi.auth.getToken().access_token)
         .setCallback(callback)
-        .setOrigin(window.location.protocol + '//' + window.location.host)
+        .setOrigin(location.protocol + '//' + location.host)
         .build();
 
-      window.picker.setVisible(true);
+      picker.setVisible(true);
     });
   }
 
   getPyretDataFileID = () => {
     return this.getAppFolderID("pyret").then((folderID) => {
-      // extract folder id from response. We can use files[0] because the precondition 
+      // extract folder id from response. We can use files[0] because the precondition
       // is that we have a pyret folder
       folderID = JSON.parse(folderID.body).files[0].id
       return this.getFileInFolder("pyretinfo.json", folderID)
@@ -153,7 +146,7 @@ class GoogleAPI {
   savePyretData = (newData) => {
     return this.getPyretDataFileID().then((response) => {
       var fileID = JSON.parse(response.body).files[0].id
-      return this.saveAppData(fileID, JSON.stringify(newData))
+      return this.saveAppData(fileID, newData)
     })
   }
 
@@ -164,24 +157,24 @@ class GoogleAPI {
     // if folder doesn't exist, create it
     return this.getAppFolderID("pyret").then((response) => {
       if (JSON.parse(response.body).files.length === 0) {
-        return this.createAppFolder("pyret")
+        return this.createAppFolder("pyret").then((folderResponse) => {
+          // there was no folder, so create the file
+          var newFolderId = JSON.parse(folderResponse.body).id
+          return this.createNewFile(newFolderId, "pyretinfo.json")
+        }).then((fileResponse) => {
+          var newFileId = JSON.parse(fileResponse.body).id
+          var baseData = {
+            nextClassID: 0,
+            nextStudentID: 0,
+            nextAssignmentID: 0,
+            classList: {},
+            studentList: {},
+            assignmentList: {}
+          }
+          return this.saveAppData(newFileId, baseData)
+        })
       }
-    }).then((folderResponse) => {
-      // there was no folder, so create the file
-      var newFolderId = JSON.parse(folderResponse.body).id
-      return this.createNewFile(newFolderId, "pyretinfo.json")
-    }).then((fileResponse) => {
-      var newFileId = JSON.parse(fileResponse.body).id
-      var baseData = {
-        nextClassID: 0,
-        nextStudentID: 0,
-        nextAssignmentID: 0,
-        classList: {},
-        studentList: {},
-        assignmentList: {}
-      }
-      return this.saveAppData(newFileId, baseData)
-    }) 
+    })
   }
 
   /**
@@ -191,8 +184,6 @@ class GoogleAPI {
     // get contents of pyretinfo.json in appDataFolder/pyret
     return this.getPyretData().then((response) => {
       //modify data
-      //var data = JSON.parse(response.result)
-
       var data = response.result
 
       var classInfo = {
@@ -235,10 +226,10 @@ class GoogleAPI {
   */
   removeClass = (classID) => {
    return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       delete data.classList[classID]
       return this.savePyretData(data)
-    }) 
+    })
   }
 
   /**
@@ -247,7 +238,7 @@ class GoogleAPI {
   updateClass = (classID, classInfo) => {
     //TODO: validate the class info
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       if (classID in data.classList){
         data.classList[classID] = classInfo
       }
@@ -256,17 +247,17 @@ class GoogleAPI {
         return undefined
       }
       return this.savePyretData(data)
-    }) 
+    })
   }
 
 /**
   Create a new student, with no classes. Students are specified as follows:
-  
-  student_info:
+
+  studentInfo:
   {
     // the function handles assigning an id
-    first_name: string
-    last_name: string
+    firstName: string
+    lastName: string
     email: string
   }
 
@@ -285,12 +276,10 @@ class GoogleAPI {
 
     this.getPyretData().then((response) => {
       //modify data
-      var data = JSON.parse(response.result)
-      
+      var data = response.result
+
       studentInfo.id = data.nextStudentID
       studentInfo.classes = []
-      
-      console.log(studentInfo)
 
       data.nextStudentID += 1
 
@@ -305,7 +294,7 @@ class GoogleAPI {
   removeStudent = (studentID) => {
     //needs to remove student from all classes they are in
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       if (studentID in data.studentList){
         for (key in data.classList){
           var index = data.classList[key].students.indexOf(studentID)
@@ -317,33 +306,33 @@ class GoogleAPI {
         data.studentList.splice(index, 1)
       }
       return this.savePyretData(data)
-    }) 
+    })
   }
 
   getStudent = (studentID) => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       return data.studentList[studentID]
     })
   }
 
   getAllStudents = () => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       return data.studentList
-    }) 
+    })
   }
 
   getStudentsInClass = (classID) => {
     return this.getClass(classID).then((classInfo) => {
-      var studentIDs = classInfo["students"]  
+      var studentIDs = classInfo["students"]
       return this.getAllStudents().then((studentInfo) => {
         var courseRoster = []
         for (var i = 0; i < studentIDs.length; i++){
-          var studentObject = studentInfo[studentIDs[i]] 
+          var studentObject = studentInfo[studentIDs[i]]
           courseRoster.append(studentObject)
         }
-        return courseRoster 
+        return courseRoster
       })
     })
   }
@@ -351,7 +340,7 @@ class GoogleAPI {
   updateStudent = (studentID, studentInfo) => {
     //TODO: validate the student info
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       if (studentID in data.studentList){
         data.studentList[studentID] = studentInfo
       }
@@ -360,16 +349,15 @@ class GoogleAPI {
         return undefined
       }
       return this.savePyretData(data)
-    }) 
+    })
   }
 
   addExistingStudentToClass = (studentID, classID) => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
-      
+      var data = response.result
+
       if (classID in data.classList && studentID in data.studentList){
         data.classList[classID].students.push(studentID)
-        console.log(data.studentList[studentID])
         data.studentList[studentID].classes.push(classID)
       }
       else {
@@ -382,8 +370,8 @@ class GoogleAPI {
 
   removeExistingStudentFromClass = (studentID, classID) => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
-      
+      var data = response.result
+
       if (classID in data.classList && studentID in data.studentList){
         var studentIndex = data.classList[classID].students.indexOf(studentID)
         var classIndex = data.studentList[studentID].classes.indexOf(classID)
@@ -398,7 +386,7 @@ class GoogleAPI {
     })
   }
 
-  /** To create, distribute and manage assignments 
+  /** To create, distribute and manage assignments
   assignment_info{
     id: int
     name: string
@@ -411,18 +399,18 @@ class GoogleAPI {
 
   getAllAssignments = () => {
     return this.getPyretData().then((response) => {
-      var data = JSON.parse(response.result)
+      var data = response.result
       return data.assignmentList
     })
   }
 
   getAssingmentsInClass = (classID) => {
     return this.getClass(classID).then((classInfo) => {
-      var assignmentIDs = classInfo["assignments"]  
+      var assignmentIDs = classInfo["assignments"]
       return this.getAllAssignments().then((assingmentInfo) => {
         var assignmentObjects = []
         for (var i = 0; i < assignmentIDs.length; i++){
-          var assignmentObject = assignmentInfo[assignmentIDs[i]] 
+          var assignmentObject = assignmentInfo[assignmentIDs[i]]
           assignmentObjects.append(assignmentObject)
         }
         return assignmentObjects
