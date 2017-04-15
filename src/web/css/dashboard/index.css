@@ -79,10 +79,11 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
 button, input[type='submit'] {
   appearance: none;
   -webkit-appearance: none;
-  padding: 8pt 16pt;
+  font-size: .85rem;
+  padding: 4pt 8pt;
   background: #123548;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   color: white;
   cursor: pointer;
 }
@@ -162,12 +163,6 @@ input[type="text"] {
   padding: 0pt 8pt;
 }
 
-.tab.active {
-  background: #123548;
-  color: white;
-  text-decoration: underline;
-}
-
 .file-wrapper {
   display: inline-block;
   padding: 16pt;
@@ -202,28 +197,29 @@ input[type="text"] {
 
 .student {
   box-sizing: border-box;
-  margin: 0 0 16pt 0;
-  padding: 0 16pt;
+  margin: 0 0 8pt 0;
+  padding: 0 8pt;
   background: white;
-  border-radius: 5px;
+  border-radius: 2px;
 }
 
-.student span, .student i {
+.student span, .class span, .student i, .class i {
+  font-size: .85rem;
   display: inline;
-  line-height: 48pt;
+  line-height: 24pt;
 }
 
-.student i {
+.student i, .class i {
   cursor: pointer;
   margin-left: 8pt;
 }
 
 .student input {
-  margin: 0 16pt 0 8pt;
+  margin: 0 8pt 0 8pt;
 }
 
 .student form {
-  line-height: 48pt;
+  line-height: 24pt;
 }
 
 .truncate {
@@ -235,6 +231,11 @@ input[type="text"] {
 
 .hidden {
   display: none;
+}
+
+.tab.active, .class.active span {
+  text-decoration: underline;
+  font-weight: 700;
 }
 
 @media only screen and (min-width: 480px) {

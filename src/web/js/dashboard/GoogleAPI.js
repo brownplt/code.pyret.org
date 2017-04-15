@@ -274,7 +274,7 @@ class GoogleAPI {
       }
     }
 
-    this.getPyretData().then((response) => {
+    return this.getPyretData().then((response) => {
       //modify data
       var data = response.result
 
@@ -285,9 +285,10 @@ class GoogleAPI {
 
       //data.studentList.push(studentInfo)
       data.studentList[studentInfo.id] = studentInfo
-
       //send data back to google
-      return this.savePyretData(data)
+      return this.savePyretData(data).then(() => {
+        return studentInfo;
+      });
     })
   }
 
@@ -330,7 +331,7 @@ class GoogleAPI {
         var courseRoster = []
         for (var i = 0; i < studentIDs.length; i++){
           var studentObject = studentInfo[studentIDs[i]]
-          courseRoster.append(studentObject)
+          courseRoster.push(studentObject)
         }
         return courseRoster
       })
@@ -411,7 +412,7 @@ class GoogleAPI {
         var assignmentObjects = []
         for (var i = 0; i < assignmentIDs.length; i++){
           var assignmentObject = assignmentInfo[assignmentIDs[i]]
-          assignmentObjects.append(assignmentObject)
+          assignmentObjects.push(assignmentObject)
         }
         return assignmentObjects
       })

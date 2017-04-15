@@ -4,7 +4,6 @@ import Class from './Class.js';
 
 class ClassList extends Component {
   state = {
-    activeClass: 0,
     addingClass: false,
     newClassName: ''
   };
@@ -28,7 +27,14 @@ class ClassList extends Component {
 
   render = () => {
     const classes = this.props.classes.map(c => {
-      return <Class key={c.id} details={c} api={this.props.api} refreshParent={this.props.refreshParent}/>;
+      return  <Class
+                key={c.id}
+                onClick={this.props.handleClickClass}
+                details={c}
+                api={this.props.api}
+                refreshParent={this.props.refreshParent}
+                activeClassId={this.props.activeClassId}
+              />
     });
     return (
       <div>
@@ -36,7 +42,7 @@ class ClassList extends Component {
         <button onClick={this.handleClickAddClass}>{this.state.addingClass ? 'Cancel' : 'Add Class'}</button>
         <div className={this.state.addingClass ? '': 'hidden'}>
           <form onSubmit={this.handleSubmitAddClass}>
-            <label>New Class Name:</label>
+            <label>Class Name:</label>
             <input type='text' name='newClassName' value={this.state.newClassName} onChange={this.handleChange}/>
             <input type='submit'/>
           </form>

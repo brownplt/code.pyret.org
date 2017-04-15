@@ -37,8 +37,12 @@ class Class extends Component {
 
   render = () => {
     const editing = this.state.editing;
+    const active = (this.props.activeClassId == ('class' + this.state.id)) ? 'active': '';
     return (
-      <div className='student'>
+      <div className={'class ' + active}
+        onClick={this.props.onClick}
+        id={'class' + this.state.id}
+      >
         <div className={editing ? 'cf hidden': 'cf'}>
           <span className='name left'>{this.state.name}</span>
           <i className="fa fa-times remove right" aria-hidden="true" onClick={this.handleClickRemoveClass}></i>

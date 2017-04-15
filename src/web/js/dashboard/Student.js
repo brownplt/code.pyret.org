@@ -21,7 +21,7 @@ class Student extends Component {
 
   handleClickRemoveStudent = (event) => {
     if (confirm('Remove this student from the roster? This cannot be undone.')) {
-      this.api.removeStudent(this.state.id);
+      this.api.removeStudent(this.state.id).then(this.props.refreshParent);
     }
   }
 
@@ -29,10 +29,11 @@ class Student extends Component {
     event.preventDefault();
     this.setState({editing: false});
     this.api.updateStudent(this.state.id, {
+      id: this.state.id,
       firstName: this.state.firstName,
       lastName: this.state.lastName,
       email: this.state.email
-    });
+    }).then(this.props.refreshParent);
   }
 
   render = () => {

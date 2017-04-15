@@ -3,41 +3,61 @@ import GoogleAPI from './GoogleAPI.js';
 import Student from './Student.js';
 
 class StudentList extends Component {
-  state = {
-    activeClass: 0,
-    addingClass: false,
-    newClassName: ''
-  };
+  constructor(props) {
+    super(props);
 
-  handleClickAddClass = () => {
-    this.setState({addingClass: ! this.state.addingClass});
+    this.state = {
+      addingStudent: false,
+      newStudentFirstName: '',
+      newStudentLastName: '',
+      newStudentEmail: ''
+    };
+  }
+
+  handleClickAddStudent = () => {
+    this.setState({addingStudent: ! this.state.addingStudent});
   }
 
   handleChange = (event) => {
     this.setState({[event.target.name]: event.target.value});
   }
 
-  handleSubmitAddClass = (event) => {
+  handleSubmitAddStudent = (event) => {
     event.preventDefault();
-    this.setState({addingClass: false});
-    this.props.api.addClass(this.state.newClassName).then(() => {
-      this.setState({newClassName: ''});
-      this.props.refreshParent();
+    this.setState({addingStudent: false});
+    this.props.api.addStudent({
+      firstName: this.state.newStudentFirstName,
+      lastName: this.state.newStudentLastName,
+      email: this.state.newStudentEmail
+    }).then((resp) => {
+      const studentID = resp.id;
+      this.props.api.addExistingStudentToClass(studentID, this.props.activeClass).then(() => {
+        this.setState({
+          newStudentFirstName: '',
+          newStudentLastName: '',
+          newStudentEmail: ''
+        });
+        this.props.refreshParent();
+      });
     });
   }
 
   render = () => {
-    const classes = this.props.classes.map(c => {
-      return <Class key={c.id} details={c} api={this.props.api} refreshParent={this.props.refreshParent}/>;
+    const students = this.props.students.map(c => {
+      return <Student key={c.id} details={c} api={this.props.api} refreshParent={this.props.refreshParent}/>;
     });
     return (
       <div>
-        {classes}
-        <button onClick={this.handleClickAddClass}>{this.state.addingClass ? 'Cancel' : 'Add Class'}</button>
-        <div className={this.state.addingClass ? '': 'hidden'}>
-          <form onSubmit={this.handleSubmitAddClass}>
-            <label>New Class Name:</label>
-            <input type='text' name='newClassName' value={this.state.newClassName} onChange={this.handleChange}/>
+        {students}
+        <button onClick={this.handleClickAddStudent}>{this.state.addingStudent ? 'Cancel' : 'Add Student'}</button>
+        <div className={this.state.addingStudent ? '': 'hidden'}>
+          <form onSubmit={this.handleSubmitAddStudent}>
+            <label>First Name:</label>
+            <input type='text' name='newStudentFirstName' value={this.state.newStudentFirstName} onChange={this.handleChange}/>
+            <label>Last Name:</label>
+            <input type='text' name='newStudentLastName' value={this.state.newStudentLastName} onChange={this.handleChange}/>
+            <label>Email:</label>
+            <input type='text' name='newStudentEmail' value={this.state.newStudentEmail} onChange={this.handleChange}/>
             <input type='submit'/>
           </form>
         </div>

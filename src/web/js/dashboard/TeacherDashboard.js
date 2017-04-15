@@ -8,6 +8,7 @@ import '../../css/dashboard/index.css';
 import File from './File';
 import ClassList from './ClassList';
 import Class from './Class';
+import StudentList from './StudentList';
 import Student from './Student';
 
 class TeacherDashboard extends Component {
@@ -16,9 +17,11 @@ class TeacherDashboard extends Component {
 
     this.state = {
       signedIn: false,
-      classes: [],
+      classes: {},
       activeTab: 'roster',
-      newFileName: ''
+      activeClassId: false,
+      activeClass: '',
+      studentsInClass: []
     };
 
     this.api = new GoogleAPI();
@@ -47,12 +50,27 @@ class TeacherDashboard extends Component {
 
   refreshState = () => {
     this.api.getAllClasses().then((resp) => {
-      this.setState({classes: Object.values(resp)});
+      const classes = resp;
+      this.setState({
+        classes: classes,
+        activeClassId: 'class' + Object.keys(classes)[0] || '',
+        activeClass: Object.keys(classes)[0] || false
+      }, () => {
+        if (this.state.activeClass) {
+          this.api.getStudentsInClass(this.state.activeClass).then(resp => {
+            this.setState({studentsInClass: resp})
+          })
+        }
+      })
     });
   }
 
   handleTabClick = (event) => {
     this.setState({activeTab: event.target.id});
+  }
+
+  handleClickClass = (event) => {
+    this.setState({activeClassId: event.currentTarget.id});
   }
 
   render = () => {
@@ -76,7 +94,13 @@ class TeacherDashboard extends Component {
           <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
         </div>
         <div id={'sidebar' + (this.state.signedIn ? '' : 'hidden')}>
-          <ClassList classes={this.state.classes} api={this.api} refreshParent={this.refreshState}/>
+          <ClassList
+            classes={Object.values(this.state.classes)}
+            activeClassId={this.state.activeClassId}
+            handleClickClass={this.handleClickClass}
+            api={this.api}
+            refreshParent={this.refreshState}
+          />
         </div>
         <div id='modal' id='modal' className={'modal-wrap modal-teacher container ' + (this.state.signedIn ? '' : 'hidden')}>
           <div id='modal-tabs' className='cf'>
@@ -84,9 +108,12 @@ class TeacherDashboard extends Component {
             <h2 id='assignments' className={'tab floatable left ' + ((tab === 'assignments') ? 'active' : '')} onClick={this.handleTabClick}>Assignments</h2>
           </div>
           <div id='modal-body' className={'modal-body ' + ((tab === 'roster') ? '' : 'hidden')}>
-            <Student details={{firstName: 'John', lastName: 'Doe', email: 'john@cornell.edu'}} api={this.api}/>
-            <Student details={{firstName: 'Jane', lastName: 'Doe', email: 'jane@cornell.edu'}} api={this.api}/>
-            <Student details={{firstName: 'Timmy', lastName: 'Turner', email: 'timmy@cornell.edu'}} api={this.api}/>
+            <StudentList
+              students={this.state.studentsInClass}
+              activeClass={this.state.activeClass}
+              api={this.api}
+              refreshParent={this.refreshState}
+            />
           </div>
           <div id='modal-body' className={'modal-body ' + ((tab === 'assignments') ? '' : 'hidden')}>
             assignments!
