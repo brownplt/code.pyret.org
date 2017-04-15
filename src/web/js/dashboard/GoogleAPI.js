@@ -130,7 +130,7 @@ class GoogleAPI {
     return this.getAppFolderID("pyret").then((folderID) => {
       // extract folder id from response. We can use files[0] because the precondition
       // is that we have a pyret folder
-      folderID = JSON.parse(folderID.body).files[0].id
+      folderID = folderID.result.files[0].id
       return this.getFileInFolder("pyretinfo.json", folderID)
     })
   }
@@ -138,14 +138,14 @@ class GoogleAPI {
   //keeping this around to keep calls clean in getters/setters
   getPyretData = () => {
     return this.getPyretDataFileID().then((response) => {
-      var fileID = JSON.parse(response.body).files[0].id
+      var fileID = response.result.files[0].id
       return this.getAppDataFileContent(fileID)
     })
   }
 
   savePyretData = (newData) => {
     return this.getPyretDataFileID().then((response) => {
-      var fileID = JSON.parse(response.body).files[0].id
+      var fileID = response.result.files[0].id
       return this.saveAppData(fileID, newData)
     })
   }
@@ -156,13 +156,13 @@ class GoogleAPI {
   initializePyretData = () => {
     // if folder doesn't exist, create it
     return this.getAppFolderID("pyret").then((response) => {
-      if (JSON.parse(response.body).files.length === 0) {
+      if (response.result.files.length === 0) {
         return this.createAppFolder("pyret").then((folderResponse) => {
           // there was no folder, so create the file
-          var newFolderId = JSON.parse(folderResponse.body).id
+          var newFolderId = folderResponse.result.id
           return this.createNewFile(newFolderId, "pyretinfo.json")
         }).then((fileResponse) => {
-          var newFileId = JSON.parse(fileResponse.body).id
+          var newFileId = fileResponse.result.id
           var baseData = {
             nextClassID: 0,
             nextStudentID: 0,
