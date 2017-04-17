@@ -1,61 +1,15 @@
+body, html, p, h1, h2, h3, h4, button, input, div, i {
+  font-family: 'Roboto', sans-serif;
+}
+
 .cf:after {
   content: "";
   display: table;
   clear: both;
 }
 
-body, html {
-  width: 100%;
-  height: 100%;
-}
-
-#root, .component-wrap {
-  height: 100%;
-  width: 100%;
-}
-
-body, html, p, h1, h2, h3, h4, button, input, div, i {
-  color: #123548;
-  padding: 0;
-  margin: 0;
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-weight: 400;
-  font-size: 1rem;
-}
-
-.container {
-  max-width: 1024px;
-  margin: 0px auto;
-}
-
-#header {
-  height: 48pt;
-  padding: 0px 24pt;
-  border-bottom: 1px solid #ddd;
-}
-
-#sidebar {
-  height: 100%;
-  width: 20%;
-  margin: 0;
-  vertical-align: top;
-  text-align: left;
-  display: inline-block;
-  background: #fbfbfb;
-  border-right: 1px solid #ddd;
-  position: relative;
-}
-
-#sidebar .class {
-  padding: 0 16pt;
-  line-height: 32pt;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
-}
-
-.left, .right {
-  display: inline;
-  line-height: 48pt;
+.page-content {
+  padding: 16pt;
 }
 
 .left {
@@ -66,124 +20,11 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
   float: right;
 }
 
-.floatable.left {
-  display: block;
-  float: none;
-}
-
-.floatable.right {
-  display: block;
-  float: none;
-}
-
-button, input[type='submit'] {
-  appearance: none;
-  -webkit-appearance: none;
-  font-size: .85rem;
-  padding: 4pt 8pt;
-  background: #123548;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover, input[type='submit']:hover {
-  opacity: .7;
-}
-
-#select-file {
-  background: #CA3434;
-  margin: 0px 16pt;
-}
-
-.modal-wrap, #loading-spinner {
-  padding: 16pt;
-  margin: 0px auto;
-}
-
-.modal-body {
-  border: 1px solid #ddd;
-  padding: 16pt;
-}
-
-.fast-spin {
-  margin-top: 16pt;
-  -webkit-animation: fa-spin 500ms infinite linear;
-  animation: fa-spin 500ms infinite linear;
-}
-
-#modal-tabs {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-bottom: none;
-}
-
-input[type="text"] {
-  background: none;
-  padding: 5px;
-  width: 80px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-}
-
 .arr-ext {
   padding: 0 16pt 0 5px;
 }
 
-#modal {
-  display: inline-block;
-}
-
-.modal-wrap, #sidebar {
-  box-sizing: border-box;
-}
-
-.modal-teacher {
-  width: 80%;
-}
-.modal-student {
-  width: 100%;
-}
-
-#modal-tabs h2.tab {
-  line-height: 48pt;
-}
-
-#modal-body {
-  background: #eee;
-  max-height: 400px;
-  overflow-y: scroll;
-  text-align: left;
-}
-
-.tab {
-  float: left;
-  cursor: pointer;
-  padding: 0pt 8pt;
-}
-
-.file-wrapper {
-  display: inline-block;
-  padding: 16pt;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.file {
-  text-align: center;
-  padding: 16pt;
-  background: rgba(0,0,0,.06);
-  border-radius: 5px;
-  box-sizing: border-box;
-}
-
-.file:hover {
-  cursor: pointer;
-  background: rgba(0,0,0,.15);
-}
-
-.file img {
+.mdl-card img {
   width: 35%;
   padding-bottom: 8pt;
   filter: grayscale(100%);
@@ -191,84 +32,49 @@ input[type="text"] {
   opacity: .4;
 }
 
-.file p {
-  font-size: .85resm;
-}
-
-.student {
-  box-sizing: border-box;
-  margin: 0 0 8pt 0;
-  padding: 0 8pt;
-  background: white;
-  border-radius: 2px;
-}
-
-.student span, .class span, .student i, .class i {
-  font-size: .85rem;
-  display: inline;
-  line-height: 24pt;
-}
-
-.student i, .class i {
+.class {
+  padding: 16px 40px;
   cursor: pointer;
+}
+
+.class span.name, .class i, .student span.name, .student i {
+  color: rgb(117, 117, 117);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0;
+  opacity: 0.87;
+}
+
+.mdl-tooltip {
+  z-index: 500000 !important;
+}
+
+.class:hover {
+  background: rgb(224,224,224);
+}
+
+.class.active span.name, .class.active i {
+  font-weight: 500;
+  color: #333;
+}
+
+.class.active {
+  background: rgb(240,240,240);
+}
+
+.mdl-card i, .class i {
+  cursor: pointer;
+}
+
+.class i {
   margin-left: 8pt;
 }
 
-.student input {
-  margin: 0 8pt 0 8pt;
-}
-
-.student form {
-  line-height: 24pt;
-}
-
-.truncate {
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mdl-card i {
+  margin-right: 8pt;
 }
 
 .hidden {
   display: none;
-}
-
-.tab.active, .class.active span {
-  text-decoration: underline;
-  font-weight: 700;
-}
-
-@media only screen and (min-width: 480px) {
-  .modal-wrap, #loading-spinner {
-    padding: 48pt;
-    margin: 0px auto;
-  }
-
-  .file-wrapper {
-    width: 50%;
-  }
-  .tab {
-    padding: 0pt 16pt;
-  }
-}
-
-@media only screen and (min-width: 768px) {
-  .file-wrapper {
-    width: 33.3333%;
-  }
-  input.form {
-    width: 150px;
-  }
-  .floatable.left {
-    float: left;
-  }
-  .floatable.right {
-    float: right;
-  }
-}
-
-@media only screen and (min-width: 1024px) {
-  .file-wrapper {
-    width: 25%;
-  }
 }

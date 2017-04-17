@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
 import Student from './Student.js';
+import { Button, Textfield, Card, CardTitle, CardText } from 'react-mdl';
 
 class StudentList extends Component {
   constructor(props) {
@@ -19,11 +20,12 @@ class StudentList extends Component {
   }
 
   handleChange = (event) => {
-    this.setState({[event.target.name]: event.target.value});
+    this.setState({[event.target.id]: event.target.value});
   }
 
   handleSubmitAddStudent = (event) => {
     event.preventDefault();
+    this.props.snackBar('Student Added. Please allow a few seconds for changes to appear.');
     this.setState({addingStudent: false});
     this.props.api.addStudent({
       firstName: this.state.newStudentFirstName,
@@ -44,23 +46,59 @@ class StudentList extends Component {
 
   render = () => {
     const students = this.props.students.map(c => {
-      return <Student key={c.id} details={c} api={this.props.api} refreshParent={this.props.refreshParent}/>;
+      return <Student snackBar={this.props.snackBar} key={c.id} details={c} api={this.props.api} refreshParent={this.props.refreshParent}/>;
     });
     return (
       <div>
         {students}
-        <button onClick={this.handleClickAddStudent}>{this.state.addingStudent ? 'Cancel' : 'Add Student'}</button>
-        <div className={this.state.addingStudent ? '': 'hidden'}>
-          <form onSubmit={this.handleSubmitAddStudent}>
-            <label>First Name:</label>
-            <input type='text' name='newStudentFirstName' value={this.state.newStudentFirstName} onChange={this.handleChange}/>
-            <label>Last Name:</label>
-            <input type='text' name='newStudentLastName' value={this.state.newStudentLastName} onChange={this.handleChange}/>
-            <label>Email:</label>
-            <input type='text' name='newStudentEmail' value={this.state.newStudentEmail} onChange={this.handleChange}/>
-            <input type='submit'/>
-          </form>
-        </div>
+        <Button style={{'margin': '8pt', 'display': 'block'}} raised ripple colored
+          onClick={this.handleClickAddStudent}
+        >
+          {this.state.addingStudent ? 'Cancel' : 'Add Student'}
+        </Button>
+        <Card
+          className={this.state.addingStudent ? '': 'hidden'}
+          onClick={this.handleFileClick}
+          shadow={1}
+          style={{
+            'display': 'block',
+            'margin': '8pt',
+            'background': '#f4f6ff',
+            'minHeight': '0px',
+            'verticalAlign': 'middle'
+          }}
+        >
+          <CardTitle>New Student</CardTitle>
+          <CardText>
+            <form onSubmit={this.handleSubmitAddStudent}>
+              <Textfield
+                id='newStudentFirstName'
+                value={this.state.newStudentFirstName}
+                onChange={this.handleChange}
+                label="First Name"
+                floatingLabel
+                style={{width: '100%'}}
+              />
+              <Textfield
+                id='newStudentLastName'
+                value={this.state.newStudentLastName}
+                onChange={this.handleChange}
+                label="Last Name"
+                floatingLabel
+                style={{width: '100%'}}
+              />
+              <Textfield
+                id='newStudentEmail'
+                value={this.state.newStudentEmail}
+                onChange={this.handleChange}
+                label="Email"
+                floatingLabel
+                style={{width: '100%'}}
+              />
+              <Button type='submit' style={{'margin': '8pt'}} raised ripple colored>Add New Student</Button>
+            </form>
+          </CardText>
+        </Card>
       </div>
     );
   }

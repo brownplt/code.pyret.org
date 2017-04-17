@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
+import { Icon, Tooltip, Button, Textfield } from 'react-mdl';
 
 class Class extends Component {
   state = {
@@ -15,17 +16,19 @@ class Class extends Component {
   }
 
   handleChange = (event) => {
-    this.setState({[event.target.name]: event.target.value});
+    this.setState({[event.target.id]: event.target.value});
   }
 
   handleClickRemoveClass = (event) => {
     if (confirm('Remove this Class from the roster? This cannot be undone.')) {
+      this.props.snackBar('Class Removed. Please allow a few seconds for changes to appear.');
       this.props.api.removeClass(this.state.id).then(this.props.refreshParent);
     }
   }
 
   handleSubmitEditClass = (event) => {
     event.preventDefault();
+    this.props.snackBar('Class Updated. Please allow a few seconds for changes to appear.');
     this.setState({editing: false});
     this.props.api.updateClass(this.state.id, {
       id: this.state.id,
@@ -45,14 +48,25 @@ class Class extends Component {
       >
         <div className={editing ? 'cf hidden': 'cf'}>
           <span className='name left'>{this.state.name}</span>
-          <i className="fa fa-times remove right" aria-hidden="true" onClick={this.handleClickRemoveClass}></i>
-          <i className="fa fa-pencil edit right" aria-hidden="true" onClick={this.handleClickEditClass}></i>
+          <Tooltip className='right' label="Remove Class" position="top">
+            <Icon name="close" onClick={this.handleClickRemoveClass}/>
+          </Tooltip>
+          <Tooltip label="Edit Class" className='right' position="top">
+            <Icon name="edit" onClick={this.handleClickEditClass}/>
+          </Tooltip>
         </div>
         <div className={editing ? '': 'hidden'}>
           <form onSubmit={this.handleSubmitEditClass} className=''>
-            <label>Class Name:</label>
-            <input type='text' name='name' value={this.state.name} onChange={this.handleChange}/>
-            <input type='submit'/>
+            <Textfield
+              id='name'
+              onChange={this.handleChange}
+              label="Class Name"
+              floatingLabel
+              style={{width: '100%'}}
+              value={this.state.name}
+              onChange={this.handleChange}
+            />
+            <Button raised ripple colored type='submit'>Update Class</Button>
           </form>
         </div>
       </div>

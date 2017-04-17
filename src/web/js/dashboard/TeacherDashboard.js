@@ -5,6 +5,10 @@ import GoogleAPI from './GoogleAPI.js';
 import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
 import '../../css/dashboard/index.css';
 
+import 'react-mdl/extra/material.css';
+import 'react-mdl/extra/material.js';
+import { Layout, Header, Textfield, Drawer, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Snackbar } from 'react-mdl';
+
 import File from './File';
 import ClassList from './ClassList';
 import Class from './Class';
@@ -18,16 +22,33 @@ class TeacherDashboard extends Component {
     this.state = {
       signedIn: false,
       classes: {},
-      activeTab: 'roster',
+      activeTab: 0,
       activeClassId: false,
       activeClass: '',
-      studentsInClass: []
+      studentsInClass: [],
+      isSnackbarActive: false,
+      snackbarText: ''
     };
 
     this.api = new GoogleAPI();
     this.api.load().then((resp) => {
       this.handlePageLoad();
     });
+  }
+
+  setSnackBarMessage = (message) => {
+    this.setState({
+      isSnackbarActive: true,
+      snackbarText: message
+    })
+  }
+
+  handleTimeoutSnackbar = () =>{
+    this.setState({ isSnackbarActive: false });
+  }
+
+  handleClickActionSnackbar = () => {
+    this.setState({ isSnackbarActive: false });
   }
 
   handleSignInClick = (event) => {
@@ -56,70 +77,96 @@ class TeacherDashboard extends Component {
         activeClassId: 'class' + Object.keys(classes)[0] || '',
         activeClass: Object.keys(classes)[0] || false
       }, () => {
-        if (this.state.activeClass) {
-          this.api.getStudentsInClass(this.state.activeClass).then(resp => {
-            this.setState({studentsInClass: resp})
-          })
-        }
+        this.refreshInnerState();
       })
     });
   }
 
-  handleTabClick = (event) => {
-    this.setState({activeTab: event.target.id});
+  refreshInnerState = () => {
+    if (this.state.activeClass) {
+      this.api.getStudentsInClass(this.state.activeClass).then(resp => {
+        this.setState({studentsInClass: resp})
+      })
+    }
   }
 
   handleClickClass = (event) => {
-    this.setState({activeClassId: event.currentTarget.id});
+    const activeClass = event.currentTarget.id.match(/\d/g).join("");
+    this.setState({activeClassId: event.currentTarget.id, activeClass: activeClass}, () => {
+      this.refreshInnerState();
+    });
   }
 
   render = () => {
-    const tab = this.state.activeTab;
-
-    return (
-      <div className='component-wrap'>
-        <div id='header' className=''>
-          <div className='container'>
-            <h1 className='logo-text left'>{APP_NAME} – Teacher Dashboard</h1>
-            <div className='button-wrapper right'>
-              <button className={'auth-button ' + (this.state.signedIn ? 'hidden' : '')} onClick={this.handleSignInClick} id='signin-button' >Sign in</button>
-            </div>
-            <div className='button-wrapper right'>
-              <button className={'auth-button ' + (this.state.signedIn ? '' : 'hidden')} onClick={this.handleSignOutClick} id='signout-button' >Sign out</button>
-            </div>
-          </div>
-        </div>
-        <div id='loading-spinner' className={this.state.signedIn ? 'hidden' : ''}>
-          <h1>Waiting for login...</h1>
-          <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
-        </div>
-        <div id={'sidebar' + (this.state.signedIn ? '' : 'hidden')}>
-          <ClassList
-            classes={Object.values(this.state.classes)}
-            activeClassId={this.state.activeClassId}
-            handleClickClass={this.handleClickClass}
+    const getContentForTab = () => {
+      const activeTab = this.state.activeTab;
+      // Roster
+      if (activeTab == 0) {
+        return (
+          <StudentList
+            students={this.state.studentsInClass}
+            activeClass={this.state.activeClass}
             api={this.api}
             refreshParent={this.refreshState}
+            snackBar={this.setSnackBarMessage}
           />
-        </div>
-        <div id='modal' id='modal' className={'modal-wrap modal-teacher container ' + (this.state.signedIn ? '' : 'hidden')}>
-          <div id='modal-tabs' className='cf'>
-            <h2 id='roster' className={'tab floatable left ' + ((tab === 'roster') ? 'active' : '')} onClick={this.handleTabClick}>Roster</h2>
-            <h2 id='assignments' className={'tab floatable left ' + ((tab === 'assignments') ? 'active' : '')} onClick={this.handleTabClick}>Assignments</h2>
-          </div>
-          <div id='modal-body' className={'modal-body ' + ((tab === 'roster') ? '' : 'hidden')}>
-            <StudentList
-              students={this.state.studentsInClass}
-              activeClass={this.state.activeClass}
+        )
+      }
+      // Assignments
+      if (activeTab == 1) {
+        return (
+          <h3>Assignments</h3>
+        )
+      }
+    }
+
+    return (
+      <Layout fixedHeader fixedDrawer>
+
+        <Header>
+          <HeaderRow title="Pyret - Teacher Dashboard">
+            <Navigation>
+              <Button
+                raised ripple style={{'lineHeight': '33px'}}
+                onClick={this.state.signedIn ? this.handleSignOutClick : this.handleSignInClick}
+              >
+                {this.state.signedIn ? 'Sign Out' : 'Sign In'}
+              </Button>
+            </Navigation>
+          </HeaderRow>
+
+           <HeaderTabs ripple activeTab={this.state.activeTab} onChange={(tabId) => this.setState({ activeTab: tabId })}>
+             <Tab>Roster</Tab>
+             <Tab>Assignments</Tab>
+           </HeaderTabs>
+        </Header>
+
+        <Drawer title="Classes">
+          <Navigation>
+            <ClassList
+              classes={Object.values(this.state.classes)}
+              activeClassId={this.state.activeClassId}
+              handleClickClass={this.handleClickClass}
               api={this.api}
               refreshParent={this.refreshState}
+              snackBar={this.setSnackBarMessage}
             />
+          </Navigation>
+        </Drawer>
+
+        <Content>
+          <div className="page-content">
+            {getContentForTab()}
           </div>
-          <div id='modal-body' className={'modal-body ' + ((tab === 'assignments') ? '' : 'hidden')}>
-            assignments!
-          </div>
-        </div>
-      </div>
+          <Snackbar
+            active={this.state.isSnackbarActive}
+            onClick={this.handleClickActionSnackbar}
+            onTimeout={this.handleTimeoutSnackbar}
+            action="OK">{this.state.snackbarText}
+          </Snackbar>
+        </Content>
+
+      </Layout>
     );
   }
 }

@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
 import Class from './Class.js';
+import { FABButton, Icon, Button, Textfield } from 'react-mdl';
 
 class ClassList extends Component {
   state = {
     addingClass: false,
-    newClassName: ''
+    newClassName: '',
   };
 
   handleClickAddClass = () => {
@@ -13,11 +14,12 @@ class ClassList extends Component {
   }
 
   handleChange = (event) => {
-    this.setState({[event.target.name]: event.target.value});
+    this.setState({[event.target.id]: event.target.value});
   }
 
   handleSubmitAddClass = (event) => {
     event.preventDefault();
+    this.props.snackBar('Class Added. Please allow a few seconds for it to appear.');
     this.setState({addingClass: false});
     this.props.api.addClass(this.state.newClassName).then(() => {
       this.setState({newClassName: ''});
@@ -34,18 +36,32 @@ class ClassList extends Component {
                 api={this.props.api}
                 refreshParent={this.props.refreshParent}
                 activeClassId={this.props.activeClassId}
+                snackBar={this.props.snackBar}
               />
     });
     return (
       <div>
         {classes}
-        <button onClick={this.handleClickAddClass}>{this.state.addingClass ? 'Cancel' : 'Add Class'}</button>
-        <div className={this.state.addingClass ? '': 'hidden'}>
-          <form onSubmit={this.handleSubmitAddClass}>
-            <label>Class Name:</label>
-            <input type='text' name='newClassName' value={this.state.newClassName} onChange={this.handleChange}/>
-            <input type='submit'/>
-          </form>
+        <div style={{'margin': '16px 40px'}}>
+          <Button raised ripple colored
+            onClick={this.handleClickAddClass}
+          >
+            {this.state.addingClass ? 'Cancel' : 'Add Class'}
+          </Button>
+          <div className={this.state.addingClass ? '': 'hidden'}>
+            <form onSubmit={this.handleSubmitAddClass}>
+              <Textfield
+                id='newClassName'
+                onChange={this.handleChange}
+                label="Class Name"
+                floatingLabel
+                style={{width: '100%'}}
+                value={this.state.newClassName}
+                onChange={this.handleChange}
+              />
+              <Button raised ripple colored type='submit'>Add Class</Button>
+            </form>
+          </div>
         </div>
       </div>
     );

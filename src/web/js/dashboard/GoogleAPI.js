@@ -297,7 +297,7 @@ class GoogleAPI {
     return this.getPyretData().then((response) => {
       var data = response.result
       if (studentID in data.studentList){
-        for (key in data.classList){
+        for (var key in data.classList){
           var index = data.classList[key].students.indexOf(studentID)
           if (index !== undefined){
             data.classList[key].students.splice(index, 1)
