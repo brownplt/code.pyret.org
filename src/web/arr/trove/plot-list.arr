@@ -128,8 +128,14 @@ type Posn = RawArray<Number>
 type TableInt = RawArray<Posn>
 
 data Plot:
-  | line-plot(points :: Table, options :: WrappedPlotOptions)
-  | scatter-plot(points :: Table, options :: WrappedPlotOptions)
+  | line-plot(
+      points-x :: List<Number>,
+      points-y :: List<Number>,
+      options :: WrappedPlotOptions)
+  | scatter-plot(
+      points-x :: List<Number>,
+      points-y :: List<Number>,
+      options :: WrappedPlotOptions)
   | function-plot(f :: PlottableFunction, options :: WrappedPlotOptions)
 end
 
@@ -366,34 +372,32 @@ where:
   render-function('My function', num-sin) does-not-raise
 end
 
-fun render-scatter(title :: String, tab :: Table) -> IM.Image:
+fun render-scatter(
+  title :: String,
+  points-x :: List<Number>,
+  points-y :: List<Number>) -> IM.Image:
   render-multi-plot(
-    [list: scatter-plot(tab, default-options)],
+    [list: scatter-plot(points-x, points-y, default-options)],
     _.{title: title})
 where:
-  render-scatter('My scatter', table: x, y
-      row: 1, 2
-      row: 1, 3.1
-      row: 4, 1
-      row: 7, 3
-      row: 4, 6
-      row: 2, 5
-    end) does-not-raise
+  render-scatter(
+    'My scatter',
+    [list: 1, 1, 4, 7, 4, 2],
+    [list: 2, 3.1, 1, 3, 6, 5]) does-not-raise
 end
 
-fun render-line(title :: String, tab :: Table) -> Image:
+fun render-line(
+  title :: String,
+  points-x :: List<Number>,
+  points-y :: List<Number>) -> IM.Image:
   render-multi-plot(
-    [list: line-plot(tab, default-options)],
+    [list: line-plot(points-x, points-y, default-options)],
     _.{title: title})
 where:
-  render-line('My line', table: x, y
-      row: 1, 2
-      row: 1, 3.1
-      row: 4, 1
-      row: 7, 3
-      row: 4, 6
-      row: 2, 5
-    end) does-not-raise
+  render-line(
+    'My line',
+    [list: 1, 1, 4, 7, 4, 2],
+    [list: 2, 3.1, 1, 3, 6, 5]) does-not-raise
 end
 
 fun render-multi-plot(
@@ -418,19 +422,21 @@ fun render-multi-plot(
   shadow plots = plots.map(
     lam(plot :: Plot) -> PlotInternal:
       cases (Plot) plot block:
-        | scatter-plot(points, opt-gen) =>
-          when not(points._header-raw-array =~ [raw-array: 'x', 'y']):
-            raise('plot: expect the table for scatter-plot to have two columns: `x` and `y`')
+        | scatter-plot(xs, ys, opt-gen) =>
+          when xs.length() <> ys.length():
+            raise('plot: expect the length of x and y to be the same')
           end
           scatter-plot-int(
-            points._rows-raw-array,
+            builtins.list-to-raw-array(
+              map2({(x, y): [raw-array: x, y]}, xs, ys)),
             opt-gen(plot-options).{opacity: 80,  size: 4, tip: true})
-        | line-plot(points, opt-gen) =>
-          when not(points._header-raw-array =~ [raw-array: 'x', 'y']):
-            raise('plot: expect the table for line-plot to have two columns: `x` and `y`')
+        | line-plot(xs, ys, opt-gen) =>
+          when xs.length() <> ys.length():
+            raise('plot: expect the length of x and y to be the same')
           end
           line-plot-int(
-            points._rows-raw-array,
+            builtins.list-to-raw-array(
+              map2({(x, y): [raw-array: x, y]}, xs, ys)),
             opt-gen(plot-options).{opacity: 100, size: 1, tip: false})
         | function-plot(f, opt-gen) =>
           function-plot-int(
