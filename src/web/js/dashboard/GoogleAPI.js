@@ -277,6 +277,7 @@ class GoogleAPI {
     return this.getPyretData().then((response) => {
       //modify data
       var data = response.result
+      console.log(data)
 
       studentInfo.id = data.nextStudentID
       studentInfo.classes = []
@@ -295,6 +296,7 @@ class GoogleAPI {
   removeStudent = (studentID) => {
     //needs to remove student from all classes they are in
     return this.getPyretData().then((response) => {
+      //I'm pretty sure this doesn't work, but it was apparently working for Kevin...
       var data = response.result
       if (studentID in data.studentList){
         for (var key in data.classList){
@@ -303,8 +305,7 @@ class GoogleAPI {
             data.classList[key].students.splice(index, 1)
           }
         }
-        var index = data.studentList.indexOf(studentID)
-        data.studentList.splice(index, 1)
+        delete data.studentList[studentID]
       }
       return this.savePyretData(data)
     })
