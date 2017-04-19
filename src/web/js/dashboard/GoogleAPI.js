@@ -116,7 +116,7 @@ class GoogleAPI {
       picker = new google.picker.PickerBuilder()
         .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
         .setTitle("Select a Pyret document")
-        .addView(new google.picker.View(google.picker.ViewId.DOCS))
+        .addView(new google.picker.View(google.picker.ViewId.DOCS).setQuery("*.arr"))
         .setOAuthToken(gapi.auth.getToken().access_token)
         .setCallback(callback)
         .setOrigin(location.protocol + '//' + location.host)
