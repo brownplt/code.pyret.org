@@ -84,5 +84,9 @@
     "url": "git://github.com/brownplt/code.pyret.org"
   },
   "author": "Joe Politz",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "eslint": "^2.13.1",
+    "eslint-plugin-react": "^6.10.3"
+  }
 }

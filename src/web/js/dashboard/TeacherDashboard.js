@@ -14,6 +14,7 @@ import ClassList from './ClassList';
 import Class from './Class';
 import StudentList from './StudentList';
 import Student from './Student';
+import AssignmentList from './AssignmentList';
 
 class TeacherDashboard extends Component {
   constructor() {
@@ -127,7 +128,7 @@ class TeacherDashboard extends Component {
       // Assignments
       if (activeTab == 1) {
         return (
-          <h3>Assignments</h3>
+          <AssignmentList assignments={[]} snackBar={this.setSnackBarMessage}/>
         )
       }
     }

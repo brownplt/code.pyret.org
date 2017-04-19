@@ -53,7 +53,7 @@ class StudentList extends Component {
         <Spinner className={this.props.updating ? '' : 'hidden'} singleColor style={{'margin': '16px'}} />
         <div className={this.props.updating ? 'hidden' : ''}>
           {students}
-          <Button style={{'margin': '8pt', 'display': 'block'}} raised ripple colored
+          <Button style={{'margin': '8pt 8pt 16pt 8pt', 'display': 'block'}} raised ripple colored
             onClick={this.handleClickAddStudent}
           >
             {this.state.addingStudent ? 'Cancel' : 'Add Student'}

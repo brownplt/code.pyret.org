@@ -82,3 +82,13 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
 .mdl-spinner:not(.is-upgraded).is-active:after {
   content: '' !important;
 }
+
+fieldset[disabled] .mdl-textfield .mdl-textfield__input, .mdl-textfield.is-disabled .mdl-textfield__input {
+  background-color: transparent;
+  border-bottom: 1px dotted rgba(0,0,0, 0.12);
+  color: inherit !important;
+}
+
+fieldset[disabled] .mdl-textfield .mdl-textfield__label, .mdl-textfield.is-disabled.is-disabled .mdl-textfield__label {
+  color: rgb(63,81,181) !important;
+}
