@@ -78,3 +78,7 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
 .hidden {
   display: none;
 }
+
+.mdl-spinner:not(.is-upgraded).is-active:after {
+  content: '' !important;
+}

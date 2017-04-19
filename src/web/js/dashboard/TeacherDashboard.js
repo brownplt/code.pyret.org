@@ -26,6 +26,8 @@ class TeacherDashboard extends Component {
       activeClassId: false,
       activeClass: '',
       studentsInClass: [],
+      studentSpinnerActive: true,
+      classSpinnerActive: true,
       isSnackbarActive: false,
       snackbarText: ''
     };
@@ -34,6 +36,15 @@ class TeacherDashboard extends Component {
     this.api.load().then((resp) => {
       this.handlePageLoad();
     });
+  }
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.state.studentsInClass != prevState.studentsInClass) {
+      this.setState({studentSpinnerActive: false});
+    }
+    if (this.state.classes != prevState.classes) {
+      this.setState({classSpinnerActive: false});
+    }
   }
 
   setSnackBarMessage = (message) => {
@@ -92,7 +103,7 @@ class TeacherDashboard extends Component {
 
   handleClickClass = (event) => {
     const activeClass = event.currentTarget.id.match(/\d/g).join("");
-    this.setState({activeClassId: event.currentTarget.id, activeClass: activeClass}, () => {
+    this.setState({studentSpinnerActive: true, activeClassId: event.currentTarget.id, activeClass: activeClass}, () => {
       this.refreshInnerState();
     });
   }
@@ -104,6 +115,7 @@ class TeacherDashboard extends Component {
       if (activeTab == 0) {
         return (
           <StudentList
+            updating={this.state.studentSpinnerActive}
             students={this.state.studentsInClass}
             activeClass={this.state.activeClass}
             api={this.api}
@@ -144,6 +156,7 @@ class TeacherDashboard extends Component {
         <Drawer title="Classes">
           <Navigation>
             <ClassList
+              updating={this.state.classSpinnerActive}
               classes={Object.values(this.state.classes)}
               activeClassId={this.state.activeClassId}
               handleClickClass={this.handleClickClass}
