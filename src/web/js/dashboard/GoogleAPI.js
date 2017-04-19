@@ -3,7 +3,7 @@ class GoogleAPI {
    *  Load the client library. Return a promise to allow .then() in caller
    */
   load = () => {
-    return gwrap.load({name: 'drive',
+    return window.gwrap.load({name: 'drive',
       version: 'v3',
       reauth: {
         immediate: true
@@ -14,8 +14,8 @@ class GoogleAPI {
   /**
    *  Sign in the user upon button click.
    */
-  signIn = (event) => {
-    return gwrap.load({name: 'drive',
+  signIn = () => {
+    return window.gwrap.load({name: 'drive',
       version: 'v3',
       reauth: {
         immediate: false
@@ -24,7 +24,7 @@ class GoogleAPI {
   }
 
   createAppFolder = (appName) => {
-    return gapi.client.drive.files.create({
+    return window.gapi.client.drive.files.create({
       resource: {
         'name' : appName,
         'mimeType' : 'application/vnd.google-apps.folder'
@@ -35,13 +35,13 @@ class GoogleAPI {
   // for use while testing
   removeFileOrFolder = (id) => {
     return window.gapi.client.drive.files.delete({
-      'fileId': id,
+      'fileId': id
     });
   }
 
   // ACTUAL FUNCTION: lists all files in appDataFolder with name = appName
   getAppFolderID = (appName) => {
-    return gapi.client.drive.files.list({
+    return window.gapi.client.drive.files.list({
       q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
     });
   }
@@ -62,14 +62,14 @@ class GoogleAPI {
    * list files w/ extension [ext].
    */
   getRecentFilesByExt = (ext) => {
-    return gapi.client.drive.files.list({
+    return window.gapi.client.drive.files.list({
       fields: "files(id, name)",
-      q: 'not trashed and fileExtension="' + ext + '"',
+      q: 'not trashed and fileExtension="' + ext + '"'
     });
   }
 
   getAppDataFileID = (appDataFilename) => {
-    return gapi.client.drive.files.list({
+    return window.gapi.client.drive.files.list({
       q: 'not trashed and name="' + appDataFilename + '"',
       spaces: 'appDataFolder'
     });
@@ -82,7 +82,7 @@ class GoogleAPI {
   }
 
   createAppDataFile = (appDataFilename) => {
-    return gapi.client.drive.files.create({
+    return window.gapi.client.drive.files.create({
       resource: {
         name: appDataFilename,
         parents: ['appDataFolder']
@@ -92,7 +92,7 @@ class GoogleAPI {
 
   // Note: name says "appData" but you can use on any file I think
   getAppDataFileContent = (fileId) => {
-    return gapi.client.drive.files.get({
+    return window.gapi.client.drive.files.get({
       fileId: fileId,
       // Download a file — files.get with alt=media file resource
       alt: 'media'
@@ -112,12 +112,12 @@ class GoogleAPI {
 
   // Create and render a Google Picker object for selecting a file.
   createPicker = (callback) => {
-    gapi.load('picker', function(){
-      picker = new google.picker.PickerBuilder()
-        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+    window.gapi.load('picker', function(){
+      var picker = new window.google.picker.PickerBuilder()
+        .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
         .setTitle("Select a Pyret document")
-        .addView(new google.picker.View(google.picker.ViewId.DOCS).setQuery("*.arr"))
-        .setOAuthToken(gapi.auth.getToken().access_token)
+        .addView(new window.google.picker.View(window.google.picker.ViewId.DOCS).setQuery("*.arr"))
+        .setOAuthToken(window.gapi.auth.getToken().access_token)
         .setCallback(callback)
         .setOrigin(location.protocol + '//' + location.host)
         .build();
@@ -277,7 +277,6 @@ class GoogleAPI {
     return this.getPyretData().then((response) => {
       //modify data
       var data = response.result
-      console.log(data)
 
       studentInfo.id = data.nextStudentID
       studentInfo.classes = []
@@ -409,7 +408,7 @@ class GoogleAPI {
   getAssingmentsInClass = (classID) => {
     return this.getClass(classID).then((classInfo) => {
       var assignmentIDs = classInfo["assignments"]
-      return this.getAllAssignments().then((assingmentInfo) => {
+      return this.getAllAssignments().then((assignmentInfo) => {
         var assignmentObjects = []
         for (var i = 0; i < assignmentIDs.length; i++){
           var assignmentObject = assignmentInfo[assignmentIDs[i]]

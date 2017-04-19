@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import GoogleAPI from './GoogleAPI.js';
 import Student from './Student.js';
 import { Button, Textfield, Card, CardTitle, CardText, Spinner } from 'react-mdl';
 

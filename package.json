@@ -86,7 +86,7 @@
   "author": "Joe Politz",
   "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^2.13.1",
+    "babel-eslint": "^6.1.2",
     "eslint-plugin-react": "^6.10.3"
   }
 }

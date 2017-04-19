@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import GoogleAPI from './GoogleAPI.js';
 import { Icon, Tooltip } from 'react-mdl';
 import { Card, CardTitle, CardText, Textfield, Button } from 'react-mdl';
 
@@ -13,7 +12,7 @@ class Student extends Component {
   };
   api = this.props.api;
 
-  handleClickEditStudent = (event) => {
+  handleClickEditStudent = () => {
     this.setState({editing: true});
   }
 
@@ -21,7 +20,7 @@ class Student extends Component {
     this.setState({[event.target.id]: event.target.value});
   }
 
-  handleClickRemoveStudent = (event) => {
+  handleClickRemoveStudent = () => {
     if (confirm('Remove this student from the roster? This cannot be undone.')) {
       this.props.snackBar('Student Removed. Please allow a few seconds for changes to appear.');
       this.api.removeStudent(this.state.id).then(this.props.refreshParent);

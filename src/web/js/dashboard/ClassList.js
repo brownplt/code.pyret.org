@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
-import GoogleAPI from './GoogleAPI.js';
 import Class from './Class.js';
-import { FABButton, Icon, Button, Textfield, Spinner } from 'react-mdl';
+import { Button, Textfield, Spinner } from 'react-mdl';
 
 class ClassList extends Component {
   state = {
     addingClass: false,
-    newClassName: '',
+    newClassName: ''
   };
 
   handleClickAddClass = () => {
@@ -59,7 +58,6 @@ class ClassList extends Component {
                   floatingLabel
                   style={{width: '100%'}}
                   value={this.state.newClassName}
-                  onChange={this.handleChange}
                 />
                 <Button raised ripple colored type='submit'>Add Class</Button>
               </form>

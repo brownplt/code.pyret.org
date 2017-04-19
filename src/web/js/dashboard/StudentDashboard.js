@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
-import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
+import { FILE_EXT, APP_NAME } from './config.js';
 import File from './File';
 import ReactDOM from 'react-dom';
 import '../../css/dashboard/index.css';
 
 import 'react-mdl/extra/material.css';
 import 'react-mdl/extra/material.js';
-import { Layout, Header, Textfield, Drawer, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Spinner } from 'react-mdl';
+import { Layout, Header, Textfield, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Spinner } from 'react-mdl';
 
 class StudentDashboard extends Component {
   constructor() {
@@ -28,7 +28,7 @@ class StudentDashboard extends Component {
     };
 
     this.api = new GoogleAPI();
-    this.api.load().then((resp) => {
+    this.api.load().then(() => {
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
@@ -40,14 +40,14 @@ class StudentDashboard extends Component {
     }
   }
 
-  handleSignInClick = (event) => {
-    this.api.signIn().then((resp) => {
+  handleSignInClick = () => {
+    this.api.signIn().then(() => {
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
   }
 
-  handleSignOutClick = (event) => {
+  handleSignOutClick = () => {
     this.setState({signedIn: false});
     window.location.replace('/logout');
   }
@@ -91,7 +91,7 @@ class StudentDashboard extends Component {
     }
   }
 
-  handleSelectFileClick = (event) => {
+  handleSelectFileClick = () => {
     this.api.createPicker((data) => {
       if (data.action === window.google.picker.Action.PICKED) {
         var fileId = data.docs[0].id;

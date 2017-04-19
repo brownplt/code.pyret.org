@@ -2,18 +2,14 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 
 import GoogleAPI from './GoogleAPI.js';
-import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
 import '../../css/dashboard/index.css';
 
 import 'react-mdl/extra/material.css';
 import 'react-mdl/extra/material.js';
-import { Layout, Header, Textfield, Drawer, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Snackbar } from 'react-mdl';
+import { Layout, Header, Drawer, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Snackbar } from 'react-mdl';
 
-import File from './File';
 import ClassList from './ClassList';
-import Class from './Class';
 import StudentList from './StudentList';
-import Student from './Student';
 import AssignmentList from './AssignmentList';
 
 class TeacherDashboard extends Component {
@@ -34,7 +30,7 @@ class TeacherDashboard extends Component {
     };
 
     this.api = new GoogleAPI();
-    this.api.load().then((resp) => {
+    this.api.load().then(() => {
       this.handlePageLoad();
     });
   }
@@ -63,13 +59,13 @@ class TeacherDashboard extends Component {
     this.setState({ isSnackbarActive: false });
   }
 
-  handleSignInClick = (event) => {
-    this.api.signIn().then((resp) => {
+  handleSignInClick = () => {
+    this.api.signIn().then(() => {
       this.handlePageLoad();
     });
   }
 
-  handleSignOutClick = (event) => {
+  handleSignOutClick = () => {
     this.setState({signedIn: false});
     window.location.replace('/logout');
   }

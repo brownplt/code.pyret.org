@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import GoogleAPI from './GoogleAPI.js';
 import Assignment from './Assignment.js';
 import { Button, Textfield, Card, CardTitle, CardText } from 'react-mdl';
 

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import GoogleAPI from './GoogleAPI.js';
 import { Icon, Tooltip, Button, Textfield } from 'react-mdl';
 
 class Class extends Component {
@@ -11,7 +10,7 @@ class Class extends Component {
     editing: false
   };
 
-  handleClickEditClass = (event) => {
+  handleClickEditClass = () => {
     this.setState({editing: true});
   }
 
@@ -19,7 +18,7 @@ class Class extends Component {
     this.setState({[event.target.id]: event.target.value});
   }
 
-  handleClickRemoveClass = (event) => {
+  handleClickRemoveClass = () => {
     if (confirm('Remove this Class from the roster? This cannot be undone.')) {
       this.props.snackBar('Class Removed. Please allow a few seconds for changes to appear.');
       this.props.api.removeClass(this.state.id).then(this.props.refreshParent);
@@ -64,7 +63,6 @@ class Class extends Component {
               floatingLabel
               style={{width: '100%'}}
               value={this.state.name}
-              onChange={this.handleChange}
             />
             <Button raised ripple colored type='submit'>Update Class</Button>
           </form>
