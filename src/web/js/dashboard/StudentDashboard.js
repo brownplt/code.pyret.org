@@ -7,7 +7,7 @@ import '../../css/dashboard/index.css';
 
 import 'react-mdl/extra/material.css';
 import 'react-mdl/extra/material.js';
-import { Layout, Header, Textfield, Drawer, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab } from 'react-mdl';
+import { Layout, Header, Textfield, Drawer, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Spinner } from 'react-mdl';
 
 class StudentDashboard extends Component {
   constructor() {
@@ -18,6 +18,7 @@ class StudentDashboard extends Component {
       signedIn: false,
       recentFiles: [],
       newFileName: '',
+      fileSpinnerActive: true,
       templateFiles: [
         {name: 'Sort a List.arr', id: '0B32bNEogmncOTEJjQ1VicHdlYmc'},
         {name: 'Compute a Derivative.arr', id: '0B32bNEogmncOWU9OWW5MSFlHSDQ'},
@@ -31,6 +32,12 @@ class StudentDashboard extends Component {
       this.setState({signedIn: true});
       this.updateRecentFiles();
     });
+  }
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.state.recentFiles != prevState.recentFiles) {
+      this.setState({fileSpinnerActive: false});
+    }
   }
 
   handleSignInClick = (event) => {
@@ -117,7 +124,8 @@ class StudentDashboard extends Component {
               Select From Drive
             </Button>
             <span> or select a file below:</span>
-            <div className='file-list cf'>
+            <Spinner className={this.state.fileSpinnerActive ? '' : 'hidden'} singleColor style={{'margin': '16px', 'display': 'block'}}/>
+            <div className={'file-list cf ' + (this.state.fileSpinnerActive ? 'hidden' : '')}>
               {this.state.recentFiles.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
             </div>
           </div>
