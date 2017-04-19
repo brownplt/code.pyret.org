@@ -101,15 +101,6 @@ class StudentDashboard extends Component {
     });
   }
 
-  // A simple callback implementation.
-  pickerCallback = (data) => {
-    console.log(data);
-    if (data.action === window.google.picker.Action.PICKED) {
-      var fileId = data.docs[0].id;
-      window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
-    }
-  }
-
   render = () => {
     const getContentForTab = () => {
       const activeTab = this.state.activeTab;

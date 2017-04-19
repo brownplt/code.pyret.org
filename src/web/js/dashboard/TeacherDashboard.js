@@ -128,7 +128,7 @@ class TeacherDashboard extends Component {
       // Assignments
       if (activeTab == 1) {
         return (
-          <AssignmentList assignments={[]} snackBar={this.setSnackBarMessage}/>
+          <AssignmentList assignments={[]} api={this.api} snackBar={this.setSnackBarMessage}/>
         )
       }
     }

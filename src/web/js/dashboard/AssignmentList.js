@@ -44,9 +44,16 @@ class AssignmentList extends Component {
 
   handleClickSelectTemplateFile = (event) => {
     event.preventDefault();
-    this.setState({
-      selectedTemplateFileID: '1298SDLFKJO!@JOKJSDFKJBOBSIO',
-      selectedTemplateFileName: 'HeyImATest.arr'
+    this.props.api.createPicker((data) => {
+      if (data.action === window.google.picker.Action.PICKED) {
+        var fileId = data.docs[0].id;
+        var fileName = data.docs[0].name;
+        this.setState({
+          selectedTemplateFileID: fileId,
+          selectedTemplateFileName: fileName
+        });
+        window.picker.setVisible(false);
+      }
     });
   }
 
