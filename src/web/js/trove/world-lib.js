@@ -54,12 +54,6 @@
       return forEachHelp(0);
     };
 
-
-
-
-
-
-
     //
     // WORLD STUFFS
     //
@@ -76,8 +70,6 @@
     var worldListeners = null;
     var eventDetachers = null;
     var changingWorld = [];
-
-
 
     function clear_running_state() {
       worldIndexStack = [];
@@ -130,8 +122,6 @@
       }
     }
 
-
-
     // Close all world computations.
     Jsworld.shutdown = function(options) {
       while(runningBigBangs.length > 0) {
@@ -162,11 +152,9 @@
       resume_running_state();
     };
 
-
     function add_world_listener(listener) {
       worldListeners.push(listener);
     }
-
 
     function remove_world_listener(listener) {
       var i, index = -1;
@@ -181,10 +169,8 @@
       }
     }
 
-
     // If we're in the middle of a change_world, delay.
     var DELAY_BEFORE_RETRY = 10;
-
 
     // change_world: CPS( CPS(world -> world) -> void )
     // Adjust the world, and notify all listeners.
@@ -201,7 +187,6 @@
           DELAY_BEFORE_RETRY);
         return;
       }
-
 
       changingWorld[changingWorld.length - 1] = true;
       var originalWorld = world;
@@ -236,8 +221,6 @@
     };
     Jsworld.change_world = change_world;
 
-
-
     var map = function(a1, f) {
       var b = new Array(a1.length), i;
       for (i = 0; i < a1.length; i++) {
@@ -254,7 +237,6 @@
       return b;
     };
 
-
     function member(a, x) {
       var i;
       for (i = 0; i < a.length; i++) {
@@ -264,7 +246,6 @@
       }
       return false;
     }
-
 
     //
     // DOM UPDATING STUFFS
@@ -324,7 +305,6 @@
     return true;
     }*/
 
-
     // node_to_tree: dom -> dom-tree
     // Given a native dom node, produces the appropriate tree.
     function node_to_tree(domNode) {
@@ -339,8 +319,6 @@
     }
     Jsworld.node_to_tree = node_to_tree;
 
-
-
     // nodes(tree(N)) = nodes(N)
     function nodes(tree) {
       var ret, i;
@@ -354,7 +332,6 @@
       }
       return ret;
     }
-
 
     // relations(tree(N)) = relations(N)
     function relations(tree) {
@@ -381,10 +358,6 @@
       return ret;
     }
 
-
-
-
-
     // Preorder traversal.
     var preorder = function(node, f) {
       f(node, function() {
@@ -398,13 +371,11 @@
       });
     };
 
-
     // nodeEq: node node -> boolean
     // Returns true if the two nodes should be the same.
     var nodeEq = function(node1, node2) {
       return (node1 && node2 && node1 === node2);
     };
-
 
     // isMemq: X (arrayof X) -> boolean
     // Produces true if any of the elements of L are nodeEq to x.
@@ -418,8 +389,6 @@
       return false;
     };
 
-
-
     // If any node cares about the world, send it in.
     function refresh_node_values(nodes) {
       var i;
@@ -429,8 +398,6 @@
         }
       }
     }
-
-
 
     // update_dom(nodes(Node), relations(Node)) = void
     function update_dom(toplevelNode, nodes, relations) {
@@ -484,13 +451,10 @@
       refresh_node_values(nodes);
     }
 
-
-
     // camelCase: string -> string
     function camelCase(name) {
       return name.replace(/\-(.)/g, function(m, l){return l.toUpperCase();});
     }
-
 
     function set_css_attribs(node, attribs) {
       var j;
@@ -498,7 +462,6 @@
         node.style[camelCase(attribs[j].attrib)] = attribs[j].values.join(" ");
       }
     }
-
 
     // isMatchingCssSelector: node css -> boolean
     // Returns true if the CSS selector matches.
@@ -512,14 +475,11 @@
       }
     }
 
-
     var clearCss = function(node) {
       // FIXME: we should not be clearing the css
       //      if ('style' in node)
       //          node.style.cssText = "";
     };
-
-
 
     function update_css(nodes, css) {
       // clear CSS
@@ -544,13 +504,9 @@
       }
     }
 
-
-
     var sexp2tree;
     var sexp2css;
     var maintainingSelection;
-
-
 
     function do_redraw(world, oldWorld, toplevelNode, redraw_func, redraw_css_func, k) {
       if (oldWorld instanceof InitialWorld) {
@@ -596,8 +552,6 @@
       }
     }
 
-
-
     var FocusedSelection;
 
     function hasCurrentFocusedSelection() {
@@ -607,7 +561,6 @@
     function getCurrentFocusedSelection() {
       return new FocusedSelection();
     }
-
 
     // maintainingSelection: (-> void) -> void
     // Calls the thunk f while trying to maintain the current focused selection.
@@ -623,8 +576,6 @@
         f(function() { k(); });
       }
     };
-
-
 
     FocusedSelection = function() {
       this.focused = currentFocusedNode;
@@ -649,10 +600,6 @@
         }
       }
     };
-
-
-
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -688,9 +635,7 @@
     };
     //////////////////////////////////////////////////////////////////////
 
-
     var copy_attribs;
-
 
     // Notes: bigBang maintains a stack of activation records; it should be possible
     // to call bigBang re-entrantly.
@@ -731,8 +676,6 @@
         add_world_listener(extras.tracer);
       }
 
-
-
       // Monitor for termination and register the other handlers.
       var stopWhen = new StopWhenHandler(function(w, k2) { k2(false); },
                                          function(w, k2) { k2(w); });
@@ -762,15 +705,11 @@
       };
       add_world_listener(watchForTermination);
 
-
       // Finally, begin the big-bang.
       copy_attribs(top, attribs);
       change_world(function(w, k2) { k2(init_world); }, doNothing);
     };
     Jsworld.bigBang = bigBang;
-
-
-
 
     // on_tick: number CPS(world -> world) -> handler
     var on_tick = function(delay, tick) {
@@ -812,12 +751,17 @@
     var preventDefault, stopPropagation;
     var attachEvent, detachEvent;
 
-
     function on_key(press) {
       return function(thisWorldIndex) {
         var wrappedPress = function(e) {
           if (thisWorldIndex != worldIndex) { return; }
           if(e.keyCode === 27) { return; } // Escape events are not for world; the environment handles them
+          if (e.type === 'keydown' && e.key !== 'Compose' && e.key !== 'Backspace') {
+            //for most keys, avoid keydown and prefer keypress
+            //except for Compose
+            //and Backspace (which doesn't have keypress)
+            return false;
+          }
           stopPropagation(e);
           preventDefault(e);
           change_world(function(w, k) { press(w, e, k); }, doNothing);
@@ -827,18 +771,17 @@
             //http://www.w3.org/TR/html5/editing.html#sequential-focus-navigation-and-the-tabindex-attribue
             jQuery(top).attr('tabindex', 1);
             jQuery(top).focus();
+            attachEvent(top, 'keypress', wrappedPress);
             attachEvent(top, 'keydown', wrappedPress);
           },
           onUnregister: function(top) {
+            detachEvent(top, 'keypress', wrappedPress);
             detachEvent(top, 'keydown', wrappedPress);
           }
         };
       };
     }
     Jsworld.on_key = on_key;
-
-
-
 
     // http://www.quirksmode.org/js/events_mouse.html
     // http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
@@ -900,11 +843,7 @@
     }
     Jsworld.on_mouse = on_mouse;
 
-
-
-
     var checkDomSexp;
-
 
     //  on_draw: CPS(world -> (sexpof node)) CPS(world -> (sexpof css-style)) -> handler
     function on_draw(redraw, redraw_css) {
@@ -936,8 +875,6 @@
     }
     Jsworld.on_draw = on_draw;
 
-
-
     StopWhenHandler = function(test, receiver) {
       this.test = test;
       this.receiver = receiver;
@@ -952,8 +889,6 @@
       };
     }
     Jsworld.stop_when = stop_when;
-
-
 
     function on_world_change(f) {
       return function(thisWorldIndex) {
@@ -970,10 +905,6 @@
       };
     }
     Jsworld.on_world_change = on_world_change;
-
-
-
-
 
     // Compatibility for attaching events to nodes.
     attachEvent = function(node, eventName, fn) {
@@ -1023,7 +954,6 @@
       eventDetachers.push(function() { detachEvent(node, event, eventHandler); });
     }
 
-
     function addFocusTracking(node) {
       attachEvent(node, "focus", function(e) {
         currentFocusedNode = node; });
@@ -1033,14 +963,9 @@
       return node;
     }
 
-
-
-
-
     //
     // WORLD STUFFS
     //
-
 
     sexp2tree = function(sexp) {
       if(sexp.length === undefined) { return { node: sexp, children: [] }; }
@@ -1066,12 +991,9 @@
       return concat_map(sexp, sexp2css_node);
     };
 
-
-
     function isTextNode(n) {
       return (n.nodeType === 3);
     }
-
 
     function isElementNode(n) {
       return (n.nodeType === 1);
@@ -1096,7 +1018,6 @@
       if (thing.length === 0) {
         throwDomError(thing, topThing);
       }
-
 
       // Check that the first element is a Text or an element.
       if (isTextNode(thing[0])) {
@@ -1125,14 +1046,9 @@
       return "JsworldDomError: " + this.msg;
     };
 
-
-
-
-
     //
     // DOM CREATION STUFFS
     //
-
 
     copy_attribs = function(node, attribs) {
       var a;
@@ -1149,7 +1065,6 @@
       }
       return node;
     };
-
 
     //
     // NODE TYPES
@@ -1175,9 +1090,6 @@
     }
     Jsworld.button = button;
 
-
-
-
     preventDefault = function(event) {
       if (event.preventDefault) {
         event.preventDefault();
@@ -1194,7 +1106,6 @@
       }
     };
 
-
     var stopClickPropagation = function(node) {
       attachEvent(node, "click",
                   function(e) {
@@ -1202,7 +1113,6 @@
                   });
       return node;
     };
-
 
     var text_input, checkbox_input;
 
@@ -1224,9 +1134,6 @@
       }
     }
     Jsworld.input = input;
-
-
-
 
     text_input = function(type, updateF, attribs) {
       var n = document.createElement('input');
@@ -1259,7 +1166,6 @@
         addFocusTracking(copy_attribs(n, attribs)));
     };
 
-
     checkbox_input = function(type, updateF, attribs) {
       var n = document.createElement('input');
       n.type = type;
@@ -1276,15 +1182,11 @@
       return copy_attribs(n, attribs);
     };
 
-
     // var button_input = function(type, updateF, attribs) {
     //     var n = document.createElement('button');
     //     add_ev(n, 'click', function(w, e, k) { updateF(w, n.value, k); });
     //     return addFocusTracking(copy_attribs(n, attribs));
     // };
-
-
-
 
     function text(s, attribs) {
       var result = document.createElement("div");
@@ -1315,8 +1217,6 @@
       return node;
     };
 
-
-
     function textarea(attribs){
       return addFocusTracking(copy_attribs(document.createElement('textarea'), attribs));
     }
@@ -1332,7 +1232,6 @@
     }
     Jsworld.canvas = canvas;
 
-
     function img(src, attribs) {
       var n = document.createElement('img');
       n.src = src;
@@ -1340,13 +1239,10 @@
     }
     Jsworld.img = img;
 
-
-
     function raw_node(node, attribs) {
       return addFocusTracking(copy_attribs(node, attribs));
     }
     Jsworld.raw_node = raw_node;
-
 
     return runtime.makeJSModuleReturn(Jsworld);
   }

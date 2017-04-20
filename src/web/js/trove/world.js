@@ -224,7 +224,6 @@
         configs.push(new DefaultDrawingOutput().toRawHandler(toplevelNode));
       }
 
-
       runtime.pauseStack(function(restarter) {
         rawJsworld.bigBang(
             toplevelNode,
@@ -245,10 +244,6 @@
       });
     };
 
-
-
-
-
     //////////////////////////////////////////////////////////////////////
 
     // Every world configuration function (on-tick, stop-when, ...)
@@ -260,7 +255,6 @@
     WorldConfigOption.prototype.configure = function(config) {
       throw new Error('unimplemented WorldConfigOption');
     };
-
 
     WorldConfigOption.prototype.toDomNode = function(params) {
       var span = document.createElement('span');
@@ -279,9 +273,6 @@
     var isWorldConfigOption = function(v) { return v instanceof WorldConfigOption; };
 
     //////////////////////////////////////////////////////////////////////
-
-
-
 
     // adaptWorldFunction: Racket-function -> World-CPS
     // Takes a pyret function and converts it to the CPS-style function
@@ -334,7 +325,6 @@
       return rawJsworld.on_tick(this.delay, worldFunction);
     };
 
-
     //////////////////////////////////////////////////////////////////////
     var OnKey = function(handler) {
       WorldConfigOption.call(this, 'on-key');
@@ -348,10 +338,15 @@
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_key(
         function(w, e, success) {
-          worldFunction(w, getKeyCodeName(e), success);
+          var keyChar;
+          if (e.type === 'keydown') {
+            keyChar = getKeyCodeName(e);
+          } else {
+            keyChar = String.fromCharCode(e.which).replace(/[^\x00-\xFE]+/g, '');
+          }
+          worldFunction(w, keyChar, success);
         });
     };
-
 
     var getKeyCodeName = function(e) {
       var code = e.charCode || e.keyCode;
@@ -362,6 +357,7 @@
       case 13: keyname = "enter"; break;
       case 16: keyname = "shift"; break;
       case 17: keyname = "control"; break;
+      case 18: keyname = "alt"; break;
       case 19: keyname = "pause"; break;
       case 27: keyname = "escape"; break;
       case 33: keyname = "prior"; break;
@@ -393,6 +389,7 @@
       case 220: keyname = "\\"; break;
       case 221: keyname = "]"; break;
       case 222: keyname = "'"; break;
+      case 230: keyname = "ralt"; break;
       default:
         if (code >= 96 && code <= 105) {
           keyname = (code - 96).toString();
@@ -406,10 +403,6 @@
       return keyname;
     }
     //////////////////////////////////////////////////////////////////////
-
-
-
-
 
     var OnMouse = function(handler) {
       WorldConfigOption.call(this, 'on-mouse');
@@ -427,23 +420,12 @@
         });
     };
 
-
-
-
-
-
-
-
     var OutputConfig = function() {}
     OutputConfig.prototype = Object.create(WorldConfigOption.prototype);
     var isOutputConfig = function(v) { return v instanceof OutputConfig; };
     var isOpaqueOutputConfig = function(v) {
       return runtime.isOpaque(v) && isOutputConfig(v.val);
     }
-
-
-
-
 
     // // ToDraw
 
@@ -517,12 +499,6 @@
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
 
-
-
-
-
-
-
     var DefaultDrawingOutput = function() {
       WorldConfigOption.call(this, 'to-draw');
     };
@@ -544,9 +520,6 @@
       var cssFunction = function(w, success) { success([]); }
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
-
-
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -577,7 +550,6 @@
 
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
     //////////////////////////////////////////////////////////////////////
-
 
     // The default tick delay is 28 times a second.
     var DEFAULT_TICK_DELAY = 1/28;
