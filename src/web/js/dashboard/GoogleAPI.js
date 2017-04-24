@@ -434,8 +434,7 @@ class GoogleAPI {
     });
   }
 
-
-
+  // create a folder for that particular assignment in the teacher's drive
   createAssignmentFolder = (classID, assignmentName) => {
     return this.getPyretData().then((response) => {
       var data = response.result;
@@ -445,8 +444,7 @@ class GoogleAPI {
   }
 
   duplicateAssignments = (classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, sID) => {
-
-    assignmentFileName = data.classList[classID].name + "_Assignment_" + assignmentName + "_TeacherCopy";
+    assignmentFileName = data.classList[classID].name + "_Assignment_" + assignmentName
     var assignmentInfo = {
       id: data.nextAssignmentID,
       name: assignmentName,
@@ -456,7 +454,7 @@ class GoogleAPI {
       submitted: [] //list of studentIDs
     };
 
-    //create a folder for the assignment
+    //create a folder for the assignment of student with sID  
     return this.createAppFolder(assignmentFolderName).then((result) => {
       parentFolderId = result.id;
     }).then((result2) => {
@@ -469,7 +467,6 @@ class GoogleAPI {
     });
   }
 
-
   createAssignmentCopy = (classID, teacherAssignmentFileId ) => {
     return this.getPyretData().then((response) => {
       var data = JSON.parse(response.result);
@@ -477,8 +474,7 @@ class GoogleAPI {
       return this.getStudentsInClass(classID);
     }).then((studentIDList) => {
       studentTotal = studentIDList.length;
-      for (var n=0; n<studentTotal; n++)
-      {
+      for (var n=0; n<studentTotal; n++) {
         requiredStudentId = studentIDList[n];
         assignmentFolderName = data.classList[classID].name + "_" + requiredStudentId;
         //create a folder for the assignment for each student
@@ -496,7 +492,6 @@ class GoogleAPI {
   }
 }
 
-}
 export default GoogleAPI;
 
 /**
