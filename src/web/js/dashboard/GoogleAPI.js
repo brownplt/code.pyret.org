@@ -3,7 +3,7 @@ class GoogleAPI {
    *  Load the client library. Return a promise to allow .then() in caller
    */
   load = () => {
-    return gwrap.load({name: 'drive',
+    return window.gwrap.load({name: 'drive',
       version: 'v3',
       reauth: {
         immediate: true
@@ -14,8 +14,8 @@ class GoogleAPI {
   /**
    *  Sign in the user upon button click.
    */
-  signIn = (event) => {
-    return gwrap.load({name: 'drive',
+  signIn = () => {
+    return window.gwrap.load({name: 'drive',
       version: 'v3',
       reauth: {
         immediate: false
@@ -24,7 +24,7 @@ class GoogleAPI {
   }
 
   createAppFolder = (appName) => {
-    return gapi.client.drive.files.create({
+    return window.gapi.client.drive.files.create({
       resource: {
         'name' : appName,
         'mimeType' : 'application/vnd.google-apps.folder'
@@ -35,13 +35,13 @@ class GoogleAPI {
   // for use while testing
   removeFileOrFolder = (id) => {
     return window.gapi.client.drive.files.delete({
-      'fileId': id,
+      'fileId': id
     });
   }
 
   // ACTUAL FUNCTION: lists all files in appDataFolder with name = appName
   getAppFolderID = (appName) => {
-    return gapi.client.drive.files.list({
+    return window.gapi.client.drive.files.list({
       q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
     });
   }
@@ -77,14 +77,14 @@ class GoogleAPI {
    * list files w/ extension [ext].
    */
   getRecentFilesByExt = (ext) => {
-    return gapi.client.drive.files.list({
+    return window.gapi.client.drive.files.list({
       fields: "files(id, name)",
-      q: 'not trashed and fileExtension="' + ext + '"',
+      q: 'not trashed and fileExtension="' + ext + '"'
     });
   }
 
   getAppDataFileID = (appDataFilename) => {
-    return gapi.client.drive.files.list({
+    return window.gapi.client.drive.files.list({
       q: 'not trashed and name="' + appDataFilename + '"',
       spaces: 'appDataFolder'
     });
@@ -97,7 +97,7 @@ class GoogleAPI {
   }
 
   createAppDataFile = (appDataFilename) => {
-    return gapi.client.drive.files.create({
+    return window.gapi.client.drive.files.create({
       resource: {
         name: appDataFilename,
         parents: ['appDataFolder']
@@ -107,7 +107,7 @@ class GoogleAPI {
 
   // Note: name says "appData" but you can use on any file I think
   getAppDataFileContent = (fileId) => {
-    return gapi.client.drive.files.get({
+    return window.gapi.client.drive.files.get({
       fileId: fileId,
       // Download a file — files.get with alt=media file resource
       alt: 'media'
@@ -127,12 +127,12 @@ class GoogleAPI {
 
   // Create and render a Google Picker object for selecting a file.
   createPicker = (callback) => {
-    gapi.load('picker', function(){
-      picker = new google.picker.PickerBuilder()
-        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+    window.gapi.load('picker', function(){
+      var picker = new window.google.picker.PickerBuilder()
+        .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
         .setTitle("Select a Pyret document")
-        .addView(new google.picker.View(google.picker.ViewId.DOCS))
-        .setOAuthToken(gapi.auth.getToken().access_token)
+        .addView(new window.google.picker.View(window.google.picker.ViewId.DOCS).setQuery("*.arr"))
+        .setOAuthToken(window.gapi.auth.getToken().access_token)
         .setCallback(callback)
         .setOrigin(location.protocol + '//' + location.host)
         .build();
@@ -289,7 +289,7 @@ class GoogleAPI {
       }
     }
 
-    this.getPyretData().then((response) => {
+    return this.getPyretData().then((response) => {
       //modify data
       var data = response.result
 
@@ -300,25 +300,26 @@ class GoogleAPI {
 
       //data.studentList.push(studentInfo)
       data.studentList[studentInfo.id] = studentInfo
-
       //send data back to google
-      return this.savePyretData(data)
+      return this.savePyretData(data).then(() => {
+        return studentInfo;
+      });
     })
   }
 
   removeStudent = (studentID) => {
     //needs to remove student from all classes they are in
     return this.getPyretData().then((response) => {
+      //I'm pretty sure this doesn't work, but it was apparently working for Kevin...
       var data = response.result
       if (studentID in data.studentList){
-        for (key in data.classList){
+        for (var key in data.classList){
           var index = data.classList[key].students.indexOf(studentID)
           if (index !== undefined){
             data.classList[key].students.splice(index, 1)
           }
         }
-        var index = data.studentList.indexOf(studentID)
-        data.studentList.splice(index, 1)
+        delete data.studentList[studentID]
       }
       return this.savePyretData(data)
     })
@@ -345,7 +346,7 @@ class GoogleAPI {
         var courseRoster = []
         for (var i = 0; i < studentIDs.length; i++){
           var studentObject = studentInfo[studentIDs[i]]
-          courseRoster.append(studentObject)
+          courseRoster.push(studentObject)
         }
         return courseRoster
       })
@@ -422,11 +423,11 @@ class GoogleAPI {
   getAssingmentsInClass = (classID) => {
     return this.getClass(classID).then((classInfo) => {
       var assignmentIDs = classInfo["assignments"]
-      return this.getAllAssignments().then((assingmentInfo) => {
+      return this.getAllAssignments().then((assignmentInfo) => {
         var assignmentObjects = []
         for (var i = 0; i < assignmentIDs.length; i++){
           var assignmentObject = assignmentInfo[assignmentIDs[i]]
-          assignmentObjects.append(assignmentObject)
+          assignmentObjects.push(assignmentObject)
         }
         return assignmentObjects
       })

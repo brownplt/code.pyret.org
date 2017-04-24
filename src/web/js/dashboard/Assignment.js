@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Icon, Tooltip } from 'react-mdl';
 import { Card, CardTitle, CardText, Textfield, Button } from 'react-mdl';
 
-class Student extends Component {
+class Assignment extends Component {
   state = {
     id: this.props.details.id,
     firstName: this.props.details.firstName,
@@ -98,4 +98,4 @@ class Student extends Component {
   }
 }
 
-export default Student;
+export default Assignment;

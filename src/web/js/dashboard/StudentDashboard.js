@@ -1,59 +1,64 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
-import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
+import { FILE_EXT, APP_NAME } from './config.js';
 import File from './File';
 import ReactDOM from 'react-dom';
 import '../../css/dashboard/index.css';
+
+import 'react-mdl/extra/material.css';
+import 'react-mdl/extra/material.js';
+import { Layout, Header, Textfield, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Spinner } from 'react-mdl';
 
 class StudentDashboard extends Component {
   constructor() {
     super();
 
-    this.state = {signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
-
-    this.api = new GoogleAPI();
-    this.api.load().then((resp) => {
-      this.setState({signedIn: true});
-      this.updateRecentFiles();
-    });
-  }
-
-  handleSignInClick = (event) => {
-    this.api.signIn().then((resp) => {
-      this.setState({signedIn: true});
-      this.updateRecentFiles();
-    });
-  }
-
-  handleSignOutClick = (event) => {
-    this.setState({signedIn: false});
-    window.location.replace('/logout');
-  }
-
-  handleTabClick = (event) => {
-    this.setState({activeTab: event.target.id});
-    if (event.target.id === 'recent-files') {
-      this.updateRecentFiles();
-    }
-    else if (event.target.id === 'template-files') {
-      this.updateTemplateFiles();
-    }
-  }
-
-  updateTemplateFiles = () => {
-    this.setState({
-      files: [
+    this.state = {
+      activeTab: 0,
+      signedIn: false,
+      recentFiles: [],
+      newFileName: '',
+      fileSpinnerActive: true,
+      templateFiles: [
         {name: 'Sort a List.arr', id: '0B32bNEogmncOTEJjQ1VicHdlYmc'},
         {name: 'Compute a Derivative.arr', id: '0B32bNEogmncOWU9OWW5MSFlHSDQ'},
         {name: 'Land a plane.arr', id: '0B32bNEogmncONnZNU2JsUnRVRG8'},
         {name: 'Play 2048.arr', id: '0B32bNEogmncOMTg5T2plV19LX0k'}
       ]
+    };
+
+    this.api = new GoogleAPI();
+    this.api.load().then(() => {
+      this.setState({signedIn: true});
+      this.updateRecentFiles();
     });
+  }
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.state.recentFiles != prevState.recentFiles) {
+      this.setState({fileSpinnerActive: false});
+    }
+  }
+
+  handleSignInClick = () => {
+    this.api.signIn().then(() => {
+      this.setState({signedIn: true});
+      this.updateRecentFiles();
+    });
+  }
+
+  handleSignOutClick = () => {
+    this.setState({signedIn: false});
+    window.location.replace('/logout');
   }
 
   updateRecentFiles = () => {
     this.api.getRecentFilesByExt(FILE_EXT).then((resp) => {
-      this.setState({files: resp.result.files});
+      let files = resp.result.files;
+      if (files.length == 0) {
+        files = [{name: 'No Recent Files :(', id: null}]
+      }
+      this.setState({recentFiles: files});
     });
   }
 
@@ -86,7 +91,7 @@ class StudentDashboard extends Component {
     }
   }
 
-  handleSelectFileClick = (event) => {
+  handleSelectFileClick = () => {
     this.api.createPicker((data) => {
       if (data.action === window.google.picker.Action.PICKED) {
         var fileId = data.docs[0].id;
@@ -96,56 +101,81 @@ class StudentDashboard extends Component {
     });
   }
 
-  // A simple callback implementation.
-  pickerCallback = (data) => {
-    console.log(data);
-    if (data.action === window.google.picker.Action.PICKED) {
-      var fileId = data.docs[0].id;
-      window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
-    }
-  }
-
   render = () => {
+    const getContentForTab = () => {
+      const activeTab = this.state.activeTab;
+      // Recent Files
+      if (activeTab == 0) {
+        return (
+          <div>
+            <Button
+              style={{backgroundColor: '#db3236', 'margin': '16pt'}} raised colored ripple
+              onClick={this.handleSelectFileClick}
+            >
+              Select From Drive
+            </Button>
+            <span> or select a file below:</span>
+            <Spinner className={this.state.fileSpinnerActive ? '' : 'hidden'} singleColor style={{'margin': '16px', 'display': 'block'}}/>
+            <div className={'file-list cf ' + (this.state.fileSpinnerActive ? 'hidden' : '')}>
+              {this.state.recentFiles.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
+            </div>
+          </div>
+        )
+      }
+      // Template Files
+      if (activeTab == 1) {
+        return (
+          <div className='file-list cf'>
+            {this.state.templateFiles.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
+          </div>
+        )
+      }
+      // New file
+      if (activeTab == 2) {
+        return (
+          <form onSubmit={this.handleCreateNewFile}>
+            <Textfield
+                onChange={this.handleNewFilenameChange}
+                value={this.state.newFileName}
+                label="Filename"
+                floatingLabel
+                style={{width: '200px'}}
+            />
+            <span className='arr-ext'>.arr</span>
+            <Button raised colored ripple>Create New File</Button>
+          </form>
+        )
+      }
+    }
     return (
-      <div className='component-wrap'>
-        <div id='header' className=''>
-          <div className='container'>
-            <h1 className='logo-text left'>{APP_NAME} – Student Dashboard</h1>
-            <div className='button-wrapper right'>
-              <button className={'auth-button ' + (this.state.signedIn ? 'hidden' : '')} onClick={this.handleSignInClick} id='signin-button' >Sign in</button>
-            </div>
-            <div className='button-wrapper right'>
-              <button className={'auth-button ' + (this.state.signedIn ? '' : 'hidden')} onClick={this.handleSignOutClick} id='signout-button' >Sign out</button>
-            </div>
+      <Layout fixedHeader>
+
+        <Header>
+          <HeaderRow title="Pyret - Student Dashboard">
+            <Navigation>
+              <Button
+                raised ripple style={{'lineHeight': '33px'}}
+                onClick={this.state.signedIn ? this.handleSignOutClick : this.handleSignInClick}
+              >
+                {this.state.signedIn ? 'Sign Out' : 'Sign In'}
+              </Button>
+            </Navigation>
+          </HeaderRow>
+
+           <HeaderTabs ripple activeTab={this.state.activeTab} onChange={(tabId) => this.setState({ activeTab: tabId })}>
+             <Tab>Recent Files</Tab>
+             <Tab>Templates</Tab>
+             <Tab>New File</Tab>
+           </HeaderTabs>
+        </Header>
+
+        <Content>
+          <div className="page-content">
+            {getContentForTab()}
           </div>
-        </div>
-        <div id='loading-spinner' className={this.state.signedIn ? 'hidden' : ''}>
-          <h1>Waiting for login...</h1>
-          <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
-        </div>
-        <div id='modal' className={'modal-wrap modal-student container ' + (this.state.signedIn ? '' : 'hidden')}>
-          <div id='modal-tabs' className='cf'>
-            <h2 id='recent-files' className={'tab floatable left ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
-            <h2 id='template-files' className={'tab floatable left ' + ((this.state.activeTab === 'template-files') ? 'active' : '')} onClick={this.handleTabClick}>Templates</h2>
-            <h2 id='new-file' className={'tab floatable left ' + ((this.state.activeTab === 'new-file') ? 'active' : '')} onClick={this.handleTabClick}>New File</h2>
-            <div className='button-wrapper floatable right'>
-              <button id='select-file' onClick={this.handleSelectFileClick} >Select From Drive</button>
-            </div>
-          </div>
-          <div id='modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
-            <div className='file-list cf'>
-              {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
-            </div>
-          </div>
-          <div className={'modal-body ' + ((this.state.activeTab === 'new-file') ? '' : 'hidden')}>
-            <form onSubmit={this.handleCreateNewFile}>
-              <input type='text' value={this.state.newFileName} onChange={this.handleNewFilenameChange} />
-              <span className='arr-ext'>.arr</span>
-              <input id='new-file' type='submit' value='New file' />
-            </form>
-          </div>
-        </div>
-      </div>
+        </Content>
+
+      </Layout>
     );
   }
 }
