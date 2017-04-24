@@ -59,6 +59,21 @@ class GoogleAPI {
   }
 
   /**
+  * Copy an existing file.
+  * @param {String} sourceFileID ID of the origin file to copy.
+  * @param {String} DestinationFileName Title of the copy.
+  */
+  copyFile = (sourceFileID, DestinationFileName) => {
+    return window.gapi.client.drive.files.copy.request({
+      'fileId': sourceFileID,
+      'resource': body,
+      'body' : {
+        'title': DestinationFileName,
+      }
+    });
+  }
+
+  /**
    * list files w/ extension [ext].
    */
   getRecentFilesByExt = (ext) => {
@@ -418,20 +433,74 @@ class GoogleAPI {
     })
   }
 
-  createAssignment = () => {
-    // create an assignment file
+  
 
+  createAssignmentFolder = ((classID, assignmentName) => {
+    return this.getPyretData()
+    }).then((response) => {
+    var data = response.result
+    assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName
   }
+    
+  duplicateAssignments = ((classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, sID) => {
 
-  createAssignmentCopy = () => {
-    // make a copy of a file for distribution of assignments
-  }
+    assignmentFileName = data.classList[classID].name + "_Assignment_" + assignmentName + "_TeacherCopy"
+    var assignmentInfo = {
+      id: data.nextAssignmentID,
+      name: assignmentName,
+      class: classID,
+      docID: 'None',
+      opened: [], //list of studentIDs
+      submitted: [] //list of studentIDs
+    };
 
-  distributeAssignment = () => {
-    // distribute assignments to students of a particular class
-  }
+  //create a folder for the assignment
+  return this.createAppFolder(assignmentFolderName)
+  }).then((result) => {
+    parentFolderId = result.id 
+  }).then((result2) => {
+    assignmentInfo.docID = result2.id
+    data.classList[classID].assignments.append(data.nextAssignmentID)
+    data.nextAssignmentID+=1
+    return this.createAssignmentCopy(classID, result.id)
+  }).then((result3) => {
+    return this.savePyretData(data)
+  })
+
+  createAssignmentCopy = ((classID, teacherAssignmentFileId ) => {
+    return this.getPyretData()
+  }).then((response) => {
+    var data = JSON.parse(response.result)
+
+    return this.getStudentsInClass(classID)
+  }).then((studentIDList) => { 
+    studentTotal = studentIDList.length
+    for (var n=0; n<studentTotal; n++)
+    {
+      requiredStudentId = studentIDList[n]
+      assignmentFolderName = data.classList[classID].name + "_" + requiredStudentId
+      //create a folder for the assignment for each student
+      studentFolder = createAppFolder(assignmentFolderName)
+      parentFolderId = result.id 
+      // create the assignment file copy for each studnt by duplicating the teacher's copy
+      assignmentFileName = data.classList[classID].name + "_" + studentIDList[n] + "_" + "Assignment_" + AssignmentID
+      studentAssignmentFile = createNewFile(parentFolderId, assignmentFileName)
+      // copy contents of teacher assignment copy to the student copy
+      studentAssignmentFile = copyFile(teacherAssignmentFileId, assignmentFileName)
+      // update studentInfo to store details of assignemntID and Google doc ID as a key-value pair
+      data.studentInfo[requiredStudentId].assignments[data.nextAssignmentID-1] = studentAssignmentFile.id
+    }    
+  })
+  
 
 
 }
 
 export default GoogleAPI;
+
+/**
+For testing purposes:
+Kevin - krs252@cornell.edu 
+Micheal - mrm355@cornell.edu
+Anagha - at767@cornell.edu
+*/
