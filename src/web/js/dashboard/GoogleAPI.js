@@ -482,13 +482,13 @@ class GoogleAPI {
         requiredStudentId = studentIDList[n];
         assignmentFolderName = data.classList[classID].name + "_" + requiredStudentId;
         //create a folder for the assignment for each student
-        studentFolder = createAppFolder(assignmentFolderName);
-        parentFolderId = result.id;
+        studentFolder = this.createAppFolder(assignmentFolderName)
+        parentFolderId = result.id
         // create the assignment file copy for each studnt by duplicating the teacher's copy
-        assignmentFileName = data.classList[classID].name + "_" + studentIDList[n] + "_" + "Assignment_" + AssignmentID;
-        studentAssignmentFile = createNewFile(parentFolderId, assignmentFileName);
+        assignmentFileName = data.classList[classID].name + "_" + studentIDList[n] + "_" + "Assignment_" + AssignmentID
+        studentAssignmentFile = this.createNewFile(parentFolderId, assignmentFileName)
         // copy contents of teacher assignment copy to the student copy
-        studentAssignmentFile = copyFile(teacherAssignmentFileId, assignmentFileName);
+        studentAssignmentFile = this.copyFile(teacherAssignmentFileId, assignmentFileName)
         // update studentInfo to store details of assignemntID and Google doc ID as a key-value pair
         data.studentInfo[requiredStudentId].assignments[data.nextAssignmentID-1] = studentAssignmentFile.id;
       }
@@ -496,6 +496,7 @@ class GoogleAPI {
   }
 }
 
+}
 export default GoogleAPI;
 
 /**
