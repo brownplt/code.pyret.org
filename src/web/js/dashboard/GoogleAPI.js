@@ -438,56 +438,54 @@ class GoogleAPI {
   createAssignmentFolder = (classID, assignmentName) => {
     return this.getPyretData().then((response) => {
       var data = response.result;
-      assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
+      var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
       return this.createAppFolder(assignmentFolderName);
     });
   }
 
-  duplicateAssignments = (classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, sID) => {
-    assignmentFileName = data.classList[classID].name + "_Assignment_" + assignmentName
-    var assignmentInfo = {
-      id: data.nextAssignmentID,
-      name: assignmentName,
-      class: classID,
-      docID: 'None',
-      opened: [], //list of studentIDs
-      submitted: [] //list of studentIDs
-    };
+  duplicateAssignments = (classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, studentID) => {
+    return this.getPyretData().then((response) => {
+      var data = response.result;
+      var assignmentFileName = data.classList[classID].name + "_Assignment_" + assignmentName + "_" + studentID;
+      var assignmentInfo = {
+        id: data.nextAssignmentID,
+        name: assignmentName,
+        class: classID,
+        docID: 'None',
+        opened: [], //list of studentIDs
+        submitted: [], //list of studentIDs
+        filename: assignmentFileName
+      };
 
-    //create a folder for the assignment of student with sID  
-    return this.createAppFolder(assignmentFolderName).then((result) => {
-      parentFolderId = result.id;
-    }).then((result2) => {
-      assignmentInfo.docID = result2.id;
-      data.classList[classID].assignments.append(data.nextAssignmentID);
-      data.nextAssignmentID+=1;
-      return this.createAssignmentCopy(classID, result.id);
-    }).then((result3) => {
-      return this.savePyretData(data);
+      //create a folder for the assignment of student with sID  
+      return this.createAppFolder(assignmentFolderName).then((parentFolderId) => {
+        this.createNewFile(parentFolderId, assignmentFileName).then((resultFile) => {
+          this.copyFile(teacherAssignmentFileId, resultFile).then((newAssignment) => {
+            assignmentInfo.docID = newAssignment.id;
+            data.classList[classID].assignments.append(data.nextAssignmentID);
+            data.nextAssignmentID+=1;
+            return this.savePyretData(data);
+          });
+        });
+      });
     });
   }
 
-  createAssignmentCopy = (classID, teacherAssignmentFileId ) => {
+  createStudentAssignments = (classID, assignmentName, teacherAssignmentFileId) => {
     return this.getPyretData().then((response) => {
       var data = JSON.parse(response.result);
-
-      return this.getStudentsInClass(classID);
-    }).then((studentIDList) => {
-      studentTotal = studentIDList.length;
-      for (var n=0; n<studentTotal; n++) {
-        requiredStudentId = studentIDList[n];
-        assignmentFolderName = data.classList[classID].name + "_" + requiredStudentId;
-        //create a folder for the assignment for each student
-        studentFolder = this.createAppFolder(assignmentFolderName)
-        parentFolderId = result.id
-        // create the assignment file copy for each studnt by duplicating the teacher's copy
-        assignmentFileName = data.classList[classID].name + "_" + studentIDList[n] + "_" + "Assignment_" + AssignmentID
-        studentAssignmentFile = this.createNewFile(parentFolderId, assignmentFileName)
-        // copy contents of teacher assignment copy to the student copy
-        studentAssignmentFile = this.copyFile(teacherAssignmentFileId, assignmentFileName)
-        // update studentInfo to store details of assignemntID and Google doc ID as a key-value pair
-        data.studentInfo[requiredStudentId].assignments[data.nextAssignmentID-1] = studentAssignmentFile.id;
-      }
+      return this.getStudentsInClass(classID).then((studentIDList) => {
+        var studentTotal = studentIDList.length;
+        for (var n=0; n<studentTotal; n++) 
+        {
+          var requiredStudentId = studentIDList[n];
+          var assignmentFolderName = data.classList[classID].name + "_" + requiredStudentId;
+          //create a folder for the assignment for each student
+          this.duplicateAssignments = (classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, requiredStudentId).then((result) => {
+            return result;
+          });
+        }
+      });
     });
   }
 }
