@@ -813,10 +813,13 @@
       return function(thisWorldIndex) {
         var wrappedPress = function(e) {
           if (thisWorldIndex != worldIndex) { return; }
-          if(e.keyCode === 27) { return; } // Escape events are not for world; the environment handles them
-          //console.log('wP e=', e.type, e.key);
-          if (e.type === 'keydown' && (e.key !== 'Compose') && (e.key !== 'Backspace')) {
-            //regular alpha, not altgr or backspace
+          var code = e.charCode || e.keyCode;
+          if(code === 27) { return; } // Escape events are not for world; the environment handles them
+          //console.log('wP e=', e.type, e.key, e);
+          if (e.type === 'keydown' && (e.key !== 'Compose') && (e.key !== 'Backspace') &&
+              !(code >= 33 && code <= 40)) {
+            //regular alpha, i.e., not altgr or backspace
+            // or arrows
             //console.log('wP nonalt keydown', e);
             return false; // try keypress instead
           }
