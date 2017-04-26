@@ -59,21 +59,6 @@ class GoogleAPI {
   }
 
   /**
-  * Copy an existing file.
-  * @param {String} sourceFileID ID of the origin file to copy.
-  * @param {String} DestinationFileName Title of the copy.
-  */
-  copyFile = (sourceFileID, DestinationFileName, parentFolderID) => {
-    return window.gapi.client.drive.files.copy({
-      'fileId': sourceFileID,
-      'body' : {
-        'parents' : [parentFolderID],
-        'title': DestinationFileName,
-      }
-    });
-  }
-
-  /**
    * list files w/ extension [ext].
    */
   getRecentFilesByExt = (ext) => {
@@ -434,19 +419,70 @@ class GoogleAPI {
     });
   }
 
-  // create a folder for that particular assignment in the teacher's drive
-  createAssignmentFolder = (classID, assignmentName) => {
-    return this.getPyretData().then((response) => {
-      var data = response.result;
-      var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
-      return this.createAppFolder(assignmentFolderName);
+  /** Assignment realted code begins here */
+
+  // function to create folder
+  createFolder = (parentID, folderName) => {
+    return window.gapi.client.drive.files.create({
+      resource: {
+        'name' : folderName,
+        'parents' : [parentID],
+        'mimeType' : 'application/vnd.google-apps.folder'
+      }
     });
   }
 
-  duplicateAssignments = (classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, studentID) => {
+  // function to copy files
+  copyFile = (parentID, sourceFileID, destinationFileName) => {
+    return window.gapi.client.drive.files.copy({
+      'fileId': sourceFileID,
+      'body' : {
+        'parents' : [parentID],
+        'title': destinationFileName,
+      }
+    });
+  }
+
+  // function that initiates the create and distribute assignment process
+  createAndDistributeAssignment = (classID, assignmentName, assignmentFileID) => {
     return this.getPyretData().then((response) => {
       var data = response.result;
-      var assignmentFileName = assignmentName;
+      return this.getAppFolderID("pyret").then((greatGrandParent) => {
+        var greatGrandParentID = greatGrandParent.ID;
+        var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
+        return this.createAssignmentFolder(greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID);
+      });
+    });
+  }
+  
+  // function to create the folder to contain all the assignments
+  createAssignmentFolder = (greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID) => {
+    return this.createFolder(greatGrandParentID, assignmentFolderName).then((grandParent) => {
+      var grandParentID = grandParent.id;
+      return this.createAssignmentsForClass(classID, grandParentID, assignmentName, assignmentFileID).then(() => {
+        //nothing here - ends here
+      });
+    });
+  }
+
+  // function to obtain students in class and initiate the process of creating individual assignment folder with assignment copy
+  createAssignmentsForClass = (classID, grandParentID, assignmentName, assignmentFileID) => {
+    return this.getPyretData().then((response) => {
+      var data = response.result;
+      return this.getStudentsInClass(classID).then((studentList) => {
+        for (let s of studentList) {
+          return this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID); 
+        }
+      });
+    });
+  }
+  
+  // function to create an individual folder and assignment copy for each student in class
+  createStudentFolderAndAssignment = (s, grandParentID, assignmentName, assignmentFileID, classID) => {
+    return this.getPyretData().then((response) => {
+      var data = response.result;
+      var studentAssignmentFolderName = data.classList[classID].name + "_" + assignmentName + "_" + s.lastName + "_" + s.firstName;
+      var studentAssignmentFileName = assignmentName + "_" + s.lastName + "_" + s.firstName;
       var assignmentInfo = {
         id: data.nextAssignmentID,
         name: assignmentName,
@@ -454,13 +490,12 @@ class GoogleAPI {
         docID: 'None',
         opened: [], //list of studentIDs
         submitted: [], //list of studentIDs
-        filename: assignmentFileName,
-        student: studentID
+        filename: studentAssignmentFileName,
+        student: s.id
       };
-      console.log("duplication");
-      //create a folder for the assignment of student with sID  
-      return this.createAppFolder(assignmentFolderName).then((parentFolderId) => {
-        this.copyFile(teacherAssignmentFileId, assignmentFileName, parentFolderId).then((newAssignment) => {
+      return this.createFolder(grandParentID, studentAssignmentFolderName).then((parent) => {
+        var parentID = parent.id;
+        return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((newAssignment) => {
           assignmentInfo.docID = newAssignment.id;
           data.classList[classID].assignments.push(data.nextAssignmentID);
           data.nextAssignmentID+=1;
@@ -470,28 +505,9 @@ class GoogleAPI {
     });
   }
 
-  createAndDistributeAssignment = (classID, assignmentName, teacherAssignmentFileId) => {
-    return this.getPyretData().then((response) => {
-      var data = response.result;
-      return this.getStudentsInClass(classID).then((studentIDList) => {
+  //TODO: share folders with respective students - edit access via email id
 
-        var studentTotal = studentIDList.length;
-        console.log(studentTotal);
-        for (var n=0; n<studentTotal; n++) 
-        {
-          var requiredStudent = studentIDList[n];
-          var assignmentFolderName = data.classList[classID].name + "_" + requiredStudent.lastName + "_" + requiredStudent.firstName;
-
-          console.log(requiredStudent);
-          //create a folder for the assignment for each student
-          this.duplicateAssignments(classID, assignmentName, teacherAssignmentFileId, assignmentFolderName, requiredStudent.id);
-        }
-
-      });
-    });
-  }
 }
-
 export default GoogleAPI;
 
 /**
