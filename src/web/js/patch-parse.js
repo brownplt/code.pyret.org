@@ -5791,33 +5791,50 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
       //ds26gte
       //console.log('doing convertToPyretAST', programs, provenance, moduleName);
-      var requirepreludes = [];
+
       var defstructs = [];
-      var defnonfuns = [];
-      var defuns = [];
+      var bubbledNonfuns = [];
+      var bubbledFuns = [];
+      var unbubbledNonfuns = [];
+      var unbubbledFuns = [];
       var otherExps = [];
+      var finalCheckExpects = [];
+
+      var requirepreludes = [];
       var checkExpects = [];
       var it;
 
-      var localFunIds = [];
+      var localDefIds = [];
       var i;
 
       for (i = 0; i < programs.length; i++) {
         var p = programs[i];
+        //console.log('forloop p = ', p);
         if (p instanceof defFunc) {
-          localFunIds.push(moduleQualifiedId(p.name.val));
+          localDefIds.push(moduleQualifiedId(p.name.val));
         }
       }
 
-      //console.log('localFunIds=', JSON.stringify(localFunIds));
+      for (i = 0; i < programs.length; i++) {
+        var p = programs[i];
+        if (p instanceof defVar) {
+          var b = p.toPyretAST();
+          var ownName = definedName(b);
+          if (refersToLocalFunId(b,ownName)) {
+            localDefIds.push(ownName);
+          }
+        }
+      }
+
+      //console.log('localDefIds=', JSON.stringify(localDefIds));
 
       var unbubbledIds = [];
 
       //ds26gte
-      //console.log('localFunIds = ' + localFunIds);
+      //console.log('localDefIds = ' + localDefIds);
 
       function refersToLocalFunId(b,ownName) {
-        if (b.name === "NAME" && b.value && b.value !== ownName && localFunIds.indexOf(b.value) > -1) {
+        if (b.name === "NAME" && b.value && b.value !== ownName && localDefIds.indexOf(b.value) > -1) {
           return true;
         }
         if (b.kids && b.kids.some(function(b) { return refersToLocalFunId(b,ownName) })) {
@@ -5856,7 +5873,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         var it;
         if (bubbleType === 2) {
           //required-module contents //deadc0de?
-          defnonfuns.push(b);
+          bubbledNonfuns.push(b);
           //otherExps.push(b);
         } else if (bubbleType === 1) {
           //defstruct contents
@@ -5870,17 +5887,18 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                      // Else bubble up.
           //console.log("checking " + it.kids[0].kids[1].value)
           var ownName = definedName(b);
-          //console.log('ownName=', ownName);
+          //console.log('checking v ownName=', ownName);
           if (ownName && (refersToLocalFunId(b,ownName) || refersToUnbubbledId(b,ownName))) {
             //console.log('referred to local fun id');
-            otherExps.push(wrapStmt(b));
+            //otherExps.push(wrapStmt(b));
+            unbubbledNonfuns.push(wrapStmt(b));
             //console.log('this one =', JSON.stringify(it));
             //console.log('pushing local var', it.value);
             unbubbledIds.push(ownName);
             //console.log('not bubbled:', ownName);
           } else {
             //console.log('did not refer to local fun id');
-            defnonfuns.push(wrapStmt(b));
+            bubbledNonfuns.push(wrapStmt(b));
             //console.log('defnonfun:', ownName);
           }
         } else if (b.name === "stmt" &&
@@ -5890,13 +5908,16 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
             // Check if RHS refers to anything unbubbled.
             // If so, stay put and mark as unbubbled. Else bubble up.
             var ownName = definedName(b);
-            //console.log('ownName=', ownName);
+            //console.log('checking f ownName=', ownName);
             if (refersToLocalFunId(b,ownName) || refersToUnbubbledId(b,ownName)) {
-              otherExps.push(b);
+              //console.log('referred to local fun id');
+              //otherExps.push(b);
+              unbubbledFuns.push(b);
               unbubbledIds.push(definedName(b));
               //console.log('unbubbled fun:', definedName(b));
             } else {
-              defuns.push(b);
+              //console.log('did not refer to local fun id');
+              bubbledFuns.push(b);
               //console.log('bubbled fun:', definedName(b));
             }
         } else if (b.name === 'stmt' && b.voidstatement) {
@@ -5939,7 +5960,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      var finalCheckExpects = [];
       if (checkExpects.length > 0) {
 
         if (provenance === 'test-result') {
@@ -5958,7 +5978,8 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps,
+      var kiddos = defstructs.concat(bubbledNonfuns, bubbledFuns,
+        unbubbledNonfuns, unbubbledFuns, otherExps,
         finalCheckExpects);
 
       //ds26gte
