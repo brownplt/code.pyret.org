@@ -434,6 +434,7 @@ class GoogleAPI {
 
   // function to copy files
   copyFile = (parentID, sourceFileID, destinationFileName) => {
+    console.log("Reached copyFile function");
     return window.gapi.client.drive.files.copy({
       'fileId': sourceFileID,
       'body' : {
@@ -448,30 +449,37 @@ class GoogleAPI {
     return this.getPyretData().then((response) => {
       var data = response.result;
       return this.getAppFolderID("pyret").then((greatGrandParent) => {
-        var greatGrandParentID = greatGrandParent.ID;
+        var greatGrandParentID = JSON.parse(greatGrandParent.body).files[0].id;
+        console.log("greatGrandParentID = " + greatGrandParentID);
         var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
+        console.log("assignmentFolderName = " + assignmentFolderName);
         return this.createAssignmentFolder(greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID);
       });
     });
   }
   
-  // function to create the folder to contain all the assignments
+  // function to create the folder for teacher to contain all the assignments
   createAssignmentFolder = (greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID) => {
+    console.log("Entered createAssignmentFolder function");
     return this.createFolder(greatGrandParentID, assignmentFolderName).then((grandParent) => {
-      var grandParentID = grandParent.id;
-      return this.createAssignmentsForClass(classID, grandParentID, assignmentName, assignmentFileID).then(() => {
-        //nothing here - ends here
-      });
+      var grandParentID = grandParent["result"]["id"];
+      console.log("grandParentID = " + grandParentID);
+      return this.createAssignmentsForClass(classID, grandParentID, assignmentName, assignmentFileID);
     });
   }
 
   // function to obtain students in class and initiate the process of creating individual assignment folder with assignment copy
   createAssignmentsForClass = (classID, grandParentID, assignmentName, assignmentFileID) => {
+    console.log("Entered createAssignmentsForClass function");
     return this.getPyretData().then((response) => {
       var data = response.result;
       return this.getStudentsInClass(classID).then((studentList) => {
         for (let s of studentList) {
-          return this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID); 
+          console.log("student is : " + JSON.stringify(s));
+        }
+        for (let s of studentList) {
+          console.log("student folder and assignment creation for : " + JSON.stringify(s));
+          this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID); 
         }
       });
     });
@@ -481,8 +489,10 @@ class GoogleAPI {
   createStudentFolderAndAssignment = (s, grandParentID, assignmentName, assignmentFileID, classID) => {
     return this.getPyretData().then((response) => {
       var data = response.result;
-      var studentAssignmentFolderName = data.classList[classID].name + "_" + assignmentName + "_" + s.lastName + "_" + s.firstName;
-      var studentAssignmentFileName = assignmentName + "_" + s.lastName + "_" + s.firstName;
+      var studentAssignmentFolderName = data.classList[classID].name + "_" + assignmentName + "_" + s["lastName"] + "_" + s["firstName"];
+      console.log("studentAssignmentFolderName = " + studentAssignmentFolderName);
+      var studentAssignmentFileName = assignmentName + "_" + s["lastName"] + "_" + s["firstName"];
+      console.log("studentAssignmentFileName = " + studentAssignmentFileName);
       var assignmentInfo = {
         id: data.nextAssignmentID,
         name: assignmentName,
@@ -494,8 +504,12 @@ class GoogleAPI {
         student: s.id
       };
       return this.createFolder(grandParentID, studentAssignmentFolderName).then((parent) => {
-        var parentID = parent.id;
+        var parentID = parent["result"]["id"];
+        console.log("parentID = " + parentID);
         return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((newAssignment) => {
+          console.log("Called copyFile function");
+          console.log("newAssignment = " + newAssignment);
+          console.log("newAssignment stringified = " + JSON.stringify(newAssignment));
           assignmentInfo.docID = newAssignment.id;
           data.classList[classID].assignments.push(data.nextAssignmentID);
           data.nextAssignmentID+=1;
