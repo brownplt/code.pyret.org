@@ -445,10 +445,22 @@ class GoogleAPI {
   createAndDistributeAssignment = (classID, assignmentName, assignmentFileID) => {
     return this.getPyretData().then((response) => {
       var data = response.result;
-      return this.getAppFolderID("pyret").then((greatGrandParent) => {
-        var greatGrandParentID = JSON.parse(greatGrandParent.body).files[0].id;
-        var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
-        return this.createAssignmentFolder(greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID);
+      var assignmentInfo = {
+        id: data.nextAssignmentID,
+        name: assignmentName,
+        class: classID,
+        docID: assignmentFileID,
+        opened: [], //list of studentIDs
+        submitted: [], //list of studentIDs
+      };
+      data.nextAssignmentID+=1;
+      data.assignmentList.push(assignmentInfo);
+      return this.savePyretData(data).then(() => {
+        return this.getAppFolderID("pyret").then((greatGrandParent) => {
+          var greatGrandParentID = JSON.parse(greatGrandParent.body).files[0].id;
+          var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
+          return this.createAssignmentFolder(greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID);
+        });
       });
     });
   }
@@ -476,26 +488,10 @@ class GoogleAPI {
       var data = response.result;
       var studentAssignmentFolderName = data.classList[classID].name + "_" + assignmentName + "_" + s["lastName"] + "_" + s["firstName"];
       var studentAssignmentFileName = assignmentName + "_" + s["lastName"] + "_" + s["firstName"] + ".arr";
-      var assignmentInfo = {
-        id: data.nextAssignmentID,
-        name: assignmentName,
-        class: classID,
-        docID: 'None',
-        opened: [], //list of studentIDs
-        submitted: [], //list of studentIDs
-        filename: studentAssignmentFileName,
-        student: s.id
-      };
       return this.createFolder(grandParentID, studentAssignmentFolderName).then((parent) => {
         var parentID = parent["result"]["id"];
         return this.createSharePermission(parentID, s).then(() => {
-          return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((studentAssignment) => {
-            var studentAssignmentID = studentAssignment["result"]["id"];
-            assignmentInfo.docID = studentAssignmentID;
-            data.classList[classID].assignments.push(data.studentAssignmentID);
-            data.nextAssignmentID+=1;
-            return this.savePyretData(data);
-          });
+          return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName);
         });
       });
     });
