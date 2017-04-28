@@ -405,7 +405,7 @@ class GoogleAPI {
     });
   }
 
-  getAssingmentsInClass = (classID) => {
+  getAssignmentsInClass = (classID) => {
     return this.getClass(classID).then((classInfo) => {
       var assignmentIDs = classInfo["assignments"];
       return this.getAllAssignments().then((assignmentInfo) => {
@@ -453,8 +453,9 @@ class GoogleAPI {
         opened: [], //list of studentIDs
         submitted: [], //list of studentIDs
       };
-      data.nextAssignmentID+=1;
-      data.assignmentList.push(assignmentInfo);
+      data.assignmentList[data.nextAssignmentID] = assignmentInfo;
+      data.classList[classID].assignments.push(data.nextAssignmentID);
+      data.nextAssignmentID += 1;
       return this.savePyretData(data).then(() => {
         return this.getAppFolderID("pyret").then((greatGrandParent) => {
           var greatGrandParentID = JSON.parse(greatGrandParent.body).files[0].id;

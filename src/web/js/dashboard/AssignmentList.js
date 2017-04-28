@@ -10,7 +10,8 @@ class AssignmentList extends Component {
       addingAssignment: false,
       newAssignmentName: '',
       selectedTemplateFileID: false,
-      selectedTemplateFileName: false
+      selectedTemplateFileName: false,
+      activeClass: props.activeClass
     };
   }
 
@@ -26,19 +27,14 @@ class AssignmentList extends Component {
     event.preventDefault();
     this.props.snackBar('Assignment Added. Please allow a few seconds for changes to appear.');
     this.setState({addingAssignment: false});
-    // this.props.api.addAssignment({
-    //   name: this.state.newAssignmentName,
-    // }).then((resp) => {
-    //   const assignmentID = resp.id;
-    //   this.props.api.addExistingAssignmentToClass(assignmentID, this.props.activeClass).then(() => {
-        this.setState({
-          newAssignmentName: '',
-          selectedTemplateFileID: false,
-          selectedTemplateFileName: false
-        });
-    //     this.props.refreshParent();
-    //   });
-    // });
+    this.props.api.createAndDistributeAssignment(this.state.activeClass, this.state.newAssignmentName, this.state.selectedTemplateFileID).then((resp) => {
+      this.setState({
+        newAssignmentName: '',
+        selectedTemplateFileID: false,
+        selectedTemplateFileName: false
+      });
+      this.props.refreshParent();
+    });
   }
 
   handleClickSelectTemplateFile = (event) => {
