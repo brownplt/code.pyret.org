@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
-import { FILE_EXT, APP_NAME } from './config.js';
 import File from './File';
 import ReactDOM from 'react-dom';
 import '../../css/dashboard/index.css';
@@ -53,7 +52,7 @@ class StudentDashboard extends Component {
   }
 
   updateRecentFiles = () => {
-    this.api.getRecentFilesByExt(FILE_EXT).then((resp) => {
+    this.api.getRecentFilesByExt('arr').then((resp) => {
       let files = resp.result.files;
       if (files.length == 0) {
         files = [{name: 'No Recent Files :(', id: null}]
@@ -69,12 +68,12 @@ class StudentDashboard extends Component {
   handleCreateNewFile = (event) => {
     event.preventDefault();
     if (this.state.newFileName) {
-      this.api.getAppFolderID(APP_NAME).then((resp) => {
+      this.api.getAppFolderID().then((resp) => {
         var files = resp.result.files;
 
         // App Folder did not yet exist
         if (files.length === 0) {
-          this.api.createAppFolder(APP_NAME).then((resp) => {
+          this.api.createAppFolder().then((resp) => {
             return this.api.createNewFile(resp.result.id, this.state.newFileName + '.arr').then((resp)=> {
               window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
             });

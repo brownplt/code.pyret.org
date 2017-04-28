@@ -23,10 +23,10 @@ class GoogleAPI {
     });
   }
 
-  createAppFolder = (appName) => {
+  createAppFolder = () => {
     return window.gapi.client.drive.files.create({
       resource: {
-        'name' : appName,
+        'name' : 'pyret',
         'mimeType' : 'application/vnd.google-apps.folder'
       }
     });
@@ -39,10 +39,10 @@ class GoogleAPI {
     });
   }
 
-  // ACTUAL FUNCTION: lists all files in appDataFolder with name = appName
-  getAppFolderID = (appName) => {
+  // ACTUAL FUNCTION: lists all files in appDataFolder with name = 'pyret'
+  getAppFolderID = () => {
     return window.gapi.client.drive.files.list({
-      q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
+      q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="pyret"'
     });
   }
 
@@ -440,7 +440,7 @@ class GoogleAPI {
       'fileId': sourceFileID,
       'parents' : [ parentID ],
       'name': destinationFileName,
-    }); 
+    });
   }
 
   // function that initiates the create and distribute assignment process
@@ -456,7 +456,7 @@ class GoogleAPI {
       });
     });
   }
-  
+
   // function to create the folder for teacher to contain all the assignments
   createAssignmentFolder = (greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID) => {
     console.log("Entered createAssignmentFolder function");
@@ -478,12 +478,12 @@ class GoogleAPI {
         }
         for (let s of studentList) {
           console.log("student folder and assignment creation for : " + JSON.stringify(s));
-          this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID); 
+          this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID);
         }
       });
     });
   }
-  
+
   // function to create an individual folder and assignment copy for each student in class
   createStudentFolderAndAssignment = (s, grandParentID, assignmentName, assignmentFileID, classID) => {
     return this.getPyretData().then((response) => {
