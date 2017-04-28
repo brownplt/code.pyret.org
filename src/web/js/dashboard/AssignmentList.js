@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Assignment from './Assignment.js';
-import { Button, Textfield, Card, CardTitle, CardText } from 'react-mdl';
+import { Button, Textfield, Card, CardTitle, CardText, Spinner } from 'react-mdl';
 
 class AssignmentList extends Component {
   constructor(props) {
@@ -58,51 +58,54 @@ class AssignmentList extends Component {
     });
     return (
       <div>
-        {assignments}
-        <Button style={{'margin': '8pt 8pt 16pt 8pt', 'display': 'block'}} raised ripple colored
-          onClick={this.handleClickAddAssignment}
-        >
-          {this.state.addingAssignment ? 'Cancel' : 'Add Assignment'}
-        </Button>
-        <Card
-          className={this.state.addingAssignment ? '': 'hidden'}
-          onClick={this.handleFileClick}
-          shadow={1}
-          style={{
-            'display': 'block',
-            'margin': '8pt',
-            'background': '#f4f6ff',
-            'minHeight': '0px',
-            'verticalAlign': 'middle'
-          }}
-        >
-          <CardTitle>New Assignment</CardTitle>
-          <CardText>
-            <form onSubmit={this.handleSubmitAddAssignment}>
-              <Textfield
-                id='newAssignmentName'
-                value={this.state.newAssignmentName}
-                onChange={this.handleChange}
-                label="Assignment Name"
-                floatingLabel
-                style={{width: '100%'}}
-              />
-              <div style={{'margin': '0 0 32pt 0'}}>
+        <Spinner className={this.props.updating ? '' : 'hidden'} singleColor style={{'margin': '16px 40px'}}/>
+        <div className={this.props.updating ? 'hidden' : ''}>
+          {assignments}
+          <Button style={{'margin': '8pt 8pt 16pt 8pt', 'display': 'block'}} raised ripple colored
+            onClick={this.handleClickAddAssignment}
+          >
+            {this.state.addingAssignment ? 'Cancel' : 'Add Assignment'}
+          </Button>
+          <Card
+            className={this.state.addingAssignment ? '': 'hidden'}
+            onClick={this.handleFileClick}
+            shadow={1}
+            style={{
+              'display': 'block',
+              'margin': '8pt',
+              'background': '#f4f6ff',
+              'minHeight': '0px',
+              'verticalAlign': 'middle'
+            }}
+          >
+            <CardTitle>New Assignment</CardTitle>
+            <CardText>
+              <form onSubmit={this.handleSubmitAddAssignment}>
                 <Textfield
-                  label={this.state.selectedTemplateFileID ? 'File Name' : 'No template file currently selected'}
-                  value={this.state.selectedTemplateFileID ? (this.state.selectedTemplateFileName || '[Untitled]') : ''}
+                  id='newAssignmentName'
+                  value={this.state.newAssignmentName}
+                  onChange={this.handleChange}
+                  label="Assignment Name"
                   floatingLabel
                   style={{width: '100%'}}
-                  disabled
                 />
-                <Button raised ripple colored onClick={this.handleClickSelectTemplateFile}>
-                  {this.state.selectedTemplateFileID ? 'Change Template File' : 'Select Template File'}
-                </Button>
-              </div>
-              <Button type='submit' style={{'margin': '8pt 0'}} raised ripple colored>Create New Assignment</Button>
-            </form>
-          </CardText>
-        </Card>
+                <div style={{'margin': '0 0 32pt 0'}}>
+                  <Textfield
+                    label={this.state.selectedTemplateFileID ? 'File Name' : 'No template file currently selected'}
+                    value={this.state.selectedTemplateFileID ? (this.state.selectedTemplateFileName || '[Untitled]') : ''}
+                    floatingLabel
+                    style={{width: '100%'}}
+                    disabled
+                  />
+                  <Button raised ripple colored onClick={this.handleClickSelectTemplateFile}>
+                    {this.state.selectedTemplateFileID ? 'Change Template File' : 'Select Template File'}
+                  </Button>
+                </div>
+                <Button type='submit' style={{'margin': '8pt 0'}} raised ripple colored>Create New Assignment</Button>
+              </form>
+            </CardText>
+          </Card>
+        </div>
       </div>
     );
   }

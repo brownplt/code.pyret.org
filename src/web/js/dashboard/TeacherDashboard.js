@@ -26,6 +26,7 @@ class TeacherDashboard extends Component {
       assignmentsInClass: [],
       studentSpinnerActive: true,
       classSpinnerActive: true,
+      assignmentSpinnerActive: true,
       isSnackbarActive: false,
       snackbarText: ''
     };
@@ -42,6 +43,9 @@ class TeacherDashboard extends Component {
     }
     if (this.state.classes != prevState.classes) {
       this.setState({classSpinnerActive: false});
+    }
+    if (this.state.assignmentsInClass != prevState.assignmentsInClass) {
+      this.setState({assignmentSpinnerActive: false});
     }
   }
 
@@ -129,6 +133,7 @@ class TeacherDashboard extends Component {
       if (activeTab == 1) {
         return (
           <AssignmentList
+            updating={this.state.assignmentSpinnerActive}
             assignments={this.state.assignmentsInClass}
             api={this.api}
             snackBar={this.setSnackBarMessage}
