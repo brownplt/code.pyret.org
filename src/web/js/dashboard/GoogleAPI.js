@@ -127,7 +127,7 @@ class GoogleAPI {
   }
 
   getPyretDataFileID = () => {
-    return this.getAppFolderID("pyret").then((folderID) => {
+    return this.getAppFolderID().then((folderID) => {
       // extract folder id from response. We can use files[0] because the precondition
       // is that we have a pyret folder
       folderID = folderID.result.files[0].id;
