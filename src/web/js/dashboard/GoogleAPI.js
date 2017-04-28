@@ -504,25 +504,39 @@ class GoogleAPI {
       };
       return this.createFolder(grandParentID, studentAssignmentFolderName).then((parent) => {
         var parentID = parent["result"]["id"];
-        return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((studentAssignment) => {
-          var studentAssignmentID = studentAssignment["result"]["id"];
-          assignmentInfo.docID = studentAssignmentID;
-          data.classList[classID].assignments.push(data.studentAssignmentID);
-          data.nextAssignmentID+=1;
-          return this.savePyretData(data);
+        return this.createSharePermission(parentID, s).then((result) => {
+          return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((studentAssignment) => {
+            var studentAssignmentID = studentAssignment["result"]["id"];
+            assignmentInfo.docID = studentAssignmentID;
+            data.classList[classID].assignments.push(data.studentAssignmentID);
+            data.nextAssignmentID+=1;
+            return this.savePyretData(data);
+          });
         });
       });
     });
   }
 
   //TODO: share folders with respective students - edit access via email id
-
+  createSharePermission = (parentID, s) => {
+    var studentEmail = s["emailID"];
+    console.log("studentEmail = " + studentEmail );
+    return window.gapi.client.drive.files.permissions.create({
+      resource: 
+      {
+        'fileID' : parentID,
+        'role' : 'writer',
+        'type' : 'user',
+        'emailAddress' : studentEmail
+      }
+    });
+  }
 }
 export default GoogleAPI;
 
 /**
 For testing purposes:
 Kevin - krs252@cornell.edu
-Micheal - mrm355@cornell.edu
+Michael - mrm355@cornell.edu
 Anagha - at767@cornell.edu
 */
