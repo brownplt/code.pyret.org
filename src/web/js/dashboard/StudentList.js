@@ -27,9 +27,9 @@ class StudentList extends Component {
     this.props.snackBar('Student Added. Please allow a few seconds for changes to appear.');
     this.setState({addingStudent: false});
     this.props.api.addStudent({
-      firstName: this.state.newStudentFirstName,
-      lastName: this.state.newStudentLastName,
-      email: this.state.newStudentEmail
+      firstName: this.state.newStudentFirstName.trim(),
+      lastName: this.state.newStudentLastName.trim(),
+      email: this.state.newStudentEmail.trim()
     }).then((resp) => {
       const studentID = resp.id;
       this.props.api.addExistingStudentToClass(studentID, this.props.activeClass).then(() => {

@@ -20,7 +20,7 @@ class ClassList extends Component {
     event.preventDefault();
     this.props.snackBar('Class Added. Please allow a few seconds for it to appear.');
     this.setState({addingClass: false});
-    this.props.api.addClass(this.state.newClassName).then(() => {
+    this.props.api.addClass(this.state.newClassName.trim()).then(() => {
       this.setState({newClassName: ''});
       this.props.refreshParent();
     });

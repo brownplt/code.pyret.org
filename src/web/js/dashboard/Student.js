@@ -33,9 +33,9 @@ class Student extends Component {
     this.setState({editing: false});
     this.api.updateStudent(this.state.id, {
       id: this.state.id,
-      firstName: this.state.firstName,
-      lastName: this.state.lastName,
-      email: this.state.email
+      firstName: this.state.firstName.trim(),
+      lastName: this.state.lastName.trim(),
+      email: this.state.email.trim()
     }).then(this.props.refreshParent);
   }
 

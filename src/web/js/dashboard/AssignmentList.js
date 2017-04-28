@@ -27,7 +27,7 @@ class AssignmentList extends Component {
     event.preventDefault();
     this.props.snackBar('Assignment Added. Please allow a few seconds for changes to appear.');
     this.setState({addingAssignment: false});
-    this.props.api.createAndDistributeAssignment(this.state.activeClass, this.state.newAssignmentName, this.state.selectedTemplateFileID).then((resp) => {
+    this.props.api.createAndDistributeAssignment(this.state.activeClass, this.state.newAssignmentName.trim(), this.state.selectedTemplateFileID).then((resp) => {
       this.setState({
         newAssignmentName: '',
         selectedTemplateFileID: false,

@@ -31,7 +31,7 @@ class Class extends Component {
     this.setState({editing: false});
     this.props.api.updateClass(this.state.id, {
       id: this.state.id,
-      name: this.state.name,
+      name: this.state.name.trim(),
       asssignments: this.state.assignments,
       students: this.state.students
     }).then(this.props.refreshParent);

@@ -74,7 +74,7 @@ class StudentDashboard extends Component {
         // App Folder did not yet exist
         if (files.length === 0) {
           this.api.createAppFolder().then((resp) => {
-            return this.api.createNewFile(resp.result.id, this.state.newFileName + '.arr').then((resp)=> {
+            return this.api.createNewFile(resp.result.id, this.state.newFileName.trim() + '.arr').then((resp)=> {
               window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
             });
           });
@@ -82,7 +82,7 @@ class StudentDashboard extends Component {
 
         // App Folder already existed
         else {
-          return this.api.createNewFile(files[0].id, this.state.newFileName + '.arr').then((resp) => {
+          return this.api.createNewFile(files[0].id, this.state.newFileName.trim() + '.arr').then((resp) => {
             window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
           });
         }
