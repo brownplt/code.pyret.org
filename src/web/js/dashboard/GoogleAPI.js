@@ -377,7 +377,7 @@ class GoogleAPI {
         var studentIndex = data.classList[classID].students.indexOf(studentID);
         var classIndex = data.studentList[studentID].classes.indexOf(classID);
         data.classList[classID].students.splice(studentIndex, 1);
-        data.studentList[studentID].classes.splice(classID, 1);
+        data.studentList[studentID].classes.splice(classIndex, 1);
       }
       else {
         //TODO: not sure what's the best way to throw an error here.
@@ -427,9 +427,7 @@ class GoogleAPI {
       resource: {
         'name' : folderName,
         'parents' : [parentID],
-        'mimeType' : 'application/vnd.google-apps.folder',
-        'shared' : 1,
-
+        'mimeType' : 'application/vnd.google-apps.folder'
       }
     });
   }
@@ -449,9 +447,7 @@ class GoogleAPI {
       var data = response.result;
       return this.getAppFolderID("pyret").then((greatGrandParent) => {
         var greatGrandParentID = JSON.parse(greatGrandParent.body).files[0].id;
-        console.log("greatGrandParentID = " + greatGrandParentID);
         var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
-        console.log("assignmentFolderName = " + assignmentFolderName);
         return this.createAssignmentFolder(greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID);
       });
     });
@@ -459,28 +455,18 @@ class GoogleAPI {
 
   // function to create the folder for teacher to contain all the assignments
   createAssignmentFolder = (greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID) => {
-    console.log("Entered createAssignmentFolder function");
     return this.createFolder(greatGrandParentID, assignmentFolderName).then((grandParent) => {
       var grandParentID = grandParent["result"]["id"];
-      console.log("grandParentID = " + grandParentID);
       return this.createAssignmentsForClass(classID, grandParentID, assignmentName, assignmentFileID);
     });
   }
 
   // function to obtain students in class and initiate the process of creating individual assignment folder with assignment copy
   createAssignmentsForClass = (classID, grandParentID, assignmentName, assignmentFileID) => {
-    console.log("Entered createAssignmentsForClass function");
-    return this.getPyretData().then((response) => {
-      var data = response.result;
-      return this.getStudentsInClass(classID).then((studentList) => {
-        for (let s of studentList) {
-          console.log("student is : " + JSON.stringify(s));
-        }
-        for (let s of studentList) {
-          console.log("student folder and assignment creation for : " + JSON.stringify(s));
-          this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID);
-        }
-      });
+    return this.getStudentsInClass(classID).then((studentList) => {
+      for (let s of studentList) {
+        this.createStudentFolderAndAssignment(s, grandParentID, assignmentName, assignmentFileID, classID);
+      }
     });
   }
 
@@ -489,9 +475,7 @@ class GoogleAPI {
     return this.getPyretData().then((response) => {
       var data = response.result;
       var studentAssignmentFolderName = data.classList[classID].name + "_" + assignmentName + "_" + s["lastName"] + "_" + s["firstName"];
-      console.log("studentAssignmentFolderName = " + studentAssignmentFolderName);
-      var studentAssignmentFileName = assignmentName + "_" + s["lastName"] + "_" + s["firstName"];
-      console.log("studentAssignmentFileName = " + studentAssignmentFileName);
+      var studentAssignmentFileName = assignmentName + "_" + s["lastName"] + "_" + s["firstName"] + ".arr";
       var assignmentInfo = {
         id: data.nextAssignmentID,
         name: assignmentName,
@@ -504,7 +488,7 @@ class GoogleAPI {
       };
       return this.createFolder(grandParentID, studentAssignmentFolderName).then((parent) => {
         var parentID = parent["result"]["id"];
-        return this.createSharePermission(parentID, s).then((result) => {
+        return this.createSharePermission(parentID, s).then(() => {
           return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((studentAssignment) => {
             var studentAssignmentID = studentAssignment["result"]["id"];
             assignmentInfo.docID = studentAssignmentID;
@@ -517,18 +501,14 @@ class GoogleAPI {
     });
   }
 
-  //TODO: share folders with respective students - edit access via email id
   createSharePermission = (parentID, s) => {
-    var studentEmail = s["emailID"];
-    console.log("studentEmail = " + studentEmail );
-    return window.gapi.client.drive.files.permissions.create({
-      resource: 
-      {
-        'fileID' : parentID,
-        'role' : 'writer',
-        'type' : 'user',
-        'emailAddress' : studentEmail
-      }
+    var studentEmail = s["email"];
+    return window.gapi.client.drive.permissions.create({
+      'fileId' : parentID,
+      'sendNotificationEmail' : true,
+      'type' : 'user',
+      'role' : 'writer',
+      'emailAddress' : studentEmail
     });
   }
 }
