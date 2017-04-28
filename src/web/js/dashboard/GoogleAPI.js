@@ -427,21 +427,20 @@ class GoogleAPI {
       resource: {
         'name' : folderName,
         'parents' : [parentID],
-        'mimeType' : 'application/vnd.google-apps.folder'
+        'mimeType' : 'application/vnd.google-apps.folder',
+        'shared' : 1,
+
       }
     });
   }
 
-  // function to copy files
+// function to copy files
   copyFile = (parentID, sourceFileID, destinationFileName) => {
-    console.log("Reached copyFile function");
     return window.gapi.client.drive.files.copy({
       'fileId': sourceFileID,
-      'body' : {
-        'parents' : [parentID],
-        'title': destinationFileName,
-      }
-    });
+      'parents' : [ parentID ],
+      'name': destinationFileName,
+    }); 
   }
 
   // function that initiates the create and distribute assignment process
@@ -505,13 +504,10 @@ class GoogleAPI {
       };
       return this.createFolder(grandParentID, studentAssignmentFolderName).then((parent) => {
         var parentID = parent["result"]["id"];
-        console.log("parentID = " + parentID);
-        return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((newAssignment) => {
-          console.log("Called copyFile function");
-          console.log("newAssignment = " + newAssignment);
-          console.log("newAssignment stringified = " + JSON.stringify(newAssignment));
-          assignmentInfo.docID = newAssignment.id;
-          data.classList[classID].assignments.push(data.nextAssignmentID);
+        return this.copyFile(parentID, assignmentFileID, studentAssignmentFileName).then((studentAssignment) => {
+          var studentAssignmentID = studentAssignment["result"]["id"];
+          assignmentInfo.docID = studentAssignmentID;
+          data.classList[classID].assignments.push(data.studentAssignmentID);
           data.nextAssignmentID+=1;
           return this.savePyretData(data);
         });
