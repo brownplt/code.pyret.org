@@ -13,8 +13,8 @@ function makeAuth(config) {
                       "https://www.googleapis.com/auth/drive",
                       "https://www.googleapis.com/auth/drive.file",
                       "https://www.googleapis.com/auth/drive.install",
-                      "https://www.googleapis.com/auth/drive.photos.readonly",
-                      "https://www.googleapis.com/auth/photos"];
+                      "https://www.googleapis.com/auth/photos",
+                      "https://www.googleapis.com/auth/drive.appdata"];
   var oauth2Client =
       new OAuth2(
           config.google.clientId,

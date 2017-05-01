@@ -23,6 +23,16 @@ class GoogleAPI {
     });
   }
 
+  removeAllAppDataFiles = () => {
+     return window.gapi.client.drive.files.list({
+       spaces: 'appDataFolder'
+     }).then(resp => {
+       resp.result.files.forEach(file => {
+         window.gapi.client.drive.files.delete({'fileId': file.id}).then(console.log);
+       });
+     });
+   }
+
   createAppFolder = () => {
     return window.gapi.client.drive.files.create({
       resource: {
@@ -68,9 +78,9 @@ class GoogleAPI {
     });
   }
 
-  getAppDataFileID = (appDataFilename) => {
+  getAppDataFileID = () => {
     return window.gapi.client.drive.files.list({
-      q: 'not trashed and name="' + appDataFilename + '"',
+      q: 'not trashed and name="pyretinfo.json"',
       spaces: 'appDataFolder'
     });
   }
@@ -81,10 +91,10 @@ class GoogleAPI {
     });
   }
 
-  createAppDataFile = (appDataFilename) => {
+  createAppDataFile = () => {
     return window.gapi.client.drive.files.create({
       resource: {
-        name: appDataFilename,
+        name: 'pyretinfo.json',
         parents: ['appDataFolder']
       }
     });
@@ -126,25 +136,16 @@ class GoogleAPI {
     });
   }
 
-  getPyretDataFileID = () => {
-    return this.getAppFolderID().then((folderID) => {
-      // extract folder id from response. We can use files[0] because the precondition
-      // is that we have a pyret folder
-      folderID = folderID.result.files[0].id;
-      return this.getFileInFolder("pyretinfo.json", folderID);
-    });
-  }
-
   //keeping this around to keep calls clean in getters/setters
   getPyretData = () => {
-    return this.getPyretDataFileID().then((response) => {
+    return this.getAppDataFileID().then((response) => {
       var fileID = response.result.files[0].id;
       return this.getAppDataFileContent(fileID);
     });
   }
 
   savePyretData = (newData) => {
-    return this.getPyretDataFileID().then((response) => {
+    return this.getAppDataFileID().then((response) => {
       var fileID = response.result.files[0].id;
       return this.saveAppData(fileID, newData);
     });
@@ -155,13 +156,9 @@ class GoogleAPI {
   */
   initializePyretData = () => {
     // if folder doesn't exist, create it
-    return this.getAppFolderID("pyret").then((response) => {
-      if (response.result.files.length === 0) {
-        return this.createAppFolder("pyret").then((folderResponse) => {
-          // there was no folder, so create the file
-          var newFolderId = folderResponse.result.id;
-          return this.createNewFile(newFolderId, "pyretinfo.json");
-        }).then((fileResponse) => {
+    return this.getAppDataFileID().then((response) => {
+      if (response.result.files.length < 1) {
+        return this.createAppDataFile().then((fileResponse) => {
           var newFileId = fileResponse.result.id;
           var baseData = {
             nextClassID: 0,
