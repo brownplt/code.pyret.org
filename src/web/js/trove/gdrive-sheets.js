@@ -6,7 +6,17 @@
   nativeRequires: [
     "pyret-base/js/type-util"
   ],
-  provides: {},
+  provides: {
+    values: {
+      "create-spreadsheet": "tany",
+      "my-spreadsheet": "tany",
+      "load-spreadsheet": "tany",
+      "open-sheet": "tany",
+      "open-sheet-by-index": "tany"
+    },
+    aliases: {},
+    datatypes: {}
+  },
   theModule: function(runtime, namespace, uri, table, list, t){
     var List = function(thing) { 
       return t.tyapp(t.libName("lists", "List"), [thing]);
@@ -561,21 +571,19 @@
         return api.loadSpreadsheetById(id);
       });
     }
-
-    return O({
-      'provide-plus-types': O({
-        'types': {
-        },
-        'values': O({
-          'create-spreadsheet': F(createSpreadsheet),
-          'my-spreadsheet': F(loadLocalSheet),
-          'load-spreadsheet': F(loadSheetById),
-          // Drop the `-by-name` since this is what people will
-          // probably want ~90% of the time
-          'open-sheet': F(spreadsheetSheetByName),
-          'open-sheet-by-index': F(spreadsheetSheetByIndex)
-        })}),
-      'answer': runtime.nothing
-    });
+    
+    return runtime.makeModuleReturn(
+      {
+        'create-spreadsheet': F(createSpreadsheet, "create-spreadsheet"),
+        'my-spreadsheet': F(loadLocalSheet, "my-spreadsheet"),
+        'load-spreadsheet': F(loadSheetById, "load-spreadsheet"),
+        // Drop the `-by-name` since this is what people will
+        // probably want ~90% of the time
+        'open-sheet': F(spreadsheetSheetByName, "open-sheet"),
+        'open-sheet-by-index': F(spreadsheetSheetByIndex, "open-sheet-by-index")
+      },
+      {}
+    );
   }
 })
+
