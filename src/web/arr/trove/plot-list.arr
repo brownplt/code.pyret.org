@@ -1,3 +1,4 @@
+#|
 provide  {
   line-plot: line-plot,
   is-line-plot: is-line-plot,
@@ -22,6 +23,9 @@ provide  {
   dot-chart: dot-chart,
   box-chart: box-chart,
 } end
+|#
+
+provide *
 
 provide-types {
   Plot :: Plot,
