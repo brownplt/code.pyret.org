@@ -381,7 +381,7 @@ where:
     end) does-not-raise
 end
 
-fun render-line(title :: String, tab :: Table) -> Image:
+fun render-line(title :: String, tab :: Table) -> IM.Image:
   render-multi-plot(
     [list: line-plot(tab, default-options)],
     _.{title: title})
