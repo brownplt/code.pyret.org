@@ -263,12 +263,9 @@
 
     var canonicalizeAngle = function(angle) {
       angle = checkReal(angle);
-      while (jsnums.lessThan(angle, 0)) {
-        angle += 360;
-      }
-      while (jsnums.greaterThanOrEqual(angle, 360)) {
-        angle -= 360;
-      }
+      angle = jsnums.remainder(angle, 360);
+      if (jsnums.lessThan(angle, 0))
+        angle = jsnums.add(angle, 360);
       return angle;
     };
 
