@@ -153,6 +153,48 @@ class GoogleAPI {
 
   /**
   Intended to be used on login. If a pyret data file does not exist, it is created.
+  
+  JSON format for saving pyret data:
+  
+  pyretinfo.json{
+    //unique IDs for classes, students, and assignments.
+    //these are just incremented each time we make an assignment
+    nextClassID: int,
+    nextStudentID: int,
+    nextAssignmentID: int,
+    classList: {
+      //list of class ID's mapped to class info
+      id (int) : {
+        id: int
+        name: string
+        students: [int array] //ids of students in classes
+        assignments: [int array] //ids of assignments
+      } 
+      ... 
+    },
+    studentList: {
+      //list of student ID's mapped to student info
+      id (int) : {
+        id: int
+        firstName: string
+        lastName: string
+        classes: [int array] //ids of classes student is in
+      }
+      ...
+    },
+    assignmentList: {
+      //list of assignment ids mapped to assignment info
+      id (int) : {
+        id: int
+        name: string
+        class: int
+        docID: string //id of the template drive file
+        opened: int [] //student id's that have opened
+        submitted: int [] //student id's that have submitted
+      }
+      ...
+  }
+
   */
   initializePyretData = () => {
     // if folder doesn't exist, create it
