@@ -8,12 +8,16 @@ import 'react-mdl/extra/material.css';
 import 'react-mdl/extra/material.js';
 import { Layout, Header, Textfield, Navigation, Content, Button, HeaderRow, HeaderTabs, Tab, Spinner } from 'react-mdl';
 
+const RECENT_FILES_TAB = 0;
+const TEMPLATE_FILES_TAB = 1;
+const NEW_FILE_TAB = 2;
+
 class StudentDashboard extends Component {
   constructor() {
     super();
 
     this.state = {
-      activeTab: 0,
+      activeTab: RECENT_FILES_TAB,
       signedIn: false,
       recentFiles: [],
       newFileName: '',
@@ -34,7 +38,7 @@ class StudentDashboard extends Component {
   }
 
   componentDidUpdate = (prevProps, prevState) => {
-    if (this.state.recentFiles != prevState.recentFiles) {
+    if (this.state.recentFiles !== prevState.recentFiles) {
       this.setState({fileSpinnerActive: false});
     }
   }
@@ -55,7 +59,7 @@ class StudentDashboard extends Component {
     this.api.getRecentFilesByExt('arr').then((resp) => {
       let files = resp.result.files;
       if (files.length == 0) {
-        files = [{name: 'No Recent Files :(', id: null}]
+        files = [{name: 'No Recent Files :(', id: null}];
       }
       this.setState({recentFiles: files});
     });
@@ -104,7 +108,7 @@ class StudentDashboard extends Component {
     const getContentForTab = () => {
       const activeTab = this.state.activeTab;
       // Recent Files
-      if (activeTab == 0) {
+      if (activeTab == RECENT_FILES_TAB) {
         return (
           <div>
             <Button
@@ -119,18 +123,18 @@ class StudentDashboard extends Component {
               {this.state.recentFiles.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
             </div>
           </div>
-        )
+        );
       }
       // Template Files
-      if (activeTab == 1) {
+      if (activeTab == TEMPLATE_FILES_TAB) {
         return (
           <div className='file-list cf'>
             {this.state.templateFiles.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
           </div>
-        )
+        );
       }
       // New file
-      if (activeTab == 2) {
+      if (activeTab == NEW_FILE_TAB) {
         return (
           <form onSubmit={this.handleCreateNewFile}>
             <Textfield
@@ -143,9 +147,9 @@ class StudentDashboard extends Component {
             <span className='arr-ext'>.arr</span>
             <Button raised colored ripple>Create New File</Button>
           </form>
-        )
+        );
       }
-    }
+    };
     return (
       <Layout fixedHeader>
 

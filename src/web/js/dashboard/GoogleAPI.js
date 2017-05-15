@@ -24,14 +24,14 @@ class GoogleAPI {
   }
 
   removeAllAppDataFiles = () => {
-     return window.gapi.client.drive.files.list({
-       spaces: 'appDataFolder'
-     }).then(resp => {
-       resp.result.files.forEach(file => {
-         window.gapi.client.drive.files.delete({'fileId': file.id}).then(console.log);
-       });
-     });
-   }
+    return window.gapi.client.drive.files.list({
+      spaces: 'appDataFolder'
+    }).then(resp => {
+      resp.result.files.forEach(file => {
+        window.gapi.client.drive.files.delete({'fileId': file.id}).then(console.log);
+      });
+    });
+  }
 
   createAppFolder = () => {
     return window.gapi.client.drive.files.create({
@@ -292,7 +292,6 @@ class GoogleAPI {
   removeStudent = (studentID) => {
     //needs to remove student from all classes they are in
     return this.getPyretData().then((response) => {
-      //I'm pretty sure this doesn't work, but it was apparently working for Kevin...
       var data = response.result;
       if (studentID in data.studentList){
         for (var key in data.classList){
@@ -454,7 +453,7 @@ class GoogleAPI {
       data.classList[classID].assignments.push(data.nextAssignmentID);
       data.nextAssignmentID += 1;
       return this.savePyretData(data).then(() => {
-        return this.getAppFolderID("pyret").then((greatGrandParent) => {
+        return this.getAppFolderID().then((greatGrandParent) => {
           var greatGrandParentID = JSON.parse(greatGrandParent.body).files[0].id;
           var assignmentFolderName = data.classList[classID].name + "_Assignment_" + assignmentName;
           return this.createAssignmentFolder(greatGrandParentID, assignmentFolderName, assignmentName, classID, assignmentFileID);

@@ -12,6 +12,9 @@ import ClassList from './ClassList';
 import StudentList from './StudentList';
 import AssignmentList from './AssignmentList';
 
+const ROSTER_TAB = 0;
+const ASSIGNMENTS_TAB = 1;
+
 class TeacherDashboard extends Component {
   constructor() {
     super();
@@ -19,7 +22,7 @@ class TeacherDashboard extends Component {
     this.state = {
       signedIn: false,
       classes: {},
-      activeTab: 0,
+      activeTab: ROSTER_TAB,
       activeClassId: false,
       activeClass: '',
       studentsInClass: [],
@@ -53,7 +56,7 @@ class TeacherDashboard extends Component {
     this.setState({
       isSnackbarActive: true,
       snackbarText: message
-    })
+    });
   }
 
   handleTimeoutSnackbar = () =>{
@@ -91,17 +94,17 @@ class TeacherDashboard extends Component {
         activeClass: Object.keys(classes)[0] || false
       }, () => {
         this.refreshInnerState();
-      })
+      });
     });
   }
 
   refreshInnerState = () => {
     if (this.state.activeClass) {
       this.api.getStudentsInClass(this.state.activeClass).then(resp => {
-        this.setState({studentsInClass: resp})
+        this.setState({studentsInClass: resp});
       });
       this.api.getAssignmentsInClass(this.state.activeClass).then(resp => {
-        this.setState({assignmentsInClass: resp})
+        this.setState({assignmentsInClass: resp});
       });
     }
   }
@@ -117,7 +120,7 @@ class TeacherDashboard extends Component {
     const getContentForTab = () => {
       const activeTab = this.state.activeTab;
       // Roster
-      if (activeTab == 0) {
+      if (activeTab == ROSTER_TAB) {
         return (
           <StudentList
             updating={this.state.studentSpinnerActive}
@@ -127,10 +130,10 @@ class TeacherDashboard extends Component {
             refreshParent={this.refreshState}
             snackBar={this.setSnackBarMessage}
           />
-        )
+        );
       }
       // Assignments
-      if (activeTab == 1) {
+      if (activeTab == ASSIGNMENTS_TAB) {
         return (
           <AssignmentList
             updating={this.state.assignmentSpinnerActive}
@@ -140,9 +143,9 @@ class TeacherDashboard extends Component {
             activeClass={this.state.activeClass}
             refreshParent={this.refreshState}
           />
-        )
+        );
       }
-    }
+    };
 
     return (
       <Layout fixedHeader fixedDrawer>
