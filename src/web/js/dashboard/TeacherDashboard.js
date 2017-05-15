@@ -37,6 +37,9 @@ class TeacherDashboard extends Component {
     this.api = new GoogleAPI();
     this.api.load().then(() => {
       this.handlePageLoad();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not load Google API (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -70,6 +73,9 @@ class TeacherDashboard extends Component {
   handleSignInClick = () => {
     this.api.signIn().then(() => {
       this.handlePageLoad();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not sign in (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -82,6 +88,9 @@ class TeacherDashboard extends Component {
     this.setState({signedIn: true});
     this.api.initializePyretData().then(() => {
       this.refreshState();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not initialize Pyret folder on Google Drive (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -95,6 +104,9 @@ class TeacherDashboard extends Component {
       }, () => {
         this.refreshInnerState();
       });
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not retrieve classes (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -102,9 +114,15 @@ class TeacherDashboard extends Component {
     if (this.state.activeClass) {
       this.api.getStudentsInClass(this.state.activeClass).then(resp => {
         this.setState({studentsInClass: resp});
+      }).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not retrieve roster (possibly network error). Try again in a few moments.');
       });
       this.api.getAssignmentsInClass(this.state.activeClass).then(resp => {
         this.setState({assignmentsInClass: resp});
+      }).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not retrieve assignments (possibly network error). Try again in a few moments.');
       });
     }
   }

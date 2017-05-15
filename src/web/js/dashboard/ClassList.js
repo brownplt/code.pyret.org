@@ -23,6 +23,9 @@ class ClassList extends Component {
     this.props.api.addClass(this.state.newClassName.trim()).then(() => {
       this.setState({newClassName: ''});
       this.props.refreshParent();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not add class (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -36,7 +39,7 @@ class ClassList extends Component {
                 refreshParent={this.props.refreshParent}
                 activeClassId={this.props.activeClassId}
                 snackBar={this.props.snackBar}
-              />
+              />;
     });
     return (
       <div>

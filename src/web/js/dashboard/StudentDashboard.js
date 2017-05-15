@@ -34,6 +34,9 @@ class StudentDashboard extends Component {
     this.api.load().then(() => {
       this.setState({signedIn: true});
       this.updateRecentFiles();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not load Google API (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -47,6 +50,9 @@ class StudentDashboard extends Component {
     this.api.signIn().then(() => {
       this.setState({signedIn: true});
       this.updateRecentFiles();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not sign in (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -62,6 +68,9 @@ class StudentDashboard extends Component {
         files = [{name: 'No Recent Files :(', id: null}];
       }
       this.setState({recentFiles: files});
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not get recent files (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -80,6 +89,9 @@ class StudentDashboard extends Component {
           this.api.createAppFolder().then((resp) => {
             return this.api.createNewFile(resp.result.id, this.state.newFileName.trim() + '.arr').then((resp)=> {
               window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
+            }).catch(e => {
+              console.log(e);
+              this.props.snackBar('Could not create new file (possibly network error). Try again in a few moments.');
             });
           });
         }
@@ -88,6 +100,9 @@ class StudentDashboard extends Component {
         else {
           return this.api.createNewFile(files[0].id, this.state.newFileName.trim() + '.arr').then((resp) => {
             window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
+          }).catch(e => {
+            console.log(e);
+            this.props.snackBar('Could not create new file (possibly network error). Try again in a few moments.');
           });
         }
       });

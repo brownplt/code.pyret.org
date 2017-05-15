@@ -34,6 +34,9 @@ class AssignmentList extends Component {
         selectedTemplateFileName: false
       });
       this.props.refreshParent();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not create assignment (possibly network error). Try again in a few moments.');
     });
   }
 
