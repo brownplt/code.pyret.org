@@ -20,15 +20,15 @@
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
     PP = runtime.getField(parsePyret, "values");
-    
+
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
     var shareAPI = makeShareAPI("");
-    
+
     var highlightedPositions = [];
 
     var Position = function() {
-      
+
       function cached_find(doc, positionCache, textMarker) {
         var changeGeneration = doc.changeGeneration();
         if (positionCache.has(changeGeneration))
@@ -39,7 +39,7 @@
           return pos;
         }
       }
-    
+
       function Position(doc, source, from, to, inclusiveLeft, inclusiveRight) {
         if (inclusiveLeft === undefined)
           inclusiveLeft = true;
@@ -47,51 +47,51 @@
           inclusiveRight = true;
         this.inclusiveLeft  = inclusiveLeft;
         this.inclusiveRight = inclusiveLeft;
-        
+
         this.doc = doc;
         this.source = source;
-        
+
         var textMarker = doc.markText(from, to, this.options);
         this._textMarker = textMarker;
-          
+
         var positionCache = new Map();
-          
+
         Object.defineProperty(this, 'from', {
           get: function() {
             var pos = cached_find(doc, positionCache, textMarker);
             return pos !== undefined ? pos.from : undefined;
           }
         });
-        
+
         Object.defineProperty(this, 'to', {
           get: function() {
             var pos = cached_find(doc, positionCache, textMarker);
             return pos !== undefined ? pos.to : undefined;
           }
         });
-        
+
         positionCache.set(doc.changeGeneration(), {from: from, to: to});
       }
-      
+
       Position.prototype.on = function on(type, f) {
         this._textMarker.on(type, f);
       };
-      
+
       Position.prototype.off = function on(type, f) {
         this._textMarker.off(type, f);
       };
-      
+
       Position.prototype.hint = function hint() {
-        if (this.from === undefined 
+        if (this.from === undefined
             || !(this.doc.getEditor() instanceof CodeMirror)) {
           flashMessage("This code is not in this editor.");
         } else {
           hintLoc(this);
         }
       };
-      
+
       Position.prototype.goto = function goto() {
-        if (this.from === undefined 
+        if (this.from === undefined
             || !(this.doc.getEditor() instanceof CodeMirror)) {
           flashMessage("This code is not in this editor.");
         } else {
@@ -100,13 +100,13 @@
           unhintLoc();
         }
       };
-      
+
       Position.prototype.toString = function toString() {
-        return (this.source 
-          + ":" + this.from.line + ":" + this.from.ch 
+        return (this.source
+          + ":" + this.from.line + ":" + this.from.ch
           + "-" + this.to.line   + ":" + this.to.ch);
       };
-      
+
       Position.prototype.highlight = function highlight(color) {
         if (this.from === undefined)
           return;
@@ -126,7 +126,7 @@
           this.highlighter === undefined;
         });
       };
-      
+
       Position.prototype.spotlight = function spotlight() {
         return this.doc.markText(this.from, this.to,
           { inclusiveLeft   : this.inclusiveLeft,
@@ -134,7 +134,7 @@
             shared          : false,
             className       : "spotlight" });
       };
-      
+
       Position.prototype.blink = function highlight(color) {
         if (this.highlighter !== undefined)
           this.highlighter.clear();
@@ -147,7 +147,7 @@
             className       : "highlight-blink",
             css             : "background-color:" + color + ";" });
       };
-      
+
       Position.fromPyretSrcloc = function (runtime, srcloc, loc, documents, options) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
           "builtin": function(_) {
@@ -224,12 +224,12 @@
 
     function hintLoc(position) {
       $(".warning-upper.hinting, .warning-lower.hinting").removeClass("hinting");
-      
+
       var editor = position.doc.getEditor();
-      
+
       if (!(editor instanceof CodeMirror))
         throw new Error("Source location not in editor", position);
-      
+
       var coord = editor.charCoords(
         {line: position.from.line, ch:0},
         position.source === "definitions://" ? "local" : "page");
@@ -270,7 +270,7 @@
     function unhintLoc() {
       $(".warning-upper.hinting, .warning-lower.hinting").removeClass("hinting");
     }
-    
+
     function basename(str) {
        var base = new String(str).substring(str.lastIndexOf('/') + 1);
        if(base.lastIndexOf(".") != -1)
@@ -345,7 +345,7 @@
       }
       return srcElem;
     }
-    
+
     function drawPosition(position) {
       var srcElem = $("<a>").addClass("srcloc").text(position.toString());
       if(isSharedImport(position.source)) {
@@ -379,7 +379,7 @@
 
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
-    
+
     function makeSrclocAvaliable(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
@@ -397,7 +397,7 @@
         });
       });
     }
-    
+
     function makeMaybeLocToAST(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
@@ -442,7 +442,7 @@
         });
       });
     }
-    
+
     function makeMaybeStackLoc(runtime, documents, srcloc, stack) {
       return runtime.makeFunction(function(n, userFramesOnly) {
         var probablyErrorLocation;
@@ -488,8 +488,8 @@
           viewportMargin: 1,
           scrollbarStyle: "null"});
         editor.swapDoc(new CodeMirror.Doc(
-          lines, 
-           position.doc.mode, 
+          lines,
+           position.doc.mode,
            position.from.line,
            position.doc.lineSep));
         editor.getDoc().markText(
@@ -507,9 +507,9 @@
       }
       return Snippet;
     }();
-    
+
     function renderStackTrace(runtime, documents, srcloc, pyretStack) {
-      function isSrcloc(s) { 
+      function isSrcloc(s) {
         return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
       }
       var container = $("<div>").addClass("stacktrace");
@@ -548,14 +548,14 @@
         });
       return expandable(container, "program execution trace");
     }
-    
+
     var allHighlightAnchors   = new Map();
     var allHighlightPositions = new Map();
     var colorsEmphasized      = new Set();
     var colorsHighlighted     = new Set();
     lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
     var globalColor = lastHue;
-    
+
     function highlight(color) {
       if(colorsHighlighted.has(color))
         return;
@@ -573,7 +573,7 @@
         }
       }
     }
-    
+
     function unhighlight(color) {
       if(colorsHighlighted.has(color)) {
         var anchors   = allHighlightAnchors.get(color);
@@ -587,7 +587,7 @@
         colorsHighlighted.delete(color)
       }
     }
-    
+
     function emphasize(color) {
       if(colorsEmphasized.has(color))
         return;
@@ -606,7 +606,7 @@
         }
       }
     }
-    
+
     function demphasize(color) {
       if(!colorsEmphasized.has(color))
         return;
@@ -633,7 +633,7 @@
         }
       }
     }
-    
+
     function clearEffects() {
       logger.log("clearedEffects");
       $(".highlights-active").removeClass("highlights-active");
@@ -645,7 +645,7 @@
       });
     }
 
-    function settingChanged(eagerness, colorfulness) { 
+    function settingChanged(eagerness, colorfulness) {
       logger.log("highlight_settings_changed",
         { eagerness: eagerness,
           colorfulness: colorfulness
@@ -664,16 +664,16 @@
         }
       });
     }
-    
+
     function renderErrorDisplay(documents, runtime, errorDisp, stack, context) {
       var get = runtime.getField;
       var ffi = runtime.ffi;
       installRenderers(runtime);
-      
+
       function isSrcloc(s) {
         return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
       }
-      
+
       var makePalette = function(){
         var palette = new Map();
         return function(n){
@@ -689,7 +689,7 @@
       var messageAnchors = new Map();
       var messagePositions = new Map();
       var messageHintedColors = new Set();
-         
+
       function help(errorDisp, stack) {
         return ffi.cases(get(ED, "is-ErrorDisplay"), "ErrorDisplay", errorDisp, {
           "v-sequence": function(seq) {
@@ -712,8 +712,8 @@
             var result = $("<ul>");
             return runtime.safeCall(function() {
               return runtime.eachLoop(runtime.makeFunction(function(i) {
-                return runtime.safeCall(function() { 
-                  return help(contents[i], stack); 
+                return runtime.safeCall(function() {
+                  return help(contents[i], stack);
                 }, function(helpContents) {
                   result.append($("<li>").append(helpContents));
                   return runtime.nothing;
@@ -725,11 +725,11 @@
             var result = $("<p>");
             var contents = ffi.toArray(seq);
             return runtime.safeCall(function() {
-              return runtime.eachLoop(runtime.makeFunction(function(i) { 
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
                 if (i != 0 && separator !== "") result.append(separator);
                 return runtime.safeCall(function() {
                   return help(contents[i], stack);
-                }, function(helpContents) { 
+                }, function(helpContents) {
                   result.append(helpContents);
                   return runtime.nothing;
                 }, "help(contents[i])");
@@ -741,7 +741,7 @@
             var contents = ffi.toArray(seq);
             return runtime.safeCall(function() {
               return runtime.eachLoop(runtime.makeFunction(function(i) {
-                return runtime.safeCall(function() { 
+                return runtime.safeCall(function() {
                   return help(contents[i], stack);
                 }, function(helpContents) {
                   result.append(helpContents);
@@ -857,12 +857,12 @@
           },
           "maybe-stack-loc": function(n, userFramesOnly, contentsWithLoc, contentsWithoutLoc) {
             var probablyErrorLocation;
-            if (userFramesOnly) { 
-              probablyErrorLocation = getLastUserLocation(runtime, srcloc, documents, stack, n, false); 
-            } else if (stack.length >= n) { 
-              probablyErrorLocation = runtime.makeSrcloc(stack[n]); 
+            if (userFramesOnly) {
+              probablyErrorLocation = getLastUserLocation(runtime, srcloc, documents, stack, n, false);
+            } else if (stack.length >= n) {
+              probablyErrorLocation = runtime.makeSrcloc(stack[n]);
             } else {
-              probablyErrorLocation = false; 
+              probablyErrorLocation = false;
             }
             if (probablyErrorLocation) {
               runtime.pauseStack(function(restarter) {
@@ -870,27 +870,27 @@
                   return contentsWithLoc.app(probablyErrorLocation);
                 }, function(out) {
                   if (runtime.isSuccessResult(out)) {
-                    runtime.runThunk(function() { 
+                    runtime.runThunk(function() {
                       return help(out.result, stack);
-                    }, function(helpOut) { 
-                      restarter.resume(helpOut.result); 
+                    }, function(helpOut) {
+                      restarter.resume(helpOut.result);
                     });
                   } else {
                     runtime.runThunk(function() {
                       return help(contentsWithoutLoc, stack);
-                    }, function(helpOut) { 
+                    }, function(helpOut) {
                       var result = $("<div>");
                       result.append($("<span>").addClass("error")
                                     .text("<error displaying srcloc-specific message; "
-                                          + "details logged to console; " 
+                                          + "details logged to console; "
                                           + "less-specific message displayed instead>"));
                       result.append(helpOut.result);
-                      restarter.resume(result); 
+                      restarter.resume(result);
                     });
                   }
                 });
               });
-            } else {              
+            } else {
               return help(contentsWithoutLoc, stack);
             }
           },
@@ -917,7 +917,7 @@
               else messageAnchors.get(color).push(anchor);
               if(!messagePositions.has(color))
                 messagePositions.set(color, positions);
-              else Array.prototype.push.apply(messagePositions.get(color), 
+              else Array.prototype.push.apply(messagePositions.get(color),
                                               positions);
               anchor.on("click", function (e) {
                 logger.log("highlight_anchor_click",
@@ -955,8 +955,8 @@
               if (runtime.hasField(loc, "source")
                   && documents.has(runtime.getField(loc, "source"))) {
                 return help(runtime.getField(ED, "highlight").app(
-                              contents, 
-                              runtime.ffi.makeList([loc]), 
+                              contents,
+                              runtime.ffi.makeList([loc]),
                               runtime.makeNumber(Math.floor(Math.random() * -1000 - 1))));
               } else {
                   return help(contents).
@@ -970,7 +970,7 @@
           }
         });
       }
-      
+
       return runtime.safeCall(function() {
         return help(errorDisp, stack);
       }, function(rendering) {
@@ -1115,7 +1115,7 @@
                 dialog.remove();
               }
             });
-            dialog.css({"overflow": "scroll"});
+            dialog.css({"overflow": "auto"});
             dialog.append($(originalImageDom));
             $(originalImageDom).trigger({type: 'afterAttach'});
             $('*', originalImageDom).trigger({type : 'afterAttach'});
