@@ -484,6 +484,13 @@ class GoogleAPI {
   createAndDistributeAssignment = (classID, assignmentName, assignmentFileID) => {
     return this.getPyretData().then((response) => {
       var data = response.result;
+      // prevent duplicate assignments
+      for (let existingAssignment of data.classList[classID].assignments) {
+        if (data.assignmentList[existingAssignment].name === assignmentName) {
+          throw new Error("Assignment folder already exists");
+        }
+      }
+
       var assignmentInfo = {
         id: data.nextAssignmentID,
         name: assignmentName,
