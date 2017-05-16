@@ -21,7 +21,10 @@ class Class extends Component {
   handleClickRemoveClass = () => {
     if (confirm('Remove this Class from the roster? This cannot be undone.')) {
       this.props.snackBar('Class Removed. Please allow a few seconds for changes to appear.');
-      this.props.api.removeClass(this.state.id).then(this.props.refreshParent);
+      this.props.api.removeClass(this.state.id).then(this.props.refreshParent).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not remove class (possibly network error). Try again in a few moments.');
+      });
     }
   }
 
@@ -34,7 +37,10 @@ class Class extends Component {
       name: this.state.name.trim(),
       asssignments: this.state.assignments,
       students: this.state.students
-    }).then(this.props.refreshParent);
+    }).then(this.props.refreshParent).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not update class (possibly network error). Try again in a few moments.');
+    });
   }
 
   render = () => {

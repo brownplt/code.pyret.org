@@ -12,6 +12,9 @@ import ClassList from './ClassList';
 import StudentList from './StudentList';
 import AssignmentList from './AssignmentList';
 
+const ROSTER_TAB = 0;
+const ASSIGNMENTS_TAB = 1;
+
 class TeacherDashboard extends Component {
   constructor() {
     super();
@@ -19,7 +22,7 @@ class TeacherDashboard extends Component {
     this.state = {
       signedIn: false,
       classes: {},
-      activeTab: 0,
+      activeTab: ROSTER_TAB,
       activeClassId: false,
       activeClass: '',
       studentsInClass: [],
@@ -34,6 +37,9 @@ class TeacherDashboard extends Component {
     this.api = new GoogleAPI();
     this.api.load().then(() => {
       this.handlePageLoad();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not load Google API (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -53,7 +59,7 @@ class TeacherDashboard extends Component {
     this.setState({
       isSnackbarActive: true,
       snackbarText: message
-    })
+    });
   }
 
   handleTimeoutSnackbar = () =>{
@@ -67,6 +73,9 @@ class TeacherDashboard extends Component {
   handleSignInClick = () => {
     this.api.signIn().then(() => {
       this.handlePageLoad();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not sign in (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -79,6 +88,9 @@ class TeacherDashboard extends Component {
     this.setState({signedIn: true});
     this.api.initializePyretData().then(() => {
       this.refreshState();
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not initialize Pyret folder on Google Drive (possibly network error). Try again in a few moments.');
     });
   }
 
@@ -91,17 +103,26 @@ class TeacherDashboard extends Component {
         activeClass: Object.keys(classes)[0] || false
       }, () => {
         this.refreshInnerState();
-      })
+      });
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not retrieve classes (possibly network error). Try again in a few moments.');
     });
   }
 
   refreshInnerState = () => {
     if (this.state.activeClass) {
       this.api.getStudentsInClass(this.state.activeClass).then(resp => {
-        this.setState({studentsInClass: resp})
+        this.setState({studentsInClass: resp});
+      }).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not retrieve roster (possibly network error). Try again in a few moments.');
       });
       this.api.getAssignmentsInClass(this.state.activeClass).then(resp => {
-        this.setState({assignmentsInClass: resp})
+        this.setState({assignmentsInClass: resp});
+      }).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not retrieve assignments (possibly network error). Try again in a few moments.');
       });
     }
   }
@@ -117,7 +138,7 @@ class TeacherDashboard extends Component {
     const getContentForTab = () => {
       const activeTab = this.state.activeTab;
       // Roster
-      if (activeTab == 0) {
+      if (activeTab == ROSTER_TAB) {
         return (
           <StudentList
             updating={this.state.studentSpinnerActive}
@@ -127,10 +148,10 @@ class TeacherDashboard extends Component {
             refreshParent={this.refreshState}
             snackBar={this.setSnackBarMessage}
           />
-        )
+        );
       }
       // Assignments
-      if (activeTab == 1) {
+      if (activeTab == ASSIGNMENTS_TAB) {
         return (
           <AssignmentList
             updating={this.state.assignmentSpinnerActive}
@@ -140,9 +161,9 @@ class TeacherDashboard extends Component {
             activeClass={this.state.activeClass}
             refreshParent={this.refreshState}
           />
-        )
+        );
       }
-    }
+    };
 
     return (
       <Layout fixedHeader fixedDrawer>

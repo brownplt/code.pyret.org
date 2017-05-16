@@ -39,7 +39,13 @@ class StudentList extends Component {
           newStudentEmail: ''
         });
         this.props.refreshParent();
+      }).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not add student to class (possibly network error). Try again in a few moments.');
       });
+    }).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not create student (possibly network error). Try again in a few moments.');
     });
   }
 

@@ -23,7 +23,10 @@ class Student extends Component {
   handleClickRemoveStudent = () => {
     if (confirm('Remove this student from the roster? This cannot be undone.')) {
       this.props.snackBar('Student Removed. Please allow a few seconds for changes to appear.');
-      this.api.removeStudent(this.state.id).then(this.props.refreshParent);
+      this.api.removeStudent(this.state.id).then(this.props.refreshParent).catch(e => {
+        console.log(e);
+        this.props.snackBar('Could not remove student (possibly network error). Try again in a few moments.');
+      });
     }
   }
 
@@ -36,7 +39,10 @@ class Student extends Component {
       firstName: this.state.firstName.trim(),
       lastName: this.state.lastName.trim(),
       email: this.state.email.trim()
-    }).then(this.props.refreshParent);
+    }).then(this.props.refreshParent).catch(e => {
+      console.log(e);
+      this.props.snackBar('Could not update student (possibly network error). Try again in a few moments.');
+    });
   }
 
   render = () => {
