@@ -574,7 +574,8 @@ body {
 #docs *,
 #issues *,
 #discuss *,
-#logout * {
+#logout *,
+#drive-view * {
   color: #000;
   font-family: sans-serif;
   text-decoration: none;
