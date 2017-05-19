@@ -42,7 +42,6 @@ import plot-lib as P
 import either as E
 import string-dict as SD
 
-OFFSET = 1
 MAX-SAMPLES = 100000
 
 type BaseWindowOptions = {
@@ -169,6 +168,7 @@ fun check-base-window-options(options :: BaseWindowOptions) -> Nothing block:
 end
 
 sprintf = sprintf-maker()
+unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 default-options = {<A>(x :: A): x}
 
@@ -249,6 +249,9 @@ end
 fun bar-chart(
     tab :: Table,
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+  doc: ```
+       Consume a table with two columns: `label`, `value` and show a bar chart
+       ```
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('expect a table with two columns: label and value')
   end
@@ -264,6 +267,10 @@ fun grouped-bar-chart(
     tab :: Table,
     legend :: List<String>,
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+  doc: ```
+       Consume a table with two columns: `label`, `values`, and legend which
+       is a list of string, and show a grouped bar chart
+       ```
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
@@ -470,11 +477,19 @@ fun render-multi-plot(
           end
         end
 
+        x-min = bound(r, f, num-min, raw-array-get(_, 0))
+        x-max = bound(r, f, num-max, raw-array-get(_, 0))
+        y-min = bound(r, f, num-min, raw-array-get(_, 1))
+        y-max = bound(r, f, num-max, raw-array-get(_, 1))
+        x-offset = num-min((x-max - x-min) / 40, 1)
+        y-offset = num-min((y-max - y-min) / 40, 1)
+        shadow x-offset = if unsafe-equal(x-offset, 0): 1 else: x-offset end
+        shadow y-offset = if unsafe-equal(y-offset, 0): 1 else: y-offset end
         options.{
-          x-min: bound(r, f, num-min, raw-array-get(_, 0)) - OFFSET,
-          x-max: bound(r, f, num-max, raw-array-get(_, 0)) + OFFSET,
-          y-min: bound(r, f, num-min, raw-array-get(_, 1)) - OFFSET,
-          y-max: bound(r, f, num-max, raw-array-get(_, 1)) + OFFSET,
+          x-min: x-min - x-offset,
+          x-max: x-max + x-offset,
+          y-min: y-min - y-offset,
+          y-max: y-max + y-offset,
           infer-bounds: false
         }
     end
@@ -528,3 +543,8 @@ end
 make-function-plot = function-plot(_, _.{color: I.blue})
 make-line-plot = line-plot(_, _.{color: I.blue})
 make-scatter-plot = scatter-plot(_, _.{color: I.blue})
+
+display-line = render-line
+display-function = render-function
+display-scatter = render-scatter
+display-multi-plot = render-multi-plot
