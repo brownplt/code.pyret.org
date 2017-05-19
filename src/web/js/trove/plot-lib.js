@@ -1008,8 +1008,8 @@
       minWindowHeight: 430,
       marginLeft: 100,
       marginRight: 100,
-      marginTop: 55,
-      marginBottom: 20,
+      marginTop: 45,
+      marginBottom: 65,
       mode: 'top-left',
     }, windowOptions),
         width = dimension.width,
@@ -1074,7 +1074,12 @@
     canvas.append('g')
         .attr('class', 'x axis')
         .attr('transform', svgTranslate(0, height))
-        .call(xAxis);
+        .call(xAxis)
+        .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-.4em")
+            .attr("dy", ".15em")
+            .attr("transform", "rotate(-25)");
 
     canvas.append('g')
       .attr('class', 'y axis')

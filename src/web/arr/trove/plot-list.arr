@@ -175,38 +175,26 @@ fun check-base-window-options(options :: BaseWindowOptions) -> Nothing block:
 end
 
 sprintf = sprintf-maker()
+unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 default-options = {<A>(x :: A): x}
 
-fun histogram(tab :: Table, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> IM.Image block:
+fun histogram(values :: List<Number>, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> IM.Image block:
   doc: ```
-       Consume a table with one column: `value`, and a number of bins,
+       Consume a list of numbers, and a number of bins,
        and show a histogram
        ```
-  when not(tab._header-raw-array =~ [raw-array: 'value']):
-    raise('histogram: expect a table with a column named `value`')
-  end
   when (n < 1) or (n > 100) or not(num-is-integer(n)):
     raise('histogram: expect `n` to be an integer between 1 and 100 (inclusive)')
   end
-  when raw-array-length(tab._rows-raw-array) == 0:
-    raise('histogram: expect the table to have at least one row')
+  when is-empty(values):
+    raise('histogram: expect the list to have at least one element')
   end
   options = options-generator(histogram-window-options)
   _ = check-base-window-options(options)
-  P.histogram(options, tab._rows-raw-array, n)
+  P.histogram(options, builtins.list-to-raw-array(values), n)
 where:
-  histogram(
-    table: value :: Number
-      row: 1
-      row: 1.2
-      row: 2
-      row: 3
-      row: 10
-      row: 3
-      row: 6
-      row: -1
-    end, 4, default-options) does-not-raise
+  histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1], 4, default-options) does-not-raise
 end
 
 fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
@@ -253,39 +241,50 @@ where:
 end
 
 fun bar-chart(
-    tab :: Table,
+    labels :: List<String>,
+    values :: List<Number>,
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
-  when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
-    raise('expect a table with two columns: label and value')
-  end
-  shadow tab = transform tab using value:
-    value: [list: value]
-  end
+    doc: ```
+         Consume labels, a list of string, and values, a list of numbers
+         and show a bar chart
+         ```
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
-  P.bar-chart(options, tab._rows-raw-array, [list: ''], false)
+  P.bar-chart(options, map2(
+    lam(label :: String, val :: Number):
+      [raw-array: label, [list: val]]
+    end,
+    labels,
+    values) ^ builtins.list-to-raw-array, [list: ''], false)
 end
 
 fun grouped-bar-chart(
-    tab :: Table,
+    labels :: List<String>,
+    values :: List<List<Number>>,
     legend :: List<String>,
+    doc: ```
+         Consume labels, a list of string, and values, a list of list of numbers,
+         legend, a list of string, and show a grouped bar chart
+         ```
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
-  when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
-    raise('expect a table with two columns: label and values')
-  end
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
-  P.bar-chart(options, tab._rows-raw-array, legend, true)
+  P.bar-chart(options, map2(
+    lam(label :: String, vals :: List<Number>):
+      [raw-array: label, vals]
+    end,
+    labels,
+    values) ^ builtins.list-to-raw-array, legend, true)
 where:
   grouped-bar-chart(
-    table: label, values
-      row: 'CA', [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496]
-      row: 'TX', [list: 2027307,3277946,1420518,2454721,7017731,5656528,2472223]
-      row: 'NY', [list: 1208495,2141490,1058031,1999120,5355235,5120254,2607672]
-      row: 'FL', [list: 1140516,1938695,925060,1607297,4782119,4746856,3187797]
-      row: 'IL', [list: 894368,1558919,725973,1311479,3596343,3239173,1575308]
-      row: 'PA', [list: 737462,1345341,679201,1203944,3157759,3414001,1910571]
-    end,
+    [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
+    [list:
+      [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
+      [list: 2027307,3277946,1420518,2454721,7017731,5656528,2472223],
+      [list: 1208495,2141490,1058031,1999120,5355235,5120254,2607672],
+      [list: 1140516,1938695,925060,1607297,4782119,4746856,3187797],
+      [list: 894368,1558919,725973,1311479,3596343,3239173,1575308],
+      [list: 737462,1345341,679201,1203944,3157759,3414001,1910571]],
     [list:
       'Under 5 Years',
       '5 to 13 Years',
@@ -476,11 +475,19 @@ fun render-multi-plot(
           end
         end
 
+        x-min = bound(r, f, num-min, raw-array-get(_, 0))
+        x-max = bound(r, f, num-max, raw-array-get(_, 0))
+        y-min = bound(r, f, num-min, raw-array-get(_, 1))
+        y-max = bound(r, f, num-max, raw-array-get(_, 1))
+        x-offset = num-min((x-max - x-min) / 40, 1)
+        y-offset = num-min((y-max - y-min) / 40, 1)
+        shadow x-offset = if unsafe-equal(x-offset, 0): 1 else: x-offset end
+        shadow y-offset = if unsafe-equal(y-offset, 0): 1 else: y-offset end
         options.{
-          x-min: bound(r, f, num-min, raw-array-get(_, 0)) - OFFSET,
-          x-max: bound(r, f, num-max, raw-array-get(_, 0)) + OFFSET,
-          y-min: bound(r, f, num-min, raw-array-get(_, 1)) - OFFSET,
-          y-max: bound(r, f, num-max, raw-array-get(_, 1)) + OFFSET,
+          x-min: x-min - x-offset,
+          x-max: x-max + x-offset,
+          y-min: y-min - y-offset,
+          y-max: y-max + y-offset,
           infer-bounds: false
         }
     end
@@ -534,3 +541,8 @@ end
 make-function-plot = function-plot(_, _.{color: I.blue})
 make-line-plot = line-plot(_, _.{color: I.blue})
 make-scatter-plot = scatter-plot(_, _.{color: I.blue})
+
+display-line = render-line
+display-function = render-function
+display-scatter = render-scatter
+display-multi-plot = render-multi-plot
