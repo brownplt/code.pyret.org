@@ -262,11 +262,11 @@ fun grouped-bar-chart(
     labels :: List<String>,
     values :: List<List<Number>>,
     legend :: List<String>,
-    doc: ```
-         Consume labels, a list of string, and values, a list of list of numbers,
-         legend, a list of string, and show a grouped bar chart
-         ```
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+  doc: ```
+       Consume labels, a list of string, and values, a list of list of numbers,
+       legend, a list of string, and show a grouped bar chart
+       ```
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
   P.bar-chart(options, map2(
