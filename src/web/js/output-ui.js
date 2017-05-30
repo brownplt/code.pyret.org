@@ -414,7 +414,7 @@
             var start = new CodeMirror.Pos(start_line - 1, start_col);
             var   end = new CodeMirror.Pos(  end_line - 1,   end_col);
             var source = documents.get(filename).getRange(start, end);
-            runtime.pauseStack(function(restarter) {
+            return runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
                 return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
               }, function(result) {
@@ -733,7 +733,7 @@
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);
               var container = $("<div>").addClass("compile-error");
-              runtime.pauseStack(function(restarter) {
+              return runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
                   return runtime.getField(e.exn, "render-fancy-reason").app(
                     maybeStackLoc,
@@ -777,7 +777,7 @@
                 });
               });
             } else {
-              runtime.pauseStack(function(restarter) {
+              return runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
                   return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]);
                 }, function(out) {
@@ -841,7 +841,7 @@
               probablyErrorLocation = false;
             }
             if (probablyErrorLocation) {
-              runtime.pauseStack(function(restarter) {
+              return runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
                   return contentsWithLoc.app(probablyErrorLocation);
                 }, function(out) {
@@ -1486,7 +1486,7 @@
     // NOTE: THIS MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function renderPyretValue(output, runtime, answer) {
       installRenderers(runtime);
-      runtime.pauseStack(function(restarter) {
+      return runtime.pauseStack(function(restarter) {
         runtime.runThunk(function() {
           return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
         }, function(container) {
