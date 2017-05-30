@@ -6,12 +6,15 @@
       "pyret-base": "./pyret/build/phaseA/",
       "jglr": "./pyret/lib/jglr",
       "js-md5": "node_modules/js-md5/src/md5",
+      "js-sha256": "node_modules/js-sha256/src/sha256",
       "crypto": "empty:",
       "path": "src/web/js/pathstub",
       "q": "build/web/js/q",
       "s-expression": "empty:",
       "fs": "build/web/js/fsstub",
       "requirejs": "empty:",
-      "seedrandom": "empty:"
+      "seedrandom": "empty:",
+      "source-map": "empty:",
+      "stacktrace-js": "empty:"
     }
 }

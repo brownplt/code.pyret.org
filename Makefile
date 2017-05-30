@@ -108,6 +108,9 @@ build/web/js/es6-shim.js: node_modules/es6-shim/es6-shim.min.js
 build/web/js/seedrandom.js: node_modules/seedrandom/seedrandom.js
 	cp $< $@
 
+build/web/js/source-map.js: node_modules/source-map/dist/source-map.js
+	cp $< $@
+
 build/web/js/url.js: node_modules/url.js/url.js
 	cp $< $@
 
@@ -143,6 +146,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/mark-selection.js \
           build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
           build/web/js/seedrandom.js \
+          build/web/js/source-map.js \
           build/web/js/pyret-fold.js \
           build/web/js/matchkw.js \
           build/web/js/foldcode.js \
