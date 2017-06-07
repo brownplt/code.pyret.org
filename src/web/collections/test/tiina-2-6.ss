@@ -33,21 +33,15 @@
 
 ;; piirrä-ufo : Luku -> Kuva
 (define (piirrä-ufo y)
-  (begin
-    ;(display "piirra-ufo")
-  (place-image UFO 150 y TAUSTA)))
+  (place-image UFO 150 y TAUSTA))
 
 ;; pysähdy? : Luku -> Totuusarvo
 (define (pysähdy? y)
-  (begin
-    ;(display "pysahdy?")
-  (> y 465)))         ; Tehtävä 4 ---> (< y 0)
+  (> y 465))         ; Tehtävä 4 ---> (< y 0)
 
 ;; siirrä-ufo : Luku -> Luku
 (define (siirrä-ufo y)
-  (begin
-    ;(display "siirra-ufo")
-  (+ y 3)))           ; Tehtävä 4 ---> (- y 3)
+  (+ y 3))           ; Tehtävä 4 ---> (- y 3)
 
 ;; Tehtävä 6 (rullaava):
 ;(define (siirrä-ufo y)
