@@ -1003,7 +1003,7 @@
       barChart(restarter, windowOptions, table, legend, showLegend);
     }
 
-    var dimension = getDimension({
+    const dimension = getDimension({
       minWindowWidth: 505,
       minWindowHeight: 430,
       marginLeft: 100,
@@ -1017,25 +1017,25 @@
         detached = createDiv(),
         canvas = createCanvas(detached, dimension);
 
-    var x0 = d3.scale.ordinal()
+    const x0 = d3.scale.ordinal()
         .rangeRoundBands([0, width], 0.1);
 
-    var x1 = d3.scale.ordinal();
+    const x1 = d3.scale.ordinal();
 
-    var y = d3.scale.linear()
+    const y = d3.scale.linear()
         .domain([0, 1])
         .range([height, 0]);
 
-    var color = d3.scale.category20();
+    const color = d3.scale.category20();
 
-    var xAxis = d3.svg.axis()
+    let xAxis = d3.svg.axis()
         .scale(x0)
         .orient('bottom');
 
-    var legendData = RUNTIME.ffi.toArray(legend);
+    let legendData = RUNTIME.ffi.toArray(legend);
 
-    var yMax = 0;
-    var data = table.map(function (row) {
+    let yMax = 0;
+    let data = table.map(function (row) {
       return {
         label: row[0],
         data: RUNTIME.ffi.toArray(row[1]).map(function (value, i) {
@@ -1044,9 +1044,12 @@
         })
       };
     });
+    if (yMax === 0) {
+      yMax = 10;
+    }
 
-    var yAxisScaler = libNum.scaler(0, yMax, 0, 1, true);
-    var yAxisDisplayScaler = libNum.scaler(0, 1, 0, yMax);
+    const yAxisScaler = libNum.scaler(0, yMax, 0, 1, true);
+    const yAxisDisplayScaler = libNum.scaler(0, 1, 0, yMax);
 
     data = data.map(function (row) {
       return {
@@ -1057,9 +1060,9 @@
       };
     });
 
-    var prettyNumToStringDigitsForAxis = libNum.getPrettyNumToStringDigits(5);
+    const prettyNumToStringDigitsForAxis = libNum.getPrettyNumToStringDigits(5);
 
-    var yAxis = d3.svg.axis()
+    const yAxis = d3.svg.axis()
         .scale(y)
         .orient('left')
         .tickFormat(function (d) {
@@ -1104,7 +1107,7 @@
     canvas.selectAll('.axis').style({'shape-rendering': 'crispEdges'});
     canvas.selectAll('.axis text').style({'font-size': '10px'});
 
-    var bar = canvas.selectAll('.bar')
+    const bar = canvas.selectAll('.bar')
         .data(data)
       .enter().append('g')
         .attr('class', 'bar')
@@ -1122,7 +1125,7 @@
         .style('fill', function (d) { return color(d.name); });
 
     if (RUNTIME.isPyretTrue(showLegend)) {
-      var legendSvg = canvas.selectAll('.legend')
+      const legendSvg = canvas.selectAll('.legend')
         .data(legendData.slice().reverse())
         .enter().append('g')
         .attr('class', 'legend')
