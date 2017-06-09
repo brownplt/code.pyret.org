@@ -383,7 +383,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["sort"] = "_patch_quicksort";
     symbolMap["remove"] = "_patch_remove";
     symbolMap['remove-all'] = '_patch_remove-all';
-    symbolMap["range"] = "range-by";
+    symbolMap["range"] = "_patch_range";
 
     symbolMap["eighth"] = "_patch_eighth";
     symbolMap["fifth"] = "_patch_fifth";

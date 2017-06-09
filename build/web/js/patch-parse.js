@@ -119,7 +119,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       this.name = name;
       this.fields = fields;
       this.stx = stx;
-      console.log('new defStruct', name, fields);
       this.toString = function() {
         return "(define-struct " + this.name.toString() + " (" + this.fields.toString() + "))";
       };
@@ -384,7 +383,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     symbolMap["sort"] = "_patch_quicksort";
     symbolMap["remove"] = "_patch_remove";
     symbolMap['remove-all'] = '_patch_remove-all';
-    symbolMap["range"] = "range-by";
+    symbolMap["range"] = "_patch_range";
 
     symbolMap["eighth"] = "_patch_eighth";
     symbolMap["fifth"] = "_patch_fifth";
@@ -4508,7 +4507,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       return [newDefVars, exprAndPinfo[1]];
     };
     defStruct.prototype.desugar = function(pinfo) {
-      console.log('doing defstruct.prototype.desugar', this.name, this.fields);
       var that = this,
         ids = ['make-' + this.name.val, this.name.val + '?', this.name.val + '-ref', this.name.val + '-set!'],
         idSymbols = ids.map(function(id) {
@@ -5791,35 +5789,50 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         old_module = _module;
         _module = moduleName;
       }
-      //ds26gte
       //console.log('doing convertToPyretAST', programs, provenance, moduleName);
-      var requirepreludes = [];
+
       var defstructs = [];
-      var defnonfuns = [];
-      var defuns = [];
+      var bubbledNonfuns = [];
+      var bubbledFuns = [];
+      var unbubbledNonfuns = [];
+      var unbubbledFuns = [];
       var otherExps = [];
+      var finalCheckExpects = [];
+
+      var requirepreludes = [];
       var checkExpects = [];
       var it;
 
-      var localFunIds = [];
+      var localDefIds = [];
       var i;
 
       for (i = 0; i < programs.length; i++) {
         var p = programs[i];
+        //console.log('forloop p = ', p);
         if (p instanceof defFunc) {
-          localFunIds.push(moduleQualifiedId(p.name.val));
+          localDefIds.push(moduleQualifiedId(p.name.val));
         }
       }
 
-      //console.log('localFunIds=', JSON.stringify(localFunIds));
+      for (i = 0; i < programs.length; i++) {
+        var p = programs[i];
+        if (p instanceof defVar) {
+          var b = p.toPyretAST();
+          var ownName = definedName(b);
+          if (refersToLocalFunId(b,ownName)) {
+            localDefIds.push(ownName);
+          }
+        }
+      }
+
+      //console.log('localDefIds=', JSON.stringify(localDefIds));
 
       var unbubbledIds = [];
 
-      //ds26gte
-      //console.log('localFunIds = ' + localFunIds);
+      //console.log('localDefIds = ' + localDefIds);
 
       function refersToLocalFunId(b,ownName) {
-        if (b.name === "NAME" && b.value && b.value !== ownName && localFunIds.indexOf(b.value) > -1) {
+        if (b.name === "NAME" && b.value && b.value !== ownName && localDefIds.indexOf(b.value) > -1) {
           return true;
         }
         if (b.kids && b.kids.some(function(b) { return refersToLocalFunId(b,ownName) })) {
@@ -5858,7 +5871,7 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         var it;
         if (bubbleType === 2) {
           //required-module contents //deadc0de?
-          defnonfuns.push(b);
+          bubbledNonfuns.push(b);
           //otherExps.push(b);
         } else if (bubbleType === 1) {
           //defstruct contents
@@ -5872,18 +5885,19 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                      // Else bubble up.
           //console.log("checking " + it.kids[0].kids[1].value)
           var ownName = definedName(b);
-          //console.log('ownName=', ownName);
+          //console.log('checking v ownName=', ownName);
           if (ownName && (refersToLocalFunId(b,ownName) || refersToUnbubbledId(b,ownName))) {
-            //console.log('referred to local fun id');
-            otherExps.push(wrapStmt(b));
+            //console.log('referred to local fun id or unbubbled id');
+            //otherExps.push(wrapStmt(b));
+            unbubbledNonfuns.push(wrapStmt(b));
             //console.log('this one =', JSON.stringify(it));
             //console.log('pushing local var', it.value);
             unbubbledIds.push(ownName);
-            //console.log('not bubbled:', ownName);
+            //console.log('unbubbled nonfun:', ownName);
           } else {
             //console.log('did not refer to local fun id');
-            defnonfuns.push(wrapStmt(b));
-            //console.log('defnonfun:', ownName);
+            bubbledNonfuns.push(wrapStmt(b));
+            //console.log('bubbled nonfun:', ownName);
           }
         } else if (b.name === "stmt" &&
           b.kids.length > 0 && (it = b.kids[0]) &&
@@ -5892,14 +5906,17 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
             // Check if RHS refers to anything unbubbled.
             // If so, stay put and mark as unbubbled. Else bubble up.
             var ownName = definedName(b);
-            //console.log('ownName=', ownName);
+            //console.log('checking f ownName=', ownName);
             if (refersToLocalFunId(b,ownName) || refersToUnbubbledId(b,ownName)) {
-              otherExps.push(b);
+              //console.log('referred to local fun id or unbubbled id');
+              //otherExps.push(b);
+              unbubbledFuns.push(b);
               unbubbledIds.push(definedName(b));
-              //console.log('unbubbled fun:', definedName(b));
+              //console.log('unbubbled fun:', ownName);
             } else {
-              defuns.push(b);
-              //console.log('bubbled fun:', definedName(b));
+              //console.log('did not refer to local fun id');
+              bubbledFuns.push(b);
+              //console.log('bubbled fun:', ownName);
             }
         } else if (b.name === 'stmt' && b.voidstatement) {
             /* toss */ ;
@@ -5920,7 +5937,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      //ds26gte
       //console.log('starting for');
       for (i = 0; i < programs.length; i++) {
         var b = programs[i].toPyretAST();
@@ -5941,7 +5957,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      var finalCheckExpects = [];
       if (checkExpects.length > 0) {
 
         if (provenance === 'test-result') {
@@ -5960,10 +5975,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
         }
       }
 
-      var kiddos = defstructs.concat(defnonfuns, defuns, otherExps,
+      var kiddos = defstructs.concat(bubbledNonfuns, bubbledFuns,
+        unbubbledFuns, unbubbledNonfuns, otherExps,
         finalCheckExpects);
 
-      //ds26gte
       //console.log('kiddos calced = ', kiddos);
 
       it = {
@@ -6451,7 +6466,6 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
     defStruct.prototype.toPyretAST = function() {
 
       function foo_variant_member_help(field) {
-        console.log('doing foo_variant_member_help', field);
         return {
           name: "variant-member",
           pos: field.location,
@@ -6476,16 +6490,11 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
       }
 
       function unPyretizeStructName(sym) {
-        console.log('unPyretizeStructName', sym.val);
         var vval = sym.verbatimVal;
         var sval = symbolMap[vval];
-        if (plt.compiler.pyretizeSymbolAux === undefined) {
-          console.log('pyretizeSymbolAux not defined');
-        }
         if (sval || vval.length === 1) {
           sym.val = plt.compiler.pyretizeSymbolAux(vval);
         }
-        console.log('now=', sym.val);
       }
 
       unPyretizeStructName(this.name);
