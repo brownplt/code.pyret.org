@@ -7127,10 +7127,10 @@ define(["cpo/wescheme-support", "pyret-base/js/js-numbers"
                 name: 'check-op',
                 pos: loc,
                 kids: [{
-                  name: 'IS',
+                  name: 'ISROUGHLY',
                   pos: loc,
-                  value: 'is',
-                  key: "'IS:is"
+                  value: 'is-roughly',
+                  key: "'ISROUGHLY:is-roughly"
                 }]
               },
                 this.rhs.toPyretAST()]
