@@ -316,7 +316,7 @@
       var codeContainer = $("<div>").addClass("replMain");
       $("#main").prepend(codeContainer);
 
-      var replWidget = 
+      var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
             runButton: runButton
@@ -539,7 +539,7 @@
       $(window).on("keydown", function(e) {
         if(e.ctrlKey) {
           if(e.keyCode === 83) { // "Ctrl-s"
-            save();
+            CPO.save();
             e.stopImmediatePropagation();
             e.preventDefault();
           }
