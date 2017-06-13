@@ -1126,6 +1126,8 @@
           });
 
           return outText;
+        } else if (jsnums.isRoughnum(num)) {
+          return renderText(sooper(renderers, "number", num.toString() + '...'));
         } else {
           return renderText(sooper(renderers, "number", num));
         }
