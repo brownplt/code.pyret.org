@@ -1053,6 +1053,23 @@
       renderers["cyclic"] = function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
       };
+      renderers["render-color"] = function renderColor(top) {
+        var val = top.extra;
+        var container = $("<span>").addClass("replOutput");
+        var brush = $("<img>").addClass("paintBrush").attr("src", "/img/brush.svg");
+        var r = image.colorRed(val);
+        var g = image.colorGreen(val);
+        var b = image.colorBlue(val);
+        var a = image.colorAlpha(val);
+        var paint = $("<span>").addClass("paintBlob")
+            .css("background-color", "rgba(" + r + "," + g + "," + b + "," + a + ")");
+        container
+          .append(brush)
+          .append(paint)
+          .append($("<span>").text("color(" + r + ", " + g + ", " + b + ", " + a + ")"))
+
+        return container;
+      };
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
@@ -1282,6 +1299,13 @@
           e.stopPropagation();
         });
         return container;
+      };
+      renderers["data"] = function(val, pushTodo) {
+        if (image.isColor(val)) {
+          pushTodo(undefined, undefined, undefined, [], "render-color", val);
+        } else {
+          return renderers.__proto__["data"](val, pushTodo);
+        }
       };
       renderers["render-data"] = function renderData(top) {
         var container = $("<span>").addClass("replToggle replOutput");
