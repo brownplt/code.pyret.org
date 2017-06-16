@@ -1,4 +1,4 @@
-require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, program, cpoBuiltinModules) {
+require(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
 
   var staticModules = program.staticModules;
   var depMap = program.depMap;
@@ -188,7 +188,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     var getStackP = runtime.makeFunction(getStack);
     var toCall = runtime.getField(checker, "render-check-results-stack");
     var checks = runtime.getField(answer, "checks");
-    runtime.safeCall(function() {
+    return runtime.safeCall(function() {
       return toCall.app(checks, getStackP);
     }, function(printedCheckResult) {
       if(runtime.isString(printedCheckResult)) {
@@ -204,6 +204,7 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
       var rendererror = execRt.getField(rendererrorMod, "provide-plus-types");
       var gf = execRt.getField;
       var exnStack = res.exn.stack;
+      res.exn.pyretStack = stackLib.convertExceptionToPyretStackTrace(res.exn, program);
       var pyretStack = res.exn.pyretStack;
       execRt.runThunk(
         function() {

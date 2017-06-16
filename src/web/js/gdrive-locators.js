@@ -335,7 +335,7 @@ define([], function() {
           var uri = "gdrive-js://" + file.getUniqueId();
 
           var rawModule = gmf(builtinModules, "builtin-raw-locator-from-str").app(mod);
-          runtime.safeCall(function() {
+          return runtime.safeCall(function() {
             return gmf(cpo, "make-js-locator-from-raw").app(
               rawModule,
               true,
