@@ -749,7 +749,19 @@
               if (!stop) {
                 k2();
               } else {
-                if (extras.closeWhenStop) {
+                var lph = stopWhen.last_picture_handler;
+                if (lph) {
+                  var handler = lph();
+                  var handler1 = handler(thisWorldIndex);
+                  handler1.onRegister(top);
+                  handler1._listener(w, oldW, function(v) { k2(); });
+                }
+
+                if (lph) {
+                  //Jsworld.shutdown();
+                  Jsworld.shutdownSingle({cleanShutdown: true});
+                  k(w);
+                } else if (extras.closeWhenStop) {
                   if (extras.closeBigBangWindow) {
                     extras.closeBigBangWindow();
                   }
@@ -936,19 +948,18 @@
     }
     Jsworld.on_draw = on_draw;
 
-
-
-    StopWhenHandler = function(test, receiver) {
+    StopWhenHandler = function(test, receiver, last_picture_handler) {
       this.test = test;
       this.receiver = receiver;
+      this.last_picture_handler = last_picture_handler;
     };
     // stop_when: CPS(world -> boolean) CPS(world -> boolean) -> handler
-    function stop_when(test, receiver) {
+    function stop_when(test, receiver, last_picture_handler) {
       return function() {
         if (receiver === undefined) {
           receiver = function(w, k) { k(w); };
         }
-        return new StopWhenHandler(test, receiver);
+        return new StopWhenHandler(test, receiver, last_picture_handler);
       };
     }
     Jsworld.stop_when = stop_when;
