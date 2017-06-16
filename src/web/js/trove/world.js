@@ -205,7 +205,7 @@
 
       var configs = [];
       var isOutputConfigSeen = false;
-      var closeWhenStop = false;
+      var closeWhenStop = true; //false;
 
       for (var i = 0 ; i < handlers.length; i++) {
         if (isOpaqueCloseWhenStopConfig(handlers[i])) {
@@ -562,17 +562,50 @@
       return runtime.isOpaque(v) && isCloseWhenStopConfig(v.val);
     }
 
-    var StopWhen = function(handler) {
+    var StopWhen = function(handler, last_picture_handler) {
       WorldConfigOption.call(this, 'stop-when');
       this.handler = handler;
+      this.last_picture_handler = last_picture_handler;
     };
 
     StopWhen.prototype = Object.create(WorldConfigOption.prototype);
 
     StopWhen.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
+      var reusableCanvas;
       var worldFunction = adaptWorldFunction(that.handler);
-      return rawJsworld.stop_when(worldFunction);
+      var lastPictureFunction;
+      if (that.last_picture_handler) {
+        lastPictureFunction = function(w, k) {
+          var nextFrame = function(t) {
+            var lph = adaptWorldFunction(that.last_picture_handler);
+            lph(t, function(aSceneObj) {
+              var aScene = aSceneObj.val;
+              if (imageLibrary.isImage(aScene)) {
+                setTimeout(function() {
+                  if (!reusableCanvas) {
+                    reusableCanvas = imageLibrary.makeCanvas(aScene.getWidth(), aScene.getHeight());
+                  } else {
+                    reusableCanvas.width = aScene.getWidth();
+                    reusableCanvas.height = aScene.getHeight();
+                  }
+                  var ctx = reusableCanvas.getContext('2d');
+                  aScene.render(ctx, 0, 0);
+                }, 0);
+              } else {
+                runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
+              }
+            });
+          };
+          var lastPictureCss = function(w, k) {
+            k ([[reusableCanvas,
+              ['width', reusableCanvas.width + 'px'],
+              ['height', reusableCanvas.height + 'px']]]);
+          };
+          return rawJsworld.on_draw(nextFrame, lastPictureCss);
+        };
+      }
+      return rawJsworld.stop_when(worldFunction, undefined, lastPictureFunction);
     };
 
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
@@ -615,9 +648,12 @@
           return runtime.makeOpaque(new ToDraw(drawer));
         }),
         "stop-when": makeFunction(function(stopper) {
-          runtime.ffi.checkArity(1, arguments, "stop-when");
+          if (arguments.length < 1) {
+            runtime.checkArity(1, arguments, 'stop-when');
+          }
           runtime.checkFunction(stopper);
-          return runtime.makeOpaque(new StopWhen(stopper));
+          var last_picture_handler = arguments[1];
+          return runtime.makeOpaque(new StopWhen(stopper, last_picture_handler));
         }),
         "close-when-stop": makeFunction(function(isClose) {
           runtime.ffi.checkArity(1, arguments, "close-when-stop");
