@@ -39,7 +39,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
-      "last-picture": ["forall", ["a"],
+      "last-scene": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Image"]],
              "WCOofA"]],
@@ -179,7 +179,7 @@
       add("on-key", OnKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
-      add("last-picture", LastPicture);
+      add("last-scene", LastPicture);
       add("close-when-stop", CloseWhenStop);
 
       return bigBang(init, handlers, tracer, title);
@@ -229,7 +229,6 @@
         configs.push(new DefaultDrawingOutput().toRawHandler(toplevelNode));
       }
 
-
       runtime.pauseStack(function(restarter) {
         rawJsworld.bigBang(
             toplevelNode,
@@ -250,10 +249,6 @@
       });
     };
 
-
-
-
-
     //////////////////////////////////////////////////////////////////////
 
     // Every world configuration function (on-tick, stop-when, ...)
@@ -265,7 +260,6 @@
     WorldConfigOption.prototype.configure = function(config) {
       throw new Error('unimplemented WorldConfigOption');
     };
-
 
     WorldConfigOption.prototype.toDomNode = function(params) {
       var span = document.createElement('span');
@@ -284,9 +278,6 @@
     var isWorldConfigOption = function(v) { return v instanceof WorldConfigOption; };
 
     //////////////////////////////////////////////////////////////////////
-
-
-
 
     // adaptWorldFunction: Racket-function -> World-CPS
     // Takes a pyret function and converts it to the CPS-style function
@@ -339,7 +330,6 @@
       return rawJsworld.on_tick(this.delay, worldFunction);
     };
 
-
     //////////////////////////////////////////////////////////////////////
     var OnKey = function(handler) {
       WorldConfigOption.call(this, 'on-key');
@@ -356,7 +346,6 @@
           worldFunction(w, getKeyCodeName(e), success);
         });
     };
-
 
     var getKeyCodeName = function(e) {
       var code = e.charCode || e.keyCode;
@@ -412,10 +401,6 @@
     }
     //////////////////////////////////////////////////////////////////////
 
-
-
-
-
     var OnMouse = function(handler) {
       WorldConfigOption.call(this, 'on-mouse');
       this.handler = handler;
@@ -432,23 +417,12 @@
         });
     };
 
-
-
-
-
-
-
-
     var OutputConfig = function() {}
     OutputConfig.prototype = Object.create(WorldConfigOption.prototype);
     var isOutputConfig = function(v) { return v instanceof OutputConfig; };
     var isOpaqueOutputConfig = function(v) {
       return runtime.isOpaque(v) && isOutputConfig(v.val);
     }
-
-
-
-
 
     // // ToDraw
 
@@ -522,12 +496,6 @@
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
 
-
-
-
-
-
-
     var DefaultDrawingOutput = function() {
       WorldConfigOption.call(this, 'to-draw');
     };
@@ -549,9 +517,6 @@
       var cssFunction = function(w, success) { success([]); }
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
-
-
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -581,7 +546,7 @@
     };
 
     var LastPicture = function(handler) {
-      WorldConfigOption.call(this, 'last-picture');
+      WorldConfigOption.call(this, 'last-scene');
       this.handler = handler;
     };
 
@@ -624,7 +589,6 @@
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
     //////////////////////////////////////////////////////////////////////
 
-
     // The default tick delay is 28 times a second.
     var DEFAULT_TICK_DELAY = 1/28;
 
@@ -665,8 +629,8 @@
           runtime.checkFunction(stopper);
           return runtime.makeOpaque(new StopWhen(stopper));
         }),
-        "last-picture": makeFunction(function(last_picture_handler) {
-          runtime.ffi.checkArity(1, arguments, 'last-picture');
+        "last-scene": makeFunction(function(last_picture_handler) {
+          runtime.ffi.checkArity(1, arguments, 'last-scene');
           runtime.checkFunction(last_picture_handler);
           return runtime.makeOpaque(new LastPicture(last_picture_handler));
         }),
