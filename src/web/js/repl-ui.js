@@ -29,6 +29,10 @@
                       util) {
     var ffi = runtime.ffi;
 
+    var output = jQuery("<div id='output' class='cm-s-default'>");
+    var outputPending = jQuery("<span>").text("Gathering results...");
+    var outputPendingHidden = true;
+    
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -228,9 +232,6 @@
         }
       });
 
-      var output = jQuery("<div id='output' class='cm-s-default'>");
-      var outputPending = jQuery("<span>").text("Gathering results...");
-      var outputPendingHidden = true;
       function maybeShowOutputPending() {
         outputPendingHidden = false;
         setTimeout(function() {
