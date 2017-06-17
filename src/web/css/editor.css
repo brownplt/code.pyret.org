@@ -674,6 +674,12 @@ div#font-label:hover{
    margin-bottom: 0.2em;
 }
 
+.replOutput ul.collection > li.expanded > span.contents > .replOutput,
+.replOutput ul.inlineCollection > li.expanded > span.contents > .replOutput {
+   margin-top: 0em;
+   margin-bottom: 0em;
+}
+
 .replToggle > .hidden { display: none; }
 
 /* definition lists for objects */
@@ -690,7 +696,7 @@ div#font-label:hover{
    display: table;
    clear: both;
 }
-.replOutput > dl > dt:after {
+.replOutput > dl > dt.label:after {
    content: ":";
    padding-right: 0.5em;
 }
@@ -705,7 +711,6 @@ div#font-label:hover{
    float: left;
 }
 .replOutput > dl > dd:not(:last-of-type):after {
-   content: ",";
    padding-right: 0.5em;
 }
 
@@ -715,16 +720,11 @@ ul.collection > li {
    margin-left: 1em;
    clear: both;
 }
-ul.collection > li > span.label {
-   float: left;
-   clear: left;
-}
 ul.collection > li > span.label:before { padding-left: 0.5em; }
 ul.collection > li > span.label:after { content: ":"; padding-right: 0.5em; }
 ul.collection > li > span.label.expandable:before { content: "\025B8"; }
 ul.collection > li > span.contents {
    display: none;
-   float: left;
 }
 ul.collection > li.expanded > span.contents { display: inline; }
 ul.collection > li.expanded > span.label.expandable:before { content: "\025BE"; }
@@ -736,10 +736,6 @@ ul.inlineCollection {
 ul.inlineCollection > li {
   display: inline;
 }
-ul.inlineCollection > li:not(:last-of-type):after {
-  content: ", ";
-}
-ul.inlineCollection > li, ul.inlineCollection ul > li { display: inline; }
 ul.inlineCollection > li > span.label {
    display: none;
  }

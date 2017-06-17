@@ -1042,6 +1042,9 @@
       function sooper(renderers, valType, val) {
         return renderers.__proto__[valType](val);
       }
+      function collapsedComma() {
+        return $("<span>").text(", ").addClass("collapsed").css("white-space", "pre");
+      }
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
@@ -1080,13 +1083,13 @@
         
 
         var dl = $("<dl>");
-        dl.append($("<dt>").text("red"))
+        dl.append($("<dt>").addClass("label").text("red"))
           .append($("<dd>").text(r))
-          .append($("<dt>").text("green"))
+          .append($("<dt>").addClass("label").text("green"))
           .append($("<dd>").text(g))
-          .append($("<dt>").text("blue"))
+          .append($("<dt>").addClass("label").text("blue"))
           .append($("<dd>").text(b))
-          .append($("<dt>").text("alpha"))
+          .append($("<dt>").addClass("label").text("alpha"))
           .append($("<dd>").text(a));
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput expanded")
                         .append($("<span>").text("color"))
@@ -1247,6 +1250,7 @@
           var title = $("<span>").addClass("label").text("Item " + (maxIdx - 1 - i));
           var contents = $("<span>").addClass("contents");
           ul.append(li.append(title).append(contents.append(top.done[i])));
+          if (i != 0) { contents.append(collapsedComma()); }
         }
         container.append($("<span>").text("]"));
         container.click(function(e) {
@@ -1325,9 +1329,10 @@
         container.append(name);
         container.append(openBrace);
         for (var i = 0; i < top.extra.keys.length; i++) {
-          //if (i > 1) { container.append($("<span>").addClass("collapsed").text(", ")); }
-          dl.append($("<dt>").text(top.extra.keys[i]));
-          dl.append($("<dd>").append(top.done[i]));
+          dl.append($("<dt>").text(top.extra.keys[i] + ": "));
+          var dd = $("<dd>").append(top.done[i]);
+          if (i + 1 < top.extra.keys.length) { dd.append(collapsedComma()); }
+          dl.append(dd);
         }
         container.append(dl);
         container.append(closeBrace);
@@ -1355,8 +1360,10 @@
           container.append(openParen);
           var numFields = top.extra.fields.length;
           for (var i = 0; i < numFields; i++) {
-            dl.append($("<dt>").text(top.extra.fields[i]).addClass("expanded"));
-            dl.append($("<dd>").append(top.done[numFields - i - 1]));
+            dl.append($("<dt>").addClass("label").text(top.extra.fields[i]).addClass("expanded"));
+            var dd = $("<dd>").append(top.done[numFields - i - 1]);
+            if (i + 1 < numFields) { dd.append(collapsedComma()); }
+            dl.append(dd);
           }
           container.append(dl);
           container.append(closeParen);
@@ -1373,7 +1380,7 @@
         $(this).toggleClass("collection");
         $(this).toggleClass("inlineCollection");
       }
-      function helper(container, val, values) {
+      function helper(container, val, values, wantCommaAtEnd) {
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
         else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
@@ -1392,14 +1399,13 @@
           container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
           for (var i = 0; i < items.length; i++) {
-            if (i > 0) { container.append($("<span>").text(", ")); }
-            helper(container, items[i], values);
+            helper(container, items[i], values, (i + 1 < items.length));
           }
           container.append($("<span>").text(")"));
         } else if (runtime.ffi.isVSSeq(val)) {
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
-            helper(container, items[i], values);
+            helper(container, items[i], values, (i + 1 < items.length));
           }
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
@@ -1506,9 +1512,10 @@
         } else {
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
-            helper(container, items[i], values);
+            helper(container, items[i], values, (i + 1 < items.length));
           }
         }
+        if (wantCommaAtEnd) { container.append(collapsedComma()); }          
         return container;
       }
       function groupItems(ul, items, values, minIdx, maxIdx) {
@@ -1519,7 +1526,7 @@
             var title = $("<span>").addClass("label").text("Item " + i);
             var contents = $("<span>").addClass("contents");
             ul.append(li.append(title).append(contents));
-            helper(contents, items[i], values);
+            helper(contents, items[i], values, (i + 1 < maxIdx));
           }
         // } else {
         //   var intervalSize = Math.pow(10, Math.ceil(Math.log10(maxIdx - minIdx)) - 1);
