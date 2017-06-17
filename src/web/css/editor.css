@@ -674,6 +674,8 @@ div#font-label:hover{
    margin-bottom: 0.2em;
 }
 
+.replToggle > .hidden { display: none; }
+
 /* definition lists for objects */
 .replOutput.expanded > dl > .collapsed, .replOutput.expanded > .collapsed { display: none; }
 .replOutput:not(.expanded) > dl > .expanded:not(.replOutput),

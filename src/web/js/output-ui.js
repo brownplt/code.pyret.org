@@ -1055,21 +1055,58 @@
       };
       renderers["render-color"] = function renderColor(top) {
         var val = top.extra;
-        var container = $("<span>").addClass("replOutput");
+        var container = $("<span>").addClass("replToggle replOutput replCycle");
+        var renderings = [];
+
         var brush = $("<img>").addClass("paintBrush").attr("src", "/img/brush.svg");
         var r = image.colorRed(val);
         var g = image.colorGreen(val);
         var b = image.colorBlue(val);
         var a = image.colorAlpha(val);
+        var rgba = r + ", " + g + ", " + b + ", " + a;
+        var colorName = image.colorDb.colorName(rgba);
         var paint = $("<span>").addClass("paintBlob")
-            .css("background-color", "rgba(" + r + "," + g + "," + b + "," + a + ")");
-        container
-          .append(brush)
-          .append(paint)
-          .append($("<span>").text("color(" + r + ", " + g + ", " + b + ", " + a + ")"))
+            .css("background-color", "rgba(" + rgba + ")")
+            .css("margin-right", "0.25em");
+        var paintBrush = $("<span>").addClass("cycleTarget replToggle replOutput").append(brush).append(paint);
+        if (colorName !== undefined) {
+          paintBrush.append($("<span>").text(colorName));
+        }
+        renderings.push(paintBrush);
+        
 
+        var colorDisplay = $("<span>").text("color(" + rgba + ")");
+        renderings.push($("<span>").addClass("cycleTarget replToggle replOutput").append(colorDisplay));
+        
+
+        var dl = $("<dl>");
+        dl.append($("<dt>").text("red"))
+          .append($("<dd>").text(r))
+          .append($("<dt>").text("green"))
+          .append($("<dd>").text(g))
+          .append($("<dt>").text("blue"))
+          .append($("<dd>").text(b))
+          .append($("<dt>").text("alpha"))
+          .append($("<dd>").text(a));
+        renderings.push($("<span>").addClass("cycleTarget replToggle replOutput expanded")
+                        .append($("<span>").text("color"))
+                        .append(dl));
+
+        $(renderings[0]).click(toggleCycle);
+        for (var i = 1; i < renderings.length; i++)
+          $(renderings[i]).addClass("hidden").click(toggleCycle);
+        
+        container.append(renderings);
         return container;
       };
+      function toggleCycle(e) {
+        var cur = $(this);
+        var next = cur.next();
+        if (next.length === 0) { next = cur.parent(".replCycle").find(".cycleTarget").first(); }
+        cur.addClass("hidden");
+        next.removeClass("hidden");
+        e.stopPropagation();
+      }
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;

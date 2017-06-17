@@ -30,18 +30,35 @@
       );
     };
 
+    var isColor = function(c) { return unwrap(colorPred.app(c)); };
+    var colorRed = function(c) { return unwrap(gf(c, "red")); }
+    var colorGreen = function(c) { return unwrap(gf(c, "green")); };
+    var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
+    var colorAlpha = function(c) { return unwrap(gf(c, "alpha")); };
+    
     // Color database
     var ColorDb = function() {
       this.colors = {};
+      this.colorNames = {};
     };
 
     ColorDb.prototype.put = function(name, color) {
       this.colors[name] = color;
+      var str = colorRed(color) + ", " + colorGreen(color) + ", " + colorBlue(color) + ", " + colorAlpha(color);
+      if (this.colorNames[str] === undefined) {
+        this.colorNames[str] = name;
+      }
     };
 
     ColorDb.prototype.get = function(name) {
       return this.colors[name.toString().toUpperCase()];
     };
+
+    ColorDb.prototype.colorName = function colorName(colorStr) {
+      var ans = this.colorNames[colorStr];
+      if (ans !== undefined) ans = ans.toLowerCase();
+      return ans;
+    }
 
     // FIXME: update toString to handle the primitive field values.
 
@@ -340,11 +357,6 @@
       }
       return c;
     };
-    var isColor = function(c) { return unwrap(colorPred.app(c)); };
-    var colorRed = function(c) { return unwrap(gf(c, "red")); }
-    var colorGreen = function(c) { return unwrap(gf(c, "green")); };
-    var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
-    var colorAlpha = function(c) { return unwrap(gf(c, "alpha")); };
     var equals = RUNTIME.equal_always;
 
     var imageEquals = function(left, right) {
@@ -1801,7 +1813,7 @@
       colorRed: colorRed,
       colorGreen: colorGreen,
       colorBlue: colorBlue,
-      colorAlpha: colorAlpha
+      colorAlpha: colorAlpha,
     });
   }
 })
