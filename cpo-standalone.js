@@ -209,7 +209,7 @@ require(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "
       execRt.runThunk(
         function() {
           if (execRt.isPyretVal(res.exn.exn) && execRt.hasField(res.exn.exn, "render-reason")) {
-            return execRt.getColonField(res.exn.exn, "render-reason");
+            return execRt.getColonField(res.exn.exn, "render-reason").full_meth(res.exn.exn);
           } else {
             return execRt.ffi.edEmbed(res.exn.exn);
           }
