@@ -142,6 +142,7 @@
             }
             else {
               console.error("Unknown import: ", dependency);
+              return protocol + "://" + arr.join(":");
             }
           }
         });
@@ -187,7 +188,7 @@
                 }
                 */
                 else {
-                  console.error("Unknown import: ", dependency);
+                  throw runtime.throwMessageException("Unknown import: " + uri);
                 }
 
               }
