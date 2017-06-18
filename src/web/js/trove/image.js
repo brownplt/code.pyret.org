@@ -17,7 +17,6 @@
       "is-step-count": "tany",
       "is-image": "tany",
       "bitmap-url": "tany",
-      "open-image-url": "tany",
       "image-url": "tany",
       "images-equal": "tany",
       "images-difference": "tany",
@@ -353,7 +352,6 @@
       return runtime.wrap(image.isImage(maybeImage.val));
     });
     f("bitmap-url", bitmapURL),
-    f("open-image-url", bitmapURL),
     f("image-url", bitmapURL),
     f("images-difference", function(maybeImage1, maybeImage2) {
       checkArity(2, arguments, "image");
