@@ -39,6 +39,10 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
+      "last-image": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"] ], "Image"]],
+             "WCOofA"]],
       "close-when-stop": ["forall", ["a"],
           ["arrow",
              ["Boolean"],
@@ -175,6 +179,7 @@
       add("on-key", OnKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
+      add("last-image", LastPicture);
       add("close-when-stop", CloseWhenStop);
 
       return bigBang(init, handlers, tracer, title);
@@ -205,7 +210,7 @@
 
       var configs = [];
       var isOutputConfigSeen = false;
-      var closeWhenStop = false;
+      var closeWhenStop = true; //false;
 
       for (var i = 0 ; i < handlers.length; i++) {
         if (isOpaqueCloseWhenStopConfig(handlers[i])) {
@@ -223,7 +228,6 @@
       if (! isOutputConfigSeen) {
         configs.push(new DefaultDrawingOutput().toRawHandler(toplevelNode));
       }
-
 
       runtime.pauseStack(function(restarter) {
         rawJsworld.bigBang(
@@ -245,10 +249,6 @@
       });
     };
 
-
-
-
-
     //////////////////////////////////////////////////////////////////////
 
     // Every world configuration function (on-tick, stop-when, ...)
@@ -260,7 +260,6 @@
     WorldConfigOption.prototype.configure = function(config) {
       throw new Error('unimplemented WorldConfigOption');
     };
-
 
     WorldConfigOption.prototype.toDomNode = function(params) {
       var span = document.createElement('span');
@@ -279,9 +278,6 @@
     var isWorldConfigOption = function(v) { return v instanceof WorldConfigOption; };
 
     //////////////////////////////////////////////////////////////////////
-
-
-
 
     // adaptWorldFunction: Racket-function -> World-CPS
     // Takes a pyret function and converts it to the CPS-style function
@@ -334,7 +330,6 @@
       return rawJsworld.on_tick(this.delay, worldFunction);
     };
 
-
     //////////////////////////////////////////////////////////////////////
     var OnKey = function(handler) {
       WorldConfigOption.call(this, 'on-key');
@@ -351,7 +346,6 @@
           worldFunction(w, getKeyCodeName(e), success);
         });
     };
-
 
     var getKeyCodeName = function(e) {
       var code = e.charCode || e.keyCode;
@@ -407,10 +401,6 @@
     }
     //////////////////////////////////////////////////////////////////////
 
-
-
-
-
     var OnMouse = function(handler) {
       WorldConfigOption.call(this, 'on-mouse');
       this.handler = handler;
@@ -427,23 +417,12 @@
         });
     };
 
-
-
-
-
-
-
-
     var OutputConfig = function() {}
     OutputConfig.prototype = Object.create(WorldConfigOption.prototype);
     var isOutputConfig = function(v) { return v instanceof OutputConfig; };
     var isOpaqueOutputConfig = function(v) {
       return runtime.isOpaque(v) && isOutputConfig(v.val);
     }
-
-
-
-
 
     // // ToDraw
 
@@ -517,12 +496,6 @@
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
 
-
-
-
-
-
-
     var DefaultDrawingOutput = function() {
       WorldConfigOption.call(this, 'to-draw');
     };
@@ -544,9 +517,6 @@
       var cssFunction = function(w, success) { success([]); }
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
-
-
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -575,9 +545,49 @@
       return rawJsworld.stop_when(worldFunction);
     };
 
+    var LastPicture = function(handler) {
+      WorldConfigOption.call(this, 'last-image');
+      this.handler = handler;
+    };
+
+    LastPicture.prototype = Object.create(WorldConfigOption.prototype);
+
+    LastPicture.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var reusableCanvas;
+      var lastPictureFunction = function() {
+        var nextFrame = function(t) {
+          var lph = adaptWorldFunction(that.handler);
+          lph(t, function(aSceneObj) {
+            var aScene = aSceneObj.val;
+            if (imageLibrary.isImage(aScene)) {
+              setTimeout(function() {
+                if (!reusableCanvas) {
+                  reusableCanvas = imageLibrary.makeCanvas(aScene.getWidth(), aScene.getHeight());
+                } else {
+                  reusableCanvas.width = aScene.getWidth();
+                  reusableCanvas.height = aScene.getHeight();
+                }
+                var ctx = reusableCanvas.getContext('2d');
+                aScene.render(ctx, 0, 0);
+              }, 0);
+            } else {
+              runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
+            }
+          });
+        };
+        var lastPictureCss = function(w, k) {
+          k ([[reusableCanvas,
+            ['width', reusableCanvas.width + 'px'],
+            ['height', reusableCanvas.height + 'px']]]);
+        };
+        return rawJsworld.on_draw(nextFrame, lastPictureCss);
+      };
+      return rawJsworld.last_picture(lastPictureFunction);
+    };
+
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
     //////////////////////////////////////////////////////////////////////
-
 
     // The default tick delay is 28 times a second.
     var DEFAULT_TICK_DELAY = 1/28;
@@ -618,6 +628,11 @@
           runtime.ffi.checkArity(1, arguments, "stop-when");
           runtime.checkFunction(stopper);
           return runtime.makeOpaque(new StopWhen(stopper));
+        }),
+        "last-image": makeFunction(function(last_picture_handler) {
+          runtime.ffi.checkArity(1, arguments, 'last-image');
+          runtime.checkFunction(last_picture_handler);
+          return runtime.makeOpaque(new LastPicture(last_picture_handler));
         }),
         "close-when-stop": makeFunction(function(isClose) {
           runtime.ffi.checkArity(1, arguments, "close-when-stop");
