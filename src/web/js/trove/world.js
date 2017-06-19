@@ -39,7 +39,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
-      "last-scene": ["forall", ["a"],
+      "last-image": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Image"]],
              "WCOofA"]],
@@ -179,7 +179,7 @@
       add("on-key", OnKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
-      add("last-scene", LastPicture);
+      add("last-image", LastPicture);
       add("close-when-stop", CloseWhenStop);
 
       return bigBang(init, handlers, tracer, title);
@@ -546,7 +546,7 @@
     };
 
     var LastPicture = function(handler) {
-      WorldConfigOption.call(this, 'last-scene');
+      WorldConfigOption.call(this, 'last-image');
       this.handler = handler;
     };
 
@@ -629,8 +629,8 @@
           runtime.checkFunction(stopper);
           return runtime.makeOpaque(new StopWhen(stopper));
         }),
-        "last-scene": makeFunction(function(last_picture_handler) {
-          runtime.ffi.checkArity(1, arguments, 'last-scene');
+        "last-image": makeFunction(function(last_picture_handler) {
+          runtime.ffi.checkArity(1, arguments, 'last-image');
           runtime.checkFunction(last_picture_handler);
           return runtime.makeOpaque(new LastPicture(last_picture_handler));
         }),
