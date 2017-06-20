@@ -15,6 +15,13 @@ require(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "
     stderr: function(s) { console.error(s); }
   });
 
+  // NOTE(joe): intentional, for debuggability
+  window.THE_RUNTIME = runtime;
+
+  // This stores the repl object with `run` and `restartInteractions` declared
+  // in and exported from cpo-main.js
+  var repl;
+
   var FIREFOX_GAS = 200;
   var OTHER_GAS = 1000;
 
@@ -185,6 +192,9 @@ require(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "
       var locList = runtime.ffi.makeList(locArray);
       return locList;
     };
+
+    repl = gf(gf(gf(answer, "provide-plus-types"), "values"), "repl").val;
+
     var getStackP = runtime.makeFunction(getStack);
     var toCall = runtime.getField(checker, "render-check-results-stack");
     var checks = runtime.getField(answer, "checks");
@@ -257,6 +267,14 @@ require(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "
 
   function onComplete(result) {
     if(runtime.isSuccessResult(result)) {
+      // NOTE(joe): This forces the loading of all the built-in compiler libs
+      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
+      interactionsReady.fail(function(err) {
+        console.error("Couldn't start REPL: ", err);
+      });
+      interactionsReady.then(function(result) {
+        console.log("REPL ready.");
+      });
       //console.log("The program completed successfully");
       //console.log(result);
     }

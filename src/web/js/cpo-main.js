@@ -242,6 +242,9 @@
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,
+          /*
+            This should not be called while a Pyret stack is running
+          */
           restartInteractions: function(source, options) {
             var pyOptions = defaultOptions.extendWith({
               "type-check": options.typeCheck,
@@ -303,15 +306,6 @@
       clearInterval($("#loader").data("intervalID"));
       $("#loader").hide();
 
-      // NOTE(joe): This forces the loading of all the built-in compiler libs
-      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
-      interactionsReady.fail(function(err) {
-        console.error("Couldn't start REPL: ", err);
-      });
-      interactionsReady.then(function(result) {
-        //editor.cm.setValue("print('Ahoy, world!')");
-        console.log("REPL ready.");
-      });
       var runButton = $("#runButton");
 
       var codeContainer = $("<div>").addClass("replMain");
@@ -721,7 +715,9 @@
       });
 
 
-      return runtime.makeModuleReturn({}, {});
+      return runtime.makeModuleReturn({
+        repl: runtime.makeOpaque(repl)
+      }, {});
     }
   }
 })
