@@ -38,11 +38,11 @@ import base as B
 import image-structs as I
 import image as IM
 include lists
+import sets as S
 import plot-lib as P
 import either as E
 import string-dict as SD
 
-OFFSET = 1
 MAX-SAMPLES = 100000
 
 type BaseWindowOptions = {
@@ -179,7 +179,11 @@ unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 default-options = {<A>(x :: A): x}
 
-fun histogram(values :: List<Number>, n :: Number, options-generator :: WrappedHistogramWindowOptions) -> IM.Image block:
+fun histogram(
+    values :: List<Number>,
+    n :: Number,
+    options-generator :: WrappedHistogramWindowOptions
+) -> IM.Image block:
   doc: ```
        Consume a list of numbers, and a number of bins,
        and show a histogram
@@ -197,83 +201,106 @@ where:
   histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1], 4, default-options) does-not-raise
 end
 
-fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
-  doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
-  when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
-    raise('pie-chart: expect a table with columns named `label` and `value`')
-  end
-  when raw-array-length(tab._rows-raw-array) == 0:
-    raise('pie-chart: expect the table to have at least one row')
-  end
+fun pie-chart(
+    label :: List<String>,
+    value :: List<Number>,
+    options-generator :: WrappedPieChartWindowOptions
+) -> IM.Image block:
+  doc: ```
+       Consume labels, a list of string, and values, a list of numbers
+       and show a pie chart
+       ```
   pie-chart-with-adjustable-radius(
-    extend tab: radius: 1 end,
+    label,
+    value,
+    repeat(label.length(), 1),
     options-generator)
 where:
-  pie-chart(table: label, value
-      row: 'asd', 1
-      row: 'dsa', 2
-      row: 'qwe', 3
-    end, default-options) does-not-raise
+  pie-chart(
+    [list: 'asd', 'dsa', 'qwe'],
+    [list: 1, 2, 3],
+    default-options) does-not-raise
 end
 
 fun pie-chart-with-adjustable-radius(
-    tab :: Table,
-    options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
+    label :: List<String>,
+    value :: List<Number>,
+    radius :: List<Number>,
+    options-generator :: WrappedPieChartWindowOptions
+) -> IM.Image block:
   doc: ```
        Consume a table with three columns: `label`, `value`, and `radius`,
        and show a pie-chart
        ```
-  when not(tab._header-raw-array =~ [raw-array: 'label', 'value', 'radius']):
-    raise('pie-chart-with-adjustable-radius: expect a table with columns named `label`, `value`, and `radius`')
+  label-length = label.length()
+  value-length = value.length()
+  radius-length = radius.length()
+  when (label-length <> value-length) or (label-length <> radius-length):
+    raise(
+      [sprintf:
+        'pie-chart-with-adjustable-radius: labels, values, ',
+        'and radius should have equal length'])
   end
-  when raw-array-length(tab._rows-raw-array) == 0:
-    raise('pie-chart-with-adjustable-radius: expect the table to have at least one row')
+  when label-length == 0:
+    raise('pie-chart-with-adjustable-radius: need at least one data')
   end
   options = options-generator(pie-chart-window-options)
   _ = check-base-window-options(options)
-  P.pie-chart(options, tab._rows-raw-array)
+  P.pie-chart(options, map3(
+    {(l :: String, v :: Number, r :: Number): [raw-array: l, v, r]},
+    label,
+    value,
+    radius) ^ builtins.list-to-raw-array)
 where:
-  pie-chart-with-adjustable-radius(table: label, value, radius
-      row: 'asd', 1, 3
-      row: 'dsa', 2, 2
-      row: 'qwe', 3, 1
-    end, default-options) does-not-raise
+  pie-chart-with-adjustable-radius(
+    [list: 'asd', 'dsa', 'qwe'],
+    [list: 1, 2, 3],
+    [list: 1, 2, 3],
+    default-options) does-not-raise
 end
 
 fun bar-chart(
-    labels :: List<String>,
-    values :: List<Number>,
-    options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+    label :: List<String>,
+    value :: List<Number>,
+    options-generator :: WrappedBarChartWindowOptions
+) -> IM.Image block:
     doc: ```
          Consume labels, a list of string, and values, a list of numbers
          and show a bar chart
          ```
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
+  label-length = label.length()
+  value-length = value.length()
+  when label-length <> value-length:
+    raise('bar-chart: labels and values should have equal length')
+  end
   P.bar-chart(options, map2(
-    lam(label :: String, val :: Number):
-      [raw-array: label, [list: val]]
-    end,
-    labels,
-    values) ^ builtins.list-to-raw-array, [list: ''], false)
+    {(l :: String, v :: Number): [raw-array: l, [list: v]]},
+    label,
+    value) ^ builtins.list-to-raw-array, [list: ''], false)
 end
 
 fun grouped-bar-chart(
-    labels :: List<String>,
+    label :: List<String>,
     values :: List<List<Number>>,
     legend :: List<String>,
-    options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+    options-generator :: WrappedBarChartWindowOptions
+) -> IM.Image block:
   doc: ```
        Consume labels, a list of string, and values, a list of list of numbers,
        legend, a list of string, and show a grouped bar chart
        ```
   options = options-generator(bar-chart-window-options)
   _ = check-base-window-options(options)
+  label-length = label.length()
+  values-length = values.length()
+  when label-length <> values-length:
+    raise('grouped-bar-chart: labels and values should have equal length')
+  end
   P.bar-chart(options, map2(
-    lam(label :: String, vals :: List<Number>):
-      [raw-array: label, vals]
-    end,
-    labels,
+    {(l :: String, vs :: List<Number>): [raw-array: l, vs]},
+    label,
     values) ^ builtins.list-to-raw-array, legend, true)
 where:
   grouped-bar-chart(
@@ -296,16 +323,42 @@ where:
     default-options) does-not-raise
 end
 
+fun freq-bar-chart(
+    label :: List<String>,
+    options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+    doc: 'bar chart by frequency'
+  dict = for fold(prev from [SD.string-dict: ], e from label):
+    prev.set(e, prev.get(e).or-else(0) + 1)
+  end
+  {ls; vs; _} = for fold({ls; vs; seen} from {empty; empty; S.empty-tree-set},
+                         e from label):
+    if seen.member(e):
+      {ls; vs; seen}
+    else:
+      {link(e, ls); link(dict.get-value(e), vs); seen.add(e)}
+    end
+  end
+  bar-chart(ls.reverse(), vs.reverse(), options-generator)
+where:
+  freq-bar-chart([list: 'x', 'a', 'b', 'a', 'b', 'c', 'a', 'a'],
+                 default-options) does-not-raise
+end
+
 fun dot-chart(
     tab :: Table,
     options-generator :: WrappedDotChartWindowOptions) -> IM.Image block:
+  # UNFINISHED
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('expect a table with two columns: label and values')
   end
   extend tab using value:
     _dummy: block:
       when (value < 0) or (value > 40):
-        raise("a value in dot-chart " + num-to-string(value) + " is not in the range")
+        raise(
+          [sprintf:
+            "a value in dot-chart ",
+            value,
+            " is not in the range"])
       end
     end
   end
@@ -317,6 +370,7 @@ end
 fun box-chart(
     tab :: Table,
     options-generator :: WrappedBoxChartWindowOptions) -> IM.Image block:
+  # UNFINISHED
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
@@ -341,7 +395,7 @@ fun generate-xy(
       end
         ^ builtins.list-to-raw-array
         ^ scatter-plot-int(_, options)
-    | else => raise('internal-plot: expect function-plot, got other')
+    | else => raise('int-plot: expect function-plot, got other')
   end
 where:
   win-options = {
@@ -409,16 +463,19 @@ fun render-multi-plot(
   options = options-generator(plot-window-options)
   _ = check-base-window-options(options)
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
-    raise('plot: x-min and y-min must be strictly less than x-max and y-max respectively')
+    raise(
+      [sprintf:
+        'plot: x-min and y-min must be strictly less than x-max and y-max ',
+        'respectively'])
   end
   when (options.num-samples > MAX-SAMPLES) or
     (options.num-samples <= 1) or
     not(num-is-integer(options.num-samples)):
     raise(
       [sprintf:
-        'plot: num-samples must be an an integer greater than 1',
-        ' and do not exceed ',
-        num-to-string(MAX-SAMPLES)])
+        'plot: num-samples must be an an integer greater than 1 ',
+        'and do not exceed ',
+        MAX-SAMPLES])
   end
 
   original-plots = plots
@@ -456,7 +513,8 @@ fun render-multi-plot(
     points = line-and-scatter.map(
       lam(plot :: PlotInternal):
         cases (PlotInternal) plot:
-          | function-plot-int(_, _) => raise('internal-plot: function-plot not filtered')
+          | function-plot-int(_, _) =>
+            raise('int-plot: function-plot not filtered')
           | line-plot-int(points, _) => raw-array-to-list(points)
           | scatter-plot-int(points, _) => raw-array-to-list(points)
         end
