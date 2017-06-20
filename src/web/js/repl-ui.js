@@ -29,6 +29,10 @@
                       util) {
     var ffi = runtime.ffi;
 
+    var output = jQuery("<div id='output' class='cm-s-default'>");
+    var outputPending = jQuery("<span>").text("Gathering results...");
+    var outputPendingHidden = true;
+    
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -100,11 +104,11 @@
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
-            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
+            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
-            ffi.cases(ffi.isEither, "is-Either", result, {
+            return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
                 didError = true;
@@ -120,14 +124,14 @@
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
                       return renderAndDisplayError(callingRuntime, errors[i]);
                     }), 0, errors.length);
-                  }, function () {});
+                  }, function (result) { return result; }, "renderMultipleErrors");
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
                 // to use if we have separate compile/run runtimes.  I think
                 // that loadLib will be instantiated with callingRuntime, and
                 // I think that's correct.
-                callingRuntime.pauseStack(function(restarter) {
+                return callingRuntime.pauseStack(function(restarter) {
                   rr.runThunk(function() {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
@@ -228,9 +232,6 @@
         }
       });
 
-      var output = jQuery("<div id='output' class='cm-s-default'>");
-      var outputPending = jQuery("<span>").text("Gathering results...");
-      var outputPendingHidden = true;
       function maybeShowOutputPending() {
         outputPendingHidden = false;
         setTimeout(function() {
@@ -369,7 +370,7 @@
       repl.runtime.setParam("onTrace", function(loc, val, url) {
         if (repl.runtime.getParam("currentMainURL") !== url) { return { "onTrace": "didn't match" }; }
         if (repl.runtime.isNothing(val)) { return { "onTrace": "was nothing" }; }
-        repl.runtime.pauseStack(function(restarter) {
+        return repl.runtime.pauseStack(function(restarter) {
           repl.runtime.runThunk(function() {
             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
           }, function(container) {

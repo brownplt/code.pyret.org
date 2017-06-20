@@ -17,7 +17,6 @@
       "is-step-count": "tany",
       "is-image": "tany",
       "bitmap-url": "tany",
-      "open-image-url": "tany",
       "image-url": "tany",
       "images-equal": "tany",
       "images-difference": "tany",
@@ -303,7 +302,7 @@
       checkArity(1, arguments, "image");
       c("image-url", [maybeUrl], [annString]);
       var url = maybeUrl;
-      runtime.pauseStack(function(restarter) {
+      return runtime.pauseStack(function(restarter) {
         var rawImage = new Image();
         if(runtime.hasParam("imgUrlProxy")) {
           url = runtime.getParam("imgUrlProxy")(url);
@@ -361,7 +360,6 @@
       return runtime.wrap(image.isImage(maybeImage.val));
     });
     f("bitmap-url", bitmapURL),
-    f("open-image-url", bitmapURL),
     f("image-url", bitmapURL),
     f("images-difference", function(maybeImage1, maybeImage2) {
       checkArity(2, arguments, "image");

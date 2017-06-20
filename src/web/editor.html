@@ -123,6 +123,7 @@
 <script src="/js/require.js"></script>
 <script>
   window.module = {};
+  window.exports = {};
 </script>
 <script src="/js/s-expression-lib.js"></script>
 <script>
@@ -136,6 +137,13 @@ define("s-expression", [], function() {
 var seed_exports = window.module.exports;
 define("seedrandom", [], function() {
   return seed_exports;
+});
+</script>
+<script src="/js/source-map.js"></script>
+<script>
+var sm_exports = window.module.exports;
+define("source-map", [], function() {
+  return sm_exports;
 });
 </script>
 <script>delete window.module;</script>
