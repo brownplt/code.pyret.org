@@ -76,7 +76,7 @@
     function loadWorksheet(loader, buildFun) {
       buildFun = buildFun || worksheetToTable;
       function doLoadWorksheet() {
-        runtime.pauseStack(function(resumer) {
+        return runtime.pauseStack(function(resumer) {
           function handleError(err) {
             if (runtime.isPyretException(err)) {
               resumer.error(err);
@@ -102,7 +102,7 @@
     }
 
     function deleteWorksheet(deleter) {
-      runtime.pauseStack(function(resumer) {
+      return runtime.pauseStack(function(resumer) {
         function handleError(err) {
           if (runtime.isPyretException(err)) {
             resumer.error(err);
@@ -123,7 +123,7 @@
 
     function addWorksheet(adder) {
       function doAdd() {
-        runtime.pauseStack(function(resumer) {
+        return runtime.pauseStack(function(resumer) {
           function handleError(err) {
             if (runtime.isPyretException(err)) {
               resumer.error(err);
@@ -141,7 +141,7 @@
           }
         });
       }
-      runtime.pauseStack(doAdd, function(thunk) {
+      return runtime.pauseStack(doAdd, function(thunk) {
         return thunk();
       });
     }
@@ -519,7 +519,7 @@
     function createSpreadsheet(name) {
       runtime.ffi.checkArity(1, arguments, "create-spreadsheet");
       runtime.checkString(name);
-      runtime.pauseStack(function(resumer) {
+      return runtime.pauseStack(function(resumer) {
         sheetsAPI.then(function(api) {
           return api.createSpreadsheet(name);
         })
@@ -538,7 +538,7 @@
 
     function loadSpreadsheet(loader) {
       
-      runtime.pauseStack(function(resumer) {
+      return runtime.pauseStack(function(resumer) {
         sheetsAPI.then(function(api) {
           SHEET_TYPES = api.TYPES;
           return loader(api);
