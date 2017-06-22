@@ -82,8 +82,5 @@
     "url": "git://github.com/brownplt/code.pyret.org"
   },
   "author": "Joe Politz",
-  "license": "Apache-2.0",
-  "devDependencies": {
-    "babel-preset-stage-2": "^6.17.0"
-  }
+  "license": "Apache-2.0"
 }
