@@ -1,216 +1,94 @@
+body, html, p, h1, h2, h3, h4, button, input, div, i {
+  font-family: 'Roboto', sans-serif;
+}
+
 .cf:after {
   content: "";
   display: table;
   clear: both;
 }
 
-body, html {
-    width: 100%;
-    height: 100%;
-}
-
-#root, .wrap {
-    height: 100%;
-    width: 100%;
-}
-
-.wrap {
-    text-align: center;
-}
-
-body, html, p, h1, h2, h3, h4, button, input, div, i {
-    color: #123548;
-    padding: 0;
-    margin: 0;
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-weight: 500;
-    font-size: 1rem;
-}
-
-.container {
-    max-width: 1024px;
-    margin: 0px auto;
-}
-
-#header {
-    height: 48pt;
-    padding: 0px 24pt;
-    border-bottom: 2px solid #ddd;
-}
-
-.left, .right {
-    display: inline;
-    line-height: 48pt;
+.page-content {
+  padding: 16pt;
 }
 
 .left {
-    float: left;
+  float: left;
 }
 
 .right {
-    float: right;
-}
-
-.floatable.left {
-    display: block;
-    float: none;
-}
-
-.floatable.right {
-    display: block;
-    float: none;
-}
-
-button, .button {
-    appearance: none;
-    -webkit-appearance: none;
-    padding: 8pt 16pt;
-    background: #123548;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    cursor: pointer;
-}
-
-button:hover, .button:hover {
-    opacity: .7;
-}
-
-#select-file {
-    background: #CA3434;
-    margin: 0px 16pt;
-}
-
-.modal-wrap, #loading-spinner {
-    padding: 16pt;
-    margin: 0px auto;
-}
-
-.modal-body {
-    border: 2px solid #ddd;
-    padding: 16pt;
-}
-
-.fast-spin {
-    margin-top: 16pt;
-    -webkit-animation: fa-spin 500ms infinite linear;
-    animation: fa-spin 500ms infinite linear;
-}
-
-#file-picker-modal-tabs {
-    background: #fff;
-    border: 2px solid #ddd;
-    border-bottom: none;
-}
-
-input.form {
-    padding: 5px;
-    width: 80px;
-    border-radius: 5px;
-    border: 2px solid #ddd;
+  float: right;
 }
 
 .arr-ext {
-    padding: 0 16pt 0 5px;
+  padding: 0 16pt 0 5px;
 }
 
-#file-picker-modal-tabs h2.tab {
-    line-height: 48pt;
+.mdl-card img {
+  width: 35%;
+  padding-bottom: 8pt;
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%);
+  opacity: .4;
 }
 
-#file-picker-modal-body {
-    background: #eee;
-    max-height: 400px;
-    overflow-y: scroll;
-    text-align: left;
+.class {
+  padding: 16px 40px;
+  cursor: pointer;
 }
 
-.tab {
-    float: left;
-    cursor: pointer;
-    padding: 0pt 8pt;
+.class span.name, .class i, .student span.name, .student i {
+  color: rgb(117, 117, 117);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0;
+  opacity: 0.87;
 }
 
-.tab.active {
-    background: #123548;
-    color: white;
-    text-decoration: underline;
+.mdl-tooltip {
+  z-index: 500000 !important;
 }
 
-.file-wrapper {
-    display: inline-block;
-    padding: 16pt;
-    width: 100%;
-    box-sizing: border-box;
+.class:hover {
+  background: rgb(224,224,224);
 }
 
-.file {
-    text-align: center;
-    padding: 16pt;
-    background: rgba(0,0,0,.06);
-    border-radius: 5px;
-    box-sizing: border-box;
+.class.active span.name, .class.active i {
+  font-weight: 500;
+  color: #333;
 }
 
-.file:hover {
-    cursor: pointer;
-    background: rgba(0,0,0,.15);
+.class.active {
+  background: rgb(240,240,240);
 }
 
-.file img {
-    width: 35%;
-    padding-bottom: 8pt;
-    filter: grayscale(100%);
-    -webkit-filter: grayscale(100%);
-    opacity: .4;
+.mdl-card i, .class i {
+  cursor: pointer;
 }
 
-.file p {
-    font-size: .85rem;
+.class i {
+  margin-left: 8pt;
 }
 
-.truncate {
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mdl-card i {
+  margin-right: 8pt;
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
-@media only screen and (min-width: 480px) {
-    .modal-wrap, #loading-spinner {
-        padding: 48pt;
-        margin: 0px auto;
-    }
-
-    .file-wrapper {
-        width: 50%;
-    }
-    .tab {
-        padding: 0pt 16pt;
-    }
+.mdl-spinner:not(.is-upgraded).is-active:after {
+  content: '' !important;
 }
 
-@media only screen and (min-width: 768px) {
-    .file-wrapper {
-        width: 33.3333%;
-    }
-    input.form {
-        width: 150px;
-    }
-    .floatable.left {
-        float: left;
-    }
-    .floatable.right {
-        float: right;
-    }
+fieldset[disabled] .mdl-textfield .mdl-textfield__input, .mdl-textfield.is-disabled .mdl-textfield__input {
+  background-color: transparent;
+  border-bottom: 1px dotted rgba(0,0,0, 0.12);
+  color: inherit !important;
 }
 
-@media only screen and (min-width: 1024px) {
-    .file-wrapper {
-        width: 25%;
-    }
+fieldset[disabled] .mdl-textfield .mdl-textfield__label, .mdl-textfield.is-disabled.is-disabled .mdl-textfield__label {
+  color: rgb(63,81,181) !important;
 }

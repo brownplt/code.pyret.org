@@ -56,6 +56,7 @@
     "q": "~1.4.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
+    "react-mdl": "^1.10.0",
     "redis": "^0.10.3",
     "request": "^2.34.0",
     "requirejs": "2.1.14",
@@ -85,5 +86,9 @@
     "url": "git://github.com/brownplt/code.pyret.org"
   },
   "author": "Joe Politz",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel-eslint": "^6.1.2",
+    "eslint-plugin-react": "^6.10.3"
+  }
 }
