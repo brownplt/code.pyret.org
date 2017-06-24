@@ -196,6 +196,7 @@ fun histogram(
   end
   options = options-generator(histogram-window-options)
   _ = check-base-window-options(options)
+  shadow values = values.map({(x): [raw-array: x]})
   P.histogram(options, builtins.list-to-raw-array(values), n)
 where:
   histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1], 4, default-options) does-not-raise
