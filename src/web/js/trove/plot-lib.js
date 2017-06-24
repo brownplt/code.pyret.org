@@ -970,7 +970,6 @@
       .attr('dy', '.35em')
       .style('text-anchor', function(d) {
         const placement = arc2.centroid(d)[0];
-        console.log(placement);
         if (-10 <= placement && placement <= 10) {
           return 'middle';
         }
