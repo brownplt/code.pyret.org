@@ -21,6 +21,8 @@ var gwrap = window.gwrap = {
         delete copy.reauth;
         gw.load(copy)
           .then(function(loaded) {
+            loaded.auth = gw.auth; // NOTE(joe): hmmm
+            loaded.hasAuth = function() { return gw.auth !== null; }
             ret.resolve(loaded);
           });
       });
@@ -358,7 +360,7 @@ function loadAPIWrapper(immediate) {
   }
 
   var initialAuth = reauth(immediate);
-  return initialAuth.then(function(_) {
+  return initialAuth.then(function(auth) {
     /**
      * Creates the API Wrapping module to export
      */
@@ -372,6 +374,8 @@ function loadAPIWrapper(immediate) {
       this.request = (function(params, skipAuth) {
         return gQ(gapi.client.request(params), skipAuth);
       });
+      this.auth = auth;
+      this.hasAuth = function() { return auth !== null; };
     }
 
     makeWrapped.prototype = _GWRAP_APIS;
