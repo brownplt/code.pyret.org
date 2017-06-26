@@ -3,28 +3,43 @@ import GoogleAPI from './GoogleAPI.js';
 import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
 import File from './File';
 
+const NOT_SIGNED_IN = 1;
+const WAITING_FOR_SIGNIN = 2;
+const SIGNED_IN = 3;
+
 class StudentDashboard extends Component {
   constructor() {
     super();
 
-    this.state = {signedIn: false, files: [], activeTab: 'recent-files', newFileName: ''};
+    this.state = {signedIn: NOT_SIGNED_IN, files: [], activeTab: 'recent-files', newFileName: ''};
 
     this.api = new GoogleAPI();
-    this.api.load().then((resp) => {
-      this.setState({signedIn: true});
-      this.updateRecentFiles();
+    var apiLoaded = this.api.load();
+    apiLoaded.then((resp) => {
+      if(resp.hasAuth()) {
+        this.setState({signedIn: SIGNED_IN});
+        this.updateRecentFiles();
+      }
+      console.log("Claimed loaded", resp);
+      // this.setState({signedIn: true});
+      // this.updateRecentFiles();
+    });
+    apiLoaded.fail(function(e) {
+      console.error("Couldn't load API: ", e);
     });
   }
 
   handleSignInClick = (event) => {
+    this.setState({signedIn: WAITING_FOR_SIGNIN});
     this.api.signIn().then((resp) => {
-      this.setState({signedIn: true});
+      console.log("The response is: ", resp);
+      this.setState({signedIn: SIGNED_IN});
       this.updateRecentFiles();
     });
   }
 
   handleSignOutClick = (event) => {
-    this.setState({signedIn: false});
+    this.setState({signedIn: NOT_SIGNED_IN});
     window.location.replace('/logout');
   }
 
@@ -61,6 +76,7 @@ class StudentDashboard extends Component {
 
   handleCreateNewFile = (event) => {
     event.preventDefault();
+    var w = window.open("about:blank", "_newtab");
     if (this.state.newFileName) {
       this.api.getAppFolderID(APP_NAME).then((resp) => {
         var files = resp.result.files;
@@ -69,7 +85,8 @@ class StudentDashboard extends Component {
         if (files.length === 0) {
           this.api.createAppFolder(APP_NAME).then((resp) => {
             return this.api.createNewFile(resp.result.id, this.state.newFileName + '.arr').then((resp)=> {
-              window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
+              w.location = EDITOR_REDIRECT_URL + resp.result.id;
+//              window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
             });
           });
         }
@@ -77,7 +94,8 @@ class StudentDashboard extends Component {
         // App Folder already existed
         else {
           return this.api.createNewFile(files[0].id, this.state.newFileName + '.arr').then((resp) => {
-            window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
+            w.location = EDITOR_REDIRECT_URL + resp.result.id;
+//            window.open(EDITOR_REDIRECT_URL + resp.result.id, '_newtab');
           });
         }
       });
@@ -108,20 +126,20 @@ class StudentDashboard extends Component {
       <div className='wrap'>
         <div id='header' className=''>
           <div className='container'>
-            <h1 className='logo-text left'>{APP_NAME} – Web Dashboard</h1>
+            <h1 className='logo-text left'>{APP_NAME} –Dashboard</h1>
             <div className='button-wrapper right'>
-              <button className={'auth-button ' + (this.state.signedIn ? 'hidden' : '')} onClick={this.handleSignInClick} id='signin-button' >Sign in</button>
+              <button className={'auth-button ' + (this.state.signedIn !== NOT_SIGNED_IN ? 'hidden' : '')} onClick={this.handleSignInClick} id='signin-button' >Sign in</button>
             </div>
             <div className='button-wrapper right'>
-              <button className={'auth-button ' + (this.state.signedIn ? '' : 'hidden')} onClick={this.handleSignOutClick} id='signout-button' >Sign out</button>
+              <button className={'auth-button ' + (this.state.signedIn !== NOT_SIGNED_IN ? '' : 'hidden')} onClick={this.handleSignOutClick} id='signout-button' >Sign out</button>
             </div>
           </div>
         </div>
-        <div id='loading-spinner' className={this.state.signedIn ? 'hidden' : ''}>
+        <div id='loading-spinner' className={this.state.signedIn === WAITING_FOR_SIGNIN ? '' : 'hidden'}>
           <h1>Waiting for login...</h1>
           <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
         </div>
-        <div id='file-picker-modal' className={'modal-wrap container ' + (this.state.signedIn ? '' : 'hidden')}>
+        <div id='file-picker-modal' className={'modal-wrap container ' + (this.state.signedIn === SIGNED_IN ? '' : 'hidden')}>
           <div id='file-picker-modal-tabs' className='cf'>
             <h2 id='recent-files' className={'tab floatable left ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
             <h2 id='template-files' className={'tab floatable left ' + ((this.state.activeTab === 'template-files') ? 'active' : '')} onClick={this.handleTabClick}>Templates</h2>
