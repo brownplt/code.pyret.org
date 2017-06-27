@@ -431,10 +431,10 @@ body {
 .replMain {
   position: absolute;
   z-index: 8500;
-  left: 0;
-  width: 50%;
-  top:0;
-  height: 100%;
+  left: 30%;
+  width: 30em;
+  top: 30%;
+  height: 30em;
   max-height: 100%;
   padding-top: 40px;
   padding-bottom: 5px;
@@ -446,11 +446,11 @@ body {
 .replContainer {
   position: absolute;
   z-index: 8500;
-  left: 50%;
+  left: 55em;
   right: 0;
-  width: 50%;
-  top:0;
-  height: 100%;
+  width: 30em;
+  top: 30%;
+  height: 30em;
   max-height: 100%;
   padding-top: 40px;
   padding-bottom: 5px;

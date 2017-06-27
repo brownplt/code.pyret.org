@@ -14,7 +14,7 @@
     "babel-polyfill": "^6.9.1",
     "babel-preset-es2015": "6.16.0",
     "babel-preset-react": "6.16.0",
-    "babel-preset-stage-2": "6.17.0",
+    "babel-preset-stage-2": "^6.17.0",
     "body-parser": "^1.15.2",
     "codemirror": "~5.19.0",
     "colorspaces": "0.1.4",
@@ -66,8 +66,7 @@
     "url.js": "^1.0.2",
     "webpack": "^1.13.1",
     "webpack-dev-server": "^1.14.1",
-    "load-script": "^1.0.0",
-    "babel-preset-stage-2": "^6.17.0"
+    "load-script": "^1.0.0"
   },
   "scripts": {
     "local-install": "heroku local:run npm install",

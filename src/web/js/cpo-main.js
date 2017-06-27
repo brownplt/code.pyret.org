@@ -20,6 +20,10 @@
       protocol: "js-file",
       args: ["./repl-ui"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./tutorial"]
+    },
     { "import-type": "builtin",
       name: "parse-pyret"
     },
@@ -46,11 +50,10 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
-                      compileLib, compileStructs, pyRepl, cpo, replUI,
+                      compileLib, compileStructs, pyRepl, cpo, replUI, tutorial,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
-
 
 
 
@@ -260,6 +263,11 @@
                   });
               }, function(result) {
                 ret.resolve(result);
+                if (runtime.isSuccessResult(result)) {
+                  tutorial.afterRun("success");
+                } else {
+                  tutorial.afterRun("failure");
+                };
               });
             }, 0);
             return ret.promise;

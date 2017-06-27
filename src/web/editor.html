@@ -17,14 +17,14 @@
 <body>
 <div id="header">
   <a id="logo" href="http://www.pyret.org/"></a>
-  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
+  <!-- <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button> -->
   <div id="program-name-container" class="loginOnly">
     <input id="program-name" type="text" placeholder="Program Name"></input>
   </div>
   <button id="saveButton" class="blueButton loginOnly">Save</button>
   <button id="openFile" class="blueButton loginOnly">Open</button>
   <div id="shareContainer"></div>
-  <div id="menu"><button class="blueButton">More ▾</a></div>
+  <!-- <div id="menu"><button class="blueButton">More ▾</a></div>
   <div id="menuContents" style="display: none; z-index: 8990;">
     <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
     <div id="docs"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
@@ -38,7 +38,7 @@
       <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
     </div>
     <div id="logout"><a href="/logout">Log out</a></div>
-  </div>
+  </div> -->
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
     <span id="runDropdown" class="dropdown rhs">↴</span>
@@ -52,6 +52,10 @@
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
+<!-- an instruction area for the tutorial version-->
+<div id="instruction">
+    Instruction Area
+</div>
 <!-- MODAL PROMPT (Adapted from W3Schools' example) -->
 <div id="promptModal" class="modal">
   <div class="modal-content">
