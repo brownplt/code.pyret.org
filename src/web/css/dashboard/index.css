@@ -34,13 +34,14 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
 
 #header {
     height: 48pt;
+    margin-top: 1rem;
+    text-align: left;
     padding: 0px 24pt;
     border-bottom: 2px solid #ddd;
 }
 
 .left, .right {
     display: inline;
-    line-height: 48pt;
 }
 
 .left {
@@ -59,6 +60,10 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
 .floatable.right {
     display: block;
     float: none;
+}
+
+.clearfix {
+  clear: both;
 }
 
 button, .button {
@@ -167,6 +172,10 @@ input.form {
 
 .file p {
     font-size: .85rem;
+}
+
+.person-text {
+  color: #666666;
 }
 
 .truncate {

@@ -11,7 +11,13 @@ class StudentDashboard extends Component {
   constructor() {
     super();
 
-    this.state = {signedIn: NOT_SIGNED_IN, files: [], activeTab: 'recent-files', newFileName: ''};
+    this.state = {
+      signedIn: NOT_SIGNED_IN,
+      files: [],
+      activeTab: 'recent-files',
+      newFileName: '',
+      userName: false
+    };
 
     this.api = new GoogleAPI();
     var apiLoaded = this.api.load();
@@ -19,10 +25,11 @@ class StudentDashboard extends Component {
       if(resp.hasAuth()) {
         this.setState({signedIn: SIGNED_IN});
         this.updateRecentFiles();
+        this.api.getUsername().then((userInfo) => {
+          console.log(userInfo);
+          this.setState({ userName: userInfo.displayName });
+        });
       }
-      console.log("Claimed loaded", resp);
-      // this.setState({signedIn: true});
-      // this.updateRecentFiles();
     });
     apiLoaded.fail(function(e) {
       console.error("Couldn't load API: ", e);
@@ -126,7 +133,10 @@ class StudentDashboard extends Component {
       <div className='wrap'>
         <div id='header' className=''>
           <div className='container'>
-            <h1 className='logo-text left'>{APP_NAME} –Dashboard</h1>
+            <div className='left'>
+              <h1 className='logo-text'>{APP_NAME} – Dashboard</h1>
+              <h2 className={'person-text ' + (this.state.userName === false ? 'hidden' : '')}>{this.state.userName}</h2> 
+            </div>
             <div className='button-wrapper right'>
               <button className={'auth-button ' + (this.state.signedIn !== NOT_SIGNED_IN ? 'hidden' : '')} onClick={this.handleSignInClick} id='signin-button' >Sign in</button>
             </div>

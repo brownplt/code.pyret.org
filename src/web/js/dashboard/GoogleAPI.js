@@ -118,6 +118,15 @@ class GoogleAPI {
       window.picker.setVisible(true);
     });
   }
+
+  getUsername = () => {
+    return gwrap.load({name: 'plus',
+      version: 'v1',
+    }).then((api) => {
+      console.log("Api: ", api);
+      return api.people.get({ userId: "me" });
+    });
+  }
 }
 
 export default GoogleAPI;

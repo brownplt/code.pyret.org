@@ -58,7 +58,7 @@ function reauth(immediate) {
     newToken.then(function(t) {
       gapi.auth.setToken({ access_token: t.access_token });
       logger.log('login', {user_id: t.user_id});
-      d.resolve({ access_token: t.access_token });
+      d.resolve({ user_id: t.user_id, access_token: t.access_token });
     });
     newToken.fail(function(t) {
       d.resolve(null);
@@ -230,13 +230,13 @@ function loadAPIWrapper(immediate) {
    *        authentication.
    * @returns {Promise} A promise which resolves to the result of the Google query
    */
-  function gQ(request, skipAuth) {
+  function gQ(makeRequest, skipAuth) {
     var oldAccess = gapi.auth.getToken();
     if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
     var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       // TODO: This should be migrated to a promise
-      request.execute(function(result) {
+      makeRequest().execute(function(result) {
         d.resolve(result);
       });
       return d.promise;
@@ -302,7 +302,7 @@ function loadAPIWrapper(immediate) {
             // that doesn't change the function's context
             var original = obj[key];
             dest[key] = (function(args, skipAuth) {
-              return gQ(original(args), skipAuth);
+              return gQ(function() { return original(args); }, skipAuth);
             });
           } else {
             dest[key] = obj[key];
@@ -316,7 +316,10 @@ function loadAPIWrapper(immediate) {
       }
       var api = gapi.client[key];
       _GWRAP_APIS[key] = {};
-      processObject(api, _GWRAP_APIS[key]);
+      // NOTE(joe): hack as I'm testing on MS Edge
+      if(api !== undefined) {
+        processObject(api, _GWRAP_APIS[key]);
+      }
       return _GWRAP_APIS[key];
     }
 
@@ -372,7 +375,7 @@ function loadAPIWrapper(immediate) {
       this.load = loadAPI;
       this.withAuth = function(f) {return failCheck(authCheck(f));};
       this.request = (function(params, skipAuth) {
-        return gQ(gapi.client.request(params), skipAuth);
+        return gQ(function() { return gapi.client.request(params); }, skipAuth);
       });
       this.auth = auth;
       this.hasAuth = function() { return auth !== null; };
