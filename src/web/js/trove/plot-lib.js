@@ -910,14 +910,14 @@
 
 
     var dimension = getDimension({
-      minWindowWidth: 600,
-      minWindowHeight: 400,
-      outerMarginLeft: 160,
-      outerMarginRight: 160,
-      marginLeft: 0,
-      marginRight: 0,
-      marginTop: 50,
-      marginBottom: 10,
+      minWindowWidth: 700,
+      minWindowHeight: 550,
+      outerMarginLeft: 10,
+      outerMarginRight: 10,
+      marginLeft: 120,
+      marginRight: 120,
+      marginTop: 90,
+      marginBottom: 40,
       mode: 'center',
     }, windowOptions),
         width = dimension.width,
@@ -931,9 +931,7 @@
     var radiusScaler = libNum.scaler(0, maxRadiusValue, 0, maxRadius, true);
     var color = d3.scale.category20();
     var arc = d3.svg.arc()
-        .outerRadius(function (row) {
-          return radiusScaler(row.data[2]);
-        })
+        .outerRadius(function (row) { return radiusScaler(row.data[2]); })
         .innerRadius(0);
     var pie = d3.layout.pie()
         .sort(null)
@@ -958,16 +956,27 @@
 
     g.append('path').attr('class', 'path').attr('d', arc);
 
+    const arc2 = d3.svg.arc();
+
+    g.append('path').attr('class', 'transparent').attr('d', arc);
+
     g.append('text')
       .attr('transform', function (d) {
-        return svgTranslate(arc.centroid(d));
+        const r = radiusScaler(d.data[2]);
+        d.outerRadius = r + 15;
+        d.innerRadius = r + 10;
+        return svgTranslate(arc2.centroid(d));
       })
       .attr('dy', '.35em')
-      .style({
-        'text-anchor': 'middle'
+      .style('text-anchor', function(d) {
+        const placement = arc2.centroid(d)[0];
+        if (-10 <= placement && placement <= 10) {
+          return 'middle';
+        }
+        return (placement >= 0) ? 'start' : 'end';
       })
       .text(function (d) { return d.data[0]; });
-    g.append('path').attr('class', 'transparent').attr('d', arc);
+
     canvas.selectAll('.arc path')
       .style({
         fill: function (d, i) { return color(i); }
