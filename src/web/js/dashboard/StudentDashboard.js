@@ -27,7 +27,7 @@ class StudentDashboard extends Component {
         this.updateRecentFiles();
         this.api.getUsername().then((userInfo) => {
           console.log(userInfo);
-          this.setState({ userName: userInfo.displayName });
+          this.setState({ userName: userInfo.emails[0].value });
         });
       }
     });
