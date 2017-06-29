@@ -183,10 +183,25 @@ $(function() {
 
   };
 
+  function setUsername(target) {
+    return gwrap.load({name: 'plus',
+      version: 'v1',
+    }).then((api) => {
+      api.people.get({ userId: "me" }).then(function(user) {
+        var name = user.displayName;
+        if (user.emails && user.emails[0] && user.emails[0].value)
+          name = user.emails[0].value;
+        target.text(name);
+      });
+    });
+  }
+
+  
   storageAPI.then(function(api) {
     api.collection.then(function() {
       $(".loginOnly").show();
       $(".logoutOnly").hide();
+      setUsername($("#username"));
       api.api.getCollectionLink().then(function(link) {
         $("#drive-view a").attr("href", link);
       });
@@ -206,6 +221,7 @@ $(function() {
       api.collection.then(function() {
         $(".loginOnly").show();
         $(".logoutOnly").hide();
+        setUsername($("#username"));
         api.api.getCollectionLink().then(function(link) {
           $("#drive-view a").attr("href", link);
         });
