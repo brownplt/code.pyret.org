@@ -331,12 +331,34 @@ $(function() {
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
 
-  function save() {
+  /*
+    save : string (optional) -> undef
+
+    If a string argument is provided, create a new file with that name and save
+    the editor contents in that file.
+
+    If a string argument is not provided, check if we are in a share context
+    (e.g. the copyOnSave variable is true).  If we are, make a new file with
+    the existing name and save the contents of the editor there.
+
+    If there is an existing filename and one isn't provided, save the existing
+    file referenced by the editor with the current editor contents.
+
+  */
+  function save(newFilename) {
+    if(newFilename !== undefined) {
+      var useName = newFilename;
+      var create = true;
+    }
+    else {
+      var useName = filename; // A closed-over variable
+      var create = false;
+    }
     window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
-      if(p !== null && !copyOnSave) {
-        if(p.getName() !== filename) {
-          programToSave = p.rename(nameOrUntitled()).then(function(newP) {
+      if(!create && p !== null && !copyOnSave) {
+        if(p.getName() !== useName) {
+          programToSave = p.rename(useName).then(function(newP) {
             return newP;
           });
         }
@@ -355,12 +377,13 @@ $(function() {
         });
       }
       else {
-        var programName = $("#program-name").val() || "Untitled";
-        $("#program-name").val(programName);
         programToSave = storageAPI
-          .then(function(api) { return api.createFile(programName); });
-        copyOnSave = false;
-        return save();
+          .then(function(api) { return api.createFile(useName); })
+          .then(function(p) {
+            updateName(p);
+            save();
+            return p;
+          });
       }
     });
     savedProgram.fail(function(err) {
@@ -368,6 +391,30 @@ $(function() {
       console.error(err);
     });
   }
+
+  function saveAs() {
+    var saveAsDiv = $("<div>").css({"z-index": 15000});
+    saveAsDiv.dialog({
+      title: "Save As",
+      modal: true,
+      overlay : { opacity: 0.5, background: 'black'},
+      width : "70%",
+      height : "auto",
+      closeOnEscape : true
+    });
+    var currentName = $("<textarea>").val(filename || "Untitled");
+    var submit = $("<button>").addClass("blueButton").text("Save As");
+    var cancel = $("<button>").addClass("blueButton").text("Cancel");
+    saveAsDiv.append(cancel);
+    saveAsDiv.append(submit);
+    saveAsDiv.append(currentName);
+    submit.click(function() {
+      var newName = submit.val();
+      save(newName);
+    });
+    cancel.click(function() { saveAsDiv.dialog("close"); });
+  }
+
   function rename() {
     var renameDiv = $("<div>").css({"z-index": 15000});
     renameDiv.dialog({
@@ -381,27 +428,37 @@ $(function() {
     var currentName = $("<textarea>").val(filename || "Untitled");
     var submit = $("<button>").addClass("blueButton").text("Rename");
     var cancel = $("<button>").addClass("blueButton").text("Cancel");
-    renameDiv.append(currentName);
-    renameDiv.append(submit);
     renameDiv.append(cancel);
+    renameDiv.append(submit);
+    renameDiv.append(currentName);
     submit.click(function() {
       programToSave.then(function(p) {
-        programToSave = p.rename(nameOrUntitled()).then(function(newP) {
+        var newName = currentName.val();
+        programToSave = p.rename(newName).then(function(newP) {
           return newP;
         });
         return programToSave;
       })
+      .then(function(p) {
+        window.flashMessage("Program saved as " + p.getName());
+        updateName(p);
+      })
+      .fail(function(err) {
+        console.err("Failed to rename: ", err);
+        window.flashError("Failed to rename file");
+      })
       .fin(function() {
-        updateName();
-        renameDiv.hide();
+        renameDiv.dialog("close");
       });
     });
-    cancel.click(function() { renameDiv.hide(); });
+    cancel.click(function() { renameDiv.dialog("close"); });
   }
+
   CPO.save = save;
   $("#runButton").click(CPO.autoSave);
   $("#save").click(save);
   $("#rename").click(rename);
+  $("#saveas").click(saveAs);
   shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
   shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
