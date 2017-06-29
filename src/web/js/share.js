@@ -1,5 +1,6 @@
 window.makeShareAPI = function makeShareAPI(pyretVersion) {
 
+  var showingNeedingHidden = [];
   function makeHoverMenu(triggerElt, menuElt, showOnHover, onShow) {
     var divHover = false;
     var linkHover = false;
@@ -16,6 +17,9 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
     }
     function show() {
       if(!showing) {
+        showingNeedingHidden.forEach(function(hideIt) {
+          hideIt();
+        });
         menuElt.css({
           position: "fixed",
           top: triggerElt.offset().top + triggerElt.outerHeight(),
@@ -36,6 +40,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       menuElt.fadeOut(100);
       $(document).off("click", hide);
     };
+    showingNeedingHidden.push(hide);
     menuElt.on("click", function(evt) {
       evt.stopPropagation();
     });

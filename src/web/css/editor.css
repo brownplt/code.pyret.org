@@ -572,23 +572,31 @@ body {
   max-width: min-content;
 }
 
-.menuContents div:hover{
+.menuContents div:not(.disabled):not(.inert):hover{
   transition: box-shadow 0.2s;
   background-color: rgba(0,0,0,0.2);
 }
 
+.menuContents div.disabled * {
+   color: gray
+}
+
 .menuButton *,
-#download *,
-#docs *,
-#issues *,
-#discuss *,
-#logout * {
+.menuContents * {
   color: #000;
   font-family: sans-serif;
   text-decoration: none;
+}
+
+.menuButton > *, .menuContents > * {
   padding: 10px;
   display: block;
 }
+
+.menuContents > .menuButton * {
+  padding: initial;
+}
+
 
 .info-btn {
   display: inline-block;
@@ -614,6 +622,7 @@ div#font{
   border-left: 0px;
   border-right: 0px;
   background:rgba(0,0,0,0.05);
+  padding: 0px;
 }
 
 div#font:hover{

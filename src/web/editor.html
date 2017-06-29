@@ -16,12 +16,6 @@
 </head>
 <body>
 <div id="header">
-  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
-  <!--
-  <div id="program-name-container" class="loginOnly">
-    <input id="program-name" type="text" placeholder="Program Name"></input>
-  </div>
-  -->
   <div id="bonniemenu" class="menu">
     <button class="blueButton">
       <span>▾</span>
@@ -29,32 +23,56 @@
     </button>
   </div>
   <div id="bonniemenuContents" class="menuContents" style="display: none; z-index: 8990;">
-    <div id="docs" class="menuButton"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
-    <div class="loginOnly" id="drive-view" class="menuButton"><a target="_blank" href="javascript:void(0)">View Files in Drive</a></div>
+    <div id="welcome" class="menuButton inert" style="text-align: center;">
+      <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
+    </div>
+    <div id="drive-view" class="loginOnly menuButton">
+      <a target="_blank" href="javascript:void(0)">My Programs</a>
+    </div>
+    <div id="docs" class="menuButton">
+      <a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a>
+    </div>
     <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
-    <div id="issues" class="menuButton"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
-    <div id="discuss" class="menuButton"><a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a></div>
+    <div id="issues" class="menuButton">
+      <a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
+    </div>
+    <div id="discuss" class="menuButton">
+      <a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+    </div>
     <div id="logging">
-      <input id="detailed-logging" type="checkbox"/>
-      <label for="detailed-logging">Contribute detailed usage information.</label>
-      <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+      <span>
+        <input id="detailed-logging" type="checkbox"/>
+        <label for="detailed-logging">Contribute detailed usage information.</label>
+        <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+      </span>
     </div>
     <div id="logout" class="menuButton"><a href="/logout">Log out</a></div>
   </div>
 
-  <div id="filemenu" class="menu"><button class="blueButton"><span>▾ Project</span><span id="filename"></span></div>
+  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
+  <!--
+  <div id="program-name-container" class="loginOnly">
+    <input id="program-name" type="text" placeholder="Program Name"></input>
+  </div>
+  -->
+
+  <div id="filemenu" class="loginOnly menu">
+    <button class="blueButton">
+      <span>▾ Project</span><span id="filename"></span>
+    </button>
+  </div>
   <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
-    <div id="save" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
-    <div id="new" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
-    <div id="open" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
-    <div id="saveas" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
-    <div id="rename" class="menuButton"><a target="_blank" href="javascript:void(0)">Rename</a></div>
-    <div id="download" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
+    <div id="new" class="menuButton"><a target="_blank" href="javascript:void(0)">New</a></div>
+    <div id="open" class="menuButton"><a target="_blank" href="javascript:void(0)">Open</a></div>
+    <div id="save" class="menuButton disabled"><a target="_blank" href="javascript:void(0)">Save</a></div>
+    <div id="saveas" class="menuButton"><a target="_blank" href="javascript:void(0)">Save as</a></div>
+    <div id="download" class="menuButton disabled"><a target="_blank" href="javascript:void(0)">Download</a></div>
+    <div id="rename" class="menuButton disabled"><a target="_blank" href="javascript:void(0)">Rename</a></div>
 
   </div>
   <div id="shareContainer"></div>
-  <button id="saveButton" class="blueButton loginOnly">Save</button>
-  <button id="openFile" class="blueButton loginOnly">Open</button>
+  <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
+  <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
 
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
