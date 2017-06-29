@@ -47,7 +47,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   }
 
   function makeShareLink(originalFile) {
-    var link = $("<div>").append($("<button class=blueButton>").text("Publish..."));
+    var link = $("<div>").append($("<button class=blueButton>").text("Publish"));
     var shareDiv = $("<div>").addClass("share");
     return makeHoverMenu(link, shareDiv, false,
       function() {

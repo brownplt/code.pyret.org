@@ -16,29 +16,46 @@
 </head>
 <body>
 <div id="header">
-  <a id="logo" href="http://www.pyret.org/"></a>
   <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
+  <!--
   <div id="program-name-container" class="loginOnly">
     <input id="program-name" type="text" placeholder="Program Name"></input>
   </div>
-  <button id="saveButton" class="blueButton loginOnly">Save</button>
-  <button id="openFile" class="blueButton loginOnly">Open</button>
-  <div id="shareContainer"></div>
-  <div id="menu"><button class="blueButton">More ▾</a></div>
-  <div id="menuContents" style="display: none; z-index: 8990;">
-    <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
-    <div id="docs"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
-    <div class="loginOnly" id="drive-view"><a target="_blank" href="javascript:void(0)">View Files in Drive</a></div>
+  -->
+  <div id="bonniemenu" class="menu">
+    <button class="blueButton">
+      <span>▾</span>
+      <img class="logo" src="/img/pyret-logo.png"></img>
+    </button>
+  </div>
+  <div id="bonniemenuContents" class="menuContents" style="display: none; z-index: 8990;">
+    <div id="docs" class="menuButton"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
+    <div class="loginOnly" id="drive-view" class="menuButton"><a target="_blank" href="javascript:void(0)">View Files in Drive</a></div>
     <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
-    <div id="issues"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
-    <div id="discuss"><a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a></div>
+    <div id="issues" class="menuButton"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
+    <div id="discuss" class="menuButton"><a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a></div>
     <div id="logging">
       <input id="detailed-logging" type="checkbox"/>
       <label for="detailed-logging">Contribute detailed usage information.</label>
       <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
     </div>
-    <div id="logout"><a href="/logout">Log out</a></div>
+    <div id="logout" class="menuButton"><a href="/logout">Log out</a></div>
   </div>
+
+  <div id="filemenu" class="menu"><button class="blueButton"><span>▾ Project</span><span id="filename"></span></div>
+  <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
+    <div id="save" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
+    <div id="new" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
+    <div id="open" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
+    <div id="saveas" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
+    <div id="rename" class="menuButton"><a target="_blank" href="javascript:void(0)">Rename</a></div>
+    <div id="download" class="menuButton"><a target="_blank" href="javascript:void(0)">Download</a></div>
+
+  </div>
+  <div id="shareContainer"></div>
+  <button id="saveButton" class="blueButton loginOnly">Save</button>
+  <button id="openFile" class="blueButton loginOnly">Open</button>
+
   <button id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
     <span id="runDropdown" class="dropdown rhs">↴</span>

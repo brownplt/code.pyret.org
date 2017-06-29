@@ -255,11 +255,13 @@ $(function() {
   }
   CPO.setTitle = setTitle;
 
+  var filename = false;
+
   $("#download a").click(function() {
     var downloadElt = $("#download a");
     var contents = CPO.editor.cm.getValue();
     var downloadBlob = window.URL.createObjectURL(new Blob([contents], {type: 'text/plain'}));
-    var filename = $("#program-name").val();
+    var filename = $("#filename").text();
     if(!filename) { filename = 'untitled_program.arr'; }
     if(filename.indexOf(".arr") !== (filename.length - 4)) {
       filename += ".arr";
@@ -271,11 +273,22 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  function truncateName(name) {
+    if(name.length < 14) { return name; }
+    return name.slice(0, 6) + "⋯" + name.slice(name.length - 6, name.length);
+  }
+
+  function updateName(p) {
+    filename = p.getName();
+    $("#filename").text(" (" + truncateName(filename) + ")");
+    setTitle(filename);
+
+  }
+
   function loadProgram(p) {
     return p.then(function(p) {
       if(p !== null) {
-        $("#program-name").val(p.getName());
-        setTitle(p.getName());
+        updateName(p);
         return p.getContents();
       }
     });
@@ -291,7 +304,7 @@ $(function() {
   }
 
   function nameOrUntitled() {
-    return $("#program-name").val() || "Untitled";
+    return filename || "Untitled";
   }
   function autoSave() {
     programToSave.then(function(p) {
@@ -306,7 +319,7 @@ $(function() {
     window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
       if(p !== null && !copyOnSave) {
-        if(p.getName() !== $("#program-name").val()) {
+        if(p.getName() !== filename) {
           programToSave = p.rename(nameOrUntitled()).then(function(newP) {
             return newP;
           });
@@ -317,12 +330,11 @@ $(function() {
           return p.save(CPO.editor.cm.getValue(), false);
         })
         .then(function(p) {
-          $("#program-name").val(p.getName());
-          $("#saveButton").text("Save");
+          updateName(p);
+          $("#save").text("Save");
           history.pushState(null, null, "#program=" + p.getUniqueId());
           window.location.hash = "#program=" + p.getUniqueId();
           window.flashMessage("Program saved as " + p.getName());
-          setTitle(p.getName());
           return p;
         });
       }
@@ -340,10 +352,42 @@ $(function() {
       console.error(err);
     });
   }
+  function rename() {
+    var renameDiv = $("<div>").css({"z-index": 15000});
+    renameDiv.dialog({
+      title: "Rename File",
+      modal: true,
+      overlay : { opacity: 0.5, background: 'black'},
+      width : "70%",
+      height : "auto",
+      closeOnEscape : true
+    });
+    var currentName = $("<textarea>").val(filename || "Untitled");
+    var submit = $("<button>").addClass("blueButton").text("Rename");
+    var cancel = $("<button>").addClass("blueButton").text("Cancel");
+    renameDiv.append(currentName);
+    renameDiv.append(submit);
+    renameDiv.append(cancel);
+    submit.click(function() {
+      programToSave.then(function(p) {
+        programToSave = p.rename(nameOrUntitled()).then(function(newP) {
+          return newP;
+        });
+        return programToSave;
+      })
+      .fin(function() {
+        updateName();
+        renameDiv.hide();
+      });
+    });
+    cancel.click(function() { renameDiv.hide(); });
+  }
   CPO.save = save;
   $("#runButton").click(CPO.autoSave);
-  $("#saveButton").click(save);
-  shareAPI.makeHoverMenu($("#menu"), $("#menuContents"), false, function(){});
+  $("#save").click(save);
+  $("#rename").click(rename);
+  shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
+  shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
   var codeContainer = $("<div>").addClass("replMain");
   $("#main").prepend(codeContainer);
