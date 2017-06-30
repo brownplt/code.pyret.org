@@ -374,8 +374,8 @@
 
     var isAngle = function(x) {
       return jsnums.isReal(x) &&
-        jsnums.greaterThanOrEqual(x, 0) &&
-        jsnums.lessThan(x, 360);
+        jsnums.greaterThanOrEqual(x, 0, RUNTIME.NumberErrbacks) &&
+        jsnums.lessThan(x, 360, RUNTIME.NumberErrbacks);
     };
 
     // Produces true if the value is a color or a color string.
@@ -459,15 +459,15 @@
 
 
     var isSideCount = function(x) {
-      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 3);
+      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 3, RUNTIME.NumberErrbacks);
     };
 
     var isStepCount = function(x) {
-      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 1);
+      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 1, RUNTIME.NumberErrbacks);
     };
 
     var isPointsCount = function(x) {
-      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 2);
+      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 2, RUNTIME.NumberErrbacks);
     };
 
     // Produces true if thing is an image-like object.

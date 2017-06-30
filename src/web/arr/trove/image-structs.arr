@@ -8,10 +8,10 @@ import base as _
 
 data Color:
   | color(
-      red :: Number,
-      green :: Number,
-      blue :: Number,
-      alpha :: Number)
+      red :: NumInteger,
+      green :: NumInteger,
+      blue :: NumInteger,
+      alpha :: NumInteger)
 end
 
 orange = color(255, 165, 0, 255)
