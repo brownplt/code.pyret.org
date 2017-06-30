@@ -578,7 +578,8 @@ body {
 }
 
 .menuContents div.disabled * {
-   color: gray
+   color: gray;
+   cursor: default;
 }
 
 .menuButton *,

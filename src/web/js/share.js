@@ -1,6 +1,11 @@
 window.makeShareAPI = function makeShareAPI(pyretVersion) {
 
   var showingNeedingHidden = [];
+  function hideAllHovers() {
+    showingNeedingHidden.forEach(function(hideIt) {
+      hideIt();
+    });
+  }
   function makeHoverMenu(triggerElt, menuElt, showOnHover, onShow) {
     var divHover = false;
     var linkHover = false;
@@ -8,18 +13,9 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
     function hovering() {
       return divHover || linkHover;
     }
-    function closeIfNotHovering() {
-      setTimeout(function() {
-        if(!hovering()) {
-          menuElt.fadeOut(500);
-        }
-      }, 500);
-    }
     function show() {
       if(!showing) {
-        showingNeedingHidden.forEach(function(hideIt) {
-          hideIt();
-        });
+        hideAllHovers();
         menuElt.css({
           position: "fixed",
           top: triggerElt.offset().top + triggerElt.outerHeight(),
@@ -50,6 +46,8 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
     });
     return triggerElt;
   }
+
+  $(".menuButton a").click(hideAllHovers);
 
   function makeShareLink(originalFile) {
     var link = $("<div>").append($("<button class=blueButton>").text("Publish"));
