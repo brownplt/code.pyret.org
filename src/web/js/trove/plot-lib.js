@@ -31,14 +31,14 @@
     axisLabel.append('text')
       .attr('x', posY * (width - 1))
       .attr('y', -10)
-      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, 'y-axis')))
+      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, '_y-axis')))
       .style('text-anchor', posY < 0.5 ? 'start' : 'end');
 
     axisLabel.append('g')
       .attr('transform', svgTranslate(width + 10, posX * (height - 1)))
       .append('text')
       .attr("transform", "rotate(90)")
-      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, 'x-axis')))
+      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, '_x-axis')))
       .style('text-anchor', posX < 0.5 ? 'start' : 'end');
   }
 
@@ -152,10 +152,10 @@
   }
 
   function genericPlot(restarter, windowOptions, scatterPlots, linePlots) {
-    var xMin = gf(windowOptions, 'x-min'),
-        xMax = gf(windowOptions, 'x-max'),
-        yMin = gf(windowOptions, 'y-min'),
-        yMax = gf(windowOptions, 'y-max');
+    var xMin = gf(windowOptions, '_x-min'),
+        xMax = gf(windowOptions, '_x-max'),
+        yMin = gf(windowOptions, '_y-min'),
+        yMax = gf(windowOptions, '_y-max');
 
     function resizer(restarter, windowOptions) {
       genericPlot(restarter, windowOptions, scatterPlots, linePlots);
@@ -252,7 +252,7 @@
       yMaxC.val(prettyNumToStringDigits20(yMax));
     }
 
-    numSamplesC.val(RUNTIME.num_to_string(gf(windowOptions, 'num-samples')));
+    numSamplesC.val(RUNTIME.num_to_string(gf(windowOptions, '_num-samples')));
 
     setDefault();
 
@@ -330,11 +330,11 @@
                           }
 
                           return {
-                            'x-min': xMin_val,
-                            'x-max': xMax_val,
-                            'y-min': yMin_val,
-                            'y-max': yMax_val,
-                            'num-samples': numSamples_val
+                            '_x-min': xMin_val,
+                            '_x-max': xMax_val,
+                            '_y-min': yMin_val,
+                            '_y-max': yMax_val,
+                            '_num-samples': numSamples_val
                           };
                         }
                       });
@@ -361,8 +361,8 @@
       }
       var newWindow = getNewWindow();
       if (newWindow === null) { return; }
-      var xMin_val = newWindow['x-min'];
-      var xMax_val = newWindow['x-max'];
+      var xMin_val = newWindow['_x-min'];
+      var xMax_val = newWindow['_x-max'];
       var move = jsnums.divide(jsnums.subtract(xMax_val, xMin_val, RUNTIME.NumberErrbacks), 10, RUNTIME.NumberErrbacks);
       xMinC.val(prettyNumToStringDigits20(jsnums.subtract(xMin_val, move, RUNTIME.NumberErrbacks)));
       xMaxC.val(prettyNumToStringDigits20(jsnums.subtract(xMax_val, move, RUNTIME.NumberErrbacks)));
@@ -376,8 +376,8 @@
       }
       var newWindow = getNewWindow();
       if (newWindow === null) { return; }
-      var xMin_val = newWindow['x-min'];
-      var xMax_val = newWindow['x-max'];
+      var xMin_val = newWindow['_x-min'];
+      var xMax_val = newWindow['_x-max'];
       var move = jsnums.divide(jsnums.subtract(xMax_val, xMin_val), 10);
       xMinC.val(prettyNumToStringDigits20(jsnums.add(xMin_val, move, RUNTIME.NumberErrbacks)));
       xMaxC.val(prettyNumToStringDigits20(jsnums.add(xMax_val, move, RUNTIME.NumberErrbacks)));
@@ -391,8 +391,8 @@
       }
       var newWindow = getNewWindow();
       if (newWindow === null) { return; }
-      var yMin_val = newWindow['y-min'];
-      var yMax_val = newWindow['y-max'];
+      var yMin_val = newWindow['_y-min'];
+      var yMax_val = newWindow['_y-max'];
       var move = jsnums.divide(jsnums.subtract(yMax_val, yMin_val), 10);
       yMinC.val(prettyNumToStringDigits20(jsnums.subtract(yMin_val, move, RUNTIME.NumberErrbacks)));
       yMaxC.val(prettyNumToStringDigits20(jsnums.subtract(yMax_val, move, RUNTIME.NumberErrbacks)));
@@ -406,8 +406,8 @@
       }
       var newWindow = getNewWindow();
       if (newWindow === null) { return; }
-      var yMin_val = newWindow['y-min'];
-      var yMax_val = newWindow['y-max'];
+      var yMin_val = newWindow['_y-min'];
+      var yMax_val = newWindow['_y-max'];
       var move = jsnums.divide(jsnums.subtract(yMax_val, yMin_val), 10);
       yMinC.val(prettyNumToStringDigits20(jsnums.add(yMin_val, move, RUNTIME.NumberErrbacks)));
       yMaxC.val(prettyNumToStringDigits20(jsnums.add(yMax_val, move, RUNTIME.NumberErrbacks)));
@@ -604,10 +604,10 @@
   }
 
   function plotMulti(restarter, windowOptions, lstOfScatterPlots, lstOfLinePlots) {
-    var xMin = gf(windowOptions, 'x-min');
-    var xMax = gf(windowOptions, 'x-max');
-    var yMin = gf(windowOptions, 'y-min');
-    var yMax = gf(windowOptions, 'y-max');
+    var xMin = gf(windowOptions, '_x-min');
+    var xMax = gf(windowOptions, '_x-max');
+    var yMin = gf(windowOptions, '_y-min');
+    var yMax = gf(windowOptions, '_y-max');
 
     function inBound(p) {
       return jsnums.lessThanOrEqual(xMin, p[0], RUNTIME.NumberErrbacks) &&
