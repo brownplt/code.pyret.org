@@ -237,7 +237,7 @@
     var annFontWeight = ann("Font Weight", isFontWeight);
     var checkFontWeight = p(isFontWeight, "Font Weight");
 
-    var annPlaceX = ann("X Place (\"left\", \"middle\", \"center\", or \"right\"", isPlaceX);
+    var annPlaceX = ann("X Place (\"left\", \"middle\", \"center\", or \"right\")", isPlaceX);
     var checkPlaceX = p(isPlaceX, "X Place");
 
     var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"baseline\", or \"middle\")", isPlaceY);
