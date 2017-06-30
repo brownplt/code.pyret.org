@@ -553,7 +553,7 @@ fun plots(lst :: List<Series>) -> PlotObject block:
                   .x-min(x-min - x-offset)
                   .x-max(x-max + x-offset)
                   .y-min(y-min - y-offset)
-                  .x-max(y-max + y-offset)
+                  .y-max(y-max + y-offset)
             end
           else:
             self
