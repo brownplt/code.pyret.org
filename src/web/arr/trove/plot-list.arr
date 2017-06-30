@@ -6,9 +6,10 @@ import image-structs as I
 import image as IM
 include lists
 import sets as S
-import plot-lib as P
+import plot-lib-list as P
 import either as E
 import string-dict as SD
+import valueskeleton as VS
 
 ################################################################################
 # HELPERS
@@ -48,18 +49,28 @@ data Series:
   | line-plot-series(xs :: List<Number>, ys :: List<Number>, options :: SeriesOptions) with:
     method color(self, color :: I.Color) -> Series:
       line-plot-series(self.xs, self.ys, self.options.{color: color})
-    end
+    end,
+    typ: 'line-plot'
   | function-plot-series(f :: PlottableFunction, options :: SeriesOptions) with:
     method color(self, color :: I.Color) -> Series:
       function-plot-series(self.f, self.options.{color: color})
-    end
+    end,
+    typ: 'function-plot'
   | scatter-plot-series(xs :: List<Number>, ys :: List<Number>, options :: SeriesOptions) with:
     method color(self, color :: I.Color) -> Series:
       scatter-plot-series(self.xs, self.ys, self.options.{color: color})
-    end
-  | pie-chart-series(labels :: List<String>, values :: List<Number>, radiuses :: List<Number>)
-  | bar-chart-series(labels :: List<String>, value-lists :: List<List<Number>>, maybe-legends :: Option<List<String>>)
-  | histogram-series(values :: List<Number>, n :: Number)
+    end,
+    typ: 'scatter-plot'
+  | pie-chart-series(labels :: List<String>, values :: List<Number>, radiuses :: List<Number>) with:
+    typ: 'pie-chart'
+  | bar-chart-series(labels :: List<String>, value-lists :: List<List<Number>>, maybe-legends :: Option<List<String>>) with:
+    typ: 'bar-chart'
+  | histogram-series(values :: List<Number>, n :: Number) with:
+    typ: 'histogram'
+sharing:
+  method _output(self :: Series) -> VS.ValueSkeleton:
+    VS.vs-constr(self.typ + "-like-series", [list: VS.vs-str("...")])
+  end
 end
 
 type Posn = RawArray<Number>
@@ -97,7 +108,9 @@ type PlotObject = {
   _render :: ( -> IM.Image),
 
   display :: ( -> IM.Image),
-  get-image :: ( -> IM.Image)
+  get-image :: ( -> IM.Image),
+
+  _output :: ( -> VS.ValueSkeleton)
 }
 
 fun check-plot-object(p :: PlotObject) -> Nothing block:
@@ -159,6 +172,9 @@ plot-object-base :: PlotObject = {
   method get-image(self):
     _ = check-plot-object(self)
     self.{_interact: false}._render()
+  end,
+  method _output(self) -> VS.ValueSkeleton:
+    VS.vs-constr("plot-object", [list: VS.vs-str("...")])
   end,
 
   method _render(self):
@@ -578,6 +594,18 @@ fun plots(lst :: List<Series>) -> PlotObject block:
         end
       }
   end
+where:
+  p1 = function-plot(lam(x): x * x end).color(I.red)
+  p2 = line-plot([list: 1, 2, 3, 4], [list: 1, 4, 9, 16]).color(I.green)
+  p3 = histogram([list: 1, 2, 3, 4], 2)
+  plots([list: p1, p2, p3]) raises ""
+  plots([list: p1, p2])
+    .title('quadratic function and a scatter plot')
+    .x-min(0)
+    .x-max(20)
+    .y-min(0)
+    .y-max(20)
+    .get-image() does-not-raise
 end
 
 #|
