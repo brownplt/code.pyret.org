@@ -574,24 +574,28 @@
         curImg = maxSoFar + 1;
       }
 
-      var photoPrompt = new modalPrompt([
-        {
-          message: "Import as Values",
-          value: "values",
-          example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
-        },
-        {
-          message: "Import as Definitions",
-          value: "defs",
-          example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
-        },
-        {
-          message: "Import as a List",
-          value: "list",
-          example: '[list: image-url("<URL>"),\n'
-            + '       image-url("<URL>"),\n'
-            + '       # ...\n       ]'
-        }]);
+      var photoPrompt = new modalPrompt({
+        title: "Select Import Style",
+        style: "radio",
+        options: [
+          {
+            message: "Import as Values",
+            value: "values",
+            example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
+          },
+          {
+            message: "Import as Definitions",
+            value: "defs",
+            example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
+          },
+          {
+            message: "Import as a List",
+            value: "list",
+            example: '[list: image-url("<URL>"),\n'
+              + '       image-url("<URL>"),\n'
+              + '       # ...\n       ]'
+          }]
+      });
 
       var lastSave = 0;
       function handlePickerData(documents, picker, drive) {
@@ -620,32 +624,29 @@
             }
           }
           function openFile(id) {
-            var chooseDiv = $("<div>").css({"z-index": 15000});
-            chooseDiv.dialog({
-              title: "Rename File",
-              modal: true,
-              overlay : { opacity: 0.5, background: 'black'},
-              width : "70%",
-              height : "auto",
-              closeOnEscape : true
+            var filePrompt = new modalPrompt({
+              title: "Where would you like to open the file?",
+              style: "tiles",
+              hideSubmit: true,
+              options: [
+                {
+                  message: "Open here",
+                  details: "Your current file will be saved, first",
+                  on: {click: function() {
+                    load(true);
+                    filePrompt.onClose();
+                  }}
+                },
+                {
+                  message: "Open in new tab",
+                  details: "This file will remain open in this tab",
+                  on: {click: function() {
+                    load(false);
+                    filePrompt.onClose();
+                  }}
+                }]
             });
-            var message = $("<p>").text("Where would you like to open the file?");
-            var openHere = $("<button>").addClass("blueButton").text("Open here");
-            var openThere = $("<button>").addClass("blueButton").text("Open in a new tab");
-            var cancel = $("<button>").addClass("blueButton").text("Cancel");
-            chooseDiv.append(openHere);
-            chooseDiv.append(openThere);
-            chooseDiv.append(cancel);
-
-            openHere.click(function() {
-              load(true);
-              chooseDiv.dialog("close");
-            });
-            openThere.click(function() {
-              load(false);
-              chooseDiv.dialog("close");
-            });
-            cancel.click(function() { chooseDiv.dialog("close"); });
+            filePrompt.show();
           }
           openFile(documents[0][picker.Document.ID]);
         }

@@ -337,7 +337,7 @@ $(function() {
   }
 
   function menuItemDisabled(id) {
-    return $("#" + id).attr("class").indexOf("disabled") !== -1;
+    return $("#" + id).hasClass("disabled");
   }
 
   /*

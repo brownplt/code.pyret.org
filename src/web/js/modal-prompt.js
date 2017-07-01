@@ -29,12 +29,20 @@ define(["q"], function(Q) {
    * @param {ModalOption[]} options - The options to present the user
    */
   function Prompt(options) {
-    if (!options || (typeof options.length !== "number") || (options.length === 0)) {
+    if (!options ||
+        (options.style !== "radio" && options.style !== "tiles") ||
+        !options.options ||
+        (typeof options.options.length !== "number") || (options.options.length === 0)) {
       throw new Error("Invalid Prompt Options", options);
     }
     this.options = options;
     this.modal = $("#promptModal");
-    this.elts = $("#choiceContainer", this.modal);
+    if (this.options.style === "radio") {
+      this.elts = $($.parseHTML("<table></table>")).addClass("choiceContainer");
+    } else {
+      this.elts = $($.parseHTML("<div></div>")).addClass("choiceContainer");
+    }
+    this.title = $(".modal-header > h3", this.modal);
     this.closeButton = $(".close", this.modal);
     this.submitButton = $(".submit", this.modal);
     this.isCompiled = false;
@@ -63,15 +71,30 @@ define(["q"], function(Q) {
     // Use the promise queue to make sure there's no other
     // prompt being shown currently
     promptQueue.then((function(){
+      if (this.options.hideSubmit) {
+        this.submitButton.hide();
+      } else {
+        this.submitButton.show();
+      }
       this.closeButton.click(this.onClose.bind(this));
       this.submitButton.click(this.onSubmit.bind(this));
-      $(document).click((function(e) {
+      var docClick = (function(e) {
         // If the prompt is active and the background is clicked,
         // then close.
         if ($(e.target).is(this.modal) && this.deferred) {
           this.onClose(e);
+          $(document).off("click", docClick);
         }
-      }).bind(this));
+      }).bind(this);
+      $(document).click(docClick);
+      var docKeydown = (function(e) {
+        if (e.key === "Escape") {
+          this.onClose(e);
+          $(document).off("keydown", docKeydown);
+        }
+      }).bind(this);
+      $(document).keydown(docKeydown);
+      this.title.text(this.options.title);
       this.populateModal();
       this.modal.css('display', 'block');
       return this.promise;
@@ -91,13 +114,13 @@ define(["q"], function(Q) {
   Prompt.prototype.clearModal = function() {
     this.elts.empty();
   };
-
+  
   /**
    * Populates the contents of the modal prompt with the
    * options in this prompt.
    */
   Prompt.prototype.populateModal = function() {
-    function createElt(option, idx) {
+    function createRadioElt(option, idx) {
       var elt = $($.parseHTML("<input name=\"pyret-modal\" type=\"radio\">"));
       var id = "r" + idx.toString();
       var label = $($.parseHTML("<label for=\"" + id + "\"></label>"));
@@ -129,10 +152,20 @@ define(["q"], function(Q) {
       
       return container;
     }
+    function createTileElt(option, idx) {
+      var elt = $($.parseHTML("<button name=\"pyret-modal\" class=\"tile\"></button>"));
+      elt.attr("id", "t" + idx.toString());
+      elt.append($("<b>").text(option.message))
+        .append($("<p>").text(option.details));
+      for (var evt in option.on)
+        elt.on(evt, option.on[evt]);
+      return elt;
+    }
+
     var optionElts;
     // Cache results
     if (!this.isCompiled) {
-      optionElts = this.options.map(createElt);
+      optionElts = this.options.options.map(this.options.style === "radio" ? createRadioElt : createTileElt);
       this.compiledElts = optionElts;
       this.isCompiled = true;
     } else {
@@ -140,6 +173,8 @@ define(["q"], function(Q) {
     }
     $("input[type='radio']", optionElts[0]).attr('checked', true);
     this.elts.append(optionElts);
+    $(".modal-body", this.modal).empty().append(this.elts);
+    optionElts[0].focus();
   };
 
   /**

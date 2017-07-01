@@ -1556,6 +1556,17 @@ table {
     background:#eee;;
 }
 
+table.choiceContainer {
+   border: 0px;
+   margin: 1em;
+}
+div.choiceContainer {
+   text-align: center;
+}
+div.choiceContainer > button {
+   margin: 1em;
+}
+
 th {
     background: #ddd;
 }
