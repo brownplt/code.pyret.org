@@ -557,7 +557,14 @@ body {
   display: none;
 }
 
-#menuContents {
+#bonniemenuContents {
+  min-width: 200px;
+}
+#filemenuContents {
+  min-width: 200px;
+}
+
+.menuContents {
   background-color: #EFEFEF;
   border: none;
   box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
@@ -565,22 +572,32 @@ body {
   max-width: min-content;
 }
 
-#menuContents div:hover{
+.menuContents div:not(.disabled):not(.inert):hover{
   transition: box-shadow 0.2s;
   background-color: rgba(0,0,0,0.2);
 }
 
-#download *,
-#docs *,
-#issues *,
-#discuss *,
-#logout * {
+.menuContents div.disabled * {
+   color: gray;
+   cursor: default;
+}
+
+.menuButton *,
+.menuContents * {
   color: #000;
   font-family: sans-serif;
   text-decoration: none;
+}
+
+.menuButton > *, .menuContents > * {
   padding: 10px;
   display: block;
 }
+
+.menuContents > .menuButton * {
+  padding: initial;
+}
+
 
 .info-btn {
   display: inline-block;
@@ -606,6 +623,7 @@ div#font{
   border-left: 0px;
   border-right: 0px;
   background:rgba(0,0,0,0.05);
+  padding: 0px;
 }
 
 div#font:hover{

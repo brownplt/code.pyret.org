@@ -183,10 +183,26 @@ $(function() {
 
   };
 
+  function setUsername(target) {
+    return gwrap.load({name: 'plus',
+      version: 'v1',
+    }).then((api) => {
+      api.people.get({ userId: "me" }).then(function(user) {
+        var name = user.displayName;
+        if (user.emails && user.emails[0] && user.emails[0].value) {
+          name = user.emails[0].value;
+        }
+        target.text(name);
+      });
+    });
+  }
+
+  
   storageAPI.then(function(api) {
     api.collection.then(function() {
       $(".loginOnly").show();
       $(".logoutOnly").hide();
+      setUsername($("#username"));
       api.api.getCollectionLink().then(function(link) {
         $("#drive-view a").attr("href", link);
       });
@@ -206,6 +222,7 @@ $(function() {
       api.collection.then(function() {
         $(".loginOnly").show();
         $(".logoutOnly").hide();
+        setUsername($("#username"));
         api.api.getCollectionLink().then(function(link) {
           $("#drive-view a").attr("href", link);
         });
@@ -231,6 +248,7 @@ $(function() {
   var initialProgram = storageAPI.then(function(api) {
     var programLoad = null;
     if(params["get"] && params["get"]["program"]) {
+      enableFileOptions();
       programLoad = api.getFileById(params["get"]["program"]);
       programLoad.then(function(p) { showShareContainer(p); });
     }
@@ -255,11 +273,12 @@ $(function() {
   }
   CPO.setTitle = setTitle;
 
+  var filename = false;
+
   $("#download a").click(function() {
     var downloadElt = $("#download a");
     var contents = CPO.editor.cm.getValue();
     var downloadBlob = window.URL.createObjectURL(new Blob([contents], {type: 'text/plain'}));
-    var filename = $("#program-name").val();
     if(!filename) { filename = 'untitled_program.arr'; }
     if(filename.indexOf(".arr") !== (filename.length - 4)) {
       filename += ".arr";
@@ -271,11 +290,21 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  function truncateName(name) {
+    if(name.length < 14) { return name; }
+    return name.slice(0, 6) + "⋯" + name.slice(name.length - 6, name.length);
+  }
+
+  function updateName(p) {
+    filename = p.getName();
+    $("#filename").text(" (" + truncateName(filename) + ")");
+    setTitle(filename);
+  }
+
   function loadProgram(p) {
     return p.then(function(p) {
       if(p !== null) {
-        $("#program-name").val(p.getName());
-        setTitle(p.getName());
+        updateName(p);
         return p.getContents();
       }
     });
@@ -291,59 +320,162 @@ $(function() {
   }
 
   function nameOrUntitled() {
-    return $("#program-name").val() || "Untitled";
+    return filename || "Untitled";
   }
   function autoSave() {
     programToSave.then(function(p) {
       if(p !== null && !copyOnSave) { save(); }
     });
   }
-  CPO.autoSave = autoSave;
-  CPO.showShareContainer = showShareContainer;
-  CPO.loadProgram = loadProgram;
 
-  function save() {
+  function enableFileOptions() {
+    $(".filemenuContents *").removeClass("disabled");
+  }
+
+  function menuItemDisabled(id) {
+    return $("#" + id).attr("class").indexOf("disabled") !== -1;
+  }
+
+  /*
+    save : string (optional) -> undef
+
+    If a string argument is provided, create a new file with that name and save
+    the editor contents in that file.
+
+    If a string argument is not provided, check if we are in a share context
+    (e.g. the copyOnSave variable is true).  If we are, make a new file with
+    the existing name and save the contents of the editor there.
+
+    If there is an existing filename and one isn't provided, save the existing
+    file referenced by the editor with the current editor contents.
+
+  */
+  function saveEvent(e) {
+    if(menuItemDisabled("save")) { return; }
+    return save();
+  }
+
+  function save(newFilename) {
+    if(newFilename !== undefined) {
+      var useName = newFilename;
+      var create = true;
+    }
+    else {
+      var useName = filename; // A closed-over variable
+      var create = false;
+    }
     window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
-      if(p !== null && !copyOnSave) {
-        if(p.getName() !== $("#program-name").val()) {
-          programToSave = p.rename(nameOrUntitled()).then(function(newP) {
-            return newP;
+      if(create) {
+        programToSave = storageAPI
+          .then(function(api) { return api.createFile(useName); })
+          .then(function(p) {
+            // showShareContainer(p); TODO(joe): figure out where to put this
+            history.pushState(null, null, "#program=" + p.getUniqueId());
+            updateName(p);
+            enableFileOptions();
+            return save();
           });
-        }
-        return programToSave
-        .then(function(p) {
-          showShareContainer(p);
-          return p.save(CPO.editor.cm.getValue(), false);
-        })
-        .then(function(p) {
-          $("#program-name").val(p.getName());
-          $("#saveButton").text("Save");
-          history.pushState(null, null, "#program=" + p.getUniqueId());
-          window.location.hash = "#program=" + p.getUniqueId();
-          window.flashMessage("Program saved as " + p.getName());
-          setTitle(p.getName());
-          return p;
-        });
+        return programToSave;
       }
       else {
-        var programName = $("#program-name").val() || "Untitled";
-        $("#program-name").val(programName);
-        programToSave = storageAPI
-          .then(function(api) { return api.createFile(programName); });
-        copyOnSave = false;
-        return save();
+        return programToSave.then(function(p) {
+          if(p === null) {
+            return null;
+          }
+          else {
+            return p.save(CPO.editor.cm.getValue(), false);
+          }
+        }).then(function(p) {
+          if(p !== null) {
+            window.flashMessage("Program saved as " + p.getName());
+          }
+          return p;
+        });
       }
     });
     savedProgram.fail(function(err) {
       window.stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
       console.error(err);
     });
+    return savedProgram;
   }
+
+  function saveAs() {
+    if(menuItemDisabled("saveas")) { return; }
+    var saveAsDiv = $("<div>").css({"z-index": 15000});
+    saveAsDiv.dialog({
+      title: "Save As",
+      modal: true,
+      overlay : { opacity: 0.5, background: 'black'},
+      width : "70%",
+      height : "auto",
+      closeOnEscape : true
+    });
+    var currentName = $("<textarea>").val(filename || "Untitled");
+    var submit = $("<button>").addClass("blueButton").text("Save As");
+    var cancel = $("<button>").addClass("blueButton").text("Cancel");
+    saveAsDiv.append(cancel);
+    saveAsDiv.append(submit);
+    saveAsDiv.append(currentName);
+    submit.click(function() {
+      var newName = currentName.val();
+      save(newName);
+      saveAsDiv.dialog("close");
+    });
+    cancel.click(function() { saveAsDiv.dialog("close"); });
+  }
+
+  function rename() {
+    if(menuItemDisabled("rename")) { return; }
+    var renameDiv = $("<div>").css({"z-index": 15000});
+    renameDiv.dialog({
+      title: "Rename File",
+      modal: true,
+      overlay : { opacity: 0.5, background: 'black'},
+      width : "70%",
+      height : "auto",
+      closeOnEscape : true
+    });
+    var currentName = $("<textarea>").val(filename || "Untitled");
+    var submit = $("<button>").addClass("blueButton").text("Rename");
+    var cancel = $("<button>").addClass("blueButton").text("Cancel");
+    renameDiv.append(cancel);
+    renameDiv.append(submit);
+    renameDiv.append(currentName);
+    submit.click(function() {
+      programToSave.then(function(p) {
+        var newName = currentName.val();
+        programToSave = p.rename(newName).then(function(newP) {
+          return newP;
+        });
+        return programToSave;
+      })
+      .then(function(p) {
+        window.flashMessage("Program saved as " + p.getName());
+        updateName(p);
+      })
+      .fail(function(err) {
+        console.err("Failed to rename: ", err);
+        window.flashError("Failed to rename file");
+      })
+      .fin(function() {
+        renameDiv.dialog("close");
+      });
+    });
+    cancel.click(function() { renameDiv.dialog("close"); });
+  }
+
   CPO.save = save;
+
   $("#runButton").click(CPO.autoSave);
-  $("#saveButton").click(save);
-  shareAPI.makeHoverMenu($("#menu"), $("#menuContents"), false, function(){});
+
+  $("#save").click(saveEvent);
+  $("#rename").click(rename);
+  $("#saveas").click(saveAs);
+
+  shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
+  shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
   var codeContainer = $("<div>").addClass("replMain");
   $("#main").prepend(codeContainer);
@@ -385,5 +517,10 @@ $(function() {
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
   });
+
+  CPO.autoSave = autoSave;
+  CPO.save = save;
+  CPO.showShareContainer = showShareContainer;
+  CPO.loadProgram = loadProgram;
 
 });

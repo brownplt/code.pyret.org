@@ -595,30 +595,59 @@
 
       var lastSave = 0;
       function handlePickerData(documents, picker, drive) {
-        function openFile(id) {
-          // FIXME: This causes popup blockers to get triggered...
-          window.open('/editor#program=' + id, '_blank');
-        }
         // File loaded
         if (documents[0][picker.Document.TYPE] === "file") {
           var id = documents[0][picker.Document.ID];
-          // If the editor has not been modified since the last save,
-          // load in this window
-          if (editor.cm.getDoc().history.lastModTime === lastSave) {
-            var p = drive.getFileById(id);
-            window.CPO.showShareContainer(p);
-            window.location.hash = "#program=" + id;
-            window.CPO.setTitle(documents[0][picker.Document.NAME]);
-            window.CPO.loadProgram(p).then(function(contents) {
-              window.CPO.editor.cm.setValue(contents);
-              window.CPO.editor.cm.clearHistory();
+          function load(here) {
+            if(here) {
+              var p = drive.getFileById(id);
+
+              window.CPO.showShareContainer(p);
+              history.pushState(null, null, "#program=" + id);
+
+              window.CPO.save().then(function() {
+                window.CPO.loadProgram(p).then(function(contents) {
+                  window.CPO.editor.cm.setValue(contents);
+                  window.CPO.editor.cm.clearHistory();
+                });
+              })
+              .fail(function(err) {
+                window.flashMessage("Currently unable to save, try opening that file in a new tab");
+              });
+            }
+            else {
+              window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+            }
+          }
+          function openFile(id) {
+            var chooseDiv = $("<div>").css({"z-index": 15000});
+            chooseDiv.dialog({
+              title: "Rename File",
+              modal: true,
+              overlay : { opacity: 0.5, background: 'black'},
+              width : "70%",
+              height : "auto",
+              closeOnEscape : true
             });
-          } else {
-            openFile(id);
+            var message = $("<p>").text("Where would you like to open the file?");
+            var openHere = $("<button>").addClass("blueButton").text("Open here");
+            var openThere = $("<button>").addClass("blueButton").text("Open in a new tab");
+            var cancel = $("<button>").addClass("blueButton").text("Cancel");
+            chooseDiv.append(openHere);
+            chooseDiv.append(openThere);
+            chooseDiv.append(cancel);
+
+            openHere.click(function() {
+              load(true);
+              chooseDiv.dialog("close");
+            });
+            openThere.click(function() {
+              load(false);
+              chooseDiv.dialog("close");
+            });
+            cancel.click(function() { chooseDiv.dialog("close"); });
           }
-          for (var i = 1; i < documents.length; ++i) {
-            openFile(documents[i][picker.Document.ID]);
-          }
+          openFile(documents[0][picker.Document.ID]);
         }
         // Picture loaded
         else if (documents[0][picker.Document.TYPE] === picker.Type.PHOTO) {
@@ -703,17 +732,28 @@
           flashError("Invalid file type: " + documents[0][picker.Document.TYPE]);
         }
       }
-      var picker;
-      picker = new FilePicker({
+      var insertPicker = new FilePicker({
         onLoaded: function() {
-          $("#openFile").attr("disabled", false);
-          picker.openOn($("#openFile")[0], "click");
+          $("#insert").attr("disabled", false);
+          insertPicker.openOn($("#insert")[0], "click");
         },
         onSelect: handlePickerData,
         onError: flashError,
-        onInternalError: stickError
+        onInternalError: stickError,
+        views: ["imageView"],
+        title: "Select an image to use"
       });
-
+      var pyretPicker = new FilePicker({
+        onLoaded: function() {
+          $("#open").attr("disabled", false);
+          pyretPicker.openOn($("#open")[0], "click");
+        },
+        onSelect: handlePickerData,
+        onError: flashError,
+        onInternalError: stickError,
+        views: ["pyretView"],
+        title: "Select a Pyret file to use"
+      });
 
       return runtime.makeModuleReturn({
         repl: runtime.makeOpaque(repl)
