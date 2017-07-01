@@ -243,8 +243,14 @@ $(function() {
     storageAPI = storageAPI.then(function(api) { return api.api; });
   });
 
-  var copyOnSave = false;
+  /*
+    initialProgram holds a promise for a Drive File object or null
 
+    It's null if the page doesn't have a #share or #program url
+
+    If the url does have a #program or #share, the promise is for the
+    corresponding object.
+  */
   var initialProgram = storageAPI.then(function(api) {
     var programLoad = null;
     if(params["get"] && params["get"]["program"]) {
@@ -254,8 +260,6 @@ $(function() {
     }
     if(params["get"] && params["get"]["share"]) {
       programLoad = api.getSharedFileById(params["get"]["share"]);
-      $("#saveButton").text("Save a Copy");
-      copyOnSave = true;
     }
     if(programLoad) {
       programLoad.fail(function(err) {
@@ -324,7 +328,7 @@ $(function() {
   }
   function autoSave() {
     programToSave.then(function(p) {
-      if(p !== null && !copyOnSave) { save(); }
+      if(p !== null) { save(); }
     });
   }
 
@@ -342,12 +346,9 @@ $(function() {
     If a string argument is provided, create a new file with that name and save
     the editor contents in that file.
 
-    If a string argument is not provided, check if we are in a share context
-    (e.g. the copyOnSave variable is true).  If we are, make a new file with
-    the existing name and save the contents of the editor there.
-
-    If there is an existing filename and one isn't provided, save the existing
-    file referenced by the editor with the current editor contents.
+    If no filename is provided, save the existing file referenced by the editor
+    with the current editor contents.  If no filename has been set yet, just
+    set the name to "Untitled".
 
   */
   function saveEvent(e) {
@@ -358,6 +359,10 @@ $(function() {
   function save(newFilename) {
     if(newFilename !== undefined) {
       var useName = newFilename;
+      var create = true;
+    }
+    else if(filename === false) {
+      filename = "Untitled";
       var create = true;
     }
     else {
