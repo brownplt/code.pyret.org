@@ -115,46 +115,6 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
         });
       }
     });
-
-
-
-    container.empty();
-    container.text("Loading share info...");
-    var displayDone = shares.then(function(sharedInstances) {
-      container.empty();
-      console.log(sharedInstances);
-      var a = $("<a>").text("Publish a new copy").attr("href", "javascript:void(0)");
-      a.click(function() {
-        var copy = originalFile.makeShareCopy();
-        a.text("Copying...").attr("href", null);
-        copy.fail(function(err) {
-          console.log("Couldn't make copy: ", err);
-          showShares(container, originalFile);
-        });
-        var copied = copy.then(function(f) {
-          container.empty();
-          showShares(container, originalFile);
-        });
-        copied.fail(function(err) {
-          console.error("Unexpected error in copying file: ", err); 
-        });
-      });
-      container.append(a);
-      if(sharedInstances.length === 0) {
-        var p = $("<p>").text("This file hasn't been published before.");
-        container.append(p);
-      }
-      else {
-        var p = $("<p>").text("This file has been published before:");
-        container.append(p);
-        sharedInstances.forEach(function(shareFile) {
-          container.append(drawShareRow(shareFile));
-        });
-      }
-    });
-    displayDone.fail(function(err) {
-      console.error("Failed to get shares: ", err);
-    });
   }
 
   function makeShareUrl(id) {
