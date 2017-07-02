@@ -1564,7 +1564,19 @@ div.choiceContainer {
    text-align: center;
 }
 div.choiceContainer > button {
-   margin: 1em;
+  margin: 1em;
+  cursor: pointer;
+  background-color: #317BCF;
+  border: none;
+  border-radius: 0px;
+  color: #fff;
+  text-align: center;
+  transition: box-shadow 0.2s;
+  font-size: 15px;
+  height: 100%;
+  padding: 0px 15px;
+  vertical-align: middle;
+  margin:0px 1px;
 }
 
 th {

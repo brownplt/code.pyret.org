@@ -306,10 +306,11 @@ $(function() {
   }
 
   function loadProgram(p) {
-    return p.then(function(p) {
-      if(p !== null) {
-        updateName(p);
-        return p.getContents();
+    programToSave = p;
+    return p.then(function(prog) {
+      if(prog !== null) {
+        updateName(prog);
+        return prog.getContents();
       }
     });
   }
@@ -333,7 +334,7 @@ $(function() {
   }
 
   function enableFileOptions() {
-    $(".filemenuContents *").removeClass("disabled");
+    $("#filemenuContents *").removeClass("disabled");
   }
 
   function menuItemDisabled(id) {
@@ -442,14 +443,14 @@ $(function() {
       height : "auto",
       closeOnEscape : true
     });
-    var currentName = $("<textarea>").val(filename || "Untitled");
-    var submit = $("<button>").addClass("blueButton").text("Rename");
-    var cancel = $("<button>").addClass("blueButton").text("Cancel");
-    renameDiv.append(cancel);
-    renameDiv.append(submit);
-    renameDiv.append(currentName);
-    submit.click(function() {
-      programToSave.then(function(p) {
+    programToSave.then(function(p) {
+      var currentName = $("<textarea>").val(p.getName());
+      var submit = $("<button>").addClass("blueButton").text("Rename");
+      var cancel = $("<button>").addClass("blueButton").text("Cancel");
+      renameDiv.append(cancel);
+      renameDiv.append(submit);
+      renameDiv.append(currentName);
+      submit.click(function() {
         var newName = currentName.val();
         programToSave = p.rename(newName).then(function(newP) {
           return newP;
@@ -525,6 +526,7 @@ $(function() {
 
   CPO.autoSave = autoSave;
   CPO.save = save;
+  CPO.updateName = updateName;
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
 
