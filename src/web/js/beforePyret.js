@@ -3,6 +3,8 @@
 var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
 
 var url = require('url.js');
+var modalPrompt = require('./modal-prompt.js');
+window.modalPrompt = modalPrompt;
 
 const LOG = true;
 window.ct_log = function(/* varargs */) {
@@ -341,6 +343,16 @@ $(function() {
     return $("#" + id).hasClass("disabled");
   }
 
+
+  function newEvent(e) {
+    window.open(window.APP_BASE_URL + "/editor");
+  }
+
+  function saveEvent(e) {
+    if(menuItemDisabled("save")) { return; }
+    return save();
+  }
+
   /*
     save : string (optional) -> undef
 
@@ -352,11 +364,6 @@ $(function() {
     set the name to "Untitled".
 
   */
-  function saveEvent(e) {
-    if(menuItemDisabled("save")) { return; }
-    return save();
-  }
-
   function save(newFilename) {
     if(newFilename !== undefined) {
       var useName = newFilename;
@@ -380,7 +387,8 @@ $(function() {
             history.pushState(null, null, "#program=" + p.getUniqueId());
             updateName(p);
             enableFileOptions();
-            return save();
+            save();
+            return p;
           });
         return programToSave;
       }
@@ -409,73 +417,72 @@ $(function() {
 
   function saveAs() {
     if(menuItemDisabled("saveas")) { return; }
-    var saveAsDiv = $("<div>").css({"z-index": 15000});
-    saveAsDiv.dialog({
-      title: "Save As",
-      modal: true,
-      overlay : { opacity: 0.5, background: 'black'},
-      width : "70%",
-      height : "auto",
-      closeOnEscape : true
+    programToSave.then(function(p) {
+      var saveAsPrompt = new modalPrompt({
+        title: "Save a copy",
+        style: "text",
+        options: [
+          {
+            message: "The name for the copy:",
+            defaultValue: p.getName()
+          }
+        ]
+      });
+      return saveAsPrompt.show().then(function(newName) {
+        if(newName === null) { return null; }
+        window.stickMessage("Saving...");
+        return save(newName);
+      }).
+      fail(function(err) {
+        console.error("Failed to rename: ", err);
+        window.flashError("Failed to rename file");
+      });
     });
-    var currentName = $("<textarea>").val(filename || "Untitled");
-    var submit = $("<button>").addClass("blueButton").text("Save As");
-    var cancel = $("<button>").addClass("blueButton").text("Cancel");
-    saveAsDiv.append(cancel);
-    saveAsDiv.append(submit);
-    saveAsDiv.append(currentName);
-    submit.click(function() {
-      var newName = currentName.val();
-      save(newName);
-      saveAsDiv.dialog("close");
-    });
-    cancel.click(function() { saveAsDiv.dialog("close"); });
   }
 
   function rename() {
-    if(menuItemDisabled("rename")) { return; }
-    var renameDiv = $("<div>").css({"z-index": 15000});
-    renameDiv.dialog({
-      title: "Rename File",
-      modal: true,
-      overlay : { opacity: 0.5, background: 'black'},
-      width : "70%",
-      height : "auto",
-      closeOnEscape : true
-    });
     programToSave.then(function(p) {
-      var currentName = $("<textarea>").val(p.getName());
-      var submit = $("<button>").addClass("blueButton").text("Rename");
-      var cancel = $("<button>").addClass("blueButton").text("Cancel");
-      renameDiv.append(cancel);
-      renameDiv.append(submit);
-      renameDiv.append(currentName);
-      submit.click(function() {
-        var newName = currentName.val();
-        programToSave = p.rename(newName).then(function(newP) {
-          return newP;
-        });
+      var renamePrompt = new modalPrompt({
+        title: "Rename this file",
+        style: "text",
+        options: [
+          {
+            message: "The new name for the file:",
+            defaultValue: p.getName()
+          }
+        ]
+      });
+      // null return values are for the "cancel" path
+      return renamePrompt.show().then(function(newName) {
+        if(newName === null) {
+          return null;
+        }
+        window.stickMessage("Renaming...");
+        programToSave = p.rename(newName);
         return programToSave;
       })
       .then(function(p) {
-        window.flashMessage("Program saved as " + p.getName());
+        if(p === null) {
+          return null;
+        }
         updateName(p);
+        window.flashMessage("Program saved as " + p.getName());
       })
       .fail(function(err) {
-        console.err("Failed to rename: ", err);
+        console.error("Failed to rename: ", err);
         window.flashError("Failed to rename file");
-      })
-      .fin(function() {
-        renameDiv.dialog("close");
       });
+    })
+    .fail(function(err) {
+      console.error("Unable to rename: ", err);
     });
-    cancel.click(function() { renameDiv.dialog("close"); });
   }
 
   CPO.save = save;
 
   $("#runButton").click(CPO.autoSave);
 
+  $("#new").click(newEvent);
   $("#save").click(saveEvent);
   $("#rename").click(rename);
   $("#saveas").click(saveAs);

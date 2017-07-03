@@ -48,7 +48,7 @@
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
-                      gdriveLocators, http, guessGas, cpoModules, modalPrompt,
+                      gdriveLocators, http, guessGas, cpoModules, _modalPrompt,
                       rtLib) {
 
 
@@ -574,28 +574,30 @@
         curImg = maxSoFar + 1;
       }
 
-      var photoPrompt = new modalPrompt({
-        title: "Select Import Style",
-        style: "radio",
-        options: [
-          {
-            message: "Import as Values",
-            value: "values",
-            example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
-          },
-          {
-            message: "Import as Definitions",
-            value: "defs",
-            example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
-          },
-          {
-            message: "Import as a List",
-            value: "list",
-            example: '[list: image-url("<URL>"),\n'
-              + '       image-url("<URL>"),\n'
-              + '       # ...\n       ]'
-          }]
-      });
+      var photoPrompt = function() {
+        return new modalPrompt({
+          title: "Select Import Style",
+          style: "radio",
+          options: [
+            {
+              message: "Import as Values",
+              value: "values",
+              example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
+            },
+            {
+              message: "Import as Definitions",
+              value: "defs",
+              example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
+            },
+            {
+              message: "Import as a List",
+              value: "list",
+              example: '[list: image-url("<URL>"),\n'
+                + '       image-url("<URL>"),\n'
+                + '       # ...\n       ]'
+            }]
+        });
+      }
 
       var lastSave = 0;
       function handlePickerData(documents, picker, drive) {
@@ -625,27 +627,27 @@
           }
           function openFile(id) {
             var filePrompt = new modalPrompt({
-              title: "Where would you like to open the file?",
-              style: "tiles",
-              hideSubmit: true,
-              options: [
-                {
-                  message: "Open here",
-                  details: "Your current file will be saved, first",
-                  on: {click: function() {
-                    load(true);
-                    filePrompt.onClose();
-                  }}
-                },
-                {
-                  message: "Open in new tab",
-                  details: "This file will remain open in this tab",
-                  on: {click: function() {
-                    load(false);
-                    filePrompt.onClose();
-                  }}
-                }]
-            });
+                title: "Where would you like to open the file?",
+                style: "tiles",
+                hideSubmit: true,
+                options: [
+                  {
+                    message: "Open here",
+                    details: "The current file will be saved first",
+                    on: {click: function() {
+                      load(true);
+                      filePrompt.onClose();
+                    }}
+                  },
+                  {
+                    message: "Open in new tab",
+                    details: "The current file will remain open in this tab",
+                    on: {click: function() {
+                      load(false);
+                      filePrompt.onClose();
+                    }}
+                  }]
+              });
             filePrompt.show();
           }
           openFile(documents[0][picker.Document.ID]);
@@ -653,82 +655,87 @@
         // Picture loaded
         else if (documents[0][picker.Document.TYPE] === picker.Type.PHOTO) {
 
-          photoPrompt.show(function(res) {
-            // Name of event for CM undo history
-            var origin = "+insertImage" + curImg;
-            var asValues = (res === "values");
-            var asDefs = (res === "defs");
-            var asList = (res === "list");
-            if (!(asValues || asDefs || asList)) {
-              // Check for garbage and log it
-              if (res !== null) {
-                console.warn("Unknown photoPrompt response: ", res);
-              }
-              return;
-            }
-            // http://stackoverflow.com/questions/23733455/inserting-a-new-text-at-given-cursor-position
-            var cm = CPO.editor.cm;
-            var doc = cm.getDoc();
-            function placeInEditor(str) {
-              var cursor = doc.getCursor();
-              var line = doc.getLine(cursor.line);
-              var pos = {
-                line: cursor.line,
-                ch: line.length
-              };
-              doc.replaceRange(str, pos, undefined, origin);
-              reindent(cursor.line);
-            }
-            function reindent(line) {
-              cm.indentLine(line || doc.getCursor().line);
-            }
-            function emitNewline() {
-              var cursor = doc.getCursor();
-              placeInEditor('\n');
-              // FIXME: Dunno why this happens.
-              if (cursor.line === doc.getCursor().line) {
-                doc.setCursor({line: cursor.line + 1, ch: 0});
-              }
-            }
-            function emitLn(s) {
-              placeInEditor(s);
-              emitNewline();
-            }
-            function onEmptyLine() {
-              var cursor = doc.getCursor("to");
-              var line = doc.getLine(cursor.line);
-              return (/^\s*$/.test(line));
-            }
-            // Make newline at cursor position if we are not on an empty line
-            if (onEmptyLine()) {
-              reindent();
-            } else {
-              emitNewline();
-            }
-            if (asList) {
-              placeInEditor("[list:");
-            }
-            documents.forEach(function(d, idx) {
-              var pathToImg = '"' + window.APP_BASE_URL + "/shared-image-contents?sharedImageId="
-                + d.id + '"';
-              var outstr = asDefs ? ("img" + curImg + " = ") : "";
-              ++curImg;
-              outstr += "image-url(" + pathToImg + ")";
-              var isLast = (idx === (documents.length - 1));
-              if (asList) {
-                if (idx === 0) {
-                  // The space after ":" gets eaten, so we need to enter it here
-                  outstr = ' ' + outstr;
+          try {
+            photoPrompt().show(function(res) {
+              // Name of event for CM undo history
+              var origin = "+insertImage" + curImg;
+              var asValues = (res === "values");
+              var asDefs = (res === "defs");
+              var asList = (res === "list");
+              if (!(asValues || asDefs || asList)) {
+                // Check for garbage and log it
+                if (res !== null) {
+                  console.warn("Unknown photoPrompt response: ", res);
                 }
-                outstr += isLast ? "]" : ",";
+                return;
               }
-              if (isLast) {
-                placeInEditor(outstr);
+              // http://stackoverflow.com/questions/23733455/inserting-a-new-text-at-given-cursor-position
+              var cm = CPO.editor.cm;
+              var doc = cm.getDoc();
+              function placeInEditor(str) {
+                var cursor = doc.getCursor();
+                var line = doc.getLine(cursor.line);
+                var pos = {
+                  line: cursor.line,
+                  ch: line.length
+                };
+                doc.replaceRange(str, pos, undefined, origin);
+                reindent(cursor.line);
+              }
+              function reindent(line) {
+                cm.indentLine(line || doc.getCursor().line);
+              }
+              function emitNewline() {
+                var cursor = doc.getCursor();
+                placeInEditor('\n');
+                // FIXME: Dunno why this happens.
+                if (cursor.line === doc.getCursor().line) {
+                  doc.setCursor({line: cursor.line + 1, ch: 0});
+                }
+              }
+              function emitLn(s) {
+                placeInEditor(s);
+                emitNewline();
+              }
+              function onEmptyLine() {
+                var cursor = doc.getCursor("to");
+                var line = doc.getLine(cursor.line);
+                return (/^\s*$/.test(line));
+              }
+              // Make newline at cursor position if we are not on an empty line
+              if (onEmptyLine()) {
+                reindent();
               } else {
-                emitLn(outstr);
+                emitNewline();
               }
+              if (asList) {
+                placeInEditor("[list:");
+              }
+              documents.forEach(function(d, idx) {
+                var pathToImg = '"' + window.APP_BASE_URL + "/shared-image-contents?sharedImageId="
+                  + d.id + '"';
+                var outstr = asDefs ? ("img" + curImg + " = ") : "";
+                ++curImg;
+                outstr += "image-url(" + pathToImg + ")";
+                var isLast = (idx === (documents.length - 1));
+                if (asList) {
+                  if (idx === 0) {
+                    // The space after ":" gets eaten, so we need to enter it here
+                    outstr = ' ' + outstr;
+                  }
+                  outstr += isLast ? "]" : ",";
+                }
+                if (isLast) {
+                  placeInEditor(outstr);
+                } else {
+                  emitLn(outstr);
+                }
+              });
             });
-          });
+          }
+          catch(e) {
+            console.error("The show() function failed: ", e);
+          }
         } else {
           flashError("Invalid file type: " + documents[0][picker.Document.TYPE]);
         }

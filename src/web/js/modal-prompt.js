@@ -15,6 +15,8 @@ define(["q"], function(Q) {
   // Allows asynchronous requesting of prompts
   var promptQueue = Q();
 
+  window.modals = [];
+
   /**
    * Represents an option to present the user
    * @typedef {Object} ModalOption
@@ -29,8 +31,9 @@ define(["q"], function(Q) {
    * @param {ModalOption[]} options - The options to present the user
    */
   function Prompt(options) {
+    window.modals.push(this);
     if (!options ||
-        (options.style !== "radio" && options.style !== "tiles") ||
+        (options.style !== "radio" && options.style !== "tiles" && options.style !== "text") ||
         !options.options ||
         (typeof options.options.length !== "number") || (options.options.length === 0)) {
       throw new Error("Invalid Prompt Options", options);
@@ -39,6 +42,8 @@ define(["q"], function(Q) {
     this.modal = $("#promptModal");
     if (this.options.style === "radio") {
       this.elts = $($.parseHTML("<table></table>")).addClass("choiceContainer");
+    } else if (this.options.style === "text") {
+      this.elts = $("<div>").addClass("choiceContainer");
     } else {
       this.elts = $($.parseHTML("<div></div>")).addClass("choiceContainer");
     }
@@ -46,6 +51,8 @@ define(["q"], function(Q) {
     this.closeButton = $(".close", this.modal);
     this.submitButton = $(".submit", this.modal);
     this.isCompiled = false;
+    this.deferred = Q.defer();
+    this.promise = this.deferred.promise;
   }
 
   /**
@@ -63,42 +70,34 @@ define(["q"], function(Q) {
    *          or the result of the prompt, otherwise.
    */
   Prompt.prototype.show = function(callback) {
-    if (this.deferred !== undefined) {
-      throw new Error("Already showing prompt");
-    }
-    this.deferred = Q.defer();
-    this.promise = this.deferred.promise;
     // Use the promise queue to make sure there's no other
     // prompt being shown currently
-    promptQueue.then((function(){
-      if (this.options.hideSubmit) {
-        this.submitButton.hide();
-      } else {
-        this.submitButton.show();
+    if (this.options.hideSubmit) {
+      this.submitButton.hide();
+    } else {
+      this.submitButton.show();
+    }
+    this.closeButton.click(this.onClose.bind(this));
+    this.submitButton.click(this.onSubmit.bind(this));
+    var docClick = (function(e) {
+      // If the prompt is active and the background is clicked,
+      // then close.
+      if ($(e.target).is(this.modal) && this.deferred) {
+        this.onClose(e);
+        $(document).off("click", docClick);
       }
-      this.closeButton.click(this.onClose.bind(this));
-      this.submitButton.click(this.onSubmit.bind(this));
-      var docClick = (function(e) {
-        // If the prompt is active and the background is clicked,
-        // then close.
-        if ($(e.target).is(this.modal) && this.deferred) {
-          this.onClose(e);
-          $(document).off("click", docClick);
-        }
-      }).bind(this);
-      $(document).click(docClick);
-      var docKeydown = (function(e) {
-        if (e.key === "Escape") {
-          this.onClose(e);
-          $(document).off("keydown", docKeydown);
-        }
-      }).bind(this);
-      $(document).keydown(docKeydown);
-      this.title.text(this.options.title);
-      this.populateModal();
-      this.modal.css('display', 'block');
-      return this.promise;
-    }).bind(this));
+    }).bind(this);
+    $(document).click(docClick);
+    var docKeydown = (function(e) {
+      if (e.key === "Escape") {
+        this.onClose(e);
+        $(document).off("keydown", docKeydown);
+      }
+    }).bind(this);
+    $(document).keydown(docKeydown);
+    this.title.text(this.options.title);
+    this.populateModal();
+    this.modal.css('display', 'block');
 
     if (callback) {
       return this.promise.then(callback);
@@ -112,6 +111,8 @@ define(["q"], function(Q) {
    * Clears the contents of the modal prompt.
    */
   Prompt.prototype.clearModal = function() {
+    this.submitButton.off();
+    this.closeButton.off();
     this.elts.empty();
   };
   
@@ -162,15 +163,37 @@ define(["q"], function(Q) {
       return elt;
     }
 
+    function createTextElt(option) {
+      var elt = $("<div>");
+      elt.append($("<span>").addClass("textLabel").text(option.message));
+//      elt.append($("<span>").text("(" + option.details + ")"));
+      elt.append($("<input type='text'>").val(option.defaultValue));
+      return elt;
+    }
+
+    var that = this;
+
+    function createElt(option, i) {
+      if(that.options.style === "radio") {
+        return createRadioElt(option, i);
+      }
+      else if(that.options.style === "tiles") {
+        return createTileElt(option, i);
+      }
+      else if(that.options.style === "text") {
+        return createTextElt(option);
+      }
+    }
+
     var optionElts;
     // Cache results
-    if (!this.isCompiled) {
-      optionElts = this.options.options.map(this.options.style === "radio" ? createRadioElt : createTileElt);
-      this.compiledElts = optionElts;
-      this.isCompiled = true;
-    } else {
-      optionElts = this.compiledElts;
-    }
+//    if (true) {
+      optionElts = this.options.options.map(createElt);
+//      this.compiledElts = optionElts;
+//      this.isCompiled = true;
+//    } else {
+//      optionElts = this.compiledElts;
+//    }
     $("input[type='radio']", optionElts[0]).attr('checked', true);
     this.elts.append(optionElts);
     $(".modal-body", this.modal).empty().append(this.elts);
@@ -192,7 +215,15 @@ define(["q"], function(Q) {
    * Handler which is called when the user presses "submit"
    */
   Prompt.prototype.onSubmit = function(e) {
-    var retval = $("input[type='radio']:checked", this.modal).val();
+    if(this.options.style === "radio") {
+      var retval = $("input[type='radio']:checked", this.modal).val();
+    }
+    else if(this.options.style === "text") {
+      var retval = $("input[type='text']", this.modal).val();
+    }
+    else {
+      var retval = true; // Just return true if they clicked submit
+    }
     this.modal.css('display', 'none');
     this.clearModal();
     this.deferred.resolve(retval);
@@ -203,3 +234,4 @@ define(["q"], function(Q) {
   return Prompt;
 
 });
+

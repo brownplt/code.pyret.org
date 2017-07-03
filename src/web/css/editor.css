@@ -1563,6 +1563,13 @@ table.choiceContainer {
 div.choiceContainer {
    text-align: center;
 }
+div.choiceContainer input[type=text] {
+  padding: 0.5em;
+  font-size: 100%;
+}
+div.choiceContainer .textLabel {
+  margin-right: 1em;
+}
 div.choiceContainer > button {
   margin: 1em;
   cursor: pointer;
