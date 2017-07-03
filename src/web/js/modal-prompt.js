@@ -197,10 +197,12 @@ define(["q"], function(Q) {
     function createCopyTextElt(option) {
       var elt = $("<div>");
       elt.append($("<p>").addClass("textLabel").text(option.message));
-      var box = autoHighlightBox(option.text);
-//      elt.append($("<span>").text("(" + option.details + ")"));
-      elt.append(box);
-      box.focus();
+      if(option.text) {
+        var box = autoHighlightBox(option.text);
+  //      elt.append($("<span>").text("(" + option.details + ")"));
+        elt.append(box);
+        box.focus();
+      }
       return elt;
     }
 

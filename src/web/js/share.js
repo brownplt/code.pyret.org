@@ -87,15 +87,26 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       });
     }
     function showExistingSharePrompt(instances) {
-      var shareUrl = makeShareUrl(instances[0].getUniqueId());
+      var f = instances[0];
+      var shareUrl = makeShareUrl(f.getUniqueId());
+      var importLetter = getImportLetter(f.getName()[0]);
+      var importCode = "import shared-gdrive(\"" + f.getName() +
+          "\", \"" + f.getUniqueId() + "\") as " + importLetter;
       var reshare = new modalPrompt({
         title: "Share or update the published copy",
         style: "copyText",
         submitText: "Update",
         options: [
           {
-            message: "You can copy the link below to share the most recently published version with others.  You can click Update to copy the current version of your program to the published copy, or click Close to do nothing.",
+            message: "You can copy the link below to share the most recently published version with others.",
             text: shareUrl
+          },
+          {
+            message: "You can copy the code below to use the published version as a library.",
+            text: importCode
+          },
+          {
+            message: "You can also click Update below to copy the current version to the published version, or click Close to exit this window."
           }
         ]
       });
