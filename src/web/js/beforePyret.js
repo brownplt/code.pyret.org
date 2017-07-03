@@ -305,6 +305,7 @@ $(function() {
     filename = p.getName();
     $("#filename").text(" (" + truncateName(filename) + ")");
     setTitle(filename);
+    showShareContainer(p);
   }
 
   function loadProgram(p) {
@@ -418,13 +419,14 @@ $(function() {
   function saveAs() {
     if(menuItemDisabled("saveas")) { return; }
     programToSave.then(function(p) {
+      var name = p === null ? "Untitled" : p.getName();
       var saveAsPrompt = new modalPrompt({
         title: "Save a copy",
         style: "text",
         options: [
           {
             message: "The name for the copy:",
-            defaultValue: p.getName()
+            defaultValue: name
           }
         ]
       });

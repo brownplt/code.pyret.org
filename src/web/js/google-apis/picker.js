@@ -23,7 +23,7 @@ function FilePicker(options) {
 
   // Wrapped for dependency-ordering, although that might be unneeded.
   storageAPI.then((function(){
-    google.load('picker', '1', { 'callback': onPickerLoaded.bind(this) });
+    google.load('picker', { 'callback': onPickerLoaded.bind(this) });
   }).bind(this));
 }
 
