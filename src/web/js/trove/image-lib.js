@@ -18,7 +18,7 @@
 
     //////////////////////////////////////////////////////////////////////
     var makeColor = function(r,g,b,a) {
-      if (a === undefined) { a = 255; }
+      if (a === undefined) { a = 1; }
       if ([r,g,b,a].filter(isNum).length !== 4) {
         throw new Error("Internal error: non-number in makeColor argList ", [r, g, b, a]);
       }
@@ -44,7 +44,11 @@
 
     ColorDb.prototype.put = function(name, color) {
       this.colors[name] = color;
-      var str = colorRed(color) + ", " + colorGreen(color) + ", " + colorBlue(color) + ", " + colorAlpha(color);
+      var str =
+          jsnums.toFixnum(colorRed(color)) + ", " +
+          jsnums.toFixnum(colorGreen(color)) + ", " +
+          jsnums.toFixnum(colorBlue(color)) + ", " +
+          jsnums.toFixnum(colorAlpha(color));
       if (this.colorNames[str] === undefined) {
         this.colorNames[str] = name;
       }
@@ -388,15 +392,15 @@
 
     //////////////////////////////////////////////////////////////////////
     // colorString : hexColor Style -> rgba
-    // Style can be a number (0-255), "solid", "outline" or null
+    // Style can be a number (0-1), "solid", "outline" or null
     // The above value which is non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
-      var styleAlpha = isNaN(aStyle)? 1.0 : aStyle/255,
-          cAlpha = colorAlpha(aColor)/255;
-      return "rgba(" +  colorRed(aColor)   + ", " +
-                        colorGreen(aColor) + ", " +
-                        colorBlue(aColor)  + ", " +
-                        styleAlpha * cAlpha + ")";
+      var styleAlpha = isNaN(aStyle)? 1.0 : aStyle,
+          cAlpha = jsnums.toFixnum(colorAlpha(aColor));
+      return "rgba(" +  jsnums.toFixnum(colorRed(aColor))   + ", " +
+                        jsnums.toFixnum(colorGreen(aColor)) + ", " +
+                        jsnums.toFixnum(colorBlue(aColor))  + ", " +
+                        100 * styleAlpha * cAlpha + "%)";
     };
 
     function RGBtoLAB(r, g, b){

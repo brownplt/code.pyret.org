@@ -1087,10 +1087,10 @@
         var renderings = [];
 
         var brush = $("<img>").addClass("paintBrush").attr("src", "/img/brush.svg");
-        var r = image.colorRed(val);
-        var g = image.colorGreen(val);
-        var b = image.colorBlue(val);
-        var a = image.colorAlpha(val);
+        var r = jsnums.toFixnum(image.colorRed(val));
+        var g = jsnums.toFixnum(image.colorGreen(val));
+        var b = jsnums.toFixnum(image.colorBlue(val));
+        var a = jsnums.toFixnum(image.colorAlpha(val));
         var rgba = r + ", " + g + ", " + b + ", " + a;
         var colorName = image.colorDb.colorName(rgba);
         var paint = $("<span>").addClass("paintBlob")
