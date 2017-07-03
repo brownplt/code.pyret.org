@@ -52,58 +52,60 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   function makeShareLink(originalFile) {
     var link = $("<div>").append($("<button class=blueButton>").text("Publish"));
     var shareDiv = $("<div>").addClass("share");
-    return makeHoverMenu(link, shareDiv, false,
-      function() {
-        showShares(shareDiv, originalFile);
-      });
+    link.click(function() { showShares(shareDiv, originalFile); });
+    return link;
   }
 
   function showShares(container, originalFile) {
-    var shareDiv = $("<div>");
-    shareDiv.dialog({
-      title: "Publish this file",
-      modal: true,
-      overlay : { opacity: 0.5, background: 'black'},
-      width : "70%",
-      height : "auto",
-      closeOnEscape : true
-    });
-    var shares = originalFile.getShares();
-    var displayDone = shares.then(function(sharedInstances) {
-      if(sharedInstances.length === 0) {
-        var words = $("<p>").text("This program has not been shared before.  Publishing it by clicking below will make a new copy of the file that you can share with anyone you like.  They will be able tto see your code and run your program.");
-        var createNew = $("<button>").addClass("blueButton").text("Publish it!");
-        shareDiv.append(words);
-        shareDiv.append(createNew);
-        createNew.click(function() {
+    function showNewSharePrompt() {
+      var newShare = new modalPrompt({
+        title: "Publish this file",
+        style: "confirm",
+        submitText: "Publish",
+        options: [
+          {
+            message: "This program has not been shared before.  Publishing it by clicking below will make a new copy of the file that you can share with anyone you like.  They will be able to see your code and run your program."
+          }
+        ]
+      });
+      newShare.show().then(function(confirmed) {
+        if(confirmed === true) {
+          window.stickMessage("Copying...");
           var copy = originalFile.makeShareCopy();
           copy.fail(function(err) {
             window.flashError("Couldn't copy the file for sharing.");
-            //showShares(container, originalFile);
+            //showshares(container, originalfile);
           });
           copy.then(function(f) {
-            var shareUrl = makeShareUrl(f.getUniqueId());
-            var box = autoHighlightBox(shareUrl);
-            shareDiv.append($("<p>").text("Copy the link below to share it!  Close this window whenever you're done."));
-            shareDiv.append(box);
-            box.focus();
+            window.flashMessage("File published successfully");
+            return showShares(container, originalFile);
           });
-        });
-      }
-      else { // has been shared before
-        var words = $("<p>").text("This program has been shared before.  You can copy the link below and share it with anyone you like.  You can also re-publish it, which will copy the current content over the previously published copy.");
-        var createNew = $("<button>").addClass("blueButton").text("Publish it!");
-        var shareUrl = makeShareUrl(sharedInstances[0].getUniqueId());
-        var box = autoHighlightBox(shareUrl);
-        shareDiv.append(words);
-        shareDiv.append(createNew);
-        shareDiv.append(box);
-        createNew.click(function() {
+        }
+      })
+      .fail(function(err) {
+        console.error("Error showing the share dialog", err);
+      });
+    }
+    function showExistingSharePrompt(instances) {
+      var shareUrl = makeShareUrl(instances[0].getUniqueId());
+      var reshare = new modalPrompt({
+        title: "Share or update the published copy",
+        style: "copyText",
+        submitText: "Update",
+        options: [
+          {
+            message: "You can copy the link below to share the most recently published version with others.  You can click Update to copy the current version of your program to the published copy, or click Close to do nothing.",
+            text: shareUrl
+          }
+        ]
+      });
+      reshare.show(function(republish) {
+        if(republish) {
+          window.stickMessage("Republishing file...");
           originalFile.getContents().then(function(contents) {
-            var saved = sharedInstances[0].save(contents, false);
+            var saved = instances[0].save(contents, false);
             saved.fail(function(err) {
               window.flashError("Couldn't publish the file.");
-              //showShares(container, originalFile);
             });
             saved.then(function(f) {
               window.flashMessage("Published program updated.")
@@ -112,7 +114,19 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
           .fail(function() {
             window.flashError("Couldn't get the file contents for publishing");
           });
-        });
+        }
+        else {
+          // do nothing, user clicked "cancel", so just let the window close
+        }
+      });
+    }
+    var shares = originalFile.getShares();
+    shares.then(function(sharedInstances) {
+      if(sharedInstances.length === 0) {
+        showNewSharePrompt();
+      }
+      else {
+        showExistingSharePrompt(sharedInstances);
       }
     });
   }

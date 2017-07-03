@@ -12,8 +12,21 @@
  */
 define(["q"], function(Q) {
 
+  function autoHighlightBox(text) {
+    var textBox = $("<input type='text'>").addClass("auto-highlight");
+    textBox.attr("size", text.length);
+    textBox.attr("editable", false);
+    textBox.on("focus", function() { $(this).select(); });
+    textBox.on("mouseup", function() { $(this).select(); });
+    textBox.val(text);
+    return textBox;
+  }
+
   // Allows asynchronous requesting of prompts
   var promptQueue = Q();
+  var styles = [
+    "radio", "tiles", "text", "copyText", "confirm"
+  ];
 
   window.modals = [];
 
@@ -33,7 +46,7 @@ define(["q"], function(Q) {
   function Prompt(options) {
     window.modals.push(this);
     if (!options ||
-        (options.style !== "radio" && options.style !== "tiles" && options.style !== "text") ||
+        (styles.indexOf(options.style) === -1) ||
         !options.options ||
         (typeof options.options.length !== "number") || (options.options.length === 0)) {
       throw new Error("Invalid Prompt Options", options);
@@ -44,12 +57,22 @@ define(["q"], function(Q) {
       this.elts = $($.parseHTML("<table></table>")).addClass("choiceContainer");
     } else if (this.options.style === "text") {
       this.elts = $("<div>").addClass("choiceContainer");
+    } else if (this.options.style === "copyText") {
+      this.elts = $("<div>").addClass("choiceContainer");
+    } else if (this.options.style === "confirm") {
+      this.elts = $("<div>").addClass("choiceContainer");
     } else {
       this.elts = $($.parseHTML("<div></div>")).addClass("choiceContainer");
     }
     this.title = $(".modal-header > h3", this.modal);
     this.closeButton = $(".close", this.modal);
     this.submitButton = $(".submit", this.modal);
+    if(this.options.submitText) {
+      this.submitButton.text(this.options.submitText);
+    }
+    else {
+      this.submitButton.text("Submit");
+    }
     this.isCompiled = false;
     this.deferred = Q.defer();
     this.promise = this.deferred.promise;
@@ -171,6 +194,20 @@ define(["q"], function(Q) {
       return elt;
     }
 
+    function createCopyTextElt(option) {
+      var elt = $("<div>");
+      elt.append($("<p>").addClass("textLabel").text(option.message));
+      var box = autoHighlightBox(option.text);
+//      elt.append($("<span>").text("(" + option.details + ")"));
+      elt.append(box);
+      box.focus();
+      return elt;
+    }
+
+    function createConfirmElt(option) {
+      return $("<p>").text(option.message);
+    }
+
     var that = this;
 
     function createElt(option, i) {
@@ -182,6 +219,12 @@ define(["q"], function(Q) {
       }
       else if(that.options.style === "text") {
         return createTextElt(option);
+      }
+      else if(that.options.style === "copyText") {
+        return createCopyTextElt(option);
+      }
+      else if(that.options.style === "confirm") {
+        return createConfirmElt(option);
       }
     }
 
@@ -220,6 +263,12 @@ define(["q"], function(Q) {
     }
     else if(this.options.style === "text") {
       var retval = $("input[type='text']", this.modal).val();
+    }
+    else if(this.options.style === "copyText") {
+      var retval = true;
+    }
+    else if(this.options.style === "confirm") {
+      var retval = true;
     }
     else {
       var retval = true; // Just return true if they clicked submit
