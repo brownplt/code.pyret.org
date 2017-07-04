@@ -554,6 +554,7 @@
     var colorsEmphasized      = new Set();
     var colorsHighlighted     = new Set();
     lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+    var globalColor = lastHue;
 
     function highlight(color) {
       if(colorsHighlighted.has(color))
@@ -638,6 +639,26 @@
       });
       colorsEmphasized.forEach(function(color) {
         demphasize(color);
+      });
+    }
+
+    function settingChanged(eagerness, colorfulness) {
+      logger.log("highlight_settings_changed",
+        { eagerness: eagerness,
+          colorfulness: colorfulness
+        });
+      window.requestAnimationFrame(function() {
+        colorsHighlighted.forEach(function(color) {
+          unhighlight(color);
+        });
+        colorsEmphasized.forEach(function(color) {
+          demphasize(color);
+        });
+        if (eagerness == 'eager') {
+          $(".compile-error.highlights-active, " +
+            ".test-reason.highlights-active > .highlights-active")
+                .first().trigger('toggleHighlight');
+        }
       });
     }
 

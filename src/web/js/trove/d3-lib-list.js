@@ -320,8 +320,8 @@
   ////////////////////////////////////////////////////////////////////////////
 
   function getDimension(obj, windowOptions) {
-    var xscale = RUNTIME.getField(windowOptions, 'extend-x');
-    var yscale = RUNTIME.getField(windowOptions, 'extend-y');
+    var xscale = RUNTIME.getField(windowOptions, '_extend-x');
+    var yscale = RUNTIME.getField(windowOptions, '_extend-y');
 
     if (!('maxWindowWidth' in obj)) {
       obj.maxWindowWidth = 1250;
@@ -453,7 +453,7 @@
       .append('text')
       .attr('x', (dimension.marginLeft + dimension.width + dimension.marginRight) / 2)
       .attr('y', 5 * dimension.marginTop / 11)
-      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, 'title')))
+      .html(libJS.htmlspecialchars(RUNTIME.getField(windowOptions, '_title')))
       .style({
         position: 'absolute',
         'font-size': '10pt',
@@ -472,8 +472,8 @@
       };
     }
 
-    if (RUNTIME.isPyretFalse(RUNTIME.getField(windowOptions, 'interact'))) {
-      return RUNTIME.pauseStack(retValFunc);
+    if (RUNTIME.isPyretFalse(RUNTIME.getField(windowOptions, '_interact'))) {
+      RUNTIME.pauseStack(retValFunc);
     }
 
 
@@ -493,7 +493,7 @@
       pauseStack = function (cb) { cb(restarter); };
     }
 
-    return pauseStack(function (restarter) {
+    pauseStack(function (restarter) {
       if (extra !== null) {
         extra(restarter);
       }
@@ -524,8 +524,8 @@
                   RUNTIME.makeSrcloc("dummy location"),
                   windowOptions,
                   {
-                    'extend-x': xscaler(width),
-                    'extend-y': yscaler(height),
+                    '_extend-x': xscaler(width),
+                    '_extend-y': yscaler(height),
                   }
                 )
               );

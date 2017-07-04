@@ -1,3 +1,4 @@
+#|
 provide  {
   line-plot: line-plot,
   is-line-plot: is-line-plot,
@@ -8,11 +9,11 @@ provide  {
   function-plot: function-plot,
   is-function-plot: is-function-plot,
 
-  display-function: display-function,
-  display-scatter: display-scatter,
-  display-line: display-line,
+  render-function: render-function,
+  render-scatter: render-scatter,
+  render-line: render-line,
 
-  display-multi-plot: display-multi-plot,
+  render-multi-plot: render-multi-plot,
   default-options: default-options,
 
   histogram: histogram,
@@ -22,6 +23,9 @@ provide  {
   dot-chart: dot-chart,
   box-chart: box-chart,
 } end
+|#
+
+provide *
 
 provide-types {
   Plot :: Plot,
@@ -38,26 +42,25 @@ import plot-lib as P
 import either as E
 import string-dict as SD
 
-OFFSET = 1
-MAX_SAMPLES = 100000
+MAX-SAMPLES = 100000
 
 type BaseWindowOptions = {
-  xscale :: Number,
-  yscale :: Number,
+  extend-x :: Number,
+  extend-y :: Number,
   interact :: Boolean,
   title :: String
 }
 
 base-window-options :: BaseWindowOptions = {
-  xscale: 0,
-  yscale: 0,
+  extend-x: 0,
+  extend-y: 0,
   interact: true,
   title: ''
 }
 
 type AxisWindowOptions = {
-  xscale :: Number,
-  yscale :: Number,
+  extend-x :: Number,
+  extend-y :: Number,
   interact :: Boolean,
   title :: String,
   x-axis :: String,
@@ -70,8 +73,8 @@ axis-window-options :: AxisWindowOptions = base-window-options.{
 }
 
 type PlotWindowOptions = {
-  xscale :: Number,
-  yscale :: Number,
+  extend-x :: Number,
+  extend-y :: Number,
   interact :: Boolean,
   title :: String,
   x-axis :: String,
@@ -155,16 +158,17 @@ fun sprintf-maker():
 end
 
 fun check-base-window-options(options :: BaseWindowOptions) -> Nothing block:
-  when (options.xscale < 0) or (options.xscale > 1):
-    raise('plot: xscale must be between 0 and 1')
+  when (options.extend-x < 0) or (options.extend-x > 1):
+    raise('plot: extend-x must be between 0 and 1')
   end
-  when (options.yscale < 0) or (options.yscale > 1):
-    raise('plot: yscale must be between 0 and 1')
+  when (options.extend-y < 0) or (options.extend-y > 1):
+    raise('plot: extend-y must be between 0 and 1')
   end
   nothing
 end
 
 sprintf = sprintf-maker()
+unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 default-options = {<A>(x :: A): x}
 
@@ -199,10 +203,6 @@ where:
     end, 4, default-options) does-not-raise
 end
 
-fun histogram-image(tab :: Table, n :: Number):
-  histogram(tab, n, _.{ interact: false })
-end
-
 fun pie-chart(tab :: Table, options-generator :: WrappedPieChartWindowOptions) -> IM.Image block:
   doc: 'Consume a table with two columns: `label` and `value`, and show a pie-chart'
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
@@ -220,10 +220,6 @@ where:
       row: 'dsa', 2
       row: 'qwe', 3
     end, default-options) does-not-raise
-end
-
-fun pie-chart-image(tab :: Table):
-  pie-chart(tab, _.{interact: false})
 end
 
 fun pie-chart-with-adjustable-radius(
@@ -253,6 +249,9 @@ end
 fun bar-chart(
     tab :: Table,
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+  doc: ```
+       Consume a table with two columns: `label`, `value` and show a bar chart
+       ```
   when not(tab._header-raw-array =~ [raw-array: 'label', 'value']):
     raise('expect a table with two columns: label and value')
   end
@@ -264,14 +263,14 @@ fun bar-chart(
   P.bar-chart(options, tab._rows-raw-array, [list: ''], false)
 end
 
-fun bar-chart-image(tab :: Table):
-  bar-chart(tab, _.{interact: false})
-end
-
 fun grouped-bar-chart(
     tab :: Table,
     legend :: List<String>,
     options-generator :: WrappedBarChartWindowOptions) -> IM.Image block:
+  doc: ```
+       Consume a table with two columns: `label`, `values`, and legend which
+       is a list of string, and show a grouped bar chart
+       ```
   when not(tab._header-raw-array =~ [raw-array: 'label', 'values']):
     raise('expect a table with two columns: label and values')
   end
@@ -370,20 +369,20 @@ where:
     ], plot-options)
 end
 
-fun display-function(title :: String, f :: PlottableFunction) -> IM.Image:
-  display-multi-plot(
+fun render-function(title :: String, f :: PlottableFunction) -> IM.Image:
+  render-multi-plot(
     [list: function-plot(f, default-options)],
     _.{title: title})
 where:
-  plot-function('My function', num-sin) does-not-raise
+  render-function('My function', num-sin) does-not-raise
 end
 
-fun display-scatter(title :: String, tab :: Table) -> IM.Image:
-  display-multi-plot(
+fun render-scatter(title :: String, tab :: Table) -> IM.Image:
+  render-multi-plot(
     [list: scatter-plot(tab, default-options)],
     _.{title: title})
 where:
-  plot-scatter('My scatter', table: x, y
+  render-scatter('My scatter', table: x, y
       row: 1, 2
       row: 1, 3.1
       row: 4, 1
@@ -393,12 +392,12 @@ where:
     end) does-not-raise
 end
 
-fun display-line(title :: String, tab :: Table) -> IM.Image:
-  display-multi-plot(
+fun render-line(title :: String, tab :: Table) -> IM.Image:
+  render-multi-plot(
     [list: line-plot(tab, default-options)],
     _.{title: title})
 where:
-  plot-line('My line', table: x, y
+  render-line('My line', table: x, y
       row: 1, 2
       row: 1, 3.1
       row: 4, 1
@@ -408,7 +407,7 @@ where:
     end) does-not-raise
 end
 
-fun display-multi-plot(
+fun render-multi-plot(
     plots :: List<Plot>,
     options-generator :: WrappedPlotWindowOptions) -> IM.Image block:
   options = options-generator(plot-window-options)
@@ -416,14 +415,14 @@ fun display-multi-plot(
   when (options.x-min >= options.x-max) or (options.y-min >= options.y-max):
     raise('plot: x-min and y-min must be strictly less than x-max and y-max respectively')
   end
-  when (options.num-samples > MAX_SAMPLES) or
+  when (options.num-samples > MAX-SAMPLES) or
     (options.num-samples <= 1) or
     not(num-is-integer(options.num-samples)):
     raise(
       [sprintf:
         'plot: num-samples must be an an integer greater than 1',
         ' and do not exceed ',
-        num-to-string(MAX_SAMPLES)])
+        num-to-string(MAX-SAMPLES)])
   end
 
   original-plots = plots
@@ -478,11 +477,19 @@ fun display-multi-plot(
           end
         end
 
+        x-min = bound(r, f, num-min, raw-array-get(_, 0))
+        x-max = bound(r, f, num-max, raw-array-get(_, 0))
+        y-min = bound(r, f, num-min, raw-array-get(_, 1))
+        y-max = bound(r, f, num-max, raw-array-get(_, 1))
+        x-offset = num-min((x-max - x-min) / 40, 1)
+        y-offset = num-min((y-max - y-min) / 40, 1)
+        shadow x-offset = if unsafe-equal(x-offset, 0): 1 else: x-offset end
+        shadow y-offset = if unsafe-equal(y-offset, 0): 1 else: y-offset end
         options.{
-          x-min: bound(r, f, num-min, raw-array-get(_, 0)) - OFFSET,
-          x-max: bound(r, f, num-max, raw-array-get(_, 0)) + OFFSET,
-          y-min: bound(r, f, num-min, raw-array-get(_, 1)) - OFFSET,
-          y-max: bound(r, f, num-max, raw-array-get(_, 1)) + OFFSET,
+          x-min: x-min - x-offset,
+          x-max: x-max + x-offset,
+          y-min: y-min - y-offset,
+          y-max: y-max + y-offset,
           infer-bounds: false
         }
     end
@@ -511,7 +518,7 @@ end
 default-plot-color-list =
   [list: I.green, I.red, I.orange, I.yellow, I.blue, I.purple, I.brown]
 
-fun display-plots(
+fun render-plots(
     title :: String,
     infer-bounds :: Boolean,
     plots :: List<Plot>) -> IM.Image:
@@ -530,9 +537,14 @@ fun display-plots(
   else:
     options
   end
-  display-multi-plot(new-plots, options)
+  render-multi-plot(new-plots, options)
 end
 
 make-function-plot = function-plot(_, _.{color: I.blue})
 make-line-plot = line-plot(_, _.{color: I.blue})
 make-scatter-plot = scatter-plot(_, _.{color: I.blue})
+
+display-line = render-line
+display-function = render-function
+display-scatter = render-scatter
+display-multi-plot = render-multi-plot

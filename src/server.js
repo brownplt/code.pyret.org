@@ -96,6 +96,7 @@ function start(config, onServerReady) {
   app.use(csrf());
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
+  app.get("/faq.html", function(_, res) { res.render("faq.html"); });
 
   app.get("/faq", function(_, res) { res.render("faq.html"); });
 
