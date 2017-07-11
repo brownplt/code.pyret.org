@@ -1,5 +1,5 @@
 // App name in *Title Case*.
-export const APP_NAME = 'Pyret';
+export const APP_NAME = 'code.pyret.org';
 
 // File extension of code files for this app.
 export const FILE_EXT = 'arr';

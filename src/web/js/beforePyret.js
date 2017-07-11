@@ -296,9 +296,11 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  var TRUNCATE_LENGTH = 20;
+
   function truncateName(name) {
-    if(name.length < 14) { return name; }
-    return name.slice(0, 6) + "⋯" + name.slice(name.length - 6, name.length);
+    if(name.length < TRUNCATE_LENGTH) { return name; }
+    return name.slice(0, TRUNCATE_LENGTH / 2) + "…" + name.slice(name.length - TRUNCATE_LENGTH / 2, name.length);
   }
 
   function updateName(p) {

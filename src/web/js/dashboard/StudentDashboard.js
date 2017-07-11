@@ -26,7 +26,6 @@ class StudentDashboard extends Component {
         this.setState({signedIn: SIGNED_IN});
         this.updateRecentFiles();
         this.api.getUsername().then((userInfo) => {
-          console.log(userInfo);
           this.setState({ userName: userInfo.emails[0].value });
         });
       }
@@ -41,6 +40,9 @@ class StudentDashboard extends Component {
     this.api.signIn().then((resp) => {
       console.log("The response is: ", resp);
       this.setState({signedIn: SIGNED_IN});
+      this.api.getUsername().then((userInfo) => {
+        this.setState({ userName: userInfo.emails[0].value });
+      });
       this.updateRecentFiles();
     });
   }
@@ -72,9 +74,9 @@ class StudentDashboard extends Component {
   }
 
   updateRecentFiles = () => {
-    this.api.getRecentFilesByExt(FILE_EXT).then((resp) => {
+    this.api.getRecentFilesByExtAndAppName(APP_NAME, FILE_EXT).then((resp) => {
       this.setState({files: resp.result.files});
-    });
+    })
   }
 
   handleNewFilenameChange = (event) => {
@@ -83,7 +85,7 @@ class StudentDashboard extends Component {
 
   handleCreateNewFile = (event) => {
     event.preventDefault();
-    var w = window.open("about:blank", "_newtab");
+    var w = window.open("about:blank", "_blank");
     if (this.state.newFileName) {
       this.api.getAppFolderID(APP_NAME).then((resp) => {
         var files = resp.result.files;
@@ -110,13 +112,28 @@ class StudentDashboard extends Component {
   }
 
   handleSelectFileClick = (event) => {
-    this.api.createPicker((data) => {
+    var w = window.open("about:blank", "_blank");
+    this.api.getAppFolderID(APP_NAME).then((resp) => {
+      var files = resp.result.files;
+      if(files.length === 0) {
+        var urlToOpen = "https://drive.google.com/drive/u/0/";
+      }
+      else {
+        var urlToOpen = "https://drive.google.com/drive/u/0/folders/" + files[0].id;
+      }
+      w.location = urlToOpen;
+    }).fail((err) => {
+      w.close();
+    });
+    /*
+    this.api.createPicker(APP_NAME, (data) => {
       if (data.action === window.google.picker.Action.PICKED) {
         var fileId = data.docs[0].id;
-        window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
+        window.open(EDITOR_REDIRECT_URL + fileId, "_blank");
         window.picker.setVisible(false);
       }
     });
+    */
   }
 
   // A simple callback implementation.
@@ -124,7 +141,7 @@ class StudentDashboard extends Component {
     console.log(data);
     if (data.action === window.google.picker.Action.PICKED) {
       var fileId = data.docs[0].id;
-      window.open(EDITOR_REDIRECT_URL + fileId, '_newtab');
+      window.open(EDITOR_REDIRECT_URL + fileId, "_blank");
     }
   }
 
@@ -152,10 +169,9 @@ class StudentDashboard extends Component {
         <div id='file-picker-modal' className={'modal-wrap container ' + (this.state.signedIn === SIGNED_IN ? '' : 'hidden')}>
           <div id='file-picker-modal-tabs' className='cf'>
             <h2 id='recent-files' className={'tab floatable left ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
-            <h2 id='template-files' className={'tab floatable left ' + ((this.state.activeTab === 'template-files') ? 'active' : '')} onClick={this.handleTabClick}>Templates</h2>
             <h2 id='new-file' className={'tab floatable left ' + ((this.state.activeTab === 'new-file') ? 'active' : '')} onClick={this.handleTabClick}>New File</h2>
             <div className='button-wrapper floatable right'>
-              <button id='select-file' onClick={this.handleSelectFileClick} >Select From Drive</button>
+              <button id='select-file' onClick={this.handleSelectFileClick} >Open Google Drive</button>
             </div>
           </div>
           <div id='file-picker-modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
@@ -167,7 +183,7 @@ class StudentDashboard extends Component {
             <form onSubmit={this.handleCreateNewFile}>
               <input className='form' type='text' value={this.state.newFileName} onChange={this.handleNewFilenameChange} />
               <span className='arr-ext'>.arr</span>
-              <input id='new-file' className='button ' type='submit' value='New file' />
+              <input id='new-file' className='button ' type='submit' value='Create' />
             </form>
           </div>
         </div>
