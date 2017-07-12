@@ -10,7 +10,7 @@ before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable
 - nvm use stable
-- gem install heroku
+- npm install -g heroku-cli
 install:
 - npm install --ignore-scripts
 - make web
