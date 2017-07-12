@@ -5,6 +5,7 @@
  */
 function FilePicker(options) {
   options = options || {};
+  this.options = options;
 
   this.dataHandler = options.onSelect;
   this.onLoaded = options.onLoaded || function(){};
@@ -22,7 +23,7 @@ function FilePicker(options) {
 
   // Wrapped for dependency-ordering, although that might be unneeded.
   storageAPI.then((function(){
-    google.load('picker', '1', { 'callback': onPickerLoaded.bind(this) });
+    gapi.load('picker', { 'callback': onPickerLoaded.bind(this) });
   }).bind(this));
 }
 
@@ -83,7 +84,14 @@ FilePicker.prototype.initOpen = function(picker) {
     }
   }).bind(this);
 
-  var showPicker = (function(drive) {
+  /*
+    views are defined below; they can be
+      "pyretView" – show Pyret files
+      "imageView" – show the whole drive, selecting for image files
+
+    The client provides a list of appropriate views
+  */
+  var showPicker = (function(drive, views, title) {
     /**
      * A Picker View which displays Pyret files which users may load.
      */
@@ -97,18 +105,28 @@ FilePicker.prototype.initOpen = function(picker) {
     var imageView = new picker.View(picker.ViewId.DOCS);
     imageView.setMimeTypes("image/png,image/jpeg,image/jpg,image/gif");
 
+    var allViews = {
+      imageView: imageView,
+      pyretView: pyretView
+    }
+
     var buildInstance = (function(parentId) {
       pyretView.setParent(parentId);
 
-      this.pickerInstance = new picker.PickerBuilder()
+      var pickerBuilder = new picker.PickerBuilder()
         //.enableFeature(picker.Feature.NAV_HIDDEN)
         .enableFeature(picker.Feature.MULTISELECT_ENABLED)
-        .setTitle("Select a Pyret document or an image from Google Drive")
-        .addView(pyretView)
-        .addView(imageView)
+        .setTitle(title);
+      
+      for(var i = 0; i < views.length; i += 1) {
+        pickerBuilder.addView(allViews[views[i]]);
+      }
+
+      this.pickerInstance = pickerBuilder
         .setOAuthToken(gapi.auth.getToken().access_token)
         .setCallback(pickerCallback)
         .build();
+
       this.pickerInstance.setVisible(true);
       $(".picker").css("z-index", 9000);
       var hidePicker = function(e) {
@@ -127,8 +145,10 @@ FilePicker.prototype.initOpen = function(picker) {
 
   return (function() {
     this.raisedError = false;
+    var views = this.options.views || [];
+    var title = this.options.title || "Select a file";
     return storageAPI.then(function(drive) {
-      return gwrap.withAuth(function() {return showPicker(drive); });
+      return gwrap.withAuth(function() {return showPicker(drive, views, title); });
     })
       .catch((function(err) {
         if (this.raisedError) {

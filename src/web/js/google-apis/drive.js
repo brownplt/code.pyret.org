@@ -181,14 +181,14 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
           return Q($.get("/shared-file", {
             sharedProgramId: id
           })).then(function(googlishFileObject) {
-            return makeSharedFile(googlishFileObject, false); 
+            return makeSharedFile(googlishFileObject, false);
           });
         });
         var result = Q.any([fromDrive, fromServer]);
         result.then(function(r) {
           console.log("Got result for shared file: ", r);
         }, function(r) {
-          console.log("Got failure: ", r); 
+          console.log("Got failure: ", r);
         });
         return result;
       },
@@ -280,11 +280,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
   function initialize(wrappedDrive) {
     drive = wrappedDrive;
-
-    var list = drive.files.list({
-      q: "trashed=false and title = '" + collectionName + "' and "+
-         "mimeType = '" + FOLDER_MIME + "'"
-    });
     var baseCollection = findOrCreateDirectory(collectionName);
     return createAPI(baseCollection);
   }
@@ -296,7 +291,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
                 immediate: immediate
               },
               callback: function(drive) {
-                console.log("Drive loaded");
                 ret.resolve(initialize(drive));
               }});
   return ret.promise;

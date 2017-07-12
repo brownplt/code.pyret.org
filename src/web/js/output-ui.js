@@ -414,7 +414,7 @@
             var start = new CodeMirror.Pos(start_line - 1, start_col);
             var   end = new CodeMirror.Pos(  end_line - 1,   end_col);
             var source = documents.get(filename).getRange(start, end);
-            runtime.pauseStack(function(restarter) {
+            return runtime.pauseStack(function(restarter) {
               runtime.runThunk(function() {
                 return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
               }, function(result) {
@@ -563,8 +563,7 @@
         colorsHighlighted.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = localStorage.getItem("highlight-colorfulness");
-        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+        var cssColor = hueToRGB(color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
         }
@@ -595,8 +594,7 @@
         colorsEmphasized.add(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = localStorage.getItem("highlight-colorfulness");
-        var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+        var cssColor = hueToRGB(color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
           anchors[i].addClass('highlight-blink');
@@ -614,12 +612,11 @@
         colorsEmphasized.delete(color);
         var anchors   = allHighlightAnchors.get(color);
         var positions = allHighlightPositions.get(color);
-        var colorfulness = localStorage.getItem("highlight-colorfulness");
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].removeClass('highlight-blink');
         }
         if(colorsHighlighted.has(color)) {
-          var cssColor = hueToRGB(colorfulness != "vibrant" ? globalColor : color);
+          var cssColor = hueToRGB(color);
           for(var i = 0; i < positions.length; i++) {
             positions[i].highlight(cssColor);
           }
@@ -757,7 +754,7 @@
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);
               var container = $("<div>").addClass("compile-error");
-              runtime.pauseStack(function(restarter) {
+              return runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
                   return runtime.getField(e.exn, "render-fancy-reason").app(
                     maybeStackLoc,
@@ -801,7 +798,7 @@
                 });
               });
             } else {
-              runtime.pauseStack(function(restarter) {
+              return runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
                   return runtime.toReprJS(val, runtime.ReprMethods["$cpo"]);
                 }, function(out) {
@@ -865,7 +862,7 @@
               probablyErrorLocation = false;
             }
             if (probablyErrorLocation) {
-              runtime.pauseStack(function(restarter) {
+              return runtime.pauseStack(function(restarter) {
                 runtime.runThunk(function() {
                   return contentsWithLoc.app(probablyErrorLocation);
                 }, function(out) {
@@ -922,10 +919,10 @@
               anchor.on("click", function (e) {
                 logger.log("highlight_anchor_click",
                   { error_id: context, anchor_id: id });
+                e.stopPropagation();
                 window.requestAnimationFrame(function() {
                   if (positions[0] !== undefined)
                     positions[0].goto();
-                  event.stopPropagation();
                 });
               });
               anchor.on("mouseenter", function () {
@@ -997,22 +994,17 @@
 
         rendering.bind('toggleHighlight',function() {
             logger.log("error_highlights_toggled",
-              { error_id: context,
-                eagerness: localStorage.getItem('highlight-eagerness'),
-                colorfulness: localStorage.getItem('highlight-colorfulness')
-              });
+              { error_id: context });
             colorsHighlighted.forEach(function(color) {
               unhighlight(color);
             });
             colorsEmphasized.forEach(function(color) {
               demphasize(color);
             });
-            if(localStorage.getItem('highlight-eagerness') != 'lazy') {
-              messageAnchors.forEach(function (_, color) {
-                if (!messageHintedColors.has(color))
-                  highlight(color);
-              });
-            }
+            messageAnchors.forEach(function (_, color) {
+              if (!messageHintedColors.has(color))
+                highlight(color);
+            });
         });
 
         return rendering;
@@ -1071,6 +1063,9 @@
       function sooper(renderers, valType, val) {
         return renderers.__proto__[valType](val);
       }
+      function collapsedComma() {
+        return $("<span>").text(", ").addClass("collapsed").css("white-space", "pre");
+      }
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
@@ -1082,6 +1077,60 @@
       renderers["cyclic"] = function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
       };
+      renderers["render-color"] = function renderColor(top) {
+        var val = top.extra;
+        var container = $("<span>").addClass("replToggle replOutput replCycle");
+        var renderings = [];
+
+        var brush = $("<img>").addClass("paintBrush").attr("src", "/img/brush.svg");
+        var r = image.colorRed(val);
+        var g = image.colorGreen(val);
+        var b = image.colorBlue(val);
+        var a = image.colorAlpha(val);
+        var rgba = r + ", " + g + ", " + b + ", " + a;
+        var colorName = image.colorDb.colorName(rgba);
+        var paint = $("<span>").addClass("paintBlob")
+            .css("background-color", "rgba(" + rgba + ")")
+            .css("margin-right", "0.25em");
+        var paintBrush = $("<span>").addClass("cycleTarget replToggle replOutput").append(brush).append(paint);
+        if (colorName !== undefined) {
+          paintBrush.append($("<span>").text(colorName));
+        }
+        renderings.push(paintBrush);
+        
+
+        var colorDisplay = $("<span>").text("color(" + rgba + ")");
+        renderings.push($("<span>").addClass("cycleTarget replToggle replOutput").append(colorDisplay));
+        
+
+        var dl = $("<dl>");
+        dl.append($("<dt>").addClass("label").text("red"))
+          .append($("<dd>").text(r))
+          .append($("<dt>").addClass("label").text("green"))
+          .append($("<dd>").text(g))
+          .append($("<dt>").addClass("label").text("blue"))
+          .append($("<dd>").text(b))
+          .append($("<dt>").addClass("label").text("alpha"))
+          .append($("<dd>").text(a));
+        renderings.push($("<span>").addClass("cycleTarget replToggle replOutput expanded")
+                        .append($("<span>").text("color"))
+                        .append(dl));
+
+        $(renderings[0]).click(toggleCycle);
+        for (var i = 1; i < renderings.length; i++)
+          $(renderings[i]).addClass("hidden").click(toggleCycle);
+        
+        container.append(renderings);
+        return container;
+      };
+      function toggleCycle(e) {
+        var cur = $(this);
+        var next = cur.next();
+        if (next.length === 0) { next = cur.parent(".replCycle").find(".cycleTarget").first(); }
+        cur.addClass("hidden");
+        next.removeClass("hidden");
+        e.stopPropagation();
+      }
       renderers.renderImage = function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
@@ -1222,6 +1271,7 @@
           var title = $("<span>").addClass("label").text("Item " + (maxIdx - 1 - i));
           var contents = $("<span>").addClass("contents");
           ul.append(li.append(title).append(contents.append(top.done[i])));
+          if (i != 0) { contents.append(collapsedComma()); }
         }
         container.append($("<span>").text("]"));
         container.click(function(e) {
@@ -1300,9 +1350,10 @@
         container.append(name);
         container.append(openBrace);
         for (var i = 0; i < top.extra.keys.length; i++) {
-          //if (i > 1) { container.append($("<span>").addClass("collapsed").text(", ")); }
-          dl.append($("<dt>").text(top.extra.keys[i]));
-          dl.append($("<dd>").append(top.done[i]));
+          dl.append($("<dt>").text(top.extra.keys[i] + ": "));
+          var dd = $("<dd>").append(top.done[i]);
+          if (i + 1 < top.extra.keys.length) { dd.append(collapsedComma()); }
+          dl.append(dd);
         }
         container.append(dl);
         container.append(closeBrace);
@@ -1311,6 +1362,13 @@
           e.stopPropagation();
         });
         return container;
+      };
+      renderers["data"] = function(val, pushTodo) {
+        if (image.isColor(val)) {
+          pushTodo(undefined, undefined, undefined, [], "render-color", val);
+        } else {
+          return renderers.__proto__["data"](val, pushTodo);
+        }
       };
       renderers["render-data"] = function renderData(top) {
         var container = $("<span>").addClass("replToggle replOutput");
@@ -1323,8 +1381,10 @@
           container.append(openParen);
           var numFields = top.extra.fields.length;
           for (var i = 0; i < numFields; i++) {
-            dl.append($("<dt>").text(top.extra.fields[i]).addClass("expanded"));
-            dl.append($("<dd>").append(top.done[numFields - i - 1]));
+            dl.append($("<dt>").addClass("label").text(top.extra.fields[i]).addClass("expanded"));
+            var dd = $("<dd>").append(top.done[numFields - i - 1]);
+            if (i + 1 < numFields) { dd.append(collapsedComma()); }
+            dl.append(dd);
           }
           container.append(dl);
           container.append(closeParen);
@@ -1341,7 +1401,7 @@
         $(this).toggleClass("collection");
         $(this).toggleClass("inlineCollection");
       }
-      function helper(container, val, values) {
+      function helper(container, val, values, wantCommaAtEnd) {
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
         else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
@@ -1360,14 +1420,13 @@
           container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
           for (var i = 0; i < items.length; i++) {
-            if (i > 0) { container.append($("<span>").text(", ")); }
-            helper(container, items[i], values);
+            helper(container, items[i], values, (i + 1 < items.length));
           }
           container.append($("<span>").text(")"));
         } else if (runtime.ffi.isVSSeq(val)) {
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
-            helper(container, items[i], values);
+            helper(container, items[i], values, (i + 1 < items.length));
           }
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
@@ -1450,10 +1509,15 @@
           else {
             var clickForMore = document.createElement("a");
             clickForMore.href = "javascript:void(0)";
-            clickForMore.textContent = "Click to show the remaining " + (rows.length - previewLimit) + " rows...";
+            var remaining = rows.length - previewLimit;
+            if (remaining == 1) {
+              clickForMore.textContent = "Click to show the remaining row";
+            } else {
+              clickForMore.textContent = "Click to show the remaining " + remaining + " rows...";
+            }
             var clickTR = document.createElement("tr");
             var clickTD = document.createElement("td");
-            clickTD.colSpan = String(rows.length);
+            clickTD.colSpan = String(rows[0].length);
             clickTR.appendChild(clickTD);
             clickTD.appendChild(clickForMore);
             $(clickForMore).on("click", function() {
@@ -1469,9 +1533,10 @@
         } else {
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
-            helper(container, items[i], values);
+            helper(container, items[i], values, (i + 1 < items.length));
           }
         }
+        if (wantCommaAtEnd) { container.append(collapsedComma()); }          
         return container;
       }
       function groupItems(ul, items, values, minIdx, maxIdx) {
@@ -1482,7 +1547,7 @@
             var title = $("<span>").addClass("label").text("Item " + i);
             var contents = $("<span>").addClass("contents");
             ul.append(li.append(title).append(contents));
-            helper(contents, items[i], values);
+            helper(contents, items[i], values, (i + 1 < maxIdx));
           }
         // } else {
         //   var intervalSize = Math.pow(10, Math.ceil(Math.log10(maxIdx - minIdx)) - 1);
@@ -1510,7 +1575,7 @@
     // NOTE: THIS MUST BE CALLED WHILE RUNNING ON runtime's STACK
     function renderPyretValue(output, runtime, answer) {
       installRenderers(runtime);
-      runtime.pauseStack(function(restarter) {
+      return runtime.pauseStack(function(restarter) {
         runtime.runThunk(function() {
           return runtime.toReprJS(answer, runtime.ReprMethods["$cpo"]);
         }, function(container) {
@@ -1534,7 +1599,6 @@
       clearEffects: clearEffects,
       unhintLoc: unhintLoc,
       renderErrorDisplay: renderErrorDisplay,
-      settingChanged: settingChanged,
       drawSrcloc: drawSrcloc,
       expandableMore: expandableMore,
       getLastUserLocation: getLastUserLocation,

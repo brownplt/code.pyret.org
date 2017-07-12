@@ -76,7 +76,7 @@
     function loadWorksheet(loader, buildFun) {
       buildFun = buildFun || worksheetToTable;
       function doLoadWorksheet() {
-        runtime.pauseStack(function(resumer) {
+        return runtime.pauseStack(function(resumer) {
           function handleError(err) {
             if (runtime.isPyretException(err)) {
               resumer.error(err);
@@ -102,7 +102,7 @@
     }
 
     function deleteWorksheet(deleter) {
-      runtime.pauseStack(function(resumer) {
+      return runtime.pauseStack(function(resumer) {
         function handleError(err) {
           if (runtime.isPyretException(err)) {
             resumer.error(err);
@@ -123,7 +123,7 @@
 
     function addWorksheet(adder) {
       function doAdd() {
-        runtime.pauseStack(function(resumer) {
+        return runtime.pauseStack(function(resumer) {
           function handleError(err) {
             if (runtime.isPyretException(err)) {
               resumer.error(err);
@@ -141,7 +141,7 @@
           }
         });
       }
-      runtime.pauseStack(doAdd, function(thunk) {
+      return runtime.safeCall(doAdd, function(thunk) {
         return thunk();
       });
     }
@@ -241,41 +241,16 @@
             return new Array(width);
           });
           return function() {
-            // First, we change the data values into Pyret values
-            for (var i = 0; i < data.length; ++i) {
-              // Should be entirely unneccesary, but let's be
-              // cautious with the stack
-              var curIdx = -1;
-              function buildHelp() {
-                while (++curIdx < width) {
-                  // This line is why a simple raw_array_map doesn't work
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
+                return runtime.eachLoop(runtime.makeFunction(function(curIdx) {
                   outData[i][curIdx] = constructors[curIdx](data[i][curIdx]);
-                }
-              }
-              function buildFun($ar) {
-                try {
-                  if (runtime.isActivationRecord($ar)) {
-                    outData[i][curIdx] = $ar.ans;
-                  }
-                  return buildHelp();
-                } catch($e) {
-                  if (runtime.isCont($e)) {
-                    $e.stack[runtime.EXN_STACKHEIGHT++] = runtime.makeActivationRecord(
-                      ["load-spreadsheet"],
-                      buildFun,
-                      0,
-                      [], []);
-                  }
-                  if (runtime.isPyretException($e)) {
-                    $e.pyretStack.push(["load-spreadsheet"]);
-                  }
-                  throw $e;
-                }
-              }
-              buildFun();
-            }
-            debugger;
-            return table.makeTable(colNames, outData);
+                  return runtime.nothing;
+                }, 0, width));
+              }, 0, data.length));
+            }, function(_) {
+              return table.makeTable(colNames, outData);
+            });
           };
         }
       });
@@ -305,7 +280,7 @@
             resolved.push({name: colNames[i], sanitizer: matching.sanitizer, index: i});
           }
         }
-        loadWorksheet(function() {
+        return loadWorksheet(function() {
           return load(needsInference.map(function(o){ return o.index; }));
         }, function(ws) {
           return worksheetToLoadedTable(ws, resolved, needsInference);
@@ -410,40 +385,17 @@
             return new Array(width);
           });
           return function() {
-            // First, we change the data values into Pyret values
-            for (var i = 0; i < data.length; ++i) {
-              // Should be entirely unneccesary, but let's be
-              // cautious with the stack
-              var curIdx = -1;
-              function buildHelp() {
-                while (++curIdx < width) {
-                  // This line is why a simple raw_array_map doesn't work
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
+                return runtime.eachLoop(runtime.makeFunction(function(curIdx) {
                   outData[i][curIdx] = wrapCell(data[i][curIdx]);
-                }
-              }
-              function buildFun($ar) {
-                try {
-                  if (runtime.isActivationRecord($ar)) {
-                    outData[i][curIdx] = $ar.ans;
-                  }
-                  return buildHelp();
-                } catch($e) {
-                  if (runtime.isCont($e)) {
-                    $e.stack[runtime.EXN_STACKHEIGHT++] = runtime.makeActivationRecord(
-                      ["load-spreadsheet"],
-                      buildFun,
-                      0,
-                      [], []);
-                  }
-                  if (runtime.isPyretException($e)) {
-                    $e.pyretStack.push(["load-spreadsheet"]);
-                  }
-                  throw $e;
-                }
-              }
-              buildFun();
-            }
-            return runtime.makeLoadedTable(fullySanitized, outData);
+                  return runtime.nothing;
+                }), 0, width)
+              }), 0, data.length);
+            },
+            function(_) {
+              return runtime.makeLoadedTable(fullySanitized, outData);
+            });
           }
         }
       });
@@ -519,7 +471,7 @@
     function createSpreadsheet(name) {
       runtime.ffi.checkArity(1, arguments, "create-spreadsheet");
       runtime.checkString(name);
-      runtime.pauseStack(function(resumer) {
+      return runtime.pauseStack(function(resumer) {
         sheetsAPI.then(function(api) {
           return api.createSpreadsheet(name);
         })
@@ -538,7 +490,7 @@
 
     function loadSpreadsheet(loader) {
       
-      runtime.pauseStack(function(resumer) {
+      return runtime.pauseStack(function(resumer) {
         sheetsAPI.then(function(api) {
           SHEET_TYPES = api.TYPES;
           return loader(api);

@@ -21,6 +21,8 @@ var gwrap = window.gwrap = {
         delete copy.reauth;
         gw.load(copy)
           .then(function(loaded) {
+            loaded.auth = gw.auth; // NOTE(joe): hmmm
+            loaded.hasAuth = function() { return gw.auth !== null; }
             ret.resolve(loaded);
           });
       });
@@ -30,6 +32,41 @@ var gwrap = window.gwrap = {
     throw new Error("Google API Wrapper not yet initialized");
   }
 };
+
+/**
+ * Reauthenticates the current session.
+ * @param {boolean} immediate - Whether the user needs to log in with
+ *        Google (if false, the user will receive a refreshed access token).
+ * @returns A promise which will resolve following the re-authentication.
+ */
+function reauth(immediate) {
+  var d = Q.defer();
+  if (!immediate) {
+    // Need to do a login to get a cookie for this user; do it in a popup
+    var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
+    window.addEventListener('message', function(e) {
+      // e.domain appears to not be defined in Firefox
+      if ((e.domain || e.origin) === document.location.origin) {
+        d.resolve(reauth(true));
+      } else {
+        d.resolve(null);
+      }
+    });
+  } else {
+    // The user is logged in, but needs an access token from our server
+    var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
+    newToken.then(function(t) {
+      gapi.auth.setToken({ access_token: t.access_token });
+      logger.log('login', {user_id: t.user_id});
+      d.resolve({ user_id: t.user_id, access_token: t.access_token });
+    });
+    newToken.fail(function(t) {
+      d.resolve(null);
+    });
+  }
+  return d.promise;
+}
+window.reauth = reauth;
 
 // GAPI Client APIs whose methods have been wrapped with calls to gQ
 // (This is kept in the global state to avoid unneeded reloading)
@@ -120,40 +157,6 @@ function loadAPIWrapper(immediate) {
   // Function definitions
 
   /**
-   * Reauthenticates the current session.
-   * @param {boolean} immediate - Whether the user needs to log in with
-   *        Google (if false, the user will receive a refreshed access token).
-   * @returns A promise which will resolve following the re-authentication.
-   */
-  function reauth(immediate) {
-    var d = Q.defer();
-    if (!immediate) {
-      // Need to do a login to get a cookie for this user; do it in a popup
-      var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
-      window.addEventListener('message', function(e) {
-        // e.domain appears to not be defined in Firefox
-        if ((e.domain || e.origin) === document.location.origin) {
-          d.resolve(reauth(true));
-        } else {
-          d.resolve(null);
-        }
-      });
-    } else {
-      // The user is logged in, but needs an access token from our server
-      var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
-      newToken.then(function(t) {
-        gapi.auth.setToken({ access_token: t.access_token });
-        logger.log('login', {user_id: t.user_id});
-        d.resolve({ access_token: t.access_token });
-      });
-      newToken.fail(function(t) {
-        d.resolve(null);
-      });
-    }
-    return d.promise;
-  }
-
-  /**
    * Reauthenticates the current session with Google.
    * @see reauth
    * @param {boolean} immediate - DEPRECATED: UNUSED
@@ -227,13 +230,13 @@ function loadAPIWrapper(immediate) {
    *        authentication.
    * @returns {Promise} A promise which resolves to the result of the Google query
    */
-  function gQ(request, skipAuth) {
+  function gQ(makeRequest, skipAuth) {
     var oldAccess = gapi.auth.getToken();
     if (skipAuth) { gapi.auth.setToken({ access_token: null }); }
     var ret = failCheck(authCheck(function() {
       var d = Q.defer();
       // TODO: This should be migrated to a promise
-      request.execute(function(result) {
+      makeRequest().execute(function(result) {
         d.resolve(result);
       });
       return d.promise;
@@ -299,7 +302,7 @@ function loadAPIWrapper(immediate) {
             // that doesn't change the function's context
             var original = obj[key];
             dest[key] = (function(args, skipAuth) {
-              return gQ(original(args), skipAuth);
+              return gQ(function() { return original(args); }, skipAuth);
             });
           } else {
             dest[key] = obj[key];
@@ -313,7 +316,10 @@ function loadAPIWrapper(immediate) {
       }
       var api = gapi.client[key];
       _GWRAP_APIS[key] = {};
-      processObject(api, _GWRAP_APIS[key]);
+      // NOTE(joe): hack as I'm testing on MS Edge
+      if(api !== undefined) {
+        processObject(api, _GWRAP_APIS[key]);
+      }
       return _GWRAP_APIS[key];
     }
 
@@ -357,7 +363,7 @@ function loadAPIWrapper(immediate) {
   }
 
   var initialAuth = reauth(immediate);
-  return initialAuth.then(function(_) {
+  return initialAuth.then(function(auth) {
     /**
      * Creates the API Wrapping module to export
      */
@@ -369,8 +375,10 @@ function loadAPIWrapper(immediate) {
       this.load = loadAPI;
       this.withAuth = function(f) {return failCheck(authCheck(f));};
       this.request = (function(params, skipAuth) {
-        return gQ(gapi.client.request(params), skipAuth);
+        return gQ(function() { return gapi.client.request(params); }, skipAuth);
       });
+      this.auth = auth;
+      this.hasAuth = function() { return auth !== null; };
     }
 
     makeWrapped.prototype = _GWRAP_APIS;

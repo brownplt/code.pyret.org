@@ -30,18 +30,35 @@
       );
     };
 
+    var isColor = function(c) { return unwrap(colorPred.app(c)); };
+    var colorRed = function(c) { return unwrap(gf(c, "red")); }
+    var colorGreen = function(c) { return unwrap(gf(c, "green")); };
+    var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
+    var colorAlpha = function(c) { return unwrap(gf(c, "alpha")); };
+    
     // Color database
     var ColorDb = function() {
       this.colors = {};
+      this.colorNames = {};
     };
 
     ColorDb.prototype.put = function(name, color) {
       this.colors[name] = color;
+      var str = colorRed(color) + ", " + colorGreen(color) + ", " + colorBlue(color) + ", " + colorAlpha(color);
+      if (this.colorNames[str] === undefined) {
+        this.colorNames[str] = name;
+      }
     };
 
     ColorDb.prototype.get = function(name) {
       return this.colors[name.toString().toUpperCase()];
     };
+
+    ColorDb.prototype.colorName = function colorName(colorStr) {
+      var ans = this.colorNames[colorStr];
+      if (ans !== undefined) ans = ans.toLowerCase();
+      return ans;
+    }
 
     // FIXME: update toString to handle the primitive field values.
 
@@ -319,6 +336,7 @@
     colorDb.put("DIM GRAY", makeColor(105, 105, 105));
     colorDb.put("DIMGRAY", makeColor(105, 105, 105));
     colorDb.put("BLACK", makeColor(0, 0, 0));
+    colorDb.put("TRANSPARENT", makeColor(0, 0, 0, 0));
 
     // clone: object -> object
     // Copies an object.  The new object should respond like the old
@@ -340,11 +358,6 @@
       }
       return c;
     };
-    var isColor = function(c) { return unwrap(colorPred.app(c)); };
-    var colorRed = function(c) { return unwrap(gf(c, "red")); }
-    var colorGreen = function(c) { return unwrap(gf(c, "green")); };
-    var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
-    var colorAlpha = function(c) { return unwrap(gf(c, "alpha")); };
     var equals = RUNTIME.equal_always;
 
     var imageEquals = function(left, right) {
@@ -987,14 +1000,14 @@
         x1 = 0;
         x2 = 0;
       } else if (placeX === "right") {
-        x1 = Math.max(img1.getWidth(), img2.getWidth()) - img1.getWidth();
-        x2 = Math.max(img1.getWidth(), img2.getWidth()) - img2.getWidth();
+        x1 = Math.max(img1.width, img2.width) - img1.width;
+        x2 = Math.max(img1.width, img2.width) - img2.width;
       } else if (placeX === "beside") {
         x1 = 0;
-        x2 = img1.getWidth();
+        x2 = img1.width;
       } else if (placeX === "middle" || placeX === "center") {
-        x1 = Math.max(img1.getWidth(), img2.getWidth())/2 - img1.getWidth()/2;
-        x2 = Math.max(img1.getWidth(), img2.getWidth())/2 - img2.getWidth()/2;
+        x1 = Math.max(img1.width, img2.width)/2 - img1.width/2;
+        x2 = Math.max(img1.width, img2.width)/2 - img2.width/2;
       } else {
         x1 = Math.max(placeX, 0) - placeX;
         x2 = Math.max(placeX, 0);
@@ -1004,17 +1017,17 @@
         y1 = 0;
         y2 = 0;
       } else if (placeY === "bottom") {
-        y1 = Math.max(img1.getHeight(), img2.getHeight()) - img1.getHeight();
-        y2 = Math.max(img1.getHeight(), img2.getHeight()) - img2.getHeight();
+        y1 = Math.max(img1.height, img2.height) - img1.height;
+        y2 = Math.max(img1.height, img2.height) - img2.height;
       } else if (placeY === "above") {
         y1 = 0;
-        y2 = img1.getHeight();
+        y2 = img1.height;
       } else if (placeY === "baseline") {
         y1 = Math.max(img1.getBaseline(), img2.getBaseline()) - img1.getBaseline();
         y2 = Math.max(img1.getBaseline(), img2.getBaseline()) - img2.getBaseline();
       } else if (placeY === "middle" || placeY === "center") {
-        y1 = Math.max(img1.getHeight(), img2.getHeight())/2 - img1.getHeight()/2;
-        y2 = Math.max(img1.getHeight(), img2.getHeight())/2 - img2.getHeight()/2;
+        y1 = Math.max(img1.height, img2.height)/2 - img1.height/2;
+        y2 = Math.max(img1.height, img2.height)/2 - img2.height/2;
       } else {
         y1 = Math.max(placeY, 0) - placeY;
         y2 = Math.max(placeY, 0);
@@ -1223,8 +1236,9 @@
     var FrameImage = function(img) {
       BaseImage.call(this);
       this.img        = img;
-      this.width      = img.getWidth();
-      this.height     = img.getHeight();
+      this.width      = img.width;
+      this.height     = img.height;
+      this.ariaText = " Framed image: "+img.ariaText;
     };
 
     FrameImage.prototype = heir(BaseImage.prototype);
@@ -1801,7 +1815,7 @@
       colorRed: colorRed,
       colorGreen: colorGreen,
       colorBlue: colorBlue,
-      colorAlpha: colorAlpha
+      colorAlpha: colorAlpha,
     });
   }
 })
