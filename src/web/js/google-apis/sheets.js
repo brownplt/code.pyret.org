@@ -803,7 +803,12 @@ function createSheetsAPI(immediate) {
                 immediate: immediate
               },
               callback: function(sheets) {
-                ret.resolve(createAPI(sheets.spreadsheets));
+                if(Array.isArray(sheets)) {
+                  console.error("Sheets could not load");
+                }
+                else {
+                  ret.resolve(createAPI(sheets.spreadsheets));
+                }
               }});
   return ret.promise;
 }
