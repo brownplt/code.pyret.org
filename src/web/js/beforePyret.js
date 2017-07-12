@@ -382,7 +382,7 @@ $(function() {
     }
     window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
-      if(p.shared && !create) {
+      if(p !== null && p.shared && !create) {
         return p; // Don't try to save shared files
       }
       if(create) {
