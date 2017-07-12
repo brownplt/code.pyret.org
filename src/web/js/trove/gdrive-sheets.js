@@ -250,8 +250,8 @@
                     outData[i][curIdx] = result;
                     return runtime.nothing;
                   });
-                }, 0, width));
-              }, 0, data.length));
+                }), 0, width);
+              }), 0, data.length);
             }, function(_) {
               return table.makeTable(colNames, outData);
             });
