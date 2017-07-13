@@ -803,8 +803,24 @@ function createSheetsAPI(immediate) {
                 immediate: immediate
               },
               callback: function(sheets) {
+
+                // NOTE(joe, July 13 2017): The load interface seems to
+                // inconsistently (perhaps depending on state w/Google login?)
+                // return an array and a single value here.  The array contains
+                // both the spreadsheets API object and the Google Plus API
+                // object, which was added recently to get user emails for
+                // display.  I haven't dug into why this happens (the
+                // processDelta() function in the load API is responsible for
+                // these return values), but this fix isn't completely
+                // senseless and works.
+
                 if(Array.isArray(sheets)) {
-                  console.error("Sheets could not load");
+                  for(var i = 0; i < sheets.length; i += 1) {
+                    if(sheets[i].spreadsheets) {
+                      ret.resolve(createAPI(sheets[i].spreadsheets));
+                    }
+                  }
+                  ret.reject("Sheets could not load");
                 }
                 else {
                   ret.resolve(createAPI(sheets.spreadsheets));
