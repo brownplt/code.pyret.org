@@ -818,6 +818,7 @@ function createSheetsAPI(immediate) {
                   for(var i = 0; i < sheets.length; i += 1) {
                     if(sheets[i].spreadsheets) {
                       ret.resolve(createAPI(sheets[i].spreadsheets));
+                      return;
                     }
                   }
                   ret.reject("Sheets could not load");
