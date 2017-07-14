@@ -80,10 +80,10 @@
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
-      function renderAndDisplayError(runtime, error, stack, click) {
+      function renderAndDisplayError(runtime, error, stack, click, result) {
         var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
-          return error_to_html(runtime, CPO.documents, error, stack).
+          return error_to_html(runtime, CPO.documents, error, stack, result).
             then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");
@@ -104,7 +104,7 @@
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
-            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
+            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -122,7 +122,7 @@
                 return callingRuntime.safeCall(
                   function() {
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
-                      return renderAndDisplayError(callingRuntime, errors[i]);
+                      return renderAndDisplayError(callingRuntime, errors[i], [], true, result);
                     }), 0, errors.length);
                   }, function (result) { return result; }, "renderMultipleErrors");
               },
@@ -138,7 +138,7 @@
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
                         return checkUI.drawCheckResults(output, CPO.documents, rr, 
-                                                        runtime.getField(runResult.result, "checks"));
+                                                        runtime.getField(runResult.result, "checks"), v);
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;

@@ -11,11 +11,13 @@
     { "import-type": "builtin",
       name: "srcloc" },
     { "import-type": "builtin",
-      name: "checker" }
+      name: "checker" },
+    { "import-type": "builtin",
+      name: "load-lib" }
   ],
   provides: {},
   nativeRequires: [],
-  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker) {
+  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker, loadLib) {
 
     option = runtime.getField(option, "values");
     srcloc = runtime.getField(srcloc, "values");
@@ -25,7 +27,7 @@
     function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success").app(val)); }
 
     // NOTE: MUST BE CALLED WHILE RUNNING ON runtime's STACK
-    function drawCheckResults(container, documents, runtime, checkResults, contextFactory) {
+    function drawCheckResults(container, documents, runtime, checkResults, result) {
       var ffi = runtime.ffi;
       var cases = ffi.cases;
       var get = runtime.getField;
@@ -173,9 +175,11 @@
             }
           }
           
+          var stack = get(loadLib, "internal")
+            .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultProgram(result));
           if(runtime.hasField(test, "actual-exn")) {
             this.maybeStackLoc = outputUI.makeMaybeStackLoc(
-              runtime, documents, srcloc, get(test, "actual-exn").val.pyretStack);
+              runtime, documents, srcloc, stack);
           } else {
             this.maybeStackLoc = noFramesMaybeStackLoc;
           }
@@ -496,7 +500,7 @@
       function vivifySkeleton(skeleton) {
         var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
-          return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack).
+          return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack, result).
             then(function(html) {
               skeleton.vivify(html);
             }).done(function () {restarter.resume(runtime.nothing)});
