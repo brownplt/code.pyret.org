@@ -1161,7 +1161,7 @@
         .text(function (d) { return d; });
     }
 
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function dotChart(restarter, windowOptions, table) {
@@ -1278,7 +1278,7 @@
       .attr("r", radius)
       .style("fill", "steelblue");
 
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function boxChart(restarter, windowOptions, table) {
@@ -1384,7 +1384,7 @@
         .attr('height', function (d) { return height - y(d.value); })
         .style('fill', function (d) { return color(d.name); });
 
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function makeFunction(f) {
