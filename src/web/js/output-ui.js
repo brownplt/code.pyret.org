@@ -7,7 +7,9 @@
     { "import-type": "builtin",
       name: "srcloc" },
     { "import-type": "builtin",
-      name: "image-lib" }
+      name: "image-lib" },
+    { "import-type": "builtin",
+      name: "load-lib" }
   ],
   provides: {},
   nativeRequires: [
@@ -15,7 +17,7 @@
     "pyret-base/js/js-numbers",
     "cpo/share"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, loadLib, util, jsnums, share) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
@@ -662,7 +664,7 @@
       });
     }
 
-    function renderErrorDisplay(documents, runtime, errorDisp, stack, context) {
+    function renderErrorDisplay(documents, runtime, errorDisp, stack, context, result) {
       var get = runtime.getField;
       var ffi = runtime.ffi;
       installRenderers(runtime);
@@ -750,6 +752,8 @@
           "embed": function(val) {
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
+              e.pyretStack = runtime.getField(loadLib, "internal")
+                .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultProgram(result));
               var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, e.pyretStack);
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);

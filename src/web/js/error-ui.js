@@ -112,7 +112,7 @@
     // to `render-reason` | `reason_to_html`, with fallback
     // to internal error
     // MUST BE CALLED ON PYRET STACK
-    function error_to_html(runtime, documents, error, stack) {
+    function error_to_html(runtime, documents, error, stack, result) {
 
       var id = logger.guid();
 
@@ -157,12 +157,12 @@
           errors.push(render_error);
           throw render_error;
         }).
-        then(reason_to_html(runtime, CPO.documents, stack, id)).
+        then(reason_to_html(runtime, CPO.documents, stack, id, result)).
         catch(function (display_error) {
           errors.push(display_error);
           return render_reason(runtime, error).
             then(log_torepr('reason_repr')).
-            then(reason_to_html(runtime, CPO.documents, stack, id));
+            then(reason_to_html(runtime, CPO.documents, stack, id, result));
         }).
         then(function (html) {
           if (errors.length > 0) {
@@ -197,7 +197,7 @@
 
     // Consumes a reason, produces promise for html
     // MUST BE CALLED ON PYRET STACK
-    function reason_to_html(runtime, documents, stack, id) {
+    function reason_to_html(runtime, documents, stack, id, result) {
       return function (displayable) {
         return callDeferred(runtime, function () {
             return outputUI.renderErrorDisplay(
@@ -205,7 +205,8 @@
                     runtime,
                     displayable,
                     stack || [],
-                    id);
+                    id,
+                    result);
           });
       };
     }
