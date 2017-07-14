@@ -158,7 +158,7 @@
         yMax = gf(windowOptions, '_y-max');
 
     function resizer(restarter, windowOptions) {
-      genericPlot(restarter, windowOptions, scatterPlots, linePlots);
+      return genericPlot(restarter, windowOptions, scatterPlots, linePlots);
     }
 
     var dimension = getDimension({
@@ -1009,7 +1009,7 @@
      */
 
     function resizer(restarter, windowOptions) {
-      barChart(restarter, windowOptions, table, legend, showLegend);
+      return barChart(restarter, windowOptions, table, legend, showLegend);
     }
 
     const dimension = getDimension({
@@ -1170,7 +1170,7 @@
      */
 
     function resizer(restarter, windowOptions) {
-      dotChart(restarter, windowOptions, table);
+      return dotChart(restarter, windowOptions, table);
     }
 
     var dimension = getDimension({
@@ -1287,7 +1287,7 @@
      */
 
     function resizer(restarter, windowOptions) {
-      boxChart(restarter, windowOptions, table);
+      return boxChart(restarter, windowOptions, table);
     }
 
     var dimension = getDimension({
