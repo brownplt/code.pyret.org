@@ -244,10 +244,14 @@
             return runtime.safeCall(function() {
               return runtime.eachLoop(runtime.makeFunction(function(i) {
                 return runtime.eachLoop(runtime.makeFunction(function(curIdx) {
-                  outData[i][curIdx] = constructors[curIdx](data[i][curIdx]);
-                  return runtime.nothing;
-                }, 0, width));
-              }, 0, data.length));
+                  return runtime.safeCall(function() {
+                    return constructors[curIdx](data[i][curIdx]);
+                  }, function(result) {
+                    outData[i][curIdx] = result;
+                    return runtime.nothing;
+                  });
+                }), 0, width);
+              }), 0, data.length);
             }, function(_) {
               return table.makeTable(colNames, outData);
             });
@@ -388,8 +392,12 @@
             return runtime.safeCall(function() {
               return runtime.eachLoop(runtime.makeFunction(function(i) {
                 return runtime.eachLoop(runtime.makeFunction(function(curIdx) {
-                  outData[i][curIdx] = wrapCell(data[i][curIdx]);
-                  return runtime.nothing;
+                  return runtime.safeCall(function() {
+                    return wrapCell(data[i][curIdx]);
+                  }, function(result) {
+                    outData[i][curIdx] = result;
+                    return runtime.nothing;
+                  });
                 }), 0, width)
               }), 0, data.length);
             },
