@@ -473,7 +473,7 @@
     }
 
     if (RUNTIME.isPyretFalse(RUNTIME.getField(windowOptions, '_interact'))) {
-      RUNTIME.pauseStack(retValFunc);
+      return RUNTIME.pauseStack(retValFunc);
     }
 
 
@@ -493,7 +493,7 @@
       pauseStack = function (cb) { cb(restarter); };
     }
 
-    pauseStack(function (restarter) {
+    return pauseStack(function (restarter) {
       if (extra !== null) {
         extra(restarter);
       }

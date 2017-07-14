@@ -1041,7 +1041,6 @@ code div {
   background-size: contain;
   animation-duration: 0.4s;
   animation-timing-function: ease-in;
-  animation-iteration-count: infinite;
   animation-direction: alternate;
   opacity: 0;
   pointer-events: none;

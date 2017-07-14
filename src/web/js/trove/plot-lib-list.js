@@ -158,7 +158,7 @@
         yMax = gf(windowOptions, '_y-max');
 
     function resizer(restarter, windowOptions) {
-      genericPlot(restarter, windowOptions, scatterPlots, linePlots);
+      return genericPlot(restarter, windowOptions, scatterPlots, linePlots);
     }
 
     var dimension = getDimension({
@@ -574,7 +574,7 @@
     linePlots.forEach(plotLine);
 
     stylizeTip(detached);
-    callBigBang(
+    return callBigBang(
       detached,
       restarter,
       resizer,
@@ -885,7 +885,7 @@
 
 
     stylizeTip(detached);
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function pieChart(restarter, windowOptions, tab) {
@@ -997,7 +997,7 @@
     canvas.selectAll('text').style({'font-size': '15px'});
 
     stylizeTip(detached);
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function barChart(restarter, windowOptions, table, legend, showLegend) {
@@ -1009,7 +1009,7 @@
      */
 
     function resizer(restarter, windowOptions) {
-      barChart(restarter, windowOptions, table, legend, showLegend);
+      return barChart(restarter, windowOptions, table, legend, showLegend);
     }
 
     const dimension = getDimension({
@@ -1161,7 +1161,7 @@
         .text(function (d) { return d; });
     }
 
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function dotChart(restarter, windowOptions, table) {
@@ -1170,7 +1170,7 @@
      */
 
     function resizer(restarter, windowOptions) {
-      dotChart(restarter, windowOptions, table);
+      return dotChart(restarter, windowOptions, table);
     }
 
     var dimension = getDimension({
@@ -1278,7 +1278,7 @@
       .attr("r", radius)
       .style("fill", "steelblue");
 
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function boxChart(restarter, windowOptions, table) {
@@ -1287,7 +1287,7 @@
      */
 
     function resizer(restarter, windowOptions) {
-      boxChart(restarter, windowOptions, table);
+      return boxChart(restarter, windowOptions, table);
     }
 
     var dimension = getDimension({
@@ -1384,7 +1384,7 @@
         .attr('height', function (d) { return height - y(d.value); })
         .style('fill', function (d) { return color(d.name); });
 
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function makeFunction(f) {
