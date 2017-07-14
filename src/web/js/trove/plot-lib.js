@@ -574,7 +574,7 @@
     linePlots.forEach(plotLine);
 
     stylizeTip(detached);
-    callBigBang(
+    return callBigBang(
       detached,
       restarter,
       resizer,
@@ -885,7 +885,7 @@
 
 
     stylizeTip(detached);
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function pieChart(restarter, windowOptions, tab) {
@@ -997,7 +997,7 @@
     canvas.selectAll('text').style({'font-size': '15px'});
 
     stylizeTip(detached);
-    callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
   function barChart(restarter, windowOptions, table, legend, showLegend) {
