@@ -8,9 +8,9 @@ import base as _
 
 data Color:
   | color(
-      red :: NumInteger,
-      green :: NumInteger,
-      blue :: NumInteger,
+      red :: Number,
+      green :: Number,
+      blue :: Number,
       alpha :: Number)
 end
 

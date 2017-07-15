@@ -30,11 +30,16 @@
       );
     };
 
+    function clamp(num, min, max) {
+      if (num < min) { return min; }
+      else if (num > max) { return max; }
+      else { return num; }
+    }
     var isColor = function(c) { return unwrap(colorPred.app(c)); };
-    var colorRed = function(c) { return unwrap(gf(c, "red")); }
-    var colorGreen = function(c) { return unwrap(gf(c, "green")); };
-    var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
-    var colorAlpha = function(c) { return unwrap(gf(c, "alpha")); };
+    var colorRed = function(c) { return Math.floor(clamp(jsnums.toFixnum(unwrap(gf(c, "red"))), 0, 255)); }
+    var colorGreen = function(c) { return Math.floor(clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255)); }
+    var colorBlue = function(c) { return Math.floor(clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255)); }
+    var colorAlpha = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "alpha"))), 0, 1); }
     
     // Color database
     var ColorDb = function() {
@@ -45,10 +50,10 @@
     ColorDb.prototype.put = function(name, color) {
       this.colors[name] = color;
       var str =
-          jsnums.toFixnum(colorRed(color)) + ", " +
-          jsnums.toFixnum(colorGreen(color)) + ", " +
-          jsnums.toFixnum(colorBlue(color)) + ", " +
-          jsnums.toFixnum(colorAlpha(color));
+          colorRed(color) + ", " +
+          colorGreen(color) + ", " +
+          colorBlue(color) + ", " +
+          colorAlpha(color);
       if (this.colorNames[str] === undefined) {
         this.colorNames[str] = name;
       }
@@ -396,11 +401,11 @@
     // The above value which is non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
       var styleAlpha = isNaN(aStyle)? 1.0 : aStyle,
-          cAlpha = jsnums.toFixnum(colorAlpha(aColor));
-      return "rgba(" +  jsnums.toFixnum(colorRed(aColor))   + ", " +
-                        jsnums.toFixnum(colorGreen(aColor)) + ", " +
-                        jsnums.toFixnum(colorBlue(aColor))  + ", " +
-                        100 * styleAlpha * cAlpha + "%)";
+          cAlpha = colorAlpha(aColor);
+      return "rgba(" +  colorRed(aColor)   + ", " +
+                        colorGreen(aColor) + ", " +
+                        colorBlue(aColor)  + ", " +
+                        styleAlpha * cAlpha + ")";
     };
 
     function RGBtoLAB(r, g, b){
@@ -1637,10 +1642,10 @@
       jsLOC = RUNTIME.ffi.toArray(listOfColors);
       for(var i = 0; i < jsLOC.length * 4; i += 4) {
         aColor = jsLOC[i / 4];
-        data[i] = jsnums.toFixnum(colorRed(aColor));
-        data[i+1] = jsnums.toFixnum(colorGreen(aColor));
-        data[i+2] = jsnums.toFixnum(colorBlue(aColor));
-        data[i+3] = jsnums.toFixnum(colorAlpha(aColor));
+        data[i] = colorRed(aColor);
+        data[i+1] = colorGreen(aColor);
+        data[i+2] = colorBlue(aColor);
+        data[i+3] = colorAlpha(aColor);
       }
 
       return makeImageDataImage(imageData);
