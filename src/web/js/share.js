@@ -81,7 +81,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
               window.flashMessage("File published successfully");
               return showShares(container, originalFile);
             });
-          ]);
+          });
         }
       })
       .fail(function(err) {
