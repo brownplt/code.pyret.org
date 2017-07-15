@@ -36,9 +36,9 @@
       else { return num; }
     }
     var isColor = function(c) { return unwrap(colorPred.app(c)); };
-    var colorRed = function(c) { return Math.floor(clamp(jsnums.toFixnum(unwrap(gf(c, "red"))), 0, 255)); }
-    var colorGreen = function(c) { return Math.floor(clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255)); }
-    var colorBlue = function(c) { return Math.floor(clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255)); }
+    var colorRed = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "red"))), 0, 255); }
+    var colorGreen = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255); }
+    var colorBlue = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255); }
     var colorAlpha = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "alpha"))), 0, 1); }
     
     // Color database
@@ -49,7 +49,7 @@
 
     ColorDb.prototype.put = function(name, color) {
       this.colors[name] = color;
-      var str =
+      var str = // NOTE(ben): Not flooring the numbers here, because they will all be integers anyway
           colorRed(color) + ", " +
           colorGreen(color) + ", " +
           colorBlue(color) + ", " +
@@ -402,9 +402,10 @@
     var colorString = function(aColor, aStyle) {
       var styleAlpha = isNaN(aStyle)? 1.0 : aStyle,
           cAlpha = colorAlpha(aColor);
-      return "rgba(" +  colorRed(aColor)   + ", " +
-                        colorGreen(aColor) + ", " +
-                        colorBlue(aColor)  + ", " +
+      // NOTE(ben): Flooring the numbers here so that it's a valid RGBA style string
+      return "rgba(" +  Math.floor(colorRed(aColor))   + ", " +
+                        Math.floor(colorGreen(aColor)) + ", " +
+                        Math.floor(colorBlue(aColor))  + ", " +
                         styleAlpha * cAlpha + ")";
     };
 
@@ -439,6 +440,7 @@
     var colorLabs = [], colorRgbs = colorDb.colors;
     for (var p in colorRgbs) {
       if (colorRgbs.hasOwnProperty(p)) {
+        // NOTE(ben): Not flooring numbers here, since RGBtoLAB supports float values
         var lab = RGBtoLAB(colorRed(colorRgbs[p]),
                            colorGreen(colorRgbs[p]),
                            colorBlue(colorRgbs[p]));
@@ -452,6 +454,7 @@
     // Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
     function colorToSpokenString(aColor, aStyle){
       if(aStyle===0) return " transparent ";
+      // NOTE(ben): Not flooring numbers here, since RGBtoLAB supports float values
       var lab1 = RGBtoLAB(colorRed(aColor),
                           colorGreen(aColor),
                           colorBlue(aColor));
@@ -1642,9 +1645,10 @@
       jsLOC = RUNTIME.ffi.toArray(listOfColors);
       for(var i = 0; i < jsLOC.length * 4; i += 4) {
         aColor = jsLOC[i / 4];
-        data[i] = colorRed(aColor);
-        data[i+1] = colorGreen(aColor);
-        data[i+2] = colorBlue(aColor);
+        // NOTE(ben): Flooring colors here to make this a proper RGBA image
+        data[i] = Math.floor(colorRed(aColor));
+        data[i+1] = Math.floor(colorGreen(aColor));
+        data[i+2] = Math.floor(colorBlue(aColor));
         data[i+3] = colorAlpha(aColor);
       }
 
@@ -1825,6 +1829,7 @@
       colorGreen: colorGreen,
       colorBlue: colorBlue,
       colorAlpha: colorAlpha,
+      colorString: colorString,
     });
   }
 })
