@@ -485,8 +485,6 @@ $(function() {
     });
   }
 
-  CPO.save = save;
-
   $("#runButton").click(CPO.autoSave);
 
   $("#new").click(newEvent);
