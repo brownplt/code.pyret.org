@@ -411,11 +411,19 @@
     return canvas.attr('transform', transformation);
   }
 
+  /*
+
+    NOTE(joe): The idea comes from https://stackoverflow.com/a/33227005/2718315
+
+    A previous strategy using base64 encoding didn't work with unicode characters
+
+  */
   function getImageAsURL(detached) {
     detached.select('svg')
       .attr('version', 1.1)
       .attr('xmlns', 'http://www.w3.org/2000/svg');
-    return 'data:image/svg+xml;base64,' + btoa(detached.node().firstChild.innerHTML);
+    var svgString = new XMLSerializer().serializeToString(detached.node().firstChild.firstChild);
+    return 'data:image/svg+xml;charset=utf8,' + encodeURIComponent(svgString);
   }
 
   function onSave(detached) {
