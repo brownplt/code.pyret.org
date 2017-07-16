@@ -182,18 +182,18 @@ class StudentDashboard extends Component {
         <div className={'main middle container ' + (this.state.signedIn === NOT_SIGNED_IN ? '' : 'hidden')}>
 
           <div className={'left'}>
-            <p><button className={'auth-button'} onClick={this.handleSignInClick} id='signin-button' >Sign in</button></p><p><em>to save and view programs</em></p>
+            <p><button onClick={this.handleStartCodingClick} id='start-button' >Open Editor</button></p><p><em>to start coding immediately</em></p>
           </div>
 
           <div className={'right'}>
-            <p><button onClick={this.handleStartCodingClick} id='start-button' >Open Editor</button></p><p><em>to start coding immediately</em></p>
+            <p><button className={'auth-button'} onClick={this.handleSignInClick} id='signin-button' >Sign in</button></p><p><em>to save and view programs</em></p>
           </div>
 
           <div className='clearfix'></div>
 
           <br/><br/>
 
-          <p>You can also check out <a href="http://papl.cs.brown.edu">a book</a> or <a href="http://www.bootstrapworld.org">some curricula</a>.</p>
+          <p>You can also check out <a href="http://papl.cs.brown.edu">our book that uses Pyret</a> or <a href="http://www.bootstrapworld.org">our curricula</a>.</p>
 
         </div>
         <div id='loading-spinner' className={this.state.signedIn === WAITING_FOR_SIGNIN ? '' : 'hidden'}>
@@ -209,18 +209,28 @@ class StudentDashboard extends Component {
             </div>
           </div>
           <div id='file-picker-modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
-            <div className='file-list cf'>
-              {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
-            </div>
+            {
+              this.state.files.length > 0 ?
+                  (<div className='file-list cf'>
+                    {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
+                  </div>)
+                :
+                  <p><em>No Pyret files yet, use New File above to create one.</em></p>
+            }
           </div>
           <div className={'modal-body ' + ((this.state.activeTab === 'new-file') ? '' : 'hidden')}>
             <form onSubmit={this.handleCreateNewFile}>
+              <label className='input-label'>New file name:</label>
               <input className='form' type='text' value={this.state.newFileName} onChange={this.handleNewFilenameChange} />
               <span className='arr-ext'>.arr</span>
               <input id='new-file' className='button ' type='submit' value='Create' />
             </form>
           </div>
         </div>
+        <div className='footer middle'>
+          <p className='right'><a href="https://www.pyret.org">pyret.org</a> | <a href="/privacy/">Privacy</a> | <a href="https://www.github.com/brownplt/code.pyret.org">Software</a></p>
+        </div>
+
       </div>
     );
   }
