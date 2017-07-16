@@ -4,7 +4,7 @@
     { "import-type": "builtin", "name": "world-lib" },
     { "import-type": "builtin", "name": "valueskeleton" }
   ],
-  nativeRequires: [],
+  nativeRequires: ["pyret-base/js/js-numbers"],
   provides: {
     shorthands: {
       "WCOofA": ["tyapp", ["local", "WorldConfigOption"], [["tid", "a"]]],
@@ -51,7 +51,7 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld, VSlib) {
+  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld, VSlib, jsnums) {
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
 
@@ -164,7 +164,7 @@
       if(dict.hasOwnProperty("on-tick")) {
         if(dict.hasOwnProperty("seconds-per-tick")) {
           var delay = dict["seconds-per-tick"];
-          delay = typeof delay === "number" ? delay : delay.toFixnum();
+          delay = jsnums.toFixnum(delay);
           handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], delay * 1000)));
         }
         else {
@@ -606,7 +606,7 @@
           runtime.ffi.checkArity(2, arguments, "on-tick-n");
           runtime.checkFunction(handler);
           runtime.checkNumber(n);
-          var fixN = typeof n === "number" ? n : n.toFixnum();
+          var fixN = jsnums.toFixnum(n);
           return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
         }),
         "to-draw": makeFunction(function(drawer) {

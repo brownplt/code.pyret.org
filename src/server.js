@@ -97,6 +97,8 @@ function start(config, onServerReady) {
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
   app.get("/faq.html", function(_, res) { res.render("faq.html"); });
+  app.get("/privacy.html", function(_, res) { res.render("privacy.html"); });
+  app.get("/privacy/", function(_, res) { res.render("privacy.html"); });
 
   app.get("/faq", function(_, res) { res.render("faq.html"); });
 

@@ -608,6 +608,22 @@ where:
     .get-image() does-not-raise
 end
 
+fun draw-plot(title :: String, series :: Series):
+  plot(series).title(title).display()
+end
+
+fun image-plot(title :: String, series :: Series):
+  plot(series).title(title).get-image()
+end
+
+fun draw-plots(title :: String, serieses :: List<Series>):
+  plots(serieses).title(title).display()
+end
+
+fun image-plots(title :: String, serieses :: List<Series>):
+  plots(serieses).title(title).get-image()
+end
+
 #|
 
    # will restore this later

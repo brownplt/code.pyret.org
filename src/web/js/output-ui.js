@@ -1087,12 +1087,21 @@
         var renderings = [];
 
         var brush = $("<img>").addClass("paintBrush").attr("src", "/img/brush.svg");
-        var r = image.colorRed(val);
-        var g = image.colorGreen(val);
-        var b = image.colorBlue(val);
-        var a = image.colorAlpha(val);
+        var raw_r = runtime.unwrap(runtime.getField(val, "red"));
+        var raw_g = runtime.unwrap(runtime.getField(val, "green"));
+        var raw_b = runtime.unwrap(runtime.getField(val, "blue"));
+        var raw_a = runtime.unwrap(runtime.getField(val, "alpha"));
+        var raw_rgba =
+            runtime.num_tostring(raw_r) + ", " +
+            runtime.num_tostring(raw_g) + ", " +
+            runtime.num_tostring(raw_b) + ", " +
+            runtime.num_tostring(raw_a);
+        var colorName = image.colorDb.colorName(raw_rgba);
+        var r = jsnums.toFixnum(raw_r); r = (r < 0 ? 0 : (r > 255 ? 255 : r));
+        var g = jsnums.toFixnum(raw_g); g = (g < 0 ? 0 : (g > 255 ? 255 : g));
+        var b = jsnums.toFixnum(raw_b); b = (b < 0 ? 0 : (b > 255 ? 255 : b));
+        var a = jsnums.toFixnum(raw_a); a = (a < 0 ? 0 : (a > 1.0 ? 1.0 : a));
         var rgba = r + ", " + g + ", " + b + ", " + a;
-        var colorName = image.colorDb.colorName(rgba);
         var paint = $("<span>").addClass("paintBlob")
             .css("background-color", "rgba(" + rgba + ")")
             .css("margin-right", "0.25em");
@@ -1103,19 +1112,28 @@
         renderings.push(paintBrush);
         
 
-        var colorDisplay = $("<span>").text("color(" + rgba + ")");
+        var colorDisplay = $("<span>")
+            .append("color(")
+            .append(renderers.number(raw_r))
+            .append(", ")
+            .append(renderers.number(raw_g))
+            .append(", ")
+            .append(renderers.number(raw_b))
+            .append(", ")
+            .append(renderers.number(raw_a))
+            .append(")");
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput").append(colorDisplay));
         
 
         var dl = $("<dl>");
         dl.append($("<dt>").addClass("label").text("red"))
-          .append($("<dd>").text(r))
+          .append($("<dd>").append(renderers.number(raw_r)))
           .append($("<dt>").addClass("label").text("green"))
-          .append($("<dd>").text(g))
+          .append($("<dd>").append(renderers.number(raw_g)))
           .append($("<dt>").addClass("label").text("blue"))
-          .append($("<dd>").text(b))
+          .append($("<dd>").append(renderers.number(raw_b)))
           .append($("<dt>").addClass("label").text("alpha"))
-          .append($("<dd>").text(a));
+          .append($("<dd>").append(renderers.number(raw_a)));
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput expanded")
                         .append($("<span>").text("color"))
                         .append(dl));

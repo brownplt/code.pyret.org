@@ -282,14 +282,7 @@
           return aColor;
       }
 
-      function colorString(aColor) {
-          return 'rgba(' + IMAGE.colorRed(aColor) + ',' +
-              IMAGE.colorGreen(aColor) + ', ' +
-              IMAGE.colorBlue(aColor) + ', ' +
-              IMAGE.colorAlpha(aColor) + ')';
-      }
-
-      return colorString(checkColor(v));
+      return IMAGE.colorString(checkColor(v));
   }
 
   function changeColor(r, g, b, d) {
