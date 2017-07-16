@@ -95,9 +95,18 @@ button:hover, .button:hover {
     padding-right: 1rem;
 }
 
+.large-logo-container {
+  display: inline-block;
+}
+
+.large-logo-container img {
+    width: 10rem;
+}
+
 .main {
   margin-top: 3rem;
-  width: 30%;
+  width: 40%;
+  min-width: 30rem;
 }
 
 .main ul {
