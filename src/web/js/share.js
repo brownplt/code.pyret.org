@@ -70,15 +70,17 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       });
       newShare.show().then(function(confirmed) {
         if(confirmed === true) {
-          window.stickMessage("Copying...");
-          var copy = originalFile.makeShareCopy();
-          copy.fail(function(err) {
-            window.flashError("Couldn't copy the file for sharing.");
-            //showshares(container, originalfile);
-          });
-          copy.then(function(f) {
-            window.flashMessage("File published successfully");
-            return showShares(container, originalFile);
+          window.CPO.save().then(function(p) {
+            window.stickMessage("Copying...");
+            var copy = p.makeShareCopy();
+            copy.fail(function(err) {
+              window.flashError("Couldn't copy the file for sharing.");
+              //showshares(container, originalfile);
+            });
+            copy.then(function(f) {
+              window.flashMessage("File published successfully");
+              return showShares(container, originalFile);
+            });
           });
         }
       })
@@ -112,18 +114,20 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       });
       reshare.show(function(republish) {
         if(republish) {
-          window.stickMessage("Republishing file...");
-          originalFile.getContents().then(function(contents) {
-            var saved = instances[0].save(contents, false);
-            saved.fail(function(err) {
-              window.flashError("Couldn't publish the file.");
+          window.CPO.save().then(function(p) {
+            window.stickMessage("Republishing file...");
+            p.getContents().then(function(contents) {
+              var saved = instances[0].save(contents, false);
+              saved.fail(function(err) {
+                window.flashError("Couldn't publish the file.");
+              });
+              saved.then(function(f) {
+                window.flashMessage("Published program updated.")
+              });
+            })
+            .fail(function() {
+              window.flashError("Couldn't get the file contents for publishing");
             });
-            saved.then(function(f) {
-              window.flashMessage("Published program updated.")
-            });
-          })
-          .fail(function() {
-            window.flashError("Couldn't get the file contents for publishing");
           });
         }
         else {

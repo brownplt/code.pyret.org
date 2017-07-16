@@ -18,7 +18,7 @@
 
     //////////////////////////////////////////////////////////////////////
     var makeColor = function(r,g,b,a) {
-      if (a === undefined) { a = 255; }
+      if (a === undefined) { a = 1; }
       if ([r,g,b,a].filter(isNum).length !== 4) {
         throw new Error("Internal error: non-number in makeColor argList ", [r, g, b, a]);
       }
@@ -30,11 +30,16 @@
       );
     };
 
+    function clamp(num, min, max) {
+      if (num < min) { return min; }
+      else if (num > max) { return max; }
+      else { return num; }
+    }
     var isColor = function(c) { return unwrap(colorPred.app(c)); };
-    var colorRed = function(c) { return unwrap(gf(c, "red")); }
-    var colorGreen = function(c) { return unwrap(gf(c, "green")); };
-    var colorBlue = function(c) { return unwrap(gf(c, "blue")); };
-    var colorAlpha = function(c) { return unwrap(gf(c, "alpha")); };
+    var colorRed = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "red"))), 0, 255); }
+    var colorGreen = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255); }
+    var colorBlue = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255); }
+    var colorAlpha = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "alpha"))), 0, 1); }
     
     // Color database
     var ColorDb = function() {
@@ -44,7 +49,11 @@
 
     ColorDb.prototype.put = function(name, color) {
       this.colors[name] = color;
-      var str = colorRed(color) + ", " + colorGreen(color) + ", " + colorBlue(color) + ", " + colorAlpha(color);
+      var str = // NOTE(ben): Not flooring the numbers here, because they will all be integers anyway
+          colorRed(color) + ", " +
+          colorGreen(color) + ", " +
+          colorBlue(color) + ", " +
+          colorAlpha(color);
       if (this.colorNames[str] === undefined) {
         this.colorNames[str] = name;
       }
@@ -374,8 +383,8 @@
 
     var isAngle = function(x) {
       return jsnums.isReal(x) &&
-        jsnums.greaterThanOrEqual(x, 0) &&
-        jsnums.lessThan(x, 360);
+        jsnums.greaterThanOrEqual(x, 0, RUNTIME.NumberErrbacks) &&
+        jsnums.lessThan(x, 360, RUNTIME.NumberErrbacks);
     };
 
     // Produces true if the value is a color or a color string.
@@ -388,14 +397,15 @@
 
     //////////////////////////////////////////////////////////////////////
     // colorString : hexColor Style -> rgba
-    // Style can be a number (0-255), "solid", "outline" or null
+    // Style can be a number (0-1), "solid", "outline" or null
     // The above value which is non-number is equivalent to a number 255
     var colorString = function(aColor, aStyle) {
-      var styleAlpha = isNaN(aStyle)? 1.0 : aStyle/255,
-          cAlpha = colorAlpha(aColor)/255;
-      return "rgba(" +  colorRed(aColor)   + ", " +
-                        colorGreen(aColor) + ", " +
-                        colorBlue(aColor)  + ", " +
+      var styleAlpha = isNaN(aStyle)? 1.0 : aStyle,
+          cAlpha = colorAlpha(aColor);
+      // NOTE(ben): Flooring the numbers here so that it's a valid RGBA style string
+      return "rgba(" +  Math.floor(colorRed(aColor))   + ", " +
+                        Math.floor(colorGreen(aColor)) + ", " +
+                        Math.floor(colorBlue(aColor))  + ", " +
                         styleAlpha * cAlpha + ")";
     };
 
@@ -430,6 +440,7 @@
     var colorLabs = [], colorRgbs = colorDb.colors;
     for (var p in colorRgbs) {
       if (colorRgbs.hasOwnProperty(p)) {
+        // NOTE(ben): Not flooring numbers here, since RGBtoLAB supports float values
         var lab = RGBtoLAB(colorRed(colorRgbs[p]),
                            colorGreen(colorRgbs[p]),
                            colorBlue(colorRgbs[p]));
@@ -443,6 +454,7 @@
     // Style can be "solid" (1.0), "outline" (1.0), a number (0-1.0) or null (1.0)
     function colorToSpokenString(aColor, aStyle){
       if(aStyle===0) return " transparent ";
+      // NOTE(ben): Not flooring numbers here, since RGBtoLAB supports float values
       var lab1 = RGBtoLAB(colorRed(aColor),
                           colorGreen(aColor),
                           colorBlue(aColor));
@@ -459,15 +471,15 @@
 
 
     var isSideCount = function(x) {
-      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 3);
+      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 3, RUNTIME.NumberErrbacks);
     };
 
     var isStepCount = function(x) {
-      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 1);
+      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 1, RUNTIME.NumberErrbacks);
     };
 
     var isPointsCount = function(x) {
-      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 2);
+      return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 2, RUNTIME.NumberErrbacks);
     };
 
     // Produces true if thing is an image-like object.
@@ -1633,10 +1645,11 @@
       jsLOC = RUNTIME.ffi.toArray(listOfColors);
       for(var i = 0; i < jsLOC.length * 4; i += 4) {
         aColor = jsLOC[i / 4];
-        data[i] = jsnums.toFixnum(colorRed(aColor));
-        data[i+1] = jsnums.toFixnum(colorGreen(aColor));
-        data[i+2] = jsnums.toFixnum(colorBlue(aColor));
-        data[i+3] = jsnums.toFixnum(colorAlpha(aColor));
+        // NOTE(ben): Flooring colors here to make this a proper RGBA image
+        data[i] = Math.floor(colorRed(aColor));
+        data[i+1] = Math.floor(colorGreen(aColor));
+        data[i+2] = Math.floor(colorBlue(aColor));
+        data[i+3] = colorAlpha(aColor);
       }
 
       return makeImageDataImage(imageData);
@@ -1816,6 +1829,7 @@
       colorGreen: colorGreen,
       colorBlue: colorBlue,
       colorAlpha: colorAlpha,
+      colorString: colorString,
     });
   }
 })
