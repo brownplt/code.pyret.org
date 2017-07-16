@@ -325,8 +325,10 @@ $(function() {
   var programToSave = initialProgram;
 
   function showShareContainer(p) {
-    $("#shareContainer").empty();
-    $("#shareContainer").append(shareAPI.makeShareLink(p));
+    if(!p.shared) {
+      $("#shareContainer").empty();
+      $("#shareContainer").append(shareAPI.makeShareLink(p));
+    }
   }
 
   function nameOrUntitled() {
