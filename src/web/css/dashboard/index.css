@@ -86,6 +86,34 @@ button:hover, .button:hover {
     margin: 0px 16pt;
 }
 
+.start-button {
+    margin-right: 1rem;
+}
+
+.dashboard-logo {
+    height: 2rem;
+    float: left;
+    padding-right: 1rem;
+}
+
+.main {
+  margin-top: 3rem;
+  width: 30%;
+}
+
+.main ul {
+  text-align: left;
+  list-style-type: none;
+}
+
+.main ul li {
+  margin-top: 1rem;
+}
+
+.header {
+  float: left;
+}
+
 .modal-wrap, #loading-spinner {
     padding: 16pt;
     margin: 0px auto;
@@ -165,8 +193,8 @@ input.form {
 .file img {
     width: 35%;
     padding-bottom: 8pt;
-    filter: grayscale(100%);
-    -webkit-filter: grayscale(100%);
+    filter: grayscale(70%);
+    -webkit-filter: grayscale(70%);
     opacity: .4;
 }
 

@@ -25,6 +25,9 @@ var gwrap = window.gwrap = {
             loaded.hasAuth = function() { return gw.auth !== null; }
             ret.resolve(loaded);
           });
+      })
+      .fail(function(err) {
+        ret.reject(err); 
       });
     return ret.promise;
   },

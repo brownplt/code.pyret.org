@@ -6,13 +6,14 @@ import File from './File';
 const NOT_SIGNED_IN = 1;
 const WAITING_FOR_SIGNIN = 2;
 const SIGNED_IN = 3;
+const INITIAL_LOAD = 4;
 
 class StudentDashboard extends Component {
   constructor() {
     super();
 
     this.state = {
-      signedIn: NOT_SIGNED_IN,
+      signedIn: INITIAL_LOAD,
       files: [],
       activeTab: 'recent-files',
       newFileName: '',
@@ -29,10 +30,17 @@ class StudentDashboard extends Component {
           this.setState({ userName: userInfo.emails[0].value });
         });
       }
+      else {
+        this.setState({ signedIn: NOT_SIGNED_IN });
+      }
     });
-    apiLoaded.fail(function(e) {
-      console.error("Couldn't load API: ", e);
+    apiLoaded.fail((e) => {
+      this.setState({ signedIn: NOT_SIGNED_IN });
     });
+  }
+
+  handleStartCodingClick = (event) => {
+    window.open("/editor", "_blank");
   }
 
   handleSignInClick = (event) => {
@@ -44,6 +52,9 @@ class StudentDashboard extends Component {
         this.setState({ userName: userInfo.emails[0].value });
       });
       this.updateRecentFiles();
+    })
+    .fail((resp) => {
+      this.setState({ signedIn: NOT_SIGNED_IN });
     });
   }
 
@@ -151,8 +162,11 @@ class StudentDashboard extends Component {
         <div id='header' className=''>
           <div className='container'>
             <div className='left'>
-              <h1 className='logo-text'>{APP_NAME} – Dashboard</h1>
-              <h2 className={'person-text ' + (this.state.userName === false ? 'hidden' : '')}>{this.state.userName}</h2> 
+              <img src='/img/pyret-logo.png' className='dashboard-logo'></img>
+              <div className='header'>
+                <h1 className='logo-text'>{APP_NAME}</h1>
+                <h2 className={'person-text ' + (this.state.userName === false ? 'hidden' : '')}>{this.state.userName}</h2> 
+              </div>
             </div>
             <div className='button-wrapper right'>
               <button className={'auth-button ' + (this.state.signedIn !== NOT_SIGNED_IN ? 'hidden' : '')} onClick={this.handleSignInClick} id='signin-button' >Sign in</button>
@@ -160,7 +174,27 @@ class StudentDashboard extends Component {
             <div className='button-wrapper right'>
               <button className={'auth-button ' + (this.state.signedIn !== NOT_SIGNED_IN ? '' : 'hidden')} onClick={this.handleSignOutClick} id='signout-button' >Sign out</button>
             </div>
+            <div className='button-wrapper right start'>
+              <button className='start-button' onClick={this.handleStartCodingClick} id='start-button' >Open Editor</button>
+            </div>
           </div>
+        </div>
+        <div className={'main middle container ' + (this.state.signedIn === NOT_SIGNED_IN ? '' : 'hidden')}>
+
+          <div className={'left'}>
+            <p><button className={'auth-button'} onClick={this.handleSignInClick} id='signin-button' >Sign in</button></p><p><em>to save and view programs</em></p>
+          </div>
+
+          <div className={'right'}>
+            <p><button onClick={this.handleStartCodingClick} id='start-button' >Open Editor</button></p><p><em>to start coding immediately</em></p>
+          </div>
+
+          <div className='clearfix'></div>
+
+          <br/><br/>
+
+          <p>You can also check out <a href="http://papl.cs.brown.edu">a book</a> or <a href="http://www.bootstrapworld.org">some curricula</a>.</p>
+
         </div>
         <div id='loading-spinner' className={this.state.signedIn === WAITING_FOR_SIGNIN ? '' : 'hidden'}>
           <h1>Waiting for login...</h1>
@@ -170,8 +204,8 @@ class StudentDashboard extends Component {
           <div id='file-picker-modal-tabs' className='cf'>
             <h2 id='recent-files' className={'tab floatable left ' + ((this.state.activeTab === 'recent-files') ? 'active' : '')} onClick={this.handleTabClick}>Recent Files</h2>
             <h2 id='new-file' className={'tab floatable left ' + ((this.state.activeTab === 'new-file') ? 'active' : '')} onClick={this.handleTabClick}>New File</h2>
-            <div className='button-wrapper floatable right'>
-              <button id='select-file' onClick={this.handleSelectFileClick} >Open Google Drive</button>
+            <div className='button-wrapper right'>
+              <button id='select-file' onClick={this.handleSelectFileClick} >View in Google Drive</button>
             </div>
           </div>
           <div id='file-picker-modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
