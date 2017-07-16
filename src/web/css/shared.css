@@ -162,9 +162,9 @@ em {
 #header {
   position: fixed;
   z-index: 9000;
-  top: 25%;
+  top: 4em;
   left: 30%;
-  width: 40em;
+  width: 50em;
   height: 40px;
   background:#C8C8C8;
   box-sizing: border-box;

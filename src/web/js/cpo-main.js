@@ -1,6 +1,15 @@
 ({
   requires: [
     { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./scroll"]
+    },
+    // include tutorial.js, remember to add it under theModule too
+    // { "import-type": "dependency",
+    //   protocol: "js-file",
+    //   args: ["./tutorial"]
+    // },
+    { "import-type": "dependency",
       protocol: "file",
       args: ["../../../pyret/src/arr/compiler/compile-lib.arr"]
     },
@@ -19,10 +28,6 @@
     { "import-type": "dependency",
       protocol: "js-file",
       args: ["./repl-ui"]
-    },
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./tutorial"]
     },
     { "import-type": "builtin",
       name: "parse-pyret"
@@ -50,7 +55,7 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
-                      compileLib, compileStructs, pyRepl, cpo, replUI, tutorial,
+                      scroll, compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
@@ -263,11 +268,11 @@
                   });
               }, function(result) {
                 ret.resolve(result);
-                if (runtime.isSuccessResult(result)) {
-                  tutorial.afterRun("success");
-                } else {
-                  tutorial.afterRun("failure");
-                };
+                // if (runtime.isSuccessResult(result)) {
+                //   tutorial.afterRun("success");
+                // } else {
+                //   tutorial.afterRun("failure");
+                // };
               });
             }, 0);
             return ret.promise;

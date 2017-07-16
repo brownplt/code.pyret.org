@@ -432,11 +432,11 @@ body {
   position: absolute;
   z-index: 8500;
   left: 30%;
-  width: 30em;
-  top: 30%;
+  width: 35%;
+  top: 7em;
   height: 30em;
   max-height: 100%;
-  padding-top: 40px;
+  padding-top: 30px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -446,13 +446,13 @@ body {
 .replContainer {
   position: absolute;
   z-index: 8500;
-  left: 55em;
+  left: 65%;
   right: 0;
-  width: 30em;
-  top: 30%;
+  width: 35%;
+  top: 7em;
   height: 30em;
   max-height: 100%;
-  padding-top: 40px;
+  padding-top: 30px;
   padding-bottom: 5px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
