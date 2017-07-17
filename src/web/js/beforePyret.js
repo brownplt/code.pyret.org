@@ -205,9 +205,7 @@ $(function() {
       $(".loginOnly").show();
       $(".logoutOnly").hide();
       setUsername($("#username"));
-      api.api.getCollectionLink().then(function(link) {
-        $("#drive-view a").attr("href", link);
-      });
+      $("#drive-view a").attr("href", "/");
     });
     api.collection.fail(function() {
       $(".loginOnly").hide();
@@ -336,7 +334,7 @@ $(function() {
   }
   function autoSave() {
     programToSave.then(function(p) {
-      if(p !== null) { save(); }
+      if(p !== null && !p.shared) { save(); }
     });
   }
 
