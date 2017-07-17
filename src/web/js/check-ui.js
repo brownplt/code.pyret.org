@@ -175,9 +175,9 @@
             }
           }
           
-          var stack = get(loadLib, "internal")
-            .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultProgram(result));
           if(runtime.hasField(test, "actual-exn")) {
+            var stack = get(loadLib, "internal")
+              .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultProgram(result));
             this.maybeStackLoc = outputUI.makeMaybeStackLoc(
               runtime, documents, srcloc, stack);
           } else {
