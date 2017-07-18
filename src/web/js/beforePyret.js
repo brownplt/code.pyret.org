@@ -199,13 +199,11 @@ $(function() {
     });
   }
 
-  
   storageAPI.then(function(api) {
     api.collection.then(function() {
       $(".loginOnly").show();
       $(".logoutOnly").hide();
       setUsername($("#username"));
-      $("#drive-view a").attr("href", "/");
     });
     api.collection.fail(function() {
       $(".loginOnly").hide();
@@ -223,9 +221,6 @@ $(function() {
         $(".loginOnly").show();
         $(".logoutOnly").hide();
         setUsername($("#username"));
-        api.api.getCollectionLink().then(function(link) {
-          $("#drive-view a").attr("href", link);
-        });
         if(params["get"] && params["get"]["program"]) {
           var toLoad = api.api.getFileById(params["get"]["program"]);
           console.log("Logged in and has program to load: ", toLoad);
