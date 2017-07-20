@@ -117,7 +117,7 @@
                x.toString().toLowerCase() == "outline")) ||
         ((jsnums.isReal(x)) &&
          (jsnums.greaterThanOrEqual(x, 0, runtime.NumberErrbacks) &&
-          jsnums.lessThanOrEqual(x, 255, runtime.NumberErrbacks)));
+          jsnums.lessThanOrEqual(x, 1, runtime.NumberErrbacks)));
     };
 
     var isPlaceX = function(x) {
@@ -264,7 +264,12 @@
     }, "List<Color>");
 
 
-    var checkMode = p(isMode, "Mode");
+    var checkMode = function(val) {
+      if (typeof val === "string")
+        return val;
+      else
+        return jsnums.toFixnum(val);
+    }
     var annMode = ann("Mode (\"outline\" or \"solid\")", isMode);
 
     var checkSideCount = p(image.isSideCount, "Side Count");
@@ -326,11 +331,12 @@
     function f(name, fun) {
       values[name] = runtime.makeFunction(fun, name);
     }
-    f("circle", function(radius, mode, color) {
+    f("circle", function(radius, maybeMode, maybeColor) {
       checkArity(3, arguments, "image");
-      c("circle", [radius, mode, color], [annNumNonNegative, annMode, annColor]);
-      color = checkColor(color);
-      return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), String(mode), color));
+      c("circle", [radius, maybeMode, maybeColor], [annNumNonNegative, annMode, annColor]);
+      var color = checkColor(maybeColor);
+      var mode = checkMode(maybeMode)
+      return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), mode, color));
     });
     f("is-image-color", function(maybeColor) {
       checkArity(1, arguments, "image");
@@ -725,7 +731,7 @@
       var side = jsnums.toFixnum(checkNonNegativeReal(maybeSide));
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
-      return makeImage(image.makeSquareImage(side, String(mode), color));
+      return makeImage(image.makeSquareImage(side, mode, color));
     });
 
     f("rectangle", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
@@ -738,7 +744,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeRectangleImage(width, height, String(mode), color));
+        image.makeRectangleImage(width, height, mode, color));
     });
 
     f("regular-polygon", function(maybeLength, maybeCount, maybeMode, maybeColor) {
@@ -751,7 +757,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makePolygonImage(length, count, 1, String(mode), color));
+        image.makePolygonImage(length, count, 1, mode, color));
     });
 
     f("ellipse", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
@@ -764,7 +770,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeEllipseImage(width, height, String(mode), color));
+        image.makeEllipseImage(width, height, mode, color));
     });
 
     f("triangle", function(maybeSide, maybeMode, maybeColor) {
@@ -777,7 +783,7 @@
       var color = checkColor(maybeColor);
       return makeImage(
         // Angle makes triangle point up
-        image.makeTriangleImage(side, 360-60, side, String(mode), color));
+        image.makeTriangleImage(side, 360-60, side, mode, color));
     });
 
     f("triangle-sas", function(maybeSideA, maybeAngleB, maybeSideC, maybeMode, maybeColor) {
@@ -816,8 +822,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("triangle-sss", function(maybeSideA, maybeSideB, maybeSideC, maybeMode, maybeColor) {
@@ -840,8 +845,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("triangle-ass", function(maybeAngleA, maybeSideB, maybeSideC, maybeMode, maybeColor) {
@@ -859,8 +863,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("triangle-ssa", function(maybeSideA, maybeSideB, maybeAngleC, maybeMode, maybeColor) {
@@ -895,8 +898,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("triangle-aas", function(maybeAngleA, maybeAngleB, maybeSideC, maybeMode, maybeColor) {
@@ -917,8 +919,7 @@
       var hypotenuse = sideC / (Math.sin(angleC*Math.PI/180))
       var sideB = hypotenuse * Math.sin(angleB*Math.PI/180);
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("triangle-asa", function(maybeAngleA, maybeSideB, maybeAngleC, maybeMode, maybeColor) {
@@ -939,8 +940,7 @@
       var base = (sideB * Math.sin(angleA*Math.PI/180)) / (Math.sin(angleB*Math.PI/180));
       var sideC = (sideB * Math.sin(angleC*Math.PI/180)) / (Math.sin(angleB*Math.PI/180));
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("triangle-saa", function(maybeSideA, maybeAngleB, maybeAngleC, maybeMode, maybeColor) {
@@ -958,8 +958,7 @@
       var sideC = hypotenuse * Math.sin(angleC*Math.PI/180);
       var sideB = hypotenuse * Math.sin(angleB*Math.PI/180);
       return makeImage(
-        image.makeTriangleImage(sideC, angleA, sideB,
-                                String(mode), color));
+        image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
 
     f("right-triangle", function(maybeSide1, maybeSide2, maybeMode, maybeColor) {
@@ -973,8 +972,7 @@
       var color = checkColor(maybeColor);
       return makeImage(
         // add 180 to make the triangle point up
-        image.makeTriangleImage(side1, 360 - 90, side2,
-                                String(mode), color));
+        image.makeTriangleImage(side1, 360 - 90, side2, mode, color));
     });
 
     f("isosceles-triangle", function(maybeSide, maybeAngleC, maybeMode, maybeColor) {
@@ -990,8 +988,7 @@
       var base = 2*side*Math.sin((angleC*Math.PI/180)/2);
       return makeImage(
         // add 180 to make the triangle point up
-        image.makeTriangleImage(base, 360 - angleAB, side,
-                                String(mode), color));
+        image.makeTriangleImage(base, 360 - angleAB, side, mode, color));
     });
 
     f("star", function(maybeSide, maybeMode, maybeColor) {
@@ -1001,8 +998,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makePolygonImage(side, 5, 2,
-                               String(mode), color));
+        image.makePolygonImage(side, 5, 2, mode, color));
     });
     // TODO: This was split from the variable-arity case in the original whalesong "star" function
     f("star-sized", function(maybeSideCount, maybeOuter, maybeInner, maybeMode, maybeColor) {
@@ -1016,8 +1012,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeStarImage(sideCount, inner, outer,
-                            String(mode), color));
+        image.makeStarImage(sideCount, inner, outer, mode, color));
     });
     // TODO: Same as star-sized?
     f("radial-star", function(maybePoints, maybeOuter, maybeInner, maybeMode, maybeColor) {
@@ -1031,8 +1026,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeStarImage(points, inner, outer,
-                            String(mode), color));
+        image.makeStarImage(points, inner, outer, mode, color));
     });
 
     f("star-polygon", function(maybeLength, maybeCount, maybeStep, maybeMode, maybeColor) {
@@ -1046,8 +1040,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makePolygonImage(length, count, step,
-                               String(mode), color));
+        image.makePolygonImage(length, count, step, mode, color));
     });
 
     f("rhombus", function(maybeLength, maybeAngle, maybeMode, maybeColor) {
@@ -1060,7 +1053,7 @@
       var mode = checkMode(maybeMode);
       var color = checkColor(maybeColor);
       return makeImage(
-        image.makeRhombusImage(length, angle, String(mode), color));
+        image.makeRhombusImage(length, angle, mode, color));
     });
 
     f("image-to-color-list", function(maybeImage) {
