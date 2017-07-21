@@ -480,7 +480,9 @@ $(function() {
     });
   }
 
-  $("#runButton").click(CPO.autoSave);
+  $("#runButton").click(function() {
+    CPO.autoSave();
+  });
 
   $("#new").click(newEvent);
   $("#save").click(saveEvent);
