@@ -75,14 +75,19 @@
       );
     }
     
-
+    // the result of applying `displayResult` is a function that MUST
+    // NOT BE CALLED ON THE PYRET STACK.
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
+      // MUST BE CALLED ON THE PYRET STACK
       function renderAndDisplayError(runtime, error, stack, click, result) {
         var error_to_html = errorUI.error_to_html;
+        // `renderAndDisplayError` must be called on the pyret stack
+        // because of this call to `pauseStack`
         return runtime.pauseStack(function (restarter) {
+          // error_to_html must not be called on the pyret stack
           return error_to_html(runtime, CPO.documents, error, stack, result).
             then(function (html) {
               html.on('click', function(){
@@ -96,14 +101,20 @@
         });
       }
 
+      // this function must NOT be called on the pyret stack
       return function(result) {
         var doneDisplay = Q.defer();
         var didError = false;
+        // Start a new pyret stack.
+        // this returned function must not be called on the pyret stack
+        // b/c `callingRuntime.runThunk` must not be called on the pyret stack
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
+            // `renderAndDisplayError` must be called on the pyret stack
+            // this application runs in the context of the above `callingRuntime.runThunk`
             return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
@@ -119,9 +130,15 @@
                         ffi.toArray(runtime.getField(error, "problems")));
                       return errors;
                     }, []);
+                // `safeCall` must be called on the pyret stack
+                // this application runs in the context of the above `callingRuntime.runThunk`
                 return callingRuntime.safeCall(
                   function() {
+                    // eachLoop must be called in the context of the pyret stack
+                    // this application runs in the context of the above `callingRuntime.runThunk`
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
+                      // `renderAndDisplayError` must be called in the context of the
+                      // pyret stack.
                       return renderAndDisplayError(callingRuntime, errors[i], [], true, result);
                     }), 0, errors.length);
                   }, function (result) { return result; }, "renderMultipleErrors");
@@ -146,6 +163,8 @@
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
+                      // `renderAndDisplayError` must be called in the context of the pyret stack.
+                      // this application runs in the context of the above `rr.runThunk`.
                       return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
                     }
                   }, function(_) {
@@ -159,6 +178,8 @@
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
+            // `renderAndDisplayError` must be called in the context of the pyret stack.
+            // this application runs in the context of `callingRuntime.runThunk`
             return renderAndDisplayError(callingRuntime, CPO.documents,
               ffi.throwInternalError("Got something other than a Pyret result when running the program.",
                 ffi.makeList(result)));
