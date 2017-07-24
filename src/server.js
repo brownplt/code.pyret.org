@@ -320,6 +320,10 @@ function start(config, onServerReady) {
     res.sendfile("build/web/editor.html");
   });
 
+  app.get("/source-map.js", function(req, res) {
+    res.sendfile("build/web/js/source-map.js");
+  });
+
   app.get("/share", function(req, res) {
 
   });
