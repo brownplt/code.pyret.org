@@ -3,6 +3,8 @@
     { "import-type": "builtin",
       name: "parse-pyret" },
     { "import-type": "builtin",
+      name: "ast" },
+    { "import-type": "builtin",
       name: "error-display" },
     { "import-type": "builtin",
       name: "srcloc" },
@@ -17,11 +19,12 @@
     "pyret-base/js/js-numbers",
     "cpo/share"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, loadLib, util, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, ast, errordisplayLib, srclocLib, image, loadLib, util, jsnums, share) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
     PP = runtime.getField(parsePyret, "values");
+    AST = runtime.getField(ast, "values");
 
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
@@ -386,7 +389,7 @@
       return runtime.makeFunction(function(loc) {
         return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
           "builtin": function(_) {
-            console.error("srclocAvaliable should not be passed a builtin source location.", srcloc);
+            console.error("srclocAvaliable should not be passed a builtin source location.", loc);
             return runtime.pyretFalse;
           },
           "srcloc": function(filename, _, __, ___, ____, _____, ______) {
@@ -400,49 +403,68 @@
       });
     }
 
-    function makeMaybeLocToAST(runtime, documents, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
-          "builtin": function(_) {
+    function maybeParse(runtime, documents, loc) {
+      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+        "builtin": function(_) {
             console.error("maybeLocToAST should not be passed a builtin source location.", loc);
             return runtime.ffi.makeNone();
           },
-          "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
-            var prelude = ""
-            for(var i=1; i < start_line; i++) {prelude += "\n";}
-            for(var i=0; i < start_col; i++)  {prelude += " "; }
-            if(!documents.has(filename))
-              return runtime.ffi.makeNone();
-            var start = new CodeMirror.Pos(start_line - 1, start_col);
-            var   end = new CodeMirror.Pos(  end_line - 1,   end_col);
-            var source = documents.get(filename).getRange(start, end);
-            return runtime.pauseStack(function(restarter) {
-              runtime.runThunk(function() {
-                return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
-              }, function(result) {
-                if(runtime.isSuccessResult(result)) {
-                  var res = result.result;
-                  res = res && res.dict.block;
-                  res = res && res.dict.stmts;
-                  res = res && res.dict.first;
-                  if (res) {
-                    restarter.resume(runtime.ffi.makeSome(res));
+        "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
+            if(!documents.has(filename)) return runtime.ffi.makeNone();
+            let source = documents.get(filename).getValue()
+            // Helper function. MUST NOT BE CALLED ON PYRET STACK.
+            function callDeferred(runtime, thunk) {
+              var ret = Q.defer();
+              runtime.runThunk(
+                thunk,
+                function (result) {
+                  if (runtime.isSuccessResult(result)) {
+                    ret.resolve(result.result);
                   } else {
-                    console.error(
-                      'Unexpected failure in extracting first expresion in AST:',
-                      '\nRequested Location:\t', {from: start, to: end},
-                      '\nProgram Source:\t', source,
-                      '\nParse result:\t', result);
-                    restarter.resume(runtime.ffi.makeNone());
+                    console.error(result.exn);
+                    ret.reject(result.exn);
                   }
-                } else {
-                  restarter.resume(runtime.ffi.makeNone());
-                }
+                });
+              return ret.promise;
+            }
+
+            // RETURNED FUNCTION MUST BE CALLED IN THE CONTEXT OF THE PYRET STACK
+            function applyFunction(runtime, module, name, args) {
+              return runtime.
+                safeThen(function() {
+                  return runtime.getField(module, name);
+                }, applyFunction).then(function(fun) {
+                  return fun.app.apply(fun, args);
+                }).start;
+            }
+
+            function parse(source, filename) {
+              return callDeferred(runtime,
+                      applyFunction(runtime, PP, "surface-parse", [source, filename]));
+            }
+
+            function search(ast) {
+              return callDeferred(runtime,
+                      applyFunction(runtime, AST, "search-for-loc", [loc, ast]))
+            }
+
+            return runtime.pauseStack(function(restarter) {
+                return parse(source, filename).
+                  then(search).
+                  catch(function(error) {
+                    console.error("Unexpected error encountered in `maybeParse`:", error);
+                    return runtime.ffi.makeNone();
+                    }).
+                  done(function(result) { return restarter.resume(result); });
               });
-            });
-          }
-        });
+        }
       });
+    }
+
+    function makeMaybeLocToAST(runtime, documents, loc) {
+      return runtime.makeFunction(function(loc) {
+          return maybeParse(runtime, documents, loc);
+        });
     }
 
     function makeMaybeStackLoc(runtime, documents, srcloc, stack) {
