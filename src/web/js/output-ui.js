@@ -366,7 +366,9 @@
       else if(isJSImport(position.source)) {
         /* NOTE(joe): No special handling here, since it's opaque code */
       }
-      srcElem.on("mouseover", position.hint);
+      srcElem.on("mouseover", function() {
+        position.hint();
+      });
       srcElem.on("mouseleave", function() {
         clearFlash();
         unhintLoc();
