@@ -89,7 +89,7 @@
       Position.prototype.hint = function hint() {
         if (this.from === undefined
             || !(this.doc.getEditor() instanceof CodeMirror)) {
-          flashMessage("This code is not in this editor.");
+          console.info("This position could not be hinted because it is not in this editor:", this);
         } else {
           hintLoc(this);
         }
@@ -98,7 +98,7 @@
       Position.prototype.goto = function goto() {
         if (this.from === undefined
             || !(this.doc.getEditor() instanceof CodeMirror)) {
-          flashMessage("This code is not in this editor.");
+          flashMessage("This code is not open in this tab.");
         } else {
           this.doc.getEditor().getWrapperElement().scrollIntoView(true);
           this.doc.getEditor().scrollIntoView(this.from.line, 50);
@@ -283,6 +283,8 @@
        return base;
     }
 
+    var interactionsPrefix = "interactions";
+    var definitionsPrefix = "definitions";
     var sharedPrefix = "shared-gdrive";
     var mydrivePrefix = "my-gdrive";
     var jsdrivePrefix = "gdrive-js";
@@ -322,13 +324,35 @@
       return id;
     }
 
+    function isDefinitions(filename) {
+      var definitionsIndex = filename.indexOf(definitionsPrefix);
+      return definitionsIndex === 0;
+    }
+
+    function isInteractions(filename) {
+      var interactionsIndex = filename.indexOf(interactionsPrefix);
+      return interactionsIndex === 0;
+    }
+
+    function isLocal(filename) {
+      return isDefinitions(filename) || isInteractions(filename);
+    }
+
     function drawSrcloc(documents, runtime, s) {
       if (!s) { return $("<span>"); }
       var get = runtime.getField;
-      var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+
+      var in_editor =
+        runtime.hasField(s, "source")
+          && isLocal(runtime.getField(s, "source"));
+
+      var srcElem = $(in_editor ? "<a>" : "<span>")
+            .addClass("srcloc").text(get(s, "format").app(true));
+
       if(!runtime.hasField(s, "source")) {
         return srcElem;
       }
+
       var src = runtime.unwrap(get(s, "source"));
       if(!(documents.has(src) && (documents.get(src).getEditor() !== undefined))) {
         if(isSharedImport(src)) {
@@ -344,15 +368,17 @@
         else if(isJSImport(src)) {
           /* NOTE(joe): No special handling here, since it's opaque code */
         }
-        srcElem.on("mouseover", function() {
-          flashMessage("This code is not in this editor.");
-        }).on("mouseleave", clearFlash);
       }
       return srcElem;
     }
 
     function drawPosition(position) {
-      var srcElem = $("<a>").addClass("srcloc").text(position.toString());
+      var in_editor = isLocal(position.source);
+      var srcElem = $(in_editor ? "<a>" : "<div>")
+                      .addClass("srcloc").text(position.toString());
+      srcElem.on("click", function() {
+        position.goto();
+      });
       if(isSharedImport(position.source)) {
         var sharedId = getSharedId(position.source);
         var srcUrl = shareAPI.makeShareUrl(sharedId);
@@ -361,10 +387,11 @@
       else if(isGDriveImport(position.source)) {
         var MyDriveId = getMyDriveId(position.source);
         var srcUrl = makeMyDriveUrl(MyDriveId);
-        srcElem.attr({href: srcUrl, target: "_blank"});
+        return srcElem.attr({href: srcUrl, target: "_blank"});
       }
       else if(isJSImport(position.source)) {
         /* NOTE(joe): No special handling here, since it's opaque code */
+        return srcElem.attr;
       }
       srcElem.on("mouseover", function() {
         position.hint();
@@ -492,16 +519,18 @@
           });
         var container = document.createElement("div");
         var header = document.createElement("header");
-        container.addEventListener("click", function() {
-          position.goto();
-        });
-        container.addEventListener("mouseover", function() {
-          position.hint();
-        });
-        container.addEventListener("mouseleave", function() {
-          unhintLoc();
-          clearFlash();
-        });
+        if (isLocal(position.source)) {
+          container.addEventListener("click", function() {
+            position.goto();
+          });
+          container.addEventListener("mouseover", function() {
+            position.hint();
+          });
+          container.addEventListener("mouseleave", function() {
+            unhintLoc();
+            clearFlash();
+          });
+        }
         $(header).append(drawPosition(position));
         container.appendChild(header);
         container.classList.add("cm-snippet");
