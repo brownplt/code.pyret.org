@@ -332,6 +332,13 @@
               this.showTests();
           }.bind(this));
 
+          summary.addEventListener("click", function (e) {
+            if (this.container.classList.contains("expanded"))
+              this.hideTests();
+            else
+              this.showTests();
+          }.bind(this));
+
           this.needRefreshing = new Array();
           this.container = container;
           this.tombstone = tombstone;
