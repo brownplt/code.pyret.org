@@ -16,7 +16,6 @@ module.exports = {
   entry: {
     "js/dashboard/index": './src/web/js/dashboard/index.js',
     "js/beforePyret": './src/web/js/beforePyret.js',
-    "js/ide": './src/web/js/ide.js',
   },
   module: {
     loaders: [
