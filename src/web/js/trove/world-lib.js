@@ -769,10 +769,16 @@
                   }
                 } else if (lif) {
                   var handler = lif();
-                  var handler1 = handler(thisWorldIndex);
-                  activationRecord.pause();
-                  handler1.onRegister(top);
-                  handler1._listener(w, oldW, function(v) { k2(); });
+                  runtime.safeCall(function() {
+                    return handler(thisWorldIndex);
+                  }, function (handler1) {
+                    handler1.onRegister(top);
+                    activationRecord.pause();
+                    handler1._listener(w, oldW, function(v) { k2(); });
+                    // shut down the world
+                    //Jsworld.shutdownSingle({cleanShutdown: true});
+                    //succ(w);
+                  });
                 } else {
                   activationRecord.pause();
                 }
