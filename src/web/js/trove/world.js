@@ -508,15 +508,19 @@
               var checkImageType = runtime.makeCheckType(checkImagePred, "Image");
               checkImageType(v);
 
+              var theImage = v.val;
+              var width = theImage.getWidth();
+              var height = theImage.getHeight();
+
               if (! reusableCanvas) {
-                reusableCanvas = imageLibrary.makeCanvas(10, 10);
+                reusableCanvas = imageLibrary.makeCanvas(width, height);
                 // Note: the canvas object may itself manage objects,
                 // as in the case of an excanvas.  In that case, we must make
                 // sure jsworld doesn't try to disrupt its contents!
                 reusableCanvas.jsworldOpaque = true;
                 reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
               }
-              renderImageonCanvas(v.val, reusableCanvas);
+              renderImageonCanvas(theImage, reusableCanvas);
               success([toplevelNode, reusableCanvasNode]);
             });
       };
@@ -595,9 +599,9 @@
 
     LastImage.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
-      var reusableCanvas;
+      var reusableCanvas, reusableCanvasNode;
       var lastImageFunction = function() {
-        var nextFrame = function(t) {
+        var nextFrame = function(t, success) {
           var lih = adaptWorldFunction(that.handler);
           lih(t, function(theImageObj) {
             var theImage = theImageObj.val;
@@ -605,8 +609,11 @@
               setTimeout(function() {
                 if (!reusableCanvas) {
                   reusableCanvas = imageLibrary.makeCanvas(10, 10);
+                  reusableCanvas.jsworldOpaque = true;
+                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
                 }
                 renderImageonCanvas(theImage, reusableCanvas);
+                success([toplevelNode, reusableCanvasNode]);
               }, 0);
             } else {
               runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
