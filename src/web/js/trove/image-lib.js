@@ -1692,6 +1692,14 @@
       return new RotateImage(angle, img);
     };
     var makeScaleImage = function(xFactor, yFactor, img) {
+      if (xFactor < 0) {
+        xFactor = -xFactor;
+        img = makeFlipImage(img, 'horizontal');
+      }
+      if (yFactor < 0) {
+        yFactor = -yFactor;
+        img = makeFlipImage(img, 'vertical');
+      }
       return new ScaleImage(xFactor, yFactor, img);
     };
     var makeCropImage = function(x, y, width, height, img) {
