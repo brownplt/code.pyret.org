@@ -768,16 +768,11 @@
                     Jsworld.shutdownSingle({cleanShutdown: true});
                   }
                 } else if (lif) {
-                  var handler = lif();
-                  runtime.safeCall(function() {
-                    return handler(thisWorldIndex);
-                  }, function (handler1) {
-                    handler1.onRegister(top);
+                  var lastImageHandlerCreator = lif();
+                  var lastImageHandler = lastImageHandlerCreator(thisWorldIndex);
+                  lastImageHandler.onRegister(top);
+                  lastImageHandler._listener(w, oldW, function(v) {
                     activationRecord.pause();
-                    handler1._listener(w, oldW, function(v) { k2(); });
-                    // shut down the world
-                    //Jsworld.shutdownSingle({cleanShutdown: true});
-                    //succ(w);
                   });
                 } else {
                   activationRecord.pause();

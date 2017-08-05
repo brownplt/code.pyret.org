@@ -237,6 +237,7 @@
             configs,
             {},
             function(finalWorldValue) {
+              // NOTE(joe): this should be util.suspend'ed at some point
               restarter.resume(finalWorldValue);
             },
             function(err) {
@@ -600,9 +601,9 @@
     LastImage.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
       var reusableCanvas, reusableCanvasNode;
+      var lih = adaptWorldFunction(that.handler);
       var lastImageFunction = function() {
         var nextFrame = function(t, success) {
-          var lih = adaptWorldFunction(that.handler);
           lih(t, function(theImageObj) {
             var theImage = theImageObj.val;
             if (imageLibrary.isImage(theImage)) {
