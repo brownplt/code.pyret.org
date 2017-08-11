@@ -131,10 +131,10 @@ plot-object-base :: PlotObject = {
   method title(self, title :: String):
     self.{_title: title}
   end,
-  method extend-x(self, extend-x :: String):
+  method extend-x(self, extend-x :: Number):
     self.{_extend-x: extend-x}
   end,
-  method extend-y(self, extend-y :: String):
+  method extend-y(self, extend-y :: Number):
     self.{_extend-y: extend-y}
   end,
 
