@@ -431,13 +431,12 @@ body {
 .replMain {
   position: absolute;
   z-index: 8500;
-  left: 30%;
-  width: 35%;
-  top: 7em;
-  height: 30em;
+  left: 35%;
+  top: 150px;
+  width: 29%;
+  height: 70%;
   max-height: 100%;
-  padding-top: 30px;
-  padding-bottom: 5px;
+  padding-left: 5%;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;
@@ -446,14 +445,12 @@ body {
 .replContainer {
   position: absolute;
   z-index: 8500;
-  left: 65%;
-  right: 0;
-  width: 35%;
-  top: 7em;
-  height: 30em;
+  top: 150px;
+  left: 69%;
+  width: 29%;
+  height: 70%;
   max-height: 100%;
-  padding-top: 30px;
-  padding-bottom: 5px;
+  padding-right: 2%;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;

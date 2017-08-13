@@ -1,13 +1,19 @@
 #instruction {
   z-index: 15000;
   position: fixed;
-  background-color: white;
-  border: 5px, solid, black;
-  overflow: auto;
+  background-color: rgb(204, 204, 159);
+  border-style: double;
+  overflow: scroll;
+  width: 33%;
+  height: calc(70% + 40px);
+  top: 110px;
+  padding-left: 2%;
 }
 
-.studentNotes{
-  color: red
+#tutorial-title{
+  text-align: center;
+  font-weight: bold;
+  font-size: 32px;
 }
 
 .title {
@@ -49,11 +55,29 @@
   position: relative;
   right: 0;
   bottom: 0;
-  background-color: green;
+  background-color: rgb(51, 51, 45);
   color: white;
   text-align: center;
   font-size: 12px;
   cursor: pointer;
+}
+
+.again {
+  font-weight: bold;
+  background-color: rgb(219, 65, 5);
+}
+
+.done {
+  font-weight: bold;
+  background-color: rgb(103, 242, 72);
+}
+
+@-webkit-keyframes fadeinout {
+  50% { opacity: 1; }
+}
+
+@keyframes fadeinout {
+  50% { opacity: 1; }
 }
 
 .jump {

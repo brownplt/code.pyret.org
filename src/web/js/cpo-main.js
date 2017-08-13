@@ -1,9 +1,5 @@
 ({
   requires: [
-    { "import-type": "dependency",
-      protocol: "js-file",
-      args: ["./scroll"]
-    },
     // include tutorial.js, remember to add it under theModule too
     // { "import-type": "dependency",
     //   protocol: "js-file",
@@ -55,7 +51,7 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
-                      scroll, compileLib, compileStructs, pyRepl, cpo, replUI,
+                      compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, guessGas, cpoModules, modalPrompt,
                       rtLib) {
@@ -268,6 +264,7 @@
                   });
               }, function(result) {
                 ret.resolve(result);
+                // NOTE: result here seems to refer to the initialization, not eval result of a particular cm instance
                 // if (runtime.isSuccessResult(result)) {
                 //   tutorial.afterRun("success");
                 // } else {

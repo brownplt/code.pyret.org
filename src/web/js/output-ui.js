@@ -1,5 +1,9 @@
 ({
   requires: [
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./scroll"]
+    },
     { "import-type": "builtin",
       name: "parse-pyret" },
     { "import-type": "builtin",
@@ -15,7 +19,7 @@
     "pyret-base/js/js-numbers",
     "cpo/share"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share) {
+  theModule: function(runtime, _, uri, scrollPage, parsePyret, errordisplayLib, srclocLib, image, util, jsnums, share) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
@@ -1033,6 +1037,8 @@
       function renderText(txt) {
         var echo = $("<span>").addClass("replTextOutput");
         echo.text(txt);
+        // scrollPage.checkAnswer(txt, 4);
+
         // setTimeout(function() {
         //   CodeMirror.runMode(echo.text(), "pyret", echo[0]);
         //   echo.addClass("cm-s-default");

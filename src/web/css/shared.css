@@ -154,17 +154,17 @@ em {
 
 #loader p {
   position: relative;
-  top: 320px;
+  top: calc(150px + 30%);
   text-align: center;
-  width: 100%;
+  width: 70%;
 }
 
 #header {
   position: fixed;
   z-index: 9000;
-  top: 4em;
-  left: 30%;
-  width: 50em;
+  top: 110px;
+  left: 40%;
+  width: 56%;
   height: 40px;
   background:#C8C8C8;
   box-sizing: border-box;
