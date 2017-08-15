@@ -32,6 +32,28 @@
 
     var highlightedPositions = [];
 
+    var converter = $.colorspaces.converter('CIELAB', 'hex');
+
+    function hueToRGB(hue) {
+      var a = 40*Math.cos(hue);
+      var b = 40*Math.sin(hue)
+      return converter([74, a, b]);
+    }
+
+    var goldenAngle = 2.39996322972865332;
+    var lastHue = 0;
+
+    var makePalette = function(){
+      var palette = new Map();
+      return function(n){
+        if(!palette.has(n)) {
+          lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+          palette.set(n, lastHue);
+        }
+        return palette.get(n);
+      };};
+
+
     var Position = function() {
 
       function cached_find(doc, positionCache, textMarker) {
@@ -174,6 +196,22 @@
         });
       };
 
+      Position.fromSrcArray = function (locarray, documents, options) {
+        if (locarray.length === 7) {
+          var extraCharForZeroWidthLocs = locarray[3] === locarray[6] ? 1 : 0;
+          var source = locarray[0];
+          if (!documents.has(source)) {
+            throw new Error("No document for this location: ", loc);
+          }
+          return new Position(
+            documents.get(source),
+            source,
+            new CodeMirror.Pos(locarray[1] - 1, locarray[2]),
+            new CodeMirror.Pos(locarray[4] - 1, locarray[5] + extraCharForZeroWidthLocs),
+            options);
+        }
+      }
+
       return Position;
     }();
 
@@ -239,37 +277,37 @@
         {line: position.from.line, ch:0},
         position.source === "definitions://" ? "local" : "page");
 
-        var viewportMin;
-        var viewportMax;
+      var viewportMin;
+      var viewportMax;
 
-        if (position.source === "definitions://") {
-          var scrollInfo = editor.getScrollInfo();
-          viewportMin = scrollInfo.top;
-          viewportMax = scrollInfo.clientHeight + viewportMin;
-        } else {
-          var repl = document.querySelector('.repl');
-          viewportMin = repl.scrollTop;
-          viewportMax = viewportMin + repl.scrollHeight;
-        }
+      if (position.source === "definitions://") {
+        var scrollInfo = editor.getScrollInfo();
+        viewportMin = scrollInfo.top;
+        viewportMax = scrollInfo.clientHeight + viewportMin;
+      } else {
+        var repl = document.querySelector('.repl');
+        viewportMin = repl.scrollTop;
+        viewportMax = viewportMin + repl.scrollHeight;
+      }
 
-        var direction;
-        var TOP     = 0,
-            BOTTOM  = 1;
+      var direction;
+      var TOP     = 0,
+          BOTTOM  = 1;
 
-        if(coord.top < viewportMin) {
-          direction = TOP
-        } else if (coord.top > viewportMax) {
-          direction = BOTTOM;
-        } else {
-          return;
-        }
+      if(coord.top < viewportMin) {
+        direction = TOP
+      } else if (coord.top > viewportMax) {
+        direction = BOTTOM;
+      } else {
+        return;
+      }
 
-        var hinter = document.querySelector(
-            ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
-          + " > "
-          + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
+      var hinter = document.querySelector(
+          ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
+        + " > "
+        + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
 
-        hinter.classList.add("hinting");
+      hinter.classList.add("hinting");
     }
 
     function unhintLoc() {
@@ -402,17 +440,6 @@
       });
       return srcElem;
     }
-
-    var converter = $.colorspaces.converter('CIELAB', 'hex');
-
-    function hueToRGB(hue) {
-      var a = 40*Math.cos(hue);
-      var b = 40*Math.sin(hue)
-      return converter([74, a, b]);
-    }
-
-    var goldenAngle = 2.39996322972865332;
-    var lastHue = 0;
 
     function makeSrclocAvaliable(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
@@ -725,16 +752,6 @@
       function isSrcloc(s) {
         return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
       }
-
-      var makePalette = function(){
-        var palette = new Map();
-        return function(n){
-          if(!palette.has(n)) {
-            lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-            palette.set(n, lastHue);
-          }
-          return palette.get(n);
-        };};
 
       var palette = makePalette();
       var snippets = new Map();
@@ -1687,7 +1704,9 @@
       getLastUserLocation: getLastUserLocation,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
-      makeSrclocAvaliable: makeSrclocAvaliable
+      makeSrclocAvaliable: makeSrclocAvaliable,
+      makePalette: makePalette,
+      hueToRGB: hueToRGB
     });
   }
 })

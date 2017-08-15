@@ -413,6 +413,96 @@
         });
       });
 
+      repl.runtime.setParam("onSpy", function(loc, message, locs, names, vals) {
+        return repl.runtime.safeCall(function() {
+          /*
+          var toBeRepred = [];
+          for (var i = 0; i < names.length; i++)
+            toBeRepred.push({name: names[i], val: vals[i]});
+          toBeRepred.push({name: "Message", val: message, method: repl.runtime.ReprMethods._tostring});
+          */
+          // Push this afterward, to keep rendered aligned with renderedLocs below
+          vals = [message].concat(vals);
+          return repl.runtime.safeCall(function() {
+            return repl.runtime.toReprJS(message, repl.runtime.ReprMethods._tostring);
+          }, function(message) {
+            return repl.runtime.safeCall(function() {
+              return repl.runtime.raw_array_map(repl.runtime.makeFunction(function(val) {
+                 return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+              }, "spy-to-repr"), vals);
+            }, function(rendered) {
+              return {
+                message: message,
+                rendered: rendered
+              }
+            });
+          });
+        }, function(spyInfo) {
+          var message = spyInfo.message;
+          var rendered = spyInfo.rendered
+          // Note: renderedLocs is one element shorter than rendered
+          var renderedLocs = locs.map(repl.runtime.makeSrcloc);
+          var spyBlock = $("<div>").addClass("spy-block");
+          spyBlock.append($("<img>").addClass("spyglass").attr("src", "/img/spyglass.gif"));
+          if (message !== "") {
+            spyBlock.append($("<div>").addClass("spy-title").append(message));
+          }
+
+          var table = $("<table>");
+          table
+            .append($("<th>")
+                    .append($("<tr>")
+                            .append($("<td>").text("Name"))
+                            .append($("<td>").text("Value"))));
+          spyBlock.append(table);
+          var palette = outputUI.makePalette();
+          function color(i) {
+            return outputUI.hueToRGB(palette(i));
+          }
+          for (let i = 0; i < names.length; i++) {
+            let row = $("<tr>");
+            table.append(row);
+            let name = $("<a>").text(names[i]).addClass("highlight");
+            name.attr("title", "Click to scroll source location into view");
+            if (locs[i].length === 7) {
+              var pos = outputUI.Position.fromSrcArray(locs[i], CPO.documents, {});
+              name.hover((function(pos) {
+                  return function() {
+                    pos.hint();
+                    pos.blink(color(i));
+                  }
+                })(pos),
+                (function(pos) {
+                  return function() {
+                    outputUI.unhintLoc();
+                    pos.blink(undefined);
+                  };
+                })(pos));
+              name.on("click", (function(pos) {
+                return function() { pos.goto(); };
+              })(pos));
+              // TODO: this is ugly code, copied from output-ui because
+              // getting the right srcloc library is hard
+              let cmLoc = {
+                source: locs[i][0],
+                start: {line: locs[i][1] - 1, ch: locs[i][3]},
+                end: {line: locs[i][4] - 1, ch: locs[i][6]}
+              };
+              /*
+              name.on("click", function() {
+                outputUI.emphasizeLine(CPO.documents, cmLoc);
+                CPO.documents[cmLoc.source].scrollIntoView(cmLoc.start, 100);
+              });
+              */
+            }
+            row.append($("<td>").append(name).append(":"));
+            row.append($("<td>").append(rendered[i]));
+          }
+          $(output).append(spyBlock);
+          return repl.runtime.nothing;
+        }, "CPO-onSpy");
+      });
+
       var runMainCode = function(src, uiOptions) {
         breakButton.attr("disabled", false);
         output.empty();

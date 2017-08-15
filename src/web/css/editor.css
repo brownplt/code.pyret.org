@@ -1,3 +1,4 @@
+
 .CodeMirror, .inlineExample { border: 1px solid black; background: #f8f8f8; color: #eee; }
 .CodeMirror {
   font-size: 1em;
@@ -142,6 +143,63 @@ span.trace:after {
    content: ":";
 }
 
+div.spy-block {
+  font-family: sans-serif;
+  clear: both;
+  border: 1px solid #9DC5ED;
+  padding: 0.2em;
+  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  border-radius: 3px;
+  background: #CBDFF2;
+  margin: 6px;
+}
+
+div.spy-block > .spy-title {
+   display: block;
+   width: 100%;
+   border-bottom: 1px solid #9DC5ED;
+   margin-left: -3px;
+   margin-right: -3px;
+   padding-left: 3px;
+   padding-right: 3px;
+}
+
+div.spy-block > img.spyglass {
+   float: right;
+   width: 50px;
+   position: relative;
+   z-index: 1;
+}
+
+div.spy-block > table {
+   margin: 3px;
+   margin-bottom: 0px;
+   background: transparent;
+   overflow: scroll;
+}
+
+div.spy-block > table > tbody > tr {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid #9DC5ED;
+}
+
+div.spy-block > table > tbody > tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+div.spy-block > table > tbody > tr > td {
+    border-right:  1px solid #9DC5ED;
+}
+
+div.spy-block > table > tbody > tr > td:first-child {
+    vertical-align: middle;
+}
+
+div.spy-block > table > tbody > td {
+    border: 1px solid;
+}
+
+div.spy-block > table > th { display: none; }
 
 .test-reason:not(.highlights-active) .highlight {
   background: initial!important;
