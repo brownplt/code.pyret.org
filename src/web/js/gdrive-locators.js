@@ -1,5 +1,5 @@
 
-define([], function() {
+define("cpo/gdrive-locators", [], function() {
   function makeLocatorConstructors(
       storageAPI,
       runtime,

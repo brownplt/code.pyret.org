@@ -16,10 +16,9 @@
   provides: {},
   nativeRequires: [
     "pyret-base/js/runtime-util",
-    "pyret-base/js/js-numbers",
-    "cpo/share"
+    "pyret-base/js/js-numbers"
   ],
-  theModule: function(runtime, _, uri, parsePyret, ast, errordisplayLib, srclocLib, image, loadLib, util, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, ast, errordisplayLib, srclocLib, image, loadLib, util, jsnums) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");

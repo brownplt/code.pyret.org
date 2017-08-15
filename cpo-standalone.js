@@ -1,4 +1,4 @@
-require(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
+requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
 
   var staticModules = program.staticModules;
   var depMap = program.depMap;

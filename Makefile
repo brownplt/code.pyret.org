@@ -21,6 +21,8 @@ CPOGZ=build/web/js/cpo-main.jarr.gz.js
 CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
 PHASEA=pyret/build/phaseA/pyret.jarr
 
+BUNDLED_DEPS=build/web/js/bundled-npm-deps.js
+
 .PHONY : post-install
 post-install: compress-pyret
 
@@ -226,7 +228,10 @@ $(PHASEA): libpyret ;
 libpyret:
 	$(MAKE) phaseA -C pyret/
 
-$(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
+$(BUNDLED_DEPS): src/scripts/npm-dependencies.js
+	node_modules/.bin/browserify src/scripts/npm-dependencies.js -o $(BUNDLED_DEPS)
+
+$(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA) $(BUNDLED_DEPS)
 	mkdir -p compiled/;
 	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
@@ -239,6 +244,7 @@ $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr 
     --build-runnable src/web/arr/cpo-main.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
+    --deps-file $(BUNDLED_DEPS) \
     --outfile $(CPOMAIN) -no-check-mode
 
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
@@ -246,7 +252,7 @@ $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr 
 $(CPOGZ): $(CPOMAIN)
 	gzip -c -f $(CPOMAIN) > $(CPOGZ)
 
-$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
+$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA) $(BUNDLED_DEPS)
 	mkdir -p compiled/;
 	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
@@ -259,6 +265,7 @@ $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-stand
     --build-runnable src/web/arr/cpo-ide-hooks.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
+    --deps-file $(BUNDLED_DEPS) \
     --outfile $(CPOIDEHOOKS) -no-check-mode
 
 clean:

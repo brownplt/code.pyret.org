@@ -4,7 +4,7 @@
   ],
   nativeRequires: [
     'pyret-base/js/js-numbers',
-    './build/web/js/d3.js'
+    'd3'
   ],
   provides: {},
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums, d3) {

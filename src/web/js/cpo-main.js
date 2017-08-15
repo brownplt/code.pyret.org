@@ -39,7 +39,6 @@
   nativeRequires: [
     "cpo/gdrive-locators",
     "cpo/http-imports",
-    "cpo/guess-gas",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
     "pyret-base/js/runtime"
@@ -48,7 +47,7 @@
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
-                      gdriveLocators, http, guessGas, cpoModules, _modalPrompt,
+                      gdriveLocators, http, cpoModules, _modalPrompt,
                       rtLib) {
 
 
