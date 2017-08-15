@@ -215,7 +215,7 @@ web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBA
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
-	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
+	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
 
 deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) $(CPOGZ)
 
