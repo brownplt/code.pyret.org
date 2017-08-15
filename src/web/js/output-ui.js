@@ -32,6 +32,28 @@
 
     var highlightedPositions = [];
 
+    var converter = $.colorspaces.converter('CIELAB', 'hex');
+
+    function hueToRGB(hue) {
+      var a = 40*Math.cos(hue);
+      var b = 40*Math.sin(hue)
+      return converter([74, a, b]);
+    }
+
+    var goldenAngle = 2.39996322972865332;
+    var lastHue = 0;
+
+    var makePalette = function(){
+      var palette = new Map();
+      return function(n){
+        if(!palette.has(n)) {
+          lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+          palette.set(n, lastHue);
+        }
+        return palette.get(n);
+      };};
+
+
     var Position = function() {
 
       function cached_find(doc, positionCache, textMarker) {
@@ -173,6 +195,22 @@
           }
         });
       };
+
+      Position.fromSrcArray = function (locarray, documents, options) {
+        if (locarray.length === 7) {
+          var extraCharForZeroWidthLocs = locarray[3] === locarray[6] ? 1 : 0;
+          var source = locarray[0];
+          if (!documents.has(source)) {
+            throw new Error("No document for this location: ", loc);
+          }
+          return new Position(
+            documents.get(source),
+            source,
+            new CodeMirror.Pos(locarray[1] - 1, locarray[2]),
+            new CodeMirror.Pos(locarray[4] - 1, locarray[5] + extraCharForZeroWidthLocs),
+            options);
+        }
+      }
 
       return Position;
     }();
@@ -402,17 +440,6 @@
       });
       return srcElem;
     }
-
-    var converter = $.colorspaces.converter('CIELAB', 'hex');
-
-    function hueToRGB(hue) {
-      var a = 40*Math.cos(hue);
-      var b = 40*Math.sin(hue)
-      return converter([74, a, b]);
-    }
-
-    var goldenAngle = 2.39996322972865332;
-    var lastHue = 0;
 
     function makeSrclocAvaliable(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
@@ -725,16 +752,6 @@
       function isSrcloc(s) {
         return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
       }
-
-      var makePalette = function(){
-        var palette = new Map();
-        return function(n){
-          if(!palette.has(n)) {
-            lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-            palette.set(n, lastHue);
-          }
-          return palette.get(n);
-        };};
 
       var palette = makePalette();
       var snippets = new Map();
@@ -1687,7 +1704,9 @@
       getLastUserLocation: getLastUserLocation,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
-      makeSrclocAvaliable: makeSrclocAvaliable
+      makeSrclocAvaliable: makeSrclocAvaliable,
+      makePalette: makePalette,
+      hueToRGB: hueToRGB
     });
   }
 })

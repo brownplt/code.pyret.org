@@ -1,3 +1,4 @@
+
 .CodeMirror, .inlineExample { border: 1px solid black; background: #f8f8f8; color: #eee; }
 .CodeMirror {
   font-size: 1em;
@@ -173,6 +174,29 @@ div.spy-block > img.spyglass {
 div.spy-block > table {
    margin: 3px;
    margin-bottom: 0px;
+   background: transparent;
+   overflow: scroll;
+}
+
+div.spy-block > table > tbody > tr {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid #9DC5ED;
+}
+
+div.spy-block > table > tbody > tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+div.spy-block > table > tbody > tr > td {
+    border-right:  1px solid #9DC5ED;
+}
+
+div.spy-block > table > tbody > tr > td:first-child {
+    vertical-align: middle;
+}
+
+div.spy-block > table > tbody > td {
+    border: 1px solid;
 }
 
 div.spy-block > table > th { display: none; }

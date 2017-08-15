@@ -415,24 +415,26 @@
 
       repl.runtime.setParam("onSpy", function(loc, message, locs, names, vals) {
         return repl.runtime.safeCall(function() {
+          /*
           var toBeRepred = [];
           for (var i = 0; i < names.length; i++)
             toBeRepred.push({name: names[i], val: vals[i]});
-          // Push this afterward, to keep rendered aligned with renderedLocs below
           toBeRepred.push({name: "Message", val: message, method: repl.runtime.ReprMethods._tostring});
-          return repl.runtime.toReprArray(toBeRepred, repl.runtime.ReprMethods["$cpo"]);
+          */
+          // Push this afterward, to keep rendered aligned with renderedLocs below
+          vals = [message].concat(vals);
+          return repl.runtime.raw_array_map(repl.runtime.makeFunction(function(val) {
+             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+          }, "spy-to-repr"), vals);
         }, function(rendered) {
           // Note: renderedLocs is one element shorter than rendered
           var renderedLocs = locs.map(repl.runtime.makeSrcloc);
           var spyBlock = $("<div>").addClass("spy-block");
           spyBlock.append($("<img>").addClass("spyglass").attr("src", "/img/spyglass.gif"));
-          if (rendered[rendered.length - 1].val !== undefined) {
-            if (rendered[rendered.length - 1].val !== "")
-              spyBlock.append($("<div>").addClass("spy-title").append(rendered[rendered.length - 1].val));
-          } else {
-            rendered[rendered.length - 1].target = $("<div>").addClass("spy-title error");
-            spyBlock.append(rendered[rendered.length - 1].target);
+          if (rendered[0] !== "\"\"") {
+            spyBlock.append($("<div>").addClass("spy-title").append(rendered[0]));
           }
+
           var table = $("<table>");
           table
             .append($("<th>")
@@ -440,12 +442,26 @@
                             .append($("<td>").text("Name"))
                             .append($("<td>").text("Value"))));
           spyBlock.append(table);
+          var palette = outputUI.makePalette();
+          function color(i) {
+            return outputUI.hueToRGB(palette(i));
+          }
           for (let i = 0; i < names.length; i++) {
             let row = $("<tr>");
             table.append(row);
-            let name = $("<a>").text(rendered[i].name).addClass("highlight");
+            let name = $("<a>").text(names[i]).addClass("highlight");
             name.attr("title", "Click to scroll source location into view");
             if (locs[i].length === 7) {
+              var pos = outputUI.Position.fromSrcArray(locs[i], CPO.documents, {});
+              name.hover((function(pos) {
+                return function() { pos.highlight(color(i)); }
+              })(pos),
+                (function(pos) {
+                  return function() { pos.highlight(undefined); };
+                })(pos));
+              name.on("click", (function(pos) {
+                return function() { pos.goto(); };
+              })(pos));
               // TODO: this is ugly code, copied from output-ui because
               // getting the right srcloc library is hard
               let cmLoc = {
@@ -453,32 +469,18 @@
                 start: {line: locs[i][1] - 1, ch: locs[i][3]},
                 end: {line: locs[i][4] - 1, ch: locs[i][6]}
               };
+              /*
               name.on("click", function() {
-                outputUI.emphasizeLine(editors, cmLoc);
-                editors[cmLoc.source].scrollIntoView(cmLoc.start, 100);
+                outputUI.emphasizeLine(CPO.documents, cmLoc);
+                CPO.documents[cmLoc.source].scrollIntoView(cmLoc.start, 100);
               });
+              */
             }
             row.append($("<td>").append(name).append(":"));
-            if (rendered[i].val !== undefined) {
-              row.append($("<td>").append(rendered[i].val));
-            } else {
-              rendered[i].target = $("<td>");
-              row.append(rendered[i].target);
-            }
+            row.append($("<td>").append(rendered[i + 1]));
           }
-          return repl.runtime.safeCall(function() {
-            return repl.runtime.eachLoop(repl.runtime.makeFunction(function(i) {
-              if (rendered[i].target) {
-                return errorUI.drawError(rendered[i].target, editors, repl.runtime,
-                                         rendered[i].exn, makeErrorContext);
-              } else {
-                return repl.runtime.nothing;
-              }
-            }, "onSpy-drawEachError"), 0, rendered.length);
-          }, function(_) {
-            $(output).append(spyBlock);
-            return repl.runtime.nothing;
-          }, "onSpy-drawErrors");
+          $(output).append(spyBlock);
+          return repl.runtime.nothing;
         }, "CPO-onSpy");
       });
 
