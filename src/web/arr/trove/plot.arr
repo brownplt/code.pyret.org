@@ -1,4 +1,3 @@
-#|
 provide  {
   line-plot: line-plot,
   is-line-plot: is-line-plot,
@@ -16,16 +15,23 @@ provide  {
   render-multi-plot: render-multi-plot,
   default-options: default-options,
 
+  display-function: display-function,
+  display-scatter: display-scatter,
+  display-line: display-line,
+  display-multi-plot: display-multi-plot,
+
   histogram: histogram,
   pie-chart: pie-chart,
   bar-chart: bar-chart,
   grouped-bar-chart: grouped-bar-chart,
-  dot-chart: dot-chart,
-  box-chart: box-chart,
-} end
-|#
+  #dot-chart: dot-chart,
+  #box-chart: box-chart,
 
-provide *
+  render-plots: render-plots,
+  make-function-plot: make-function-plot,
+  make-line-plot: make-line-plot,
+  make-scatter-plot: make-scatter-plot,
+} end
 
 provide-types {
   Plot :: Plot,

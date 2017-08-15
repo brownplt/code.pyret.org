@@ -1272,9 +1272,17 @@
 
           // On click, switch the representation from a fraction to
           // decimal, and back again.
-          outText.click(function(e) {
-            $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
+          // https://stackoverflow.com/a/10390111/7501301
+          var isClick = false;
+          outText.click(function() {
+            if (isClick) {
+              outText.toggleFrac(num.toString(), decimalString, decimal[2]);
+            }
             e.stopPropagation();
+          }).mousedown(function () {
+            isClick = true;
+          }).mousemove(function () {
+            isClick = false;
           });
 
           return outText;
