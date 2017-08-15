@@ -454,10 +454,16 @@
             if (locs[i].length === 7) {
               var pos = outputUI.Position.fromSrcArray(locs[i], CPO.documents, {});
               name.hover((function(pos) {
-                return function() { pos.highlight(color(i)); }
-              })(pos),
+                  return function() {
+                    pos.hint();
+                    pos.blink(color(i));
+                  }
+                })(pos),
                 (function(pos) {
-                  return function() { pos.highlight(undefined); };
+                  return function() {
+                    outputUI.unhintLoc();
+                    pos.blink(undefined);
+                  };
                 })(pos));
               name.on("click", (function(pos) {
                 return function() { pos.goto(); };
