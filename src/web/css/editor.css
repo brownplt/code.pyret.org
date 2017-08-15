@@ -128,7 +128,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 div.trace {
-
+  overflow-x: auto;
 }
 div.trace.error {
    background-color: #fff6f2;
@@ -860,11 +860,6 @@ span.rationalRepeat {
 
 a.highlight {
   color: #000 !important;
-}
-
-/* NOTE(joe): this stops output in the REPL from covering the divider */
-#output {
-  overflow-x:auto;
 }
 
 #output .highlight {
