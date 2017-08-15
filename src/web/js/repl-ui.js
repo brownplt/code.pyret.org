@@ -423,16 +423,29 @@
           */
           // Push this afterward, to keep rendered aligned with renderedLocs below
           vals = [message].concat(vals);
-          return repl.runtime.raw_array_map(repl.runtime.makeFunction(function(val) {
-             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
-          }, "spy-to-repr"), vals);
-        }, function(rendered) {
+          return repl.runtime.safeCall(function() {
+            return repl.runtime.toReprJS(message, repl.runtime.ReprMethods._tostring);
+          }, function(message) {
+            return repl.runtime.safeCall(function() {
+              return repl.runtime.raw_array_map(repl.runtime.makeFunction(function(val) {
+                 return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+              }, "spy-to-repr"), vals);
+            }, function(rendered) {
+              return {
+                message: message,
+                rendered: rendered
+              }
+            });
+          });
+        }, function(spyInfo) {
+          var message = spyInfo.message;
+          var rendered = spyInfo.rendered
           // Note: renderedLocs is one element shorter than rendered
           var renderedLocs = locs.map(repl.runtime.makeSrcloc);
           var spyBlock = $("<div>").addClass("spy-block");
           spyBlock.append($("<img>").addClass("spyglass").attr("src", "/img/spyglass.gif"));
-          if (rendered[0] !== "\"\"") {
-            spyBlock.append($("<div>").addClass("spy-title").append(rendered[0]));
+          if (message !== "") {
+            spyBlock.append($("<div>").addClass("spy-title").append(message));
           }
 
           var table = $("<table>");
@@ -483,7 +496,7 @@
               */
             }
             row.append($("<td>").append(name).append(":"));
-            row.append($("<td>").append(rendered[i + 1]));
+            row.append($("<td>").append(rendered[i]));
           }
           $(output).append(spyBlock);
           return repl.runtime.nothing;
