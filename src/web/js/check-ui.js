@@ -530,8 +530,8 @@
               testsPassedSkeletons[i].vivify();
             checkResultsContainer.classList.add("check-results-done-rendering");
             return runtime.nothing;
-          });
-        });
+          }, "drawCheckResults:vivifySkeleton:failures");
+        }, "drawCheckResults:vivifySkeleton:errors");
     }
 
     return runtime.makeJSModuleReturn({

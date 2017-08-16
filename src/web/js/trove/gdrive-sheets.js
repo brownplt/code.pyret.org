@@ -98,7 +98,7 @@
       }
       return runtime.safeCall(doLoadWorksheet, function(thunk) {
         return thunk();
-      });
+      }, "gdrive-sheets:loadWorksheet:doLoadWorksheet");
     }
 
     function deleteWorksheet(deleter) {
@@ -143,7 +143,7 @@
       }
       return runtime.safeCall(doAdd, function(thunk) {
         return thunk();
-      });
+      }, "gdrive-sheets:addWorksheet:doAdd");
     }
 
     function worksheetToTable(ws, colNames) {
@@ -249,12 +249,12 @@
                   }, function(result) {
                     outData[i][curIdx] = result;
                     return runtime.nothing;
-                  });
+                  }, "gdrive-sheets:worksheetToTable:constructCell");
                 }), 0, width);
               }), 0, data.length);
             }, function(_) {
               return table.makeTable(colNames, outData);
-            });
+            }, "gdrive-sheets:worksheetToTable:constructValues");
           };
         }
       });
@@ -397,13 +397,13 @@
                   }, function(result) {
                     outData[i][curIdx] = result;
                     return runtime.nothing;
-                  });
+                  }, "gdrive-sheets:worksheetToLoadedTable:constructCell");
                 }), 0, width)
               }), 0, data.length);
             },
             function(_) {
               return runtime.makeLoadedTable(fullySanitized, outData);
-            });
+            }, "gdrive-sheets:worksheetToLoadedTable:constructValues");
           }
         }
       });

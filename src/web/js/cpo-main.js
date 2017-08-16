@@ -260,7 +260,7 @@
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
-                  });
+                  }, "restart-interactions:make-definitions-locator");
               }, function(result) {
                 ret.resolve(result);
               });
@@ -279,7 +279,7 @@
                   },
                   function(locator) {
                     return gf(repl, "run-interaction").app(locator);
-                  });
+                  }, "run:make-interaction-locator");
               }, function(result) {
                 ret.resolve(result);
               }, "make-interaction-locator");

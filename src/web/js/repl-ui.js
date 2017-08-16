@@ -435,8 +435,8 @@
                 message: message,
                 rendered: rendered
               }
-            });
-          });
+            }, "CPO-onSpy-render-values");
+          }, "CPO-onSpy-render-message");
         }, function(spyInfo) {
           var message = spyInfo.message;
           var rendered = spyInfo.rendered

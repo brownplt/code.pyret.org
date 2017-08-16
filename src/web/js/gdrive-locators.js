@@ -96,7 +96,7 @@ define("cpo/gdrive-locators", [], function() {
               return runtime.safeTail(function() {
                 return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
               });
-            });
+            }, "mygdrive-locator:get-dependencies");
           }
 
           function getProvides(self) {
@@ -106,7 +106,7 @@ define("cpo/gdrive-locators", [], function() {
               return runtime.safeTail(function() {
                 return gmf(compileLib, "get-provides").app(mod, uri);
               });
-            });
+            }, "mygdrive-locator:get-provides");
           }
 
           function getExtraImports(self) {
@@ -153,7 +153,7 @@ define("cpo/gdrive-locators", [], function() {
                 return runtime.safeTail(function() {
                   return rec.app(otherstr, uri);
                 })
-              });
+              }, "mygdrive-locator:_equals");
             }),
             "set-compiled": m2(setCompiled),
             "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
@@ -220,7 +220,7 @@ define("cpo/gdrive-locators", [], function() {
               }, function(ret) {
                 ast = gmf(compileLib, "pyret-ast").app(ret);
                 return ast; 
-              });
+              }, "sharedgdrive-locator:parse-contents");
             }
           }
 
@@ -231,7 +231,7 @@ define("cpo/gdrive-locators", [], function() {
               return runtime.safeTail(function() {
                 return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
               });
-            });
+            }, "sharedgdrive-locator:get-dependencies");
           }
 
           function getProvides(self) {
@@ -241,7 +241,7 @@ define("cpo/gdrive-locators", [], function() {
               return runtime.safeTail(function() {
                 return gmf(compileLib, "get-provides").app(mod, uri);
               });
-            });
+            }, "sharedgdrive-locator:get-provides");
           }
 
           function getExtraImports(self) {
@@ -287,7 +287,7 @@ define("cpo/gdrive-locators", [], function() {
                 return runtime.safeTail(function() {
                   return rec.app(otherstr, uri);
                 })
-              });
+              }, "sharedgdrive-locator:_equals");
             }),
             "set-compiled": m2(setCompiled),
             "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
@@ -343,7 +343,7 @@ define("cpo/gdrive-locators", [], function() {
               filename);
           }, function(locator) {
             restarter.resume(locator);
-          });
+          }, "gdrivejs-locator:make-locator");
         });
       });
 
@@ -465,7 +465,7 @@ define("cpo/gdrive-locators", [], function() {
                 return runtime.safeTail(function() {
                   return rec.app(otherstr, uri);
                 })
-              });
+              }, "gdrivejs-locator:_equals");
             }),
             "set-compiled": m2(setCompiled),
             "get-compiled": m1(function() {

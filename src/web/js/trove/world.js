@@ -105,7 +105,7 @@
             return bigBang(init, handlersArray, tracer);
           }, function(newVal) {
             return makeReactorRaw(newVal, handlersArray, tracing, trace.concat(thisInteractTrace));
-          });
+          }, "interact");
         }),
         "start-trace": runtime.makeMethod0(function(self) {
           return makeReactorRaw(init, handlersArray, true, []);
@@ -133,7 +133,7 @@
                   newTrace = trace.concat([result]);
                 }
                 return makeReactorRaw(result, handlersArray, tracing, newTrace);
-              });
+              }, "react:on-tick");
             }
           }
           else {
@@ -539,7 +539,7 @@
           textNode.text(str);
           success([toplevelNode,
                    rawJsworld.node_to_tree(textNode[0])]);
-        });
+        }, "default-drawing:toRepr");
       };
       var cssFunction = function(w, success) { success([]); }
       return rawJsworld.on_draw(worldFunction, cssFunction);
