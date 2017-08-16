@@ -3,8 +3,6 @@
     { "import-type": "builtin",
       name: "parse-pyret" },
     { "import-type": "builtin",
-      name: "ast" },
-    { "import-type": "builtin",
       name: "error-display" },
     { "import-type": "builtin",
       name: "srcloc" },
@@ -18,12 +16,11 @@
     "pyret-base/js/runtime-util",
     "pyret-base/js/js-numbers"
   ],
-  theModule: function(runtime, _, uri, parsePyret, ast, errordisplayLib, srclocLib, image, loadLib, util, jsnums) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, loadLib, util, jsnums) {
 
     srcloc = runtime.getField(srclocLib, "values");
     ED = runtime.getField(errordisplayLib, "values");
     PP = runtime.getField(parsePyret, "values");
-    AST = runtime.getField(ast, "values");
 
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
@@ -467,40 +464,55 @@
         "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
             if(!documents.has(filename)) return runtime.ffi.makeNone();
             let source = documents.get(filename).getValue()
-            // Helper function. MUST NOT BE CALLED ON PYRET STACK.
-            function callDeferred(runtime, thunk) {
+
+            // MUST NOT BE CALLED ON PYRET STACK.
+            function parse(source, filename) {
               var ret = Q.defer();
-              runtime.runThunk(
-                thunk,
-                function (result) {
-                  if (runtime.isSuccessResult(result)) {
-                    ret.resolve(result.result);
-                  } else {
-                    console.error(result.exn);
-                    ret.reject(result.exn);
-                  }
-                });
+              runtime.runThunk(function() {
+                return runtime.getField(PP, "surface-parse").app(source, filename);
+              }, function (result) {
+                if (runtime.isSuccessResult(result)) {
+                  ret.resolve(result.result);
+                } else {
+                  console.error(result.exn);
+                  ret.reject(result.exn);
+                }
+              });
               return ret.promise;
             }
 
-            // RETURNED FUNCTION MUST BE CALLED IN THE CONTEXT OF THE PYRET STACK
-            function applyFunction(runtime, module, name, args) {
-              return runtime.
-                safeThen(function() {
-                  return runtime.getField(module, name);
-                }, applyFunction).then(function(fun) {
-                  return fun.app.apply(fun, args);
-                }).start;
-            }
-
-            function parse(source, filename) {
-              return callDeferred(runtime,
-                      applyFunction(runtime, PP, "surface-parse", [source, filename]));
-            }
-
             function search(ast) {
-              return callDeferred(runtime,
-                      applyFunction(runtime, AST, "search-for-loc", [loc, ast]))
+              var todo = [ast];
+              while (todo.length > 0) {
+                var first = todo.pop();
+                if (runtime.hasField(first, "l")) {
+                  // not every AST item has an "l" field (eg. s-global, s-type-global, s-base)
+                  var l = runtime.getField(first, "l");
+                  if (runtime.equal_always(l, loc)) { // stack-safe because srclocs are flat data
+                    return runtime.ffi.makeSome(first);
+                  }
+                  // NOTE(Ben): We can't optimize and ignore a node based on whether the target
+                  // srcloc is not contained in this loc, because there are some cases where the tree
+                  // of srclocs induced by the AST is not well-nested (e.g. woven contracts could
+                  // deliberately come from outside the srcloc of the function; or bugs in parse-pyret
+                  // might accidentally  produce ill-nested srclocs)
+                }
+                if (runtime.ffi.isLink(first)) {
+                  // Minor optimization: push rest then first, so that our todo list stays short
+                  todo.push(runtime.getField(first, "rest"));
+                  todo.push(runtime.getField(first, "first"));
+                } else {
+                  var fields = runtime.getFields(first);
+                  for (var i = 0; i < fields.length; i++) {
+                    if (fields[i] === "l") continue;
+                    var val = runtime.getField(first, fields[i]);
+                    if (runtime.isObject(val)) {
+                      todo.push(val);
+                    }
+                  }
+                }
+              }
+              return runtime.ffi.makeNone();
             }
 
             return runtime.pauseStack(function(restarter) {
