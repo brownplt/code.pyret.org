@@ -231,7 +231,7 @@ libpyret:
 $(BUNDLED_DEPS): src/scripts/npm-dependencies.js
 	node_modules/.bin/browserify src/scripts/npm-dependencies.js -o $(BUNDLED_DEPS)
 
-$(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA) $(BUNDLED_DEPS)
+$(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
 	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
