@@ -7,6 +7,8 @@
     { "import-type": "builtin",
       name: "srcloc" },
     { "import-type": "builtin",
+      name: "ast" },
+    { "import-type": "builtin",
       name: "image-lib" },
     { "import-type": "builtin",
       name: "load-lib" }
@@ -16,11 +18,13 @@
     "pyret-base/js/runtime-util",
     "pyret-base/js/js-numbers"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, loadLib, util, jsnums) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, image, loadLib, util, jsnums) {
 
-    srcloc = runtime.getField(srclocLib, "values");
-    ED = runtime.getField(errordisplayLib, "values");
-    PP = runtime.getField(parsePyret, "values");
+    var srcloc = runtime.getField(srclocLib, "values");
+    var isSrcloc = runtime.getField(srcloc, "is-Srcloc");
+    var AST = runtime.getField(astLib, "values");
+    var ED = runtime.getField(errordisplayLib, "values");
+    var PP = runtime.getField(parsePyret, "values");
 
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
@@ -172,7 +176,7 @@
       };
 
       Position.fromPyretSrcloc = function (runtime, srcloc, loc, documents, options) {
-        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+        return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
           "builtin": function(_) {
              throw new Error("Cannot get Position from builtin location", loc);
           },
@@ -439,7 +443,7 @@
 
     function makeSrclocAvaliable(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
-        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+        return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
           "builtin": function(_) {
             console.error("srclocAvaliable should not be passed a builtin source location.", loc);
             return runtime.pyretFalse;
@@ -456,7 +460,7 @@
     }
 
     function maybeParse(runtime, documents, loc) {
-      return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+      return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
         "builtin": function(_) {
             console.error("maybeLocToAST should not be passed a builtin source location.", loc);
             return runtime.ffi.makeNone();
@@ -481,21 +485,36 @@
               return ret.promise;
             }
 
+            var isSBlock = runtime.getField(AST, "is-s-block");
+            function ignorable(ast) {
+              // This function deliberately ignores some types of AST nodes that shouldn't
+              // be reported to the user.
+              // Currently, the only such exception is s-block nodes, which are implicitly
+              // added by the parser but don't represent any code the user explcitly wrote
+              return isSBlock.app(ast);
+            }
+
             function search(ast) {
+              // CONTRACT: This ast input must result from the parser directly, and not be the result
+              // of desugaring.  It assumes that the source locations in the ast are well-nested:
+              // if one node's srcloc is within another node's srcloc, then the former node must be a
+              // descendant of the latter.  This allows us to prune the search tree.
               var todo = [ast];
+              var ans = undefined;
               while (todo.length > 0) {
                 var first = todo.pop();
                 if (runtime.hasField(first, "l")) {
                   // not every AST item has an "l" field (eg. s-global, s-type-global, s-base)
                   var l = runtime.getField(first, "l");
-                  if (runtime.equal_always(l, loc)) { // stack-safe because srclocs are flat data
-                    return runtime.ffi.makeSome(first);
+                  if (isSrcloc.app(l)) { // just extra checking; should be unnecessary
+                    if (runtime.equal_always(l, loc)) { // stack-safe because srclocs are flat data
+                      if (!ignorable(first)) {
+                        return runtime.ffi.makeSome(first);
+                      }
+                    } else if (!runtime.getField(l, "contains").app(loc)) {
+                      continue;                       // ASSUMES that srclocs are well-nested
+                    }
                   }
-                  // NOTE(Ben): We can't optimize and ignore a node based on whether the target
-                  // srcloc is not contained in this loc, because there are some cases where the tree
-                  // of srclocs induced by the AST is not well-nested (e.g. woven contracts could
-                  // deliberately come from outside the srcloc of the function; or bugs in parse-pyret
-                  // might accidentally  produce ill-nested srclocs)
                 }
                 if (runtime.ffi.isLink(first)) {
                   // Minor optimization: push rest then first, so that our todo list stays short
