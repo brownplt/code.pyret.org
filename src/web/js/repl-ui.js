@@ -165,9 +165,8 @@
                       didError = true;
                       // `renderAndDisplayError` must be called in the context of the pyret stack.
                       // this application runs in the context of the above `rr.runThunk`.
-                      var richStack = get(loadLib, "internal")
-                          .enrichStack(runResult.exn, get(loadLib, "internal").getModuleResultProgram(runResult)); 
-                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, richStack, true, runResult);
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn,
+                                                   runResult.exn.pyretStack, true, runResult);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
