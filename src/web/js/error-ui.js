@@ -132,6 +132,7 @@
     // to `render-reason` | `reason_to_html`, with fallback
     // to internal error
     // MUST NOT BE CALLED ON PYRET STACK
+    // Assumes the stack has already been enriched, if necessary
     function error_to_html(runtime, documents, error, stack, result) {
 
       var id = logger.guid();

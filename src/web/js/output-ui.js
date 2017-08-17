@@ -852,9 +852,9 @@
           "embed": function(val) {
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
-              e.pyretStack = runtime.getField(loadLib, "internal")
+              var richStack = runtime.getField(loadLib, "internal")
                 .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultProgram(result));
-              var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, e.pyretStack);
+              var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, richStack);
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);
               var container = $("<div>").addClass("compile-error");
@@ -866,14 +866,14 @@
                     maybeLocToAST);
                 }, function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
-                    var highlightLoc = getLastUserLocation(runtime, srcloc, documents, e.pyretStack,
+                    var highlightLoc = getLastUserLocation(runtime, srcloc, documents, richStack,
                                                            e.exn.$name == "arity-mismatch" ? 1
                                                            : 0, true);
                     runtime.runThunk(function() {
                       return runtime.safeCall(function() {
                         return null;
                       }, function(_) {
-                        return help(errorDisp.result, e.pyretStack);
+                        return help(errorDisp.result, richStack);
                       }, "highlightSrcloc, then help");
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
@@ -882,7 +882,7 @@
                           container = $("<div>").append(container);
                         }
                         container.addClass("compile-error");
-                        container.append(renderStackTrace(runtime,documents, srcloc, e.pyretStack));
+                        container.append(renderStackTrace(runtime,documents, srcloc, richStack));
                         restarter.resume(container);
                       } else {
                         container.add($("<span>").addClass("output-failed")

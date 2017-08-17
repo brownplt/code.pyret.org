@@ -88,7 +88,7 @@
         // because of this call to `pauseStack`
         return runtime.pauseStack(function (restarter) {
           // error_to_html must not be called on the pyret stack
-          return error_to_html(runtime, CPO.documents, error, stack, result).
+          return error_to_html(runtime, CPO.documents, error, stack, result). 
             then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");
@@ -165,7 +165,9 @@
                       didError = true;
                       // `renderAndDisplayError` must be called in the context of the pyret stack.
                       // this application runs in the context of the above `rr.runThunk`.
-                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
+                      var richStack = get(loadLib, "internal")
+                          .enrichStack(runResult.exn, get(loadLib, "internal").getModuleResultProgram(runResult)); 
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, richStack, true, runResult);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -180,9 +182,10 @@
             didError = true;
             // `renderAndDisplayError` must be called in the context of the pyret stack.
             // this application runs in the context of `callingRuntime.runThunk`
-            return renderAndDisplayError(callingRuntime, CPO.documents,
-              ffi.throwInternalError("Got something other than a Pyret result when running the program.",
-                ffi.makeList(result)));
+            return renderAndDisplayError(
+              callingRuntime, 
+              ffi.InternalError("Got something other than a Pyret result when running the program.",
+                                ffi.makeList(result)));
           }
         }, function(_) {
           if (didError) {

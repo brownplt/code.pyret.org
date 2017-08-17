@@ -324,8 +324,10 @@
             });
             this.renderable = error.exn;
             container.appendChild(tombstone);
-            this.maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, error.pyretStack);
-            this.pyretStack = error.pyretStack;
+            var richStack = get(loadLib, "internal")
+              .enrichStack(error, get(loadLib, "internal").getModuleResultProgram(result)); 
+            this.maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, richStack);
+            this.pyretStack = richStack;
           }
 
           header.addEventListener("click", function (e) {
@@ -531,6 +533,7 @@
       function vivifySkeleton(skeleton) {
         var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
+          // the skeleton's pyretStack must already be enriched
           return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack, result).
             then(function(html) {
               skeleton.vivify(html);
