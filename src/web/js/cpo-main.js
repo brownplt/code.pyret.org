@@ -56,6 +56,8 @@
                       rtLib) {
 
 
+    var currentPredicate = undefined;
+    var currentAnswerCallback = undefined;
 
     var replContainer = $("<div>").addClass("repl");
     $("#REPL").append(replContainer);
@@ -235,6 +237,53 @@
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
 
+    function getInnerResultFromReplResult(result) {
+      if(runtime.isFailureResult(result)) {
+        return null;
+      }
+      else {
+        return runtime.ffi.cases(runtime.ffi.isEither, "is-Either", result.result, {
+          left: function(errors) { return null; },
+          right: function(v) {
+            var runResult = runtime.getField(loadLib, "internal").getModuleResultResult(v);
+            return runResult;
+          }
+        });
+      }
+
+    }
+
+    // Returns null if the value isn't found, or a Pyret value
+    // defined in the result if found
+    // Maybe add more information 
+    function getDefinedValueFromReplResult(result, name) {
+      var runResult = getInnerResultFromReplResult(result);
+      if(runtime.isSuccessResult(runResult)) {
+        var defined = runtime.getField(runResult.result, "defined-values");
+        if(name in defined) {
+          return defined[name];
+        }
+        else {
+          return null;
+        }
+      }
+      else {
+        return null;
+      }
+    }
+
+    function getAnswerFromReplResult(result) {
+      var runResult = getInnerResultFromReplResult(result);
+      if(runtime.isSuccessResult(runResult)) {
+        var answer = runtime.getField(runResult.result, "answer");
+        return answer;
+      }
+      else {
+        return null;
+      }
+    }
+
+    var interactionCount = 0;
     var replP = Q.defer();
     return runtime.safeCall(function() {
         return gmf(cpo, "make-repl").app(
@@ -291,8 +340,42 @@
                     return gf(repl, "run-interaction").app(locator);
                   }, "run:make-interaction-locator");
               }, function(result) {
+                if(typeof currentPredicate === "string") {
+                  var predName = "___check-answer___" + interactionCount++;
 
-                ret.resolve(result);
+                  runtime.runThunk(function() {
+                    return runtime.safeCall(
+                      function() {
+                        return gf(repl,
+                        "make-interaction-locator").app(
+                          runtime.makeFunction(function() { return predName + " = " + currentPredicate; }))
+                      },
+                      function(locator) {
+                        return gf(repl, "run-interaction").app(locator);
+                      }, "run:make-interaction-locator");
+                  },
+                  function(predResult) {
+                    var checkAnswerPyretFun = getDefinedValueFromReplResult(predResult, predName);
+                    runtime.runThunk(function() {
+                      var answer = getAnswerFromReplResult(result);
+                      if(answer === null) {
+                        return "There was no answer";
+                      }
+                      return checkAnswerPyretFun.app(answer);
+                    },
+                    function(checkedResult) {
+                      currentAnswerCallback(checkedResult.result);
+                      ret.resolve(result);
+                    });
+                  });
+
+                } 
+                else {
+                  ret.resolve(result);
+                }
+
+                // use currentPredicate and answerCallback to do stuff
+
               }, "make-interaction-locator");
             }, 0);
             return ret.promise;
@@ -773,17 +856,19 @@
         title: "Select a Pyret file to use"
       });
 
-      var currentPredicate = undefined;
-      var answerCallback = undefined;
-
       return runtime.makeModuleReturn({
         repl: runtime.makeOpaque(repl)
       }, {}, {
+        // pred is a string that should evaluate to a Pyret
+        // function of one argument
         setPredicate: function(pred) {
-
+          currentPredicate = pred;
         },
+        // callback is a JavaScript function that consumes
+        // results produced by functions created by pred
+        // (e.g. Option<FeedbackString>)
         setAnswerCallback: function(callback) {
-
+          currentAnswerCallback = callback;
         }
       });
     }
