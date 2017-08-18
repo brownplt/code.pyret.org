@@ -1,8 +1,16 @@
 ({
-  requires: [],
+  requires: [
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./cpo-main"]
+    }
+  ],
   nativeRequires: [],
   provides: {},
-  theModule: function(runtime, _, uri) {
+  theModule: function(runtime, _, uri, cpo) {
+
+    console.log("CPO is: ", cpo);
+    
 
     var stepWindow = $("#instruction");
 
@@ -244,9 +252,8 @@
       }
     });
 
-   return runtime.makeJSModuleReturn(
-     {foo: 5,
-      checkAnswer: checkAnswer,
-      afterRun: afterRun});
+   return runtime.makeModuleReturn({
+     repl: runtime.getField(cpo, "repl")
+   }, {}, { });
   }
 })

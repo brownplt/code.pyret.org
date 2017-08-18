@@ -291,6 +291,7 @@
                     return gf(repl, "run-interaction").app(locator);
                   }, "run:make-interaction-locator");
               }, function(result) {
+
                 ret.resolve(result);
               }, "make-interaction-locator");
             }, 0);
@@ -772,9 +773,19 @@
         title: "Select a Pyret file to use"
       });
 
+      var currentPredicate = undefined;
+      var answerCallback = undefined;
+
       return runtime.makeModuleReturn({
         repl: runtime.makeOpaque(repl)
-      }, {});
+      }, {}, {
+        setPredicate: function(pred) {
+
+        },
+        setAnswerCallback: function(callback) {
+
+        }
+      });
     }
   }
 })

@@ -1,5 +1,5 @@
 provide *
 
-import js-file("../js/cpo-main") as T
+import js-file("../js/scroll") as S
 
-repl = T.repl
+repl = S.repl
