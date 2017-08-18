@@ -2,10 +2,6 @@
   requires: [
     { "import-type": "dependency",
       protocol: "js-file",
-      args: ["./scroll"]
-    },
-    { "import-type": "dependency",
-      protocol: "js-file",
       args: ["./check-ui"]
     },
     { "import-type": "dependency",
@@ -27,12 +23,16 @@
     "pyret-base/js/runtime-util"
   ],
   provides: {},
-  theModule: function(runtime, _, uri, scrollPage,
+  theModule: function(runtime, _, uri,
                       checkUI, outputUI, errorUI,
                       worldLib, loadLib,
                       util) {
     var ffi = runtime.ffi;
 
+    var output = jQuery("<div id='output' class='cm-s-default'>");
+    var outputPending = jQuery("<span>").text("Gathering results...");
+    var outputPendingHidden = true;
+    
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -74,16 +74,21 @@
          50
       );
     }
-
-
+    
+    // the result of applying `displayResult` is a function that MUST
+    // NOT BE CALLED ON THE PYRET STACK.
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
-      function renderAndDisplayError(runtime, error, stack, click) {
+      // MUST BE CALLED ON THE PYRET STACK
+      function renderAndDisplayError(runtime, error, stack, click, result) {
         var error_to_html = errorUI.error_to_html;
+        // `renderAndDisplayError` must be called on the pyret stack
+        // because of this call to `pauseStack`
         return runtime.pauseStack(function (restarter) {
-          return error_to_html(runtime, CPO.documents, error, stack).
+          // error_to_html must not be called on the pyret stack
+          return error_to_html(runtime, CPO.documents, error, stack, result). 
             then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");
@@ -96,19 +101,25 @@
         });
       }
 
+      // this function must NOT be called on the pyret stack
       return function(result) {
         var doneDisplay = Q.defer();
         var didError = false;
+        // Start a new pyret stack.
+        // this returned function must not be called on the pyret stack
+        // b/c `callingRuntime.runThunk` must not be called on the pyret stack
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
-            renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true);
+            // `renderAndDisplayError` must be called on the pyret stack
+            // this application runs in the context of the above `callingRuntime.runThunk`
+            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
-            ffi.cases(ffi.isEither, "is-Either", result, {
+            return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
                 didError = true;
@@ -119,26 +130,32 @@
                         ffi.toArray(runtime.getField(error, "problems")));
                       return errors;
                     }, []);
+                // `safeCall` must be called on the pyret stack
+                // this application runs in the context of the above `callingRuntime.runThunk`
                 return callingRuntime.safeCall(
                   function() {
+                    // eachLoop must be called in the context of the pyret stack
+                    // this application runs in the context of the above `callingRuntime.runThunk`
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
-                      return renderAndDisplayError(callingRuntime, errors[i]);
+                      // `renderAndDisplayError` must be called in the context of the
+                      // pyret stack.
+                      return renderAndDisplayError(callingRuntime, errors[i], [], true, result);
                     }), 0, errors.length);
-                  }, function () {});
+                  }, function (result) { return result; }, "renderMultipleErrors");
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
                 // to use if we have separate compile/run runtimes.  I think
                 // that loadLib will be instantiated with callingRuntime, and
                 // I think that's correct.
-                callingRuntime.pauseStack(function(restarter) {
+                return callingRuntime.pauseStack(function(restarter) {
                   rr.runThunk(function() {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, CPO.documents, rr,
-                                                        runtime.getField(runResult.result, "checks"));
+                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                                                        runtime.getField(runResult.result, "checks"), v);
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;
@@ -146,7 +163,10 @@
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
-                      return renderAndDisplayError(resultRuntime, runResult.exn.exn, runResult.exn.pyretStack, true);
+                      // `renderAndDisplayError` must be called in the context of the pyret stack.
+                      // this application runs in the context of the above `rr.runThunk`.
+                      return renderAndDisplayError(resultRuntime, runResult.exn.exn,
+                                                   runResult.exn.pyretStack, true, runResult);
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -159,9 +179,12 @@
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
-            return renderAndDisplayError(callingRuntime, CPO.documents,
-              ffi.throwInternalError("Got something other than a Pyret result when running the program.",
-                ffi.makeList(result)));
+            // `renderAndDisplayError` must be called in the context of the pyret stack.
+            // this application runs in the context of `callingRuntime.runThunk`
+            return renderAndDisplayError(
+              callingRuntime, 
+              ffi.InternalError("Got something other than a Pyret result when running the program.",
+                                ffi.makeList(result)));
           }
         }, function(_) {
           if (didError) {
@@ -232,9 +255,6 @@
         }
       });
 
-      var output = jQuery("<div id='output' class='cm-s-default'>");
-      var outputPending = jQuery("<span>").text("Gathering results...");
-      var outputPendingHidden = true;
       function maybeShowOutputPending() {
         outputPendingHidden = false;
         setTimeout(function() {
@@ -373,7 +393,7 @@
       repl.runtime.setParam("onTrace", function(loc, val, url) {
         if (repl.runtime.getParam("currentMainURL") !== url) { return { "onTrace": "didn't match" }; }
         if (repl.runtime.isNothing(val)) { return { "onTrace": "was nothing" }; }
-        repl.runtime.pauseStack(function(restarter) {
+        return repl.runtime.pauseStack(function(restarter) {
           repl.runtime.runThunk(function() {
             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
           }, function(container) {
@@ -394,6 +414,96 @@
             restarter.resume(val);
           });
         });
+      });
+
+      repl.runtime.setParam("onSpy", function(loc, message, locs, names, vals) {
+        return repl.runtime.safeCall(function() {
+          /*
+          var toBeRepred = [];
+          for (var i = 0; i < names.length; i++)
+            toBeRepred.push({name: names[i], val: vals[i]});
+          toBeRepred.push({name: "Message", val: message, method: repl.runtime.ReprMethods._tostring});
+          */
+          // Push this afterward, to keep rendered aligned with renderedLocs below
+          vals = [message].concat(vals);
+          return repl.runtime.safeCall(function() {
+            return repl.runtime.toReprJS(message, repl.runtime.ReprMethods._tostring);
+          }, function(message) {
+            return repl.runtime.safeCall(function() {
+              return repl.runtime.raw_array_map(repl.runtime.makeFunction(function(val) {
+                 return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+              }, "spy-to-repr"), vals);
+            }, function(rendered) {
+              return {
+                message: message,
+                rendered: rendered
+              }
+            }, "CPO-onSpy-render-values");
+          }, "CPO-onSpy-render-message");
+        }, function(spyInfo) {
+          var message = spyInfo.message;
+          var rendered = spyInfo.rendered
+          // Note: renderedLocs is one element shorter than rendered
+          var renderedLocs = locs.map(repl.runtime.makeSrcloc);
+          var spyBlock = $("<div>").addClass("spy-block");
+          spyBlock.append($("<img>").addClass("spyglass").attr("src", "/img/spyglass.gif"));
+          if (message !== "") {
+            spyBlock.append($("<div>").addClass("spy-title").append(message));
+          }
+
+          var table = $("<table>");
+          table
+            .append($("<th>")
+                    .append($("<tr>")
+                            .append($("<td>").text("Name"))
+                            .append($("<td>").text("Value"))));
+          spyBlock.append(table);
+          var palette = outputUI.makePalette();
+          function color(i) {
+            return outputUI.hueToRGB(palette(i));
+          }
+          for (let i = 0; i < names.length; i++) {
+            let row = $("<tr>");
+            table.append(row);
+            let name = $("<a>").text(names[i]).addClass("highlight");
+            name.attr("title", "Click to scroll source location into view");
+            if (locs[i].length === 7) {
+              var pos = outputUI.Position.fromSrcArray(locs[i], CPO.documents, {});
+              name.hover((function(pos) {
+                  return function() {
+                    pos.hint();
+                    pos.blink(color(i));
+                  }
+                })(pos),
+                (function(pos) {
+                  return function() {
+                    outputUI.unhintLoc();
+                    pos.blink(undefined);
+                  };
+                })(pos));
+              name.on("click", (function(pos) {
+                return function() { pos.goto(); };
+              })(pos));
+              // TODO: this is ugly code, copied from output-ui because
+              // getting the right srcloc library is hard
+              let cmLoc = {
+                source: locs[i][0],
+                start: {line: locs[i][1] - 1, ch: locs[i][3]},
+                end: {line: locs[i][4] - 1, ch: locs[i][6]}
+              };
+              /*
+              name.on("click", function() {
+                outputUI.emphasizeLine(CPO.documents, cmLoc);
+                CPO.documents[cmLoc.source].scrollIntoView(cmLoc.start, 100);
+              });
+              */
+            }
+            row.append($("<td>").append(name).append(":"));
+            row.append($("<td>").append(rendered[i]));
+          }
+          $(output).append(spyBlock);
+          return repl.runtime.nothing;
+        }, "CPO-onSpy");
       });
 
       var runMainCode = function(src, uiOptions) {

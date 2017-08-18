@@ -1,3 +1,4 @@
+var FOLDER_MIME = "application/vnd.google-apps.folder";
 class GoogleAPI {
   /**
    *  Load the client library. Return a promise to allow .then() in caller
@@ -34,14 +35,14 @@ class GoogleAPI {
     return window.gapi.client.drive.files.create({
       resource: {
         'name' : appName,
-        'mimeType' : 'application/vnd.google-apps.folder'
+        'mimeType' : FOLDER_MIME
       }
     });
   }
 
   getAppFolderID = (appName) => {
     return window.gapi.client.drive.files.list({
-      q: 'not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
+      q: '("me" in owners) and not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '"'
     });
   }
 
@@ -56,6 +57,20 @@ class GoogleAPI {
       }
     };
     return window.gapi.client.request(reqOpts);
+  }
+
+  getRecentFilesByExtAndAppName = (appName, ext) => {
+    return this.getAppFolderID(appName)
+      .then((resp) => {
+        var files = resp.result.files;
+        if(files.length === 0) { return this.getRecentFilesByExt(ext); }
+        else {
+          return window.gapi.client.drive.files.list({
+            fields: "files(id, name)",
+            q: 'not trashed and (fileExtension="' + ext + '" or "' + files[0].id + '" in parents)',
+          });
+        }
+      })
   }
 
   /**
@@ -104,18 +119,32 @@ class GoogleAPI {
   }
 
   // Create and render a Google Picker object for selecting a file.
-  createPicker = (callback) => {
-    window.gapi.load('picker', function(){
-      window.picker = new window.google.picker.PickerBuilder()
-        .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
-        .setTitle("Select a Pyret document")
-        .addView(new window.google.picker.View(window.google.picker.ViewId.DOCS))
-        .setOAuthToken(window.gapi.auth.getToken().access_token)
-        .setCallback(callback)
-        .setOrigin(window.location.protocol + '//' + window.location.host)
-        .build();
+  createPicker = (appName, callback) => {
+    window.gapi.load('picker', () => {
+      this.getAppFolderID(appName).then((resp) => {
+        var driveView = new window.google.picker.DocsView(window.google.picker.ViewId.DOCS).setIncludeFolders(true);
+        if(resp.result.files.length !== 0) {
+          driveView.setParent(resp.result.files[0].id);
+        }
+        window.picker = new window.google.picker.PickerBuilder()
+          .setTitle("Select a Pyret document")
+          .addView(driveView)
+          .setOAuthToken(window.gapi.auth.getToken().access_token)
+          .setCallback(callback)
+          .setOrigin(window.location.protocol + '//' + window.location.host)
+          .build();
 
-      window.picker.setVisible(true);
+        window.picker.setVisible(true);
+      })
+    });
+  }
+
+  getUsername = () => {
+    return gwrap.load({name: 'plus',
+      version: 'v1',
+    }).then((api) => {
+      console.log("Api: ", api);
+      return api.people.get({ userId: "me" });
     });
   }
 }

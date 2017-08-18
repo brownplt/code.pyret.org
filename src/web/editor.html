@@ -31,12 +31,18 @@
     <div id="docs"><a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}/">Documentation</a></div>
     <div class="loginOnly" id="drive-view"><a target="_blank" href="javascript:void(0)">View Files in Drive</a></div>
     <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
-    <div id="issues"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
-    <div id="discuss"><a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a></div>
+    <div id="issues" class="menuButton">
+      <a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
+    </div>
+    <div id="discuss" class="menuButton">
+      <a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+    </div>
     <div id="logging">
-      <input id="detailed-logging" type="checkbox"/>
-      <label for="detailed-logging">Contribute detailed usage information.</label>
-      <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+      <span>
+        <input id="detailed-logging" type="checkbox"/>
+        <label for="detailed-logging">Contribute detailed usage information.</label>
+        <a href="https://www.pyret.org/cpo-faq#(part._logging)" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+      </span>
     </div>
     <div id="logout"><a href="/logout">Log out</a></div>
   </div> -->
@@ -64,21 +70,9 @@
 <div id="promptModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Select Import Style</h3>
+      <h3></h3>
     </div>
     <div class="modal-body">
-      <table id="choiceContainer">
-        <!--<tbody>
-          <tr>
-            <td class="pyret-modal-option-radio">
-              <input id="r0" type="radio">
-            </td>
-            <td class="pyret-modal-option-message">
-              <label for="r0">Foo</label>
-            </td>
-          </tr>
-        </tbody>-->
-      </table>
     </div>
     <div class="modal-footer">
       <button class="submit blueButton">Submit</span>
@@ -116,9 +110,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="https://npmcdn.com/dexie@1.4.1/dist/dexie.min.js"></script>
-<script src="/js/loader.js"></script>
-<script src="/js/colorspaces.js"></script>
 <script src="/js/q.js"></script>
+<script src="/js/loader.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/foldcode.js"></script>
 <script src="/js/foldgutter.js"></script>
@@ -127,26 +120,7 @@
 <script src="/js/pyret-mode.js"></script>
 <script src="/js/pyret-fold.js"></script>
 <script src="/js/matchkw.js"></script>
-<script src="/js/draw.js"></script>
-<script src="/js/require.js"></script>
-<script>
-  window.module = {};
-</script>
-<script src="/js/s-expression-lib.js"></script>
-<script>
-var sexp_exports = window.module.exports;
-define("s-expression", [], function() {
-  return sexp_exports;
-});
-</script>
-<script src="/js/seedrandom.js"></script>
-<script>
-var seed_exports = window.module.exports;
-define("seedrandom", [], function() {
-  return seed_exports;
-});
-</script>
-<script>delete window.module;</script>
+
 <script src="/js/localSettings.js"></script>
 <script src="/js/log.js"></script>
 <script src="/js/share.js"></script>

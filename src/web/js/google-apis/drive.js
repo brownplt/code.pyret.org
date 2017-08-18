@@ -252,9 +252,10 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
   }
 
   function findOrCreateDirectory(name) {
+    var q = "('me' in owners) and trashed=false and title='" + name + "' and "+
+        "mimeType='" + FOLDER_MIME + "'";
     var filesReq = drive.files.list({
-      q: "trashed=false and title = '" + name + "' and "+
-        "mimeType = '" + FOLDER_MIME + "'"
+      q: q
     });
     var collection = filesReq.then(function(files) {
       if(files.items && files.items.length > 0) {

@@ -34,13 +34,13 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
 
 #header {
     height: 48pt;
-    padding: 0px 24pt;
+    padding-top: 1rem;
+    text-align: left;
     border-bottom: 2px solid #ddd;
 }
 
 .left, .right {
     display: inline;
-    line-height: 48pt;
 }
 
 .left {
@@ -61,6 +61,10 @@ body, html, p, h1, h2, h3, h4, button, input, div, i {
     float: none;
 }
 
+.clearfix {
+  clear: both;
+}
+
 button, .button {
     appearance: none;
     -webkit-appearance: none;
@@ -79,6 +83,43 @@ button:hover, .button:hover {
 #select-file {
     background: #CA3434;
     margin: 0px 16pt;
+}
+
+.start-button {
+    margin-right: 1rem;
+}
+
+.dashboard-logo {
+    height: 2rem;
+    float: left;
+    padding-right: 1rem;
+}
+
+.large-logo-container {
+  display: inline-block;
+}
+
+.large-logo-container img {
+    width: 10rem;
+}
+
+.main {
+  margin-top: 3rem;
+  width: 40%;
+  min-width: 30rem;
+}
+
+.main ul {
+  text-align: left;
+  list-style-type: none;
+}
+
+.main ul li {
+  margin-top: 1rem;
+}
+
+.header {
+  float: left;
 }
 
 .modal-wrap, #loading-spinner {
@@ -160,13 +201,17 @@ input.form {
 .file img {
     width: 35%;
     padding-bottom: 8pt;
-    filter: grayscale(100%);
-    -webkit-filter: grayscale(100%);
+    filter: grayscale(70%);
+    -webkit-filter: grayscale(70%);
     opacity: .4;
 }
 
 .file p {
     font-size: .85rem;
+}
+
+.person-text {
+  color: #666666;
 }
 
 .truncate {
@@ -178,6 +223,24 @@ input.form {
 
 .hidden {
     display: none;
+}
+
+.footer {
+  position: fixed;
+  width: 100%;
+  height: 1.5rem;
+  bottom: 0;
+  left: 0;
+  border-top: 1px solid #eee;
+  margin-left: 1em;
+}
+
+.footer p {
+  margin-right: 2rem;
+}
+
+.input-label {
+  padding-right: 0.5rem;
 }
 
 @media only screen and (min-width: 480px) {

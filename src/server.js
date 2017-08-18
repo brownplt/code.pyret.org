@@ -96,6 +96,9 @@ function start(config, onServerReady) {
   app.use(csrf());
 
   app.get("/close.html", function(_, res) { res.render("close.html"); });
+  app.get("/faq.html", function(_, res) { res.render("faq.html"); });
+  app.get("/privacy.html", function(_, res) { res.render("privacy.html"); });
+  app.get("/privacy/", function(_, res) { res.render("privacy.html"); });
 
   app.get("/faq", function(_, res) { res.render("faq.html"); });
 
@@ -315,6 +318,10 @@ function start(config, onServerReady) {
 
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
+  });
+
+  app.get("/source-map.js", function(req, res) {
+    res.sendfile("build/web/js/source-map.js");
   });
 
   app.get("/share", function(req, res) {

@@ -109,7 +109,7 @@ end
 save-protocols = [list: "my-gdrive", "shared-gdrive"]
 
 fun make-on-compile(save-gdrive-file):
-  on-compile = lam(locator, loadable) block:
+  on-compile = lam(locator, loadable, trace) block:
     locator.set-compiled(loadable, SD.make-mutable-string-dict())
     locuri = loadable.provides.from-uri
     cases(CS.CompileResult) loadable.result-printer:

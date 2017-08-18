@@ -1,4 +1,4 @@
-define(["pyret-base/js/type-util"], function(t) {
+define("cpo/cpo-builtin-modules", ["pyret-base/js/type-util"], function(t) {
   // Set via callback
   var staticModules = {};
   var savedRealm = {};
@@ -47,7 +47,7 @@ define(["pyret-base/js/type-util"], function(t) {
                     var expanded = t.expandType(dts[k], t.expandRecord(shorthands, {}));
                     return RUNTIME.makeObject({
                       name: k,
-                      typ: t.toPyret(RUNTIME, expanded)
+                      typ: t.toPyretType(RUNTIME, expanded)
                     });
                   });
                 }
@@ -71,7 +71,7 @@ define(["pyret-base/js/type-util"], function(t) {
 
                     return RUNTIME.makeObject({
                       name: k,
-                      typ: t.toPyret(RUNTIME, expanded)
+                      typ: t.toPyretType(RUNTIME, expanded)
                     });
                   });
                 }

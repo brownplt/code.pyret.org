@@ -1,3 +1,4 @@
+
 .CodeMirror, .inlineExample { border: 1px solid black; background: #f8f8f8; color: #eee; }
 .CodeMirror {
   font-size: 1em;
@@ -128,7 +129,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 div.trace {
-
+  overflow-x: auto;
 }
 div.trace.error {
    background-color: #fff6f2;
@@ -142,6 +143,63 @@ span.trace:after {
    content: ":";
 }
 
+div.spy-block {
+  font-family: sans-serif;
+  clear: both;
+  border: 1px solid #9DC5ED;
+  padding: 0.2em;
+  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  border-radius: 3px;
+  background: #CBDFF2;
+  margin: 6px;
+}
+
+div.spy-block > .spy-title {
+   display: block;
+   width: 100%;
+   border-bottom: 1px solid #9DC5ED;
+   margin-left: -3px;
+   margin-right: -3px;
+   padding-left: 3px;
+   padding-right: 3px;
+}
+
+div.spy-block > img.spyglass {
+   float: right;
+   width: 50px;
+   position: relative;
+   z-index: 1;
+}
+
+div.spy-block > table {
+   margin: 3px;
+   margin-bottom: 0px;
+   background: transparent;
+   overflow: scroll;
+}
+
+div.spy-block > table > tbody > tr {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid #9DC5ED;
+}
+
+div.spy-block > table > tbody > tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+div.spy-block > table > tbody > tr > td {
+    border-right:  1px solid #9DC5ED;
+}
+
+div.spy-block > table > tbody > tr > td:first-child {
+    vertical-align: middle;
+}
+
+div.spy-block > table > tbody > td {
+    border: 1px solid;
+}
+
+div.spy-block > table > th { display: none; }
 
 .test-reason:not(.highlights-active) .highlight {
   background: initial!important;
@@ -281,6 +339,7 @@ span.trace:after {
 }
 
 .check-block-summary {
+  display: block;
   font-style: italic;
 }
 
@@ -554,7 +613,14 @@ body {
   display: none;
 }
 
-#menuContents {
+#bonniemenuContents {
+  min-width: 200px;
+}
+#filemenuContents {
+  min-width: 200px;
+}
+
+.menuContents {
   background-color: #EFEFEF;
   border: none;
   box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
@@ -562,22 +628,32 @@ body {
   max-width: min-content;
 }
 
-#menuContents div:hover{
+.menuContents div:not(.disabled):not(.inert):hover{
   transition: box-shadow 0.2s;
   background-color: rgba(0,0,0,0.2);
 }
 
-#download *,
-#docs *,
-#issues *,
-#discuss *,
-#logout * {
+.menuContents div.disabled * {
+   color: gray;
+   cursor: default;
+}
+
+.menuButton *,
+.menuContents * {
   color: #000;
   font-family: sans-serif;
   text-decoration: none;
+}
+
+.menuButton > *, .menuContents > * {
   padding: 10px;
   display: block;
 }
+
+.menuContents > .menuButton * {
+  padding: initial;
+}
+
 
 .info-btn {
   display: inline-block;
@@ -603,6 +679,7 @@ div#font{
   border-left: 0px;
   border-right: 0px;
   background:rgba(0,0,0,0.05);
+  padding: 0px;
 }
 
 div#font:hover{
@@ -671,6 +748,14 @@ div#font-label:hover{
    margin-bottom: 0.2em;
 }
 
+.replOutput ul.collection > li.expanded > span.contents > .replOutput,
+.replOutput ul.inlineCollection > li.expanded > span.contents > .replOutput {
+   margin-top: 0em;
+   margin-bottom: 0em;
+}
+
+.replToggle > .hidden { display: none; }
+
 /* definition lists for objects */
 .replOutput.expanded > dl > .collapsed, .replOutput.expanded > .collapsed { display: none; }
 .replOutput:not(.expanded) > dl > .expanded:not(.replOutput),
@@ -685,7 +770,7 @@ div#font-label:hover{
    display: table;
    clear: both;
 }
-.replOutput > dl > dt:after {
+.replOutput > dl > dt.label:after {
    content: ":";
    padding-right: 0.5em;
 }
@@ -700,7 +785,6 @@ div#font-label:hover{
    float: left;
 }
 .replOutput > dl > dd:not(:last-of-type):after {
-   content: ",";
    padding-right: 0.5em;
 }
 
@@ -710,16 +794,11 @@ ul.collection > li {
    margin-left: 1em;
    clear: both;
 }
-ul.collection > li > span.label {
-   float: left;
-   clear: left;
-}
 ul.collection > li > span.label:before { padding-left: 0.5em; }
 ul.collection > li > span.label:after { content: ":"; padding-right: 0.5em; }
 ul.collection > li > span.label.expandable:before { content: "\025B8"; }
 ul.collection > li > span.contents {
    display: none;
-   float: left;
 }
 ul.collection > li.expanded > span.contents { display: inline; }
 ul.collection > li.expanded > span.label.expandable:before { content: "\025BE"; }
@@ -731,10 +810,6 @@ ul.inlineCollection {
 ul.inlineCollection > li {
   display: inline;
 }
-ul.inlineCollection > li:not(:last-of-type):after {
-  content: ", ";
-}
-ul.inlineCollection > li, ul.inlineCollection ul > li { display: inline; }
 ul.inlineCollection > li > span.label {
    display: none;
  }
@@ -840,11 +915,6 @@ span.rationalRepeat {
 
 a.highlight {
   color: #000 !important;
-}
-
-/* NOTE(joe): this stops output in the REPL from covering the divider */
-#output {
-  overflow-x:auto;
 }
 
 #output .highlight {
@@ -1022,7 +1092,6 @@ code div {
   background-size: contain;
   animation-duration: 0.4s;
   animation-timing-function: ease-in;
-  animation-iteration-count: infinite;
   animation-direction: alternate;
   opacity: 0;
   pointer-events: none;
@@ -1537,6 +1606,36 @@ table {
     background:#eee;;
 }
 
+table.choiceContainer {
+   border: 0px;
+   margin: 1em;
+}
+div.choiceContainer {
+   text-align: center;
+}
+div.choiceContainer input[type=text] {
+  padding: 0.5em;
+  font-size: 100%;
+}
+div.choiceContainer .textLabel {
+  margin-right: 1em;
+}
+div.choiceContainer > button {
+  margin: 1em;
+  cursor: pointer;
+  background-color: #317BCF;
+  border: none;
+  border-radius: 0px;
+  color: #fff;
+  text-align: center;
+  transition: box-shadow 0.2s;
+  font-size: 15px;
+  height: 100%;
+  padding: 0px 15px;
+  vertical-align: middle;
+  margin:0px 1px;
+}
+
 th {
     background: #ddd;
 }
@@ -1753,4 +1852,25 @@ tr:nth-child(even){background-color: #f2f2f2}
 .stale .compile-error.highlights-active,
 .stale .check-block-test.highlights-active {
   border-color: hsl(204, 40%, 74%);
+}
+
+
+.paintBrush {
+   height: 2.1em;
+   margin-right: -0.5em;
+   position: relative;
+   z-index: 2;
+}
+.paintBlob {
+   width: 2.5em;
+   height: 1.5em;
+   position: relative;
+   z-index: 1;
+   vertical-align: baseline;
+   display: inline-block;
+   -webkit-mask-image: url(/img/paint.svg);
+   mask-image: url(/img/paint.svg);
+   -webkit-mask-size: contain;
+   mask-size: 100% 100%;
+   mask-type: luminance;
 }

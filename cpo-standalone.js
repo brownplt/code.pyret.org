@@ -1,4 +1,4 @@
-require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, program, cpoBuiltinModules) {
+requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
 
   var staticModules = program.staticModules;
   var depMap = program.depMap;
@@ -14,6 +14,13 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
     stdout: function(s) { console.log(s); },
     stderr: function(s) { console.error(s); }
   });
+
+  // NOTE(joe): intentional, for debuggability
+  window.THE_RUNTIME = runtime;
+
+  // This stores the repl object with `run` and `restartInteractions` declared
+  // in and exported from cpo-main.js
+  var repl;
 
   var FIREFOX_GAS = 200;
   var OTHER_GAS = 1000;
@@ -185,10 +192,13 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
       var locList = runtime.ffi.makeList(locArray);
       return locList;
     };
+
+    repl = gf(gf(gf(answer, "provide-plus-types"), "values"), "repl").val;
+
     var getStackP = runtime.makeFunction(getStack);
     var toCall = runtime.getField(checker, "render-check-results-stack");
     var checks = runtime.getField(answer, "checks");
-    runtime.safeCall(function() {
+    return runtime.safeCall(function() {
       return toCall.app(checks, getStackP);
     }, function(printedCheckResult) {
       if(runtime.isString(printedCheckResult)) {
@@ -204,11 +214,12 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
       var rendererror = execRt.getField(rendererrorMod, "provide-plus-types");
       var gf = execRt.getField;
       var exnStack = res.exn.stack;
+      res.exn.pyretStack = stackLib.convertExceptionToPyretStackTrace(res.exn, program);
       var pyretStack = res.exn.pyretStack;
       execRt.runThunk(
         function() {
           if (execRt.isPyretVal(res.exn.exn) && execRt.hasField(res.exn.exn, "render-reason")) {
-            return execRt.getColonField(res.exn.exn, "render-reason");
+            return execRt.getColonField(res.exn.exn, "render-reason").full_meth(res.exn.exn);
           } else {
             return execRt.ffi.edEmbed(res.exn.exn);
           }
@@ -256,6 +267,14 @@ require(["pyret-base/js/runtime", "program", "cpo/cpo-builtin-modules"], functio
 
   function onComplete(result) {
     if(runtime.isSuccessResult(result)) {
+      // NOTE(joe): This forces the loading of all the built-in compiler libs
+      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
+      interactionsReady.fail(function(err) {
+        console.error("Couldn't start REPL: ", err);
+      });
+      interactionsReady.then(function(result) {
+        console.log("REPL ready.");
+      });
       //console.log("The program completed successfully");
       //console.log(result);
     }

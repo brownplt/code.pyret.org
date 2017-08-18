@@ -10,10 +10,25 @@
  *       general-purpose in the future, but, for now,
  *       be aware of these limitations.
  */
-define(["q"], function(Q) {
+define("cpo/modal-prompt", ["q"], function(Q) {
+
+  function autoHighlightBox(text) {
+    var textBox = $("<input type='text'>").addClass("auto-highlight");
+    textBox.attr("size", text.length);
+    textBox.attr("editable", false);
+    textBox.on("focus", function() { $(this).select(); });
+    textBox.on("mouseup", function() { $(this).select(); });
+    textBox.val(text);
+    return textBox;
+  }
 
   // Allows asynchronous requesting of prompts
   var promptQueue = Q();
+  var styles = [
+    "radio", "tiles", "text", "copyText", "confirm"
+  ];
+
+  window.modals = [];
 
   /**
    * Represents an option to present the user
@@ -29,15 +44,38 @@ define(["q"], function(Q) {
    * @param {ModalOption[]} options - The options to present the user
    */
   function Prompt(options) {
-    if (!options || (typeof options.length !== "number") || (options.length === 0)) {
+    window.modals.push(this);
+    if (!options ||
+        (styles.indexOf(options.style) === -1) ||
+        !options.options ||
+        (typeof options.options.length !== "number") || (options.options.length === 0)) {
       throw new Error("Invalid Prompt Options", options);
     }
     this.options = options;
     this.modal = $("#promptModal");
-    this.elts = $("#choiceContainer", this.modal);
+    if (this.options.style === "radio") {
+      this.elts = $($.parseHTML("<table></table>")).addClass("choiceContainer");
+    } else if (this.options.style === "text") {
+      this.elts = $("<div>").addClass("choiceContainer");
+    } else if (this.options.style === "copyText") {
+      this.elts = $("<div>").addClass("choiceContainer");
+    } else if (this.options.style === "confirm") {
+      this.elts = $("<div>").addClass("choiceContainer");
+    } else {
+      this.elts = $($.parseHTML("<div></div>")).addClass("choiceContainer");
+    }
+    this.title = $(".modal-header > h3", this.modal);
     this.closeButton = $(".close", this.modal);
     this.submitButton = $(".submit", this.modal);
+    if(this.options.submitText) {
+      this.submitButton.text(this.options.submitText);
+    }
+    else {
+      this.submitButton.text("Submit");
+    }
     this.isCompiled = false;
+    this.deferred = Q.defer();
+    this.promise = this.deferred.promise;
   }
 
   /**
@@ -55,27 +93,34 @@ define(["q"], function(Q) {
    *          or the result of the prompt, otherwise.
    */
   Prompt.prototype.show = function(callback) {
-    if (this.deferred !== undefined) {
-      throw new Error("Already showing prompt");
-    }
-    this.deferred = Q.defer();
-    this.promise = this.deferred.promise;
     // Use the promise queue to make sure there's no other
     // prompt being shown currently
-    promptQueue.then((function(){
-      this.closeButton.click(this.onClose.bind(this));
-      this.submitButton.click(this.onSubmit.bind(this));
-      $(document).click((function(e) {
-        // If the prompt is active and the background is clicked,
-        // then close.
-        if ($(e.target).is(this.modal) && this.deferred) {
-          this.onClose(e);
-        }
-      }).bind(this));
-      this.populateModal();
-      this.modal.css('display', 'block');
-      return this.promise;
-    }).bind(this));
+    if (this.options.hideSubmit) {
+      this.submitButton.hide();
+    } else {
+      this.submitButton.show();
+    }
+    this.closeButton.click(this.onClose.bind(this));
+    this.submitButton.click(this.onSubmit.bind(this));
+    var docClick = (function(e) {
+      // If the prompt is active and the background is clicked,
+      // then close.
+      if ($(e.target).is(this.modal) && this.deferred) {
+        this.onClose(e);
+        $(document).off("click", docClick);
+      }
+    }).bind(this);
+    $(document).click(docClick);
+    var docKeydown = (function(e) {
+      if (e.key === "Escape") {
+        this.onClose(e);
+        $(document).off("keydown", docKeydown);
+      }
+    }).bind(this);
+    $(document).keydown(docKeydown);
+    this.title.text(this.options.title);
+    this.populateModal();
+    this.modal.css('display', 'block');
 
     if (callback) {
       return this.promise.then(callback);
@@ -89,15 +134,17 @@ define(["q"], function(Q) {
    * Clears the contents of the modal prompt.
    */
   Prompt.prototype.clearModal = function() {
+    this.submitButton.off();
+    this.closeButton.off();
     this.elts.empty();
   };
-
+  
   /**
    * Populates the contents of the modal prompt with the
    * options in this prompt.
    */
   Prompt.prototype.populateModal = function() {
-    function createElt(option, idx) {
+    function createRadioElt(option, idx) {
       var elt = $($.parseHTML("<input name=\"pyret-modal\" type=\"radio\">"));
       var id = "r" + idx.toString();
       var label = $($.parseHTML("<label for=\"" + id + "\"></label>"));
@@ -129,17 +176,73 @@ define(["q"], function(Q) {
       
       return container;
     }
+    function createTileElt(option, idx) {
+      var elt = $($.parseHTML("<button name=\"pyret-modal\" class=\"tile\"></button>"));
+      elt.attr("id", "t" + idx.toString());
+      elt.append($("<b>").text(option.message))
+        .append($("<p>").text(option.details));
+      for (var evt in option.on)
+        elt.on(evt, option.on[evt]);
+      return elt;
+    }
+
+    function createTextElt(option) {
+      var elt = $("<div>");
+      elt.append($("<span>").addClass("textLabel").text(option.message));
+//      elt.append($("<span>").text("(" + option.details + ")"));
+      elt.append($("<input type='text'>").val(option.defaultValue));
+      return elt;
+    }
+
+    function createCopyTextElt(option) {
+      var elt = $("<div>");
+      elt.append($("<p>").addClass("textLabel").text(option.message));
+      if(option.text) {
+        var box = autoHighlightBox(option.text);
+  //      elt.append($("<span>").text("(" + option.details + ")"));
+        elt.append(box);
+        box.focus();
+      }
+      return elt;
+    }
+
+    function createConfirmElt(option) {
+      return $("<p>").text(option.message);
+    }
+
+    var that = this;
+
+    function createElt(option, i) {
+      if(that.options.style === "radio") {
+        return createRadioElt(option, i);
+      }
+      else if(that.options.style === "tiles") {
+        return createTileElt(option, i);
+      }
+      else if(that.options.style === "text") {
+        return createTextElt(option);
+      }
+      else if(that.options.style === "copyText") {
+        return createCopyTextElt(option);
+      }
+      else if(that.options.style === "confirm") {
+        return createConfirmElt(option);
+      }
+    }
+
     var optionElts;
     // Cache results
-    if (!this.isCompiled) {
-      optionElts = this.options.map(createElt);
-      this.compiledElts = optionElts;
-      this.isCompiled = true;
-    } else {
-      optionElts = this.compiledElts;
-    }
+//    if (true) {
+      optionElts = this.options.options.map(createElt);
+//      this.compiledElts = optionElts;
+//      this.isCompiled = true;
+//    } else {
+//      optionElts = this.compiledElts;
+//    }
     $("input[type='radio']", optionElts[0]).attr('checked', true);
     this.elts.append(optionElts);
+    $(".modal-body", this.modal).empty().append(this.elts);
+    optionElts[0].focus();
   };
 
   /**
@@ -157,7 +260,21 @@ define(["q"], function(Q) {
    * Handler which is called when the user presses "submit"
    */
   Prompt.prototype.onSubmit = function(e) {
-    var retval = $("input[type='radio']:checked", this.modal).val();
+    if(this.options.style === "radio") {
+      var retval = $("input[type='radio']:checked", this.modal).val();
+    }
+    else if(this.options.style === "text") {
+      var retval = $("input[type='text']", this.modal).val();
+    }
+    else if(this.options.style === "copyText") {
+      var retval = true;
+    }
+    else if(this.options.style === "confirm") {
+      var retval = true;
+    }
+    else {
+      var retval = true; // Just return true if they clicked submit
+    }
     this.modal.css('display', 'none');
     this.clearModal();
     this.deferred.resolve(retval);
@@ -168,3 +285,4 @@ define(["q"], function(Q) {
   return Prompt;
 
 });
+

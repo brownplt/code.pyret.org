@@ -11,11 +11,13 @@
     { "import-type": "builtin",
       name: "srcloc" },
     { "import-type": "builtin",
-      name: "checker" }
+      name: "checker" },
+    { "import-type": "builtin",
+      name: "load-lib" }
   ],
   provides: {},
   nativeRequires: [],
-  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker) {
+  theModule: function(runtime, _, uri, outputUI, errorUI, option, srcloc, checker, loadLib) {
 
     option = runtime.getField(option, "values");
     srcloc = runtime.getField(srcloc, "values");
@@ -25,7 +27,7 @@
     function isTestSuccess(val) { return runtime.unwrap(runtime.getField(CH, "is-success").app(val)); }
 
     // NOTE: MUST BE CALLED WHILE RUNNING ON runtime's STACK
-    function drawCheckResults(container, documents, runtime, checkResults, contextFactory) {
+    function drawCheckResults(container, documents, runtime, checkResults, result) {
       var ffi = runtime.ffi;
       var cases = ffi.cases;
       var get = runtime.getField;
@@ -174,8 +176,10 @@
           }
           
           if(runtime.hasField(test, "actual-exn")) {
+            var stack = get(loadLib, "internal")
+              .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultProgram(result));
             this.maybeStackLoc = outputUI.makeMaybeStackLoc(
-              runtime, documents, srcloc, get(test, "actual-exn").val.pyretStack);
+              runtime, documents, srcloc, stack);
           } else {
             this.maybeStackLoc = noFramesMaybeStackLoc;
           }
@@ -263,7 +267,7 @@
       var expandedCheckBlock = undefined;
 
       var CheckBlockSkeleton = function () {
-        function CheckBlockSkeleton(name, loc, tests, error) {
+        function CheckBlockSkeleton(name, loc, keywordCheck, tests, error) {
           var _this = this;
 
           var container = document.createElement("div");
@@ -279,7 +283,10 @@
           }
 
           if (error !== undefined) {
-            summary.textContent = "An unexpected error halted the check-block before Pyret was finished with it. " + "Some tests may not have run.";
+            summary.textContent =
+              "An unexpected error halted the " +
+              (keywordCheck ? "check" : "examples") + "-block before Pyret was finished with it. "
+              + "Some tests may not have run.";
             var errorTestsSummary = document.createTextNode("Before the unexpected error, " + tests.executed + (tests.executed === 0 ? " tests " : " test ") + "in this block ran" + (tests.executed > 0 ? " (" + tests.passing + " passed):" : "."));
             testList.appendChild(errorTestsSummary);
           } else {
@@ -317,11 +324,20 @@
             });
             this.renderable = error.exn;
             container.appendChild(tombstone);
-            this.maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, error.pyretStack);
-            this.pyretStack = error.pyretStack;
+            var richStack = get(loadLib, "internal")
+              .enrichStack(error, get(loadLib, "internal").getModuleResultProgram(result)); 
+            this.maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, richStack);
+            this.pyretStack = richStack;
           }
 
           header.addEventListener("click", function (e) {
+            if (this.container.classList.contains("expanded"))
+              this.hideTests();
+            else
+              this.showTests();
+          }.bind(this));
+
+          summary.addEventListener("click", function (e) {
             if (this.container.classList.contains("expanded"))
               this.hideTests();
             else
@@ -404,6 +420,26 @@
       var checkErroredSkeletons = new Array();
       var testsFailedSkeletons  = new Array();
       var testsPassedSkeletons  = new Array();
+
+      var keywordCheck = false;
+      var keywordExamples = false;
+      for (var i = 0; i < checkBlocks.length; i++) {
+        if (get(option, "is-some").app(get(checkBlocks[i], "maybe-err"))) {
+          if (get(checkBlocks[i], "keyword-check")) keywordCheck = true;
+          else keywordExamples = true;
+        }
+      }
+      var blockType;
+      if (keywordCheck && keywordExamples) {
+        blockType = $("<span>")
+          .append("testing (")
+          .append($("<code>").text("check")).append(" or ").append($("<code>").text("examples"))
+          .append(")");
+      } else if (keywordExamples) {
+        blockType = $("<span>").append($("<code>").text("examples"));
+      } else {
+        blockType = $("<span>").append($("<code>").text("check"));
+      }
       
       var checkResultsContainer = document.createElement("div");
       checkResultsContainer.classList.add("test-results");
@@ -441,6 +477,7 @@
           new CheckBlockSkeleton(
             get(checkBlock, "name"), 
             get(checkBlock, "loc"),
+            get(checkBlock, "keyword-check"),
             { skeletons: tests,
               passing  : testsPassing,
               executed : testsExecuted }, error);
@@ -483,7 +520,7 @@
                                  .html(" ended in an unexpected error, and <b>some tests in "
                                        + (checkBlocksErrored == 1 ? "this block":"these blocks")
                                        + " may not have run</b>.")
-                                 .prepend($("<code>").text(checkBlocksErrored == 1 ? "check-block":"check-blocks"))));
+                                 .prepend(blockType.append(checkBlocksErrored == 1 ? " block" : " blocks"))));
         }
       }
 
@@ -494,9 +531,10 @@
       
       // must be called on the pyret stack
       function vivifySkeleton(skeleton) {
-        var error_to_html = errorUI.error_to_html
+        var error_to_html = errorUI.error_to_html;
         return runtime.pauseStack(function (restarter) {
-          return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack).
+          // the skeleton's pyretStack must already be enriched
+          return error_to_html(runtime, documents, skeleton.renderable, skeleton.pyretStack, result).
             then(function(html) {
               skeleton.vivify(html);
             }).done(function () {restarter.resume(runtime.nothing)});
@@ -519,8 +557,8 @@
               testsPassedSkeletons[i].vivify();
             checkResultsContainer.classList.add("check-results-done-rendering");
             return runtime.nothing;
-          });
-        });
+          }, "drawCheckResults:vivifySkeleton:failures");
+        }, "drawCheckResults:vivifySkeleton:errors");
     }
 
     return runtime.makeJSModuleReturn({

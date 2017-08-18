@@ -1,4 +1,4 @@
-define([], function() {
+define("cpo/guess-gas", [], function() {
   // Hard to do better than this
   function guessGas(gas, repl) {
     var rt = repl.runtime;
