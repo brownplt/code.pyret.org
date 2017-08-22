@@ -255,7 +255,7 @@
 
     // Returns null if the value isn't found, or a Pyret value
     // defined in the result if found
-    // Maybe add more information 
+    // Maybe add more information
     function getDefinedValueFromReplResult(result, name) {
       var runResult = getInnerResultFromReplResult(result);
       if(runtime.isSuccessResult(runResult)) {
@@ -359,17 +359,20 @@
                     runtime.runThunk(function() {
                       var answer = getAnswerFromReplResult(result);
                       if(answer === null) {
-                        return "There was no answer";
+                        return "Uh-oh, looks like you got a runtime error. Read the error message and try again.";
                       }
                       return checkAnswerPyretFun.app(answer);
                     },
                     function(checkedResult) {
+                      if(runtime.isFailureResult(checkedResult)) {
+                        console.error("The predicate failed", checkedResult);
+                      }
                       currentAnswerCallback(checkedResult.result);
                       ret.resolve(result);
                     });
                   });
 
-                } 
+                }
                 else {
                   ret.resolve(result);
                 }
