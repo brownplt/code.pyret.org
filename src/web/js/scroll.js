@@ -45,7 +45,6 @@
      for (var j = 0; j < metaArray[i].length; j++) {
        current = $(metaArray[i][j]);
        newSection.push(current);
-       //if (current[0].tagName === "DIV") {
        if (current.hasClass("activity") || (current.find(".activity").length > 0)) {
          choppedArray.push(newSection);
          newSection = [];
@@ -101,6 +100,7 @@
        var done = $("<span>").addClass("done");
        done.text("Congratulations! You've completed the tutorial!");
        stepWindow.append(done);
+       return;
      }
      if (activityType[i] === "not-in-tutorial") {
        // don't display if not-in-tutorial
@@ -148,13 +148,17 @@
      attempts = 0;
    }
 
-   function displayTry(answer) {
-     //NOTE: for debug purpose only
-     console.log("result in REPL is: " + answer);
-     console.log("should be: " + correct);
-     console.log("pageNum: " + pageNum);
+   function displayPrevious() {
+     /*
+      - hide the current page
+      - jump to the proper scroll location
+      - update pageNum
+      - make next button clickable again
+     */
+   }
 
-     tryAgain.text(answer);
+   function displayTry(feedback) {
+     tryAgain.text(feedback);
      if (attempts == 0) {
        stepWindow.append(tryAgain);
      }
