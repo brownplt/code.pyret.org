@@ -424,7 +424,6 @@
           toBeRepred.push({name: "Message", val: message, method: repl.runtime.ReprMethods._tostring});
           */
           // Push this afterward, to keep rendered aligned with renderedLocs below
-          vals = [message].concat(vals);
           return repl.runtime.safeCall(function() {
             return repl.runtime.toReprJS(message, repl.runtime.ReprMethods._tostring);
           }, function(message) {
