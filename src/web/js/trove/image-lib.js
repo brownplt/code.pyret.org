@@ -1649,7 +1649,7 @@
         data[i] = Math.floor(colorRed(aColor));
         data[i+1] = Math.floor(colorGreen(aColor));
         data[i+2] = Math.floor(colorBlue(aColor));
-        data[i+3] = colorAlpha(aColor);
+        data[i+3] = colorAlpha(aColor) * 255;
       }
 
       return makeImageDataImage(imageData);
