@@ -102,6 +102,7 @@ function start(config, onServerReady) {
   app.get("/faq", function(_, res) { res.render("faq.html"); });
 
   app.get("/", function(req, res) {
+    console.log('/ Config: ', config)
     var content = loggedIn(req) ? "My Programs" : "Log In";
     res.render("index.html", {
       LEFT_LINK: content,

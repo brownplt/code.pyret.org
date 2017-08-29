@@ -16,7 +16,7 @@ var gwrap = window.gwrap = {
       throw new Error("Google API Wrapper not yet initialized");
     }
     var ret = Q.defer();
-    console.log('gwrap calling loadAPIWrapper');
+    console.log('gwrap calling loadAPIWrapper', params.reauth.immediate);
     loadAPIWrapper(params.reauth.immediate) // arg negated? --ds26gte
       .then(function(gw) {
         // Shallow copy
@@ -284,7 +284,7 @@ function loadAPIWrapper(immediate) {
                                  + "params.reauth.immediate");
       }
       var reloaded = Q.defer();
-      console.log('loadAPI calling loadAPIWrapper');
+      console.log('loadAPI calling loadAPIWrapper', params.reauth.immediate);
       loadAPIWrapper(params.reauth.immediate)
         .then(function(gw) {
           // Shallow copy
