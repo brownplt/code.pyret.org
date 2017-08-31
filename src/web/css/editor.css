@@ -485,6 +485,10 @@ div.spy-block > table > th { display: none; }
 body {
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  /* prevent the editor to have scroll bar (we use a trick to move a dialog to
+  the bottom of the screen so that users can't see, and need to hide the scroll
+  bar as a result) */
 }
 
 .replMain {
@@ -1876,4 +1880,19 @@ tr:nth-child(even){background-color: #f2f2f2}
    -webkit-mask-size: contain;
    mask-size: 100% 100%;
    mask-type: luminance;
+}
+.error-bg {
+  background-color: #FF9494;
+}
+.ok-bg {
+  background-color: #FFFFFF;
+}
+label.controller {
+  width: 100px;
+  float: left;
+  margin-right: 10px;
+}
+button.controller {
+  margin: auto;
+  display: block;
 }

@@ -32,7 +32,7 @@
     var output = jQuery("<div id='output' class='cm-s-default'>");
     var outputPending = jQuery("<span>").text("Gathering results...");
     var outputPendingHidden = true;
-    
+
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -74,7 +74,7 @@
          50
       );
     }
-    
+
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
@@ -88,7 +88,7 @@
         // because of this call to `pauseStack`
         return runtime.pauseStack(function (restarter) {
           // error_to_html must not be called on the pyret stack
-          return error_to_html(runtime, CPO.documents, error, stack, result). 
+          return error_to_html(runtime, CPO.documents, error, stack, result).
             then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");
@@ -154,7 +154,7 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                        return checkUI.drawCheckResults(output, CPO.documents, rr,
                                                         runtime.getField(runResult.result, "checks"), v);
                       }, function(_) {
                         outputPending.remove();
@@ -182,7 +182,7 @@
             // `renderAndDisplayError` must be called in the context of the pyret stack.
             // this application runs in the context of `callingRuntime.runThunk`
             return renderAndDisplayError(
-              callingRuntime, 
+              callingRuntime,
               ffi.InternalError("Got something other than a Pyret result when running the program.",
                                 ffi.makeList(result)));
           }
@@ -342,6 +342,89 @@
           return animationDiv;
       });
       runtime.setParam("remove-d3-port", function() {
+          closeTopAnimationIfOpen();
+          // don't call .dialog('close'); because that would trigger onClose and thus onExit.
+          // We don't want that to happen.
+      });
+
+      runtime.setParam('chart-port', function(args) {
+        const animationDiv = $(args.root);
+        const buttons = [];
+        animationDivs.push(animationDiv);
+        output.append(animationDiv);
+
+        let timeoutTrigger = null;
+
+        const windowOptions = {
+          title: 'Chart display',
+          position: [5, 5],
+          bgiframe: true,
+          width: 'auto',
+          height: 'auto',
+          close: () => {
+            args.onExit();
+            closeTopAnimationIfOpen();
+          },
+          create: () => {
+            // from http://fiddle.jshell.net/JLSrR/116/
+            const titlebar = animationDiv.prev();
+            buttons.forEach(buttonData => {
+              const button = $('<button/>');
+              const left = titlebar.find( "[role='button']:last" ).css('left');
+              button
+                .button({icons: {primary: buttonData.icon}, text: false})
+                .addClass('ui-dialog-titlebar-close')
+                .css('left', (parseInt(left) + 27) + 'px')
+                .click(buttonData.click)
+                .appendTo(titlebar);
+            });
+          },
+          resize: () => {
+            if (timeoutTrigger) clearTimeout(timeoutTrigger);
+            timeoutTrigger = setTimeout(args.draw, 100);
+          },
+        };
+
+        if (args.isInteractive) {
+          $.extend(windowOptions, {
+            closeOnEscape: true,
+            modal: true,
+            overlay: {opacity: 0.5, background: 'black'},
+          });
+        } else {
+          // need hide to be true so that the dialog will fade out when
+          // closing (see https://api.jqueryui.com/dialog/#option-hide)
+          // this gives time for the chart to actually render
+          $.extend(windowOptions, {hide: true});
+        }
+
+        animationDiv
+          .dialog($.extend({}, windowOptions, args.windowOptions))
+          .dialog('widget')
+          .draggable({
+            containment: 'none',
+            scroll: false,
+          });
+
+        // explicit call to draw to correct the dimension after the dialog has been opened
+        args.draw();
+
+        const dialogMain = animationDiv.parent();
+        if (args.isInteractive) {
+          dialogMain.css({'z-index': currentZIndex + 1});
+          dialogMain.prev().css({'z-index': currentZIndex});
+          currentZIndex += 2;
+        } else {
+          // a trick to hide the dialog while actually rendering it
+          dialogMain.css({
+            top: window.innerWidth * 2,
+            left: window.innerHeight * 2,
+          });
+          animationDiv.dialog('close');
+        }
+      });
+
+      runtime.setParam('remove-chart-port', function() {
           closeTopAnimationIfOpen();
           // don't call .dialog('close'); because that would trigger onClose and thus onExit.
           // We don't want that to happen.
@@ -515,7 +598,7 @@
           if (name.indexOf("interactions://") === 0)
             CPO.documents.delete(name);
         });
-        
+
         CPO.documents.set("definitions://", uiOptions.cm.getDoc());
 
         interactionsCount = 0;
