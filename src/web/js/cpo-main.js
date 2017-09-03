@@ -315,8 +315,44 @@
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
                   }, "restart-interactions:make-definitions-locator");
               }, function(result) {
-                ret.resolve(result);
-                // NOTE: result here seems to refer to the initialization, not eval result of a particular cm instance
+                if(typeof currentPredicate === "string") {
+                  var predName = "___check-answer___" + interactionCount++;
+
+                  runtime.runThunk(function() {
+                    return runtime.safeCall(
+                      function() {
+                        return gf(repl,
+                        "make-interaction-locator").app(
+                          runtime.makeFunction(function() { return predName + " = " + currentPredicate; }))
+                      },
+                      function(locator) {
+                        return gf(repl, "run-interaction").app(locator);
+                      }, "run:make-interaction-locator");
+                  },
+                  function(predResult) {
+                    var checkAnswerPyretFun = getDefinedValueFromReplResult(predResult, predName);
+                    runtime.runThunk(function() {
+                      var answer = getAnswerFromReplResult(result);
+                      if(answer === null) {
+                        return "Uh-oh, looks like you got a runtime error. Read the error message and try again.";
+                      }
+                      return checkAnswerPyretFun.app(answer);
+                    },
+                    function(checkedResult) {
+                      if(runtime.isFailureResult(checkedResult)) {
+                        console.error("The predicate failed", checkedResult);
+                      }
+                      currentAnswerCallback(checkedResult.result);
+                      ret.resolve(result);
+                    });
+                  });
+
+                }
+                else {
+                  ret.resolve(result);
+                }
+
+                // NOTE: result refers to the initialization, not eval result of a particular cm instance
                 // if (runtime.isSuccessResult(result)) {
                 //   tutorial.afterRun("success");
                 // } else {
