@@ -386,10 +386,21 @@ function start(config, onServerReady) {
               name: title + " published",
               parents: [{id: collectionId}],
               properties: [{
-                "key": BACKREF_KEY,
-                "value": String(driveFileId),
-                "visibility": "PRIVATE"
-              }]
+                  "key": BACKREF_KEY,
+                  "value": String(driveFileId),
+                  "visibility": "PRIVATE"
+                },
+                // NOTE(joe): Adding this because there is no way to query for the
+                // presence or absence of a key, just query by specific values.
+                // In order to usefully filter these results, add a flag property
+                // whose value will always be true.
+                // https://stackoverflow.com/questions/23900988/how-to-search-google-drive-for-file-with-a-specific-property/26286007
+                {
+                  "key": BACKREF_KEY + "Flag",
+                  "value": "true",
+                  "visibility": "PRIVATE"
+                },
+              ]
             }
           }, function(err, response) {
             if(err) { newFileP.reject(err); }
