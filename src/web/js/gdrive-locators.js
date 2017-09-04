@@ -72,6 +72,10 @@ define("cpo/gdrive-locators", [], function() {
 
           var uri = "my-gdrive://" + filename;
 
+          function dialect(self) {
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return true; }
 
           var contentsP = file.getContents();
@@ -134,6 +138,7 @@ define("cpo/gdrive-locators", [], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
             "get-native-modules": m0(getNativeModules),
@@ -210,6 +215,10 @@ define("cpo/gdrive-locators", [], function() {
           var uri = "shared-gdrive://" + file.getName() + ":" + file.getUniqueId();
           CPO.documents.set(uri, new CodeMirror.Doc(contents, "pyret"));
 
+          function dialect(self) {
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return true; }
 
           function getModule(self) {
@@ -268,6 +277,7 @@ define("cpo/gdrive-locators", [], function() {
           var m2 = runtime.makeMethod2;
 
           var locator = runtime.makeObject({
+            "dialect": m0(dialect),
             "get-modified-time": m0(getModifiedTime),
             "get-options": m1(getOptions),
             "get-native-modules": m0(getNativeModules),
@@ -385,6 +395,10 @@ define("cpo/gdrive-locators", [], function() {
 
           var uri = "compiled-gdrive-js://" + filename + ":" + file.getUniqueId();
 
+          function dialect(self) {
+            return runtime.makeString("pyret");
+          }
+
           function needsCompile() { return false; }
 
           function getModule(self) {
@@ -449,6 +463,7 @@ define("cpo/gdrive-locators", [], function() {
           var m2 = runtime.makeMethod2;
 
           restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
             "needs-compile": m1(needsCompile),
             "get-module": m0(getModule),
             "get-dependencies": m0(getDependencies),
