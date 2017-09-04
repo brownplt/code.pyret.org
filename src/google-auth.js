@@ -22,6 +22,8 @@ function makeAuth(config) {
           config.baseUrl + config.google.redirect
         );
 
+  var getAuthUrlCalledAlready = false;
+
   return {
     refreshAccess: function(refreshToken, callback) {
       var oauth2Client =
@@ -37,12 +39,20 @@ function makeAuth(config) {
       });
     },
     getAuthUrl: function(afterUrl) {
+      var approvalPromptValue = 'auto';
+      if (!getAuthUrlCalledAlready) {
+        getAuthUrlCalledAlready = true;
+        approvalPromptValue = 'force';
+      }
+      console.log('doing getAuthUrl', afterUrl)
         return oauth2Client.generateAuthUrl({
         // Offline lets us handle refreshing access on our own (rather than
         // popping up a dialog every half hour)
         access_type: 'offline',
         // Skip permission confirmation if the user has confirmed with us before
-        approval_prompt: 'auto',
+        approval_prompt: approvalPromptValue,
+        //approval_prompt: 'auto',
+        //approval_prompt: 'force',
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola

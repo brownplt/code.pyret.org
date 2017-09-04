@@ -118,7 +118,9 @@ function start(config, onServerReady) {
       res.redirect(auth.getAuthUrl(redirect));
     }
     else {
-      res.redirect(redirect);
+      console.log('/login didnt do getAuthUrl');
+      res.redirect(auth.getAuthUrl(redirect)); //for now
+      //res.redirect(redirect);
     }
   });
 
