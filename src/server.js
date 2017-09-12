@@ -79,6 +79,12 @@ function start(config, onServerReady) {
   app.engine('js', mustache());
   app.set('view engine', ['html', 'js']);
 
+  app.get("/current-version", function(req, res) {
+    res.status(200);
+    res.send(JSON.stringify({version: config.version}));
+    res.end();
+  });
+
   app.get("/js/log.js", function(req, res) {
     res.set("Content-Type", "application/javascript");
     res.render(__dirname + "/../build/web/js/log.js", {

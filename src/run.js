@@ -33,7 +33,8 @@ var res = Q.fcall(function(db) {
       clientId: process.env["GOOGLE_CLIENT_ID"],
       clientSecret: process.env["GOOGLE_CLIENT_SECRET"],
       redirect: "/oauth2callback"
-    }
+    },
+    version: process.env["CURRENT_PYRET_RELEASE"]
   }, function(app) {
     console.log("Server ready.");
   });
