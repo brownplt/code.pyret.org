@@ -63,7 +63,6 @@
     "s-expression": "~2.2.0",
     "script-loader": "~0.7.0",
     "seedrandom": "~2.3.10",
-    "selenium-webdriver": "^2.41.0",
     "sha.js": "^2.4.8",
     "style-loader": "0.13.1",
     "stylus": "^0.54.5",
@@ -87,5 +86,9 @@
     "url": "git://github.com/brownplt/code.pyret.org"
   },
   "author": "Joe Politz",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "chromedriver": "^2.32.2",
+    "selenium-webdriver": "^2.53.3"
+  }
 }
