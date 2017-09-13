@@ -30,6 +30,9 @@ cache:
 before_script:
 - node src/run.js &
 - sleep 3
+script:
+- sleep 3
+- heroku local:run node_modules/.bin/mocha test/basic.js
 #addons:
 #  sauce_connect: true
 #- mocha --harmony
@@ -53,11 +56,6 @@ install:
 - npm update # to update Pyret to the newest version
 - make web
 - make deploy-cpo-main
-script:
-- npm run build
-- npm start
-- sleep 3
-- heroku local:run node_modules/.bin/mocha test/basic.js
 deploy:
   - provider: s3
     access_key_id: AKIAIFY44WM3LGA4OQSQ
