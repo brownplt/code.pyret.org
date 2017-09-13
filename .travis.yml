@@ -32,7 +32,7 @@ before_script:
 - sleep 3
 script:
 - sleep 3
-- heroku local:run node_modules/.bin/mocha test/basic.js
+- heroku local:run node_modules/.bin/mocha
 #addons:
 #  sauce_connect: true
 #- mocha --harmony
