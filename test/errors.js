@@ -18,7 +18,7 @@ describe("Rendering errors", function() {
     ["lookup-non-object", "5.x", "not an object"],
     ["lookup-constructor-not-object", "data D: d() end\n d.x", "was a constructor"],
     ["update-non-obj", "5!{x : 10}", "reference update expression"],
-    ["update-non-ref", "{x:5}!{x : 10}", "is not a reference"],
+    ["update-non-ref", "{x:5}!{x : 10}", "is not a mutable reference"],
     ["update-non-existent-field", "{x:5}!{y : 10}", "does not exist"],
     ["no-cases-matched", "cases(List) link(1, empty): | empty => true end", "matched the value"],
     ["no-branches-matched", "if 1 == 2: 5 else if 3 == 4: 6 end", "the condition of at least one branch be satisfied"],
@@ -27,7 +27,7 @@ describe("Rendering errors", function() {
     ["lookup-non-tuple", "5.{1}", "was not a tuple value"],
     ["lookup-large-index", "{1;2}.{3}", "given position"],
 
-    ["type-id-used-as-value", "data D: d(x) end\nmy-x = D.x", "but it is defined as a type"],
+    ["type-id-used-as-value", "data D: d(x) end\nmy-x = D.x", "But it is defined as a type"],
 
     ["images-equal-preds", "include image\nimages-equal(5, 'a')", "failed because the 1ˢᵗ argument evaluated to an unexpected value"],
     ["text-preds", "include image\ntext('a', 'a', 'blue')", "failed because the 2ⁿᵈ argument evaluated to an unexpected value"],
