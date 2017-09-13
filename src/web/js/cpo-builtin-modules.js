@@ -100,6 +100,27 @@ define("cpo/cpo-builtin-modules", ["pyret-base/js/type-util"], function(t) {
               }
               return [];
             }),
+          "get-raw-module-provides":
+           F(function() {
+             if (m.provides) {
+               if (Array.isArray(m.provides.modules)) {
+                 return m.provides.modules;
+               } else if (typeof m.provides.modules === "object") {
+                 var mods = m.provides.modules;
+                 return Object.keys(mods).map(function(k) {
+                   var shorthands = m.provides.shorthands || {};
+                   // TODO (Philip): Is this correct?
+                   var expanded = t.expandType(mods[k], t.expandRecord(shorthands, {}));
+
+                   return RUNTIME.makeObject({
+                     name: k,
+                     value: t.toPyret(RUNTIME, expanded)
+                   });
+                 });
+               }
+             }
+             return [];
+            }, "get-raw-module-provides"),
           "get-raw-compiled":
             F(function() {
               // NOTE(joe): this omits theModule for now

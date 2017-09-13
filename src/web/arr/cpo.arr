@@ -21,7 +21,8 @@ fun get-builtin-loadable(raw, uri) -> CL.Loadable:
     uri: uri,
     values: raw-array-to-list(raw.get-raw-value-provides()),
     aliases: raw-array-to-list(raw.get-raw-alias-provides()),
-    datatypes: raw-array-to-list(raw.get-raw-datatype-provides())
+    datatypes: raw-array-to-list(raw.get-raw-datatype-provides()),
+    modules: raw-array-to-list(raw.get-raw-module-provides())
   })
   CL.module-as-string(
       provs,
@@ -73,7 +74,8 @@ fun make-js-locator-from-raw(raw, check-mode, uri, name):
         uri: self.uri(),
         values: raw-array-to-list(raw.get-raw-value-provides()),
         aliases: raw-array-to-list(raw.get-raw-alias-provides()),
-        datatypes: raw-array-to-list(raw.get-raw-datatype-provides())
+        datatypes: raw-array-to-list(raw.get-raw-datatype-provides()),
+        modules: raw-array-to-list(raw.get-raw-module-provides())
       })
       some(CL.module-as-string(provs, CS.minimal-builtins, CS.ok(JSP.ccp-string(raw.get-raw-compiled()))))
     end,
