@@ -44,6 +44,7 @@ before_install:
 - nvm use stable
 - npm install -g heroku-cli
 - export CHROME_BIN=chromium-browser
+- export $PATH=$PATH:node_modules/.bin/
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
 before_deploy:
