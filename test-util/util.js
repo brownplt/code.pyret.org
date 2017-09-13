@@ -2,6 +2,32 @@ var assert = require("assert");
 var webdriver = require("selenium-webdriver");
 var fs = require("fs");
 var Q = require("q");
+const chromedriver = require('chromedriver');
+
+let PATH_TO_CHROME;
+// Used by Travis
+if (process.env.GOOGLE_CHROME_BINARY) {
+  PATH_TO_CHROME = process.env.GOOGLE_CHROME_BINARY;
+}
+else {
+  console.log("The tester is guessing that you're on a Mac :-) You can set GOOGLE_CHROME_BINARY to the path to your Chrome install if this path isn't for your machine work");
+  PATH_TO_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+}
+
+let args = process.env.SHOW_BROWSER ? [] : [
+  '--headless',
+];
+if(!process.env.SHOW_BROWSER) {
+  console.log("Running Chrome headless. You can set SHOW_BROWSER=true to see what's going on");
+}
+
+// Working from https://developers.google.com/web/updates/2017/04/headless-chrome#drivers
+const chromeCapabilities = webdriver.Capabilities.chrome();
+chromeCapabilities.set('chromeOptions', {
+  binary: PATH_TO_CHROME,
+  'args': args
+});
+
 
 function teardown() {
   if(!(this.currentTest.state === 'failed')) {
@@ -15,43 +41,10 @@ function teardownMulti() {
 
 function setupWithName(name) {
   if(this.currentTest) { name = this.currentTest.title; }
-  var browser = process.env.SAUCE_BROWSER || "phantomjs";
-  if (process.env.TRAVIS_JOB_NUMBER != undefined) {
-    this.base = process.env.SAUCE_TEST_TARGET;
-    this.browser = new webdriver.Builder()
-    .usingServer('http://'+ process.env.SAUCE_USERNAME+':'+process.env.SAUCE_ACCESS_KEY+'@ondemand.saucelabs.com:80/wd/hub')
-    .withCapabilities({
-      name: name,
-      'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
-      build: process.env.TRAVIS_BUILD_NUMBER,
-      username: process.env.SAUCE_USERNAME,
-      accessKey: process.env.SAUCE_ACCESS_KEY,
-      tags: [process.env.TRAVIS_BRANCH, browser, "travis"],
-      customData: {
-        "browser": browser,
-        "commit": process.env.TRAVIS_COMMIT,
-        "commit-range": process.env.TRAVIS_COMMIT_RANGE,
-        "branch": process.env.TRAVIS_BRANCH,
-      },
-      browserName: browser
-    }).build();
-  } else if(process.env.SAUCE_USERNAME !== undefined) {
-    this.base = process.env.SAUCE_TEST_TARGET;
-    this.browser = new webdriver.Builder()
-    .usingServer('https://ondemand.saucelabs.com/wd/hub')
-    .withCapabilities({
-      name: this.currentTest.title,
-      username: process.env.SAUCE_USERNAME,
-      accessKey: process.env.SAUCE_ACCESS_KEY,
-      browserName: browser
-    }).build();
-  } else {
-    this.base = process.env.BASE_URL;
-    this.browser = new webdriver.Builder()
-    .withCapabilities({
-      browserName: browser
-    }).build();
-  }
+  this.base = process.env.BASE_URL;
+  this.browser = new webdriver.Builder()
+  .forBrowser("chrome")
+  .withCapabilities(chromeCapabilities).build();
 
   this.browser.manage().window().maximize();
 
