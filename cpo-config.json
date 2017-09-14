@@ -17,6 +17,8 @@
     "cpo/guess-gas": "src/web/js/guess-gas.js",
     "cpo/cpo-builtin-modules": "src/web/js/cpo-builtin-modules.js",
     "cpo/modal-prompt": "src/web/js/modal-prompt.js",
+    "cpo/patch-parse": "src/web/js/patch-parse.js",
+    "cpo/wescheme-support": "src/web/js/wescheme-support.js",
 
     "jglr/jglr": "pyret/lib/jglr/jglr.js",
     "jglr/rnglr": "pyret/lib/jglr/rnglr.js",
