@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="/css/reset.css"></link>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
   <link rel="stylesheet" href="/css/codemirror.css"></link>
+  <link rel="stylesheet" href="/css/blocks.css"></link>
   <link rel="stylesheet" href="/css/foldgutter.css"></link>
   <link rel="stylesheet" href="/css/shared.css"></link>
   <link rel="stylesheet" href="/css/editor.css"></link>
@@ -142,7 +143,10 @@
 <script src="/js/pyret-mode.js"></script>
 <script src="/js/pyret-fold.js"></script>
 <script src="/js/matchkw.js"></script>
-
+<script>
+var env_CURRENT_PYRET_RELEASE = "{{ CURRENT_PYRET_RELEASE }}";
+var cpoDialect = 'pyret';
+</script>
 <script src="/js/localSettings.js"></script>
 <script src="/js/log.js"></script>
 <script src="/js/share.js"></script>
