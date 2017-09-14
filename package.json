@@ -51,9 +51,9 @@
     "mustache-express": "^1.2.1",
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
-    "pyret-codemirror-mode": "git://github.com/brownplt/pyret-codemirror-mode#horizon",
+    "pyret-codemirror-mode": "git://github.com/ds26gte/pyret-codemirror-mode#patch",
     "pyret-ide": "git://github.com/pcardune/pyret-ide#master",
-    "pyret-lang": "git://github.com/ds26gte/pyret-lang.git#local-horizon",
+    "pyret-lang": "git://github.com/ds26gte/pyret-lang.git#patch",
     "q": "~1.4.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
@@ -84,7 +84,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brownplt/code.pyret.org"
+    "url": "git://github.com/ds26gte/code.pyret.org"
   },
   "author": "Joe Politz",
   "license": "Apache-2.0"
