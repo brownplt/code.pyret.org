@@ -15,6 +15,8 @@
     values: {
       "reactor": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], "Any"]],
       "big-bang": ["forall", ["a"], ["arrow", [["tid", "a"], ["List", "WCOofA"]], ["tid", "a"]]],
+      "_patch_big-bang": "tany",
+      "animate": "tany",
       "on-tick": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], ["tid", "a"]]],
@@ -23,9 +25,18 @@
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number" ], ["tid", "a"]]],
              "WCOofA"]],
+      "_patch_on-tick": "tany",
       "on-mouse": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"], "Number", "Number", "String" ], ["tid", "a"]]],
+             "WCOofA"]],
+      "on-tap": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"], "String" ], ["tid", "a"]]],
+             "WCOofA"]],
+      "on-tilt": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"], "Number", "Number" ], ["tid", "a"]]],
              "WCOofA"]],
       "on-key": ["forall", ["a"],
           ["arrow",
@@ -35,6 +46,7 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Image"]],
              "WCOofA"]],
+      "on-redraw": "tany",
       "stop-when": ["forall", ["a"],
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
@@ -44,7 +56,8 @@
              ["Boolean"],
              "WCOofA"]],
       "is-world-config": ["arrow", [ "Any" ], "Boolean"],
-      "is-key-equal": ["arrow", [ "String", "String" ], "Boolean"]
+      "is-key-equal": ["arrow", [ "String", "String" ], "Boolean"],
+      "is-mouse-equal": ["arrow", [ "String", "String" ], "Boolean"]
     },
     aliases: {},
     datatypes: {
@@ -348,7 +361,15 @@
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_key(
         function(w, e, success) {
-          worldFunction(w, getKeyCodeName(e), success);
+          var keyChar;
+          if (e.type === 'keydown') {
+            //console.log('pr keydown pressed');
+            keyChar = rawJsworld.getKeyCodeName(e);
+          } else {
+            //console.log('pr keypress?');
+            keyChar = String.fromCharCode(e.which).replace(/[^\x00-\xFE]+/g, '');
+          }
+          worldFunction(w, keyChar, success);
         });
     };
 
@@ -357,11 +378,15 @@
       var code = e.charCode || e.keyCode;
       var keyname;
       switch(code) {
-      case 8: keyname = "backspace"; break;
+      //case 8: keyname = "backspace"; break;
+        case 8: keyname = "\b"; break;
       case 9: keyname = "tab"; break;
-      case 13: keyname = "enter"; break;
+        case 10: keyname = "newline"; break;
+      //case 13: keyname = "enter"; break;
+        case 13: keyname = "\r"; break;
       case 16: keyname = "shift"; break;
       case 17: keyname = "control"; break;
+      case 18: keyname = "alt"; break;
       case 19: keyname = "pause"; break;
       case 27: keyname = "escape"; break;
       case 33: keyname = "prior"; break;
@@ -393,6 +418,7 @@
       case 220: keyname = "\\"; break;
       case 221: keyname = "]"; break;
       case 222: keyname = "'"; break;
+      case 230: keyname = 'ralt'; break;
       default:
         if (code >= 96 && code <= 105) {
           keyname = (code - 96).toString();
@@ -427,12 +453,35 @@
         });
     };
 
+    /////
 
+    var OnTap = function(handler) {
+      WorldConfigOption.call(this, 'on-tap');
+      this.handler = handler;
+    }
 
+    OnTap.prototype = Object.create(WorldConfigOption.prototype);
 
+    OnTap.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var worldFunction = adaptWorldFunction(that.handler);
+      return rawJsworld.on_tap(worldFunction);
+    };
 
+    /////
 
+    var OnTilt = function(handler) {
+      WorldConfigOption.call(this, 'on-tilt');
+      this.handler = handler;
+    }
 
+    OnTilt.prototype = Object.create(WorldConfigOption.prototype);
+
+    OnTilt.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var worldFunction = adaptWorldFunction(that.handler);
+      return rawJsworld.on_tilt(worldFunction);
+    };
 
     var OutputConfig = function() {}
     OutputConfig.prototype = Object.create(WorldConfigOption.prototype);
@@ -562,17 +611,50 @@
       return runtime.isOpaque(v) && isCloseWhenStopConfig(v.val);
     }
 
-    var StopWhen = function(handler) {
+    var StopWhen = function(handler, last_picture_handler) {
       WorldConfigOption.call(this, 'stop-when');
       this.handler = handler;
+      this.last_picture_handler = last_picture_handler;
     };
 
     StopWhen.prototype = Object.create(WorldConfigOption.prototype);
 
     StopWhen.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
+      var reusableCanvas;
       var worldFunction = adaptWorldFunction(that.handler);
-      return rawJsworld.stop_when(worldFunction);
+      var lastPictureFunction;
+      if (that.last_picture_handler) {
+        lastPictureFunction = function(w, k) {
+          var nextFrame = function(t) {
+            var lph = adaptWorldFunction(that.last_picture_handler);
+            lph(t, function(aSceneObj) {
+              var aScene = aSceneObj.val;
+              if (imageLibrary.isImage(aScene)) {
+                setTimeout(function() {
+                  if (!reusableCanvas) {
+                    reusableCanvas = imageLibrary.makeCanvas(aScene.getWidth(), aScene.getHeight());
+                  } else {
+                    reusableCanvas.width = aScene.getWidth();
+                    reusableCanvas.height = aScene.getHeight();
+                  }
+                  var ctx = reusableCanvas.getContext('2d');
+                  aScene.render(ctx, 0, 0);
+                }, 0);
+              } else {
+                runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
+              }
+            });
+          };
+          var lastPictureCss = function(w, k) {
+            k ([[reusableCanvas,
+              ['width', reusableCanvas.width + 'px'],
+              ['height', reusableCanvas.height + 'px']]]);
+          };
+          return rawJsworld.on_draw(nextFrame, lastPictureCss);
+        };
+      }
+      return rawJsworld.stop_when(worldFunction, undefined, lastPictureFunction);
     };
 
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
@@ -597,6 +679,30 @@
           return bigBang(initialWorldValue, arr, null, 'big-bang');
           runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
         }, "big-bang"),
+
+        "_patch_big-bang": makeFunction(function(init) {
+          runtime.ffi.checkArityAtLeast(2, arguments, "_patch_big-bang", false);
+          var arr = [], h;
+          for (var i = 1; i < arguments.length; i++) {
+            h = arguments[i];
+            checkHandler(h);
+            arr.push(h);
+          }
+          bigBang(init, arr);
+          runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
+        }),
+
+        "animate": makeFunction(function(f) {
+          runtime.ffi.checkArity(1, arguments, "animate", false);
+          runtime.checkFunction(f);
+          var arr = [];
+          arr.push(runtime.makeOpaque(new ToDraw(f)));
+          arr.push(runtime.makeOpaque(new OnTick(makeFunction(function(n) { return n+1; }),
+            Math.floor(DEFAULT_TICK_DELAY * 1000))));
+          bigBang(1, arr);
+          runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
+        }, "animate"),
+
         "on-tick": makeFunction(function(handler) {
           runtime.ffi.checkArity(1, arguments, "on-tick", false);
           runtime.checkFunction(handler);
@@ -609,15 +715,39 @@
           var fixN = jsnums.toFixnum(n);
           return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
         }),
+
+        "_patch_on-tick": makeFunction(function(handler, n) {
+          runtime.ffi.checkArity(arguments.length <= 1? 1: 2, arguments, "_patch_on-tick", false);
+          runtime.checkFunction(handler);
+          var fixN;
+          if (arguments.length >= 2) {
+            fixN = typeof n === "number"? n: n.toFixnum();
+          } else {
+            fixN = DEFAULT_TICK_DELAY;
+          }
+          return runtime.makeOpaque(new OnTick(handler, fixN * 1000));
+        }),
+
         "to-draw": makeFunction(function(drawer) {
           runtime.ffi.checkArity(1, arguments, "to-draw", false);
           runtime.checkFunction(drawer);
           return runtime.makeOpaque(new ToDraw(drawer));
         }),
+        "on-redraw": makeFunction(function(drawer) {
+          // Patch alias for to-draw
+          runtime.ffi.checkArity(1, arguments, "on-redraw");
+          runtime.checkFunction(drawer);
+          return runtime.makeOpaque(new ToDraw(drawer));
+        }),
         "stop-when": makeFunction(function(stopper) {
-          runtime.ffi.checkArity(1, arguments, "stop-when", false);
+          runtime.ffi.checkArityAtLeast(1, arguments, "stop-when");
           runtime.checkFunction(stopper);
-          return runtime.makeOpaque(new StopWhen(stopper));
+          var last_picture_handler = arguments[1];
+          /*
+          if (last_picture_handler) {
+            checkHandler(last_picture_handler);
+          } */
+          return runtime.makeOpaque(new StopWhen(stopper, last_picture_handler));
         }),
         "close-when-stop": makeFunction(function(isClose) {
           runtime.ffi.checkArity(1, arguments, "close-when-stop", false);
@@ -634,6 +764,16 @@
           runtime.checkFunction(onMouse);
           return runtime.makeOpaque(new OnMouse(onMouse));
         }),
+        "on-tap": makeFunction(function(onTap) {
+          runtime.ffi.checkArity(1, arguments, "on-tap", false);
+          runtime.checkFunction(onTap);
+          return runtime.makeOpaque(new OnTap(onTap));
+        }),
+        "on-tilt": makeFunction(function(onTilt) {
+          runtime.ffi.checkArity(1, arguments, "on-tilt", false);
+          runtime.checkFunction(onMouse);
+          return runtime.makeOpaque(new OnTilt(onTilt));
+        }),
         "is-world-config": makeFunction(function(v) {
           runtime.ffi.checkArity(1, arguments, "is-world-config", false);
           if(!runtime.isOpaque(v)) { return runtime.pyretFalse; }
@@ -644,6 +784,12 @@
           runtime.checkString(key1);
           runtime.checkString(key2);
           return key1.toString().toLowerCase() === key2.toString().toLowerCase();
+        }),
+        "is-mouse-equal": makeFunction(function(mouse1, mouse2) {
+          runtime.ffi.checkArity(2, arguments, "is-mouse-equal", false);
+          runtime.checkString(mouse1);
+          runtime.checkString(mouse2);
+          return mouse1.toString().toLowerCase() === mouse2.toString().toLowerCase();
         })
       },
       {},
