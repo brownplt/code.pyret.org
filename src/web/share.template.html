@@ -27,10 +27,10 @@
 <script src="/js/programs.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-var clientId = "";
-var apiKey = "";
+var clientId = "{{ GOOGLE_CLIENT_ID }}";
+var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {
-  handleClientLoad(clientId, apiKey);
+  handleClientLoad(apiKey);
 }
 </script>
 <script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
