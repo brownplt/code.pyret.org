@@ -41,14 +41,15 @@
     "cpo/http-imports",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
-    "pyret-base/js/runtime"
+    "pyret-base/js/runtime",
+    "cpo/patch-parse"
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, cpoModules, _modalPrompt,
-                      rtLib) {
+                      rtLib, patchParse) {
 
 
 
@@ -91,7 +92,7 @@
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
-    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
+    var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, pyRepl, patchParse, cpo);
 
     // NOTE(joe): In order to yield control quickly, this doesn't pause the
     // stack in order to save.  It simply sends the save requests and
@@ -130,7 +131,19 @@
           },
           dependency: function(protocol, args) {
             var arr = runtime.ffi.toArray(args);
-            if (protocol === "my-gdrive") {
+            if (protocol === "wescheme-collection") {
+              return "wescheme-collection://" + arr[0];
+            }
+            else if (protocol === "wescheme-legacy") {
+              return "wescheme-legacy://" + arr[0];
+            }
+            else if (protocol === "wescheme-my-gdrive") {
+              return "wescheme-gdrive://" + arr[0];
+            }
+            else if (protocol == "wescheme-shared-gdrive") {
+              return "wescheme-shared-gdrive://" + arr[0] + ":" + arr[1];
+            }
+            else if (protocol === "my-gdrive") {
               return "my-gdrive://" + arr[0];
             }
             else if (protocol === "shared-gdrive") {
@@ -171,7 +184,19 @@
               },
               dependency: function(protocol, args) {
                 var arr = runtime.ffi.toArray(args);
-                if (protocol === "my-gdrive") {
+                if (protocol === "wescheme-collection") {
+                  return constructors.makeWeSchemeCollectionLocator(arr[0]);
+                }
+                else if (protocol === "wescheme-legacy") {
+                  return constructors.makeWeSchemeLegacyLocator(arr[0]);
+                }
+                else if (protocol === "wescheme-my-gdrive") {
+                  return constructors.makeWeSchemeMyGDriveLocator(arr[0]);
+                }
+                else if (protocol == "wescheme-shared-gdrive") {
+                  return constructors.makeWeSchemeSharedGDriveLocator(arr[0]);
+                }
+                else if (protocol === "my-gdrive") {
                   return constructors.makeMyGDriveLocator(arr[0]);
                 }
                 else if (protocol === "shared-gdrive") {
@@ -224,7 +249,12 @@
 
     var getDefsForPyret = function(source) {
       return runtime.makeFunction(function() {
-        return source;
+        var ws_str = source;
+        if (cpoDialect === 'patch') {
+          console.log('cpo-main/getdefs calling patchToPyretAST', ws_str);
+          ws_str = patchParse.patchToPyretAST(ws_str, 'definitions', 'definitions');
+        }
+        return ws_str;
       });
     };
     var replGlobals = gmf(compileStructs, "standard-globals");
@@ -256,7 +286,9 @@
                 return runtime.safeCall(
                   function() {
                     return gf(repl,
-                    "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
+                    (cpoDialect === 'patch'? 'make-patch-definitions-locator'
+                        : "make-definitions-locator")
+                    ).app(getDefsForPyret(source), replGlobals);
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
@@ -267,19 +299,30 @@
             }, 0);
             return ret.promise;
           },
-          run: function(str, name) {
+          run: function(str, name, lineNo) {
             var ret = Q.defer();
-            setTimeout(function() {
+            setTimeout(function () {
               runtime.runThunk(function() {
-                return runtime.safeCall(
-                  function() {
-                    return gf(repl,
-                    "make-interaction-locator").app(
-                      runtime.makeFunction(function() { return str; }))
-                  },
-                  function(locator) {
+                console.log('doing run timeout');
+                if (cpoDialect!=='patch') {
+                  return runtime.safeCall(function() {
+                    return gf(repl, "make-interaction-locator").app(
+                      runtime.makeFunction(function() { return str; }));
+                  }, function(locator) {
                     return gf(repl, "run-interaction").app(locator);
                   }, "run:make-interaction-locator");
+                } else {
+                  return runtime.safeCall(function() {
+                    return patchParse.patchToPyretAST(str, name, 'repl', lineNo);
+                  }, function(ws_str) {
+                    return runtime.safeCall(function() {
+                      return gf(repl, 'make-patch-interaction-locator').app(
+                        runtime.makeFunction(function() { return ws_str; }));
+                    }, function(locator) {
+                      return gf(repl, 'run-interaction').app(locator);
+                    }, 'run:make-patch-interaction-locator');
+                  }, 'patchToPyretAST');
+                }
               }, function(result) {
                 ret.resolve(result);
               }, "make-interaction-locator");
@@ -350,6 +393,20 @@
       $("#select-mcmh").click(function() {
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
+
+      $("#modeButton").change(function(e) {
+        editor.cm.changeMode(e.target.value);
+      });
+
+      $("#undoButton").click(function() {
+        editor.cm.undo();
+      });
+
+      $("#redoButton").click(function() {
+        editor.cm.redo();
+      });
+
+
       function doRunAction(src) {
         editor.cm.operation(function() {
           editor.cm.clearGutter("test-marker-gutter");
