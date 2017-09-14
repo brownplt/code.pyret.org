@@ -16,22 +16,41 @@
       "is-side-count": "tany",
       "is-step-count": "tany",
       "is-image": "tany",
+      "is-posn": "tany",
+      "make-posn": "tany",
+      "posn-x": "tany",
+      "posn-y": "tany",
+      "is-color": "tany",
+      "make-color": "tany",
+      "color-red": "tany",
+      "color-green": "tany",
+      "color-blue": "tany",
+      "color-alpha": "tany",
       "bitmap-url": "tany",
+      "open-image-url": "tany",
       "image-url": "tany",
       "images-equal": "tany",
       "images-difference": "tany",
       "text": "tany",
       "text-font": "tany",
       "overlay": "tany",
+      "_patch_overlay": "tany",
       "overlay-xy": "tany",
       "overlay-align": "tany",
+      "_patch_overlay-align": "tany",
       "underlay": "tany",
+      "_patch_underlay": "tany",
       "underlay-xy": "tany",
       "underlay-align": "tany",
+      "_patch_underlay-align": "tany",
       "beside": "tany",
+      "_patch_beside": "tany",
       "beside-align": "tany",
+      "_patch_beside-align": "tany",
       "above": "tany",
+      "_patch_above": "tany",
       "above-align": "tany",
+      "_patch_above-align": "tany",
       "empty-scene": "tany",
       "put-image": "tany",
       "place-image": "tany",
@@ -50,6 +69,7 @@
       "rectangle": "tany",
       "regular-polygon": "tany",
       "ellipse": "tany",
+      "polygon": "tany",
       "triangle": "tany",
       "triangle-sas": "tany",
       "triangle-sss": "tany",
@@ -192,6 +212,7 @@
         && jsnums.greaterThanOrEqual(val, 0, runtime.NumberErrbacks);
     }, "Non-negative Real Number");
 
+    var checkPosn = p(image.isPosn, "Position");
 
     var _checkColor = p(image.isColorOrColorString, "Color");
 
@@ -279,6 +300,8 @@
     var checkPointsCount = p(image.isPointsCount, "Points Count");
 
     var checkArity = ffi.checkArity;
+
+    var checkArityAtLeast = ffi.checkArityAtLeast;
 
     var checkListofColor = p(function(val) {
       return ffi.makeList(ffi.toArray(val).map(checkColor));
@@ -368,11 +391,70 @@
     });
     f("is-image", function(maybeImage) {
       checkArity(1, arguments, "is-image", false);
-      runtime.confirm(maybeImage, runtime.isOpaque);
-      return runtime.wrap(image.isImage(maybeImage.val));
+      //runtime.confirm(maybeImage, runtime.isOpaque);
+      //return runtime.wrap(image.isImage(maybeImage.val));
+      return runtime.wrap(runtime.isOpaque(maybeImage) && image.isImage(maybeImage.val));
     });
-    f("bitmap-url", bitmapURL),
-    f("image-url", bitmapURL),
+
+    f("is-posn", function(maybePosn) {
+      checkArity(1, arguments, "is-posn");
+      return runtime.wrap(image.isPosn(maybePosn));
+    });
+    f("make-posn", function(maybeX, maybeY) {
+      checkArity(2, arguments, "make-posn");
+      var x = checkReal(maybeX);
+      var y = checkReal(maybeY);
+      return runtime.wrap(image.makePosn(
+        jsnums.toFixnum(x), jsnums.toFixnum(y)));
+    });
+    f("posn-x", function(maybePosn) {
+      checkArity(1, arguments, "posn-x");
+      var p = checkPosn(maybePosn);
+      return runtime.wrap(image.posnX(p));
+    });
+    f("posn-y", function(maybePosn) {
+      checkArity(1, arguments, "posn-y");
+      var p = checkPosn(maybePosn);
+      return runtime.wrap(image.posnY(p));
+    });
+    f("is-color", function(maybeColor) {
+      checkArity(1, arguments, "is-color");
+      return runtime.wrap(image.isColor(maybeColor));
+    });
+    f("make-color", function(maybeRed,maybeGreen,maybeBlue,maybeAlpha) {
+      checkArity(arguments.length <= 3? 3: 4, arguments, "make-color");
+      var red = checkByte(maybeRed);
+      var green = checkByte(maybeGreen);
+      var blue = checkByte(maybeBlue);
+      var alpha = maybeAlpha? checkByte(maybeAlpha): 255;
+      return runtime.wrap(image.makeColor(
+      jsnums.toFixnum(red),jsnums.toFixnum(green),jsnums.toFixnum(blue),
+      jsnums.toFixnum(alpha)));
+    });
+    f("color-red", function(maybeColor) {
+      checkArity(1, arguments, "color-red");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorRed(c));
+    });
+    f("color-green", function(maybeColor) {
+      checkArity(1, arguments, "color-green");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorGreen(c));
+    });
+    f("color-blue", function(maybeColor) {
+      checkArity(1, arguments, "color-blue");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorBlue(c));
+    });
+    f("color-alpha", function(maybeColor) {
+      checkArity(1, arguments, "color-alpha");
+      var c = checkColor(maybeColor);
+      return runtime.wrap(image.colorAlpha(c));
+    });
+
+    f("bitmap-url", bitmapURL);
+    f("open-image-url", bitmapURL);
+    f("image-url", bitmapURL);
     f("images-difference", function(maybeImage1, maybeImage2) {
       checkArity(2, arguments, "image", false);
       c("images-difference", [maybeImage1, maybeImage2], [annImage, annImage]);
@@ -400,7 +482,10 @@
     f("text-font", function(maybeString, maybeSize, maybeColor, maybeFace,
                             maybeFamily, maybeStyle, maybeWeight, maybeUnderline) {
       checkArity(8, arguments, "image", false);
-      c("text", [
+      // patch comments following
+      // and uses "text-font" rather than "text" below
+      /*
+      c("text-font", [
           maybeString,
           maybeSize,
           maybeColor,
@@ -418,7 +503,7 @@
           annFontStyle,
           annFontWeight,
           runtime.Boolean
-        ]);
+        ]); */
       var string = checkString(maybeString);
       var size = jsnums.toFixnum(checkByte(maybeSize));
       var color = checkColor(maybeColor);
@@ -440,6 +525,18 @@
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, img2, "middle", "middle"));
     });
+
+    f("_patch_overlay", function(maybeImg1) {
+      checkArityAtLeast(1, arguments, "_patch_overlay", false);
+      if (arguments.length < 2) {
+        throw runtime.ffi.throwArityErrorC(["overlay"], 2, [maybeImg1]);
+      }
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 1; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(cumulImage, checkImage(arguments[i]), "middle", "middle");
+      }
+      return makeImage(cumulImage);
+    }),
 
     f("overlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
       checkArity(4, arguments, "overlay-xy", false);
@@ -466,6 +563,20 @@
       return makeImage(image.makeOverlayImage(img1, img2, String(placeX), String(placeY)));
     });
 
+    f("_patch_overlay-align", function(maybePlaceX, maybePlaceY, maybeImg1) {
+      checkArityAtLeast(3, arguments, "_patch_overlay-align", false);
+      if (arguments.length < 4) {
+        throw runtime.ffi.throwArityErrorC(["overlay-align"], 4, [maybePlaceX, maybePlaceY, maybeImg1]);
+      }
+      var placeX = String(checkPlaceX(maybePlaceX));
+      var placeY = String(checkPlaceY(maybePlaceY));
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 3; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(cumulImage, checkImage(arguments[i]), placeX, placeY);
+      }
+      return makeImage(cumulImage);
+    }),
+
     f("underlay", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "underlay", false);
       c("underlay", [maybeImg1, maybeImg2], [annImage, annImage]);
@@ -473,6 +584,18 @@
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img2, img1, "middle", "middle"));
     });
+
+    f("_patch_underlay", function(maybeImg1) {
+      checkArityAtLeast(1, arguments, "_patch_underlay", false);
+      if (arguments.length < 2) {
+        throw runtime.ffi.throwArityErrorC(["underlay"], 2, [maybeImg1]);
+      }
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 1; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(checkImage(arguments[i]), cumulImage, "middle", "middle");
+      }
+      return makeImage(cumulImage);
+    }),
 
     f("underlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
       checkArity(4, arguments, "underlay-xy", false);
@@ -499,6 +622,20 @@
       return makeImage(image.makeOverlayImage(img2, img1, String(placeX), String(placeY)));
     });
 
+    f("_patch_underlay-align", function(maybePlaceX, maybePlaceY, maybeImg1) {
+      checkArityAtLeast(3, arguments, "_patch_underlay-align", false);
+      if (arguments.length < 4) {
+        throw runtime.ffi.throwArityErrorC(["_patch-underlay-align"], 4, [maybePlaceX, maybePlaceY, maybeImg1]);
+      }
+      var placeX = String(checkPlaceX(maybePlaceX));
+      var placeY = String(checkPlaceY(maybePlaceY));
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 3; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(checkImage(arguments[i]), cumulImage, placeX, placeY);
+      }
+      return makeImage(cumulImage);
+    }),
+
     f("beside", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "beside", false);
       c("beside", [maybeImg1, maybeImg2], [annImage, annImage]);
@@ -506,6 +643,18 @@
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, img2, "beside", "middle"));
     });
+
+    f("_patch_beside", function(maybeImg1) {
+      checkArityAtLeast(1, arguments, "_patch_beside", false);
+      if (arguments.length < 2) {
+        throw runtime.ffi.throwArityErrorC(["overlay"], 2, [maybeImg1]);
+      }
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 1; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(cumulImage, checkImage(arguments[i]), "beside", "middle");
+      }
+      return makeImage(cumulImage);
+    }),
 
     f("beside-align", function(maybePlaceY, maybeImg1, maybeImg2) {
       checkArity(3, arguments, "beside-align", false);
@@ -518,6 +667,19 @@
       return makeImage(image.makeOverlayImage(img1, img2, "beside", String(placeY)));
     });
 
+    f("_patch_beside-align", function(maybePlaceY, maybeImg1) {
+      checkArityAtLeast(2, arguments, "_patch_beside-align", false);
+      if (arguments.length < 3) {
+        throw runtime.ffi.throwArityErrorC(["beside-align"], 3, [maybePlaceY, maybeImg1]);
+      }
+      var placeY = String(checkPlaceY(maybePlaceY));
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 2; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(cumulImage, checkImage(arguments[i]),  "beside", placeY);
+      }
+      return makeImage(cumulImage);
+    }),
+
     f("above", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "above", false);
       c("beside", [maybeImg1, maybeImg2], [annImage, annImage]);
@@ -525,6 +687,18 @@
       var img2 = checkImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, img2, "middle", "above"));
     });
+
+    f("_patch_above", function(maybeImg1) {
+      checkArityAtLeast(1, arguments, "_patch_above", false);
+      if (arguments.length < 2) {
+        throw runtime.ffi.throwArityErrorC(["above"], 2, [maybeImg1]);
+      }
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 1; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(cumulImage, checkImage(arguments[i]), "middle", "above");
+      }
+      return makeImage(cumulImage);
+    }),
 
     f("above-align", function(maybePlaceX, maybeImg1, maybeImg2) {
       checkArity(3, arguments, "above-align", false);
@@ -537,13 +711,35 @@
       return makeImage(image.makeOverlayImage(img1, img2, String(placeX), "above"));
     });
 
+    f("_patch_above-align", function(maybePlaceX, maybeImg1) {
+      checkArityAtLeast(2, arguments, "_patch_above-align", false);
+      if (arguments.length < 3) {
+        throw runtime.ffi.throwArityErrorC(["above-align"], 3, [maybePlaceX, maybeImg1]);
+      }
+      var placeX = String(checkPlaceX(maybePlaceX));
+      var cumulImage = checkImage(maybeImg1);
+      for (var i = 2; i < arguments.length; i++) {
+        cumulImage = image.makeOverlayImage(cumulImage, checkImage(arguments[i]), placeX, "above");
+      }
+      return makeImage(cumulImage);
+    }),
+
     f("empty-scene", function(maybeWidth, maybeHeight) {
-      checkArity(2, arguments, "empty-scene", false);
-      c("empty-scene", [maybeWidth, maybeHeight], [annNumNonNegative, annNumNonNegative]);
+      checkArityAtLeast(2, arguments, "empty-scene", false);
+      //patch wants an opt 3rd arg for color
+      //checkArity(2, arguments, "empty-scene", false);
+      //c("empty-scene", [maybeWidth, maybeHeight], [annNumNonNegative, annNumNonNegative]);
+      if (arguments.length < 2 || arguments.length > 3) {
+        throw runtime.ffi.throwArityErrorC(["empty-scene"], 2, [maybeWidth, maybeHeight]);
+      }
       var width = jsnums.toFixnum(checkNonNegativeReal(maybeWidth));
       var height = jsnums.toFixnum(checkNonNegativeReal(maybeHeight));
+      var color = false;
+      if (arguments.length === 3) {
+        color = checkColor(arguments[2]);
+      }
       return makeImage(
-        image.makeSceneImage(width, height, [], true));
+        image.makeSceneImage(width, height, [], true, color));
     });
     f("put-image", function(maybePicture, maybeX, maybeY, maybeBackground) {
       checkArity(4, arguments, "put-image", false);
@@ -758,6 +954,16 @@
       var color = checkColor(maybeColor);
       return makeImage(
         image.makePolygonImage(length, count, 1, mode, color));
+    });
+
+    f("polygon", function(maybeList, maybeMode, maybeColor) {
+      checkArity(3, arguments, "polygon", false);
+      // c(...)
+      var lop = checkListofPosn(maybeList);
+      var mode = checkMode(maybeMode);
+      var color = checkColor(maybeColor);
+      return makeImage(
+        image.makePosnImage(lop, String(mode), color));
     });
 
     f("ellipse", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
