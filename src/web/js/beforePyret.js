@@ -58,11 +58,11 @@ $(window).bind("beforeunload", function() {
 });
 
 var Documents = function() {
-  
+
   function Documents() {
     this.documents = new Map();
   }
-  
+
   Documents.prototype.has = function (name) {
     return this.documents.has(name);
   };
@@ -76,7 +76,7 @@ var Documents = function() {
       logger.log("doc.set", {name: name, value: doc.getValue()});
     return this.documents.set(name, doc);
   };
-  
+
   Documents.prototype.delete = function (name) {
     if(logger.isDetailed)
       logger.log("doc.del", {name: name});
@@ -166,6 +166,41 @@ $(function() {
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
 
+    if (cpoDialect === 'patch') {
+      var CMblocks;
+
+      if (typeof CodeMirrorBlocks === 'undefined') {
+        console.log('CodeMirrorBlocks not found');
+        CMblocks = undefined;
+      } else {
+        CMblocks = new CodeMirrorBlocks(CM,
+          'wescheme',
+          {
+            willInsertNode: function(sourceNodeText, sourceNode, destination) {
+              var line = CM.editor.getLine(destination.line);
+              if (destination.ch > 0 && line[destination.ch - 1].match(/[\w\d]/)) {
+                // previous character is a letter or number, so prefix a space
+                sourceNodeText = ' ' + sourceNodeText;
+              }
+
+              if (destination.ch < line.length && line[destination.ch].match(/[\w\d]/)) {
+                // next character is a letter or a number, so append a space
+                sourceNodeText += ' ';
+              }
+              return sourceNodeText;
+            }
+          });
+        CM.blocksEditor = CMblocks;
+        CM.changeMode = function(mode) {
+          if (mode === "false") {
+            mode = false;
+          } else {
+            CMblocks.ast = null;
+          }
+          CMblocks.setBlockMode(mode);
+        }
+      }
+    }
 
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
@@ -268,7 +303,10 @@ $(function() {
   });
 
   function setTitle(progName) {
-    document.title = progName + " - code.pyret.org";
+    if (cpoDialect === 'patch')
+      document.title = 'Patch Editor: ' + progName;
+    else
+      document.title = progName + " - code.pyret.org";
   }
   CPO.setTitle = setTitle;
 
@@ -502,10 +540,10 @@ $(function() {
     initialGas: 100
   });
   CPO.editor.cm.setOption("readOnly", "nocursor");
-  
+
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-    
+
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
