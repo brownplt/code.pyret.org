@@ -74,6 +74,13 @@
          50
       );
     }
+
+    function pyretizePatchLoc(patchLoc) {
+      return runtime.makeSrcloc([patchLoc.source,
+        patchLoc.startRow, patchLoc.startCol, patchLoc.startChar,
+        patchLoc.endRow, patchLoc.endCol, patchLoc.endChar
+      ])
+    }
     
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
@@ -112,10 +119,47 @@
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
+            var thisExn = undefined;
             // Parse Errors
+            if (typeof(result.exn) === 'string') {
+              //console.log('quite possibly a patch-parse-error');
+              var patchExn = JSON.parse(result.exn);
+              if (patchExn.type === 'patch-parse-error') {
+                //console.log('dealing with a Patch parse error');
+                var patchErrPkt = patchExn.errPkt;
+                var patchErrMsg = "";
+                var patchErrArgLocs = [];
+                if (patchErrPkt) {
+                  patchErrMsg = patchErrPkt.errMsg || "";
+                  patchErrArgLocs = patchErrPkt.errArgLocs || [];
+                }
+                // get patchErrArgs & patchErrLocs from patchErrArgLocs
+                var patchErrArgs = [];
+                var patchErrLocs = [];
+                var it;
+                for (var i = 0; i < patchErrArgLocs.length; i++) {
+                  it = patchErrArgLocs[i];
+                  patchErrArgs.push(it[0]);
+                  patchErrLocs.push(pyretizePatchLoc(it[1]));
+                }
+                var patchErrArgsList = ffi.makeList(patchErrArgs);
+                var patchErrLocsList = ffi.makeList(patchErrLocs);
+                //console.log('calling ffi.makePatchParseException');
+                var thisPyretExn = ffi.makePatchParseException(patchErrMsg, patchErrArgsList,
+                  patchErrLocsList);
+                thisExn = thisPyretExn.exn;
+                //console.log('thisExn = ', thisExn);
+              } else {
+                ;
+                //console.log('stringy exception that isnt a Patch parse error!');
+              }
+            } else {
+              thisExn = result.exn.exn;
+            }
+            //console.log('calling renderAndDisplayError I');
             // `renderAndDisplayError` must be called on the pyret stack
             // this application runs in the context of the above `callingRuntime.runThunk`
-            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
+            return renderAndDisplayError(callingRuntime, thisExn, undefined, true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -196,6 +240,7 @@
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
+      window.definitionsDone = !didError;
       return doneDisplay.promise;
       }
     }
@@ -351,8 +396,8 @@
       container.append(output).append(promptContainer);
 
       var img = $("<img>").attr({
-        "src": "/img/pyret-spin.gif",
-        "width": "25px",
+        "src": (cpoDialect === 'patch'? '/img/patch-treadmill-run.gif': "/img/pyret-spin.gif"),
+        "width": (cpoDialect === 'patch'? '18px': "25px"),
       }).css({
         "vertical-align": "middle"
       });
@@ -559,7 +604,7 @@
         var thisName = 'interactions://' + interactionsCount;
         CPO.documents.set(thisName, echoCM.getDoc());
         logger.log('run', { name: thisName });
-        var replResult = repl.run(code, thisName);
+        var replResult = repl.run(code, thisName, interactionsCount);
 //        replResult.then(afterRun(CM));
         var startRendering = replResult.then(function(r) {
           maybeShowOutputPending();
