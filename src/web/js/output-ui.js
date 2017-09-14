@@ -16,9 +16,10 @@
   provides: {},
   nativeRequires: [
     "pyret-base/js/runtime-util",
-    "pyret-base/js/js-numbers"
+    "pyret-base/js/js-numbers",
+    "cpo/patch-parse"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, image, loadLib, util, jsnums) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, image, loadLib, util, jsnums, patchParse) {
 
     var srcloc = runtime.getField(srclocLib, "values");
     var isSrcloc = runtime.getField(srcloc, "is-Srcloc");
@@ -29,6 +30,40 @@
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
     var shareAPI = makeShareAPI("");
+
+    function unPyretizeSymbol(str) {
+      if (!/Ǝ/.test(str)) {
+        return str;
+      }
+      return str.
+      replace(/ƎSLASH/g, '/').
+      replace(/ƎQUESTION/g, '?').
+      replace(/ƎBANG/g, '!').
+      replace(/ƎPLUS/g, '+').
+      replace(/ƎGT/g, '>').
+      replace(/ƎLT/g, '<').
+      replace(/ƎEQ/g, '=').
+      replace(/ƎSTAR/g, '*').
+      replace(/ƎDOLLAR/g, '$').
+      replace(/ƎCOLON/g, ':').
+      replace(/ƎPCT/g, '%').
+      replace(/ƎAND/g, '&').
+      replace(/ƎAT/g, '@').
+      replace(/ƎHAT/g, '^').
+      replace(/ƎDOT/g, '.').
+      replace(/ƎHASH1/g, '#').
+      replace(/ƎHASHPCT/g, '#%').
+      replace(/ƎUNDERSCORE/g, '_').
+      replace(/ƎEMPTY/g, '').
+      replace(/ƎMODULE.*$/, 'ᵐ').
+      replace(/Ǝ(\d)/g, '$1');
+    }
+
+    function unPyretizeProcName(str) {
+      return Object.keys(patchParse.symbolMap).filter(
+        function(key) {return patchParse.symbolMap[key] === str})[0] ||
+        unPyretizeSymbol(str);
+    }
 
     var highlightedPositions = [];
 
@@ -459,7 +494,7 @@
       });
     }
 
-    function maybeParse(runtime, documents, loc) {
+    function maybeParse(runtime, documents, loc, possTestResult) {
       return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
         "builtin": function(_) {
             console.error("maybeLocToAST should not be passed a builtin source location.", loc);
@@ -473,7 +508,15 @@
             function parse(source, filename) {
               var ret = Q.defer();
               runtime.runThunk(function() {
-                return runtime.getField(PP, "surface-parse").app(source, filename);
+                if (cpoDialect === 'patch') {
+                  console.log('calling patchtopyretast on', source);
+                  return runtime.getField(PP, 'patch-surface-parse').app(
+                    patchParse.patchToPyretAST(source, filename, possTestResult),
+                    filename);
+                } else {
+                  console.log('calling regular surface-parse');
+                  return runtime.getField(PP, "surface-parse").app(source, filename);
+                }
               }, function (result) {
                 if (runtime.isSuccessResult(result)) {
                   ret.resolve(result.result);
@@ -547,9 +590,9 @@
       });
     }
 
-    function makeMaybeLocToAST(runtime, documents, loc) {
+    function makeMaybeLocToAST(runtime, documents, loc, possTestResult) {
       return runtime.makeFunction(function(loc) {
-          return maybeParse(runtime, documents, loc);
+          return maybeParse(runtime, documents, loc, possTestResult);
         });
     }
 
@@ -926,6 +969,9 @@
             }, "optional: help(contents)");
           },
           "text": function(txt) {
+            if (cpoDialect === "patch") {
+              txt = unPyretizeSymbol(txt);
+            }
             return $("<span>").text(txt);
           },
           "code": function(contents) {
@@ -1334,6 +1380,8 @@
           });
 
           return outText;
+        } else if (jsnums.isComplexRoughnum(num) && cpoDialect==='patch') {
+          return renderText(sooper(renderers, "number", num.toSchemeString()));
         } else {
           return renderText(sooper(renderers, "number", num));
         }
@@ -1368,6 +1416,7 @@
             case 11: ret.push('\\v'); break;
             case 12: ret.push('\\f'); break;
             case 13: ret.push('\\r'); break;
+            //case 32: ret.push(' '); break; patch has this
             case 34: ret.push('\\"'); break;
             case 92: ret.push('\\\\'); break;
             default:
@@ -1386,8 +1435,16 @@
         }
         return ret.join('');
       };
-      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
-      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
+      renderers["method"] = function(val) {
+        var name = val.name;
+        if (cpoDialect==='patch') name = unPyretizeSymbol(name);
+        return renderText("<method:" + name + ">");
+      };
+      renderers["function"] = function(val) {
+        var name = val.name;
+        if (cpoDialect==='patch') name = unPyretizeSymbol(name);
+        return renderText("<function:" + unPyretizeProcName(name) + ">");
+      };
       renderers["render-array"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
@@ -1502,7 +1559,10 @@
       };
       renderers["render-data"] = function renderData(top) {
         var container = $("<span>").addClass("replToggle replOutput");
-        var name = $("<span>").text(top.extra.constructorName);
+        //var name = $("<span>").text(top.extra.constructorName);
+        var cName = top.extra.constructorName;
+        if (cpoDialect==='patch') cName = unPyretizeSymbol(cName);
+        var name = $("<span>").text(name);
         var openParen = $("<span>").addClass("collapsed").text("(");
         var closeParen = $("<span>").addClass("collapsed").text(")");
         var dl = $("<dl>");
@@ -1535,13 +1595,26 @@
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
         else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
+          var name = runtime.unwrap(runtime.getField(val, "name"));
           container.addClass("replToggle");
-          container.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
+          if (cpoDialect==='patch' && (name === "list" || name === "array")) {
+            if (name === "list") {
+              container.append($("<span>").text("(list "));
+            } else {
+              container.append($("<span>").text("(vector "));
+            }
+          } else {
+            container.append($("<span>").text("[" + name + ": "));
+          }
           var ul = $("<ul>").addClass("inlineCollection");
           container.append(ul);
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           groupItems(ul, items, values, 0, items.length);
-          container.append($("<span>").text("]"));
+          if (cpoDialect==='patch' && (name === "list" || name === "array")) {
+            container.append($("<span>").text(")"));
+          } else {
+            container.append($("<span>").text("]"));
+          }
           container.click(function(e) {
             ul.each(makeInline);
             e.stopPropagation();

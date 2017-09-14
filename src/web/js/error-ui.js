@@ -96,11 +96,13 @@
     // RETURNED THUNK MUST NOT BE CALLED ON PYRET STACK
     function getFancyRenderer(runtime, documents, error) {
       var srclocAvaliable = outputUI.makeSrclocAvaliable(runtime, documents, srcloc);
+      var testResultP = isTestResult(runtime, error);
       if (isRuntimeError(runtime, error)
        || isContractError(runtime, error)
-       || isTestResult(runtime, error)) {
+       || testResultP) {
         // NOTE: SHOULD THESE PREDICATES ONLY BE CALLED IN THE CONTEXT OF PYRET STACK?
-        var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc);
+        var maybeLocToAST   = outputUI.makeMaybeLocToAST(runtime, documents, srcloc,
+                                                         (testResultP && "test-result"));
         return function(stack) {
           // this returned function must not be called on the pyret stack
           // b/c `render_fancy_reason` must not be called on the pyret stack.
