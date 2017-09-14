@@ -7,6 +7,7 @@ define("cpo/gdrive-locators", [], function() {
       compileStructs,
       parsePyret,
       builtinModules,
+      replSupport, patchParse,
       cpo) {
     var gf = runtime.getField;
     var gmf = function(m, f) { return gf(gf(m, "values"), f); };
@@ -37,6 +38,623 @@ define("cpo/gdrive-locators", [], function() {
         message = defaultMessage;
       }
       return message;
+    }
+    function makeWeSchemeMyGDriveLocator(filename) {
+      //console.log('doing makeWeSchemeMyGDriveLocator ' + filename);
+      function checkFileResponse(files, restarter) {
+        if(files.length === 0) {
+          restarter.error(runtime.ffi.makeMessageException("Could not find module with name " + filename + " in your drive."));
+        }
+        if(files.length > 1) {
+          restarter.error(runtime.ffi.makeMessageException("There were multiple files with name " + filename + " in your drive."));
+        }
+      }
+      function contentRequestFailure(failure) {
+        return "Could not load file with name " + filename;
+      }
+
+      // Pause because we'll fetch the Google Drive file object and restart
+      // with it to create the actual locator
+      return runtime.pauseStack(function(restarter) {
+        // We start by setting up the fetch of the file; lots of methods will
+        // close over this.
+        var filesP = storageAPI.then(function(storage) {
+          //console.log('ds26gte I ' + JSON.stringify(storage));
+          return storage.getFileByName(filename); //makeWeSchemeMyGDriveLocator
+        });
+        filesP.fail(function(failure) {
+          //console.log('ds26gte II ' + failure);
+          restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
+        });
+        var fileP = filesP.then(function(files) {
+          //console.log('ds26gte III');
+          checkFileResponse(files, restarter);
+          // checkFileResponse throws if there's an error
+          return files[0];
+        });
+
+        fileP.then(function(file) {
+
+          var uri = "wescheme-gdrive://" + filename;
+
+          function needsCompile() { return true; }
+
+          function dialect(self) {
+            return runtime.makeString("patch");
+          }
+
+          var ast = undefined;
+
+          function getModule(self) {
+            //console.log('doing makeWeSchemeMyGDriveLocator > getModule');
+            if (ast !== undefined) {
+              //console.log('reusing ast');
+              return ast;
+            } else {
+              return runtime.pauseStack(function(getModRestart) {
+                var contentsP = file.getContents();
+                contentsP.fail(function(failure) {
+                  getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
+                });
+                contentsP.then(function(patchString) {
+                  //console.log('operating on ' + patchString);
+                  return runtime.safeCall(function() {
+                    //console.log('calling patchToPyretAST I', patchString);
+                    return patchParse.patchToPyretAST(patchString, uri, "module");
+                  }, function(sAst) {
+                    return runtime.safeCall(function() {
+                      //console.log('calling patch-surface-parse');
+                      return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
+                    }, function(parsed) {
+                      return runtime.safeCall(function() {
+                        //console.log('calling make-provide-for-repl');
+                        return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                      }, function(pAst) {
+                        return runtime.safeCall(function() {
+                          //console.log('wrapping pyret-ast');
+                          return gmf(compileLib, "pyret-ast").app(pAst);
+                        }, function(ret) {
+                          ast = ret;
+                          getModRestart.resume(ret);
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            }
+          }
+
+          function getDependencies(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+              });
+            }, "wescheme-mygdrive-locator:get-dependencies");
+          }
+
+          function getProvides(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-provides").app(mod, uri);
+              });
+            }, "wescheme_mygdrive:get-provides");
+          }
+
+          function getExtraImports(self) {
+            return gmf(compileStructs, "standard-imports");
+          }
+
+          function getGlobals(self) {
+            return gmf(compileStructs, "standard-globals");
+          }
+
+          function getCompileEnv(_) {
+            return gmf(compileStructs, "standard-builtins");
+          }
+
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
+          function getUri(_) { return uri; }
+          function name(_) { return filename; }
+          function setCompiled(_) { return runtime.nothing; }
+
+          var m0 = runtime.makeMethod0;
+          var m1 = runtime.makeMethod1;
+          var m2 = runtime.makeMethod2;
+
+          restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
+            "needs-compile": m1(needsCompile),
+            "get-module": m0(getModule),
+            "get-dependencies": m0(getDependencies),
+            "get-provides": m0(getProvides),
+            "get-extra-imports": m0(getExtraImports),
+            "get-globals": m0(getGlobals),
+            "get-compile-env": m0(getCompileEnv),
+            "uri": m0(getUri),
+            "name": m0(name),
+            "_equals": m2(function(self, other, rec) {
+              return runtime.safeCall(function() {
+                return runtime.getField(other, "uri").app();
+              }, function(otherstr) {
+                return runtime.safeTail(function() {
+                  return rec.app(otherstr, uri);
+                })
+              }, "wescheme-mygdrive-locator:_equals");
+            }),
+            "set-compiled": m2(setCompiled),
+            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+          }));
+        });
+      });
+    }
+    function makeWeSchemeSharedGDriveLocator(/* filename, */ id) {
+      //console.log('doing makeWeSchemeSharedGDriveLocator '  + id);
+      function checkFileResponse(file, filename, restarter) {
+        var actualName = file.getName();
+        if(actualName !== filename) {
+          restarter.error(runtime.ffi.makeMessageException("Expected file with id " + id + " to have name " + filename + ", but its name was " + actualName));
+        }
+      }
+      function contentRequestFailure(failure) {
+        //return "Could not load file with name " + filename;
+        return "Could not load file with id " + id;
+      }
+
+      // Pause because we'll fetch the Google Drive file object and restart
+      // with it to create the actual locator
+      return runtime.pauseStack(function(restarter) {
+        // We start by setting up the fetch of the file; lots of methods will
+        // close over this.
+        var filesP = storageAPI.then(function(storage) {
+          //console.log('ds26gte aI ' + JSON.stringify(storage));
+          return storage.getSharedFileById(id);
+        });
+        filesP.fail(function(failure) {
+          //console.log('ds26gte aII ' + failure);
+          restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, id /* filename */)));
+        });
+        var fileP = filesP.then(function(file) {
+          //console.log('ds26gte aIII');
+          //checkFileResponse(file, filename, restarter);
+          // checkFileResponse throws if there's an error
+          return file;
+        });
+
+        fileP.then(function(file) {
+
+          //var uri = "shared-gdrive://" + filename + ":" + file.getUniqueId();
+          var uri = "shared-gdrive://" + id + ":" + file.getUniqueId();
+
+          function needsCompile() { return true; }
+
+          function dialect(self) {
+            return runtime.makeString('patch');
+          }
+
+          var ast = undefined;
+
+          function getModule(self) {
+            //console.log('doing makeWeSchemeSharedGDriveLocator > getModule');
+            if (ast !== undefined) {
+              //console.log('reusing ast');
+              return ast;
+            } else {
+              return runtime.pauseStack(function(getModRestart) {
+                var contentsP = file.getContents();
+                contentsP.fail(function(failure) {
+                  getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
+                });
+                contentsP.then(function(patchString) {
+                  //console.log('operating on ' + patchString);
+                  return runtime.safeCall(function() {
+                    sessionStorage.setItem(uri,patchString);
+                  }, function(_) {
+                    return runtime.safeCall(function() {
+                      //console.log('calling patchToPyretAST II', patchString);
+                      return patchParse.patchToPyretAST(patchString, uri, "module");
+                    }, function(sAst) {
+                      return runtime.safeCall(function() {
+                        //console.log('calling patch-surface-parse');
+                        return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
+                      }, function(parsed) {
+                        return runtime.safeCall(function() {
+                          //console.log('calling make-provide-for-repl');
+                          return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                        }, function(pAst) {
+                          return runtime.safeCall(function() {
+                            //console.log('wrapping pyret-ast');
+                            return gmf(compileLib, "pyret-ast").app(pAst);
+                          }, function(ret) {
+                            ast = ret;
+                            getModRestart.resume(ret);
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            }
+          }
+
+          function getDependencies(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+              });
+            }, "wescheme-shared-gdrive-locator:get-dependencies");
+          }
+
+          function getProvides(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-provides").app(mod, uri);
+              });
+            }, "wescheme-shared-gdrive-locator:get-provides");
+          }
+
+          function getExtraImports(self) {
+            return gmf(compileStructs, "standard-imports");
+          }
+
+          function getGlobals(self) {
+            return gmf(compileStructs, "standard-globals");
+          }
+
+          function getCompileEnv(_) {
+            return gmf(compileStructs, "standard-builtins");
+          }
+
+          function getUri(_) { return uri; }
+          //function name(_) { return filename; }
+          function name(_) { return id; }
+          function setCompiled(_) { return runtime.nothing; }
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
+          var m0 = runtime.makeMethod0;
+          var m1 = runtime.makeMethod1;
+          var m2 = runtime.makeMethod2;
+
+          restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
+            "needs-compile": m1(needsCompile),
+            "get-module": m0(getModule),
+            "get-dependencies": m0(getDependencies),
+            "get-provides": m0(getProvides),
+            "get-extra-imports": m0(getExtraImports),
+            "get-globals": m0(getGlobals),
+            "get-compile-env": m0(getCompileEnv),
+            "uri": m0(getUri),
+            "name": m0(name),
+            "_equals": m2(function(self, other, rec) {
+              return runtime.safeCall(function() {
+                return runtime.getField(other, "uri").app();
+              }, function(otherstr) {
+                return runtime.safeTail(function() {
+                  return rec.app(otherstr, uri);
+                })
+              }, "wescheme-shared-gdrive-locator:_equals");
+            }),
+            "set-compiled": m2(setCompiled),
+            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+          }));
+        });
+      });
+    }
+    function makeWeSchemeLegacyLocator(filename) {
+     //console.log('doing makeWeSchemeLegacyLocator ' + filename);
+
+      // Pause because we'll fetch the Google Drive file object and restart
+      // with it to create the actual locator
+      return runtime.pauseStack(function(restarter) {
+        // We start by setting up the fetch of the file; lots of methods will
+        // close over this.
+
+        var uri = "wescheme-legacy://" + filename;
+        var httpProto = window.location.protocol;
+        //console.log('httpProto=', httpProto);
+        var filename2;
+
+        if (httpProto === 'http:') {
+          //console.log('using wescheme.org');
+          filename2 = 'http://www.wescheme.org/loadProject?publicId=' + filename;
+        } else {
+          //console.log('using wescheme-hrd-2');
+          filename2 = 'https://wescheme-hrd-2.appspot.com/loadProject?publicId=' + filename;
+        }
+
+        //var filename2 = "http://231-dot-wescheme-hrd-2.appspot.com/loadProject?publicId=" + filename;
+
+          function needsCompile() { return true; }
+
+          function dialect(self) {
+            return runtime.makeString("patch");
+          }
+
+          function getModule(self) {
+            return runtime.pauseStack(function(getModRestart) {
+              var patchString;
+              runtime.safeCall(function() {
+                jQuery.ajax({
+                  url: filename2,
+                  crossDomain: true,
+                  success: function(str) {
+                    //console.log('legacy string = ' + JSON.stringify(str));
+                    var str2 = str;
+                    //var str2 = JSON.parse(str); //not needed
+                    patchString = str2.source.src;
+                    //console.log('Scheme string = ' + patchString);
+                  },
+                  error: function(error) {
+                    getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
+                  },
+                  async: false
+                });
+                return true;
+              }, function(_) {
+                runtime.safeCall(function() {
+                  //console.log('calling patchToPyretAST III', patchString);
+                  return patchParse.patchToPyretAST(patchString, uri, "module");
+                }, function(sAst) {
+                  return runtime.safeCall(function() {
+                    return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
+                  }, function(parsed) {
+                    return runtime.safeCall(function() {
+                      return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                    }, function(pAst) {
+                      return runtime.safeCall(function() {
+                        return gmf(compileLib, "pyret-ast").app(pAst);
+                      }, function(ret) {
+                        getModRestart.resume(ret);
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          }
+
+          function getDependencies(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+              });
+            }, "wescheme-legacy-locator:get-dependencies");
+          }
+
+          function getProvides(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-provides").app(mod, uri);
+              });
+            }, "wescheme-legacy-locator:get-provides");
+          }
+
+          function getExtraImports(self) {
+            return gmf(compileStructs, "standard-imports");
+          }
+
+          function getGlobals(self) {
+            return gmf(compileStructs, "standard-globals");
+          }
+
+          function getCompileEnv(_) {
+            return gmf(compileStructs, "standard-builtins");
+          }
+
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
+          function getUri(_) { return uri; }
+          function name(_) { return filename; }
+          function setCompiled(_) { return runtime.nothing; }
+
+          var m0 = runtime.makeMethod0;
+          var m1 = runtime.makeMethod1;
+          var m2 = runtime.makeMethod2;
+
+          restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
+            "needs-compile": m1(needsCompile),
+            "get-module": m0(getModule),
+            "get-dependencies": m0(getDependencies),
+            "get-provides": m0(getProvides),
+            "get-extra-imports": m0(getExtraImports),
+            "get-globals": m0(getGlobals),
+            "get-compile-env": m0(getCompileEnv),
+            "uri": m0(getUri),
+            "name": m0(name),
+            "_equals": m2(function(self, other, rec) {
+              return runtime.safeCall(function() {
+                return runtime.getField(other, "uri").app();
+              }, function(otherstr) {
+                return runtime.safeTail(function() {
+                  return rec.app(otherstr, uri);
+                })
+              }, "wescheme-legacy-locator:_equals");
+            }),
+            "set-compiled": m2(setCompiled),
+            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+          }));
+      });
+    }
+    function makeWeSchemeCollectionLocator(filename) {
+     //console.log('doing makeWeSchemeCollectionLocator ' + filename);
+
+      // Pause because we'll fetch the Google Drive file object and restart
+      // with it to create the actual locator
+      return runtime.pauseStack(function(restarter) {
+        // We start by setting up the fetch of the file; lots of methods will
+        // close over this.
+
+          var uri = "wescheme-collection://" + filename;
+
+          function needsCompile() { return true; }
+
+          function dialect(self) {
+            return runtime.makeString("patch");
+          }
+
+          var ast = undefined;
+
+        function getModule(self) {
+          //console.log('getModule', filename);
+          if (ast) {
+            return ast;
+          } else {
+            return runtime.pauseStack(function(getModRestart) { //vii
+              var patchString;
+              runtime.safeCall(function() { //vi
+                jQuery.ajax({
+                  url: filename,
+                  success: function(str) {
+                    if (false) {
+                      var str2 = JSON.parse(str);
+                      patchString = str2.source.src;
+                    } else {
+                      patchString = str;
+                    }
+                  },
+                  error: function(error) {
+                    getModRestart.error(runtime.ffi.makeMessageException("Could not load " + uri));
+                  },
+                  async: false
+                });
+                return true;
+              }, function(_) {
+                runtime.safeCall(function() { //v
+                  //console.log('calling patchToPyretAST IV', patchString);
+                  return patchParse.patchToPyretAST(patchString, uri, "module");
+                }, function(sAst) {
+                  return runtime.safeCall(function() { //iv
+                    //console.log('calling patch-surface-parse');
+                    return gmf(compileLib, "patch-surface-parse").app(sAst, uri);
+                  }, function(parsed) {
+                    return runtime.safeCall(function() { //iii
+                      return gmf(compileStructs, "standard-globals");
+                    }, function(globals) {
+                      return runtime.safeCall(function() { //ii
+                        //console.log('calling make-provide-for-repl');
+                        //return gmf(replSupport, "make-provide-for-repl-main").app(parsed, globals);
+                        //return gmf(replSupport, "make-provide-for-repl").app(parsed);
+                        return parsed;
+                      }, function(pAst) {
+                        return runtime.safeCall(function() { //i
+                          //console.log('wrapping pyret-ast');
+                          return gmf(compileLib, "pyret-ast").app(pAst);
+                        }, function(ret) {
+                          ast = ret;
+                          getModRestart.resume(ret);
+                        }); //i
+                      }); //ii
+                    }); //iii
+                  }); //iv
+                }); //v
+              }); //vi
+            }); //vii
+          }
+        }
+
+          function getDependencies(self) {
+            //console.log('getDependencies', filename);
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+              });
+            }, "wescheme-collection-locator:get-dependencies");
+          }
+
+          function getProvides(self) {
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-provides").app(mod, uri);
+              });
+            }, "wescheme-collection-locator:get-provides");
+          }
+
+          function getExtraImports(self) {
+            return gmf(compileStructs, "standard-imports");
+          }
+
+          function getGlobals(self) {
+            return gmf(compileStructs, "standard-globals");
+          }
+
+          function getCompileEnv(_) {
+            return gmf(compileStructs, "standard-builtins");
+          }
+
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
+          function getUri(_) { return uri; }
+          function name(_) { return filename; }
+          function setCompiled(_) { return runtime.nothing; }
+
+          var m0 = runtime.makeMethod0;
+          var m1 = runtime.makeMethod1;
+          var m2 = runtime.makeMethod2;
+
+          restarter.resume(runtime.makeObject({
+            "dialect": m0(dialect),
+            "get-modified-time": m0(getModifiedTime),
+            "get-options": m1(getOptions),
+            "get-native-modules": m0(getNativeModules),
+            "needs-compile": m1(needsCompile),
+            "get-module": m0(getModule),
+            "get-dependencies": m0(getDependencies),
+            "get-provides": m0(getProvides),
+            "get-extra-imports": m0(getExtraImports),
+            "get-globals": m0(getGlobals),
+            "get-compile-env": m0(getCompileEnv),
+            "uri": m0(getUri),
+            "name": m0(name),
+            "_equals": m2(function(self, other, rec) {
+              return runtime.safeCall(function() {
+                return runtime.getField(other, "uri").app();
+              }, function(otherstr) {
+                return runtime.safeTail(function() {
+                  return rec.app(otherstr, uri);
+                })
+              }, "wescheme-collection-locator:_equals");
+            }),
+            "set-compiled": m2(setCompiled),
+            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+          }));
+      });
     }
     function makeMyGDriveLocator(filename) {
       function checkFileResponse(files, restarter) {
@@ -211,7 +829,7 @@ define("cpo/gdrive-locators", [], function() {
         contentsP.then(function(fileAndContents) {
           var file = fileAndContents[0];
           var contents = fileAndContents[1];
-          
+
           var uri = "shared-gdrive://" + file.getName() + ":" + file.getUniqueId();
           CPO.documents.set(uri, new CodeMirror.Doc(contents, "pyret"));
 
@@ -228,7 +846,7 @@ define("cpo/gdrive-locators", [], function() {
                 return gmf(parsePyret, "surface-parse").app(contents, uri);
               }, function(ret) {
                 ast = gmf(compileLib, "pyret-ast").app(ret);
-                return ast; 
+                return ast;
               }, "sharedgdrive-locator:parse-contents");
             }
           }
@@ -503,6 +1121,10 @@ define("cpo/gdrive-locators", [], function() {
 
     }
     return {
+      makeWeSchemeCollectionLocator: makeWeSchemeCollectionLocator,
+      makeWeSchemeLegacyLocator: makeWeSchemeLegacyLocator,
+      makeWeSchemeMyGDriveLocator: makeWeSchemeMyGDriveLocator,
+      makeWeSchemeSharedGDriveLocator: makeWeSchemeSharedGDriveLocator,
       makeMyGDriveLocator: makeMyGDriveLocator,
       makeSharedGDriveLocator: makeSharedGDriveLocator,
       makeGDriveJSLocator: makeGDriveJSLocator,
