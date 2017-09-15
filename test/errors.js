@@ -11,6 +11,11 @@ describe("Rendering errors", function() {
   }
 
   var tests = [
+
+// NOTE(joe Sep 2017): Removing these _plus tests because it's not clear what
+// should happen for errors on this semi-internal interface. It would be good
+// to have an answer for this, though
+
 //    ["renderSimpleReasonSimple", "_plus(1, 'x')", "(definitions://, 1, 0, 0, 1, 13, 13)"],
 //    ["renderSimpleReasonError",  "_plus(1, 'x')", "An error occurred rendering the reason"],
     
