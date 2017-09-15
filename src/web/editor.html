@@ -2,78 +2,89 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <title>Patch Editor</title>
+  <title>code.pyret.org</title>
   <link rel="stylesheet" href="/css/reset.css"></link>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
   <link rel="stylesheet" href="/css/codemirror.css"></link>
   <link rel="stylesheet" href="/css/blocks.css"></link>
   <link rel="stylesheet" href="/css/foldgutter.css"></link>
-  <link rel="stylesheet" href="/css/shared-patch.css"></link>
-  <link rel="stylesheet" href="/css/editor-patch.css"></link>
+  <link rel="stylesheet" href="/css/shared.css"></link>
+  <link rel="stylesheet" href="/css/editor.css"></link>
   <link rel="stylesheet" href="/css/font-awesome.min.path-fixed.css"></link>
-  <link rel="icon" type="image/png" href="/img/BigLogo.png">
+  <link rel="icon" type="image/png" href="/img/pyret-icon.png">
   <style id="highlight-styles"></style>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
 </head>
 <body>
-<div id="headerone">
-  <a class="logo" href="http://www.pyret.org/"></a>
-  <span id=headeronelegend>Patch ::</span>
-  <span class="headeronedoclink"><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
-  <span class="headeronelogoutlink" id="logout"><a href="/logout">Log out</a></span>
-</div>
-<div id="headertwo">
-  <div id="runPart" class="greenButton lhs">
-    <button id="runButton" class="greenButton lhs">Run</button>
+<div id="header">
+  <div id="bonniemenu" class="menu">
+    <button class="blueButton">
+      <span>▾</span>
+      <img class="logo" src="/img/pyret-logo.png"></img>
+    </button>
   </div>
-  <div id="breakPart" class="greenButton lhs">
-    <button id="breakButton" class="greenButton lhs">Stop</button>
-  </div>
-  <!-- class loginOnly for the follg two? -->
-  <div id="savePart" class="greenButton loginOnly lhs">
-    <button id="saveButton" class="greenButton loginOnly lhs">Save</button>
-  </div>
-  <div id="openPart" class="greenButton loginOnly lhs">
-    <button id="open" class="greenButton loginOnly lhs"><a href="javascript:void(0)">Open</a></button>
-  </div>
-  <div id="insertPart" class="greenButton loginOnly lhs">
-    <button id="insert" class="greenButton loginOnly lhs">Insert</button>
-  </div>
-  <!-- uncomment for blocks -->
-  <div id="modePart" class="greenButton rhs">
-    <select id="modeButton" class="greenButton lhs">
-      <option value="false">Text</option>
-      <option value="blocks">Blocks</option>
-    </select>
-  </div>
-</div>
-<div id="headerthree">
-  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
-  <div id="program-name-container" class="loginOnly">
-    <input id="program-name" type="text" placeholder="Program Name"></input>
-  </div>
-  <div id="shareContainer"></div>
-  <div id="filemenu" class="loginOnly menu">
-    <button class="blueButton">More ▾</button>
-  </div>
-  <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
+  <div id="bonniemenuContents" class="menuContents" style="display: none; z-index: 8990;">
     <div id="welcome" class="menuButton inert" style="text-align: center;">
       <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
     </div>
-    <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
+    <div id="drive-view" class="loginOnly menuButton">
+      <a target="_blank" href="/">My Programs</a>
+    </div>
+    <div id="docs" class="menuButton">
+      <a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
+    </div>
     <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
-    <div id="issues"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
+    <div id="issues" class="menuButton">
+      <a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
+    </div>
     <div id="discuss" class="menuButton">
       <a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
     </div>
-    <div id="logging" style="display:none">
-      <input id="detailed-logging" type="checkbox"/>
-      <label for="detailed-logging">Contribute detailed usage information.</label>
-      <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+    <div id="logging">
+      <span>
+        <input id="detailed-logging" type="checkbox"/>
+        <label for="detailed-logging">Contribute detailed usage information.</label>
+        <a href="https://www.pyret.org/cpo-faq#(part._logging)" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+      </span>
     </div>
+    <div id="logout" class="menuButton"><a href="/logout">Log out</a></div>
   </div>
-  <button id="undoButton" class="blueButton lhs"></button>
-  <button id="redoButton" class="blueButton lhs"></button>
+
+  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
+  <!--
+  <div id="program-name-container" class="loginOnly">
+    <input id="program-name" type="text" placeholder="Program Name"></input>
+  </div>
+  -->
+
+  <div id="filemenu" class="loginOnly menu">
+    <button class="blueButton">
+      <span>▾ File</span><span id="filename"></span>
+    </button>
+  </div>
+  <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
+    <div id="new" class="menuButton"><a href="javascript:void(0)">New</a></div>
+    <div id="open" class="menuButton"><a href="javascript:void(0)">Open</a></div>
+    <div id="save" class="menuButton disabled"><a href="javascript:void(0)">Save</a></div>
+    <div id="saveas" class="menuButton"><a href="javascript:void(0)">Save as</a></div>
+    <div id="download" class="menuButton"><a href="javascript:void(0)">Download</a></div>
+    <div id="rename" class="menuButton disabled"><a href="javascript:void(0)">Rename</a></div>
+
+  </div>
+  <button id="insert" class="blueButton loginOnly">Insert</button>
+  <div id="shareContainer"></div>
+  <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
+  <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
+
+  <button id="breakButton" class="blueButton rhs">Stop</button>
+  <div id="runPart" class="blueButton rhs">
+    <span id="runDropdown" class="dropdown rhs">↴</span>
+    <button id="runButton" class="blueButton rhs">Run</button>
+  </div>
+  <ul id="run-dropdown-content">
+    <li id="select-run">Run</li>
+    <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
+  </ul>
 </div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
@@ -134,7 +145,7 @@
 <script src="/js/matchkw.js"></script>
 <script>
 var env_CURRENT_PYRET_RELEASE = "{{ CURRENT_PYRET_RELEASE }}";
-var cpoDialect = 'patch';
+var cpoDialect = 'pyret';
 </script>
 <script src="/js/localSettings.js"></script>
 <script src="/js/log.js"></script>
@@ -154,7 +165,6 @@ function handleGoogLoad() {
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <!-- GAPI Client -->
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
-<script src="/js/CodeMirrorBlocks-all.js"></script>
 <script>console.log(window.performance.now())</script>
 <script src="js/beforePyret.js"></script>
 <script>
