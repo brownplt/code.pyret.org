@@ -31,6 +31,9 @@ define("d3", [], function() { return d3; });
 d3_tip = require("d3-tip");
 define("d3-tip", [], function() { return d3_tip; });
 
+if(!!google) {
+  define("google-charts", [], function() {return google;});
+}
 
 define("fs", [], function () { return {}; });
 
@@ -41,4 +44,3 @@ define("http", [], function () {return {};});
 define("lockfile", [], function () { return {}; });
 
 define("websocket", [], function () { return {}; });
-
