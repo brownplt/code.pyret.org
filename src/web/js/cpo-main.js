@@ -531,23 +531,23 @@
       }
 
       $(window).on("keydown", function(e) {
-        if(e.ctrlKey) {
-          if(e.keyCode === 83) { // "Ctrl-s"
+        if(e.ctrlKey || e.metaKey) { // Ctrl or Cmd
+          if(e.keyCode === 83) { // "Ctrl-s" or "Cmd-s" to save
             CPO.save();
             e.stopImmediatePropagation();
             e.preventDefault();
           }
-          else if(e.keyCode === 77) { // "Ctrl-m"
+          else if(e.keyCode === 77) { // "Ctrl-m" or "Cmd-m" to resize REPL width to default
             toggleEditorSize();
             e.stopImmediatePropagation();
             e.preventDefault();
           }
-          else if(e.keyCode === 13) { // "Ctrl-Enter"
+          else if(e.keyCode === 13) { // "Ctrl-Enter" or "Cmd-Enter" to run code
             doRunAction(editor.cm.getValue());
             CPO.autoSave();
             e.stopImmediatePropagation();
             e.preventDefault();
-          } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"
+          } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?" to pull up help menu
             $("#help-keys").fadeIn(100);
             e.stopImmediatePropagation();
             e.preventDefault();
