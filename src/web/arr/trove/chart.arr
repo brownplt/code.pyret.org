@@ -237,8 +237,8 @@ type ChartWindowObject = {
 
 default-chart-window-object :: ChartWindowObject = {
   title: '',
-  width: 400,
-  height: 300,
+  width: 800,
+  height: 600,
   method render(self): raise('unimplemented') end,
 }
 
@@ -619,6 +619,7 @@ from-list = {
   exploding-pie-chart: exploding-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
+  freq-bar-chart: freq-bar-chart-from-list,
 }
 
 ################################################################################
@@ -705,16 +706,16 @@ fun plot(s :: DataSeries) -> ChartWindow:
 where:
   plot-now = {(x): plot(x).get-image()}
 
-  plot-now(from-list.exploding-pie-chart(
+  plot-now(exploding-pie-chart(
       [list: 'asd', 'dsa', 'qwe'],
       [list: 1, 2, 3],
       [list: 0, 0.1, 0.2])) does-not-raise
-  plot-now(from-list.pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
-  plot-now(from-list.histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  plot-now(from-list.labeled-histogram(
+  plot-now(pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
+  plot-now(histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
+  plot-now(labeled-histogram(
       [list: 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       [list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  plot-now(from-list.grouped-bar-chart(
+  plot-now(grouped-bar-chart(
       [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
       [list:
         [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
@@ -731,11 +732,11 @@ where:
         '25 to 44 Years',
         '45 to 64 Years',
         '65 Years and Over'])) does-not-raise
-  plot-now(from-list.function-plot(num-sin)) does-not-raise
-  plot-now(from-list.scatter-plot(
+  plot-now(function-plot(num-sin)) does-not-raise
+  plot-now(scatter-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
-  plot-now(from-list.line-plot(
+  plot-now(line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
 end
@@ -762,7 +763,7 @@ fun generate-xy(
     legend: p.legend,
   }
 where:
-  generate-xy(from-list.function-plot(_ + 1).obj, 0, 100, 6).get-data().ps
+  generate-xy(function-plot(_ + 1).obj, 0, 100, 6).get-data().ps
     is=~ [list:
     posn(0, 1, ''),
     posn(20, 21, ''),
@@ -958,6 +959,7 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
   partitioned = partition(is-function-plot-series, lst)
   function-plots :: List<{f :: PlottableFunction, color :: I.Color}> =
     partitioned.is-true.map({(p :: DataSeries): p.obj.get-data()})
+  is-show-samples = is-link(function-plots)
   shadow partitioned = partition(is-line-plot-series, partitioned.is-false)
   line-plots :: List<{ps :: List<Posn>, color :: I.Color}> =
     partitioned.is-true.map({(p :: DataSeries): p.obj.get-data()})
@@ -972,7 +974,9 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
     y-max: default,
     x-axis: '',
     y-axis: '',
-    method render(self) block:
+    method render(self):
+
+      shadow self = self.{is-show-samples: is-show-samples}
 
       # don't let Google Charts infer x-min, x-max, y-min, y-max
       # infer them from Pyret side
@@ -1063,10 +1067,10 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
     end
   } ^ plot-chart-window
 where:
-  p1 = from-list.function-plot(lam(x): x * x end).color(I.red)
-  p2 = from-list.line-plot([list: 1, 2, 3, 4], [list: 1, 4, 9, 16]).color(I.green)
-  p3 = from-list.histogram([list: 1, 2, 3, 4])
-  p4 = from-list.line-plot(
+  p1 = function-plot(lam(x): x * x end).color(I.red)
+  p2 = line-plot([list: 1, 2, 3, 4], [list: 1, 4, 9, 16]).color(I.green)
+  p3 = histogram([list: 1, 2, 3, 4])
+  p4 = line-plot(
       [list: -1, 1,  2, 3, 11, 8, 9],
       [list: 10, -1, 11, 9,  9, 3, 2])
   plots([list: p1, p2, p3]) raises ''
