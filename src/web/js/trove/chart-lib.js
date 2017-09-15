@@ -4,10 +4,10 @@
   ],
   nativeRequires: [
     'pyret-base/js/js-numbers',
-    //'google-charts',
+    'google-charts',
   ],
   provides: {},
-  theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums /* , _google */) {
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums , google) {
   'use strict';
 
   // Load google library via editor.html to avoid loading issues
@@ -144,10 +144,10 @@
                         }
 
                         return {
-                          'x-min': xMinVal,
-                          'x-max': xMaxVal,
-                          'y-min': yMinVal,
-                          'y-max': yMaxVal,
+                          'x-min': RUNTIME.ffi.makeSome(xMinVal),
+                          'x-max': RUNTIME.ffi.makeSome(xMaxVal),
+                          'y-min': RUNTIME.ffi.makeSome(yMinVal),
+                          'y-max': RUNTIME.ffi.makeSome(yMaxVal),
                           'num-samples': numSamplesVal
                         };
                       }
@@ -174,32 +174,55 @@
 
   function yAxisRangeMutator(options, globalOptions, _) {
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
-    const minValue = toFixnum(get(globalOptions, 'y-min'));
-    const maxValue = toFixnum(get(globalOptions, 'y-max'));
-    if (minValue < maxValue) {
-      vAxis.minValue = minValue;
-      vAxis.maxValue = maxValue;
-      const viewWindow = ('viewWindow' in vAxis) ? vAxis.viewWindow : {};
-      viewWindow.min = minValue;
-      viewWindow.max = maxValue;
-      vAxis.viewWindow = viewWindow;
-      $.extend(options, {vAxis: vAxis});
-    }
+    const viewWindow = ('viewWindow' in vAxis) ? vAxis.viewWindow : {};
+
+    const minValue = get(globalOptions, 'y-min');
+    const maxValue = get(globalOptions, 'y-max');
+
+    cases(RUNTIME.ffi.isOption, 'Option', minValue, {
+      none: function () {},
+      some: function (realMinValue) {
+        const v = toFixnum(realMinValue)
+        vAxis.minValue = v;
+        viewWindow.min = v;
+      }
+    });
+    cases(RUNTIME.ffi.isOption, 'Option', maxValue, {
+      none: function () {},
+      some: function (realMaxValue) {
+        const v = toFixnum(realMaxValue)
+        vAxis.maxValue = v;
+        viewWindow.max = v;
+      }
+    });
+    vAxis.viewWindow = viewWindow;
+    $.extend(options, {vAxis: vAxis});
   }
 
   function xAxisRangeMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
-    const minValue = toFixnum(get(globalOptions, 'x-min'));
-    const maxValue = toFixnum(get(globalOptions, 'x-max'));
-    if (minValue < maxValue) {
-      hAxis.minValue = minValue;
-      hAxis.maxValue = maxValue;
-      const viewWindow = ('viewWindow' in hAxis) ? hAxis.viewWindow : {};
-      viewWindow.min = minValue;
-      viewWindow.max = maxValue;
-      hAxis.viewWindow = viewWindow;
-      $.extend(options, {hAxis: hAxis});
-    }
+    const viewWindow = ('viewWindow' in hAxis) ? hAxis.viewWindow : {};
+
+    const minValue = get(globalOptions, 'x-min');
+    const maxValue = get(globalOptions, 'x-max');
+
+    cases(RUNTIME.ffi.isOption, 'Option', minValue, {
+      none: function () {},
+      some: function (realMinValue) {
+        hAxis.minValue = toFixnum(realMinValue);
+        viewWindow.min = toFixnum(realMinValue);
+      }
+    });
+    cases(RUNTIME.ffi.isOption, 'Option', maxValue, {
+      none: function () {},
+      some: function (realMaxValue) {
+        hAxis.maxValue = toFixnum(realMaxValue);
+        viewWindow.max = toFixnum(realMaxValue);
+      }
+    });
+
+    hAxis.viewWindow = viewWindow;
+    $.extend(options, {hAxis: hAxis});
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -318,7 +341,7 @@
       const rowTemplate = [0].concat(prefix).concat([null, null]).concat(suffix);
       data.addRows(get(p, 'ps').map(row => {
         const currentRow = rowTemplate.slice();
-        if (row !== null) {
+        if (row.length != 0) {
           currentRow[0] = toFixnum(row[0]);
           currentRow[2*i + 1] = toFixnum(row[1]);
           const labelRow = (row[2] !== '') ? `<p>label: <b>${row[2]}</b></p>` : '';
@@ -421,10 +444,10 @@ ${labelRow}`;
           restarter.resume(toRet);
         });
 
-        xMinC.val(prettyNumToStringDigits5(get(globalOptions, 'x-min')));
-        xMaxC.val(prettyNumToStringDigits5(get(globalOptions, 'x-max')));
-        yMinC.val(prettyNumToStringDigits5(get(globalOptions, 'y-min')));
-        yMaxC.val(prettyNumToStringDigits5(get(globalOptions, 'y-max')));
+        xMinC.val(prettyNumToStringDigits5(get(get(globalOptions, 'x-min'), 'value')));
+        xMaxC.val(prettyNumToStringDigits5(get(get(globalOptions, 'x-max'), 'value')));
+        yMinC.val(prettyNumToStringDigits5(get(get(globalOptions, 'y-min'), 'value')));
+        yMaxC.val(prettyNumToStringDigits5(get(get(globalOptions, 'y-max'), 'value')));
         numSamplesC.val(RUNTIME.num_to_string(get(globalOptions, 'num-samples')));
 
         const xMinG = $('<p/>')
@@ -570,14 +593,7 @@ ${labelRow}`;
         'bar-chart': makeFunction(barChart),
         'histogram': makeFunction(histogram),
         'plot-multi': makeFunction(plotMulti),
-        'null': null,
       })
-    })
-  });
-  return RUNTIME.makeObject({
-    'provide-plus-types': RUNTIME.makeObject({
-      types: RUNTIME.makeObject({}),
-      values: RUNTIME.makeObject({})
     })
   });
 }

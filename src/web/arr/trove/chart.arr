@@ -42,6 +42,15 @@ type TableIntern = RawArray<RawArray<Any>>
 # HELPERS
 ################################################################################
 
+# so that it outputs nicely
+data Defaultable<A>:
+  | default with:
+    method to-option(self): none end
+  | value(val :: A) with:
+    method _output(self): VS.vs-value(self.val) end,
+    method to-option(self): some(self.val) end
+end
+
 fst = raw-array-get(_, 0)
 snd = raw-array-get(_, 1)
 posn = {(x :: Number, y :: Number, z :: String): [raw-array: x, y, z]}
@@ -64,11 +73,11 @@ sprintf = (lam():
 unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 fun to-table2(xs :: List<Any>, ys :: List<Any>) -> TableIntern:
-  map2({(x, y): [raw-array: x, y]}, xs, ys) ^ builtins.list-to-raw-array
+  map2({(x, y): [raw-array: x, y]}, xs, ys) ^ builtins.raw-array-from-list
 end
 
 fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
-  map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.list-to-raw-array
+  map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
 fun truncate<A>(lst :: List<A>) -> List<A>:
@@ -120,40 +129,34 @@ end
 default-series = {get-data: {(): nothing}}
 
 type PieChartSeries = {
-  # for decoration
-  labels :: List<String>,
-  values :: List<Number>,
-  # end for decoration
+  sample-labels :: List<String>,
+  sample-values :: List<Number>,
   get-data :: ( -> Any)
 }
 
 default-pie-chart-series :: PieChartSeries  = default-series.{
-  labels: empty,
-  values: empty,
+  sample-labels: empty,
+  sample-values: empty,
 }
 
 ############
 
 type BarChartSeries = {
-  # for decoration
-  labels :: List<String>,
-  value-lists :: List<List<Number>>,
-  # end for decoration
+  sample-labels :: List<String>,
+  sample-value-lists :: List<List<Number>>,
   get-data :: ( -> Any)
 }
 
 default-bar-chart-series :: BarChartSeries = default-series.{
-  labels: empty,
-  value-lists: empty,
+  sample-labels: empty,
+  sample-value-lists: empty,
 }
 
 ############
 
 type HistogramSeries = {
-  # for decoration
-  labels :: List<String>,
-  values :: List<Number>,
-  # end for decoration
+  sample-labels :: List<String>,
+  sample-values :: List<Number>,
   bin-width :: Number,
   max-num-bins :: Number,
   min-num-bins :: Number,
@@ -162,8 +165,8 @@ type HistogramSeries = {
 }
 
 default-histogram-series :: HistogramSeries  = default-series.{
-  labels: empty,
-  values: empty,
+  sample-labels: empty,
+  sample-values: empty,
   bin-width: 0,
   max-num-bins: 0,
   min-num-bins: 0,
@@ -173,18 +176,16 @@ default-histogram-series :: HistogramSeries  = default-series.{
 ############
 
 type LinePlotSeries = {
-  # for decoration
-  xs :: List<Number>,
-  ys :: List<Number>,
-  # end for decoration
+  sample-xs :: List<Number>,
+  sample-ys :: List<Number>,
   color :: I.Color,
   legend :: String,
   get-data :: ( -> Any)
 }
 
 default-line-plot-series :: LinePlotSeries = default-series.{
-  xs: empty,
-  ys: empty,
+  sample-xs: empty,
+  sample-ys: empty,
   color: I.red,
   legend: '',
 }
@@ -192,11 +193,9 @@ default-line-plot-series :: LinePlotSeries = default-series.{
 ############
 
 type ScatterPlotSeries = {
-  # for decoration
-  xs :: List<Number>,
-  ys :: List<Number>,
-  # end for decoration
-  labels :: List<String>,
+  sample-xs :: List<Number>,
+  sample-ys :: List<Number>,
+  sample-labels :: List<String>,
   color :: I.Color,
   legend :: String,
   point-size :: Number,
@@ -204,9 +203,9 @@ type ScatterPlotSeries = {
 }
 
 default-scatter-plot-series :: ScatterPlotSeries = default-series.{
-  xs: empty,
-  ys: empty,
-  labels: empty,
+  sample-xs: empty,
+  sample-ys: empty,
+  sample-labels: empty,
   color: I.blue,
   legend: '',
   point-size: 7
@@ -229,41 +228,17 @@ default-function-plot-series :: FunctionPlotSeries = default-series.{
 
 ###########
 
-type WindowOptions = {
-  x-min :: Number,
-  x-max :: Number,
-  y-min :: Number,
-  y-max :: Number,
-  num-samples :: Number
-}
-
 type ChartWindowObject = {
-  interact :: Boolean,
   title :: String,
   width :: Number,
   height :: Number,
-  x-axis :: String,
-  y-axis :: String,
-  x-min :: Number,
-  x-max :: Number,
-  y-min :: Number,
-  y-max :: Number,
-  num-samples :: Number,
   render :: ( -> IM.Image)
 }
 
 default-chart-window-object :: ChartWindowObject = {
-  interact: true,
   title: '',
   width: 400,
   height: 300,
-  x-axis: '',
-  y-axis: '',
-  x-min: 0,
-  x-max: 0,
-  y-min: 0,
-  y-max: 0,
-  num-samples: 1000,
   method render(self): raise('unimplemented') end,
 }
 
@@ -328,9 +303,11 @@ data DataSeries:
     end,
 end
 
-fun check-chart-window(p :: ChartWindowObject) -> Nothing block:
-  when (p.width <= 0) or (p.height <= 0):
+fun check-chart-window(p :: ChartWindowObject) -> Nothing:
+  if (p.width <= 0) or (p.height <= 0):
     raise('render: width and height must be positive')
+  else:
+    nothing
   end
 end
 
@@ -358,26 +335,21 @@ y-axis-method = method(self, y-axis :: String):
   self.constr()(self.obj.{y-axis: y-axis})
 end
 
-x-range-method = method(self, x-min :: Number, x-max :: Number) block:
-  when (x-min >= x-max) and (not(unsafe-equal(x-min, 0)) or
-      not(unsafe-equal(x-max, 0))):
-    raise([sprintf: 'x-range: x-min must be strictly less than x-max, ',
-        'except x-min, x-max both equal 0 which will infer ',
-        'appropriate values'])
-  end
-  self.constr()(self.obj.{x-min: x-min, x-max: x-max})
+x-min-method = method(self, x-min :: Number) block:
+  self.constr()(self.obj.{x-min: value(x-min)})
 end
 
-y-range-method = method(self, y-min :: Number, y-max :: Number) block:
-  when (y-min >= y-max) and (not(unsafe-equal(y-min, 0)) or
-      not(unsafe-equal(y-max, 0))):
-    raise([sprintf: 'y-range: y-min must be strictly less than y-max, ',
-        'except y-min, y-max both equal 0 which will infer ',
-        'appropriate values'])
-  end
-  self.constr()(self.obj.{y-min: y-min, y-max: y-max})
+x-max-method = method(self, x-max :: Number) block:
+  self.constr()(self.obj.{x-max: value(x-max)})
 end
 
+y-min-method = method(self, y-min :: Number) block:
+  self.constr()(self.obj.{y-min: value(y-min)})
+end
+
+y-max-method = method(self, y-max :: Number) block:
+  self.constr()(self.obj.{y-max: value(y-max)})
+end
 
 data ChartWindow:
   | pie-chart-window(obj :: ChartWindowObject) with:
@@ -392,7 +364,8 @@ data ChartWindow:
     height: height-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
-    y-range: y-range-method,
+    y-min: y-min-method,
+    y-max: y-max-method,
   | histogram-chart-window(obj :: ChartWindowObject) with:
     constr: {(): histogram-chart-window},
     title: title-method,
@@ -400,8 +373,9 @@ data ChartWindow:
     height: height-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
-    x-range: x-range-method,
-    y-range: y-range-method,
+    x-min: x-min-method,
+    x-max: x-max-method,
+    y-max: y-max-method,
   | plot-chart-window(obj :: ChartWindowObject) with:
     constr: {(): plot-chart-window},
     title: title-method,
@@ -409,12 +383,10 @@ data ChartWindow:
     height: height-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
-    x-range: x-range-method,
-    y-range: y-range-method,
-    # TODO: minor feature
-    #method show-legend(self, show-legend :: Boolean):
-    #  plot-chart-window(self.obj.{show-legend: show-legend})
-    #end,
+    x-min: x-min-method,
+    x-max: x-max-method,
+    y-min: y-min-method,
+    y-max: y-max-method,
     method num-samples(self, num-samples :: Number) block:
       when (num-samples <= 0) or (num-samples > 100000) or not(num-is-integer(num-samples)):
         raise('num-samples: value must be an ineger between 1 and 100000')
@@ -449,8 +421,8 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   end
   ps = map2({(x, y): [raw-array: x, y, '']}, xs, ys)
   default-line-plot-series.{
-    xs: xs ^ truncate,
-    ys: ys ^ truncate,
+    sample-xs: xs ^ truncate,
+    sample-ys: ys ^ truncate,
     method get-data(self): self.{ps: ps} end,
   } ^ line-plot-series
 end
@@ -474,9 +446,9 @@ fun labeled-scatter-plot-from-list(
   end
   ps = map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
   default-scatter-plot-series.{
-    xs: xs ^ truncate,
-    ys: ys ^ truncate,
-    labels: labels ^ truncate,
+    sample-xs: xs ^ truncate,
+    sample-ys: ys ^ truncate,
+    sample-labels: labels ^ truncate,
     method get-data(self): self.{ps: ps} end,
   } ^ scatter-plot-series
 end
@@ -505,9 +477,9 @@ fun exploding-pie-chart-from-list(
   end
   tab = to-table3(labels, values, offsets)
   default-pie-chart-series.{
-    labels: labels ^ truncate,
-    values: values ^ truncate,
-    offsets: offsets ^ truncate,
+    sample-labels: labels ^ truncate,
+    sample-values: values ^ truncate,
+    sample-offsets: offsets ^ truncate,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -527,8 +499,8 @@ fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   end
   tab = to-table3(labels, values, labels.map({(_): 0}))
   default-pie-chart-series.{
-    labels: labels ^ truncate,
-    values: values ^ truncate,
+    sample-labels: labels ^ truncate,
+    sample-values: values ^ truncate,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -544,11 +516,11 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
     raise('bar-chart: labels and values should have the same length')
   end
   value-lists = values.map({(v): [list: v]})
-  shadow value-lists = value-lists.map(builtins.list-to-raw-array)
+  shadow value-lists = value-lists.map(builtins.raw-array-from-list)
   tab = to-table2(labels, value-lists)
   default-bar-chart-series.{
-    labels: labels ^ truncate,
-    value-lists: value-lists ^ truncate,
+    sample-labels: labels ^ truncate,
+    sample-value-lists: value-lists ^ truncate,
     method get-data(self):
       self.{
         tab: tab,
@@ -575,13 +547,13 @@ fun grouped-bar-chart-from-list(
   when legends.length() <> value-lists.first.length():
     raise('grouped-bar-chart: labels and legends should have the same length')
   end
-  shadow value-lists = value-lists.map(builtins.list-to-raw-array)
+  shadow value-lists = value-lists.map(builtins.raw-array-from-list)
   tab = to-table2(labels, value-lists)
-  legends-arr = legends ^ builtins.list-to-raw-array
+  legends-arr = legends ^ builtins.raw-array-from-list
   default-bar-chart-series.{
-    labels: labels ^ truncate,
-    value-lists: value-lists ^ truncate,
-    legends: legends ^ truncate,
+    sample-labels: labels ^ truncate,
+    sample-value-lists: value-lists ^ truncate,
+    sample-legends: legends ^ truncate,
     method get-data(self):
       {
         tab: tab,
@@ -613,7 +585,7 @@ fun histogram-from-list(values :: List<Number>) -> DataSeries block:
        ```
   tab = to-table2(values.map({(_): ''}), values)
   default-histogram-series.{
-    values: values ^ truncate,
+    sample-values: values ^ truncate,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
@@ -629,8 +601,8 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   end
   tab = to-table2(labels, values)
   default-histogram-series.{
-    labels: labels ^ truncate,
-    values: values ^ truncate,
+    sample-labels: labels ^ truncate,
+    sample-values: values ^ truncate,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
@@ -653,6 +625,38 @@ from-list = {
 # PLOTS
 ################################################################################
 
+fun check-render-x-axis(self) -> Nothing:
+  cases (Defaultable) self.x-min:
+    | value(x-min) =>
+      cases (Defaultable) self.x-max:
+        | value(x-max) =>
+          if x-min >= x-max:
+            raise("render: x-min must be strictly less than x-max")
+          else:
+            nothing
+          end
+        | else => nothing
+      end
+    | else => nothing
+  end
+end
+
+fun check-render-y-axis(self) -> Nothing:
+  cases (Defaultable) self.y-min:
+    | value(y-min) =>
+      cases (Defaultable) self.y-max:
+        | value(y-max) =>
+          if y-min >= y-max:
+            raise("render: y-min must be strictly less than y-max")
+          else:
+            nothing
+          end
+        | else => nothing
+      end
+    | else => nothing
+  end
+end
+
 fun plot(s :: DataSeries) -> ChartWindow:
   doc: 'Plot it!'
   cases (DataSeries) s:
@@ -666,11 +670,36 @@ fun plot(s :: DataSeries) -> ChartWindow:
     | bar-chart-series(obj) =>
       obj-data = obj.get-data()
       default-chart-window-object.{
-        method render(self): P.bar-chart(self, obj.get-data()) end
+        y-min: default,
+        y-max: default,
+        x-axis: '',
+        y-axis: '',
+        method render(self):
+          _ = check-render-y-axis(self)
+          P.bar-chart(self.{
+              y-min: self.y-min.to-option(),
+              y-max: self.y-max.to-option(),
+            }, obj.get-data())
+        end
       } ^ bar-chart-window
     | histogram-series(obj) =>
       default-chart-window-object.{
-        method render(self): P.histogram(self, obj.get-data()) end
+        x-min: default,
+        x-max: default,
+        y-max: default,
+        x-axis: '',
+        y-axis: '',
+        method render(self):
+          shadow self = self.{y-min: default}
+          _ = check-render-x-axis(self)
+          _ = check-render-y-axis(self)
+          P.histogram(self.{
+              x-min: self.x-min.to-option(),
+              x-max: self.x-max.to-option(),
+              y-min: self.y-min.to-option(),
+              y-max: self.y-max.to-option(),
+            }, obj.get-data())
+        end
       } ^ histogram-chart-window
   end
 where:
@@ -750,14 +779,14 @@ fun widen-range(min :: Number, max :: Number) -> {Number; Number}:
   {min - offset; max + offset}
 end
 
-fun ps-to-arr(obj): obj.{ps: obj.ps ^ builtins.list-to-raw-array} end
+fun ps-to-arr(obj): obj.{ps: obj.ps ^ builtins.raw-array-from-list} end
 
 fun in-bound-x(p :: Posn, self) -> Boolean:
-  (self.x-min <= fst(p)) and (fst(p) <= self.x-max)
+  (self.x-min.value <= fst(p)) and (fst(p) <= self.x-max.value)
 end
 
 fun in-bound-y(p :: Posn, self) -> Boolean:
-  (self.y-min <= snd(p)) and (snd(p) <= self.y-max)
+  (self.y-min.value <= snd(p)) and (snd(p) <= self.y-max.value)
 end
 
 fun in-bound-xy(p :: Posn, self) -> Boolean:
@@ -785,13 +814,13 @@ fun nearest(lst :: List<Posn>, p :: Posn) -> Option<Posn>:
 end
 
 fun find-pt-on-edge(in :: Posn, out :: Posn, self) -> Option<Posn>:
-  px-max = num-min(num-max(fst(in), fst(out)), self.x-max)
-  px-min = num-max(num-min(fst(in), fst(out)), self.x-min)
-  py-max = num-min(num-max(snd(in), snd(out)), self.y-max)
-  py-min = num-max(num-min(snd(in), snd(out)), self.y-min)
+  px-max = num-min(num-max(fst(in), fst(out)), self.x-max.value)
+  px-min = num-max(num-min(fst(in), fst(out)), self.x-min.value)
+  py-max = num-min(num-max(snd(in), snd(out)), self.y-max.value)
+  py-min = num-max(num-min(snd(in), snd(out)), self.y-min.value)
 
   candidates = if unsafe-equal(fst(in), fst(out)):
-    [list: posn(fst(in), self.y-min, ''), posn(fst(in), self.y-max, '')]
+    [list: posn(fst(in), self.y-min.value, ''), posn(fst(in), self.y-max.value, '')]
   else:
     #|
     y = m * x + c           [3]
@@ -811,14 +840,14 @@ fun find-pt-on-edge(in :: Posn, out :: Posn, self) -> Option<Posn>:
     g = {(y): (y - c) / m}
 
     [list:
-      posn(self.x-min, f(self.x-min), ''),
-      posn(self.x-max, f(self.x-max), '')] +
+      posn(self.x-min.value, f(self.x-min.value), ''),
+      posn(self.x-max.value, f(self.x-max.value), '')] +
     if unsafe-equal(m, 0):
       empty
     else:
       [list:
-        posn(g(self.y-min), self.y-min, ''),
-        posn(g(self.y-max), self.y-max, '')]
+        posn(g(self.y-min.value), self.y-min.value, ''),
+        posn(g(self.y-max.value), self.y-max.value, '')]
     end
   end
   candidates.filter({(p): (px-min <= fst(p)) and (fst(p) <= px-max) and
@@ -830,12 +859,18 @@ fun line-plot-edge-cut(pts :: List<Posn>, self) -> List<Posn>:
   segments = cases (List<Posn>) pts:
     | empty => empty
     | link(f, r) =>
-      {segments; _} = for fold({segments; start} from {empty; f}, stop from r):
-        segment = ask:
+      {segments; _} = for fold({segments; start} from {empty; f}, stop from r) block:
+        segment = ask block:
           | in-bound-xy(start, self) and in-bound-xy(stop, self) then:
             [list: start, stop]
           | in-bound-xy(start, self) then:
-            [list: start, find-pt-on-edge(start, stop, self).value]
+            result = find-pt-on-edge(start, stop, self).value
+            if unsafe-equal(fst(start), fst(result)) and
+               unsafe-equal(snd(start), snd(result)):
+              [list: start, find-pt-on-edge(stop, start, self).value]
+            else:
+              [list: start, result]
+            end
           | in-bound-xy(stop, self) then:
             [list: find-pt-on-edge(start, stop, self).value, stop]
           | otherwise:
@@ -863,11 +898,48 @@ fun line-plot-edge-cut(pts :: List<Posn>, self) -> List<Posn>:
         new-lst = if unsafe-equal(fst(pt-a), fst(pt-b)) and unsafe-equal(snd(pt-a), snd(pt-b)):
           link(segment.get(0), lst)
         else:
-          segment + link(P.null, lst)
+          segment + link([raw-array: ], lst)
         end
         {segment; new-lst}
       end
       result
+  end
+end
+
+data BoundResult:
+  | exact-bound(n :: Number)
+  | inferred-bound(n :: Number)
+  | unknown-bound
+end
+
+fun bound-result-to-bounds(b-min :: BoundResult, b-max :: BoundResult) -> {Option<Number>; Option<Number>}:
+  {l; r} = cases (BoundResult) b-min:
+    | exact-bound(v-min) =>
+      cases (BoundResult) b-max:
+        | exact-bound(v-max) => {v-min; v-max}
+        | inferred-bound(v-max) => {v-min; widen-range(v-min, v-max).{1}}
+        | unknown-bound => {v-min; v-min + 10}
+      end
+    | inferred-bound(v-min) =>
+      cases (BoundResult) b-max:
+        | exact-bound(v-max) => {widen-range(v-min, v-max).{0}; v-max}
+        | inferred-bound(v-max) => widen-range(v-min, v-max)
+        | unknown-bound => {v-min - 1; (v-min - 1) + 10}
+      end
+    | unknown-bound =>
+      cases (BoundResult) b-max:
+        | exact-bound(v-max) => {v-max - 10; v-max}
+        | inferred-bound(v-max) => {(v-max + 1) - 10; v-max + 1}
+        | unknown-bound => {-10; 10}
+      end
+  end
+  {some(l); some(r)}
+end
+
+fun get-bound-result(d :: Defaultable, bbox :: BoundingBox, f :: (BoundingBox -> Number)) -> BoundResult:
+  cases (Defaultable) d:
+    | default => if bbox.is-valid: inferred-bound(f(bbox)) else: unknown-bound end
+    | value(v) => exact-bound(v)
   end
 end
 
@@ -893,94 +965,85 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
     partitioned.is-false.map({(p :: DataSeries): p.obj.get-data()})
 
   default-chart-window-object.{
+    num-samples: 1000,
+    x-min: default,
+    x-max: default,
+    y-min: default,
+    y-max: default,
+    x-axis: '',
+    y-axis: '',
     method render(self) block:
-      is-infer-x = unsafe-equal(self.x-min, 0) and unsafe-equal(self.x-max, 0)
-      is-infer-y = unsafe-equal(self.y-min, 0) and unsafe-equal(self.y-max, 0)
 
-      combined-pts = if is-infer-x or is-infer-y:
-        (line-plots.map(_.ps) + scatter-plots.map(_.ps)).foldl(_ + _, empty)
-      else:
-        empty
+      # don't let Google Charts infer x-min, x-max, y-min, y-max
+      # infer them from Pyret side
+
+      _ = check-render-x-axis(self)
+      _ = check-render-y-axis(self)
+
+      combined-pts = (line-plots.map(_.ps) + scatter-plots.map(_.ps)).foldl(_ + _, empty)
+      shadow combined-pts = cases (Defaultable) self.x-min:
+        | default => combined-pts
+        | value(v) => combined-pts.filter({(pt): fst(pt) >= v})
+      end
+      shadow combined-pts = cases (Defaultable) self.x-max:
+        | default => combined-pts
+        | value(v) => combined-pts.filter({(pt): fst(pt) <= v})
+      end
+      shadow combined-pts = cases (Defaultable) self.y-min:
+        | default => combined-pts
+        | value(v) => combined-pts.filter({(pt): snd(pt) >= v})
+      end
+      shadow combined-pts = cases (Defaultable) self.y-max:
+        | default => combined-pts
+        | value(v) => combined-pts.filter({(pt): snd(pt) <= v})
       end
 
-      shadow combined-pts = if not(is-infer-x):
-        combined-pts.filter(in-bound-x(_, self))
-      else:
-        combined-pts
-      end
+      bbox = get-bounding-box(combined-pts)
+      {x-min; x-max} = bound-result-to-bounds(
+        get-bound-result(self.x-min, bbox, _.x-min),
+        get-bound-result(self.x-max, bbox, _.x-max))
 
-      shadow combined-pts = if not(is-infer-y):
-        combined-pts.filter(in-bound-y(_, self))
-      else:
-        combined-pts
-      end
-
-      maybe-bbox = if is-infer-x or is-infer-y:
-        some(get-bounding-box(combined-pts))
-      else:
-        none
-      end
-
-      shadow self = if is-infer-x:
-        cases (Option) maybe-bbox:
-          | none => raise('impossible')
-          | some(bbox) =>
-            {x-min; x-max} = if bbox.is-valid:
-              widen-range(bbox.x-min, bbox.x-max)
-            else:
-              DEFAULT-RANGE
-            end
-            self.{x-min: x-min, x-max: x-max}
-        end
-      else:
-        self
-      end
+      shadow self = self.{x-min: x-min, x-max: x-max}
 
       function-plots-data = function-plots
-        .map(generate-xy(_, self.x-min, self.x-max, self.num-samples))
+        .map(generate-xy(_, self.x-min.value, self.x-max.value, self.num-samples))
         .map(_.get-data())
 
-      shadow self = if is-infer-y:
-        cases (Option) maybe-bbox:
-          | none => raise('impossible')
-          | some(bbox) =>
-            function-plots-pts = function-plots-data.map(_.ps).foldl(_ + _, empty)
-            bbox2 = get-bounding-box(function-plots-pts)
-            {y-min; y-max} = if bbox.is-valid or bbox2.is-valid:
-              {y-min; y-max} = if bbox.is-valid and bbox2.is-valid:
-                {num-min(bbox.y-min, bbox2.y-min); num-max(bbox.y-max, bbox2.y-max)}
-                else if bbox.is-valid:
-                {bbox.y-min; bbox.y-max}
-                else:
-                {bbox2.y-min; bbox2.y-max}
-              end
-              widen-range(y-min, y-max)
-            else:
-              DEFAULT-RANGE
-            end
-            self.{y-min: y-min, y-max: y-max}
-        end
-      else:
-        self
+      function-plots-pts = function-plots-data.map(_.ps).foldl(_ + _, empty)
+      bbox2 = get-bounding-box(function-plots-pts)
+      bbox-combined = ask:
+        | bbox.is-valid and bbox2.is-valid then:
+          default-bounding-box.{
+            y-min: num-min(bbox.y-min, bbox2.y-min),
+            y-max: num-max(bbox.y-max, bbox2.y-max),
+            is-valid: true,
+          }
+        | bbox.is-valid then: bbox
+        | bbox2.is-valid then: bbox2
+        | otherwise: default-bounding-box.{is-valid: false}
       end
+
+      {y-min; y-max} = bound-result-to-bounds(
+        get-bound-result(self.y-min, bbox-combined, _.y-min),
+        get-bound-result(self.y-max, bbox-combined, _.y-max))
+
+      shadow self = self.{y-min: y-min, y-max: y-max}
 
       fun helper(shadow self, shadow function-plots-data :: Option) -> IM.Image block:
         shadow function-plots-data = cases (Option) function-plots-data:
           | none => function-plots
-              .map(generate-xy(_, self.x-min, self.x-max, self.num-samples))
+              .map(generate-xy(_, self.x-min.value, self.x-max.value, self.num-samples))
               .map(_.get-data())
           | some(shadow function-plots-data) => function-plots-data
         end
 
         scatters-arr = for map(p from scatter-plots + function-plots-data):
           ps-to-arr(p.{ps: p.ps.filter(in-bound-xy(_, self))})
-        end ^ reverse ^ builtins.list-to-raw-array
+        end ^ reverse ^ builtins.raw-array-from-list
 
-        # NOTE: lines-arr has JavaScript's null in it.
-        # Don't try to inspect it from Pyret's side
         lines-arr = for map(p from line-plots):
           ps-to-arr(p.{ps: line-plot-edge-cut(p.ps, self)})
-        end ^ reverse ^ builtins.list-to-raw-array
+        end ^ reverse ^ builtins.raw-array-from-list
 
         ret = P.plot-multi(self, {scatters: scatters-arr, lines: lines-arr})
         cases (E.Either<Any, IM.Image>) ret:
@@ -1003,11 +1066,22 @@ where:
   p1 = from-list.function-plot(lam(x): x * x end).color(I.red)
   p2 = from-list.line-plot([list: 1, 2, 3, 4], [list: 1, 4, 9, 16]).color(I.green)
   p3 = from-list.histogram([list: 1, 2, 3, 4])
+  p4 = from-list.line-plot(
+      [list: -1, 1,  2, 3, 11, 8, 9],
+      [list: 10, -1, 11, 9,  9, 3, 2])
   plots([list: p1, p2, p3]) raises ''
   plots([list: p1, p2])
     .title('quadratic function and a scatter plot')
-    .x-range(0, 20)
-    .y-range(0, 20)
+    .x-min(0)
+    .x-max(20)
+    .y-min(0)
+    .y-max(20)
+    .get-image() does-not-raise
+  plots([list: p4])
+    .x-min(0)
+    .x-max(10)
+    .y-min(0)
+    .y-max(10)
     .get-image() does-not-raise
 end
 
