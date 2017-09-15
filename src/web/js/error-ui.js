@@ -166,7 +166,7 @@
             then(log_set(name)).
             thenResolve(value).
             catch(function(repr_error) {
-              console.error("`torepr` errored:", repr_error);
+              //console.error("`torepr` errored:", repr_error);
               return value;
             });
         };

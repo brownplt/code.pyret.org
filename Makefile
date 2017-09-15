@@ -37,7 +37,6 @@ selenium-test-local:
 selenium-test-sauce:
 	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
-
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
 build/web/views/%.html: src/web/%.template.html
@@ -150,7 +149,7 @@ build/web/js/foldcode.js: $(CM)/addon/fold/foldcode.js
 build/web/js/foldgutter.js: $(CM)/addon/fold/foldgutter.js
 	cp $< $@
 
-build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
+build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/patch.js
 	cp $< $@
 
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
@@ -179,7 +178,6 @@ COPY_ARR :=
 
 # build/web/arr/%: pyret/src/arr/trove/%
 # 	cp $< $@
-
 
 WEB = build/web
 WEBV = build/web/views

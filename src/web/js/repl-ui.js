@@ -118,6 +118,7 @@
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
           if(callingRuntime.isFailureResult(result)) {
+            //console.log('ds26gte was failure result', result);
             didError = true;
             var thisExn = undefined;
             // Parse Errors
@@ -336,6 +337,14 @@
           });
           animationDiv.append(dom);
           var dialogMain = animationDiv.parent();
+        /*
+          dialogMain.on('keydown', function(e) {
+            if ($(document.activeElement).is('button') &&
+                e.keyCode === 32) {
+              e.preventDefault();
+            }
+          });
+          */
           dialogMain.css({"z-index": currentZIndex + 1});
           dialogMain.prev().css({"z-index": currentZIndex});
           currentZIndex += 2;
@@ -561,7 +570,7 @@
           if (name.indexOf("interactions://") === 0)
             CPO.documents.delete(name);
         });
-        
+
         CPO.documents.set("definitions://", uiOptions.cm.getDoc());
 
         interactionsCount = 0;

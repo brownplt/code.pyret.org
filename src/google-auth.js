@@ -26,6 +26,7 @@ function makeAuth(config) {
 
   return {
     refreshAccess: function(refreshToken, callback) {
+      console.log('doing refreshAccess', refreshToken);
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -34,7 +35,11 @@ function makeAuth(config) {
             );
       oauth2Client.credentials = { refresh_token: refreshToken };
       oauth2Client.refreshAccessToken(function(err, tokens) {
-        if(err !== null) { callback(err, null); return; }
+        console.log('doing refreshAccessToken > fn');
+        if(err !== null) {
+          console.log('err != null!');
+          callback(err, null); return;
+        }
         callback(null, tokens.access_token);
       });
     },
@@ -61,7 +66,9 @@ function makeAuth(config) {
       });
     },
     serveRedirect: function(req, callback) {
+      console.log('serveRedirect > fn');
       var authCode = req.param("code");
+      console.log('authCode=', authCode);
       var oauth2Client =
           new OAuth2(
               config.google.clientId,
@@ -69,14 +76,18 @@ function makeAuth(config) {
               config.baseUrl + config.google.redirect
             );
       oauth2Client.getToken(authCode, function(err, tokens) {
+        console.log('serveRedirect > getToken > fn');
         if(err !== null) {
+          console.log('err != null!');
           console.error("Error in Google login: ", err);
           callback(err, null); return;
         }
         if(!(typeof tokens.id_token === "string")) {
+          console.log('id_token isnt string');
           callback(new Error("No identity information provided"), null); return;
         }
         if(!(typeof tokens.access_token === "string")) {
+          console.log('access_token isnt string');
           callback(new Error("No access information provided"), null); return;
         }
         // NOTE(joe): These few lines make security assumptions and you should
@@ -108,7 +119,9 @@ function makeAuth(config) {
         // from elsewhere, we need to set up polling of Google's public key
         // servers to get the correct public key of the day to validate these
         // tokens cryptographically.
+        //console.log('tokens=', tokens);
         var decodedId = jwt.decode(tokens.id_token, {}, true);
+        console.log('googleId=', decodedId['sub'], 'access=', tokens.access_token, 'refresh=', tokens.refresh_token);
         callback(null, { googleId: decodedId["sub"], access: tokens.access_token, refresh: tokens.refresh_token });
       });
     }

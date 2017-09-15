@@ -264,7 +264,6 @@
     var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"baseline\", or \"middle\")", isPlaceY);
     var checkPlaceY = p(isPlaceY, "Y Place");
 
-
     var annAngle = ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 

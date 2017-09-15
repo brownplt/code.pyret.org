@@ -218,7 +218,7 @@
 
       var configs = [];
       var isOutputConfigSeen = false;
-      var closeWhenStop = false;
+      var closeWhenStop = true; // false in patch!
 
       for (var i = 0 ; i < handlers.length; i++) {
         if (isOpaqueCloseWhenStopConfig(handlers[i])) {
@@ -258,10 +258,6 @@
       });
     };
 
-
-
-
-
     //////////////////////////////////////////////////////////////////////
 
     // Every world configuration function (on-tick, stop-when, ...)
@@ -273,7 +269,6 @@
     WorldConfigOption.prototype.configure = function(config) {
       throw new Error('unimplemented WorldConfigOption');
     };
-
 
     WorldConfigOption.prototype.toDomNode = function(params) {
       var span = document.createElement('span');
@@ -292,9 +287,6 @@
     var isWorldConfigOption = function(v) { return v instanceof WorldConfigOption; };
 
     //////////////////////////////////////////////////////////////////////
-
-
-
 
     // adaptWorldFunction: Racket-function -> World-CPS
     // Takes a pyret function and converts it to the CPS-style function
@@ -315,6 +307,7 @@
           return runtime.safeCall(function() {
             return worldFunction.app.apply(null, pyretArgs);
           }, function(result) {
+            //console.log('result=', result);
             return result;
           }, "big-bang");
         }, runtime.namespace,
@@ -346,7 +339,6 @@
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_tick(this.delay, worldFunction);
     };
-
 
     //////////////////////////////////////////////////////////////////////
     var OnKey = function(handler) {
@@ -433,10 +425,6 @@
     }
     //////////////////////////////////////////////////////////////////////
 
-
-
-
-
     var OnMouse = function(handler) {
       WorldConfigOption.call(this, 'on-mouse');
       this.handler = handler;
@@ -447,10 +435,7 @@
     OnMouse.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
       var worldFunction = adaptWorldFunction(that.handler);
-      return rawJsworld.on_mouse(
-        function(w, x, y, type, success) {
-          worldFunction(w, x, y, type, success);
-        });
+      return rawJsworld.on_mouse(worldFunction);
     };
 
     /////
@@ -489,10 +474,6 @@
     var isOpaqueOutputConfig = function(v) {
       return runtime.isOpaque(v) && isOutputConfig(v.val);
     }
-
-
-
-
 
     // // ToDraw
 
@@ -566,12 +547,6 @@
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
 
-
-
-
-
-
-
     var DefaultDrawingOutput = function() {
       WorldConfigOption.call(this, 'to-draw');
     };
@@ -593,9 +568,6 @@
       var cssFunction = function(w, success) { success([]); }
       return rawJsworld.on_draw(worldFunction, cssFunction);
     };
-
-
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -659,7 +631,6 @@
 
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
     //////////////////////////////////////////////////////////////////////
-
 
     // The default tick delay is 28 times a second.
     var DEFAULT_TICK_DELAY = 1/28;
@@ -783,6 +754,7 @@
           runtime.ffi.checkArity(2, arguments, "is-key-equal", false);
           runtime.checkString(key1);
           runtime.checkString(key2);
+          //console.log('doing is-key-equal', key1, key1.charCodeAt(0), key2, key2.charCodeAt(0));
           return key1.toString().toLowerCase() === key2.toString().toLowerCase();
         }),
         "is-mouse-equal": makeFunction(function(mouse1, mouse2) {

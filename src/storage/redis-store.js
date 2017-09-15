@@ -2,9 +2,11 @@ var Q = require("q");
 
 function makeStorage(client) {
   function getUserByGoogleId(id) {
+    console.log('doing getUserByGoogleId', id);
     return Q.ninvoke(client, "hgetall", [id]);
   }
   function updateRefreshToken(userId, refreshToken) {
+    console.log('doing updateRefreshToken', userId, refreshToken);
     var curVal = getUserByGoogleId(userId);
     return Q.ninvoke(client, "hset", [userId, "refresh_token", refreshToken]);
   }

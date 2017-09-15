@@ -31,12 +31,12 @@
       var ffi = runtime.ffi;
       var cases = ffi.cases;
       var get = runtime.getField;
-      
-      var noFramesMaybeStackLoc = 
+
+      var noFramesMaybeStackLoc =
         runtime.makeFunction(function(n, userFramesOnly) {
           return runtime.ffi.makeNone();
         });
-      
+
       function makeNameHandle(text, loc, color) {
         var anchor = document.createElement("a");
         anchor.classList.add("hinted-highlight");
@@ -65,8 +65,8 @@
 
       function makeGutterMarker(spanHandle, clickFunc) {
         var editor = spanHandle.doc.getEditor();
-        
-        var lineHandle = 
+
+        var lineHandle =
           editor.addLineClass(
             spanHandle.from.line,
             "gutter",
@@ -96,7 +96,7 @@
             lineHandle.on("delete", onDelete);
           }
         }
-        
+
         function onDelete(line) {
           var spanLineNo = spanHandle.from;
           if (spanLineNo === undefined)
@@ -107,7 +107,7 @@
             lineHandle.on("delete", onDelete);
           }
         }
-        
+
         lineHandle.on("change", onChange);
         lineHandle.on("delete", onDelete);
 
@@ -136,7 +136,7 @@
           });
 
       }
-      
+
       function makeTestHeader(testNumber, loc, isPassing) {
         var header = document.createElement("header");
         var nameHandle   = makeNameHandle("Test " + testNumber, loc,
@@ -148,9 +148,9 @@
         header.appendChild(status);
         return {header : header, handle : handle};
       }
-      
+
       var lastHighlighted = undefined;
-      
+
       var FailingTestSkeleton = function () {
         function FailingTestSkeleton(test, testNumber) {
           var container = document.createElement("div");
@@ -163,6 +163,7 @@
           tombstone.classList.add("test-reason");
           container.appendChild(header);
           container.appendChild(tombstone);
+
           var thisTest = this;
           var source = get(get(test, "loc"), "source");
           if (documents.has(source)) {
@@ -174,7 +175,7 @@
               });
             }
           }
-          
+
           if(runtime.hasField(test, "actual-exn")) {
             var stack = get(loadLib, "internal")
               .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultProgram(result));
@@ -208,7 +209,6 @@
         };
 
         /* Replace the placeholder for the failing test with the error rendering */
-
 
         FailingTestSkeleton.prototype.vivify = function vivify(rendering) {
           this.tombstone.appendChild(rendering[0]);
@@ -317,8 +317,8 @@
 
           var tombstone = undefined;
           if (error !== undefined) {
-            tombstone = document.createElement("div"); 
-            tombstone.classList.add("check-block-error"); 
+            tombstone = document.createElement("div");
+            tombstone.classList.add("check-block-error");
             tombstone.addEventListener("click", function (e) {
               _this.highlight();
             });
@@ -350,7 +350,7 @@
         }
 
         CheckBlockSkeleton.prototype.highlight = function highlight() {
-          if (this.tombstone === undefined) 
+          if (this.tombstone === undefined)
             return;
           outputUI.clearEffects();
           lastHighlighted = this;
@@ -369,7 +369,7 @@
         };
 
         CheckBlockSkeleton.prototype.showTest = function showTest(test) {
-          if (expandedCheckBlock !== undefined) 
+          if (expandedCheckBlock !== undefined)
             expandedCheckBlock.hideTests();
           expandedCheckBlock = this;
           this.container.classList.add("expanded");
@@ -379,7 +379,7 @@
         };
 
         CheckBlockSkeleton.prototype.showTests = function showTests() {
-          if (expandedCheckBlock !== undefined) 
+          if (expandedCheckBlock !== undefined)
             expandedCheckBlock.hideTests();
           expandedCheckBlock = this;
           this.container.classList.add("expanded");
@@ -394,7 +394,7 @@
           outputUI.clearEffects();
           lastHighlighted = undefined;
         };
-        
+
         /* Replace the placeholder for the error with the error rendering */
         CheckBlockSkeleton.prototype.vivify = function vivify(rendering) {
           if (this.tombstone === undefined) return;
@@ -411,12 +411,12 @@
 
         return CheckBlockSkeleton;
       }();
-    
+
       var checkBlocks = ffi.toArray(checkResults);
 
       if (checkBlocks.length === 0)
         return;
-        
+
       var checkErroredSkeletons = new Array();
       var testsFailedSkeletons  = new Array();
       var testsPassedSkeletons  = new Array();
@@ -447,10 +447,10 @@
       for(var i = checkBlocks.length - 1; i >= 0; i--) {
         var checkBlock = checkBlocks[i];
         var maybeError  = get(checkBlock, "maybe-err");
-        
+
         var testsPassing  = 0;
         var testsExecuted = 0;
-        
+
         var tests = ffi.toArray(get(checkBlock, "test-results")).
           reverse().
           map(function(test) {
@@ -467,27 +467,26 @@
             }
             return skeleton;
           });
-          
+
         var endedInError    = get(option, "is-some").app(maybeError);
         var allTestsPassing = testsPassing === testsExecuted;
-        
+
         var error = endedInError ? get(maybeError, "value").val : undefined;
-        
+
         var skeleton =
           new CheckBlockSkeleton(
-            get(checkBlock, "name"), 
+            get(checkBlock, "name"),
             get(checkBlock, "loc"),
             get(checkBlock, "keyword-check"),
             { skeletons: tests,
               passing  : testsPassing,
               executed : testsExecuted }, error);
-        
+
         if (endedInError)
           checkErroredSkeletons.push(skeleton);
         checkResultsContainer.appendChild(skeleton.container);
       }
-      
-      
+
       var checkPassedAll      = testsPassedSkeletons.length;
       var checkBlocksErrored  = checkErroredSkeletons.length;
       var checkTotalAll       = checkPassedAll + testsFailedSkeletons.length;
@@ -524,11 +523,10 @@
         }
       }
 
-
       container.append($(checkResultsContainer).prepend(summary));
-      
+
       }catch(e){console.error(e);}
-      
+
       // must be called on the pyret stack
       function vivifySkeleton(skeleton) {
         var error_to_html = errorUI.error_to_html;

@@ -62,9 +62,6 @@ span.CodeMirror-selectedtext {
   margin: 0.3ex;
 }
 
-
-
-
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
   background-color: hsl(220, 100%, 95%);
@@ -98,7 +95,6 @@ div.CodeMirror span.CodeMirror-matchingbracket {
   font-weight: 600;
   color: initial;
 }
-
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket {
   font-weight: bold;
@@ -270,7 +266,6 @@ div.spy-block > table > th { display: none; }
   height: auto;
 }
 
-
 .replMain .CodeMirror {
   height: 100%;
   box-sizing: border-box;
@@ -324,7 +319,6 @@ div.spy-block > table > th { display: none; }
   margin-top: .5em;
 }
 
-
 .check-block-failed {
   background-color: #FFECB3;
 }
@@ -365,7 +359,6 @@ div.spy-block > table > th { display: none; }
   background-repeat: no-repeat;
 }
 
-
 .check-title{
   padding: 5px;
   margin: -5px;
@@ -388,7 +381,6 @@ div.spy-block > table > th { display: none; }
 .steppedGutter {
   width: 25px;
 }
-
 
 .progressContainer {
   width: 90%;
@@ -817,9 +809,6 @@ ul.inlineCollection > li > span.label {
    display: none;
  }
 
-
-
-
 .replOutputPassed {
   padding-top: 0;
   padding-bottom: 0.5em;
@@ -1015,7 +1004,6 @@ code div {
   background-color: initial;
 }
 
-
 .check-highlight {
  background-color: #CCF;
  border-bottom: 2px solid #33F;
@@ -1043,7 +1031,6 @@ code div {
   color: #469ad4;
   cursor: pointer;
 }
-
 
 .parse-error {
   font-family: sans-serif;
@@ -1372,7 +1359,6 @@ code div {
   box-shadow: 0 0 1em;
 }
 
-
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
   background: hsla(0,0%,100%,.9);
@@ -1418,7 +1404,6 @@ code div {
   flex: 1.5;
 }
 
-
 .check-block-header:after {
   position: absolute;
   right: 0;
@@ -1434,7 +1419,6 @@ code div {
 .check-block:not(.expanded) > .check-block-header::after {
   content: 'Show Details';
 }
-
 
 .check-block-test > header {
   width: 100%;

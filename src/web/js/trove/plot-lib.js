@@ -883,7 +883,6 @@
         d3.select(this).style('fill', 'steelblue');
       });
 
-
     stylizeTip(detached);
     return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
@@ -907,7 +906,6 @@
         return jsnums.add(a, b, RUNTIME.NumberErrbacks);
       });
     var valueScaler = libNum.scaler(0, sum, 0, 100, true);
-
 
     var dimension = getDimension({
       minWindowWidth: 700,
@@ -1399,6 +1397,8 @@
   }
 
   return RUNTIME.makeObject({
+    'defined-values': {},
+    'defined-types': {},
     'provide-plus-types': RUNTIME.makeObject({
       types: RUNTIME.makeObject({
       }),

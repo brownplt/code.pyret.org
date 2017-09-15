@@ -1,6 +1,7 @@
 /* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
 
 var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
+//var shareAPI = makeShareAPI(env_CURRENT_PYRET_RELEASE);
 
 var url = require('url.js');
 var modalPrompt = require('./modal-prompt.js');
@@ -555,8 +556,21 @@ $(function() {
   });
 
   var pyretLoad = document.createElement('script');
+  /*
+  console.log('process.env is', JSON.stringify(process.env));
+  console.log('process.env.GOOGLE_CLIENT_ID is', process.env.GOOGLE_CLIENT_ID);
+  console.log('process.env.REDISCLOUD_URL is', process.env.REDISCLOUD_URL);
+  console.log('process.env.BASE_URL is', process.env.BASE_URL);
+  console.log('process.env.SESSION_SECRET is', process.env.SESSION_SECRET);
+  console.log('process.env.CURRENT_PYRET_RELEASE is', process.env.CURRENT_PYRET_RELEASE);
+  console.log('process.env.PYRET is', process.env.PYRET);
+  console.log('process.env.PYRET_RELEASE_BASE is', process.env.PYRET_RELEASE_BASE);
+  console.log('clientId is', clientId);
+  */
   console.log(process.env.PYRET);
   pyretLoad.src = process.env.PYRET;
+  //console.log('env_PYRET is', env_PYRET);
+  //pyretLoad.src = env_PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
   $(pyretLoad).on("error", function() {

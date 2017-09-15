@@ -54,12 +54,6 @@
       return forEachHelp(0);
     };
 
-
-
-
-
-
-
     //
     // WORLD STUFFS
     //
@@ -76,8 +70,6 @@
     var worldListeners = null;
     var eventDetachers = null;
     var changingWorld = [];
-
-
 
     function clear_running_state() {
       worldIndexStack = [];
@@ -115,9 +107,11 @@
         worldListeners = null;
       }
 
-      eventDetachersStack.pop().forEach(function(eventDetacher){
+      eventDetachersStack.pop();
+      eventDetachersStack.forEach(function(eventDetacher){
         eventDetacher();
       });
+
       if (eventDetachersStack.length > 0) {
         eventDetachers = eventDetachersStack[eventDetachersStack.length - 1];
       } else {
@@ -129,8 +123,6 @@
         runningBigBangs[runningBigBangs.length - 1].restart();
       }
     }
-
-
 
     // Close all world computations.
     Jsworld.shutdown = function(options) {
@@ -162,11 +154,9 @@
       resume_running_state();
     };
 
-
     function add_world_listener(listener) {
       worldListeners.push(listener);
     }
-
 
     function remove_world_listener(listener) {
       var i, index = -1;
@@ -181,10 +171,8 @@
       }
     }
 
-
     // If we're in the middle of a change_world, delay.
     var DELAY_BEFORE_RETRY = 10;
-
 
     // change_world: CPS( CPS(world -> world) -> void )
     // Adjust the world, and notify all listeners.
@@ -201,7 +189,6 @@
           DELAY_BEFORE_RETRY);
         return;
       }
-
 
       changingWorld[changingWorld.length - 1] = true;
       var originalWorld = world;
@@ -236,8 +223,6 @@
     };
     Jsworld.change_world = change_world;
 
-
-
     var map = function(a1, f) {
       var b = new Array(a1.length), i;
       for (i = 0; i < a1.length; i++) {
@@ -254,7 +239,6 @@
       return b;
     };
 
-
     function member(a, x) {
       var i;
       for (i = 0; i < a.length; i++) {
@@ -264,7 +248,6 @@
       }
       return false;
     }
-
 
     //
     // DOM UPDATING STUFFS
@@ -324,7 +307,6 @@
     return true;
     }*/
 
-
     // node_to_tree: dom -> dom-tree
     // Given a native dom node, produces the appropriate tree.
     function node_to_tree(domNode) {
@@ -339,8 +321,6 @@
     }
     Jsworld.node_to_tree = node_to_tree;
 
-
-
     // nodes(tree(N)) = nodes(N)
     function nodes(tree) {
       var ret, i;
@@ -354,7 +334,6 @@
       }
       return ret;
     }
-
 
     // relations(tree(N)) = relations(N)
     function relations(tree) {
@@ -381,10 +360,6 @@
       return ret;
     }
 
-
-
-
-
     // Preorder traversal.
     var preorder = function(node, f) {
       f(node, function() {
@@ -398,13 +373,11 @@
       });
     };
 
-
     // nodeEq: node node -> boolean
     // Returns true if the two nodes should be the same.
     var nodeEq = function(node1, node2) {
       return (node1 && node2 && node1 === node2);
     };
-
 
     // isMemq: X (arrayof X) -> boolean
     // Produces true if any of the elements of L are nodeEq to x.
@@ -418,8 +391,6 @@
       return false;
     };
 
-
-
     // If any node cares about the world, send it in.
     function refresh_node_values(nodes) {
       var i;
@@ -429,8 +400,6 @@
         }
       }
     }
-
-
 
     // update_dom(nodes(Node), relations(Node)) = void
     function update_dom(toplevelNode, nodes, relations) {
@@ -484,13 +453,10 @@
       refresh_node_values(nodes);
     }
 
-
-
     // camelCase: string -> string
     function camelCase(name) {
       return name.replace(/\-(.)/g, function(m, l){return l.toUpperCase();});
     }
-
 
     function set_css_attribs(node, attribs) {
       var j;
@@ -498,7 +464,6 @@
         node.style[camelCase(attribs[j].attrib)] = attribs[j].values.join(" ");
       }
     }
-
 
     // isMatchingCssSelector: node css -> boolean
     // Returns true if the CSS selector matches.
@@ -512,14 +477,11 @@
       }
     }
 
-
     var clearCss = function(node) {
       // FIXME: we should not be clearing the css
       //      if ('style' in node)
       //          node.style.cssText = "";
     };
-
-
 
     function update_css(nodes, css) {
       // clear CSS
@@ -544,13 +506,9 @@
       }
     }
 
-
-
     var sexp2tree;
     var sexp2css;
     var maintainingSelection;
-
-
 
     function do_redraw(world, oldWorld, toplevelNode, redraw_func, redraw_css_func, k) {
       if (oldWorld instanceof InitialWorld) {
@@ -596,8 +554,6 @@
       }
     }
 
-
-
     var FocusedSelection;
 
     function hasCurrentFocusedSelection() {
@@ -607,7 +563,6 @@
     function getCurrentFocusedSelection() {
       return new FocusedSelection();
     }
-
 
     // maintainingSelection: (-> void) -> void
     // Calls the thunk f while trying to maintain the current focused selection.
@@ -623,8 +578,6 @@
         f(function() { k(); });
       }
     };
-
-
 
     FocusedSelection = function() {
       this.focused = currentFocusedNode;
@@ -649,10 +602,6 @@
         }
       }
     };
-
-
-
-
 
     //////////////////////////////////////////////////////////////////////
 
@@ -688,9 +637,7 @@
     };
     //////////////////////////////////////////////////////////////////////
 
-
     var copy_attribs;
-
 
     // Notes: bigBang maintains a stack of activation records; it should be possible
     // to call bigBang re-entrantly.
@@ -731,8 +678,6 @@
         add_world_listener(extras.tracer);
       }
 
-
-
       // Monitor for termination and register the other handlers.
       var stopWhen = new StopWhenHandler(function(w, k2) { k2(false); },
                                          function(w, k2) { k2(w); });
@@ -769,20 +714,17 @@
                 } else {
                   activationRecord.pause();
                 }
+
               }
             });
       };
       add_world_listener(watchForTermination);
-
 
       // Finally, begin the big-bang.
       copy_attribs(top, attribs);
       change_world(function(w, k2) { k2(init_world); }, doNothing);
     };
     Jsworld.bigBang = bigBang;
-
-
-
 
     // on_tick: number CPS(world -> world) -> handler
     var on_tick = function(delay, tick) {
@@ -821,9 +763,66 @@
     };
     Jsworld.on_tick = on_tick;
 
+    function getKeyCodeName(e) {
+      var code = e.charCode || e.keyCode;
+      var keyname;
+      switch(code) {
+      case 8: keyname = "\b"; break;
+      case 9: keyname = "tab"; break;
+      case 10: keyname = "newline"; break;
+      case 13: keyname = "\r"; break;
+      case 16: keyname = "shift"; break;
+      case 17: keyname = "control"; break;
+      case 18: keyname = "alt"; break;
+      case 19: keyname = "pause"; break;
+      case 27: keyname = "escape"; break;
+      case 33: keyname = "prior"; break;
+      case 34: keyname = "next"; break;
+      case 35: keyname = "end"; break;
+      case 36: keyname = "home"; break;
+      case 37: keyname = "left"; break;
+      case 38: keyname = "up"; break;
+      case 39: keyname = "right"; break;
+      case 40: keyname = "down"; break;
+      case 42: keyname = "print"; break;
+      case 45: keyname = "insert"; break;
+      case 46: keyname = "delete"; break;
+      case 106: keyname = "*"; break;
+      case 107: keyname = "+"; break;
+      case 109: keyname = "-"; break;
+      case 110: keyname = "."; break;
+      case 111: keyname = "/"; break;
+      case 144: keyname = "numlock"; break;
+      case 145: keyname = "scroll"; break;
+      case 186: keyname = ";"; break;
+      case 187: keyname = "="; break;
+      case 188: keyname = ","; break;
+      case 189: keyname = "-"; break;
+      case 190: keyname = "."; break;
+      case 191: keyname = "/"; break;
+      case 192: keyname = "`"; break;
+      case 219: keyname = "["; break;
+      case 220: keyname = "\\"; break;
+      case 221: keyname = "]"; break;
+      case 222: keyname = "'"; break;
+      case 230: keyname = 'ralt'; break;
+      default:
+        if (code >= 96 && code <= 105) {
+          keyname = (code - 96).toString();
+        } else if (code >= 112 && code <= 123) {
+          keyname = "f" + (code - 111);
+        } else {
+          keyname = String.fromCharCode(code).toLowerCase();
+        }
+        break;
+      }
+      //console.log('getKeyCodeName', e.type, e.key, ' returning', keyname);
+      return keyname;
+    }
+    Jsworld.getKeyCodeName = getKeyCodeName;
+
     var preventDefault, stopPropagation;
     var attachEvent, detachEvent;
-
 
     function on_key(press) {
       return function(thisWorldIndex) {
@@ -860,9 +859,6 @@
       };
     }
     Jsworld.on_key = on_key;
-
-
-
 
     // http://www.quirksmode.org/js/events_mouse.html
     // http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
@@ -1041,7 +1037,6 @@
 
     var checkDomSexp;
 
-
     //  on_draw: CPS(world -> (sexpof node)) CPS(world -> (sexpof css-style)) -> handler
     function on_draw(redraw, redraw_css) {
       var wrappedRedraw = function(w, k) {
@@ -1088,8 +1083,6 @@
     }
     Jsworld.stop_when = stop_when;
 
-
-
     function on_world_change(f) {
       return function(thisWorldIndex) {
         var listener = function(world, oldW, k) {
@@ -1105,10 +1098,6 @@
       };
     }
     Jsworld.on_world_change = on_world_change;
-
-
-
-
 
     // Compatibility for attaching events to nodes.
     attachEvent = function(node, eventName, fn) {
@@ -1158,7 +1147,6 @@
       eventDetachers.push(function() { detachEvent(node, event, eventHandler); });
     }
 
-
     function addFocusTracking(node) {
       attachEvent(node, "focus", function(e) {
         currentFocusedNode = node; });
@@ -1168,14 +1156,9 @@
       return node;
     }
 
-
-
-
-
     //
     // WORLD STUFFS
     //
-
 
     sexp2tree = function(sexp) {
       if(sexp.length === undefined) { return { node: sexp, children: [] }; }
@@ -1201,12 +1184,9 @@
       return concat_map(sexp, sexp2css_node);
     };
 
-
-
     function isTextNode(n) {
       return (n.nodeType === 3);
     }
-
 
     function isElementNode(n) {
       return (n.nodeType === 1);
@@ -1231,7 +1211,6 @@
       if (thing.length === 0) {
         throwDomError(thing, topThing);
       }
-
 
       // Check that the first element is a Text or an element.
       if (isTextNode(thing[0])) {
@@ -1260,14 +1239,9 @@
       return "JsworldDomError: " + this.msg;
     };
 
-
-
-
-
     //
     // DOM CREATION STUFFS
     //
-
 
     copy_attribs = function(node, attribs) {
       var a;
@@ -1284,7 +1258,6 @@
       }
       return node;
     };
-
 
     //
     // NODE TYPES
@@ -1310,9 +1283,6 @@
     }
     Jsworld.button = button;
 
-
-
-
     preventDefault = function(event) {
       if (event.preventDefault) {
         event.preventDefault();
@@ -1329,7 +1299,6 @@
       }
     };
 
-
     var stopClickPropagation = function(node) {
       attachEvent(node, "click",
                   function(e) {
@@ -1337,7 +1306,6 @@
                   });
       return node;
     };
-
 
     var text_input, checkbox_input;
 
@@ -1359,9 +1327,6 @@
       }
     }
     Jsworld.input = input;
-
-
-
 
     text_input = function(type, updateF, attribs) {
       var n = document.createElement('input');
@@ -1394,7 +1359,6 @@
         addFocusTracking(copy_attribs(n, attribs)));
     };
 
-
     checkbox_input = function(type, updateF, attribs) {
       var n = document.createElement('input');
       n.type = type;
@@ -1411,15 +1375,11 @@
       return copy_attribs(n, attribs);
     };
 
-
     // var button_input = function(type, updateF, attribs) {
     //     var n = document.createElement('button');
     //     add_ev(n, 'click', function(w, e, k) { updateF(w, n.value, k); });
     //     return addFocusTracking(copy_attribs(n, attribs));
     // };
-
-
-
 
     function text(s, attribs) {
       var result = document.createElement("div");
@@ -1450,8 +1410,6 @@
       return node;
     };
 
-
-
     function textarea(attribs){
       return addFocusTracking(copy_attribs(document.createElement('textarea'), attribs));
     }
@@ -1467,7 +1425,6 @@
     }
     Jsworld.canvas = canvas;
 
-
     function img(src, attribs) {
       var n = document.createElement('img');
       n.src = src;
@@ -1475,13 +1432,10 @@
     }
     Jsworld.img = img;
 
-
-
     function raw_node(node, attribs) {
       return addFocusTracking(copy_attribs(node, attribs));
     }
     Jsworld.raw_node = raw_node;
-
 
     return runtime.makeJSModuleReturn(Jsworld);
   }

@@ -14,6 +14,11 @@ data Color:
       alpha :: Number)
 end
 
+# following needed? patch has it
+data Posn:
+  | posn(x :: Number, y :: Number)
+end
+
 orange = color(255, 165, 0, 1)
 red = color(255, 0, 0, 1)
 orange-red = color(255, 69, 0, 1)
@@ -157,3 +162,5 @@ gray = color(190, 190, 190, 1)
 dark-gray = color(169, 169, 169, 1)
 dim-gray = color(105, 105, 105, 1)
 black = color(0, 0, 0, 1)
+
+

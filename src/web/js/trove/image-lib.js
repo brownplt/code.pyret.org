@@ -10,11 +10,26 @@
     var image = gf(imageImp, "values");
     var color = gf(image, "color");
     var colorPred = gf(image, "is-Color");
+    var posn = gf(image, "posn");
+    var posnPred = gf(image, "is-Posn");
     var isNum = function(n) { return typeof n === "number"; }
     var unwrap = RUNTIME.unwrap;
 
     var hasOwnProperty = {}.hasOwnProperty;
 
+    //////////////////////////////////////////////////////////////////////
+    var makePosn = function(x,y) {
+      if (!(isNum(x) && isNum(y))) {
+        throw new Error("Internal error: non-number in makePosn argList ", [x,y]);
+      }
+      return posn.app(
+        RUNTIME.wrap(x),
+        RUNTIME.wrap(y)
+        );
+    };
+    var isPosn = function(p) { return unwrap(posnPred.app(p)); };
+    var posnX = function(p) { return unwrap(gf(p, "x")); };
+    var posnY = function(p) { return unwrap(gf(p, "y")); };
 
     //////////////////////////////////////////////////////////////////////
     var makeColor = function(r,g,b,a) {
@@ -469,7 +484,6 @@
       return style + " " + match.toLowerCase();
     }
 
-
     var isSideCount = function(x) {
       return jsnums.isInteger(x) && jsnums.greaterThanOrEqual(x, 3, RUNTIME.NumberErrbacks);
     };
@@ -531,7 +545,6 @@
         })
     }
 
-
     // Base class for all images.
     var BaseImage = function() {};
 
@@ -577,7 +590,7 @@
 
       // we care about the stroke because drawing to a canvas is *different* for
       // fill v. stroke! If it's outline, we can draw on the pixel boundaries and
-      // stroke within them. If it's stroke, we need to draw _inside_ those 
+      // stroke within them. If it's stroke, we need to draw _inside_ those
       // boundaries, adjusting by a half-pixel towards the center.
       var isSolid = this.style.toString().toLowerCase() !== "outline";
 
@@ -600,7 +613,9 @@
       }
 
       ctx.moveTo( x + vertices[0].x, y + vertices[0].y );
+
       vertices.forEach(function(v) { ctx.lineTo( x + v.x, y + v.y); });
+
       ctx.closePath();
 
       if (isSolid) {
@@ -771,12 +786,13 @@
 
     //////////////////////////////////////////////////////////////////////
     // SceneImage: primitive-number primitive-number (listof image) -> Scene
-    var SceneImage = function(width, height, children, withBorder) {
+    var SceneImage = function(width, height, children, withBorder, color) {
       BaseImage.call(this);
       this.width    = width;
       this.height   = height;
       this.children = children; // arrayof [image, number, number]
       this.withBorder = withBorder;
+      this.color = color;
       this.ariaText = " scene that is "+width+" by "+height+". children are: ";
       this.ariaText += children.map(function(c,i){
         return "child "+(i+1)+": "+c[0].ariaText+", positioned at "+c[1]+","+c[2]+" ";
@@ -791,7 +807,8 @@
                             this.children.concat([[anImage,
                                                    x - anImage.getWidth()/2,
                                                    y - anImage.getHeight()/2]]),
-                            this.withBorder);
+                            this.withBorder,
+                            this.color);
     };
 
     // render: 2d-context primitive-number primitive-number -> void
@@ -799,7 +816,8 @@
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0)";
+      //ctx.fillStyle = "rgba(0,0,0,0)";
+      ctx.fillStyle = this.color? colorString(this.color) : 'transparent';
       ctx.fillRect(x, y, this.width, this.height);
       ctx.restore();
       // save the context, reset the path, and clip to the path around the scene edge
@@ -808,7 +826,7 @@
       ctx.rect(x, y, this.width, this.height);
       ctx.clip();
       // Ask every object to render itself inside the region
-        this.children.forEach(function(child) { 
+        this.children.forEach(function(child) {
             // then, render the child images
             childImage = child[0];
             childX = child[1];
@@ -828,7 +846,7 @@
         return (other instanceof SceneImage     &&
                 this.width    == other.width    &&
                 this.height   == other.height   &&
-                this.children.length == other.children.length && 
+                this.children.length == other.children.length &&
                 this.children.every(function(child1, i) {
                     var child2 = other.children[i];
                     return (child1[1] == child2[1] &&
@@ -1049,7 +1067,7 @@
       var i, v1 = img1.getVertices(), v2 = img2.getVertices(), xs = [], ys = [];
       v1 = v1.map(function(v){ return {x: v.x + x1, y: v.y + y1}; });
       v2 = v2.map(function(v){ return {x: v.x + x2, y: v.y + y2}; });
-        
+
       // store the vertices as something private, so this.getVertices() will still return undefined
       this._vertices = v1.concat(v2);
 
@@ -1308,7 +1326,7 @@
               this.width     === other.width     &&
               this.height    === other.height    &&
               this.direction === other.direction &&
-              imageEquals(this.img, other.img) ) 
+              imageEquals(this.img, other.img) )
             || BaseImage.prototype.equals.call(this, other);
     };
 
@@ -1379,13 +1397,14 @@
     var textContainer, textParent;
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
-    var TextImage = function(str, size, color, face, family, style, weight, underline) {
+    var TextImage = function(str, size, color, face, family, style, weight, underline, outline) {
       BaseImage.call(this);
       this.str        = str;
       this.size       = size;   // 18
       this.color      = color;  // red
       this.face       = face;   // Gill Sans
       this.family     = family; // 'swiss
+      this.outline    = outline || false;
       this.style      = (style === "slant")? "oblique" : style;  // Racket's "slant" -> CSS's "oblique"
       this.weight     = (weight=== "light")? "lighter" : weight; // Racket's "light" -> CSS's "lighter"
       this.underline  = underline;
@@ -1655,8 +1674,8 @@
       return makeImageDataImage(imageData);
     };
 
-    var makeSceneImage = function(width, height, children, withBorder) {
-      return new SceneImage(width, height, children, withBorder);
+    var makeSceneImage = function(width, height, children, withBorder, color) {
+      return new SceneImage(width, height, children, withBorder, color);
     };
     var makeCircleImage = function(radius, style, color) {
       return new EllipseImage(2*radius, 2*radius, style, color);
@@ -1703,8 +1722,8 @@
     var makeFlipImage = function(img, direction) {
       return new FlipImage(img, direction);
     };
-    var makeTextImage = function(str, size, color, face, family, style, weight, underline) {
-      return new TextImage(str, size, color, face, family, style, weight, underline);
+    var makeTextImage = function(str, size, color, face, family, style, weight, underline, outline) {
+      return new TextImage(str, size, color, face, family, style, weight, underline, outline);
     };
     var makeImageDataImage = function(imageData) {
       return new ImageDataImage(imageData);
@@ -1822,6 +1841,11 @@
       isTextImage: isTextImage,
       isFileImage: isFileImage,
       isFileVideo: isFileVideo,
+
+      makePosn: makePosn,
+      isPosn: isPosn,
+      posnX: posnX,
+      posnY: posnY,
 
       makeColor: makeColor,
       isColor: isColor,

@@ -141,8 +141,6 @@ FilePicker.prototype.initOpen = function(picker) {
     return drive.getCollectionFolderId().then(buildInstance);
   }).bind(this);
 
-  
-
   return (function() {
     this.raisedError = false;
     var views = this.options.views || [];

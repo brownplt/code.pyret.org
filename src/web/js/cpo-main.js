@@ -235,7 +235,6 @@
       }));
     var pyRealm = gf(loadLib, "internal").makeRealm(cpoModules.getRealm());
 
-
     var builtins = [];
     Object.keys(runtime.getParam("staticModules")).forEach(function(k) {
       if(k.indexOf("builtin://") === 0) {
@@ -609,6 +608,10 @@
             e.stopImmediatePropagation();
             e.preventDefault();
           }
+        } else if (false && e.keyCode === 27) { // ESCAPE pressed; check if needed
+          $('#breakButton').click();
+          e.stopImmediatePropagation();
+          e.preventDefault();
         }
       });
 

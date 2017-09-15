@@ -1,4 +1,5 @@
 window.createProgramCollectionAPI = function createProgramCollectionAPI(collectionName, immediate) {
+  console.log('doing createProgramCollectionAPI (immediate = ' + immediate + ')');
   function DriveError(err) {
     this.err = err;
   }
@@ -46,6 +47,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
     }
 
     function makeFile(googFileObject, mimeType, fileExtension) {
+      console.log('doing makeFile ' + googFileObject + ' ' + mimeType + ' ' + fileExtension);
       return {
         shared: false,
         getName: function() {
@@ -70,6 +72,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             });
         },
         getContents: function() {
+          console.log('doing makeFile:getContents');
           return Q($.ajax(googFileObject.downloadUrl, {
             method: "get",
             dataType: 'text',
@@ -279,7 +282,20 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
   }
 
   function initialize(wrappedDrive) {
+    console.log('doing drive.js/initialize');
     drive = wrappedDrive;
+    if (!drive) {
+      console.log('drive not found');
+    } else {
+      console.log('drive found');
+    }
+
+    /*
+    var list = drive.files.list({
+      q: "trashed=false and title = '" + collectionName + "' and "+
+         "mimeType = '" + FOLDER_MIME + "'"
+    });
+    */
     var baseCollection = findOrCreateDirectory(collectionName);
     return createAPI(baseCollection);
   }
@@ -293,5 +309,6 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
               callback: function(drive) {
                 ret.resolve(initialize(drive));
               }});
+  console.log('createProgramCollectionAPI returning');
   return ret.promise;
 }

@@ -18,7 +18,7 @@
     datatypes: {}
   },
   theModule: function(runtime, namespace, uri, table, list, t){
-    var List = function(thing) { 
+    var List = function(thing) {
       return t.tyapp(t.libName("lists", "List"), [thing]);
     };
     // Tables not yet in the Typechecker, AFAIK
@@ -42,7 +42,7 @@
       aliases: {},
       datatypes: {}
     };*/
-    
+
     var F = runtime.makeFunction;
     var O = runtime.makeObject;
 
@@ -430,7 +430,7 @@
         ss.worksheetsInfo.map(function(ws) {
           return runtime.makeString(ws.properties.title);
         }));
-      
+
       function sheetByName(name, skipHeaders) {
         runtime.ffi.checkArity(2, arguments, "sheet-by-name", true);
         runtime.checkString(name);
@@ -440,7 +440,7 @@
         });
         //return loadWorksheet(function(){return ss.getByName(name, skipHeaders);});
       }
-      
+
       function sheetByPos(idx, skipHeaders) {
         runtime.ffi.checkArity(2, arguments, "sheet-by-index", true);
         runtime.checkNumber(idx);
@@ -475,7 +475,7 @@
         'add-sheet': F(addSheet)
       }));
     }
-    
+
     function createSpreadsheet(name) {
       runtime.ffi.checkArity(1, arguments, "create-spreadsheet", false);
       runtime.checkString(name);
