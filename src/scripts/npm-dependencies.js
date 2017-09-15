@@ -37,7 +37,13 @@ if(!!google) {
 
 define("fs", [], function () { return {}; });
 
-define("path", [], function () { return {}; });
+// NOTE(joe): this is slightly bogus, but due to the way pathlib can load, even
+// though it's not used, this needs to be defined (it represents the separator
+// for the system).
+define("path", [], function () { return {
+    sep: "/"
+  };
+});
 
 define("http", [], function () {return {};});
 
