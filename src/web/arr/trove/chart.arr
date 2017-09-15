@@ -706,16 +706,16 @@ fun plot(s :: DataSeries) -> ChartWindow:
 where:
   plot-now = {(x): plot(x).get-image()}
 
-  plot-now(exploding-pie-chart(
+  plot-now(from-list.exploding-pie-chart(
       [list: 'asd', 'dsa', 'qwe'],
       [list: 1, 2, 3],
       [list: 0, 0.1, 0.2])) does-not-raise
-  plot-now(pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
-  plot-now(histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  plot-now(labeled-histogram(
+  plot-now(from-list.pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
+  plot-now(from-list.histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
+  plot-now(from-list.labeled-histogram(
       [list: 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       [list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  plot-now(grouped-bar-chart(
+  plot-now(from-list.grouped-bar-chart(
       [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
       [list:
         [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
@@ -732,11 +732,11 @@ where:
         '25 to 44 Years',
         '45 to 64 Years',
         '65 Years and Over'])) does-not-raise
-  plot-now(function-plot(num-sin)) does-not-raise
-  plot-now(scatter-plot(
+  plot-now(from-list.function-plot(num-sin)) does-not-raise
+  plot-now(from-list.scatter-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
-  plot-now(line-plot(
+  plot-now(from-list.line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
 end
@@ -763,7 +763,7 @@ fun generate-xy(
     legend: p.legend,
   }
 where:
-  generate-xy(function-plot(_ + 1).obj, 0, 100, 6).get-data().ps
+  generate-xy(from-list.function-plot(_ + 1).obj, 0, 100, 6).get-data().ps
     is=~ [list:
     posn(0, 1, ''),
     posn(20, 21, ''),
@@ -1067,10 +1067,10 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
     end
   } ^ plot-chart-window
 where:
-  p1 = function-plot(lam(x): x * x end).color(I.red)
-  p2 = line-plot([list: 1, 2, 3, 4], [list: 1, 4, 9, 16]).color(I.green)
-  p3 = histogram([list: 1, 2, 3, 4])
-  p4 = line-plot(
+  p1 = from-list.function-plot(lam(x): x * x end).color(I.red)
+  p2 = from-list.line-plot([list: 1, 2, 3, 4], [list: 1, 4, 9, 16]).color(I.green)
+  p3 = from-list.histogram([list: 1, 2, 3, 4])
+  p4 = from-list.line-plot(
       [list: -1, 1,  2, 3, 11, 8, 9],
       [list: 10, -1, 11, 9,  9, 3, 2])
   plots([list: p1, p2, p3]) raises ''
