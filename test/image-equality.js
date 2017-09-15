@@ -79,7 +79,7 @@ describe("Image equality", function() {
 `  rectangle(20, 30, "outline", "turquoise")`],
 
 ["solid-translucent-red-rectangle",
-`  rectangle(200, 300, 10, "red")`],
+`  rectangle(200, 300, 10 / 255, "red")`],
 
 ["outline-red-rectangle",
 `  rectangle(200, 300, "outline", "red")`],
@@ -91,13 +91,13 @@ describe("Image equality", function() {
 `  triangle(50, "solid", "red")`],
 
 ["halfred-triangle",
-`  triangle(50, "solid", color(255, 0, 0, 128))`],
+`  triangle(50, "solid", color(255, 0, 0, 128 / 255))`],
 
 ["translucent-halfred-triangle",
-`  triangle(50, 128, color(255, 0, 0, 128))`],
+`  triangle(50, 128 / 255, color(255, 0, 0, 128 / 255))`],
 
 ["quarterred-triangle",
-`  triangle(50, "solid", color(255, 0, 0, 64))`],
+`  triangle(50, "solid", color(255, 0, 0, 64 / 255))`],
 
 ["blue-circle-center-scene",
 `  place-image(circle(50, "solid", "blue"), 50, 50, empty-scene(100, 100))`],
