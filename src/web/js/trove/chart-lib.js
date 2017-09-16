@@ -408,7 +408,7 @@ ${labelRow}`;
         const xMinC = $('<input/>', {
           'class': 'controller',
           type: 'text',
-          placeholder: 'x-min2',
+          placeholder: 'x-min',
         }).attr('size', inputSize);
         const xMaxC = $('<input/>', {
           'class': 'controller',
