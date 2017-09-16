@@ -578,7 +578,7 @@ define('cpo/patch-parse',
         replace(/^#%/, 'ƎHASHPCT').
         replace(/^_/, 'ƎUNDERSCORE').
         replace(/^(\d)/, 'Ǝ$1').
-        replace(/^(debug|new|repeat|string-split|type)$/, 'ƎEMPTY$1')
+        replace(/^(debug|new|repeat|set|string-split|type)$/, 'ƎEMPTY$1')
       return str2;
     }
 
