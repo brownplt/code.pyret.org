@@ -353,28 +353,36 @@ ${labelRow}`;
         return currentRow;
       }));
     });
+
+    const options = {
+      tooltip: {isHtml: true},
+      series: combined.map((p, i) => {
+        // scatters and then lines
+        const seriesOptions = {color: convertColor(get(p, 'color'))};
+        if (i < scatters.length) {
+          $.extend(seriesOptions, {
+            pointSize: toFixnum(get(p, 'point-size')),
+            lineWidth: 0,
+          });
+        }
+        return seriesOptions;
+      }),
+      legend: {position: 'bottom',},
+      crosshair: {trigger: 'selection'}
+    };
+
+    if (isTrue(get(globalOptions, 'interact'))) {
+      $.extend(options, {
+        chartArea: {
+          left: '12%',
+          width: '56%',
+        }
+      });
+    }
+
     return {
       data: data,
-      options: {
-        tooltip: {isHtml: true},
-        series: combined.map((p, i) => {
-          // scatters and then lines
-          const options = {color: convertColor(get(p, 'color'))};
-          if (i < scatters.length) {
-            $.extend(options, {
-              pointSize: toFixnum(get(p, 'point-size')),
-              lineWidth: 0,
-            });
-          }
-          return options;
-        }),
-        chartArea: {
-          left: 0,
-          width: isTrue(get(globalOptions, 'interact')) ? '60%' : '100%',
-        },
-        legend: {position: 'bottom',},
-        crosshair: {trigger: 'selection'}
-      },
+      options: options,
       chartType: google.visualization.LineChart,
       onExit: (restarter, result) =>
         imageReturn(
@@ -384,7 +392,7 @@ ${labelRow}`;
       mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
       overlay: (overlay, restarter) => {
         overlay.css({
-          width: '36%',
+          width: '30%',
           position: 'absolute',
           right: '0px',
           top: '50%',
@@ -395,36 +403,33 @@ ${labelRow}`;
 
         overlay.append(controller);
 
+        const inputSize = 16;
+
         const xMinC = $('<input/>', {
-          id: 'btn-xmin',
           'class': 'controller',
           type: 'text',
-          placeholder: 'x-min',
-        });
+          placeholder: 'x-min2',
+        }).attr('size', inputSize);
         const xMaxC = $('<input/>', {
-          id: 'btn-xmax',
           'class': 'controller',
           type: 'text',
           placeholder: 'x-max',
-        });
+        }).attr('size', inputSize);
         const yMinC = $('<input/>', {
-          id: 'btn-ymin',
           'class': 'controller',
           type: 'text',
           placeholder: 'y-min',
-        });
+        }).attr('size', inputSize);
         const yMaxC = $('<input/>', {
-          id: 'btn-ymax',
           'class': 'controller',
           type: 'text',
           placeholder: 'y-max',
-        });
+        }).attr('size', inputSize);
         const numSamplesC = $('<input/>', {
-          id: 'btn-nums',
           'class': 'controller',
           type: 'text',
           placeholder: '#samples',
-        });
+        }).attr('size', inputSize);
         const redrawC = $('<button/>', {
           'class': 'controller',
           text: 'Redraw',
@@ -462,19 +467,28 @@ ${labelRow}`;
         const yMaxG = $('<p/>')
           .append($('<label/>', {'class': 'controller', text: 'y-max: '}))
           .append(yMaxC);
-        const numSamplesG = $('<p/>')
-          .append($('<label/>', {'class': 'controller', text: '#samples: '}))
-          .append(numSamplesC);
         const redrawG = $('<p/>')
           .append(redrawC);
 
-        controller
-          .append(xMinG)
-          .append(xMaxG)
-          .append(yMinG)
-          .append(yMaxG)
-          .append(numSamplesG)
-          .append(redrawG);
+        if (isTrue(get(globalOptions, 'is-show-samples'))) {
+          const numSamplesG = $('<p/>')
+            .append($('<label/>', {'class': 'controller', text: '#samples: '}))
+            .append(numSamplesC);
+          controller
+            .append(xMinG)
+            .append(xMaxG)
+            .append(yMinG)
+            .append(yMaxG)
+            .append(numSamplesG)
+            .append(redrawG);
+        } else {
+          controller
+            .append(xMinG)
+            .append(xMaxG)
+            .append(yMinG)
+            .append(yMaxG)
+            .append(redrawG);
+        }
       },
     };
   }
