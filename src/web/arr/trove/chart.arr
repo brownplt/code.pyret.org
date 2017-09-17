@@ -139,34 +139,34 @@ end
 default-series = {get-data: {(): raise('internal error: this should not happen')}}
 
 type PieChartSeries = {
-  sample-labels :: TrailingList<String>,
-  sample-values :: TrailingList<Number>,
+  labels :: TrailingList<String>,
+  values :: TrailingList<Number>,
   get-data :: ( -> Any)
 }
 
 default-pie-chart-series :: PieChartSeries  = default-series.{
-  sample-labels: plain-list(empty),
-  sample-values: plain-list(empty),
+  labels: plain-list(empty),
+  values: plain-list(empty),
 }
 
 ############
 
 type BarChartSeries = {
-  sample-labels :: TrailingList<String>,
-  sample-value-lists :: TrailingList<List<Number>>,
+  labels :: TrailingList<String>,
+  value-lists :: TrailingList<TrailingList<Number>>,
   get-data :: ( -> Any)
 }
 
 default-bar-chart-series :: BarChartSeries = default-series.{
-  sample-labels: plain-list(empty),
-  sample-value-lists: plain-list(empty),
+  labels: plain-list(empty),
+  value-lists: plain-list(empty),
 }
 
 ############
 
 type HistogramSeries = {
-  sample-labels :: TrailingList<String>,
-  sample-values :: TrailingList<Number>,
+  labels :: TrailingList<String>,
+  values :: TrailingList<Number>,
   bin-width :: Option<Number>,
   max-num-bins :: Option<Number>,
   min-num-bins :: Option<Number>,
@@ -174,8 +174,8 @@ type HistogramSeries = {
 }
 
 default-histogram-series :: HistogramSeries  = default-series.{
-  sample-labels: plain-list(empty),
-  sample-values: plain-list(empty),
+  labels: plain-list(empty),
+  values: plain-list(empty),
   bin-width: none,
   max-num-bins: none,
   min-num-bins: none,
@@ -184,16 +184,16 @@ default-histogram-series :: HistogramSeries  = default-series.{
 ############
 
 type LinePlotSeries = {
-  sample-xs :: TrailingList<Number>,
-  sample-ys :: TrailingList<Number>,
+  xs :: TrailingList<Number>,
+  ys :: TrailingList<Number>,
   color :: Option<I.Color>,
   legend :: String,
   get-data :: ( -> Any),
 }
 
 default-line-plot-series :: LinePlotSeries = default-series.{
-  sample-xs: plain-list(empty),
-  sample-ys: plain-list(empty),
+  xs: plain-list(empty),
+  ys: plain-list(empty),
   color: none,
   legend: '',
 }
@@ -201,9 +201,9 @@ default-line-plot-series :: LinePlotSeries = default-series.{
 ############
 
 type ScatterPlotSeries = {
-  sample-xs :: TrailingList<Number>,
-  sample-ys :: TrailingList<Number>,
-  sample-labels :: TrailingList<String>,
+  xs :: TrailingList<Number>,
+  ys :: TrailingList<Number>,
+  labels :: TrailingList<String>,
   color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
@@ -211,9 +211,9 @@ type ScatterPlotSeries = {
 }
 
 default-scatter-plot-series :: ScatterPlotSeries = default-series.{
-  sample-xs: plain-list(empty),
-  sample-ys: plain-list(empty),
-  sample-labels: plain-list(empty),
+  xs: plain-list(empty),
+  ys: plain-list(empty),
+  labels: plain-list(empty),
   color: none,
   legend: '',
   point-size: 7,
@@ -539,8 +539,8 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   end
   ps = map2({(x, y): [raw-array: x, y]}, xs, ys)
   default-line-plot-series.{
-    sample-xs: xs ^ get-trailing-list,
-    sample-ys: ys ^ get-trailing-list,
+    xs: xs ^ get-trailing-list,
+    ys: ys ^ get-trailing-list,
     method get-data(self): self.{ps: ps} end,
   } ^ line-plot-series
 end
@@ -564,9 +564,9 @@ fun labeled-scatter-plot-from-list(
   end
   ps = map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
   default-scatter-plot-series.{
-    sample-xs: xs ^ get-trailing-list,
-    sample-ys: ys ^ get-trailing-list,
-    sample-labels: labels ^ get-trailing-list,
+    xs: xs ^ get-trailing-list,
+    ys: ys ^ get-trailing-list,
+    labels: labels ^ get-trailing-list,
     method get-data(self): self.{ps: ps} end,
   } ^ scatter-plot-series
 end
@@ -595,9 +595,9 @@ fun exploding-pie-chart-from-list(
   end
   tab = to-table3(labels, values, offsets)
   default-pie-chart-series.{
-    sample-labels: labels ^ get-trailing-list,
-    sample-values: values ^ get-trailing-list,
-    sample-offsets: offsets ^ get-trailing-list,
+    labels: labels ^ get-trailing-list,
+    values: values ^ get-trailing-list,
+    offsets: offsets ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -617,8 +617,8 @@ fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   end
   tab = to-table3(labels, values, labels.map({(_): 0}))
   default-pie-chart-series.{
-    sample-labels: labels ^ get-trailing-list,
-    sample-values: values ^ get-trailing-list,
+    labels: labels ^ get-trailing-list,
+    values: values ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -634,11 +634,10 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
     raise('bar-chart: labels and values should have the same length')
   end
   value-lists = values.map({(v): [list: v]})
-  shadow value-lists = value-lists.map(builtins.raw-array-from-list)
-  tab = to-table2(labels, value-lists)
+  tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
   default-bar-chart-series.{
-    sample-labels: labels ^ get-trailing-list,
-    sample-value-lists: value-lists ^ get-trailing-list,
+    labels: labels ^ get-trailing-list,
+    value-lists: value-lists.map(get-trailing-list) ^ get-trailing-list,
     method get-data(self):
       self.{
         tab: tab,
@@ -668,9 +667,9 @@ fun grouped-bar-chart-from-list(
   tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
   legends-arr = legends ^ builtins.raw-array-from-list
   default-bar-chart-series.{
-    sample-labels: labels ^ get-trailing-list,
-    sample-value-lists: value-lists.map(get-trailing-list) ^ get-trailing-list,
-    sample-legends: legends ^ get-trailing-list,
+    labels: labels ^ get-trailing-list,
+    value-lists: value-lists.map(get-trailing-list) ^ get-trailing-list,
+    legends: legends ^ get-trailing-list,
     method get-data(self):
       {
         tab: tab,
@@ -702,7 +701,7 @@ fun histogram-from-list(values :: List<Number>) -> DataSeries block:
        ```
   tab = to-table2(values.map({(_): ''}), values)
   default-histogram-series.{
-    sample-values: values ^ get-trailing-list,
+    values: values ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
@@ -718,8 +717,8 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   end
   tab = to-table2(labels, values)
   default-histogram-series.{
-    sample-labels: labels ^ get-trailing-list,
-    sample-values: values ^ get-trailing-list,
+    labels: labels ^ get-trailing-list,
+    values: values ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
