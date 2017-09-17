@@ -40,7 +40,6 @@ type TableIntern = RawArray<RawArray<Any>>
 # HELPERS
 ################################################################################
 
-# so that it outputs nicely
 data Defaultable<A>:
   | default
   | value(val :: A) with:
@@ -51,6 +50,25 @@ fun option-to-defaultable<a>(v :: Option<a>) -> Defaultable<a>:
   cases (Option) v:
     | none => default
     | some(s) => value(s)
+  end
+end
+
+data TrailingList<a>:
+  | trailing-list(lst :: List<a>) with:
+    method _output(self):
+      VS.vs-collection('list', self.lst.map(VS.vs-value) + [list: VS.vs-str("....")])
+    end
+  | plain-list(lst :: List<a>) with:
+    method _output(self):
+      VS.vs-value(self.lst)
+    end
+end
+
+fun get-trailing-list<a>(lst :: List<a>) -> TrailingList<a>:
+  if lst.length() > SHOW-LENGTH:
+    trailing-list(lst.take(SHOW-LENGTH))
+  else:
+    plain-list(lst)
   end
 end
 
@@ -81,10 +99,6 @@ end
 
 fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
   map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
-end
-
-fun truncate<A>(lst :: List<A>) -> List<A>:
-  take(num-min(SHOW-LENGTH, lst.length()), lst)
 end
 
 ################################################################################
@@ -130,34 +144,34 @@ end
 default-series = {get-data: {(): raise('internal error: this should not happen')}}
 
 type PieChartSeries = {
-  sample-labels :: List<String>,
-  sample-values :: List<Number>,
+  sample-labels :: TrailingList<String>,
+  sample-values :: TrailingList<Number>,
   get-data :: ( -> Any)
 }
 
 default-pie-chart-series :: PieChartSeries  = default-series.{
-  sample-labels: empty,
-  sample-values: empty,
+  sample-labels: plain-list(empty),
+  sample-values: plain-list(empty),
 }
 
 ############
 
 type BarChartSeries = {
-  sample-labels :: List<String>,
-  sample-value-lists :: List<List<Number>>,
+  sample-labels :: TrailingList<String>,
+  sample-value-lists :: TrailingList<List<Number>>,
   get-data :: ( -> Any)
 }
 
 default-bar-chart-series :: BarChartSeries = default-series.{
-  sample-labels: empty,
-  sample-value-lists: empty,
+  sample-labels: plain-list(empty),
+  sample-value-lists: plain-list(empty),
 }
 
 ############
 
 type HistogramSeries = {
-  sample-labels :: List<String>,
-  sample-values :: List<Number>,
+  sample-labels :: TrailingList<String>,
+  sample-values :: TrailingList<Number>,
   bin-width :: Option<Number>,
   max-num-bins :: Option<Number>,
   min-num-bins :: Option<Number>,
@@ -165,8 +179,8 @@ type HistogramSeries = {
 }
 
 default-histogram-series :: HistogramSeries  = default-series.{
-  sample-labels: empty,
-  sample-values: empty,
+  sample-labels: plain-list(empty),
+  sample-values: plain-list(empty),
   bin-width: none,
   max-num-bins: none,
   min-num-bins: none,
@@ -175,47 +189,39 @@ default-histogram-series :: HistogramSeries  = default-series.{
 ############
 
 type LinePlotSeries = {
-  sample-xs :: List<Number>,
-  sample-ys :: List<Number>,
+  sample-xs :: TrailingList<Number>,
+  sample-ys :: TrailingList<Number>,
   color :: Option<I.Color>,
   legend :: String,
   get-data :: ( -> Any),
-  _output :: ( -> VS.ValueSkeleton),
 }
 
 default-line-plot-series :: LinePlotSeries = default-series.{
-  sample-xs: empty,
-  sample-ys: empty,
+  sample-xs: plain-list(empty),
+  sample-ys: plain-list(empty),
   color: none,
   legend: '',
-  method _output(self):
-    self.{color: option-to-defaultable(self.color)} ^ VS.vs-value
-  end,
 }
 
 ############
 
 type ScatterPlotSeries = {
-  sample-xs :: List<Number>,
-  sample-ys :: List<Number>,
-  sample-labels :: List<String>,
+  sample-xs :: TrailingList<Number>,
+  sample-ys :: TrailingList<Number>,
+  sample-labels :: TrailingList<String>,
   color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
   get-data :: ( -> Any),
-  _output :: ( -> VS.ValueSkeleton),
 }
 
 default-scatter-plot-series :: ScatterPlotSeries = default-series.{
-  sample-xs: empty,
-  sample-ys: empty,
-  sample-labels: empty,
+  sample-xs: plain-list(empty),
+  sample-ys: plain-list(empty),
+  sample-labels: plain-list(empty),
   color: none,
   legend: '',
   point-size: 7,
-  method _output(self):
-    self.{color: option-to-defaultable(self.color)} ^ VS.vs-value
-  end,
 }
 
 ############
@@ -225,16 +231,12 @@ type FunctionPlotSeries = {
   color :: Option<I.Color>,
   legend :: String,
   get-data :: ( -> Any),
-  _output :: ( -> VS.ValueSkeleton),
 }
 
 default-function-plot-series :: FunctionPlotSeries = default-series.{
   f: {(x): x},
   color: none,
   legend: '',
-  method _output(self):
-    self.{color: option-to-defaultable(self.color)} ^ VS.vs-value
-  end,
 }
 
 ###########
@@ -278,12 +280,6 @@ default-bar-chart-window-object :: BarChartWindowObject = default-chart-window-o
   y-axis: '',
   y-min: none,
   y-max: none,
-  method _output(self):
-    self.{
-      y-min: option-to-defaultable(self.y-min),
-      y-max: option-to-defaultable(self.y-max),
-    } ^ VS.vs-value
-  end
 }
 
 type HistogramChartWindowObject = {
@@ -305,13 +301,6 @@ default-histogram-chart-window-object :: HistogramChartWindowObject =
     x-min: none,
     x-max: none,
     y-max: none,
-    method _output(self):
-      self.{
-        x-min: option-to-defaultable(self.x-min),
-        x-max: option-to-defaultable(self.x-max),
-        y-max: option-to-defaultable(self.y-max),
-      } ^ VS.vs-value
-    end
   }
 
 type PlotChartWindowObject = {
@@ -336,14 +325,6 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
   y-min: none,
   y-max: none,
   num-samples: 1000,
-  method _output(self):
-    self.{
-      x-min: option-to-defaultable(self.x-min),
-      x-max: option-to-defaultable(self.x-max),
-      y-min: option-to-defaultable(self.y-min),
-      y-max: option-to-defaultable(self.y-max),
-    } ^ VS.vs-value
-  end
 }
 
 ################################################################################
@@ -364,6 +345,12 @@ data DataSeries:
     constr: {(): line-plot-series},
     color: color-method,
     legend: legend-method,
+    method _output(self):
+      # customize _output in this level to avoid self-reference
+      VS.vs-constr('line-plot-series', [list: self.obj.{
+          color: option-to-defaultable(self.obj.color),
+        } ^ VS.vs-value])
+    end
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
     is-single: false,
     constr: {(): scatter-plot-series},
@@ -372,11 +359,23 @@ data DataSeries:
     method point-size(self, point-size :: Number):
       scatter-plot-series(self.obj.{point-size: point-size})
     end,
+    method _output(self):
+      # customize _output in this level to avoid self-reference
+      VS.vs-constr('scatter-plot-series', [list: self.obj.{
+          color: option-to-defaultable(self.obj.color),
+        } ^ VS.vs-value])
+    end
   | function-plot-series(obj :: FunctionPlotSeries) with:
     is-single: false,
     constr: {(): function-plot-series},
     color: color-method,
     legend: legend-method,
+    method _output(self):
+      # customize _output in this level to avoid self-reference
+      VS.vs-constr('function-plot-series', [list: self.obj.{
+          color: option-to-defaultable(self.obj.color),
+        } ^ VS.vs-value])
+    end
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
     constr: {(): pie-chart-series},
@@ -466,6 +465,13 @@ data ChartWindow:
     y-axis: y-axis-method,
     y-min: y-min-method,
     y-max: y-max-method,
+    method _output(self):
+      # customize _output in this level to avoid self-reference
+      VS.vs-constr('bar-chart-window', [list: self.obj.{
+          y-min: option-to-defaultable(self.obj.y-min),
+          y-max: option-to-defaultable(self.obj.y-max),
+        } ^ VS.vs-value])
+    end
   | histogram-chart-window(obj :: HistogramChartWindowObject) with:
     constr: {(): histogram-chart-window},
     title: title-method,
@@ -476,6 +482,14 @@ data ChartWindow:
     x-min: x-min-method,
     x-max: x-max-method,
     y-max: y-max-method,
+    method _output(self):
+      # customize _output in this level to avoid self-reference
+      VS.vs-constr('histogram-chart-window', [list: self.obj.{
+          x-min: option-to-defaultable(self.obj.x-min),
+          x-max: option-to-defaultable(self.obj.x-max),
+          y-max: option-to-defaultable(self.obj.y-max),
+        } ^ VS.vs-value])
+    end
   | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
     title: title-method,
@@ -493,6 +507,15 @@ data ChartWindow:
       end
       plot-chart-window(self.obj.{num-samples: num-samples})
     end,
+    method _output(self):
+      # customize _output in this level to avoid self-reference
+      VS.vs-constr('plot-chart-window', [list: self.obj.{
+          x-min: option-to-defaultable(self.obj.x-min),
+          x-max: option-to-defaultable(self.obj.x-max),
+          y-min: option-to-defaultable(self.obj.y-min),
+          y-max: option-to-defaultable(self.obj.y-max),
+        } ^ VS.vs-value])
+    end
 sharing:
   method display(self):
     _ = check-chart-window(self.obj)
@@ -521,8 +544,8 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   end
   ps = map2({(x, y): [raw-array: x, y]}, xs, ys)
   default-line-plot-series.{
-    sample-xs: xs ^ truncate,
-    sample-ys: ys ^ truncate,
+    sample-xs: xs ^ get-trailing-list,
+    sample-ys: ys ^ get-trailing-list,
     method get-data(self): self.{ps: ps} end,
   } ^ line-plot-series
 end
@@ -546,9 +569,9 @@ fun labeled-scatter-plot-from-list(
   end
   ps = map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
   default-scatter-plot-series.{
-    sample-xs: xs ^ truncate,
-    sample-ys: ys ^ truncate,
-    sample-labels: labels ^ truncate,
+    sample-xs: xs ^ get-trailing-list,
+    sample-ys: ys ^ get-trailing-list,
+    sample-labels: labels ^ get-trailing-list,
     method get-data(self): self.{ps: ps} end,
   } ^ scatter-plot-series
 end
@@ -577,9 +600,9 @@ fun exploding-pie-chart-from-list(
   end
   tab = to-table3(labels, values, offsets)
   default-pie-chart-series.{
-    sample-labels: labels ^ truncate,
-    sample-values: values ^ truncate,
-    sample-offsets: offsets ^ truncate,
+    sample-labels: labels ^ get-trailing-list,
+    sample-values: values ^ get-trailing-list,
+    sample-offsets: offsets ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -599,8 +622,8 @@ fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   end
   tab = to-table3(labels, values, labels.map({(_): 0}))
   default-pie-chart-series.{
-    sample-labels: labels ^ truncate,
-    sample-values: values ^ truncate,
+    sample-labels: labels ^ get-trailing-list,
+    sample-values: values ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -619,8 +642,8 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   shadow value-lists = value-lists.map(builtins.raw-array-from-list)
   tab = to-table2(labels, value-lists)
   default-bar-chart-series.{
-    sample-labels: labels ^ truncate,
-    sample-value-lists: value-lists ^ truncate,
+    sample-labels: labels ^ get-trailing-list,
+    sample-value-lists: value-lists ^ get-trailing-list,
     method get-data(self):
       self.{
         tab: tab,
@@ -651,9 +674,9 @@ fun grouped-bar-chart-from-list(
   tab = to-table2(labels, value-lists)
   legends-arr = legends ^ builtins.raw-array-from-list
   default-bar-chart-series.{
-    sample-labels: labels ^ truncate,
-    sample-value-lists: value-lists ^ truncate,
-    sample-legends: legends ^ truncate,
+    sample-labels: labels ^ get-trailing-list,
+    sample-value-lists: value-lists ^ get-trailing-list,
+    sample-legends: legends ^ get-trailing-list,
     method get-data(self):
       {
         tab: tab,
@@ -685,7 +708,7 @@ fun histogram-from-list(values :: List<Number>) -> DataSeries block:
        ```
   tab = to-table2(values.map({(_): ''}), values)
   default-histogram-series.{
-    sample-values: values ^ truncate,
+    sample-values: values ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
@@ -701,8 +724,8 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   end
   tab = to-table2(labels, values)
   default-histogram-series.{
-    sample-labels: labels ^ truncate,
-    sample-values: values ^ truncate,
+    sample-labels: labels ^ get-trailing-list,
+    sample-values: values ^ get-trailing-list,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
