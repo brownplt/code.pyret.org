@@ -1,10 +1,6 @@
 provide {
   draw-chart: draw-chart,
   draw-charts: draw-charts,
-  image-chart: image-chart,
-  image-charts: image-charts,
-  quick-draw-chart: quick-draw-chart,
-  quick-draw-charts: quick-draw-charts,
   from-list: from-list,
 } end
 
@@ -18,7 +14,6 @@ import chart-lib as P
 import either as E
 import string-dict as SD
 import valueskeleton as VS
-
 
 ################################################################################
 # CONSTANTS
@@ -670,12 +665,11 @@ fun grouped-bar-chart-from-list(
   when legends.length() <> value-lists.first.length():
     raise('grouped-bar-chart: labels and legends should have the same length')
   end
-  shadow value-lists = value-lists.map(builtins.raw-array-from-list)
-  tab = to-table2(labels, value-lists)
+  tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
   legends-arr = legends ^ builtins.raw-array-from-list
   default-bar-chart-series.{
     sample-labels: labels ^ get-trailing-list,
-    sample-value-lists: value-lists ^ get-trailing-list,
+    sample-value-lists: value-lists.map(get-trailing-list) ^ get-trailing-list,
     sample-legends: legends ^ get-trailing-list,
     method get-data(self):
       {
@@ -1189,20 +1183,4 @@ where:
     .y-min(0)
     .y-max(10)
     .get-image() does-not-raise
-end
-
-fun quick-draw-chart(title :: String, series :: DataSeries) -> IM.Image:
-  draw-chart(series).title(title).display()
-end
-
-fun quick-draw-charts(title :: String, serieses :: List<DataSeries>) -> IM.Image:
-  draw-charts(serieses).title(title).display()
-end
-
-fun image-chart(title :: String, series :: DataSeries) -> IM.Image:
-  draw-chart(series).title(title).get-image()
-end
-
-fun image-charts(title :: String, serieses :: List<DataSeries>) -> IM.Image:
-  draw-charts(serieses).title(title).get-image()
 end
