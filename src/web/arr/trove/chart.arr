@@ -1,6 +1,6 @@
 provide {
-  draw-chart: draw-chart,
-  draw-charts: draw-charts,
+  render-chart: render-chart,
+  render-charts: render-charts,
   from-list: from-list,
 } end
 
@@ -775,12 +775,12 @@ fun check-render-y-axis(self) -> Nothing:
   end
 end
 
-fun draw-chart(s :: DataSeries) -> ChartWindow:
-  doc: 'Draw it!'
+fun render-chart(s :: DataSeries) -> ChartWindow:
+  doc: 'Render it!'
   cases (DataSeries) s:
-    | line-plot-series(_) => draw-charts([list: s])
-    | function-plot-series(_) => draw-charts([list: s])
-    | scatter-plot-series(_) => draw-charts([list: s])
+    | line-plot-series(_) => render-charts([list: s])
+    | function-plot-series(_) => render-charts([list: s])
+    | scatter-plot-series(_) => render-charts([list: s])
     | pie-chart-series(obj) =>
       default-pie-chart-window-object.{
         method render(self): P.pie-chart(self, obj.get-data()) end
@@ -804,18 +804,18 @@ fun draw-chart(s :: DataSeries) -> ChartWindow:
       } ^ histogram-chart-window
   end
 where:
-  draw-now = {(x): draw-chart(x).get-image()}
+  render-now = {(x): render-chart(x).get-image()}
 
-  draw-now(from-list.exploding-pie-chart(
+  render-now(from-list.exploding-pie-chart(
       [list: 'asd', 'dsa', 'qwe'],
       [list: 1, 2, 3],
       [list: 0, 0.1, 0.2])) does-not-raise
-  draw-now(from-list.pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
-  draw-now(from-list.histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  draw-now(from-list.labeled-histogram(
+  render-now(from-list.pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
+  render-now(from-list.histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
+  render-now(from-list.labeled-histogram(
       [list: 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       [list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  draw-now(from-list.grouped-bar-chart(
+  render-now(from-list.grouped-bar-chart(
       [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
       [list:
         [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
@@ -832,11 +832,11 @@ where:
         '25 to 44 Years',
         '45 to 64 Years',
         '65 Years and Over'])) does-not-raise
-  draw-now(from-list.function-plot(num-sin)) does-not-raise
-  draw-now(from-list.scatter-plot(
+  render-now(from-list.function-plot(num-sin)) does-not-raise
+  render-now(from-list.scatter-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
-  draw-now(from-list.line-plot(
+  render-now(from-list.line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
 end
@@ -1048,16 +1048,16 @@ fun get-bound-result(
   end
 end
 
-fun draw-charts(lst :: List<DataSeries>) -> ChartWindow block:
+fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
   doc: "Draw 'em all"
   cases (Option) find(_.is-single, lst):
     | some(v) => raise(
-        [sprintf: "draw-charts: can't draw ", v,
-                  " with `draw-charts`. Use `draw-chart` instead."])
+        [sprintf: "render-charts: can't draw ", v,
+                  " with `render-charts`. Use `render-chart` instead."])
     | else => nothing
   end
   cases (List<DataSeries>) lst:
-    | empty => raise('draw-charts: need at least one series to plot')
+    | empty => raise('render-charts: need at least one series to plot')
     | else => nothing
   end
 
@@ -1169,15 +1169,15 @@ where:
   p4 = from-list.line-plot(
       [list: -1, 1,  2, 3, 11, 8, 9],
       [list: 10, -1, 11, 9,  9, 3, 2])
-  draw-charts([list: p1, p2, p3]) raises ''
-  draw-charts([list: p1, p2])
+  render-charts([list: p1, p2, p3]) raises ''
+  render-charts([list: p1, p2])
     .title('quadratic function and a scatter plot')
     .x-min(0)
     .x-max(20)
     .y-min(0)
     .y-max(20)
     .get-image() does-not-raise
-  draw-charts([list: p4])
+  render-charts([list: p4])
     .x-min(0)
     .x-max(10)
     .y-min(0)
