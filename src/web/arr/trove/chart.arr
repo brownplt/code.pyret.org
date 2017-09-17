@@ -1,13 +1,11 @@
 provide {
-  plot: plot,
-  plots: plots,
-
+  draw-chart: draw-chart,
+  draw-charts: draw-charts,
+  image-chart: image-chart,
+  image-charts: image-charts,
+  quick-draw-chart: quick-draw-chart,
+  quick-draw-charts: quick-draw-charts,
   from-list: from-list,
-
-  image-plot: image-plot,
-  image-plots: image-plots,
-  draw-plot: draw-plot,
-  draw-plots: draw-plots,
 } end
 
 import global as G
@@ -44,16 +42,21 @@ type TableIntern = RawArray<RawArray<Any>>
 
 # so that it outputs nicely
 data Defaultable<A>:
-  | default with:
-    method to-option(self): none end
+  | default
   | value(val :: A) with:
-    method _output(self): VS.vs-value(self.val) end,
-    method to-option(self): some(self.val) end
+    method _output(self): self.val ^ VS.vs-value end,
+end
+
+fun option-to-defaultable<a>(v :: Option<a>) -> Defaultable<a>:
+  cases (Option) v:
+    | none => default
+    | some(s) => value(s)
+  end
 end
 
 fst = raw-array-get(_, 0)
 snd = raw-array-get(_, 1)
-posn = {(x :: Number, y :: Number, z :: String): [raw-array: x, y, z]}
+posn = {(x :: Number, y :: Number): [raw-array: x, y]}
 
 sprintf = (lam():
     generic-sprintf = lam(arr :: RawArray<Any>):
@@ -83,8 +86,6 @@ end
 fun truncate<A>(lst :: List<A>) -> List<A>:
   take(num-min(SHOW-LENGTH, lst.length()), lst)
 end
-
-fun negate<A>(f :: (A -> Boolean)) -> (A -> Boolean): {(x :: A): not(f(x))} end
 
 ################################################################################
 # BOUNDING BOX
@@ -126,7 +127,7 @@ end
 # DEFAULT VALUES
 ################################################################################
 
-default-series = {get-data: {(): nothing}}
+default-series = {get-data: {(): raise('internal error: this should not happen')}}
 
 type PieChartSeries = {
   sample-labels :: List<String>,
@@ -157,20 +158,18 @@ default-bar-chart-series :: BarChartSeries = default-series.{
 type HistogramSeries = {
   sample-labels :: List<String>,
   sample-values :: List<Number>,
-  bin-width :: Number,
-  max-num-bins :: Number,
-  min-num-bins :: Number,
-  value-name :: String,
+  bin-width :: Option<Number>,
+  max-num-bins :: Option<Number>,
+  min-num-bins :: Option<Number>,
   get-data :: ( -> Any)
 }
 
 default-histogram-series :: HistogramSeries  = default-series.{
   sample-labels: empty,
   sample-values: empty,
-  bin-width: 0,
-  max-num-bins: 0,
-  min-num-bins: 0,
-  value-name: 'Value',
+  bin-width: none,
+  max-num-bins: none,
+  min-num-bins: none,
 }
 
 ############
@@ -178,16 +177,20 @@ default-histogram-series :: HistogramSeries  = default-series.{
 type LinePlotSeries = {
   sample-xs :: List<Number>,
   sample-ys :: List<Number>,
-  color :: I.Color,
+  color :: Option<I.Color>,
   legend :: String,
-  get-data :: ( -> Any)
+  get-data :: ( -> Any),
+  _output :: ( -> VS.ValueSkeleton),
 }
 
 default-line-plot-series :: LinePlotSeries = default-series.{
   sample-xs: empty,
   sample-ys: empty,
-  color: I.red,
+  color: none,
   legend: '',
+  method _output(self):
+    self.{color: option-to-defaultable(self.color)} ^ VS.vs-value
+  end,
 }
 
 ############
@@ -196,34 +199,42 @@ type ScatterPlotSeries = {
   sample-xs :: List<Number>,
   sample-ys :: List<Number>,
   sample-labels :: List<String>,
-  color :: I.Color,
+  color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
-  get-data :: ( -> Any)
+  get-data :: ( -> Any),
+  _output :: ( -> VS.ValueSkeleton),
 }
 
 default-scatter-plot-series :: ScatterPlotSeries = default-series.{
   sample-xs: empty,
   sample-ys: empty,
   sample-labels: empty,
-  color: I.blue,
+  color: none,
   legend: '',
-  point-size: 7
+  point-size: 7,
+  method _output(self):
+    self.{color: option-to-defaultable(self.color)} ^ VS.vs-value
+  end,
 }
 
 ############
 
 type FunctionPlotSeries = {
   f :: PlottableFunction,
-  color :: I.Color,
+  color :: Option<I.Color>,
   legend :: String,
-  get-data :: ( -> Any)
+  get-data :: ( -> Any),
+  _output :: ( -> VS.ValueSkeleton),
 }
 
 default-function-plot-series :: FunctionPlotSeries = default-series.{
   f: {(x): x},
-  color: I.blue,
+  color: none,
   legend: '',
+  method _output(self):
+    self.{color: option-to-defaultable(self.color)} ^ VS.vs-value
+  end,
 }
 
 ###########
@@ -242,41 +253,130 @@ default-chart-window-object :: ChartWindowObject = {
   method render(self): raise('unimplemented') end,
 }
 
+type PieChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  render :: ( -> IM.Image),
+}
+
+default-pie-chart-window-object :: PieChartWindowObject = default-chart-window-object
+
+type BarChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  render :: ( -> IM.Image),
+  x-axis :: String,
+  y-axis :: String,
+  y-min :: Option<Number>,
+  y-max :: Option<Number>,
+}
+
+default-bar-chart-window-object :: BarChartWindowObject = default-chart-window-object.{
+  x-axis: '',
+  y-axis: '',
+  y-min: none,
+  y-max: none,
+  method _output(self):
+    self.{
+      y-min: option-to-defaultable(self.y-min),
+      y-max: option-to-defaultable(self.y-max),
+    } ^ VS.vs-value
+  end
+}
+
+type HistogramChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  render :: ( -> IM.Image),
+  x-axis :: String,
+  y-axis :: String,
+  x-min :: Option<Number>,
+  x-max :: Option<Number>,
+  y-max :: Option<Number>,
+}
+
+default-histogram-chart-window-object :: HistogramChartWindowObject =
+  default-chart-window-object.{
+    x-axis: '',
+    y-axis: '',
+    x-min: none,
+    x-max: none,
+    y-max: none,
+    method _output(self):
+      self.{
+        x-min: option-to-defaultable(self.x-min),
+        x-max: option-to-defaultable(self.x-max),
+        y-max: option-to-defaultable(self.y-max),
+      } ^ VS.vs-value
+    end
+  }
+
+type PlotChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  render :: ( -> IM.Image),
+  x-axis :: String,
+  y-axis :: String,
+  x-min :: Option<Number>,
+  x-max :: Option<Number>,
+  x-max :: Option<Number>,
+  y-max :: Option<Number>,
+  num-samples :: Number,
+}
+
+default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window-object.{
+  x-axis: '',
+  y-axis: '',
+  x-min: none,
+  x-max: none,
+  y-min: none,
+  y-max: none,
+  num-samples: 1000,
+  method _output(self):
+    self.{
+      x-min: option-to-defaultable(self.x-min),
+      x-max: option-to-defaultable(self.x-max),
+      y-min: option-to-defaultable(self.y-min),
+      y-max: option-to-defaultable(self.y-max),
+    } ^ VS.vs-value
+  end
+}
+
 ################################################################################
 # DATA DEFINITIONS
 ################################################################################
+
+color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{color: some(color)})
+end
+
+legend-method = method(self, legend :: String):
+  self.constr()(self.obj.{legend: legend})
+end
 
 data DataSeries:
   | line-plot-series(obj :: LinePlotSeries) with:
     is-single: false,
     constr: {(): line-plot-series},
-    method color(self, color :: I.Color):
-      line-plot-series(self.obj.{color: color})
-    end,
-    method legend(self, legend :: String):
-      line-plot-series(self.obj.{legend: legend})
-    end,
+    color: color-method,
+    legend: legend-method,
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
     is-single: false,
     constr: {(): scatter-plot-series},
-    method color(self, color :: I.Color):
-      scatter-plot-series(self.obj.{color: color})
-    end,
-    method legend(self, legend :: String):
-      scatter-plot-series(self.obj.{legend: legend})
-    end,
+    color: color-method,
+    legend: legend-method,
     method point-size(self, point-size :: Number):
       scatter-plot-series(self.obj.{point-size: point-size})
     end,
   | function-plot-series(obj :: FunctionPlotSeries) with:
     is-single: false,
     constr: {(): function-plot-series},
-    method color(self, color :: I.Color):
-      function-plot-series(self.obj.{color: color})
-    end,
-    method legend(self, legend :: String):
-      function-plot-series(self.obj.{legend: legend})
-    end,
+    color: color-method,
+    legend: legend-method,
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
     constr: {(): pie-chart-series},
@@ -287,19 +387,19 @@ data DataSeries:
     is-single: true,
     constr: {(): histogram-series},
     method bin-width(self, bin-width :: Number):
-      histogram-series(self.obj.{bin-width: bin-width})
+      histogram-series(self.obj.{bin-width: some(bin-width)})
     end,
     method max-num-bins(self, max-num-bins :: Number):
-      histogram-series(self.obj.{max-num-bins: max-num-bins})
+      histogram-series(self.obj.{max-num-bins: some(max-num-bins)})
     end,
     method min-num-bins(self, min-num-bins :: Number):
-      histogram-series(self.obj.{min-num-bins: min-num-bins})
+      histogram-series(self.obj.{min-num-bins: some(min-num-bins)})
     end,
     method num-bins(self, num-bins :: Number):
-      histogram-series(self.obj.{min-num-bins: num-bins, max-num-bins: num-bins})
-    end,
-    method value-name(self, value-name :: String):
-      histogram-series(self.obj.{value-name: value-name})
+      histogram-series(self.obj.{
+        min-num-bins: some(num-bins),
+        max-num-bins: some(num-bins)
+      })
     end,
 end
 
@@ -336,28 +436,28 @@ y-axis-method = method(self, y-axis :: String):
 end
 
 x-min-method = method(self, x-min :: Number) block:
-  self.constr()(self.obj.{x-min: value(x-min)})
+  self.constr()(self.obj.{x-min: some(x-min)})
 end
 
 x-max-method = method(self, x-max :: Number) block:
-  self.constr()(self.obj.{x-max: value(x-max)})
+  self.constr()(self.obj.{x-max: some(x-max)})
 end
 
 y-min-method = method(self, y-min :: Number) block:
-  self.constr()(self.obj.{y-min: value(y-min)})
+  self.constr()(self.obj.{y-min: some(y-min)})
 end
 
 y-max-method = method(self, y-max :: Number) block:
-  self.constr()(self.obj.{y-max: value(y-max)})
+  self.constr()(self.obj.{y-max: some(y-max)})
 end
 
 data ChartWindow:
-  | pie-chart-window(obj :: ChartWindowObject) with:
+  | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
     title: title-method,
     width: width-method,
     height: height-method,
-  | bar-chart-window(obj :: ChartWindowObject) with:
+  | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
     title: title-method,
     width: width-method,
@@ -366,7 +466,7 @@ data ChartWindow:
     y-axis: y-axis-method,
     y-min: y-min-method,
     y-max: y-max-method,
-  | histogram-chart-window(obj :: ChartWindowObject) with:
+  | histogram-chart-window(obj :: HistogramChartWindowObject) with:
     constr: {(): histogram-chart-window},
     title: title-method,
     width: width-method,
@@ -376,7 +476,7 @@ data ChartWindow:
     x-min: x-min-method,
     x-max: x-max-method,
     y-max: y-max-method,
-  | plot-chart-window(obj :: ChartWindowObject) with:
+  | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
     title: title-method,
     width: width-method,
@@ -419,7 +519,7 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   when xs.length() <> ys.length():
     raise('line-plot: xs and ys should have the same length')
   end
-  ps = map2({(x, y): [raw-array: x, y, '']}, xs, ys)
+  ps = map2({(x, y): [raw-array: x, y]}, xs, ys)
   default-line-plot-series.{
     sample-xs: xs ^ truncate,
     sample-ys: ys ^ truncate,
@@ -627,10 +727,10 @@ from-list = {
 ################################################################################
 
 fun check-render-x-axis(self) -> Nothing:
-  cases (Defaultable) self.x-min:
-    | value(x-min) =>
-      cases (Defaultable) self.x-max:
-        | value(x-max) =>
+  cases (Option) self.x-min:
+    | some(x-min) =>
+      cases (Option) self.x-max:
+        | some(x-max) =>
           if x-min >= x-max:
             raise("render: x-min must be strictly less than x-max")
           else:
@@ -643,10 +743,10 @@ fun check-render-x-axis(self) -> Nothing:
 end
 
 fun check-render-y-axis(self) -> Nothing:
-  cases (Defaultable) self.y-min:
-    | value(y-min) =>
-      cases (Defaultable) self.y-max:
-        | value(y-max) =>
+  cases (Option) self.y-min:
+    | some(y-min) =>
+      cases (Option) self.y-max:
+        | some(y-max) =>
           if y-min >= y-max:
             raise("render: y-min must be strictly less than y-max")
           else:
@@ -658,64 +758,47 @@ fun check-render-y-axis(self) -> Nothing:
   end
 end
 
-fun plot(s :: DataSeries) -> ChartWindow:
-  doc: 'Plot it!'
+fun draw-chart(s :: DataSeries) -> ChartWindow:
+  doc: 'Draw it!'
   cases (DataSeries) s:
-    | line-plot-series(_) => plots([list: s])
-    | function-plot-series(_) => plots([list: s])
-    | scatter-plot-series(_) => plots([list: s])
+    | line-plot-series(_) => draw-charts([list: s])
+    | function-plot-series(_) => draw-charts([list: s])
+    | scatter-plot-series(_) => draw-charts([list: s])
     | pie-chart-series(obj) =>
-      default-chart-window-object.{
+      default-pie-chart-window-object.{
         method render(self): P.pie-chart(self, obj.get-data()) end
       } ^ pie-chart-window
     | bar-chart-series(obj) =>
       obj-data = obj.get-data()
-      default-chart-window-object.{
-        y-min: default,
-        y-max: default,
-        x-axis: '',
-        y-axis: '',
+      default-bar-chart-window-object.{
         method render(self):
           _ = check-render-y-axis(self)
-          P.bar-chart(self.{
-              y-min: self.y-min.to-option(),
-              y-max: self.y-max.to-option(),
-            }, obj.get-data())
+          P.bar-chart(self, obj.get-data())
         end
       } ^ bar-chart-window
     | histogram-series(obj) =>
-      default-chart-window-object.{
-        x-min: default,
-        x-max: default,
-        y-max: default,
-        x-axis: '',
-        y-axis: '',
+      default-histogram-chart-window-object.{
         method render(self):
-          shadow self = self.{y-min: default}
+          shadow self = self.{y-min: none}
           _ = check-render-x-axis(self)
           _ = check-render-y-axis(self)
-          P.histogram(self.{
-              x-min: self.x-min.to-option(),
-              x-max: self.x-max.to-option(),
-              y-min: self.y-min.to-option(),
-              y-max: self.y-max.to-option(),
-            }, obj.get-data())
+          P.histogram(self, obj.get-data())
         end
       } ^ histogram-chart-window
   end
 where:
-  plot-now = {(x): plot(x).get-image()}
+  draw-now = {(x): draw-chart(x).get-image()}
 
-  plot-now(from-list.exploding-pie-chart(
+  draw-now(from-list.exploding-pie-chart(
       [list: 'asd', 'dsa', 'qwe'],
       [list: 1, 2, 3],
       [list: 0, 0.1, 0.2])) does-not-raise
-  plot-now(from-list.pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
-  plot-now(from-list.histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  plot-now(from-list.labeled-histogram(
+  draw-now(from-list.pie-chart([list: 'asd', 'dsa', 'qwe'], [list: 1, 2, 3])) does-not-raise
+  draw-now(from-list.histogram([list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
+  draw-now(from-list.labeled-histogram(
       [list: 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       [list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
-  plot-now(from-list.grouped-bar-chart(
+  draw-now(from-list.grouped-bar-chart(
       [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
       [list:
         [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
@@ -732,11 +815,11 @@ where:
         '25 to 44 Years',
         '45 to 64 Years',
         '65 Years and Over'])) does-not-raise
-  plot-now(from-list.function-plot(num-sin)) does-not-raise
-  plot-now(from-list.scatter-plot(
+  draw-now(from-list.function-plot(num-sin)) does-not-raise
+  draw-now(from-list.scatter-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
-  plot-now(from-list.line-plot(
+  draw-now(from-list.line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
 end
@@ -752,7 +835,7 @@ fun generate-xy(
   ps = for filter-map(i from range(0, num-samples)):
     x = x-min + (fraction * i)
     cases (E.Either) run-task({(): p.f(x)}):
-      | left(y) => some([raw-array: x, y, ''])
+      | left(y) => some([raw-array: x, y])
       | right(_) => none
     end
   end
@@ -765,12 +848,12 @@ fun generate-xy(
 where:
   generate-xy(from-list.function-plot(_ + 1).obj, 0, 100, 6).get-data().ps
     is=~ [list:
-    posn(0, 1, ''),
-    posn(20, 21, ''),
-    posn(40, 41, ''),
-    posn(60, 61, ''),
-    posn(80, 81, ''),
-    posn(100, 101, '') # out of bound, will be filtered later
+    posn(0, 1),
+    posn(20, 21),
+    posn(40, 41),
+    posn(60, 61),
+    posn(80, 81),
+    posn(100, 101) # out of bound, will be filtered later
   ]
 end
 
@@ -821,7 +904,7 @@ fun find-pt-on-edge(in :: Posn, out :: Posn, self) -> Option<Posn>:
   py-min = num-max(num-min(snd(in), snd(out)), self.y-min.value)
 
   candidates = if unsafe-equal(fst(in), fst(out)):
-    [list: posn(fst(in), self.y-min.value, ''), posn(fst(in), self.y-max.value, '')]
+    [list: posn(fst(in), self.y-min.value), posn(fst(in), self.y-max.value)]
   else:
     #|
     y = m * x + c           [3]
@@ -841,14 +924,14 @@ fun find-pt-on-edge(in :: Posn, out :: Posn, self) -> Option<Posn>:
     g = {(y): (y - c) / m}
 
     [list:
-      posn(self.x-min.value, f(self.x-min.value), ''),
-      posn(self.x-max.value, f(self.x-max.value), '')] +
+      posn(self.x-min.value, f(self.x-min.value)),
+      posn(self.x-max.value, f(self.x-max.value))] +
     if unsafe-equal(m, 0):
       empty
     else:
       [list:
-        posn(g(self.y-min.value), self.y-min.value, ''),
-        posn(g(self.y-max.value), self.y-max.value, '')]
+        posn(g(self.y-min.value), self.y-min.value),
+        posn(g(self.y-max.value), self.y-max.value)]
     end
   end
   candidates.filter({(p): (px-min <= fst(p)) and (fst(p) <= px-max) and
@@ -937,45 +1020,41 @@ fun bound-result-to-bounds(b-min :: BoundResult, b-max :: BoundResult) -> {Optio
   {some(l); some(r)}
 end
 
-fun get-bound-result(d :: Defaultable, bbox :: BoundingBox, f :: (BoundingBox -> Number)) -> BoundResult:
-  cases (Defaultable) d:
-    | default => if bbox.is-valid: inferred-bound(f(bbox)) else: unknown-bound end
-    | value(v) => exact-bound(v)
+fun get-bound-result(
+  d :: Option<Number>,
+  bbox :: BoundingBox,
+  f :: (BoundingBox -> Number)
+) -> BoundResult:
+  cases (Option) d:
+    | none => if bbox.is-valid: inferred-bound(f(bbox)) else: unknown-bound end
+    | some(v) => exact-bound(v)
   end
 end
 
-fun plots(lst :: List<DataSeries>) -> ChartWindow block:
-  doc: "Plot 'em all"
+fun draw-charts(lst :: List<DataSeries>) -> ChartWindow block:
+  doc: "Draw 'em all"
   cases (Option) find(_.is-single, lst):
     | some(v) => raise(
-        [sprintf: "plots: can't plot ", v, " with `plots`. Use `plot` instead."])
+        [sprintf: "draw-charts: can't draw ", v,
+                  " with `draw-charts`. Use `draw-chart` instead."])
     | else => nothing
   end
   cases (List<DataSeries>) lst:
-    | empty => raise('plots: need at least one series to plot')
+    | empty => raise('draw-charts: need at least one series to plot')
     | else => nothing
   end
 
+  fun to-internal-plot(p :: DataSeries): p.obj.get-data() end
+
   partitioned = partition(is-function-plot-series, lst)
-  function-plots :: List<{f :: PlottableFunction, color :: I.Color}> =
-    partitioned.is-true.map({(p :: DataSeries): p.obj.get-data()})
+  function-plots = partitioned.is-true.map(to-internal-plot)
   is-show-samples = is-link(function-plots)
   shadow partitioned = partition(is-line-plot-series, partitioned.is-false)
-  line-plots :: List<{ps :: List<Posn>, color :: I.Color}> =
-    partitioned.is-true.map({(p :: DataSeries): p.obj.get-data()})
-  scatter-plots :: List<{ps :: List<Posn>, color :: I.Color}> =
-    partitioned.is-false.map({(p :: DataSeries): p.obj.get-data()})
+  line-plots = partitioned.is-true.map(to-internal-plot)
+  scatter-plots = partitioned.is-false.map(to-internal-plot)
 
-  default-chart-window-object.{
-    num-samples: 1000,
-    x-min: default,
-    x-max: default,
-    y-min: default,
-    y-max: default,
-    x-axis: '',
-    y-axis: '',
+  default-plot-chart-window-object.{
     method render(self):
-
       shadow self = self.{is-show-samples: is-show-samples}
 
       # don't let Google Charts infer x-min, x-max, y-min, y-max
@@ -985,21 +1064,21 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
       _ = check-render-y-axis(self)
 
       combined-pts = (line-plots.map(_.ps) + scatter-plots.map(_.ps)).foldl(_ + _, empty)
-      shadow combined-pts = cases (Defaultable) self.x-min:
-        | default => combined-pts
-        | value(v) => combined-pts.filter({(pt): fst(pt) >= v})
+      shadow combined-pts = cases (Option) self.x-min:
+        | none => combined-pts
+        | some(v) => combined-pts.filter({(pt): fst(pt) >= v})
       end
-      shadow combined-pts = cases (Defaultable) self.x-max:
-        | default => combined-pts
-        | value(v) => combined-pts.filter({(pt): fst(pt) <= v})
+      shadow combined-pts = cases (Option) self.x-max:
+        | none => combined-pts
+        | some(v) => combined-pts.filter({(pt): fst(pt) <= v})
       end
-      shadow combined-pts = cases (Defaultable) self.y-min:
-        | default => combined-pts
-        | value(v) => combined-pts.filter({(pt): snd(pt) >= v})
+      shadow combined-pts = cases (Option) self.y-min:
+        | none => combined-pts
+        | some(v) => combined-pts.filter({(pt): snd(pt) >= v})
       end
-      shadow combined-pts = cases (Defaultable) self.y-max:
-        | default => combined-pts
-        | value(v) => combined-pts.filter({(pt): snd(pt) <= v})
+      shadow combined-pts = cases (Option) self.y-max:
+        | none => combined-pts
+        | some(v) => combined-pts.filter({(pt): snd(pt) <= v})
       end
 
       bbox = get-bounding-box(combined-pts)
@@ -1049,13 +1128,13 @@ fun plots(lst :: List<DataSeries>) -> ChartWindow block:
           ps-to-arr(p.{ps: line-plot-edge-cut(p.ps, self)})
         end ^ reverse ^ builtins.raw-array-from-list
 
-        ret = P.plot-multi(self, {scatters: scatters-arr, lines: lines-arr})
+        ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr})
         cases (E.Either<Any, IM.Image>) ret:
           | left(new-self) => helper(new-self, none)
           | right(image) =>
             if self.interact:
               # can't use image here because it contains the side panel
-              P.plot-multi(
+              P.plot(
                 self.{interact: false},
                 {scatters: scatters-arr, lines: lines-arr}).v
             else:
@@ -1073,15 +1152,15 @@ where:
   p4 = from-list.line-plot(
       [list: -1, 1,  2, 3, 11, 8, 9],
       [list: 10, -1, 11, 9,  9, 3, 2])
-  plots([list: p1, p2, p3]) raises ''
-  plots([list: p1, p2])
+  draw-charts([list: p1, p2, p3]) raises ''
+  draw-charts([list: p1, p2])
     .title('quadratic function and a scatter plot')
     .x-min(0)
     .x-max(20)
     .y-min(0)
     .y-max(20)
     .get-image() does-not-raise
-  plots([list: p4])
+  draw-charts([list: p4])
     .x-min(0)
     .x-max(10)
     .y-min(0)
@@ -1089,18 +1168,18 @@ where:
     .get-image() does-not-raise
 end
 
-fun draw-plot(title :: String, series :: DataSeries) -> IM.Image:
-  plot(series).title(title).display()
+fun quick-draw-chart(title :: String, series :: DataSeries) -> IM.Image:
+  draw-chart(series).title(title).display()
 end
 
-fun image-plot(title :: String, series :: DataSeries) -> IM.Image:
-  plot(series).title(title).get-image()
+fun quick-draw-charts(title :: String, serieses :: List<DataSeries>) -> IM.Image:
+  draw-charts(serieses).title(title).display()
 end
 
-fun draw-plots(title :: String, serieses :: List<DataSeries>) -> IM.Image:
-  plots(serieses).title(title).display()
+fun image-chart(title :: String, series :: DataSeries) -> IM.Image:
+  draw-chart(series).title(title).get-image()
 end
 
-fun image-plots(title :: String, serieses :: List<DataSeries>) -> IM.Image:
-  plots(serieses).title(title).get-image()
+fun image-charts(title :: String, serieses :: List<DataSeries>) -> IM.Image:
+  draw-charts(serieses).title(title).get-image()
 end

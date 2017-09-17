@@ -176,21 +176,18 @@
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
     const viewWindow = ('viewWindow' in vAxis) ? vAxis.viewWindow : {};
 
-    const minValue = get(globalOptions, 'y-min');
-    const maxValue = get(globalOptions, 'y-max');
-
-    cases(RUNTIME.ffi.isOption, 'Option', minValue, {
+    cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-min'), {
       none: function () {},
-      some: function (realMinValue) {
-        const v = toFixnum(realMinValue)
+      some: function (minValue) {
+        const v = toFixnum(minValue)
         vAxis.minValue = v;
         viewWindow.min = v;
       }
     });
-    cases(RUNTIME.ffi.isOption, 'Option', maxValue, {
+    cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-max'), {
       none: function () {},
-      some: function (realMaxValue) {
-        const v = toFixnum(realMaxValue)
+      some: function (maxValue) {
+        const v = toFixnum(maxValue)
         vAxis.maxValue = v;
         viewWindow.max = v;
       }
@@ -271,24 +268,32 @@
     const data = new google.visualization.DataTable();
 
     data.addColumn('string', 'Label');
-    data.addColumn('number', get(rawData, 'value-name'));
+    data.addColumn('number', '');
     data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
 
     // set legend to none because there's only one data set
     const options = {legend: {position: 'none'}, histogram: {}};
 
-    const binWidth = get(rawData, 'bin-width');
-    if (binWidth !== 0) {
-      options.histogram.bucketSize = toFixnum(binWidth);
-    }
-    const maxNumBins = get(rawData, 'max-num-bins');
-    if (maxNumBins !== 0) {
-      options.histogram.maxNumBuckets = toFixnum(maxNumBins);
-    }
-    const minNumBins = get(rawData, 'min-num-bins');
-    if (minNumBins !== 0) {
-      options.histogram.minNumBuckets = toFixnum(minNumBins);
-    }
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'bin-width'), {
+      none: function () {},
+      some: function (binWidth) {
+        options.histogram.bucketSize = toFixnum(binWidth);
+      }
+    });
+
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'max-num-bins'), {
+      none: function () {},
+      some: function (maxNumBins) {
+        options.histogram.maxNumBuckets = toFixnum(maxNumBins);
+      }
+    });
+
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min-num-bins'), {
+      none: function () {},
+      some: function (minNumBins) {
+        options.histogram.minNumBuckets = toFixnum(minNumBins);
+      }
+    });
 
     /*
     The main reason to use `x-min`, `x-max` is so that students can compare
@@ -312,7 +317,7 @@
     };
   }
 
-  function plotMulti(globalOptions, rawData) {
+  function plot(globalOptions, rawData) {
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
     const data = new google.visualization.DataTable();
@@ -344,7 +349,7 @@
         if (row.length != 0) {
           currentRow[0] = toFixnum(row[0]);
           currentRow[2*i + 1] = toFixnum(row[1]);
-          const labelRow = (row[2] !== '') ? `<p>label: <b>${row[2]}</b></p>` : '';
+          const labelRow = (row.length == 3) ? `<p>label: <b>${row[2]}</b></p>` : '';
           currentRow[2*i + 2] = `<p>${legends[i]}</p>
 <p>x: <b>${currentRow[0]}</b></p>
 <p>y: <b>${currentRow[2*i + 1]}</b></p>
@@ -358,7 +363,15 @@ ${labelRow}`;
       tooltip: {isHtml: true},
       series: combined.map((p, i) => {
         // scatters and then lines
-        const seriesOptions = {color: convertColor(get(p, 'color'))};
+
+        const seriesOptions = {};
+
+        cases(RUNTIME.ffi.isOption, 'Option', get(p, 'color'), {
+          none: function () {},
+          some: function (color) {
+            seriesOptions.color = convertColor(color);
+          }
+        });
         if (i < scatters.length) {
           $.extend(seriesOptions, {
             pointSize: toFixnum(get(p, 'point-size')),
@@ -434,9 +447,7 @@ ${labelRow}`;
           'class': 'controller',
           text: 'Redraw',
         }).click(() => {
-          const newWindow = getNewWindow(
-            xMinC, xMaxC, yMinC, yMaxC, numSamplesC
-          );
+          const newWindow = getNewWindow(xMinC, xMaxC, yMinC, yMaxC, numSamplesC);
           if (newWindow === null) return;
           const toRet = RUNTIME.ffi.makeLeft(
             RUNTIME.extendObj(
@@ -449,28 +460,22 @@ ${labelRow}`;
           restarter.resume(toRet);
         });
 
-        xMinC.val(prettyNumToStringDigits5(get(get(globalOptions, 'x-min'), 'value')));
-        xMaxC.val(prettyNumToStringDigits5(get(get(globalOptions, 'x-max'), 'value')));
-        yMinC.val(prettyNumToStringDigits5(get(get(globalOptions, 'y-min'), 'value')));
-        yMaxC.val(prettyNumToStringDigits5(get(get(globalOptions, 'y-max'), 'value')));
-        numSamplesC.val(RUNTIME.num_to_string(get(globalOptions, 'num-samples')));
+        function getBoundControl(control, name) {
+          control.val(prettyNumToStringDigits5(
+            get(get(globalOptions, name), 'value')));
+          return $('<p/>')
+           .append($('<label/>', {'class': 'controller', text: name + ': '}))
+           .append(control);
+        }
 
-        const xMinG = $('<p/>')
-          .append($('<label/>', {'class': 'controller', text: 'x-min: '}))
-          .append(xMinC);
-        const xMaxG = $('<p/>')
-          .append($('<label/>', {'class': 'controller', text: 'x-max: '}))
-          .append(xMaxC);
-        const yMinG = $('<p/>')
-          .append($('<label/>', {'class': 'controller', text: 'y-min: '}))
-          .append(yMinC);
-        const yMaxG = $('<p/>')
-          .append($('<label/>', {'class': 'controller', text: 'y-max: '}))
-          .append(yMaxC);
-        const redrawG = $('<p/>')
-          .append(redrawC);
+        const xMinG = getBoundControl(xMinC, 'x-min');
+        const xMaxG = getBoundControl(xMaxC, 'x-max');
+        const yMinG = getBoundControl(yMinC, 'y-min');
+        const yMaxG = getBoundControl(yMaxC, 'y-max');
+        const redrawG = $('<p/>').append(redrawC);
 
         if (isTrue(get(globalOptions, 'is-show-samples'))) {
+          numSamplesC.val(RUNTIME.num_to_string(get(globalOptions, 'num-samples')));
           const numSamplesG = $('<p/>')
             .append($('<label/>', {'class': 'controller', text: '#samples: '}))
             .append(numSamplesC);
@@ -606,7 +611,7 @@ ${labelRow}`;
         'pie-chart': makeFunction(pieChart),
         'bar-chart': makeFunction(barChart),
         'histogram': makeFunction(histogram),
-        'plot-multi': makeFunction(plotMulti),
+        'plot': makeFunction(plot),
       })
     })
   });
