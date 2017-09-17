@@ -30,7 +30,8 @@ $ npm run build
 
 and the dependencies will be installed.
 
-To run the server, run:
+To run the server (you can let it running in a separate tab --
+it doesn't need to be terminated across builds), run:
 
 ```
 $ npm start
@@ -166,7 +167,7 @@ https://devcenter.heroku.com/articles/getting-started-with-nodejs
 1. Make an account at http://heroku.com/ and from a terminal run `heroku login`
 2. Navigate to your local code.pyret.org repository in a terminal.
 3.	Run `heroku create <appname>`. This will create an app on Heroku linked to your local repository.
-4.	Set the config variables found in `.env` (or `.env.example`) on Heroku. You can enter them using `heroku config:set NAME1=VALUE1 NAME2=VALUE2` or in the online control panel. There are 3 config variables you should pay special attention to: 
+4.	Set the config variables found in `.env` (or `.env.example`) on Heroku. You can enter them using `heroku config:set NAME1=VALUE1 NAME2=VALUE2` or in the online control panel. There are 3 config variables you should pay special attention to:
   - add key `GIT_BRANCH`, value should be your branch name
   - add key `GIT_REV`, value should be your branch name
   - change `PYRET` from local host to a URL that points to cpo-main.jarr from build folder. Make sure URL ends in js instead of jarr.
