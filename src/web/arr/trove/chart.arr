@@ -4,6 +4,11 @@ provide {
   from-list: from-list,
 } end
 
+provide-types {
+  DataSeries :: DataSeries,
+  ChartWindow :: ChartWindow,
+}
+
 import global as G
 import base as B
 include lists
