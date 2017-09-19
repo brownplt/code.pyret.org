@@ -302,7 +302,7 @@
             var ret = Q.defer();
             setTimeout(function () {
               runtime.runThunk(function() {
-                console.log('doing run timeout');
+                //console.log('doing run timeout');
                 if (cpoDialect!=='patch') {
                   return runtime.safeCall(function() {
                     return gf(repl, "make-interaction-locator").app(

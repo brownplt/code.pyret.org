@@ -1403,6 +1403,11 @@ define('cpo/patch-parse',
       this.span = span; // num chrs between lexeme start and end
       this.source = theSource || source; // [OPTIONAL] id of the containing DOM element
 
+      //debug
+      if (!this.source) {
+        console.log('created location with no source!!!');
+      }
+
       this.endCol = column; // ending index into the line
       this.endRow = line; // ending index into the line
       this.endChar = startChar + span; // ch index of lexeme end, from beginning
@@ -5483,12 +5488,13 @@ define('cpo/patch-parse',
 
     // empty location
     var blankLoc = {
-      "startRow": 1,
-      "startCol": 0,
-      "startChar": 1,
-      "endRow": 1,
-      "endCol": 0,
-      "endChar": 1
+      source: '',
+      startRow: 1,
+      startCol: 0,
+      startChar: 1,
+      endRow: 1,
+      endCol: 0,
+      endChar: 1
     };
     // Pyret syntax objects that were never actually part of the source
 

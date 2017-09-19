@@ -8541,7 +8541,8 @@ var CodeMirrorBlocks =
 	      return _this.handleChange(e);
 	    });
 	    this.cm.on('focus', function (cm, e) {
-              console.log('focus function with _this.ast=', _this.ast);
+              //debug
+              //console.log('focus function with _this.ast=', _this.ast);
 	      // override CM's natural onFocus behavior, activating the first node
 	      if (_this.ast && _this.ast.rootNodes.length > 0 && e.relatedTarget && e.relatedTarget.nodeName === "TEXTAREA") {
 	        setTimeout(function () {
