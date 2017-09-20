@@ -1565,6 +1565,7 @@
           var rowVals = runtime.getField(val, "values")
 
           var table = document.createElement("table");
+          table.className = "pyret-row";
           var thead = document.createElement("thead");
           var trow = document.createElement("tr");
           thead.append(trow);
@@ -1626,6 +1627,7 @@
           });
           var tableAsText = [];
           var table = document.createElement("table");
+          table.className = "pyret-table";
           $(table).append(showText);
           $(table).addClass("has-icon");
           $(table).hover(function() {
