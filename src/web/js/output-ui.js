@@ -1559,6 +1559,36 @@
           for (var i = 0; i < items.length; i++) {
             helper(container, items[i], values, (i + 1 < items.length));
           }
+        } else if (runtime.ffi.isVSRow(val)) {
+
+          var cols = runtime.getField(val, "headers")
+          var rowVals = runtime.getField(val, "values")
+
+          var table = document.createElement("table");
+          var thead = document.createElement("thead");
+          var trow = document.createElement("tr");
+          thead.append(trow);
+          table.append(thead);
+
+          var colElts = [];
+          for(var i = 0; i < cols.length; i++) {
+            var col = document.createElement("th");
+            helper($(col), cols[i], values);
+            colElts.push(col);
+          }
+          var datumElts = [];
+          for(var i = 0; i < cols.length; i++) {
+            var datum = document.createElement("td");
+            helper($(datum), rowVals[i], values);
+            datumElts.push(datum);
+          }
+          for(var i = 0; i < cols.length; i++) {
+            trow.appendChild(colElts[i]);
+            trow.appendChild(datumElts[i]);
+          }
+
+          container.append(table);
+
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
           $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
@@ -1592,6 +1622,7 @@
               height : "auto",
               closeOnEscape : true
             });
+
           });
           var tableAsText = [];
           var table = document.createElement("table");
