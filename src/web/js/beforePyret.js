@@ -90,13 +90,13 @@ var Documents = function() {
   return Documents;
 }();
 
-var VERSION_CHECK_INTERVAL = 12000;
+var VERSION_CHECK_INTERVAL = 120000 + (30000 * Math.random());
 
 function checkVersion() {
   $.get("/current-version").then(function(resp) {
     resp = JSON.parse(resp);
     if(resp.version && resp.version !== process.env.CURRENT_PYRET_RELEASE) {
-      window.stickMessage("An update for the site is available. Save and reload to get the newest version.");
+      window.stickMessage("A new version of Pyret is available. Save and reload the page to get the newest version.");
     }
   });
 }
