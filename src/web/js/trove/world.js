@@ -51,6 +51,10 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
+      "last-image": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"] ], "Image"]],
+             "WCOofA"]],
       "close-when-stop": ["forall", ["a"],
           ["arrow",
              ["Boolean"],
@@ -188,6 +192,7 @@
       add("on-key", OnKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
+      add("last-image", LastImage);
       add("close-when-stop", CloseWhenStop);
 
       return bigBang(init, handlers, tracer, title);
@@ -218,7 +223,7 @@
 
       var configs = [];
       var isOutputConfigSeen = false;
-      var closeWhenStop = true; // false in patch!
+      var closeWhenStop = false; // true in patch?
 
       for (var i = 0 ; i < handlers.length; i++) {
         if (isOpaqueCloseWhenStopConfig(handlers[i])) {
@@ -484,6 +489,34 @@
 
     ToDraw.prototype = Object.create(OutputConfig.prototype);
 
+    function renderImageonCanvas(theImage, reusableCanvas) {
+      var width = theImage.getWidth();
+      var height = theImage.getHeight();
+      if (reusableCanvas.width !== width) {
+        reusableCanvas.width = width;
+      }
+      if (reusableCanvas.height !== height) {
+        reusableCanvas.height = height;
+      }
+      var ctx = reusableCanvas.getContext("2d");
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+      theImage.render(ctx, 0, 0);
+    }
+
+    function setCssforCanvas(reusableCanvas, k) {
+      if (reusableCanvas) {
+        k([[reusableCanvas,
+            ["padding", "0px"],
+            ["width", reusableCanvas.width + "px"],
+            ["height", reusableCanvas.height + "px"]]]);
+      } else {
+        k([]);
+      }
+    }
+
     ToDraw.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
       var reusableCanvas;
@@ -517,31 +550,13 @@
                 reusableCanvas.jsworldOpaque = true;
                 reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
               }
-              if (reusableCanvas.width !== width) {
-                reusableCanvas.width = width;
-              }
-              if (reusableCanvas.height !== height) {
-                reusableCanvas.height = height;
-              }
-              var ctx = reusableCanvas.getContext("2d");
-              ctx.save();
-              ctx.fillStyle = "rgba(255,255,255,1)";
-              ctx.fillRect(0, 0, width, height);
-              ctx.restore();
-              theImage.render(ctx, 0, 0);
+              renderImageonCanvas(theImage, reusableCanvas);
               success([toplevelNode, reusableCanvasNode]);
             });
       };
 
       var cssFunction = function(w, k) {
-        if (reusableCanvas) {
-          k([[reusableCanvas,
-              ["padding", "0px"],
-              ["width", reusableCanvas.width + "px"],
-              ["height", reusableCanvas.height + "px"]]]);
-        } else {
-          k([]);
-        }
+        setCssforCanvas(reusableCanvas, k);
       }
 
       return rawJsworld.on_draw(worldFunction, cssFunction);
@@ -583,50 +598,55 @@
       return runtime.isOpaque(v) && isCloseWhenStopConfig(v.val);
     }
 
-    var StopWhen = function(handler, last_picture_handler) {
+    var StopWhen = function(handler) {
       WorldConfigOption.call(this, 'stop-when');
       this.handler = handler;
-      this.last_picture_handler = last_picture_handler;
     };
 
     StopWhen.prototype = Object.create(WorldConfigOption.prototype);
 
     StopWhen.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
-      var reusableCanvas;
       var worldFunction = adaptWorldFunction(that.handler);
-      var lastPictureFunction;
-      if (that.last_picture_handler) {
-        lastPictureFunction = function(w, k) {
-          var nextFrame = function(t) {
-            var lph = adaptWorldFunction(that.last_picture_handler);
-            lph(t, function(aSceneObj) {
-              var aScene = aSceneObj.val;
-              if (imageLibrary.isImage(aScene)) {
-                setTimeout(function() {
-                  if (!reusableCanvas) {
-                    reusableCanvas = imageLibrary.makeCanvas(aScene.getWidth(), aScene.getHeight());
-                  } else {
-                    reusableCanvas.width = aScene.getWidth();
-                    reusableCanvas.height = aScene.getHeight();
-                  }
-                  var ctx = reusableCanvas.getContext('2d');
-                  aScene.render(ctx, 0, 0);
-                }, 0);
-              } else {
-                runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
-              }
-            });
-          };
-          var lastPictureCss = function(w, k) {
-            k ([[reusableCanvas,
-              ['width', reusableCanvas.width + 'px'],
-              ['height', reusableCanvas.height + 'px']]]);
-          };
-          return rawJsworld.on_draw(nextFrame, lastPictureCss);
+      return rawJsworld.stop_when(worldFunction);
+    };
+
+    var LastImage = function(handler) {
+      WorldConfigOption.call(this, 'last-image');
+      this.handler = handler;
+    };
+
+    LastImage.prototype = Object.create(WorldConfigOption.prototype);
+
+    LastImage.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var reusableCanvas, reusableCanvasNode;
+      var lastImageFunction = function() {
+        var nextFrame = function(t, success) {
+          var lih = adaptWorldFunction(that.handler);
+          lih(t, function(theImageObj) {
+            var theImage = theImageObj.val;
+            if (imageLibrary.isImage(theImage)) {
+              setTimeout(function() {
+                if (!reusableCanvas) {
+                  reusableCanvas = imageLibrary.makeCanvas(10, 10);
+                  reusableCanvas.jsworldOpaque = true;
+                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                }
+                renderImageonCanvas(theImage, reusableCanvas);
+                success([toplevelNode, reusableCanvasNode]);
+              }, 0);
+            } else {
+              runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
+            }
+          });
         };
-      }
-      return rawJsworld.stop_when(worldFunction, undefined, lastPictureFunction);
+        var lastImageCss = function(w, k) {
+          setCssforCanvas(reusableCanvas, k);
+        };
+        return rawJsworld.on_draw(nextFrame, lastImageCss);
+      };
+      return rawJsworld.last_image(lastImageFunction);
     };
 
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
@@ -659,7 +679,7 @@
             checkHandler(h);
             arr.push(h);
           }
-          bigBang(init, arr);
+          return bigBang(init, arr, null, '_patch_big-bang');
           runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
         }),
 
@@ -670,7 +690,7 @@
           arr.push(runtime.makeOpaque(new ToDraw(f)));
           arr.push(runtime.makeOpaque(new OnTick(makeFunction(function(n) { return n+1; }),
             Math.floor(DEFAULT_TICK_DELAY * 1000))));
-          bigBang(1, arr);
+          return bigBang(1, arr);
           runtime.ffi.throwMessageException("Internal error in bigBang: stack not properly paused and stored.");
         }, "animate"),
 
@@ -711,14 +731,14 @@
           return runtime.makeOpaque(new ToDraw(drawer));
         }),
         "stop-when": makeFunction(function(stopper) {
-          runtime.ffi.checkArityAtLeast(1, arguments, "stop-when");
+          runtime.ffi.checkArity(1, arguments, "stop-when");
           runtime.checkFunction(stopper);
-          var last_picture_handler = arguments[1];
-          /*
-          if (last_picture_handler) {
-            checkHandler(last_picture_handler);
-          } */
-          return runtime.makeOpaque(new StopWhen(stopper, last_picture_handler));
+          return runtime.makeOpaque(new StopWhen(stopper));
+        }),
+        "last-image": makeFunction(function(lastImageHandler) {
+          runtime.ffi.checkArity(1, arguments, "last-image", false);
+          runtime.checkFunction(lastImageHandler);
+          return runtime.makeOpaque(new LastImage(lastImageHandler));
         }),
         "close-when-stop": makeFunction(function(isClose) {
           runtime.ffi.checkArity(1, arguments, "close-when-stop", false);
