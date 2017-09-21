@@ -22,6 +22,8 @@ CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
 PHASEA=pyret/build/phaseA/pyret.jarr
 COMMITID=$(shell git rev-parse --short HEAD)
 
+BUNDLED_DEPS=build/web/js/bundled-npm-deps.js
+
 .PHONY : post-install
 post-install: compress-pyret
 
@@ -90,12 +92,6 @@ COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-api
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 	cp $< $@
 
-build/web/js/d3.js: node_modules/d3/d3.min.js
-	cp $< $@
-
-build/web/js/d3-tip.js: node_modules/d3-tip/index.js
-	cp $< $@
-
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
 	`npm bin`/webpack
 
@@ -159,9 +155,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/foldgutter.js \
           build/web/js/colorspaces.js \
           build/web/js/es6-shim.js \
-          build/web/js/runmode.js \
-          build/web/js/d3.js \
-          build/web/js/d3-tip.js
+          build/web/js/runmode.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
@@ -214,7 +208,7 @@ web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBA
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
-	cd node_modules/pyret-lang && $(MAKE) phaseA-deps && cd ../../;
+	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
 
 deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) cpo-main-release 
 
@@ -231,7 +225,10 @@ $(PHASEA): libpyret ;
 libpyret:
 	$(MAKE) phaseA -C pyret/
 
-$(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
+$(BUNDLED_DEPS): src/scripts/npm-dependencies.js
+	node_modules/.bin/browserify src/scripts/npm-dependencies.js -o $(BUNDLED_DEPS)
+
+$(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
 	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
@@ -244,6 +241,7 @@ $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr 
     --build-runnable src/web/arr/cpo-main.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
+    --deps-file $(BUNDLED_DEPS) \
     --outfile $(CPOMAIN) -no-check-mode
 
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
@@ -251,7 +249,7 @@ $(CPOMAIN): $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr 
 $(CPOGZ): $(CPOMAIN)
 	gzip -c -f $(CPOMAIN) > $(CPOGZ)
 
-$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA)
+$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA) $(BUNDLED_DEPS)
 	mkdir -p compiled/;
 	#cp pyret/build/phaseA/compiled/*.js ./compiled/
 	node pyret/build/phaseA/pyret.jarr \
@@ -264,6 +262,7 @@ $(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-stand
     --build-runnable src/web/arr/cpo-ide-hooks.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
+    --deps-file $(BUNDLED_DEPS) \
     --outfile $(CPOIDEHOOKS) -no-check-mode
 
 clean:

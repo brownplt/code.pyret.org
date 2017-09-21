@@ -7,6 +7,8 @@
     { "import-type": "builtin",
       name: "srcloc" },
     { "import-type": "builtin",
+      name: "ast" },
+    { "import-type": "builtin",
       name: "image-lib" },
     { "import-type": "builtin",
       name: "load-lib" }
@@ -14,20 +16,43 @@
   provides: {},
   nativeRequires: [
     "pyret-base/js/runtime-util",
-    "pyret-base/js/js-numbers",
-    "cpo/share"
+    "pyret-base/js/js-numbers"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, image, loadLib, util, jsnums, share) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, image, loadLib, util, jsnums) {
 
-    srcloc = runtime.getField(srclocLib, "values");
-    ED = runtime.getField(errordisplayLib, "values");
-    PP = runtime.getField(parsePyret, "values");
+    var srcloc = runtime.getField(srclocLib, "values");
+    var isSrcloc = runtime.getField(srcloc, "is-Srcloc");
+    var AST = runtime.getField(astLib, "values");
+    var ED = runtime.getField(errordisplayLib, "values");
+    var PP = runtime.getField(parsePyret, "values");
 
     // TODO(joe Aug 18 2014) versioning on shared modules?  Use this file's
     // version or something else?
     var shareAPI = makeShareAPI("");
 
     var highlightedPositions = [];
+
+    var converter = $.colorspaces.converter('CIELAB', 'hex');
+
+    function hueToRGB(hue) {
+      var a = 40*Math.cos(hue);
+      var b = 40*Math.sin(hue)
+      return converter([74, a, b]);
+    }
+
+    var goldenAngle = 2.39996322972865332;
+    var lastHue = 0;
+
+    var makePalette = function(){
+      var palette = new Map();
+      return function(n){
+        if(!palette.has(n)) {
+          lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
+          palette.set(n, lastHue);
+        }
+        return palette.get(n);
+      };};
+
 
     var Position = function() {
 
@@ -86,7 +111,7 @@
       Position.prototype.hint = function hint() {
         if (this.from === undefined
             || !(this.doc.getEditor() instanceof CodeMirror)) {
-          flashMessage("This code is not in this editor.");
+          console.info("This position could not be hinted because it is not in this editor:", this);
         } else {
           hintLoc(this);
         }
@@ -95,7 +120,7 @@
       Position.prototype.goto = function goto() {
         if (this.from === undefined
             || !(this.doc.getEditor() instanceof CodeMirror)) {
-          flashMessage("This code is not in this editor.");
+          flashMessage("This code is not open in this tab.");
         } else {
           this.doc.getEditor().getWrapperElement().scrollIntoView(true);
           this.doc.getEditor().scrollIntoView(this.from.line, 50);
@@ -151,7 +176,7 @@
       };
 
       Position.fromPyretSrcloc = function (runtime, srcloc, loc, documents, options) {
-        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+        return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
           "builtin": function(_) {
              throw new Error("Cannot get Position from builtin location", loc);
           },
@@ -170,6 +195,22 @@
           }
         });
       };
+
+      Position.fromSrcArray = function (locarray, documents, options) {
+        if (locarray.length === 7) {
+          var extraCharForZeroWidthLocs = locarray[3] === locarray[6] ? 1 : 0;
+          var source = locarray[0];
+          if (!documents.has(source)) {
+            throw new Error("No document for this location: ", loc);
+          }
+          return new Position(
+            documents.get(source),
+            source,
+            new CodeMirror.Pos(locarray[1] - 1, locarray[2]),
+            new CodeMirror.Pos(locarray[4] - 1, locarray[5] + extraCharForZeroWidthLocs),
+            options);
+        }
+      }
 
       return Position;
     }();
@@ -236,37 +277,37 @@
         {line: position.from.line, ch:0},
         position.source === "definitions://" ? "local" : "page");
 
-        var viewportMin;
-        var viewportMax;
+      var viewportMin;
+      var viewportMax;
 
-        if (position.source === "definitions://") {
-          var scrollInfo = editor.getScrollInfo();
-          viewportMin = scrollInfo.top;
-          viewportMax = scrollInfo.clientHeight + viewportMin;
-        } else {
-          var repl = document.querySelector('.repl');
-          viewportMin = repl.scrollTop;
-          viewportMax = viewportMin + repl.scrollHeight;
-        }
+      if (position.source === "definitions://") {
+        var scrollInfo = editor.getScrollInfo();
+        viewportMin = scrollInfo.top;
+        viewportMax = scrollInfo.clientHeight + viewportMin;
+      } else {
+        var repl = document.querySelector('.repl');
+        viewportMin = repl.scrollTop;
+        viewportMax = viewportMin + repl.scrollHeight;
+      }
 
-        var direction;
-        var TOP     = 0,
-            BOTTOM  = 1;
+      var direction;
+      var TOP     = 0,
+          BOTTOM  = 1;
 
-        if(coord.top < viewportMin) {
-          direction = TOP
-        } else if (coord.top > viewportMax) {
-          direction = BOTTOM;
-        } else {
-          return;
-        }
+      if(coord.top < viewportMin) {
+        direction = TOP
+      } else if (coord.top > viewportMax) {
+        direction = BOTTOM;
+      } else {
+        return;
+      }
 
-        var hinter = document.querySelector(
-            ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
-          + " > "
-          + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
+      var hinter = document.querySelector(
+          ((position.source === "definitions://") ? ".replMain > .CodeMirror" : ".repl")
+        + " > "
+        + ((direction === TOP) ? ".warning-upper" : ".warning-lower"));
 
-        hinter.classList.add("hinting");
+      hinter.classList.add("hinting");
     }
 
     function unhintLoc() {
@@ -280,6 +321,8 @@
        return base;
     }
 
+    var interactionsPrefix = "interactions";
+    var definitionsPrefix = "definitions";
     var sharedPrefix = "shared-gdrive";
     var mydrivePrefix = "my-gdrive";
     var jsdrivePrefix = "gdrive-js";
@@ -319,13 +362,35 @@
       return id;
     }
 
+    function isDefinitions(filename) {
+      var definitionsIndex = filename.indexOf(definitionsPrefix);
+      return definitionsIndex === 0;
+    }
+
+    function isInteractions(filename) {
+      var interactionsIndex = filename.indexOf(interactionsPrefix);
+      return interactionsIndex === 0;
+    }
+
+    function isLocal(filename) {
+      return isDefinitions(filename) || isInteractions(filename);
+    }
+
     function drawSrcloc(documents, runtime, s) {
       if (!s) { return $("<span>"); }
       var get = runtime.getField;
-      var srcElem = $("<a>").addClass("srcloc").text(get(s, "format").app(true));
+
+      var in_editor =
+        runtime.hasField(s, "source")
+          && isLocal(runtime.getField(s, "source"));
+
+      var srcElem = $(in_editor ? "<a>" : "<span>")
+            .addClass("srcloc").text(get(s, "format").app(true));
+
       if(!runtime.hasField(s, "source")) {
         return srcElem;
       }
+
       var src = runtime.unwrap(get(s, "source"));
       if(!(documents.has(src) && (documents.get(src).getEditor() !== undefined))) {
         if(isSharedImport(src)) {
@@ -341,15 +406,17 @@
         else if(isJSImport(src)) {
           /* NOTE(joe): No special handling here, since it's opaque code */
         }
-        srcElem.on("mouseover", function() {
-          flashMessage("This code is not in this editor.");
-        }).on("mouseleave", clearFlash);
       }
       return srcElem;
     }
 
     function drawPosition(position) {
-      var srcElem = $("<a>").addClass("srcloc").text(position.toString());
+      var in_editor = isLocal(position.source);
+      var srcElem = $(in_editor ? "<a>" : "<div>")
+                      .addClass("srcloc").text(position.toString());
+      srcElem.on("click", function() {
+        position.goto();
+      });
       if(isSharedImport(position.source)) {
         var sharedId = getSharedId(position.source);
         var srcUrl = shareAPI.makeShareUrl(sharedId);
@@ -358,12 +425,15 @@
       else if(isGDriveImport(position.source)) {
         var MyDriveId = getMyDriveId(position.source);
         var srcUrl = makeMyDriveUrl(MyDriveId);
-        srcElem.attr({href: srcUrl, target: "_blank"});
+        return srcElem.attr({href: srcUrl, target: "_blank"});
       }
       else if(isJSImport(position.source)) {
         /* NOTE(joe): No special handling here, since it's opaque code */
+        return srcElem.attr;
       }
-      srcElem.on("mouseover", position.hint);
+      srcElem.on("mouseover", function() {
+        position.hint();
+      });
       srcElem.on("mouseleave", function() {
         clearFlash();
         unhintLoc();
@@ -371,22 +441,11 @@
       return srcElem;
     }
 
-    var converter = $.colorspaces.converter('CIELAB', 'hex');
-
-    function hueToRGB(hue) {
-      var a = 40*Math.cos(hue);
-      var b = 40*Math.sin(hue)
-      return converter([74, a, b]);
-    }
-
-    var goldenAngle = 2.39996322972865332;
-    var lastHue = 0;
-
     function makeSrclocAvaliable(runtime, documents, srcloc) {
       return runtime.makeFunction(function(loc) {
-        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
+        return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
           "builtin": function(_) {
-            console.error("srclocAvaliable should not be passed a builtin source location.", srcloc);
+            console.error("srclocAvaliable should not be passed a builtin source location.", loc);
             return runtime.pyretFalse;
           },
           "srcloc": function(filename, _, __, ___, ____, _____, ______) {
@@ -400,49 +459,98 @@
       });
     }
 
-    function makeMaybeLocToAST(runtime, documents, srcloc) {
-      return runtime.makeFunction(function(loc) {
-        return runtime.ffi.cases(runtime.getField(srcloc, "is-Srcloc"), "Srcloc", loc, {
-          "builtin": function(_) {
+    function maybeParse(runtime, documents, loc) {
+      return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
+        "builtin": function(_) {
             console.error("maybeLocToAST should not be passed a builtin source location.", loc);
             return runtime.ffi.makeNone();
           },
-          "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
-            var prelude = ""
-            for(var i=1; i < start_line; i++) {prelude += "\n";}
-            for(var i=0; i < start_col; i++)  {prelude += " "; }
-            if(!documents.has(filename))
-              return runtime.ffi.makeNone();
-            var start = new CodeMirror.Pos(start_line - 1, start_col);
-            var   end = new CodeMirror.Pos(  end_line - 1,   end_col);
-            var source = documents.get(filename).getRange(start, end);
-            return runtime.pauseStack(function(restarter) {
+        "srcloc": function(filename, start_line, start_col, _, end_line, end_col, __) {
+            if(!documents.has(filename)) return runtime.ffi.makeNone();
+            let source = documents.get(filename).getValue()
+
+            // MUST NOT BE CALLED ON PYRET STACK.
+            function parse(source, filename) {
+              var ret = Q.defer();
               runtime.runThunk(function() {
-                return runtime.getField(PP, "surface-parse").app(prelude + source, filename);
-              }, function(result) {
-                if(runtime.isSuccessResult(result)) {
-                  var res = result.result;
-                  res = res && res.dict.block;
-                  res = res && res.dict.stmts;
-                  res = res && res.dict.first;
-                  if (res) {
-                    restarter.resume(runtime.ffi.makeSome(res));
-                  } else {
-                    console.error(
-                      'Unexpected failure in extracting first expresion in AST:',
-                      '\nRequested Location:\t', {from: start, to: end},
-                      '\nProgram Source:\t', source,
-                      '\nParse result:\t', result);
-                    restarter.resume(runtime.ffi.makeNone());
-                  }
+                return runtime.getField(PP, "surface-parse").app(source, filename);
+              }, function (result) {
+                if (runtime.isSuccessResult(result)) {
+                  ret.resolve(result.result);
                 } else {
-                  restarter.resume(runtime.ffi.makeNone());
+                  console.error(result.exn);
+                  ret.reject(result.exn);
                 }
               });
-            });
-          }
-        });
+              return ret.promise;
+            }
+
+            var isSBlock = runtime.getField(AST, "is-s-block");
+            function ignorable(ast) {
+              // This function deliberately ignores some types of AST nodes that shouldn't
+              // be reported to the user.
+              // Currently, the only such exception is s-block nodes, which are implicitly
+              // added by the parser but don't represent any code the user explcitly wrote
+              return isSBlock.app(ast);
+            }
+
+            function search(ast) {
+              // CONTRACT: This ast input must result from the parser directly, and not be the result
+              // of desugaring.  It assumes that the source locations in the ast are well-nested:
+              // if one node's srcloc is within another node's srcloc, then the former node must be a
+              // descendant of the latter.  This allows us to prune the search tree.
+              var todo = [ast];
+              var ans = undefined;
+              while (todo.length > 0) {
+                var first = todo.pop();
+                if (runtime.hasField(first, "l")) {
+                  // not every AST item has an "l" field (eg. s-global, s-type-global, s-base)
+                  var l = runtime.getField(first, "l");
+                  if (isSrcloc.app(l)) { // just extra checking; should be unnecessary
+                    if (runtime.equal_always(l, loc)) { // stack-safe because srclocs are flat data
+                      if (!ignorable(first)) {
+                        return runtime.ffi.makeSome(first);
+                      }
+                    } else if (!runtime.getField(l, "contains").app(loc)) {
+                      continue;                       // ASSUMES that srclocs are well-nested
+                    }
+                  }
+                }
+                if (runtime.ffi.isLink(first)) {
+                  // Minor optimization: push rest then first, so that our todo list stays short
+                  todo.push(runtime.getField(first, "rest"));
+                  todo.push(runtime.getField(first, "first"));
+                } else {
+                  var fields = runtime.getFields(first);
+                  for (var i = 0; i < fields.length; i++) {
+                    if (fields[i] === "l") continue;
+                    var val = runtime.getField(first, fields[i]);
+                    if (runtime.isObject(val)) {
+                      todo.push(val);
+                    }
+                  }
+                }
+              }
+              return runtime.ffi.makeNone();
+            }
+
+            return runtime.pauseStack(function(restarter) {
+                return parse(source, filename).
+                  then(search).
+                  catch(function(error) {
+                    console.error("Unexpected error encountered in `maybeParse`:", error);
+                    return runtime.ffi.makeNone();
+                    }).
+                  done(function(result) { return restarter.resume(result); });
+              });
+        }
       });
+    }
+
+    function makeMaybeLocToAST(runtime, documents, loc) {
+      return runtime.makeFunction(function(loc) {
+          return maybeParse(runtime, documents, loc);
+        });
     }
 
     function makeMaybeStackLoc(runtime, documents, srcloc, stack) {
@@ -468,16 +576,18 @@
           });
         var container = document.createElement("div");
         var header = document.createElement("header");
-        container.addEventListener("click", function() {
-          position.goto();
-        });
-        container.addEventListener("mouseover", function() {
-          position.hint();
-        });
-        container.addEventListener("mouseleave", function() {
-          unhintLoc();
-          clearFlash();
-        });
+        if (isLocal(position.source)) {
+          container.addEventListener("click", function() {
+            position.goto();
+          });
+          container.addEventListener("mouseover", function() {
+            position.hint();
+          });
+          container.addEventListener("mouseleave", function() {
+            unhintLoc();
+            clearFlash();
+          });
+        }
         $(header).append(drawPosition(position));
         container.appendChild(header);
         container.classList.add("cm-snippet");
@@ -673,16 +783,6 @@
         return s && runtime.unwrap(runtime.getField(srcloc, "is-srcloc").app(s));
       }
 
-      var makePalette = function(){
-        var palette = new Map();
-        return function(n){
-          if(!palette.has(n)) {
-            lastHue = (lastHue + goldenAngle)%(Math.PI*2.0);
-            palette.set(n, lastHue);
-          }
-          return palette.get(n);
-        };};
-
       var palette = makePalette();
       var snippets = new Map();
       var messageAnchors = new Map();
@@ -752,9 +852,9 @@
           "embed": function(val) {
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
-              e.pyretStack = runtime.getField(loadLib, "internal")
+              var richStack = runtime.getField(loadLib, "internal")
                 .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultProgram(result));
-              var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, e.pyretStack);
+              var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, richStack);
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);
               var container = $("<div>").addClass("compile-error");
@@ -766,14 +866,14 @@
                     maybeLocToAST);
                 }, function(errorDisp) {
                   if (runtime.isSuccessResult(errorDisp)) {
-                    var highlightLoc = getLastUserLocation(runtime, srcloc, documents, e.pyretStack,
+                    var highlightLoc = getLastUserLocation(runtime, srcloc, documents, richStack,
                                                            e.exn.$name == "arity-mismatch" ? 1
                                                            : 0, true);
                     runtime.runThunk(function() {
                       return runtime.safeCall(function() {
                         return null;
                       }, function(_) {
-                        return help(errorDisp.result, e.pyretStack);
+                        return help(errorDisp.result, richStack);
                       }, "highlightSrcloc, then help");
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
@@ -782,7 +882,7 @@
                           container = $("<div>").append(container);
                         }
                         container.addClass("compile-error");
-                        container.append(renderStackTrace(runtime,documents, srcloc, e.pyretStack));
+                        container.append(renderStackTrace(runtime,documents, srcloc, richStack));
                         restarter.resume(container);
                       } else {
                         container.add($("<span>").addClass("output-failed")
@@ -1110,7 +1210,7 @@
           paintBrush.append($("<span>").text(colorName));
         }
         renderings.push(paintBrush);
-        
+
 
         var colorDisplay = $("<span>")
             .append("color(")
@@ -1123,7 +1223,7 @@
             .append(renderers.number(raw_a))
             .append(")");
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput").append(colorDisplay));
-        
+
 
         var dl = $("<dl>");
         dl.append($("<dt>").addClass("label").text("red"))
@@ -1141,7 +1241,7 @@
         $(renderings[0]).click(toggleCycle);
         for (var i = 1; i < renderings.length; i++)
           $(renderings[i]).addClass("hidden").click(toggleCycle);
-        
+
         container.append(renderings);
         return container;
       };
@@ -1160,7 +1260,7 @@
         var maxHeight = $(document).height() * .6;
         var realWidth = img.getWidth();
         var realHeight = img.getHeight();
-        if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
+        if(realWidth > maxWidth || realHeight > maxHeight) {
           container.addClass("replToggle replImageThumbnail has-icon");
           container.attr("title", "Click to see full image");
           var scaleFactorX = 100 / realWidth;
@@ -1175,10 +1275,11 @@
           var originalImageDom = img.toDomNode();
           $(container).click(function(e) {
             var dialog = $("<div>");
+            // NOTE(Oak): some magic numbers that "display" nicely
             dialog.dialog({
               modal: true,
-              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
-              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              height: Math.min($(document).height() * .95, realHeight + (9 * 2) + 60),
+              width: Math.min($(document).width() * .95, realWidth + (18 * 2)),
               resizable: true,
               close: function() {
                 dialog.empty();
@@ -1220,9 +1321,17 @@
 
           // On click, switch the representation from a fraction to
           // decimal, and back again.
-          outText.click(function(e) {
-            $(this).toggleFrac(num.toString(), decimalString, decimal[2]);
+          // https://stackoverflow.com/a/10390111/7501301
+          var isClick = false;
+          outText.click(function() {
+            if (isClick) {
+              outText.toggleFrac(num.toString(), decimalString, decimal[2]);
+            }
             e.stopPropagation();
+          }).mousedown(function () {
+            isClick = true;
+          }).mousemove(function () {
+            isClick = false;
           });
 
           return outText;
@@ -1450,6 +1559,37 @@
           for (var i = 0; i < items.length; i++) {
             helper(container, items[i], values, (i + 1 < items.length));
           }
+        } else if (runtime.ffi.isVSRow(val)) {
+
+          var cols = runtime.getField(val, "headers")
+          var rowVals = runtime.getField(val, "values")
+
+          var table = document.createElement("table");
+          table.className = "pyret-row";
+          var thead = document.createElement("thead");
+          var trow = document.createElement("tr");
+          thead.append(trow);
+          table.append(thead);
+
+          var colElts = [];
+          for(var i = 0; i < cols.length; i++) {
+            var col = document.createElement("th");
+            helper($(col), cols[i], values);
+            colElts.push(col);
+          }
+          var datumElts = [];
+          for(var i = 0; i < cols.length; i++) {
+            var datum = document.createElement("td");
+            helper($(datum), rowVals[i], values);
+            datumElts.push(datum);
+          }
+          for(var i = 0; i < cols.length; i++) {
+            trow.appendChild(colElts[i]);
+            trow.appendChild(datumElts[i]);
+          }
+
+          container.append(table);
+
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
           $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
@@ -1483,9 +1623,11 @@
               height : "auto",
               closeOnEscape : true
             });
+
           });
           var tableAsText = [];
           var table = document.createElement("table");
+          table.className = "pyret-table";
           $(table).append(showText);
           $(table).addClass("has-icon");
           $(table).hover(function() {
@@ -1558,7 +1700,7 @@
             helper(container, items[i], values, (i + 1 < items.length));
           }
         }
-        if (wantCommaAtEnd) { container.append(collapsedComma()); }          
+        if (wantCommaAtEnd) { container.append(collapsedComma()); }
         return container;
       }
       function groupItems(ul, items, values, minIdx, maxIdx) {
@@ -1626,7 +1768,9 @@
       getLastUserLocation: getLastUserLocation,
       makeMaybeLocToAST: makeMaybeLocToAST,
       makeMaybeStackLoc: makeMaybeStackLoc,
-      makeSrclocAvaliable: makeSrclocAvaliable
+      makeSrclocAvaliable: makeSrclocAvaliable,
+      makePalette: makePalette,
+      hueToRGB: hueToRGB
     });
   }
 })

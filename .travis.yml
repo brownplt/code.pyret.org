@@ -6,6 +6,8 @@ env:
 script:
 - echo "Skipping tests"
 #- mocha --harmony
+addons:
+  chrome: stable
 before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable

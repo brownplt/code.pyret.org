@@ -8,6 +8,10 @@ const WAITING_FOR_SIGNIN = 2;
 const SIGNED_IN = 3;
 const INITIAL_LOAD = 4;
 
+
+const WAITING_FOR_FILES = [];
+
+
 class StudentDashboard extends Component {
   constructor() {
     super();
@@ -85,6 +89,7 @@ class StudentDashboard extends Component {
   }
 
   updateRecentFiles = () => {
+    this.setState({files: WAITING_FOR_FILES});
     this.api.getRecentFilesByExtAndAppName(APP_NAME, FILE_EXT).then((resp) => {
       this.setState({files: resp.result.files});
     })
@@ -214,12 +219,18 @@ class StudentDashboard extends Component {
           </div>
           <div id='file-picker-modal-body' className={'modal-body ' + ((this.state.activeTab === 'new-file') ? 'hidden' : '')}>
             {
-              this.state.files.length > 0 ?
-                  (<div className='file-list cf'>
-                    {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
-                  </div>)
-                :
-                  <p><em>No Pyret files yet, use New File above to create one.</em></p>
+              this.state.files === WAITING_FOR_FILES ?
+              (<div id='loading-spinner'>
+                <h2>Loading files...</h2>
+                <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
+              </div>)
+              :  
+                this.state.files.length > 0 ?
+                    (<div className='file-list cf'>
+                      {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
+                    </div>)
+                  :
+                    <p><em>No Pyret files yet, use New File above to create one.</em></p>
             }
           </div>
           <div className={'modal-body ' + ((this.state.activeTab === 'new-file') ? '' : 'hidden')}>

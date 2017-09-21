@@ -1,20 +1,26 @@
 {
-  "baseUrl": "./",
-  "optimize": "none",
-  "paths": {
-      "cpo": "./src/web/js/",
-      "pyret-base": "./pyret/build/phaseA/",
-      "jglr": "./pyret/lib/jglr",
-      "js-md5": "node_modules/js-md5/src/md5",
-      "js-sha256": "node_modules/js-sha256/src/sha256",
-      "crypto": "empty:",
-      "path": "src/web/js/pathstub",
-      "q": "build/web/js/q",
-      "s-expression": "empty:",
-      "fs": "build/web/js/fsstub",
-      "requirejs": "empty:",
-      "seedrandom": "empty:",
-      "source-map": "empty:",
-      "stacktrace-js": "empty:"
-    }
+  "use-raw-files": true,
+  "raw-js": {
+    "pyret-base/js/codePoint": "pyret/build/phaseA/js/codePoint.js",
+    "pyret-base/js/exn-stack-parser": "pyret/build/phaseA/js/exn-stack-parser.js",
+    "pyret-base/js/js-numbers": "pyret/build/phaseA/js/js-numbers.js",
+    "pyret-base/js/namespace": "pyret/build/phaseA/js/namespace.js",
+    "pyret-base/js/pyret-parser": "pyret/build/phaseA/js/pyret-parser.js",
+    "pyret-base/js/pyret-tokenizer": "pyret/build/phaseA/js/pyret-tokenizer.js",
+    "pyret-base/js/runtime.js": "pyret/build/phaseA/js/runtime.js",
+    "pyret-base/js/runtime-util": "pyret/build/phaseA/js/runtime-util.js",
+    "pyret-base/js/type-util": "pyret/build/phaseA/js/type-util.js",
+    "pyret-base/js/secure-loader": "pyret/build/phaseA/js/secure-loader.js",
+
+    "cpo/gdrive-locators": "src/web/js/gdrive-locators.js",
+    "cpo/http-imports": "src/web/js/http-imports.js",
+    "cpo/guess-gas": "src/web/js/guess-gas.js",
+    "cpo/cpo-builtin-modules": "src/web/js/cpo-builtin-modules.js",
+    "cpo/modal-prompt": "src/web/js/modal-prompt.js",
+
+    "jglr/jglr": "pyret/lib/jglr/jglr.js",
+    "jglr/rnglr": "pyret/lib/jglr/rnglr.js",
+    "jglr/cyclicJSON": "pyret/lib/jglr/cyclicJSON.js"
+  },
+  "baseUrl": "./"
 }

@@ -1,4 +1,4 @@
-define(["pyret-base/js/type-util"], function(t) {
+define("cpo/cpo-builtin-modules", ["pyret-base/js/type-util"], function(t) {
   // Set via callback
   var staticModules = {};
   var savedRealm = {};

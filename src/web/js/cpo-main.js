@@ -39,7 +39,6 @@
   nativeRequires: [
     "cpo/gdrive-locators",
     "cpo/http-imports",
-    "cpo/guess-gas",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
     "pyret-base/js/runtime"
@@ -48,7 +47,7 @@
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
-                      gdriveLocators, http, guessGas, cpoModules, _modalPrompt,
+                      gdriveLocators, http, cpoModules, _modalPrompt,
                       rtLib) {
 
 
@@ -261,7 +260,7 @@
                   },
                   function(locator) {
                     return gf(repl, "restart-interactions").app(locator, pyOptions);
-                  });
+                  }, "restart-interactions:make-definitions-locator");
               }, function(result) {
                 ret.resolve(result);
               });
@@ -280,7 +279,7 @@
                   },
                   function(locator) {
                     return gf(repl, "run-interaction").app(locator);
-                  });
+                  }, "run:make-interaction-locator");
               }, function(result) {
                 ret.resolve(result);
               }, "make-interaction-locator");
@@ -301,11 +300,6 @@
       }, "make-repl");
 
     function withRepl(repl) {
-
-      console.log("Loaded");
-      clearInterval($("#loader").data("intervalID"));
-      $("#loader").hide();
-
       var runButton = $("#runButton");
 
       var codeContainer = $("<div>").addClass("replMain");

@@ -98,7 +98,7 @@
       }
       return runtime.safeCall(doLoadWorksheet, function(thunk) {
         return thunk();
-      });
+      }, "gdrive-sheets:loadWorksheet:doLoadWorksheet");
     }
 
     function deleteWorksheet(deleter) {
@@ -143,7 +143,7 @@
       }
       return runtime.safeCall(doAdd, function(thunk) {
         return thunk();
-      });
+      }, "gdrive-sheets:addWorksheet:doAdd");
     }
 
     function worksheetToTable(ws, colNames) {
@@ -249,12 +249,12 @@
                   }, function(result) {
                     outData[i][curIdx] = result;
                     return runtime.nothing;
-                  });
+                  }, "gdrive-sheets:worksheetToTable:constructCell");
                 }), 0, width);
               }), 0, data.length);
             }, function(_) {
               return table.makeTable(colNames, outData);
-            });
+            }, "gdrive-sheets:worksheetToTable:constructValues");
           };
         }
       });
@@ -268,7 +268,7 @@
      */
     function makeSheetLoader(load) {
       function doLoad(colNames, sanitizers) {
-        runtime.ffi.checkArity(2, arguments, "load");
+        runtime.ffi.checkArity(2, arguments, "load", false);
         runtime.checkArray(colNames);
         runtime.checkArray(sanitizers);
         sanitizers = sanitizers.map(runtime.extractLoaderOption);
@@ -397,20 +397,20 @@
                   }, function(result) {
                     outData[i][curIdx] = result;
                     return runtime.nothing;
-                  });
+                  }, "gdrive-sheets:worksheetToLoadedTable:constructCell");
                 }), 0, width)
               }), 0, data.length);
             },
             function(_) {
               return runtime.makeLoadedTable(fullySanitized, outData);
-            });
+            }, "gdrive-sheets:worksheetToLoadedTable:constructValues");
           }
         }
       });
     }
 
     function spreadsheetSheetByName(ss, name, skipHeaders) {
-      runtime.ffi.checkArity(3, arguments, "open-sheet");
+      runtime.ffi.checkArity(3, arguments, "open-sheet", false);
       checkSpreadsheet(ss);
       runtime.checkString(name);
       runtime.checkBoolean(skipHeaders);
@@ -418,7 +418,7 @@
     }
 
     function spreadsheetSheetByIndex(ss, idx, skipHeaders) {
-      runtime.ffi.checkArity(3, arguments, "open-sheet-by-index");
+      runtime.ffi.checkArity(3, arguments, "open-sheet-by-index", false);
       checkSpreadsheet(ss);
       runtime.checkNumber(idx);
       runtime.checkBoolean(skipHeaders);
@@ -432,7 +432,7 @@
         }));
       
       function sheetByName(name, skipHeaders) {
-        runtime.ffi.checkArity(2, arguments, "sheet-by-name");
+        runtime.ffi.checkArity(2, arguments, "sheet-by-name", true);
         runtime.checkString(name);
         runtime.checkBoolean(skipHeaders);
         return makeSheetLoader(function(onlyInfer) {
@@ -442,7 +442,7 @@
       }
       
       function sheetByPos(idx, skipHeaders) {
-        runtime.ffi.checkArity(2, arguments, "sheet-by-index");
+        runtime.ffi.checkArity(2, arguments, "sheet-by-index", true);
         runtime.checkNumber(idx);
         runtime.checkBoolean(skipHeaders);
         return makeSheetLoader(function(onlyInfer) {
@@ -451,17 +451,17 @@
         //return loadWorksheet(function(){return ss.getByIndex(idx, skipHeaders);});
       }
       function deleteSheetByName(name) {
-        runtime.ffi.checkArity(1, arguments, "delete-sheet-by-name");
+        runtime.ffi.checkArity(1, arguments, "delete-sheet-by-name", true);
         runtime.checkString(name);
         return deleteWorksheet(function(){return ss.deleteByName(name);});
       }
       function deleteSheetByPos(idx) {
-        runtime.ffi.checkArity(1, arguments, "delete-sheet-by-index");
+        runtime.ffi.checkArity(1, arguments, "delete-sheet-by-index", true);
         runtime.checkNumber(idx);
         return deleteWorksheet(function(){return ss.deleteByIndex(idx);});
       }
       function addSheet(name) {
-        runtime.ffi.checkArity(1, arguments, "add-sheet");
+        runtime.ffi.checkArity(1, arguments, "add-sheet", true);
         runtime.checkString(name);
         return addWorksheet(function(){return ss.addWorksheet(name);});
       }
@@ -477,7 +477,7 @@
     }
     
     function createSpreadsheet(name) {
-      runtime.ffi.checkArity(1, arguments, "create-spreadsheet");
+      runtime.ffi.checkArity(1, arguments, "create-spreadsheet", false);
       runtime.checkString(name);
       return runtime.pauseStack(function(resumer) {
         sheetsAPI.then(function(api) {
@@ -517,7 +517,7 @@
     }
 
     function loadLocalSheet(name) {
-      runtime.ffi.checkArity(1, arguments, 'my-spreadsheet');
+      runtime.ffi.checkArity(1, arguments, 'my-spreadsheet', false);
       runtime.checkString(name);
       return loadSpreadsheet(function(api) {
         return api.loadSpreadsheetByName(name);
@@ -525,7 +525,7 @@
     }
 
     function loadSheetById(id) {
-      runtime.ffi.checkArity(1, arguments, 'load-spreadsheet');
+      runtime.ffi.checkArity(1, arguments, 'load-spreadsheet', false);
       runtime.checkString(id);
       return loadSpreadsheet(function(api) {
         return api.loadSpreadsheetById(id);

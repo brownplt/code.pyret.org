@@ -75,10 +75,10 @@
   <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
   <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
 
-  <button id="breakButton" class="blueButton rhs">Stop</button>
+  <button disabled id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
-    <span id="runDropdown" class="dropdown rhs">↴</span>
-    <button id="runButton" class="blueButton rhs">Run</button>
+    <button disabled id="runDropdown" class="blueButton dropdown rhs">↴</button>
+    <button disabled id="runButton" class="blueButton rhs">Run</button>
   </div>
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
@@ -132,9 +132,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 <script src="https://npmcdn.com/dexie@1.4.1/dist/dexie.min.js"></script>
-<script src="/js/loader.js"></script>
-<script src="/js/colorspaces.js"></script>
 <script src="/js/q.js"></script>
+<script src="/js/loader.js"></script>
 <script src="/js/codemirror.js"></script>
 <script src="/js/foldcode.js"></script>
 <script src="/js/foldgutter.js"></script>
@@ -143,34 +142,7 @@
 <script src="/js/pyret-mode.js"></script>
 <script src="/js/pyret-fold.js"></script>
 <script src="/js/matchkw.js"></script>
-<script src="/js/draw.js"></script>
-<script src="/js/require.js"></script>
-<script>
-  window.module = {};
-  window.exports = {};
-</script>
-<script src="/js/s-expression-lib.js"></script>
-<script>
-var sexp_exports = window.module.exports;
-define("s-expression", [], function() {
-  return sexp_exports;
-});
-</script>
-<script src="/js/seedrandom.js"></script>
-<script>
-var seed_exports = window.module.exports;
-define("seedrandom", [], function() {
-  return seed_exports;
-});
-</script>
-<script src="/js/source-map.js"></script>
-<script>
-var sm_exports = window.module.exports;
-define("source-map", [], function() {
-  return sm_exports;
-});
-</script>
-<script>delete window.module;</script>
+
 <script src="/js/localSettings.js"></script>
 <script src="/js/log.js"></script>
 <script src="/js/share.js"></script>
@@ -179,6 +151,7 @@ define("source-map", [], function() {
 <script src="/js/google-apis/picker.js"></script>
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {

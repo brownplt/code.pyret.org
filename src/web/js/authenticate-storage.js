@@ -23,17 +23,4 @@ window.handleClientLoad = function handleClientLoad(apiKey) {
     sheetsAPIDeferred.reject(err);
     console.log("Not logged in; proceeding without login info", err);
   });
-  define("gdrive-credentials", [], function() {
-    var thisApiKey = apiKey;
-    return {
-      getCredentials: function() {
-        return {
-          apiKey: thisApiKey
-        };
-      },
-      setCredentials: function(apiKey) {
-        thisApiKey = apiKey;
-      }
-    };
-  });
 }

@@ -4,8 +4,8 @@
   ],
   nativeRequires: [
     'pyret-base/js/js-numbers',
-    './build/web/js/d3.js',
-    './build/web/js/d3-tip.js'
+    'd3',
+    'd3-tip'
   ],
   provides: {},
   theModule: function (RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {

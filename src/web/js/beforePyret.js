@@ -90,6 +90,18 @@ var Documents = function() {
   return Documents;
 }();
 
+var VERSION_CHECK_INTERVAL = 120000 + (30000 * Math.random());
+
+function checkVersion() {
+  $.get("/current-version").then(function(resp) {
+    resp = JSON.parse(resp);
+    if(resp.version && resp.version !== process.env.CURRENT_PYRET_RELEASE) {
+      window.stickMessage("A new version of Pyret is available. Save and reload the page to get the newest version.");
+    }
+  });
+}
+window.setInterval(checkVersion, VERSION_CHECK_INTERVAL);
+
 window.CPO = {
   save: function() {},
   autoSave: function() {},
@@ -182,7 +194,7 @@ $(function() {
     };
   };
   CPO.RUN_CODE = function() {
-
+    console.log("Running before ready", arguments);
   };
 
   function setUsername(target) {

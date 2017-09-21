@@ -79,6 +79,12 @@ function start(config, onServerReady) {
   app.engine('js', mustache());
   app.set('view engine', ['html', 'js']);
 
+  app.get("/current-version", function(req, res) {
+    res.status(200);
+    res.send(JSON.stringify({version: config.version}));
+    res.end();
+  });
+
   app.get("/js/log.js", function(req, res) {
     res.set("Content-Type", "application/javascript");
     res.render(__dirname + "/../build/web/js/log.js", {
@@ -318,6 +324,10 @@ function start(config, onServerReady) {
 
   app.get("/neweditor", function(req, res) {
     res.sendfile("build/web/editor.html");
+  });
+
+  app.get("/source-map.js", function(req, res) {
+    res.sendfile("build/web/js/source-map.js");
   });
 
   app.get("/share", function(req, res) {

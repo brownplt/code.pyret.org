@@ -10,7 +10,7 @@
  *       general-purpose in the future, but, for now,
  *       be aware of these limitations.
  */
-define(["q"], function(Q) {
+define("cpo/modal-prompt", ["q"], function(Q) {
 
   function autoHighlightBox(text) {
     var textBox = $("<input type='text'>").addClass("auto-highlight");
