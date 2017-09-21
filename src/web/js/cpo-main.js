@@ -300,11 +300,6 @@
       }, "make-repl");
 
     function withRepl(repl) {
-
-      console.log("Loaded");
-      clearInterval($("#loader").data("intervalID"));
-      $("#loader").hide();
-
       var runButton = $("#runButton");
 
       var codeContainer = $("<div>").addClass("replMain");

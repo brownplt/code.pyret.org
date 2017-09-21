@@ -277,10 +277,12 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
         console.error("Couldn't start REPL: ", err);
       });
       interactionsReady.then(function(result) {
+        $("#runButton").attr("disabled", false);
+        $("#runDropdown").attr("disabled", false);
+        clearInterval($("#loader").data("intervalID"));
+        $("#loader").hide();
         console.log("REPL ready.");
       });
-      //console.log("The program completed successfully");
-      //console.log(result);
     }
     else {
       console.error("The run ended in error: ", result);

@@ -194,7 +194,7 @@ $(function() {
     };
   };
   CPO.RUN_CODE = function() {
-
+    console.log("Running before ready", arguments);
   };
 
   function setUsername(target) {
