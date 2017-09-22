@@ -819,7 +819,7 @@
         onError: flashError,
         onInternalError: stickError,
         views: ["pyretView"],
-        title: "Select a Pyret file to use"
+        title: "Select a " + (cpoDialect==='patch'? "Patch": "Pyret") + " file to use"
       });
 
       return runtime.makeModuleReturn({
