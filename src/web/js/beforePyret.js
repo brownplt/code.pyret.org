@@ -96,7 +96,7 @@ function checkVersion() {
   $.get("/current-version").then(function(resp) {
     resp = JSON.parse(resp);
     if(resp.version && resp.version !== process.env.CURRENT_PYRET_RELEASE) {
-      window.stickMessage("A new version of Pyret is available. Save and reload the page to get the newest version.");
+      window.flashMessage("A new version of Pyret is available. Save and reload the page to get the newest version.");
     }
   });
 }
