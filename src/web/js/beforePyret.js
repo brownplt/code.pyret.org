@@ -533,11 +533,56 @@ $(function() {
   pyretLoad.src = process.env.PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
-  $(pyretLoad).on("error", function() {
+  $(pyretLoad).on("error", function(e) {
+
     $("#loader").hide();
     $("#runPart").hide();
     $("#breakButton").hide();
     window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+
+    // NOTE(joe): The error reported by the "error" event has essentially no
+    // information on it; it's just a notification that _something_ went wrong.
+    // So, we log that something happened, then immediately do an AJAX request
+    // call for the same URL, to see if we can get more information. This
+    // doesn't perfectly tell us about the original failure, but it's
+    // something.
+
+    // In addition, if someone is seeing the Pyret failed to load error, but we
+    // don't get these logging events, we have a strong hint that something is
+    // up with their network.
+    logger.log('pyret-load-failure',
+      {
+        event : 'initial-failure',
+
+        // The timestamp appears to count from the beginning of page load,
+        // which may approximate download time if, say, requests are timing out
+        // or getting cut off.
+
+        timeStamp : e.timeStamp
+      });
+
+    var manualFetch = $.ajax(process.env.PYRET);
+    manualFetch.then(function(res) {
+      // Here, we log the first 100 characters of the response to make sure
+      // they resemble the Pyret blob
+      logger.log('pyret-load-failure', {
+        event : 'success-with-ajax',
+        contentsPrefix : res.slice(0, 100)
+      });
+    });
+    manualFetch.fail(function(res) {
+      logger.log('pyret-load-failure', {
+        event : 'failure-with-ajax',
+        status: res.status,
+        statusText: res.statusText,
+        // Since responseText could be a long error page, and we don't want to
+        // log huge pages, we slice it to 100 characters, which is enough to
+        // tell us what's going on (e.g. AWS failure, network outage).
+        responseText: res.responseText.slice(0, 100)
+      });
+      debugger;
+    });
+
   });
 
   programLoaded.fin(function() {
