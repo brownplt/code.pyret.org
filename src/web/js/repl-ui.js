@@ -355,7 +355,7 @@
         let timeoutTrigger = null;
 
         const windowOptions = {
-          title: 'Chart display',
+          title: '',
           position: [5, 5],
           bgiframe: true,
           width: 'auto',
