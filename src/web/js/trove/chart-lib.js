@@ -349,7 +349,12 @@
         if (row.length != 0) {
           currentRow[0] = toFixnum(row[0]);
           currentRow[2*i + 1] = toFixnum(row[1]);
-          const labelRow = (row.length == 3) ? `<p>label: <b>${row[2]}</b></p>` : '';
+          let labelRow = null;
+          if (row.length == 3 && row[2] !== '') {
+            labelRow = `<p>label: <b>${row[2]}</b></p>`;
+          } else {
+            labelRow = '';
+          }
           currentRow[2*i + 2] = `<p>${legends[i]}</p>
 <p>x: <b>${currentRow[0]}</b></p>
 <p>y: <b>${currentRow[2*i + 1]}</b></p>
@@ -553,12 +558,13 @@ ${labelRow}`;
 
       let result = null;
 
-      function draw() {
+      function draw(optMutator) {
+        optMutator = optMutator ? optMutator : x => x;
         if (result != null) {
           const newOptions = $.extend({}, {
-            title: get(globalOptions, 'title')
+            title: get(globalOptions, 'title'),
           }, result.options);
-          result.chart.draw(result.data, newOptions);
+          result.chart.draw(result.data, optMutator(newOptions));
         }
       }
 
@@ -598,6 +604,9 @@ ${labelRow}`;
               height: toFixnum(get(globalOptions, 'height'))
             },
             isInteractive: isInteractive,
+            getImageURI: () => result.chart.getImageURI(),
+            // thunk it here b/c apparently getImageURI is going to be mutated
+            // by Google
           });
         });
       });
