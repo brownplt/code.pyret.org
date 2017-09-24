@@ -554,13 +554,13 @@ fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries
   when xs.length() <> ys.length():
     raise('scatter-plot: xs and ys should have the same length')
   end
-  labeled-scatter-plot-from-list(xs, ys, xs.map({(_): ''}))
+  labeled-scatter-plot-from-list(xs.map({(_): ''}), xs, ys)
 end
 
 fun labeled-scatter-plot-from-list(
+  labels :: List<String>,
   xs :: List<Number>,
-  ys :: List<Number>,
-  labels :: List<String>) -> DataSeries block:
+  ys :: List<Number>) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('labeled-scatter-plot: xs and ys should have the same length')
   end
