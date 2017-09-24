@@ -414,18 +414,6 @@ end
 # METHODS
 ################################################################################
 
-title-method = method(self, title :: String):
-  self.constr()(self.obj.{title: title})
-end
-
-width-method = method(self, width :: Number):
-  self.constr()(self.obj.{width: width})
-end
-
-height-method = method(self, height :: Number):
-  self.constr()(self.obj.{height: height})
-end
-
 x-axis-method = method(self, x-axis :: String):
   self.constr()(self.obj.{x-axis: x-axis})
 end
@@ -453,14 +441,8 @@ end
 data ChartWindow:
   | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
-    title: title-method,
-    width: width-method,
-    height: height-method,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
-    title: title-method,
-    width: width-method,
-    height: height-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     y-min: y-min-method,
@@ -474,9 +456,6 @@ data ChartWindow:
     end
   | histogram-chart-window(obj :: HistogramChartWindowObject) with:
     constr: {(): histogram-chart-window},
-    title: title-method,
-    width: width-method,
-    height: height-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     x-min: x-min-method,
@@ -492,9 +471,6 @@ data ChartWindow:
     end
   | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
-    title: title-method,
-    width: width-method,
-    height: height-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     x-min: x-min-method,
@@ -525,6 +501,15 @@ sharing:
     _ = check-chart-window(self.obj)
     self.obj.{interact: false}.render()
   end,
+  method title(self, title :: String):
+    self.constr()(self.obj.{title: title})
+  end,
+  method width(self, width :: Number):
+    self.constr()(self.obj.{width: width})
+  end,
+  method height(self, height :: Number):
+    self.constr()(self.obj.{height: height})
+  end,
 end
 
 ################################################################################
@@ -554,13 +539,13 @@ fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries
   when xs.length() <> ys.length():
     raise('scatter-plot: xs and ys should have the same length')
   end
-  labeled-scatter-plot-from-list(xs, ys, xs.map({(_): ''}))
+  labeled-scatter-plot-from-list(xs.map({(_): ''}), xs, ys)
 end
 
 fun labeled-scatter-plot-from-list(
+  labels :: List<String>,
   xs :: List<Number>,
-  ys :: List<Number>,
-  labels :: List<String>) -> DataSeries block:
+  ys :: List<Number>) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('labeled-scatter-plot: xs and ys should have the same length')
   end

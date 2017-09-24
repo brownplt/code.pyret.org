@@ -349,14 +349,13 @@
 
       runtime.setParam('chart-port', function(args) {
         const animationDiv = $(args.root);
-        const buttons = [];
         animationDivs.push(animationDiv);
         output.append(animationDiv);
 
         let timeoutTrigger = null;
 
         const windowOptions = {
-          title: 'Chart display',
+          title: '',
           position: [5, 5],
           bgiframe: true,
           width: 'auto',
@@ -368,16 +367,39 @@
           create: () => {
             // from http://fiddle.jshell.net/JLSrR/116/
             const titlebar = animationDiv.prev();
-            buttons.forEach(buttonData => {
-              const button = $('<button/>');
-              const left = titlebar.find( "[role='button']:last" ).css('left');
-              button
-                .button({icons: {primary: buttonData.icon}, text: false})
-                .addClass('ui-dialog-titlebar-close')
-                .css('left', (parseInt(left) + 27) + 'px')
-                .click(buttonData.click)
-                .appendTo(titlebar);
-            });
+            const saveButton = $('<button/>');
+            const left = titlebar.find( "[role='button']:last" ).css('left');
+            saveButton
+              .button({icons: {primary: 'ui-icon-disk'}, text: false})
+              .addClass('ui-dialog-titlebar-close')
+              .css('left', (parseInt(left) + 27) + 'px')
+              .click(() => {
+                let savedOptions = null;
+                args.draw(options => {
+                  savedOptions = options;
+                  return $.extend({}, options, {chartArea: null});
+                });
+                const download = document.createElement('a');
+                download.href = args.getImageURI();
+                download.download = 'chart.png';
+                // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
+                function fireEvent(obj, evt){
+                  const fireOnThis = obj;
+                  if(document.createEvent) {
+                    const evObj = document.createEvent('MouseEvents');
+                    evObj.initEvent(evt, true, false);
+                    fireOnThis.dispatchEvent(evObj);
+                  } else if(document.createEventObject) {
+                    const evObj = document.createEventObject();
+                    fireOnThis.fireEvent('on' + evt, evObj);
+                  }
+                }
+                fireEvent(download, 'click');
+
+                args.draw(_ => savedOptions);
+
+              })
+              .appendTo(titlebar);
           },
           resize: () => {
             if (timeoutTrigger) clearTimeout(timeoutTrigger);
