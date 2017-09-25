@@ -561,24 +561,23 @@ ${labelRow}`;
       function draw(optMutator) {
         optMutator = optMutator ? optMutator : x => x;
         if (result != null) {
-          const newOptions = $.extend({}, {
-            title: get(globalOptions, 'title'),
-          }, result.options);
-          result.chart.draw(result.data, optMutator(newOptions));
+          result.chart.draw(result.data, optMutator(result.options));
         }
       }
 
       function setup(restarter) {
         const tmp = f(globalOptions, rawData);
         tmp.chart = new tmp.chartType(root[0]);
-        const options = {backgroundColor: {fill: 'transparent'}};
+        const options = {
+          backgroundColor: {fill: 'transparent'},
+          title: get(globalOptions, 'title'),
+        };
 
         if ('mutators' in tmp) {
           tmp.mutators.forEach(fn => fn(options, globalOptions, rawData));
         }
 
-        tmp.options =
-          $.extend({}, options, 'options' in tmp ? tmp.options : {});
+        tmp.options = $.extend({}, options, 'options' in tmp ? tmp.options : {});
 
         if ('overlay' in tmp) tmp.overlay(overlay, restarter);
 

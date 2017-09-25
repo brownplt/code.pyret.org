@@ -1137,15 +1137,7 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
         ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr})
         cases (E.Either<Any, IM.Image>) ret:
           | left(new-self) => helper(new-self, none)
-          | right(image) =>
-            if self.interact:
-              # can't use image here because it contains the side panel
-              P.plot(
-                self.{interact: false},
-                {scatters: scatters-arr, lines: lines-arr}).v
-            else:
-              image
-            end
+          | right(image) => image
         end
       end
       helper(self, some(function-plots-data))
