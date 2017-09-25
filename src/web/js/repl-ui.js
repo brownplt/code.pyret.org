@@ -360,46 +360,50 @@
           bgiframe: true,
           width: 'auto',
           height: 'auto',
-          close: () => {
+          beforeClose: () => {
+            args.draw(options => $.extend({}, options, {chartArea: null}));
             args.onExit();
             closeTopAnimationIfOpen();
           },
           create: () => {
             // from http://fiddle.jshell.net/JLSrR/116/
             const titlebar = animationDiv.prev();
-            const saveButton = $('<button/>');
-            const left = titlebar.find( "[role='button']:last" ).css('left');
-            saveButton
-              .button({icons: {primary: 'ui-icon-disk'}, text: false})
-              .addClass('ui-dialog-titlebar-close')
-              .css('left', (parseInt(left) + 27) + 'px')
-              .click(() => {
-                let savedOptions = null;
-                args.draw(options => {
-                  savedOptions = options;
-                  return $.extend({}, options, {chartArea: null});
-                });
-                const download = document.createElement('a');
-                download.href = args.getImageURI();
-                download.download = 'chart.png';
-                // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
-                function fireEvent(obj, evt){
-                  const fireOnThis = obj;
-                  if(document.createEvent) {
-                    const evObj = document.createEvent('MouseEvents');
-                    evObj.initEvent(evt, true, false);
-                    fireOnThis.dispatchEvent(evObj);
-                  } else if(document.createEventObject) {
-                    const evObj = document.createEventObject();
-                    fireOnThis.fireEvent('on' + evt, evObj);
-                  }
+            let left = parseInt(titlebar.find("[role='button']:last").css('left'));
+            function addButton(icon, fn) {
+              left += 27;
+              const btn = $('<button/>')
+                .button({icons: {primary: icon}, text: false})
+                .addClass('ui-dialog-titlebar-close')
+                .css('left', left + 'px')
+                .click(fn)
+                .appendTo(titlebar);
+              return btn;
+            }
+
+            addButton('ui-icon-disk', () => {
+              let savedOptions = null;
+              args.draw(options => {
+                savedOptions = options;
+                return $.extend({}, options, {chartArea: null});
+              });
+              const download = document.createElement('a');
+              download.href = args.getImageURI();
+              download.download = 'chart.png';
+              // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
+              function fireEvent(obj, evt){
+                const fireOnThis = obj;
+                if(document.createEvent) {
+                  const evObj = document.createEvent('MouseEvents');
+                  evObj.initEvent(evt, true, false);
+                  fireOnThis.dispatchEvent(evObj);
+                } else if(document.createEventObject) {
+                  const evObj = document.createEventObject();
+                  fireOnThis.fireEvent('on' + evt, evObj);
                 }
-                fireEvent(download, 'click');
-
-                args.draw(_ => savedOptions);
-
-              })
-              .appendTo(titlebar);
+              }
+              fireEvent(download, 'click');
+              args.draw(_ => savedOptions);
+            });
           },
           resize: () => {
             if (timeoutTrigger) clearTimeout(timeoutTrigger);
