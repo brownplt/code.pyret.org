@@ -533,6 +533,7 @@ $(function() {
   pyretLoad.src = process.env.PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
+<<<<<<< HEAD
 
   var pyretLoad2 = document.createElement('script');
 
