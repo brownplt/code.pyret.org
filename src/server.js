@@ -53,6 +53,10 @@ function start(config, onServerReady) {
       next(); /* Continue to other routes if we're not redirecting */
   })
 
+  app.get("/__pyret-compiler", function(req, res) {
+    request.get(config.pyret).pipe(res);
+  });
+
   // This has to go first to override other options
   app.get("/js/pyret.js", function(req, res) {
     res.set("Content-Encoding", "gzip");

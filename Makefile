@@ -143,6 +143,12 @@ build/web/js/foldgutter.js: $(CM)/addon/fold/foldgutter.js
 build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
 	cp $< $@
 
+build/web/js/mousetrap.min.js: node_modules/mousetrap/mousetrap.min.js
+	cp $< $@
+
+build/web/js/mousetrap-global-bind.min.js: node_modules/mousetrap/plugins/global-bind/mousetrap-global-bind.min.js
+	cp $< $@
+
 MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/codemirror.js \
           build/web/js/mark-selection.js \
@@ -155,7 +161,9 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/foldgutter.js \
           build/web/js/colorspaces.js \
           build/web/js/es6-shim.js \
-          build/web/js/runmode.js
+          build/web/js/runmode.js \
+					build/web/js/mousetrap.min.js \
+					build/web/js/mousetrap-global-bind.min.js
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 

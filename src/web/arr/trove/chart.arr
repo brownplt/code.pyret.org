@@ -40,37 +40,8 @@ type TableIntern = RawArray<RawArray<Any>>
 # HELPERS
 ################################################################################
 
-data Defaultable<A>:
-  | default
-  | value(val :: A) with:
-    method _output(self): self.val ^ VS.vs-value end,
-end
-
-fun option-to-defaultable<a>(v :: Option<a>) -> Defaultable<a>:
-  cases (Option) v:
-    | none => default
-    | some(s) => value(s)
-  end
-end
-
-data TrailingList<a>:
-  | trailing-list(lst :: List<a>) with:
-    method _output(self):
-      VS.vs-collection('list', self.lst.map(VS.vs-value) + [list: VS.vs-str("....")])
-    end
-  | plain-list(lst :: List<a>) with:
-    method _output(self):
-      VS.vs-value(self.lst)
-    end
-end
-
-fun get-trailing-list<a>(lst :: List<a>) -> TrailingList<a>:
-  if lst.length() > SHOW-LENGTH:
-    trailing-list(lst.take(SHOW-LENGTH))
-  else:
-    plain-list(lst)
-  end
-end
+fun check-num(v :: Number) -> Nothing: nothing end
+fun check-string(v :: String) -> Nothing: nothing end
 
 fst = raw-array-get(_, 0)
 snd = raw-array-get(_, 1)
@@ -144,34 +115,34 @@ end
 default-series = {get-data: {(): raise('internal error: this should not happen')}}
 
 type PieChartSeries = {
-  labels :: TrailingList<String>,
-  values :: TrailingList<Number>,
+  labels :: List<String>,
+  values :: List<Number>,
   get-data :: ( -> Any)
 }
 
 default-pie-chart-series :: PieChartSeries  = default-series.{
-  labels: plain-list(empty),
-  values: plain-list(empty),
+  labels: empty,
+  values: empty,
 }
 
 ############
 
 type BarChartSeries = {
-  labels :: TrailingList<String>,
-  value-lists :: TrailingList<TrailingList<Number>>,
+  labels :: List<String>,
+  value-lists :: List<List<Number>>,
   get-data :: ( -> Any)
 }
 
 default-bar-chart-series :: BarChartSeries = default-series.{
-  labels: plain-list(empty),
-  value-lists: plain-list(empty),
+  labels: empty,
+  value-lists: empty,
 }
 
 ############
 
 type HistogramSeries = {
-  labels :: TrailingList<String>,
-  values :: TrailingList<Number>,
+  labels :: List<String>,
+  values :: List<Number>,
   bin-width :: Option<Number>,
   max-num-bins :: Option<Number>,
   min-num-bins :: Option<Number>,
@@ -179,8 +150,8 @@ type HistogramSeries = {
 }
 
 default-histogram-series :: HistogramSeries  = default-series.{
-  labels: plain-list(empty),
-  values: plain-list(empty),
+  labels: empty,
+  values: empty,
   bin-width: none,
   max-num-bins: none,
   min-num-bins: none,
@@ -189,16 +160,16 @@ default-histogram-series :: HistogramSeries  = default-series.{
 ############
 
 type LinePlotSeries = {
-  xs :: TrailingList<Number>,
-  ys :: TrailingList<Number>,
+  xs :: List<Number>,
+  ys :: List<Number>,
   color :: Option<I.Color>,
   legend :: String,
   get-data :: ( -> Any),
 }
 
 default-line-plot-series :: LinePlotSeries = default-series.{
-  xs: plain-list(empty),
-  ys: plain-list(empty),
+  xs: empty,
+  ys: empty,
   color: none,
   legend: '',
 }
@@ -206,9 +177,9 @@ default-line-plot-series :: LinePlotSeries = default-series.{
 ############
 
 type ScatterPlotSeries = {
-  xs :: TrailingList<Number>,
-  ys :: TrailingList<Number>,
-  labels :: TrailingList<String>,
+  xs :: List<Number>,
+  ys :: List<Number>,
+  labels :: List<String>,
   color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
@@ -216,9 +187,9 @@ type ScatterPlotSeries = {
 }
 
 default-scatter-plot-series :: ScatterPlotSeries = default-series.{
-  xs: plain-list(empty),
-  ys: plain-list(empty),
-  labels: plain-list(empty),
+  xs: empty,
+  ys: empty,
+  labels: empty,
   color: none,
   legend: '',
   point-size: 7,
@@ -328,6 +299,35 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
 }
 
 ################################################################################
+# CUSTOM PRINTING
+
+type WithOutput = {_output :: ( -> VS.ValueSkeleton)}
+
+fun to-defaultable<a>(v :: Option<a>) -> WithOutput:
+  {
+    method _output(self):
+      cases (Option) v:
+        | none =>  VS.vs-str('default')
+        | some(s) => VS.vs-value(s)
+      end
+    end
+  }
+end
+
+fun to-trailing-list<a>(lst :: List<a>) -> WithOutput:
+  {
+    method _output(self):
+      if lst.length() > SHOW-LENGTH:
+        els = lst.take(SHOW-LENGTH).map(VS.vs-value) + [list: VS.vs-str("....")]
+        VS.vs-collection('list', els)
+      else:
+        VS.vs-value(lst)
+      end
+    end
+  }
+end
+
+################################################################################
 # DATA DEFINITIONS
 ################################################################################
 
@@ -346,11 +346,13 @@ data DataSeries:
     color: color-method,
     legend: legend-method,
     method _output(self):
-      # customize _output in this level to avoid self-reference
-      VS.vs-constr('line-plot-series', [list: self.obj.{
-          color: option-to-defaultable(self.obj.color),
+      VS.vs-constr('line-plot-series', [list: {
+          xs: self.obj.xs ^ to-trailing-list,
+          ys: self.obj.ys ^ to-trailing-list,
+          color: self.obj.color ^ to-defaultable,
+          legend: self.obj.legend,
         } ^ VS.vs-value])
-    end
+    end,
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
     is-single: false,
     constr: {(): scatter-plot-series},
@@ -360,28 +362,45 @@ data DataSeries:
       scatter-plot-series(self.obj.{point-size: point-size})
     end,
     method _output(self):
-      # customize _output in this level to avoid self-reference
-      VS.vs-constr('scatter-plot-series', [list: self.obj.{
-          color: option-to-defaultable(self.obj.color),
+      VS.vs-constr('scatter-plot-series', [list: {
+          xs: self.obj.xs ^ to-trailing-list,
+          ys: self.obj.ys ^ to-trailing-list,
+          labels: self.obj.labels ^ to-trailing-list,
+          color: self.obj.color ^ to-defaultable,
+          legend: self.obj.legend,
+          point-size: self.obj.point-size,
         } ^ VS.vs-value])
-    end
+    end,
   | function-plot-series(obj :: FunctionPlotSeries) with:
     is-single: false,
     constr: {(): function-plot-series},
     color: color-method,
     legend: legend-method,
     method _output(self):
-      # customize _output in this level to avoid self-reference
-      VS.vs-constr('function-plot-series', [list: self.obj.{
-          color: option-to-defaultable(self.obj.color),
+      VS.vs-constr('function-plot-series', [list: {
+          f: self.obj.f,
+          color: self.obj.color ^ to-defaultable,
+          legend: self.obj.legend,
         } ^ VS.vs-value])
-    end
+    end,
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
     constr: {(): pie-chart-series},
+    method _output(self):
+      VS.vs-constr('pie-chart-series', [list: {
+          labels: self.obj.labels ^ to-trailing-list,
+          values: self.obj.values ^ to-trailing-list,
+        } ^ VS.vs-value])
+    end,
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
     constr: {(): bar-chart-series},
+    method _output(self):
+      VS.vs-constr('bar-chart-series', [list: {
+          labels: self.obj.labels ^ to-trailing-list,
+          value-lists: self.obj.value-lists.map(to-trailing-list) ^ to-trailing-list,
+        } ^ VS.vs-value])
+    end,
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
@@ -399,6 +418,15 @@ data DataSeries:
         min-num-bins: some(num-bins),
         max-num-bins: some(num-bins)
       })
+    end,
+    method _output(self):
+      VS.vs-constr('histogram-series', [list: {
+          labels: self.obj.labels ^ to-trailing-list,
+          values: self.obj.values ^ to-trailing-list,
+          bin-width: self.obj.bin-width ^ to-defaultable,
+          max-num-bins: self.obj.max-num-bins ^ to-defaultable,
+          min-num-bins: self.obj.min-num-bins ^ to-defaultable,
+        } ^ VS.vs-value])
     end,
 end
 
@@ -441,6 +469,13 @@ end
 data ChartWindow:
   | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
+    method _output(self):
+      VS.vs-constr('pie-chart-window', [list: {
+          title: self.obj.title,
+          width: self.obj.width,
+          height: self.obj.height,
+        } ^ VS.vs-value])
+    end,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
     x-axis: x-axis-method,
@@ -448,12 +483,16 @@ data ChartWindow:
     y-min: y-min-method,
     y-max: y-max-method,
     method _output(self):
-      # customize _output in this level to avoid self-reference
-      VS.vs-constr('bar-chart-window', [list: self.obj.{
-          y-min: option-to-defaultable(self.obj.y-min),
-          y-max: option-to-defaultable(self.obj.y-max),
+      VS.vs-constr('bar-chart-window', [list: {
+          title: self.obj.title,
+          width: self.obj.width,
+          height: self.obj.height,
+          x-axis: self.obj.x-axis,
+          y-axis: self.obj.y-axis,
+          y-min: self.obj.y-min ^ to-defaultable,
+          y-max: self.obj.y-max ^ to-defaultable,
         } ^ VS.vs-value])
-    end
+    end,
   | histogram-chart-window(obj :: HistogramChartWindowObject) with:
     constr: {(): histogram-chart-window},
     x-axis: x-axis-method,
@@ -462,13 +501,17 @@ data ChartWindow:
     x-max: x-max-method,
     y-max: y-max-method,
     method _output(self):
-      # customize _output in this level to avoid self-reference
-      VS.vs-constr('histogram-chart-window', [list: self.obj.{
-          x-min: option-to-defaultable(self.obj.x-min),
-          x-max: option-to-defaultable(self.obj.x-max),
-          y-max: option-to-defaultable(self.obj.y-max),
+      VS.vs-constr('bar-chart-window', [list: {
+          title: self.obj.title,
+          width: self.obj.width,
+          height: self.obj.height,
+          x-axis: self.obj.x-axis,
+          y-axis: self.obj.y-axis,
+          x-min: self.obj.x-min ^ to-defaultable,
+          x-max: self.obj.x-max ^ to-defaultable,
+          y-max: self.obj.y-max ^ to-defaultable,
         } ^ VS.vs-value])
-    end
+    end,
   | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
     x-axis: x-axis-method,
@@ -484,14 +527,19 @@ data ChartWindow:
       plot-chart-window(self.obj.{num-samples: num-samples})
     end,
     method _output(self):
-      # customize _output in this level to avoid self-reference
-      VS.vs-constr('plot-chart-window', [list: self.obj.{
-          x-min: option-to-defaultable(self.obj.x-min),
-          x-max: option-to-defaultable(self.obj.x-max),
-          y-min: option-to-defaultable(self.obj.y-min),
-          y-max: option-to-defaultable(self.obj.y-max),
+      VS.vs-constr('bar-chart-window', [list: {
+          title: self.obj.title,
+          width: self.obj.width,
+          height: self.obj.height,
+          x-axis: self.obj.x-axis,
+          y-axis: self.obj.y-axis,
+          x-min: self.obj.x-min ^ to-defaultable,
+          x-max: self.obj.x-max ^ to-defaultable,
+          y-min: self.obj.y-min ^ to-defaultable,
+          y-max: self.obj.y-max ^ to-defaultable,
+          num-samples: self.obj.num-samples,
         } ^ VS.vs-value])
-    end
+    end,
 sharing:
   method display(self):
     _ = check-chart-window(self.obj)
@@ -527,10 +575,12 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   when xs.length() <> ys.length():
     raise('line-plot: xs and ys should have the same length')
   end
+  xs.each(check-num)
+  ys.each(check-num)
   ps = map2({(x, y): [raw-array: x, y]}, xs, ys)
   default-line-plot-series.{
-    xs: xs ^ get-trailing-list,
-    ys: ys ^ get-trailing-list,
+    xs: xs,
+    ys: ys,
     method get-data(self): self.{ps: ps} end,
   } ^ line-plot-series
 end
@@ -539,6 +589,8 @@ fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries
   when xs.length() <> ys.length():
     raise('scatter-plot: xs and ys should have the same length')
   end
+  xs.each(check-num)
+  ys.each(check-num)
   labeled-scatter-plot-from-list(xs.map({(_): ''}), xs, ys)
 end
 
@@ -552,11 +604,14 @@ fun labeled-scatter-plot-from-list(
   when xs.length() <> labels.length():
     raise('labeled-scatter-plot: xs and labels should have the same length')
   end
+  xs.each(check-num)
+  ys.each(check-num)
+  labels.each(check-string)
   ps = map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
   default-scatter-plot-series.{
-    xs: xs ^ get-trailing-list,
-    ys: ys ^ get-trailing-list,
-    labels: labels ^ get-trailing-list,
+    xs: xs,
+    ys: ys,
+    labels: labels,
     method get-data(self): self.{ps: ps} end,
   } ^ scatter-plot-series
 end
@@ -583,11 +638,14 @@ fun exploding-pie-chart-from-list(
       raise('exploding-pie-chart: offset must be between 0 and 1')
     end
   end
+  values.each(check-num)
+  offsets.each(check-num)
+  labels.each(check-string)
   tab = to-table3(labels, values, offsets)
   default-pie-chart-series.{
-    labels: labels ^ get-trailing-list,
-    values: values ^ get-trailing-list,
-    offsets: offsets ^ get-trailing-list,
+    labels: labels,
+    values: values,
+    offsets: offsets,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -605,10 +663,12 @@ fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   when label-length == 0:
     raise('pie-chart: need at least one data')
   end
+  values.each(check-num)
+  labels.each(check-string)
   tab = to-table3(labels, values, labels.map({(_): 0}))
   default-pie-chart-series.{
-    labels: labels ^ get-trailing-list,
-    values: values ^ get-trailing-list,
+    labels: labels,
+    values: values,
     method get-data(self): self.{tab: tab} end,
   } ^ pie-chart-series
 end
@@ -623,11 +683,13 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   when label-length <> value-length:
     raise('bar-chart: labels and values should have the same length')
   end
+  values.each(check-num)
+  labels.each(check-string)
   value-lists = values.map({(v): [list: v]})
   tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
   default-bar-chart-series.{
-    labels: labels ^ get-trailing-list,
-    value-lists: value-lists.map(get-trailing-list) ^ get-trailing-list,
+    labels: labels,
+    value-lists: value-lists,
     method get-data(self):
       self.{
         tab: tab,
@@ -654,12 +716,15 @@ fun grouped-bar-chart-from-list(
   when legends.length() <> value-lists.first.length():
     raise('grouped-bar-chart: labels and legends should have the same length')
   end
+  value-lists.each(_.each(check-num))
+  labels.each(check-string)
+  legends.each(check-string)
   tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
   legends-arr = legends ^ builtins.raw-array-from-list
   default-bar-chart-series.{
-    labels: labels ^ get-trailing-list,
-    value-lists: value-lists.map(get-trailing-list) ^ get-trailing-list,
-    legends: legends ^ get-trailing-list,
+    labels: labels,
+    value-lists: value-lists,
+    legends: legends,
     method get-data(self):
       {
         tab: tab,
@@ -689,9 +754,10 @@ fun histogram-from-list(values :: List<Number>) -> DataSeries block:
   doc: ```
        Consume a list of numbers and construct a histogram
        ```
+  values.each(check-num)
   tab = to-table2(values.map({(_): ''}), values)
   default-histogram-series.{
-    values: values ^ get-trailing-list,
+    values: values,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
@@ -705,10 +771,12 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   when label-length <> value-length:
     raise('labeled-histogram: labels and values should have the same length')
   end
+  values.each(check-num)
+  labels.each(check-string)
   tab = to-table2(labels, values)
   default-histogram-series.{
-    labels: labels ^ get-trailing-list,
-    values: values ^ get-trailing-list,
+    labels: labels,
+    values: values,
     method get-data(self): self.{tab: tab} end,
   } ^ histogram-series
 end
@@ -1137,15 +1205,7 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
         ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr})
         cases (E.Either<Any, IM.Image>) ret:
           | left(new-self) => helper(new-self, none)
-          | right(image) =>
-            if self.interact:
-              # can't use image here because it contains the side panel
-              P.plot(
-                self.{interact: false},
-                {scatters: scatters-arr, lines: lines-arr}).v
-            else:
-              image
-            end
+          | right(image) => image
         end
       end
       helper(self, some(function-plots-data))

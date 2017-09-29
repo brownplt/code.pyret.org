@@ -525,29 +525,34 @@
         }
       }
 
-      $(window).on("keydown", function(e) {
-        if(e.ctrlKey) {
-          if(e.keyCode === 83) { // "Ctrl-s"
-            CPO.save();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-          }
-          else if(e.keyCode === 77) { // "Ctrl-m"
-            toggleEditorSize();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-          }
-          else if(e.keyCode === 13) { // "Ctrl-Enter"
-            doRunAction(editor.cm.getValue());
-            CPO.autoSave();
-            e.stopImmediatePropagation();
-            e.preventDefault();
-          } else if(e.keyCode === 191 && e.shiftKey) { // "Ctrl-?"
-            $("#help-keys").fadeIn(100);
-            e.stopImmediatePropagation();
-            e.preventDefault();
-          }
-        }
+      // save
+      // On Mac mod ends up mapping to command+s whereas on Windows and Linux it maps to ctrl+s.
+      Mousetrap.bindGlobal('mod+s', function(e) {
+        CPO.save();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      // resize, Toggle sizing of the editor window between 50% and last resize
+      Mousetrap.bindGlobal('ctrl+m', function(e){
+        toggleEditorSize();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      // run the definitions area
+      Mousetrap.bindGlobal('ctrl+enter', function(e){
+        doRunAction(editor.cm.getValue());
+        CPO.autoSave();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      // pull up help menu
+      Mousetrap.bindGlobal('ctrl+shift+/', function(e) {
+        $("#help-keys").fadeIn(100);
+        e.stopImmediatePropagation();
+        e.preventDefault();
       });
 
       // Used for image definition naming (identifier: "img" + curImg)
