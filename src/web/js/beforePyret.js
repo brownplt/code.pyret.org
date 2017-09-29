@@ -533,12 +533,10 @@ $(function() {
   pyretLoad.src = process.env.PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
-  $(pyretLoad).on("error", function(e) {
 
-    $("#loader").hide();
-    $("#runPart").hide();
-    $("#breakButton").hide();
-    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+  var pyretLoad2 = document.createElement('script');
+
+  function logFailureAndManualFetch(url, e) {
 
     // NOTE(joe): The error reported by the "error" event has essentially no
     // information on it; it's just a notification that _something_ went wrong.
@@ -553,6 +551,7 @@ $(function() {
     logger.log('pyret-load-failure',
       {
         event : 'initial-failure',
+        url : url,
 
         // The timestamp appears to count from the beginning of page load,
         // which may approximate download time if, say, requests are timing out
@@ -561,7 +560,7 @@ $(function() {
         timeStamp : e.timeStamp
       });
 
-    var manualFetch = $.ajax(process.env.PYRET);
+    var manualFetch = $.ajax(url);
     manualFetch.then(function(res) {
       // Here, we log the first 100 characters of the response to make sure
       // they resemble the Pyret blob
@@ -580,8 +579,23 @@ $(function() {
         // tell us what's going on (e.g. AWS failure, network outage).
         responseText: res.responseText.slice(0, 100)
       });
-      debugger;
     });
+  }
+
+  $(pyretLoad).on("error", function(e) {
+    logFailureAndManualFetch(process.env.PYRET, e);
+    console.log(process.env);
+    pyretLoad2.src = process.env.PYRET_BACKUP;
+    pyretLoad2.type = "text/javascript";
+    document.body.appendChild(pyretLoad2);
+  });
+
+  $(pyretLoad2).on("error", function(e) {
+    $("#loader").hide();
+    $("#runPart").hide();
+    $("#breakButton").hide();
+    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+    logFailureAndManualFetch(process.env.PYRET_BACKUP, e);
 
   });
 
