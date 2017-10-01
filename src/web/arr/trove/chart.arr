@@ -74,7 +74,6 @@ end
 
 fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
   IM.text-font(s, 72, I.gray, "", "modern", "normal", "bold", false)
-    ^ IM.rotate(45, _)
     ^ IM.overlay-align("center", "center", _, raw-img)
     ^ VS.vs-value
 end
