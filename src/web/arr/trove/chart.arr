@@ -73,7 +73,8 @@ fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
 end
 
 fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
-  IM.text-font(s, 72, I.gray, "", "modern", "normal", "bold", false)
+  I.color(190, 190, 190, 0.75)
+    ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
     ^ IM.overlay-align("center", "center", _, raw-img)
     ^ VS.vs-value
 end
