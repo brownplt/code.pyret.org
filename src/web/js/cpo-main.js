@@ -637,7 +637,8 @@
         return new modalPrompt({
           title: "Select Import Style",
           style: "radio",
-          options: [
+          options: (cpoDialect === 'pyret') ?
+          [
             {
               message: "Import as Values",
               value: "values",
@@ -652,8 +653,26 @@
               message: "Import as a List",
               value: "list",
               example: '[list: image-url("<URL>"),\n'
-                + '       image-url("<URL>"),\n'
-                + '       # ...\n       ]'
+              + '       image-url("<URL>"),\n'
+              + '       # ...\n       ]'
+            }] :
+          [
+            {
+              message: "Import as Values",
+              value: "values",
+              example: '(bitmap/url "<URL>")\n(bitmap/url("<URL>")\n; ...'
+            },
+            {
+              message: "Import as Definitions",
+              value: "defs",
+              example: '(define image0 (bitmap/url "<URL>"))\n(define image1 (bitmap/url "<URL>"))\n; ...'
+            },
+            {
+              message: "Import as a List",
+              value: "list",
+              example: '(list (bitmap/url "<URL>"),\n'
+              + '       (bitmap/url "<URL>"),\n'
+              + '       ; ...\n       )'
             }]
         });
       }
@@ -768,21 +787,43 @@
                 emitNewline();
               }
               if (asList) {
-                placeInEditor("[list:");
+                if (cpoDialect === 'pyret') {
+                  placeInEditor("[list:");
+                } else {
+                  placeInEditor('(list');
+                }
               }
               documents.forEach(function(d, idx) {
                 var pathToImg = '"' + window.APP_BASE_URL + "/shared-image-contents?sharedImageId="
                   + d.id + '"';
-                var outstr = asDefs ? ("img" + curImg + " = ") : "";
+                var outstr = '';
+                if (asDefs) {
+                  if (cpoDialect === 'pyret') {
+                    outstr = 'img' + curImg + ' = ';
+                  } else {
+                    outstr = '(define img' + curImg + ' ';
+                  }
+                }
                 ++curImg;
-                outstr += "image-url(" + pathToImg + ")";
+                if (cpoDialect === 'pyret') {
+                  outstr += "image-url(" + pathToImg + ")";
+                } else {
+                  outstr += '(bitmap/url ' + pathToImg + ')';
+                }
+                if (asDefs && cpoDialect === 'patch') {
+                  outstr += ')';
+                }
                 var isLast = (idx === (documents.length - 1));
                 if (asList) {
                   if (idx === 0) {
                     // The space after ":" gets eaten, so we need to enter it here
                     outstr = ' ' + outstr;
                   }
-                  outstr += isLast ? "]" : ",";
+                  if (cpoDialect === 'pyret') {
+                    outstr += isLast ? "]" : ",";
+                  } else {
+                    outstr += isLast ? ')' : ' ';
+                  }
                 }
                 if (isLast) {
                   placeInEditor(outstr);
