@@ -64,6 +64,7 @@ module.exports = {
 
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.PYRET': JSON.stringify(process.env.PYRET),
+      'process.env.PYRET_BACKUP': JSON.stringify(process.env.PYRET_BACKUP),
       'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL),
       'process.env.CURRENT_PYRET_RELEASE': JSON.stringify(process.env.CURRENT_PYRET_RELEASE),
     }),

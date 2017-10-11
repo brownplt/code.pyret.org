@@ -91,6 +91,18 @@ var Documents = function() {
   return Documents;
 }();
 
+var VERSION_CHECK_INTERVAL = 120000 + (30000 * Math.random());
+
+function checkVersion() {
+  $.get("/current-version").then(function(resp) {
+    resp = JSON.parse(resp);
+    if(resp.version && resp.version !== process.env.CURRENT_PYRET_RELEASE) {
+      window.flashMessage("A new version of Pyret is available. Save and reload the page to get the newest version.");
+    }
+  });
+}
+window.setInterval(checkVersion, VERSION_CHECK_INTERVAL);
+
 window.CPO = {
   save: function() {},
   autoSave: function() {},
@@ -218,7 +230,7 @@ $(function() {
     };
   };
   CPO.RUN_CODE = function() {
-
+    console.log("Running before ready", arguments);
   };
 
   function setUsername(target) {
@@ -425,12 +437,13 @@ $(function() {
           .then(function(p) {
             // showShareContainer(p); TODO(joe): figure out where to put this
             history.pushState(null, null, "#program=" + p.getUniqueId());
-            updateName(p);
+            updateName(p); // sets filename
             enableFileOptions();
-            save();
             return p;
           });
-        return programToSave;
+        return programToSave.then(function(p) {
+          return save();
+        });
       }
       else {
         return programToSave.then(function(p) {
@@ -573,11 +586,70 @@ $(function() {
   //pyretLoad.src = env_PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
-  $(pyretLoad).on("error", function() {
+
+  var pyretLoad2 = document.createElement('script');
+
+  function logFailureAndManualFetch(url, e) {
+
+    // NOTE(joe): The error reported by the "error" event has essentially no
+    // information on it; it's just a notification that _something_ went wrong.
+    // So, we log that something happened, then immediately do an AJAX request
+    // call for the same URL, to see if we can get more information. This
+    // doesn't perfectly tell us about the original failure, but it's
+    // something.
+
+    // In addition, if someone is seeing the Pyret failed to load error, but we
+    // don't get these logging events, we have a strong hint that something is
+    // up with their network.
+    logger.log('pyret-load-failure',
+      {
+        event : 'initial-failure',
+        url : url,
+
+        // The timestamp appears to count from the beginning of page load,
+        // which may approximate download time if, say, requests are timing out
+        // or getting cut off.
+
+        timeStamp : e.timeStamp
+      });
+
+    var manualFetch = $.ajax(url);
+    manualFetch.then(function(res) {
+      // Here, we log the first 100 characters of the response to make sure
+      // they resemble the Pyret blob
+      logger.log('pyret-load-failure', {
+        event : 'success-with-ajax',
+        contentsPrefix : res.slice(0, 100)
+      });
+    });
+    manualFetch.fail(function(res) {
+      logger.log('pyret-load-failure', {
+        event : 'failure-with-ajax',
+        status: res.status,
+        statusText: res.statusText,
+        // Since responseText could be a long error page, and we don't want to
+        // log huge pages, we slice it to 100 characters, which is enough to
+        // tell us what's going on (e.g. AWS failure, network outage).
+        responseText: res.responseText.slice(0, 100)
+      });
+    });
+  }
+
+  $(pyretLoad).on("error", function(e) {
+    logFailureAndManualFetch(process.env.PYRET, e);
+    console.log(process.env);
+    pyretLoad2.src = process.env.PYRET_BACKUP;
+    pyretLoad2.type = "text/javascript";
+    document.body.appendChild(pyretLoad2);
+  });
+
+  $(pyretLoad2).on("error", function(e) {
     $("#loader").hide();
     $("#runPart").hide();
     $("#breakButton").hide();
     window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+    logFailureAndManualFetch(process.env.PYRET_BACKUP, e);
+
   });
 
   programLoaded.fin(function() {

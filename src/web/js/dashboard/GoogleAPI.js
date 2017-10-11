@@ -46,6 +46,12 @@ class GoogleAPI {
     });
   }
 
+  getAppSharedFolderID = (appName) => {
+    return window.gapi.client.drive.files.list({
+      q: '("me" in owners) and not trashed and mimeType="application/vnd.google-apps.folder" and name ="' + appName + '.shared"'
+    });
+  }
+
   createNewFile = (parentFolderId, fileName) => {
     var reqOpts = {
       'path': '/drive/v3/files',
@@ -60,14 +66,19 @@ class GoogleAPI {
   }
 
   getRecentFilesByExtAndAppName = (appName, ext) => {
-    return this.getAppFolderID(appName)
+    return Q.all([this.getAppFolderID(appName), this.getAppSharedFolderID(appName)])
       .then((resp) => {
-        var files = resp.result.files;
-        if(files.length === 0) { return this.getRecentFilesByExt(ext); }
+        var savedFiles = resp[0].result.files;
+        var sharedFiles = resp[1].result.files;
+        var isSharedFile = "(appProperties has {key=\'originalProgramFlag\' and value=\'true\'})";
+        if(sharedFiles.length > 0) {
+          isSharedFile += "or '" + sharedFiles[0].id + "' in parents";
+        }
+        if(savedFiles.length === 0) { return this.getRecentFilesByExt(ext); }
         else {
           return window.gapi.client.drive.files.list({
             fields: "files(id, name)",
-            q: 'not trashed and (fileExtension="' + ext + '" or "' + files[0].id + '" in parents)',
+            q: 'not trashed and not (' + isSharedFile + ') and (fileExtension="' + ext + '" or "' + savedFiles[0].id + '" in parents)',
           });
         }
       })

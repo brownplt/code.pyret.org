@@ -477,6 +477,10 @@ div.spy-block > table > th { display: none; }
 body {
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  /* prevent the editor to have scroll bar (we use a trick to move a dialog to
+  the bottom of the screen so that users can't see, and need to hide the scroll
+  bar as a result) */
 }
 
 .replMain {
@@ -1251,6 +1255,7 @@ code div {
 .dropdown {
   background: #317BCF;
   padding-top: 12px;
+  padding-left: 5px;
   box-sizing: border-box;
   float: right;
   height: 100%;
@@ -1641,6 +1646,21 @@ th:last-child, td:last-child {
 
 tr:nth-child(even){background-color: #f2f2f2}
 
+table.pyret-table thead {
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
+}
+table.pyret-row th {
+  box-shadow: 2px 0px 2px rgba(0, 0, 0, 0.2), -2px 0px 2px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+table.pyret-row td {
+  border: none;
+}
+/* NOTE(joe): this helps distinguish a row that appears in a table cell */
+table.pyret-row {
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* MODAL */
 /* The Modal (background) */
 .modal {
@@ -1860,4 +1880,19 @@ tr:nth-child(even){background-color: #f2f2f2}
    -webkit-mask-size: contain;
    mask-size: 100% 100%;
    mask-type: luminance;
+}
+.error-bg {
+  background-color: #FF9494;
+}
+.ok-bg {
+  background-color: #FFFFFF;
+}
+label.controller {
+  width: 100px;
+  float: left;
+  margin-right: 10px;
+}
+button.controller {
+  margin: auto;
+  display: block;
 }

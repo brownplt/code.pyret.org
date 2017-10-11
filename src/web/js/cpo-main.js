@@ -342,11 +342,6 @@
       }, "make-repl");
 
     function withRepl(repl) {
-
-      console.log("Loaded");
-      clearInterval($("#loader").data("intervalID"));
-      $("#loader").hide();
-
       var runButton = $("#runButton");
 
       var codeContainer = $("<div>").addClass("replMain");
@@ -615,6 +610,36 @@
         }
       });
 
+      // save
+      // On Mac mod ends up mapping to command+s whereas on Windows and Linux it maps to ctrl+s.
+      Mousetrap.bindGlobal('mod+s', function(e) {
+        CPO.save();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      // resize, Toggle sizing of the editor window between 50% and last resize
+      Mousetrap.bindGlobal('ctrl+m', function(e){
+        toggleEditorSize();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      // run the definitions area
+      Mousetrap.bindGlobal('ctrl+enter', function(e){
+        doRunAction(editor.cm.getValue());
+        CPO.autoSave();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      // pull up help menu
+      Mousetrap.bindGlobal('ctrl+shift+/', function(e) {
+        $("#help-keys").fadeIn(100);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
       // Used for image definition naming (identifier: "img" + curImg)
       var curImg = 0;
 
@@ -684,12 +709,12 @@
           var id = documents[0][picker.Document.ID];
           function load(here) {
             if(here) {
-              var p = drive.getFileById(id);
-
-              window.CPO.showShareContainer(p);
-              history.pushState(null, null, "#program=" + id);
 
               window.CPO.save().then(function() {
+                var p = drive.getFileById(id);
+
+                window.CPO.showShareContainer(p);
+                history.pushState(null, null, "#program=" + id);
                 window.CPO.loadProgram(p).then(function(contents) {
                   window.CPO.editor.cm.setValue(contents);
                   window.CPO.editor.cm.clearHistory();

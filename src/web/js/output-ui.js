@@ -1259,7 +1259,7 @@
           paintBrush.append($("<span>").text(colorName));
         }
         renderings.push(paintBrush);
-        
+
 
         var colorDisplay = $("<span>")
             .append("color(")
@@ -1272,7 +1272,7 @@
             .append(renderers.number(raw_a))
             .append(")");
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput").append(colorDisplay));
-        
+
 
         var dl = $("<dl>");
         dl.append($("<dt>").addClass("label").text("red"))
@@ -1290,7 +1290,7 @@
         $(renderings[0]).click(toggleCycle);
         for (var i = 1; i < renderings.length; i++)
           $(renderings[i]).addClass("hidden").click(toggleCycle);
-        
+
         container.append(renderings);
         return container;
       };
@@ -1310,7 +1310,7 @@
         var maxHeight = $(document).height() * .6;
         var realWidth = img.getWidth();
         var realHeight = img.getHeight();
-        if(img.getWidth() > maxWidth || img.getHeight() > maxHeight) {
+        if(realWidth > maxWidth || realHeight > maxHeight) {
           container.addClass("replToggle replImageThumbnail has-icon");
           container.attr("title", "Click to see full image");
           var scaleFactorX = 100 / realWidth;
@@ -1325,10 +1325,11 @@
           var originalImageDom = img.toDomNode();
           $(container).click(function(e) {
             var dialog = $("<div>");
+            // NOTE(Oak): some magic numbers that "display" nicely
             dialog.dialog({
               modal: true,
-              height: Math.min($(document).height() * .95, $(originalImageDom).height() * 1.1 + 25),
-              width: Math.min($(document).width() * .95, $(originalImageDom).width() * 1.1),
+              height: Math.min($(document).height() * .95, realHeight + (9 * 2) + 60),
+              width: Math.min($(document).width() * .95, realWidth + (18 * 2)),
               resizable: true,
               close: function() {
                 dialog.empty();
@@ -1639,6 +1640,37 @@
           for (var i = 0; i < items.length; i++) {
             helper(container, items[i], values, (i + 1 < items.length));
           }
+        } else if (runtime.ffi.isVSRow(val)) {
+
+          var cols = runtime.getField(val, "headers")
+          var rowVals = runtime.getField(val, "values")
+
+          var table = document.createElement("table");
+          table.className = "pyret-row";
+          var thead = document.createElement("thead");
+          var trow = document.createElement("tr");
+          thead.append(trow);
+          table.append(thead);
+
+          var colElts = [];
+          for(var i = 0; i < cols.length; i++) {
+            var col = document.createElement("th");
+            helper($(col), cols[i], values);
+            colElts.push(col);
+          }
+          var datumElts = [];
+          for(var i = 0; i < cols.length; i++) {
+            var datum = document.createElement("td");
+            helper($(datum), rowVals[i], values);
+            datumElts.push(datum);
+          }
+          for(var i = 0; i < cols.length; i++) {
+            trow.appendChild(colElts[i]);
+            trow.appendChild(datumElts[i]);
+          }
+
+          container.append(table);
+
         } else if (runtime.ffi.isVSTable(val)) {
           var showText = document.createElement("a");
           $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
@@ -1672,9 +1704,11 @@
               height : "auto",
               closeOnEscape : true
             });
+
           });
           var tableAsText = [];
           var table = document.createElement("table");
+          table.className = "pyret-table";
           $(table).append(showText);
           $(table).addClass("has-icon");
           $(table).hover(function() {
@@ -1747,7 +1781,7 @@
             helper(container, items[i], values, (i + 1 < items.length));
           }
         }
-        if (wantCommaAtEnd) { container.append(collapsedComma()); }          
+        if (wantCommaAtEnd) { container.append(collapsedComma()); }
         return container;
       }
       function groupItems(ul, items, values, minIdx, maxIdx) {

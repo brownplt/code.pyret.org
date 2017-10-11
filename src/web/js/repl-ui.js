@@ -32,7 +32,7 @@
     var output = jQuery("<div id='output' class='cm-s-default'>");
     var outputPending = jQuery("<span>").text("Gathering results...");
     var outputPendingHidden = true;
-    
+
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -95,7 +95,7 @@
         // because of this call to `pauseStack`
         return runtime.pauseStack(function (restarter) {
           // error_to_html must not be called on the pyret stack
-          return error_to_html(runtime, CPO.documents, error, stack, result). 
+          return error_to_html(runtime, CPO.documents, error, stack, result).
             then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");
@@ -199,7 +199,7 @@
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
                       return rr.safeCall(function() {
-                        return checkUI.drawCheckResults(output, CPO.documents, rr, 
+                        return checkUI.drawCheckResults(output, CPO.documents, rr,
                                                         runtime.getField(runResult.result, "checks"), v);
                       }, function(_) {
                         outputPending.remove();
@@ -227,7 +227,7 @@
             // `renderAndDisplayError` must be called in the context of the pyret stack.
             // this application runs in the context of `callingRuntime.runThunk`
             return renderAndDisplayError(
-              callingRuntime, 
+              callingRuntime,
               ffi.InternalError("Got something other than a Pyret result when running the program.",
                                 ffi.makeList(result)));
           }
@@ -401,6 +401,115 @@
           // We don't want that to happen.
       });
 
+      runtime.setParam('chart-port', function(args) {
+        const animationDiv = $(args.root);
+        animationDivs.push(animationDiv);
+        output.append(animationDiv);
+
+        let timeoutTrigger = null;
+
+        const windowOptions = {
+          title: '',
+          position: [5, 5],
+          bgiframe: true,
+          width: 'auto',
+          height: 'auto',
+          beforeClose: () => {
+            args.draw(options => $.extend({}, options, {chartArea: null}));
+            args.onExit();
+            closeTopAnimationIfOpen();
+          },
+          create: () => {
+            // from http://fiddle.jshell.net/JLSrR/116/
+            const titlebar = animationDiv.prev();
+            let left = parseInt(titlebar.find("[role='button']:last").css('left'));
+            function addButton(icon, fn) {
+              left += 27;
+              const btn = $('<button/>')
+                .button({icons: {primary: icon}, text: false})
+                .addClass('ui-dialog-titlebar-close')
+                .css('left', left + 'px')
+                .click(fn)
+                .appendTo(titlebar);
+              return btn;
+            }
+
+            addButton('ui-icon-disk', () => {
+              let savedOptions = null;
+              args.draw(options => {
+                savedOptions = options;
+                return $.extend({}, options, {chartArea: null});
+              });
+              const download = document.createElement('a');
+              download.href = args.getImageURI();
+              download.download = 'chart.png';
+              // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
+              function fireEvent(obj, evt){
+                const fireOnThis = obj;
+                if(document.createEvent) {
+                  const evObj = document.createEvent('MouseEvents');
+                  evObj.initEvent(evt, true, false);
+                  fireOnThis.dispatchEvent(evObj);
+                } else if(document.createEventObject) {
+                  const evObj = document.createEventObject();
+                  fireOnThis.fireEvent('on' + evt, evObj);
+                }
+              }
+              fireEvent(download, 'click');
+              args.draw(_ => savedOptions);
+            });
+          },
+          resize: () => {
+            if (timeoutTrigger) clearTimeout(timeoutTrigger);
+            timeoutTrigger = setTimeout(args.draw, 100);
+          },
+        };
+
+        if (args.isInteractive) {
+          $.extend(windowOptions, {
+            closeOnEscape: true,
+            modal: true,
+            overlay: {opacity: 0.5, background: 'black'},
+          });
+        } else {
+          // need hide to be true so that the dialog will fade out when
+          // closing (see https://api.jqueryui.com/dialog/#option-hide)
+          // this gives time for the chart to actually render
+          $.extend(windowOptions, {hide: true});
+        }
+
+        animationDiv
+          .dialog($.extend({}, windowOptions, args.windowOptions))
+          .dialog('widget')
+          .draggable({
+            containment: 'none',
+            scroll: false,
+          });
+
+        // explicit call to draw to correct the dimension after the dialog has been opened
+        args.draw();
+
+        const dialogMain = animationDiv.parent();
+        if (args.isInteractive) {
+          dialogMain.css({'z-index': currentZIndex + 1});
+          dialogMain.prev().css({'z-index': currentZIndex});
+          currentZIndex += 2;
+        } else {
+          // a trick to hide the dialog while actually rendering it
+          dialogMain.css({
+            top: window.innerWidth * 2,
+            left: window.innerHeight * 2,
+          });
+          animationDiv.dialog('close');
+        }
+      });
+
+      runtime.setParam('remove-chart-port', function() {
+          closeTopAnimationIfOpen();
+          // don't call .dialog('close'); because that would trigger onClose and thus onExit.
+          // We don't want that to happen.
+      });
+
       var breakButton = options.breakButton;
       container.append(output).append(promptContainer);
 
@@ -478,7 +587,6 @@
           toBeRepred.push({name: "Message", val: message, method: repl.runtime.ReprMethods._tostring});
           */
           // Push this afterward, to keep rendered aligned with renderedLocs below
-          vals = [message].concat(vals);
           return repl.runtime.safeCall(function() {
             return repl.runtime.toReprJS(message, repl.runtime.ReprMethods._tostring);
           }, function(message) {

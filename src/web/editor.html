@@ -76,10 +76,10 @@
   <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
   <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
 
-  <button id="breakButton" class="blueButton rhs">Stop</button>
+  <button disabled id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
-    <span id="runDropdown" class="dropdown rhs">↴</span>
-    <button id="runButton" class="blueButton rhs">Run</button>
+    <button disabled id="runDropdown" class="blueButton dropdown rhs">↴</button>
+    <button disabled id="runButton" class="blueButton rhs">Run</button>
   </div>
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
@@ -147,6 +147,9 @@
 var env_CURRENT_PYRET_RELEASE = "{{ CURRENT_PYRET_RELEASE }}";
 var cpoDialect = 'pyret';
 </script>
+<script src="/js/mousetrap.min.js"></script>
+<script src="/js/mousetrap-global-bind.min.js"></script>
+
 <script src="/js/localSettings.js"></script>
 <script src="/js/log.js"></script>
 <script src="/js/share.js"></script>
@@ -155,6 +158,7 @@ var cpoDialect = 'pyret';
 <script src="/js/google-apis/picker.js"></script>
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {

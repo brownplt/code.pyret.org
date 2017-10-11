@@ -6,6 +6,7 @@ env:
   - TEST_LOC="sauce"
   - GOOGLE_CLIENT_ID=""
   - GOOGLE_CLIENT_SECRET=""
+  - GOOGLE_CHROME_BINARY=/usr/bin/google-chrome-stable
   - secure: "TYqxrQOzkzQcyfDfLz9fOklDjK+vkXg0Jzp8wTynenz8ZzLIac6UKH3DZza7KcQAdgNhhSYoekh05z+b2/EaYKvo+SNDDsfWEP2qjBCL6GxccDE8Ti6itt4orGZUT2XKd6FkDbXDq9j3lUfKlG78lIImGiZKL1UN2WnQozXxBpdp1C8c4V2UcXo70u26Ii/m9eTYGoQfUvVa57lqpA7dMsuVW6lffTmGAcL0pY9penE6+tv1B7pxzQ7wrl+eQh4qw423qCJCWHRKKHVtPqvSafh6E8/wJIc5OUXRvy1Uz6eM4oX6PWfs0Knrznh1fLtFaJSXzSEaDNzJesoInvDINsQ8HqM9dYv95Codbg0wh9QlW3ZFg8OL8gAG2i9dScGRMqtTjz+cRpIDP1ppDaWypMrvLCoRVV/WfufQQTqZeESAFvOU4fcihlwAGaadEa2D4SVY72GXxIuxox2fKjNtxfCggoZhUZJQUWUP/C7x/W1qbu2XrgxGYB0VpCUcpFAH7Zsl2P96WBfIvjHvxITTCEA86lyV6ZcdX/fhCVEPGabBz5Et5hHbH1jFV3T3qDJpMLmeLbhZSHVsUrnnsb0qkEGX3jgHF6WaCDgwiEAzmGS4/JKsW5MlZvAdd2gd+EEowqMCA9gXRyR8RZr2OyxrKs73U7GyH/lgpHeZURf6YAY="
   - REDISCLOUD_URL=""
   - BASE_URL=http://localhost:5000
@@ -29,17 +30,22 @@ cache:
 before_script:
 - node src/run.js &
 - sleep 3
+script:
+- sleep 3
+- heroku local:run node_modules/.bin/mocha
 #addons:
 #  sauce_connect: true
-script:
-- echo "Skipping tests"
 #- mocha --harmony
+addons:
+  chrome: stable
 before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable
 - nvm use stable
 - npm install -g heroku-cli
+- npm install -g chromedriver
 - export CHROME_BIN=chromium-browser
+- export PATH=$PATH:node_modules/.bin/
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
 before_deploy:

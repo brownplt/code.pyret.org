@@ -72,9 +72,13 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
     "builtin://table": function(table) {
       table = table.jsmod;
       runtime["makeTable"] = table.makeTable;
+      runtime["makeRow"] = table.makeRow;
+      runtime["makeRowFromArray"] = table.makeRowFromArray;
       runtime["openTable"] = table.openTable;
       runtime["checkTable"] = runtime.makeCheckType(table.isTable, "Table");
+      runtime["checkRow"] = runtime.makeCheckType(table.isRow, "Row");
       runtime["isTable"] = table.isTable;
+      runtime["isRow"] = table.isTable;
       runtime["checkWrapTable"] = function(val) {
         runtime.checkTable(val);
         return val;
@@ -273,10 +277,12 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
         console.error("Couldn't start REPL: ", err);
       });
       interactionsReady.then(function(result) {
+        $("#runButton").attr("disabled", false);
+        $("#runDropdown").attr("disabled", false);
+        clearInterval($("#loader").data("intervalID"));
+        $("#loader").hide();
         console.log("REPL ready.");
       });
-      //console.log("The program completed successfully");
-      //console.log(result);
     }
     else {
       console.error("The run ended in error: ", result);

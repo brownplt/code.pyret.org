@@ -256,9 +256,7 @@ function loadAPIWrapper(immediate) {
       return d.promise;
     }));
     if (skipAuth) {
-      ret.fin(function() {
-        gapi.auth.setToken({ access_token: oldAccess });
-      });
+      gapi.auth.setToken({ access_token: oldAccess });
     }
     return ret;
   }

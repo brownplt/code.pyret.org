@@ -29,16 +29,24 @@ d3 = require("d3");
 define("d3", [], function() { return d3; });
 
 d3_tip = require("d3-tip");
-define("d3-tip", [], function() { return d3_tip; });
+define("d3-tip", [], function() { return d3_tip(d3); });
 
+if(!!google) {
+  define("google-charts", [], function() {return google;});
+}
 
 define("fs", [], function () { return {}; });
 
-define("path", [], function () { return {}; });
+// NOTE(joe): this is slightly bogus, but due to the way pathlib can load, even
+// though it's not used, this needs to be defined (it represents the separator
+// for the system).
+define("path", [], function () { return {
+    sep: "/"
+  };
+});
 
 define("http", [], function () {return {};});
 
 define("lockfile", [], function () { return {}; });
 
 define("websocket", [], function () { return {}; });
-
