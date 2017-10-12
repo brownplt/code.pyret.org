@@ -508,6 +508,7 @@ define('cpo/patch-parse',
     symbolMap["overlay/align"] = "_patch_overlay-align";
     symbolMap["overlay/xy"] = "overlay-xy";
     symbolMap["place-image/align"] = "place-image-align";
+    symbolMap["plot"] = "display-function";
     symbolMap["posn?"] = "is-posn";
     symbolMap["scale/xy"] = "scale-xy";
     symbolMap["scene+line"] = "scene-line";
@@ -578,7 +579,7 @@ define('cpo/patch-parse',
         replace(/^#%/, 'ƎHASHPCT').
         replace(/^_/, 'ƎUNDERSCORE').
         replace(/^(\d)/, 'Ǝ$1').
-        replace(/^(debug|new|repeat|set|string-split|type)$/, 'ƎEMPTY$1')
+        replace(/^(array-get-now|array-length|array-set-now|array-to-list-now|bitmap-url|color-list-to-bitmap|color-list-to-image|debug|display-function|equal-always|identical|image-to-color-list|is-angle|is-array|is-color|is-empty|is-function|is-image|is-image-color|is-key-equal|is-link|is-mode|is-mouse-equal|is-number|is-posn|is-side-count|is-step-count|is-string|is-[xy]-place|link|list-assoc|list-length|list-member|list-member-p|name-to-color|new|num-abs|num-acos|num-angle|num-asin|num-atan|num-ceiling|num-conjugate|num-exp|num-expt|num-floor|num-imagpart|num-is-complexrational|num-is-complexroughnum|num-is-negative|num-is-positive|num-log|num-modulo|num-realpart|num-round|num-sin|num-sqr|num-sqrt|num-tan|num-truncate|overlay-xy|place-image-align|repeat|scale-xy|scene-line|set|string-equal|string-explode|string-split|string-tolower|string-toupper|text-font|triange-[as][as][as]|type|underlay-xy)$/, 'ƎEMPTY$1');
       return str2;
     }
 
@@ -7595,12 +7596,11 @@ define('cpo/patch-parse',
     if ((provenance === 'definitions') ||
         (provenance === 'module') ||
         (provenance === 'repl' && lineNo === 1 && !window.definitionsDone)) {
-      var preimports = [
+      ws_ast.kids[0].kids.unshift(
         plt.compiler.makeImportSnippet('image'),
-        plt.compiler.makeImportSnippet('world')
-      ];
-      //console.log('added import snippets');
-      ws_ast.kids[0].kids.unshift(preimports[0], preimports[1]);
+        plt.compiler.makeImportSnippet('world'),
+        plt.compiler.makeImportSnippet('plot')
+      );
       if (code === '') {
         window.definitionsDone = true;
       }
