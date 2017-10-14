@@ -65,6 +65,7 @@
     "script-loader": "~0.7.0",
     "seedrandom": "~2.3.10",
     "sha.js": "^2.4.8",
+    "source-map": "^0.5.7",
     "style-loader": "0.13.1",
     "stylus": "^0.54.5",
     "supervisor": "^0.11.0",
