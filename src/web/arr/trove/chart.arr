@@ -72,6 +72,49 @@ fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
   map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
+fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
+  I.color(190, 190, 190, 0.75)
+    ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
+    ^ IM.overlay-align("center", "bottom", _, raw-img)
+    ^ VS.vs-value
+end
+
+################################################################################
+# METHODS
+################################################################################
+
+color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{color: some(color)})
+end
+
+legend-method = method(self, legend :: String):
+  self.constr()(self.obj.{legend: legend})
+end
+
+x-axis-method = method(self, x-axis :: String):
+  self.constr()(self.obj.{x-axis: x-axis})
+end
+
+y-axis-method = method(self, y-axis :: String):
+  self.constr()(self.obj.{y-axis: y-axis})
+end
+
+x-min-method = method(self, x-min :: Number) block:
+  self.constr()(self.obj.{x-min: some(x-min)})
+end
+
+x-max-method = method(self, x-max :: Number) block:
+  self.constr()(self.obj.{x-max: some(x-max)})
+end
+
+y-min-method = method(self, y-min :: Number) block:
+  self.constr()(self.obj.{y-min: some(y-min)})
+end
+
+y-max-method = method(self, y-max :: Number) block:
+  self.constr()(self.obj.{y-max: some(y-max)})
+end
+
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -105,6 +148,24 @@ fun get-bounding-box(ps :: List<Posn>) -> BoundingBox:
         y-max: compute(num-max, snd),
         is-valid: true,
       }
+  end
+end
+
+fun merge-bounding-box(bs :: List<BoundingBox>) -> BoundingBox:
+  for fold(prev from default-bounding-box, e from bs):
+    ask:
+      | e.is-valid and prev.is-valid then:
+        default-bounding-box.{
+          x-min: num-min(e.x-min, prev.x-min),
+          x-max: num-max(e.x-max, prev.x-max),
+          y-min: num-min(e.y-min, prev.y-min),
+          y-max: num-max(e.y-max, prev.y-max),
+          is-valid: true,
+        }
+      | e.is-valid then: e
+      | prev.is-valid then: prev
+      | otherwise: default-bounding-box
+    end
   end
 end
 
@@ -299,45 +360,8 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
 }
 
 ################################################################################
-# CUSTOM PRINTING
-
-type WithOutput = {_output :: ( -> VS.ValueSkeleton)}
-
-fun to-defaultable<a>(v :: Option<a>) -> WithOutput:
-  {
-    method _output(self):
-      cases (Option) v:
-        | none =>  VS.vs-str('default')
-        | some(s) => VS.vs-value(s)
-      end
-    end
-  }
-end
-
-fun to-trailing-list<a>(lst :: List<a>) -> WithOutput:
-  {
-    method _output(self):
-      if lst.length() > SHOW-LENGTH:
-        els = lst.take(SHOW-LENGTH).map(VS.vs-value) + [list: VS.vs-str("....")]
-        VS.vs-collection('list', els)
-      else:
-        VS.vs-value(lst)
-      end
-    end
-  }
-end
-
-################################################################################
 # DATA DEFINITIONS
 ################################################################################
-
-color-method = method(self, color :: I.Color):
-  self.constr()(self.obj.{color: some(color)})
-end
-
-legend-method = method(self, legend :: String):
-  self.constr()(self.obj.{legend: legend})
-end
 
 data DataSeries:
   | line-plot-series(obj :: LinePlotSeries) with:
@@ -345,14 +369,6 @@ data DataSeries:
     constr: {(): line-plot-series},
     color: color-method,
     legend: legend-method,
-    method _output(self):
-      VS.vs-constr('line-plot-series', [list: {
-          xs: self.obj.xs ^ to-trailing-list,
-          ys: self.obj.ys ^ to-trailing-list,
-          color: self.obj.color ^ to-defaultable,
-          legend: self.obj.legend,
-        } ^ VS.vs-value])
-    end,
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
     is-single: false,
     constr: {(): scatter-plot-series},
@@ -361,46 +377,17 @@ data DataSeries:
     method point-size(self, point-size :: Number):
       scatter-plot-series(self.obj.{point-size: point-size})
     end,
-    method _output(self):
-      VS.vs-constr('scatter-plot-series', [list: {
-          xs: self.obj.xs ^ to-trailing-list,
-          ys: self.obj.ys ^ to-trailing-list,
-          labels: self.obj.labels ^ to-trailing-list,
-          color: self.obj.color ^ to-defaultable,
-          legend: self.obj.legend,
-          point-size: self.obj.point-size,
-        } ^ VS.vs-value])
-    end,
   | function-plot-series(obj :: FunctionPlotSeries) with:
     is-single: false,
     constr: {(): function-plot-series},
     color: color-method,
     legend: legend-method,
-    method _output(self):
-      VS.vs-constr('function-plot-series', [list: {
-          f: self.obj.f,
-          color: self.obj.color ^ to-defaultable,
-          legend: self.obj.legend,
-        } ^ VS.vs-value])
-    end,
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
     constr: {(): pie-chart-series},
-    method _output(self):
-      VS.vs-constr('pie-chart-series', [list: {
-          labels: self.obj.labels ^ to-trailing-list,
-          values: self.obj.values ^ to-trailing-list,
-        } ^ VS.vs-value])
-    end,
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
     constr: {(): bar-chart-series},
-    method _output(self):
-      VS.vs-constr('bar-chart-series', [list: {
-          labels: self.obj.labels ^ to-trailing-list,
-          value-lists: self.obj.value-lists.map(to-trailing-list) ^ to-trailing-list,
-        } ^ VS.vs-value])
-    end,
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
@@ -419,15 +406,10 @@ data DataSeries:
         max-num-bins: some(num-bins)
       })
     end,
-    method _output(self):
-      VS.vs-constr('histogram-series', [list: {
-          labels: self.obj.labels ^ to-trailing-list,
-          values: self.obj.values ^ to-trailing-list,
-          bin-width: self.obj.bin-width ^ to-defaultable,
-          max-num-bins: self.obj.max-num-bins ^ to-defaultable,
-          min-num-bins: self.obj.min-num-bins ^ to-defaultable,
-        } ^ VS.vs-value])
-    end,
+sharing:
+  method _output(self):
+    get-vs-from-img("DataSeries", render-chart(self).get-image())
+  end
 end
 
 fun check-chart-window(p :: ChartWindowObject) -> Nothing:
@@ -438,61 +420,15 @@ fun check-chart-window(p :: ChartWindowObject) -> Nothing:
   end
 end
 
-################################################################################
-# METHODS
-################################################################################
-
-x-axis-method = method(self, x-axis :: String):
-  self.constr()(self.obj.{x-axis: x-axis})
-end
-
-y-axis-method = method(self, y-axis :: String):
-  self.constr()(self.obj.{y-axis: y-axis})
-end
-
-x-min-method = method(self, x-min :: Number) block:
-  self.constr()(self.obj.{x-min: some(x-min)})
-end
-
-x-max-method = method(self, x-max :: Number) block:
-  self.constr()(self.obj.{x-max: some(x-max)})
-end
-
-y-min-method = method(self, y-min :: Number) block:
-  self.constr()(self.obj.{y-min: some(y-min)})
-end
-
-y-max-method = method(self, y-max :: Number) block:
-  self.constr()(self.obj.{y-max: some(y-max)})
-end
-
 data ChartWindow:
   | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
-    method _output(self):
-      VS.vs-constr('pie-chart-window', [list: {
-          title: self.obj.title,
-          width: self.obj.width,
-          height: self.obj.height,
-        } ^ VS.vs-value])
-    end,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     y-min: y-min-method,
     y-max: y-max-method,
-    method _output(self):
-      VS.vs-constr('bar-chart-window', [list: {
-          title: self.obj.title,
-          width: self.obj.width,
-          height: self.obj.height,
-          x-axis: self.obj.x-axis,
-          y-axis: self.obj.y-axis,
-          y-min: self.obj.y-min ^ to-defaultable,
-          y-max: self.obj.y-max ^ to-defaultable,
-        } ^ VS.vs-value])
-    end,
   | histogram-chart-window(obj :: HistogramChartWindowObject) with:
     constr: {(): histogram-chart-window},
     x-axis: x-axis-method,
@@ -500,18 +436,6 @@ data ChartWindow:
     x-min: x-min-method,
     x-max: x-max-method,
     y-max: y-max-method,
-    method _output(self):
-      VS.vs-constr('bar-chart-window', [list: {
-          title: self.obj.title,
-          width: self.obj.width,
-          height: self.obj.height,
-          x-axis: self.obj.x-axis,
-          y-axis: self.obj.y-axis,
-          x-min: self.obj.x-min ^ to-defaultable,
-          x-max: self.obj.x-max ^ to-defaultable,
-          y-max: self.obj.y-max ^ to-defaultable,
-        } ^ VS.vs-value])
-    end,
   | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
     x-axis: x-axis-method,
@@ -525,20 +449,6 @@ data ChartWindow:
         raise('num-samples: value must be an ineger between 1 and 100000')
       end
       plot-chart-window(self.obj.{num-samples: num-samples})
-    end,
-    method _output(self):
-      VS.vs-constr('bar-chart-window', [list: {
-          title: self.obj.title,
-          width: self.obj.width,
-          height: self.obj.height,
-          x-axis: self.obj.x-axis,
-          y-axis: self.obj.y-axis,
-          x-min: self.obj.x-min ^ to-defaultable,
-          x-max: self.obj.x-max ^ to-defaultable,
-          y-min: self.obj.y-min ^ to-defaultable,
-          y-max: self.obj.y-max ^ to-defaultable,
-          num-samples: self.obj.num-samples,
-        } ^ VS.vs-value])
     end,
 sharing:
   method display(self):
@@ -558,6 +468,9 @@ sharing:
   method height(self, height :: Number):
     self.constr()(self.obj.{height: height})
   end,
+  method _output(self):
+    get-vs-from-img("ChartWindow", self.get-image())
+  end
 end
 
 ################################################################################
@@ -781,21 +694,6 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   } ^ histogram-series
 end
 
-from-list = {
-  line-plot: line-plot-from-list,
-  labeled-scatter-plot: labeled-scatter-plot-from-list,
-  scatter-plot: scatter-plot-from-list,
-  function-plot: function-plot-from-list,
-
-  histogram: histogram-from-list,
-  labeled-histogram: labeled-histogram-from-list,
-  pie-chart: pie-chart-from-list,
-  exploding-pie-chart: exploding-pie-chart-from-list,
-  bar-chart: bar-chart-from-list,
-  grouped-bar-chart: grouped-bar-chart-from-list,
-  freq-bar-chart: freq-bar-chart-from-list,
-}
-
 ################################################################################
 # PLOTS
 ################################################################################
@@ -913,6 +811,7 @@ fun generate-xy(
       | right(_) => none
     end
   end
+
   default-scatter-plot-series.{
     method get-data(self): self.{ps: ps} end,
     point-size: FUNCTION-POINT-SIZE,
@@ -1137,25 +1036,28 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
       _ = check-render-x-axis(self)
       _ = check-render-y-axis(self)
 
-      combined-pts = (line-plots.map(_.ps) + scatter-plots.map(_.ps)).foldl(_ + _, empty)
-      shadow combined-pts = cases (Option) self.x-min:
-        | none => combined-pts
-        | some(v) => combined-pts.filter({(pt): fst(pt) >= v})
-      end
-      shadow combined-pts = cases (Option) self.x-max:
-        | none => combined-pts
-        | some(v) => combined-pts.filter({(pt): fst(pt) <= v})
-      end
-      shadow combined-pts = cases (Option) self.y-min:
-        | none => combined-pts
-        | some(v) => combined-pts.filter({(pt): snd(pt) >= v})
-      end
-      shadow combined-pts = cases (Option) self.y-max:
-        | none => combined-pts
-        | some(v) => combined-pts.filter({(pt): snd(pt) <= v})
-      end
+      bbox = for map(plot-pts from line-plots.map(_.ps) +
+                                   scatter-plots.map(_.ps)):
+        for filter(pt from plot-pts):
+          cases (Option) self.x-min:
+            | none => true
+            | some(v) => fst(pt) >= v
+          end and
+          cases (Option) self.x-max:
+            | none => true
+            | some(v) => fst(pt) <= v
+          end and
+          cases (Option) self.y-min:
+            | none => true
+            | some(v) => snd(pt) >= v
+          end and
+          cases (Option) self.y-max:
+            | none => true
+            | some(v) => snd(pt) <= v
+          end
+        end ^ get-bounding-box
+      end ^ merge-bounding-box
 
-      bbox = get-bounding-box(combined-pts)
       {x-min; x-max} = bound-result-to-bounds(
         get-bound-result(self.x-min, bbox, _.x-min),
         get-bound-result(self.x-max, bbox, _.x-max))
@@ -1166,19 +1068,8 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
         .map(generate-xy(_, self.x-min.value, self.x-max.value, self.num-samples))
         .map(_.get-data())
 
-      function-plots-pts = function-plots-data.map(_.ps).foldl(_ + _, empty)
-      bbox2 = get-bounding-box(function-plots-pts)
-      bbox-combined = ask:
-        | bbox.is-valid and bbox2.is-valid then:
-          default-bounding-box.{
-            y-min: num-min(bbox.y-min, bbox2.y-min),
-            y-max: num-max(bbox.y-max, bbox2.y-max),
-            is-valid: true,
-          }
-        | bbox.is-valid then: bbox
-        | bbox2.is-valid then: bbox2
-        | otherwise: default-bounding-box.{is-valid: false}
-      end
+      bbox-combined = link(bbox, function-plots-data.map(_.ps).map(get-bounding-box))
+        ^ merge-bounding-box
 
       {y-min; y-max} = bound-result-to-bounds(
         get-bound-result(self.y-min, bbox-combined, _.y-min),
@@ -1233,3 +1124,18 @@ where:
     .y-max(10)
     .get-image() does-not-raise
 end
+
+from-list = {
+  line-plot: line-plot-from-list,
+  labeled-scatter-plot: labeled-scatter-plot-from-list,
+  scatter-plot: scatter-plot-from-list,
+  function-plot: function-plot-from-list,
+
+  histogram: histogram-from-list,
+  labeled-histogram: labeled-histogram-from-list,
+  pie-chart: pie-chart-from-list,
+  exploding-pie-chart: exploding-pie-chart-from-list,
+  bar-chart: bar-chart-from-list,
+  grouped-bar-chart: grouped-bar-chart-from-list,
+  freq-bar-chart: freq-bar-chart-from-list,
+}
