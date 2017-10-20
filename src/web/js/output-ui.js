@@ -486,12 +486,14 @@
             }
 
             var isSBlock = runtime.getField(AST, "is-s-block");
+            var isSProgram = runtime.getField(AST, "is-s-program");
+            var isSModule = runtime.getField(AST, "is-s-module");
             function ignorable(ast) {
               // This function deliberately ignores some types of AST nodes that shouldn't
               // be reported to the user.
               // Currently, the only such exception is s-block nodes, which are implicitly
               // added by the parser but don't represent any code the user explcitly wrote
-              return isSBlock.app(ast);
+              return isSProgram.app(ast) || isSModule.app(ast) || isSBlock.app(ast);
             }
 
             function search(ast) {
