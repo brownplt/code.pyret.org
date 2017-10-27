@@ -16,65 +16,71 @@
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
 </head>
 <body>
-<div id="headerone">
-  <a class="logo" href="http://www.pyret.org/"></a>
-  <span id=headeronelegend>Patch ::</span>
-  <span class="headeronedoclink"><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
-  <span class="headeronelogoutlink" id="logout"><a href="/logout">Log out</a></span>
-</div>
-<div id="headertwo">
-  <div id="runPart" class="greenButton lhs">
-    <button id="runButton" class="greenButton lhs">Run</button>
-  </div>
-  <div id="breakPart" class="greenButton lhs">
-    <button id="breakButton" class="greenButton lhs">Stop</button>
-  </div>
-  <!-- class loginOnly for the follg two? -->
-  <div id="savePart" class="greenButton loginOnly lhs">
-    <button id="saveButton" class="greenButton loginOnly lhs">Save</button>
-  </div>
-  <div id="openPart" class="greenButton loginOnly lhs">
-    <button id="open" class="greenButton loginOnly lhs"><a href="javascript:void(0)">Open</a></button>
-  </div>
-  <div id="insertPart" class="greenButton loginOnly lhs">
-    <button id="insert" class="greenButton loginOnly lhs">Insert</button>
-  </div>
-  <!-- uncomment for blocks -->
-  <div id="modePart" class="greenButton rhs">
-    <select id="modeButton" class="greenButton lhs">
-      <option value="false">Text</option>
-      <option value="blocks">Blocks</option>
-    </select>
-  </div>
-</div>
-<div id="headerthree">
-  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
-  <div id="program-name-container" class="loginOnly">
-    <input id="program-name" type="text" placeholder="Program Name"></input>
-  </div>
-  <div id="shareContainer"></div>
-  <div id="filemenu" class="loginOnly menu">
-    <button class="blueButton">More ▾</button>
-  </div>
-  <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
-    <div id="welcome" class="menuButton inert" style="text-align: center;">
-      <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
+  <main>
+  <div id="Toolbar" role="region" aria-label="Toolbar" tabindex="-1">
+    <div id="headerone">
+      <h2 class="screenreader-only">Navigation Bar</h2>
+      <a class="logo" href="http://www.pyret.org/"></a>
+      <span id=headeronelegend>Patch ::</span>
+      <span class="headeronedoclink" role="button" aria-label="Show Documentation"><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
+      <span class="headeronelogoutlink" id="logout" role="button" aria-label="Log Out"><a href="/logout">Log out</a></span>
     </div>
-    <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
-    <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
-    <div id="issues"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
-    <div id="discuss" class="menuButton">
-      <a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+    <div id="headertwo">
+      <h2 class="screenreader-only">Program Control Bar</h2>
+      <div id="runPart" class="greenButton lhs">
+        <button role="button" aria-label="Run" id="runButton" class="greenButton lhs">Run</button>
+      </div>
+      <div id="breakPart" class="greenButton lhs">
+        <button role="button" aria-label="Stop" id="breakButton" class="greenButton lhs">Stop</button>
+      </div>
+      <!-- class loginOnly for the follg two? -->
+      <div id="savePart" class="greenButton loginOnly lhs">
+        <button role="button" aria-label="Save" id="saveButton" class="greenButton loginOnly lhs">Save</button>
+      </div>
+      <div id="openPart" class="greenButton loginOnly lhs">
+        <button role="button" aria-label="Open" id="open" class="greenButton loginOnly lhs"><a href="javascript:void(0)">Open</a></button>
+      </div>
+      <div id="insertPart" class="greenButton loginOnly lhs">
+        <button role="button" aria-label="Insert" id="insert" class="greenButton loginOnly lhs">Insert</button>
+      </div>
+      <!-- uncomment for blocks -->
+      <div id="modePart" class="greenButton rhs">
+        <select id="modeButton" class="greenButton lhs">
+          <option value="false">Text</option>
+          <option value="blocks">Blocks</option>
+        </select>
+      </div>
     </div>
-    <div id="logging" style="display:none">
-      <input id="detailed-logging" type="checkbox"/>
-      <label for="detailed-logging">Contribute detailed usage information.</label>
-      <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+    <div id="headerthree">
+      <h2 class="screenreader-only">File Control Bar</h2>
+      <button role="button" aria-label="Connect to Google Drive" id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
+      <div id="program-name-container" class="loginOnly">
+        <input id="program-name" type="text" placeholder="Program Name"></input>
+      </div>
+      <div id="shareContainer"></div>
+      <div id="filemenu" class="loginOnly menu">
+        <button role="button" aria-label="More" class="blueButton">More ▾</button>
+      </div>
+      <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
+        <div id="welcome" class="menuButton inert" style="text-align: center;">
+          <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
+        </div>
+        <div id="download"><a target="_blank" href="javascript:void(0)">Download this File</a></div>
+        <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
+        <div id="issues"><a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a></div>
+        <div id="discuss" class="menuButton">
+          <a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+        </div>
+        <div id="logging" style="display:none">
+          <input id="detailed-logging" type="checkbox"/>
+          <label for="detailed-logging">Contribute detailed usage information.</label>
+          <a href="/faq#logging" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
+        </div>
+      </div>
+      <button role="button" aria-label="Undo, Ctrl-Z" id="undoButton" class="blueButton lhs"></button>
+      <button role="button" aria-label="Redo, Ctrl-Y" id="redoButton" class="blueButton lhs"></button>
     </div>
   </div>
-  <button id="undoButton" class="blueButton lhs"></button>
-  <button id="redoButton" class="blueButton lhs"></button>
-</div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
@@ -87,13 +93,13 @@
     <div class="modal-body">
     </div>
     <div class="modal-footer">
-      <button class="submit blueButton">Submit</span>
-      <button class="close blueButton">Close</span>
+      <button role="button" aria-label="Submit" class="submit blueButton">Submit</span>
+      <button role="button" aria-label="Close" class="close blueButton">Close</span>
     </div>
   </div>
 </div>
 <div id="notification" class="notificationArea"></div>
-<div id="REPL" class="replContainer">
+<div id="REPL" class="replContainer" role="region" aria-label="Interactions" tabindex="-1">
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
 <div id="help-keys">
@@ -174,5 +180,6 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
+  </main>
 </body>
 </html>
