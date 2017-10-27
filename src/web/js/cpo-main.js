@@ -345,6 +345,9 @@
       var runButton = $("#runButton");
 
       var codeContainer = $("<div>").addClass("replMain");
+      codeContainer.attr("role", "region").
+        attr("aria-label", "Definitions").
+        attr("tabindex", -1);
       $("#main").prepend(codeContainer);
 
       var replWidget =
