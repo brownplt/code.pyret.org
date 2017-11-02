@@ -103,6 +103,7 @@
 
       // this function must NOT be called on the pyret stack
       return function(result) {
+        console.log("In display result: ", result);
         var doneDisplay = Q.defer();
         var didError = false;
         // Start a new pyret stack.
@@ -500,6 +501,7 @@
       var replOutputCount = 0;
       outputUI.installRenderers(repl.runtime);
       repl.runtime.setParam("onTrace", function(loc, val, url) {
+        console.log("Tracing: ", loc, val, url);
         if (repl.runtime.getParam("currentMainURL") !== url) { return { "onTrace": "didn't match" }; }
         if (repl.runtime.isNothing(val)) { return { "onTrace": "was nothing" }; }
         return repl.runtime.pauseStack(function(restarter) {
@@ -639,6 +641,7 @@
         };
         var replResult = repl.restartInteractions(src, options);
         var startRendering = replResult.then(function(r) {
+          console.log("Repl result: ", r);
           maybeShowOutputPending();
           return r;
         });

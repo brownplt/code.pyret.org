@@ -158,6 +158,7 @@
           return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
         }
         return runtime.safeCall(function() {
+          debugger;
           return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
             {
               builtin: function(name) {
@@ -166,6 +167,7 @@
                   throw runtime.throwMessageException("Unknown module: " + name);
                 }
                 else {
+                  debugger;
                   return gmf(cpo, "make-builtin-js-locator").app(name, raw);
                 }
               },
@@ -252,37 +254,43 @@
             });
             var ret = Q.defer();
             setTimeout(function() {
-              runtime.runThunk(function() {
-                return runtime.safeCall(
-                  function() {
-                    return gf(repl,
-                    "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
-                  },
-                  function(locator) {
-                    return gf(repl, "restart-interactions").app(locator, pyOptions);
-                  }, "restart-interactions:make-definitions-locator");
-              }, function(result) {
-                ret.resolve(result);
-              });
+              $__T.getRTS().delimit(() =>
+                runtime.runThunk(function() {
+                  return runtime.safeCall(
+                    function() {
+                      return gf(repl,
+                      "make-definitions-locator").app(getDefsForPyret(source), replGlobals);
+                    },
+                    function(locator) {
+                      return gf(repl, "restart-interactions").app(locator, pyOptions);
+                    }, "restart-interactions:make-definitions-locator");
+                }, function(result) {
+                  ret.resolve(result);
+                })
+              );
             }, 0);
             return ret.promise;
           },
           run: function(str, name) {
             var ret = Q.defer();
             setTimeout(function() {
-              runtime.runThunk(function() {
-                return runtime.safeCall(
-                  function() {
-                    return gf(repl,
-                    "make-interaction-locator").app(
-                      runtime.makeFunction(function() { return str; }))
-                  },
-                  function(locator) {
-                    return gf(repl, "run-interaction").app(locator);
-                  }, "run:make-interaction-locator");
-              }, function(result) {
-                ret.resolve(result);
-              }, "make-interaction-locator");
+              $__T.getRTS().delimit(() =>
+                runtime.runThunk(function() {
+                  return runtime.safeCall(
+                    function() {
+                      return gf(repl,
+                      "make-interaction-locator").app(
+                        runtime.makeFunction(function() { return str; }))
+                    },
+                    function(locator) {
+                      debugger;
+                      return gf(repl, "run-interaction").app(locator);
+                    }, "run:make-interaction-locator");
+                }, function(result) {
+                  debugger;
+                  ret.resolve(result);
+                }, "make-interaction-locator")
+              );
             }, 0);
             return ret.promise;
           },

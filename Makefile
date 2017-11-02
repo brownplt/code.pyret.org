@@ -209,7 +209,7 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ)
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
@@ -217,7 +217,7 @@ link-pyret:
 	ln -s node_modules/pyret-lang pyret;
 	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
 
-deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) $(CPOGZ)
+deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOGZ)
 
 TROVE_JS := src/web/js/trove/*.js
 TROVE_ARR := src/web/arr/trove/*.arr
@@ -234,18 +234,21 @@ $(BUNDLED_DEPS): src/scripts/npm-dependencies.js
 $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
 	#cp pyret/build/phaseA/compiled/*.js ./compiled/
-	node pyret/build/phaseA/pyret.jarr \
+	node --stack-size=16384 pyret/build/phaseA/pyret.jarr \
     --builtin-js-dir src/web/js/trove/ \
     --builtin-js-dir pyret/src/js/trove/ \
     -allow-builtin-overrides \
     --builtin-arr-dir src/web/arr/trove/ \
     --builtin-arr-dir pyret/src/arr/trove/ \
-    --require-config cpo-config.json \
     --build-runnable src/web/arr/cpo-main.arr \
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
     --deps-file $(BUNDLED_DEPS) \
-    --outfile $(CPOMAIN) -no-check-mode
+    --outfile $(CPOMAIN) \
+                      -stopify \
+                      -straight-line \
+                    --require-config cpo-config.json
+	#perl -pi -e "print 'var \$$__T = stopify_runtime;\$$__T.makeRTS({transform: \"lazyDeep\", estimator: \"reservoir\", env: \"node\", yieldInterval: 100, deepstacks: 1000});' if $$. == 1" $@
 
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
 # non-.js extension.

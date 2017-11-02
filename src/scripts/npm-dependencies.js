@@ -50,3 +50,12 @@ define("http", [], function () {return {};});
 define("lockfile", [], function () { return {}; });
 
 define("websocket", [], function () { return {}; });
+
+Stopify = require("Stopify")
+define("Stopify", [], function () { return Stopify })
+
+stopify_runtime = require("Stopify/built/src/rts")
+window.stopify_runtime = stopify_runtime;
+define("stopify_runtime", [], function () {
+  return stopify_runtime
+})

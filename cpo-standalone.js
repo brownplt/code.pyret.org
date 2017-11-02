@@ -1,3 +1,6 @@
+window.$__T = stopify_runtime;
+$__T.makeRTS({transform: "lazyDeep", estimator: "countdown", env: "node", yieldInterval: 10000, deepstacks: 1000});
+var define, requirejs;
 requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
 
   var staticModules = program.staticModules;
@@ -5,6 +8,14 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
   var toLoad = program.toLoad;
 
   var main = toLoad[toLoad.length - 1];
+
+  // The evaluation of the runtime should never suspend.
+  $__T.getRTS().delimitDepth = 2;
+  var runtime = runtimeLib.makeRuntime({
+    stdout: function(s) { process.stdout.write(s); },
+    stderr: function(s) { process.stderr.write(s); }
+  });
+  $__T.getRTS().delimitDepth = 0;
 
   var realm = {};
 
@@ -202,6 +213,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
     var getStackP = runtime.makeFunction(getStack);
     var toCall = runtime.getField(checker, "render-check-results-stack");
     var checks = runtime.getField(answer, "checks");
+    debugger;
     return runtime.safeCall(function() {
       return toCall.app(checks, getStackP);
     }, function(printedCheckResult) {
@@ -293,9 +305,10 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
     console.log(window.performance.now());
   }
 
-  return runtime.runThunk(function() {
+  var toRun = function() {
     runtime.modules = realm;
     return runtime.runStandalone(staticModules, realm, depMap, toLoad, postLoadHooks);
-  }, onComplete);
+  };
+  $__T.getRTS().delimit(() => runtime.runThunk(toRun, onComplete))
 
 });
