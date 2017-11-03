@@ -157,7 +157,7 @@
           handlers.push(runtime.makeOpaque(new constr(dict[k])));
         }
       }
-      var title = "reactor";
+      var title = "Reactor";
       if (dict.hasOwnProperty("title")) {
         title = dict["title"];
       }

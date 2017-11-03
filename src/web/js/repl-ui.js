@@ -416,6 +416,7 @@
             closeOnEscape: true,
             modal: true,
             overlay: {opacity: 0.5, background: 'black'},
+            title: 'Interactive Chart',
           });
         } else {
           // need hide to be true so that the dialog will fade out when
