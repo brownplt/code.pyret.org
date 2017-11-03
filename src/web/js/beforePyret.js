@@ -538,6 +538,7 @@ $(function() {
 
   $("#new").click(newEvent);
   $("#save").click(saveEvent);
+  $("#saveButton").click(saveEvent);
   $("#rename").click(rename);
   $("#saveas").click(saveAs);
 
