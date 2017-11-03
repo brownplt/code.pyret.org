@@ -661,6 +661,7 @@
         if (sc) {
           var sl = sc[0].childNodes[0];
           sl.click();
+        }
         e.stopImmediatePropagation();
         e.preventDefault();
       });
