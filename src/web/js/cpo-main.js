@@ -643,6 +643,34 @@
         e.preventDefault();
       });
 
+      Mousetrap.bindGlobal('f7', function(e) {
+        doRunAction(editor.cm.getValue());
+        CPO.autoSave();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f8', function(e) {
+        $('#breakButton').click();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f9', function(e) {
+        var sc = $('#shareContainer');
+        if (sc) {
+          var sl = sc[0].childNodes[0];
+          sl.click();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f11', function(e) {
+        $('#insert').click();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
       // Used for image definition naming (identifier: "img" + curImg)
       var curImg = 0;
 
