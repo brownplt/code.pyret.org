@@ -263,6 +263,49 @@
     };
   }
 
+  function boxChart(globalOptions, rawData) {
+    const table = get(rawData, 'tab');
+    const data = new google.visualization.DataTable();
+    data.addColumn('string', 'Label');
+    for (let i = 0; i < toFixnum(get(rawData, 'len')); i++) {
+      data.addColumn('number', '');
+    }
+    data.addColumn({id:'max', type:'number', role:'interval'});
+    data.addColumn({id:'min', type:'number', role:'interval'});
+    data.addColumn({id:'firstQuartile', type:'number', role:'interval'});
+    data.addColumn({id:'median', type:'number', role:'interval'});
+    data.addColumn({id:'thirdQuartile', type:'number', role:'interval'});
+    data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+    return {
+      data: data,
+      options: {
+        legend: {position: 'none'},
+        lineWidth: 0,
+        intervals: {
+          barWidth: 1,
+          boxWidth: 1,
+          lineWidth: 2,
+          style: 'boxes'
+        },
+        interval: {
+          max: {
+            style: 'bars',
+            fillOpacity: 1,
+            color: '#777'
+          },
+          min: {
+            style: 'bars',
+            fillOpacity: 1,
+            color: '#777'
+          }
+        }
+      },
+      chartType: google.visualization.LineChart,
+      onExit: defaultImageReturn,
+      mutators: [axesNameMutator],
+    };
+  }
+
   function histogram(globalOptions, rawData) {
     const table = get(rawData, 'tab');
     const data = new google.visualization.DataTable();
@@ -619,6 +662,7 @@ ${labelRow}`;
         'pie-chart': makeFunction(pieChart),
         'bar-chart': makeFunction(barChart),
         'histogram': makeFunction(histogram),
+        'box-chart': makeFunction(boxChart),
         'plot': makeFunction(plot),
       })
     })
