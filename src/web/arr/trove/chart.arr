@@ -19,6 +19,7 @@ import chart-lib as P
 import either as E
 import string-dict as SD
 import valueskeleton as VS
+import statistics as ST
 
 ################################################################################
 # CONSTANTS
@@ -175,6 +176,19 @@ end
 
 default-series = {get-data: {(): raise('internal error: this should not happen')}}
 
+type BoxChartSeries = {
+  labels :: List<String>,
+  values :: List<List<Number>>,
+  get-data :: ( -> Any),
+}
+
+default-box-chart-series :: BoxChartSeries = default-series.{
+  labels: empty,
+  values: empty,
+}
+
+############
+
 type PieChartSeries = {
   labels :: List<String>,
   values :: List<Number>,
@@ -287,6 +301,20 @@ default-chart-window-object :: ChartWindowObject = {
   method render(self): raise('unimplemented') end,
 }
 
+type BoxChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  x-axis :: String,
+  y-axis :: String,
+  render :: ( -> IM.Image),
+}
+
+default-box-chart-window-object :: BoxChartWindowObject = default-chart-window-object.{
+  x-axis: '',
+  y-axis: '',
+}
+
 type PieChartWindowObject = {
   title :: String,
   width :: Number,
@@ -388,6 +416,9 @@ data DataSeries:
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
     constr: {(): bar-chart-series},
+  | box-chart-series(obj :: BoxChartSeries) with:
+    is-single: true,
+    constr: {(): box-chart-series},
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
@@ -423,6 +454,10 @@ end
 data ChartWindow:
   | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
+  | box-chart-window(obj :: BoxChartWindowObject) with:
+    constr: {(): pie-chart-window},
+    x-axis: x-axis-method,
+    y-axis: y-axis-method,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
     x-axis: x-axis-method,
@@ -613,6 +648,69 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   } ^ bar-chart-series
 end
 
+fun box-chart-from-list(values :: List<List<Number>>) -> DataSeries block:
+  doc: "Consume values, a list of list of numbers and construct a box chart"
+  labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
+  labeled-box-chart-from-list(labels, values)
+end
+
+fun labeled-box-chart-from-list(
+  labels :: List<String>,
+  values :: List<List<Number>>
+) -> DataSeries block:
+  doc: ```
+       Consume labels, a list of string, and values, a list of list of numbers
+       and construct a box chart
+       ```
+  label-length = labels.length()
+  value-length = values.length()
+  when label-length <> value-length:
+    raise('box-chart: labels and values should have the same length')
+  end
+  values.each(_.each(check-num))
+  values.each({(lst): when lst.length() <= 1:
+    raise('box-chart: the list length should be at least 2')
+  end})
+  max-len = for fold(cur from 0, lst from values):
+    num-max(cur, lst.length())
+  end
+  labels.each(check-string)
+
+  fun get-box-data(lst :: List<Number>) -> RawArray:
+    n = lst.length()
+    shadow lst = lst.sort()
+    median = ST.median(lst)
+    {first-quartile; third-quartile} = if num-modulo(n, 2) == 0:
+      splitted = lst.split-at(n / 2)
+      {ST.median(splitted.prefix); ST.median(splitted.suffix)}
+    else:
+      splitted = lst.split-at((n - 1) / 2)
+      {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
+    end
+    min = lst.get(0)
+    max = lst.get(n - 1)
+    # it expects every column to have the same number of elements, so we pad
+    # repeat(max-len - n, lst.first) to the beginning so that they have the
+    # same length
+    (repeat(max-len - n, lst.first) + lst +
+     [list: max, min, first-quartile, median, third-quartile])
+      ^ builtins.raw-array-from-list
+  end
+
+  tab = to-table2(labels, values.map(get-box-data))
+
+  default-box-chart-series.{
+    labels: labels,
+    values: values,
+    method get-data(self):
+      self.{
+        tab: tab,
+        len: max-len,
+      }
+    end,
+  } ^ box-chart-series
+end
+
 fun grouped-bar-chart-from-list(
   labels :: List<String>,
   value-lists :: List<List<Number>>,
@@ -748,6 +846,12 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.bar-chart(self, obj.get-data())
         end
       } ^ bar-chart-window
+    | box-chart-series(obj) =>
+      default-box-chart-window-object.{
+        method render(self):
+          P.box-chart(self, obj.get-data())
+        end
+      } ^ box-chart-window
     | histogram-series(obj) =>
       default-histogram-chart-window-object.{
         method render(self):
@@ -794,6 +898,9 @@ where:
   render-now(from-list.line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
+  render-now(from-list.box-chart(
+      [list: [list: 1, 2, 3, 4], [list: 1, 2, 3, 4, 5], [list: 10]]
+    )) does-not-raise
 end
 
 fun generate-xy(
@@ -1138,4 +1245,6 @@ from-list = {
   bar-chart: bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   freq-bar-chart: freq-bar-chart-from-list,
+  labeled-box-chart: labeled-box-chart-from-list,
+  box-chart: box-chart-from-list,
 }
