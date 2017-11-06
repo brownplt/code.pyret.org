@@ -263,27 +263,39 @@
     };
   }
 
-  function boxChart(globalOptions, rawData) {
+  function boxPlot(globalOptions, rawData) {
     const table = get(rawData, 'tab');
+    const height = toFixnum(get(rawData, 'height'));
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
-    for (let i = 0; i < toFixnum(get(rawData, 'len')); i++) {
-      data.addColumn('number', '');
-    }
-    data.addColumn({id:'max', type:'number', role:'interval'});
-    data.addColumn({id:'min', type:'number', role:'interval'});
-    data.addColumn({id:'firstQuartile', type:'number', role:'interval'});
-    data.addColumn({id:'median', type:'number', role:'interval'});
-    data.addColumn({id:'thirdQuartile', type:'number', role:'interval'});
-    data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+    data.addColumn('number', 'Total');
+    data.addColumn({id: 'max', type: 'number', role: 'interval'});
+    data.addColumn({id: 'min', type: 'number', role: 'interval'});
+    data.addColumn({id: 'firstQuartile', type: 'number', role: 'interval'});
+    data.addColumn({id: 'median', type: 'number', role: 'interval'});
+    data.addColumn({id: 'thirdQuartile', type: 'number', role: 'interval'});
+    data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
+    data.addRows(table.map(row => {
+      const numRow = row.slice(1).map(n => toFixnum(n));
+      return [row[0], toFixnum(height)]
+        .concat(numRow)
+        .concat([
+           `<p><b>${row[0]}</b></p>
+            <p>minimum: <b>${numRow[1]}</b></p>
+            <p>maximum: <b>${numRow[0]}</b></p>
+            <p>first quartile: <b>${numRow[2]}</b></p>
+            <p>median: <b>${numRow[3]}</b></p>
+            <p>third quartile: <b>${numRow[4]}</b></p>`]);
+    }));
     return {
       data: data,
       options: {
+        tooltip: {isHtml: true},
         legend: {position: 'none'},
         lineWidth: 0,
         intervals: {
-          barWidth: 1,
-          boxWidth: 1,
+          barWidth: 0.25,
+          boxWidth: 0.8,
           lineWidth: 2,
           style: 'boxes'
         },
@@ -298,9 +310,16 @@
             fillOpacity: 1,
             color: '#777'
           }
-        }
+        },
+        dataOpacity: 0,
+        vAxis: {
+          maxValue: height,
+          viewWindow: {
+            max: height,
+          },
+        },
       },
-      chartType: google.visualization.LineChart,
+      chartType: google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator],
     };
@@ -662,7 +681,7 @@ ${labelRow}`;
         'pie-chart': makeFunction(pieChart),
         'bar-chart': makeFunction(barChart),
         'histogram': makeFunction(histogram),
-        'box-chart': makeFunction(boxChart),
+        'box-plot': makeFunction(boxPlot),
         'plot': makeFunction(plot),
       })
     })

@@ -100,19 +100,19 @@ y-axis-method = method(self, y-axis :: String):
   self.constr()(self.obj.{y-axis: y-axis})
 end
 
-x-min-method = method(self, x-min :: Number) block:
+x-min-method = method(self, x-min :: Number):
   self.constr()(self.obj.{x-min: some(x-min)})
 end
 
-x-max-method = method(self, x-max :: Number) block:
+x-max-method = method(self, x-max :: Number):
   self.constr()(self.obj.{x-max: some(x-max)})
 end
 
-y-min-method = method(self, y-min :: Number) block:
+y-min-method = method(self, y-min :: Number):
   self.constr()(self.obj.{y-min: some(y-min)})
 end
 
-y-max-method = method(self, y-max :: Number) block:
+y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
 end
 
@@ -176,10 +176,10 @@ end
 
 type BoxChartSeries = {
   tab :: TableIntern,
-  len :: Number,
+  height :: Number,
 }
 
-default-box-chart-series = {}
+default-box-plot-series = {}
 
 type PieChartSeries = {
   tab :: TableIntern,
@@ -268,7 +268,7 @@ type BoxChartWindowObject = {
   render :: ( -> IM.Image),
 }
 
-default-box-chart-window-object :: BoxChartWindowObject = default-chart-window-object.{
+default-box-plot-chart-window-object :: BoxChartWindowObject = default-chart-window-object.{
   x-axis: '',
   y-axis: '',
 }
@@ -374,9 +374,9 @@ data DataSeries:
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
     constr: {(): bar-chart-series},
-  | box-chart-series(obj :: BoxChartSeries) with:
+  | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
-    constr: {(): box-chart-series},
+    constr: {(): box-plot-series},
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
@@ -412,8 +412,8 @@ end
 data ChartWindow:
   | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
-  | box-chart-window(obj :: BoxChartWindowObject) with:
-    constr: {(): box-chart-window},
+  | box-plot-chart-window(obj :: BoxChartWindowObject) with:
+    constr: {(): box-plot-chart-window},
     x-axis: x-axis-method,
     y-axis: y-axis-method,
   | bar-chart-window(obj :: BarChartWindowObject) with:
@@ -612,13 +612,13 @@ fun grouped-bar-chart-from-list(
   } ^ bar-chart-series
 end
 
-fun box-chart-from-list(values :: List<List<Number>>) -> DataSeries block:
+fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
   doc: "Consume values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
-  labeled-box-chart-from-list(labels, values)
+  labeled-box-plot-from-list(labels, values)
 end
 
-fun labeled-box-chart-from-list(
+fun labeled-box-plot-from-list(
   labels :: List<String>,
   values :: List<List<Number>>
 ) -> DataSeries block:
@@ -629,18 +629,18 @@ fun labeled-box-chart-from-list(
   label-length = labels.length()
   value-length = values.length()
   when label-length <> value-length:
-    raise('box-chart: labels and values should have the same length')
+    raise('labeled-box-plot: labels and values should have the same length')
   end
   values.each(_.each(check-num))
   values.each({(lst): when lst.length() <= 1:
-    raise('box-chart: the list length should be at least 2')
+    raise('labeled-box-plot: the list length should be at least 2')
   end})
-  max-len = for fold(cur from 0, lst from values):
-    num-max(cur, lst.length())
+  max-height = for fold(cur from 0, lst from values):
+    num-max(lst.foldl(num-max, 0), cur)
   end
   labels.each(check-string)
 
-  fun get-box-data(lst :: List<Number>) -> RawArray:
+  fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
     n = lst.length()
     shadow lst = lst.sort()
     median = ST.median(lst)
@@ -653,20 +653,16 @@ fun labeled-box-chart-from-list(
     end
     min = lst.get(0)
     max = lst.get(n - 1)
-    # it expects every column to have the same number of elements, so we pad
-    # repeat(max-len - n, lst.first) to the beginning so that they have the
-    # same length
-    (repeat(max-len - n, lst.first) + lst +
-     [list: max, min, first-quartile, median, third-quartile])
+    [list: label, max, min, first-quartile, median, third-quartile]
       ^ builtins.raw-array-from-list
   end
-  default-box-chart-series.{
-    tab: to-table2(labels, values.map(get-box-data)),
-    len: max-len,
-  } ^ box-chart-series
+  default-box-plot-series.{
+    tab: map2(get-box-data, labels, values) ^ builtins.raw-array-from-list,
+    height: num-ceiling(max-height * (6 / 5)),
+  } ^ box-plot-series
 end
 
-fun freq-bar-chart-from-list(label :: List<String>) -> DataSeries block:
+fun freq-bar-chart-from-list(label :: List<String>) -> DataSeries:
   dict = for fold(prev from [SD.string-dict: ], e from label):
     prev.set(e, prev.get(e).or-else(0) + 1)
   end
@@ -760,12 +756,12 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.bar-chart(self, obj)
         end
       } ^ bar-chart-window
-    | box-chart-series(obj) =>
-      default-box-chart-window-object.{
+    | box-plot-series(obj) =>
+      default-box-plot-chart-window-object.{
         method render(self):
-          P.box-chart(self, obj)
+          P.box-plot(self, obj)
         end
-      } ^ box-chart-window
+      } ^ box-plot-chart-window
     | histogram-series(obj) =>
       default-histogram-chart-window-object.{
         method render(self):
@@ -812,7 +808,7 @@ where:
   render-now(from-list.line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
-  render-now(from-list.box-chart(
+  render-now(from-list.box-plot(
       [list: [list: 1, 2, 3, 4], [list: 1, 2, 3, 4, 5], [list: 10, 11]]
     )) does-not-raise
 end
@@ -908,14 +904,10 @@ fun find-pt-on-edge(in :: Posn, out :: Posn, self) -> Option<Posn>:
     c = y - m * x           [2]   [rewrite 3]
     x = (y - c) / m         [4]   [rewrite 3]
     |#
-    m = (snd(in) - snd(out)) / (fst(in) - fst(out))
-    c = snd(in) - (m * fst(in))
-
-    # find y from x
-    f = {(x): (m * x) + c}
-
-    # find x from y
-    g = {(y): (y - c) / m}
+    m = (snd(in) - snd(out)) / (fst(in) - fst(out)) # [1]
+    c = snd(in) - (m * fst(in)) # [2]
+    f = {(x): (m * x) + c} # [3]
+    g = {(y): (y - c) / m} # [4]
 
     [list:
       posn(self.x-min.value, f(self.x-min.value)),
@@ -937,8 +929,8 @@ fun line-plot-edge-cut(pts :: List<Posn>, self) -> List<Posn>:
   segments = cases (List<Posn>) pts:
     | empty => empty
     | link(f, r) =>
-      {segments; _} = for fold({segments; start} from {empty; f}, stop from r) block:
-        segment = ask block:
+      {segments; _} = for fold({segments; start} from {empty; f}, stop from r):
+        segment = ask:
           | in-bound-xy(start, self) and in-bound-xy(stop, self) then:
             [list: start, stop]
           | in-bound-xy(start, self) then:
@@ -967,7 +959,7 @@ fun line-plot-edge-cut(pts :: List<Posn>, self) -> List<Posn>:
       segments
   end
 
-  cases (List) segments block:
+  cases (List) segments:
     | empty => empty
     | link(f, r) =>
       {_; result} = for fold({prev; lst} from {f; f}, segment from r):
@@ -1025,15 +1017,15 @@ fun get-bound-result(
   end
 end
 
-fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
+fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
   doc: "Draw 'em all"
-  cases (Option) find(_.is-single, lst):
+  _ = cases (Option) find(_.is-single, lst):
     | some(v) => raise(
         [sprintf: "render-charts: can't draw ", v,
                   " with `render-charts`. Use `render-chart` instead."])
     | else => nothing
   end
-  cases (List<DataSeries>) lst:
+  _ = cases (List<DataSeries>) lst:
     | empty => raise('render-charts: need at least one series to plot')
     | else => nothing
   end
@@ -1095,7 +1087,7 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
 
       shadow self = self.{y-min: y-min, y-max: y-max}
 
-      fun helper(shadow self, shadow function-plots-data :: Option) -> IM.Image block:
+      fun helper(shadow self, shadow function-plots-data :: Option) -> IM.Image:
         shadow function-plots-data = cases (Option) function-plots-data:
           | none => function-plots
               .map(generate-xy(_, self.x-min.value, self.x-max.value, self.num-samples))
@@ -1155,6 +1147,6 @@ from-list = {
   bar-chart: bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   freq-bar-chart: freq-bar-chart-from-list,
-  labeled-box-chart: labeled-box-chart-from-list,
-  box-chart: box-chart-from-list,
+  labeled-box-plot: labeled-box-plot-from-list,
+  box-plot: box-plot-from-list,
 }
