@@ -69,6 +69,7 @@
     "style-loader": "0.13.1",
     "stylus": "^0.54.5",
     "supervisor": "^0.11.0",
+    "url-loader": "^0.6.2",
     "url.js": "^1.0.2",
     "webpack": "^1.13.1",
     "webpack-dev-server": "^1.14.1"

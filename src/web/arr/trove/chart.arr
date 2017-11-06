@@ -19,6 +19,7 @@ import chart-lib as P
 import either as E
 import string-dict as SD
 import valueskeleton as VS
+import statistics as ST
 
 ################################################################################
 # CONSTANTS
@@ -99,19 +100,19 @@ y-axis-method = method(self, y-axis :: String):
   self.constr()(self.obj.{y-axis: y-axis})
 end
 
-x-min-method = method(self, x-min :: Number) block:
+x-min-method = method(self, x-min :: Number):
   self.constr()(self.obj.{x-min: some(x-min)})
 end
 
-x-max-method = method(self, x-max :: Number) block:
+x-max-method = method(self, x-max :: Number):
   self.constr()(self.obj.{x-max: some(x-max)})
 end
 
-y-min-method = method(self, y-min :: Number) block:
+y-min-method = method(self, y-min :: Number):
   self.constr()(self.obj.{y-min: some(y-min)})
 end
 
-y-max-method = method(self, y-max :: Number) block:
+y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
 end
 
@@ -173,100 +174,71 @@ end
 # DEFAULT VALUES
 ################################################################################
 
-default-series = {get-data: {(): raise('internal error: this should not happen')}}
+type BoxChartSeries = {
+  tab :: TableIntern,
+  height :: Number,
+}
+
+default-box-plot-series = {}
 
 type PieChartSeries = {
-  labels :: List<String>,
-  values :: List<Number>,
-  get-data :: ( -> Any)
+  tab :: TableIntern,
 }
 
-default-pie-chart-series :: PieChartSeries  = default-series.{
-  labels: empty,
-  values: empty,
-}
-
-############
+default-pie-chart-series = {}
 
 type BarChartSeries = {
-  labels :: List<String>,
-  value-lists :: List<List<Number>>,
-  get-data :: ( -> Any)
+  tab :: TableIntern,
+  legends :: RawArray<String>,
+  has-legend :: Boolean,
 }
 
-default-bar-chart-series :: BarChartSeries = default-series.{
-  labels: empty,
-  value-lists: empty,
-}
-
-############
+default-bar-chart-series = {}
 
 type HistogramSeries = {
-  labels :: List<String>,
-  values :: List<Number>,
+  tab :: TableIntern,
   bin-width :: Option<Number>,
   max-num-bins :: Option<Number>,
   min-num-bins :: Option<Number>,
-  get-data :: ( -> Any)
 }
 
-default-histogram-series :: HistogramSeries  = default-series.{
-  labels: empty,
-  values: empty,
+default-histogram-series = {
   bin-width: none,
   max-num-bins: none,
   min-num-bins: none,
 }
 
-############
-
 type LinePlotSeries = {
-  xs :: List<Number>,
-  ys :: List<Number>,
+  ps :: List<Posn>,
   color :: Option<I.Color>,
   legend :: String,
-  get-data :: ( -> Any),
 }
 
-default-line-plot-series :: LinePlotSeries = default-series.{
-  xs: empty,
-  ys: empty,
+default-line-plot-series = {
   color: none,
   legend: '',
 }
 
-############
-
 type ScatterPlotSeries = {
-  xs :: List<Number>,
-  ys :: List<Number>,
-  labels :: List<String>,
+  ps :: List<Posn>,
   color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
-  get-data :: ( -> Any),
 }
 
-default-scatter-plot-series :: ScatterPlotSeries = default-series.{
-  xs: empty,
-  ys: empty,
-  labels: empty,
+default-scatter-plot-series = {
   color: none,
   legend: '',
   point-size: 7,
 }
 
-############
-
 type FunctionPlotSeries = {
   f :: PlottableFunction,
   color :: Option<I.Color>,
   legend :: String,
-  get-data :: ( -> Any),
 }
 
-default-function-plot-series :: FunctionPlotSeries = default-series.{
-  f: {(x): x},
+default-function-plot-series = {
   color: none,
   legend: '',
 }
@@ -285,6 +257,20 @@ default-chart-window-object :: ChartWindowObject = {
   width: 800,
   height: 600,
   method render(self): raise('unimplemented') end,
+}
+
+type BoxChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  x-axis :: String,
+  y-axis :: String,
+  render :: ( -> IM.Image),
+}
+
+default-box-plot-chart-window-object :: BoxChartWindowObject = default-chart-window-object.{
+  x-axis: '',
+  y-axis: '',
 }
 
 type PieChartWindowObject = {
@@ -388,6 +374,9 @@ data DataSeries:
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
     constr: {(): bar-chart-series},
+  | box-plot-series(obj :: BoxChartSeries) with:
+    is-single: true,
+    constr: {(): box-plot-series},
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
@@ -423,6 +412,10 @@ end
 data ChartWindow:
   | pie-chart-window(obj :: PieChartWindowObject) with:
     constr: {(): pie-chart-window},
+  | box-plot-chart-window(obj :: BoxChartWindowObject) with:
+    constr: {(): box-plot-chart-window},
+    x-axis: x-axis-method,
+    y-axis: y-axis-method,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
     x-axis: x-axis-method,
@@ -480,7 +473,6 @@ end
 fun function-plot-from-list(f :: PlottableFunction) -> DataSeries:
   default-function-plot-series.{
     f: f,
-    method get-data(self): self.{f: f} end,
   } ^ function-plot-series
 end
 
@@ -490,11 +482,8 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   end
   xs.each(check-num)
   ys.each(check-num)
-  ps = map2({(x, y): [raw-array: x, y]}, xs, ys)
   default-line-plot-series.{
-    xs: xs,
-    ys: ys,
-    method get-data(self): self.{ps: ps} end,
+    ps: map2({(x, y): [raw-array: x, y]}, xs, ys)
   } ^ line-plot-series
 end
 
@@ -504,7 +493,9 @@ fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries
   end
   xs.each(check-num)
   ys.each(check-num)
-  labeled-scatter-plot-from-list(xs.map({(_): ''}), xs, ys)
+  default-scatter-plot-series.{
+    ps: map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, xs.map({(_): ''}))
+  } ^ scatter-plot-series
 end
 
 fun labeled-scatter-plot-from-list(
@@ -520,12 +511,8 @@ fun labeled-scatter-plot-from-list(
   xs.each(check-num)
   ys.each(check-num)
   labels.each(check-string)
-  ps = map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
   default-scatter-plot-series.{
-    xs: xs,
-    ys: ys,
-    labels: labels,
-    method get-data(self): self.{ps: ps} end,
+    ps: map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
   } ^ scatter-plot-series
 end
 
@@ -554,12 +541,8 @@ fun exploding-pie-chart-from-list(
   values.each(check-num)
   offsets.each(check-num)
   labels.each(check-string)
-  tab = to-table3(labels, values, offsets)
   default-pie-chart-series.{
-    labels: labels,
-    values: values,
-    offsets: offsets,
-    method get-data(self): self.{tab: tab} end,
+    tab: to-table3(labels, values, offsets)
   } ^ pie-chart-series
 end
 
@@ -578,11 +561,8 @@ fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   end
   values.each(check-num)
   labels.each(check-string)
-  tab = to-table3(labels, values, labels.map({(_): 0}))
   default-pie-chart-series.{
-    labels: labels,
-    values: values,
-    method get-data(self): self.{tab: tab} end,
+    tab: to-table3(labels, values, labels.map({(_): 0}))
   } ^ pie-chart-series
 end
 
@@ -599,17 +579,10 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   values.each(check-num)
   labels.each(check-string)
   value-lists = values.map({(v): [list: v]})
-  tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
   default-bar-chart-series.{
-    labels: labels,
-    value-lists: value-lists,
-    method get-data(self):
-      self.{
-        tab: tab,
-        legends: [raw-array: ''],
-        has-legend: false,
-      }
-    end,
+    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    legends: [raw-array: ''],
+    has-legend: false,
   } ^ bar-chart-series
 end
 
@@ -632,23 +605,64 @@ fun grouped-bar-chart-from-list(
   value-lists.each(_.each(check-num))
   labels.each(check-string)
   legends.each(check-string)
-  tab = to-table2(labels, value-lists.map(builtins.raw-array-from-list))
-  legends-arr = legends ^ builtins.raw-array-from-list
   default-bar-chart-series.{
-    labels: labels,
-    value-lists: value-lists,
-    legends: legends,
-    method get-data(self):
-      {
-        tab: tab,
-        legends: legends-arr,
-        has-legend: true,
-      }
-    end,
+    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    legends: legends ^ builtins.raw-array-from-list,
+    has-legend: true,
   } ^ bar-chart-series
 end
 
-fun freq-bar-chart-from-list(label :: List<String>) -> DataSeries block:
+fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
+  doc: "Consume values, a list of list of numbers and construct a box chart"
+  labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
+  labeled-box-plot-from-list(labels, values)
+end
+
+fun labeled-box-plot-from-list(
+  labels :: List<String>,
+  values :: List<List<Number>>
+) -> DataSeries block:
+  doc: ```
+       Consume labels, a list of string, and values, a list of list of numbers
+       and construct a box chart
+       ```
+  label-length = labels.length()
+  value-length = values.length()
+  when label-length <> value-length:
+    raise('labeled-box-plot: labels and values should have the same length')
+  end
+  values.each(_.each(check-num))
+  values.each({(lst): when lst.length() <= 1:
+    raise('labeled-box-plot: the list length should be at least 2')
+  end})
+  max-height = for fold(cur from 0, lst from values):
+    num-max(lst.foldl(num-max, 0), cur)
+  end
+  labels.each(check-string)
+
+  fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
+    n = lst.length()
+    shadow lst = lst.sort()
+    median = ST.median(lst)
+    {first-quartile; third-quartile} = if num-modulo(n, 2) == 0:
+      splitted = lst.split-at(n / 2)
+      {ST.median(splitted.prefix); ST.median(splitted.suffix)}
+    else:
+      splitted = lst.split-at((n - 1) / 2)
+      {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
+    end
+    min = lst.get(0)
+    max = lst.get(n - 1)
+    [list: label, max, min, first-quartile, median, third-quartile]
+      ^ builtins.raw-array-from-list
+  end
+  default-box-plot-series.{
+    tab: map2(get-box-data, labels, values) ^ builtins.raw-array-from-list,
+    height: num-ceiling(max-height * (6 / 5)),
+  } ^ box-plot-series
+end
+
+fun freq-bar-chart-from-list(label :: List<String>) -> DataSeries:
   dict = for fold(prev from [SD.string-dict: ], e from label):
     prev.set(e, prev.get(e).or-else(0) + 1)
   end
@@ -668,10 +682,8 @@ fun histogram-from-list(values :: List<Number>) -> DataSeries block:
        Consume a list of numbers and construct a histogram
        ```
   values.each(check-num)
-  tab = to-table2(values.map({(_): ''}), values)
   default-histogram-series.{
-    values: values,
-    method get-data(self): self.{tab: tab} end,
+    tab: to-table2(values.map({(_): ''}), values),
   } ^ histogram-series
 end
 
@@ -686,11 +698,8 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   end
   values.each(check-num)
   labels.each(check-string)
-  tab = to-table2(labels, values)
   default-histogram-series.{
-    labels: labels,
-    values: values,
-    method get-data(self): self.{tab: tab} end,
+    tab: to-table2(labels, values),
   } ^ histogram-series
 end
 
@@ -738,23 +747,28 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
     | scatter-plot-series(_) => render-charts([list: s])
     | pie-chart-series(obj) =>
       default-pie-chart-window-object.{
-        method render(self): P.pie-chart(self, obj.get-data()) end
+        method render(self): P.pie-chart(self, obj) end
       } ^ pie-chart-window
     | bar-chart-series(obj) =>
-      obj-data = obj.get-data()
       default-bar-chart-window-object.{
         method render(self):
           _ = check-render-y-axis(self)
-          P.bar-chart(self, obj.get-data())
+          P.bar-chart(self, obj)
         end
       } ^ bar-chart-window
+    | box-plot-series(obj) =>
+      default-box-plot-chart-window-object.{
+        method render(self):
+          P.box-plot(self, obj)
+        end
+      } ^ box-plot-chart-window
     | histogram-series(obj) =>
       default-histogram-chart-window-object.{
         method render(self):
           shadow self = self.{y-min: none}
           _ = check-render-x-axis(self)
           _ = check-render-y-axis(self)
-          P.histogram(self, obj.get-data())
+          P.histogram(self, obj)
         end
       } ^ histogram-chart-window
   end
@@ -794,6 +808,9 @@ where:
   render-now(from-list.line-plot(
       [list: 1, 1, 4, 7, 4, 2],
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
+  render-now(from-list.box-plot(
+      [list: [list: 1, 2, 3, 4], [list: 1, 2, 3, 4, 5], [list: 10, 11]]
+    )) does-not-raise
 end
 
 fun generate-xy(
@@ -813,13 +830,13 @@ fun generate-xy(
   end
 
   default-scatter-plot-series.{
-    method get-data(self): self.{ps: ps} end,
+    ps: ps,
     point-size: FUNCTION-POINT-SIZE,
     color: p.color,
     legend: p.legend,
   }
 where:
-  generate-xy(from-list.function-plot(_ + 1).obj, 0, 100, 6).get-data().ps
+  generate-xy(from-list.function-plot(_ + 1).obj, 0, 100, 6).ps
     is=~ [list:
     posn(0, 1),
     posn(20, 21),
@@ -887,14 +904,10 @@ fun find-pt-on-edge(in :: Posn, out :: Posn, self) -> Option<Posn>:
     c = y - m * x           [2]   [rewrite 3]
     x = (y - c) / m         [4]   [rewrite 3]
     |#
-    m = (snd(in) - snd(out)) / (fst(in) - fst(out))
-    c = snd(in) - (m * fst(in))
-
-    # find y from x
-    f = {(x): (m * x) + c}
-
-    # find x from y
-    g = {(y): (y - c) / m}
+    m = (snd(in) - snd(out)) / (fst(in) - fst(out)) # [1]
+    c = snd(in) - (m * fst(in)) # [2]
+    f = {(x): (m * x) + c} # [3]
+    g = {(y): (y - c) / m} # [4]
 
     [list:
       posn(self.x-min.value, f(self.x-min.value)),
@@ -916,8 +929,8 @@ fun line-plot-edge-cut(pts :: List<Posn>, self) -> List<Posn>:
   segments = cases (List<Posn>) pts:
     | empty => empty
     | link(f, r) =>
-      {segments; _} = for fold({segments; start} from {empty; f}, stop from r) block:
-        segment = ask block:
+      {segments; _} = for fold({segments; start} from {empty; f}, stop from r):
+        segment = ask:
           | in-bound-xy(start, self) and in-bound-xy(stop, self) then:
             [list: start, stop]
           | in-bound-xy(start, self) then:
@@ -946,7 +959,7 @@ fun line-plot-edge-cut(pts :: List<Posn>, self) -> List<Posn>:
       segments
   end
 
-  cases (List) segments block:
+  cases (List) segments:
     | empty => empty
     | link(f, r) =>
       {_; result} = for fold({prev; lst} from {f; f}, segment from r):
@@ -1004,27 +1017,25 @@ fun get-bound-result(
   end
 end
 
-fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
+fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
   doc: "Draw 'em all"
-  cases (Option) find(_.is-single, lst):
+  _ = cases (Option) find(_.is-single, lst):
     | some(v) => raise(
         [sprintf: "render-charts: can't draw ", v,
                   " with `render-charts`. Use `render-chart` instead."])
     | else => nothing
   end
-  cases (List<DataSeries>) lst:
+  _ = cases (List<DataSeries>) lst:
     | empty => raise('render-charts: need at least one series to plot')
     | else => nothing
   end
 
-  fun to-internal-plot(p :: DataSeries): p.obj.get-data() end
-
   partitioned = partition(is-function-plot-series, lst)
-  function-plots = partitioned.is-true.map(to-internal-plot)
+  function-plots = partitioned.is-true.map(_.obj)
   is-show-samples = is-link(function-plots)
   shadow partitioned = partition(is-line-plot-series, partitioned.is-false)
-  line-plots = partitioned.is-true.map(to-internal-plot)
-  scatter-plots = partitioned.is-false.map(to-internal-plot)
+  line-plots = partitioned.is-true.map(_.obj)
+  scatter-plots = partitioned.is-false.map(_.obj)
 
   default-plot-chart-window-object.{
     method render(self):
@@ -1066,7 +1077,6 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
 
       function-plots-data = function-plots
         .map(generate-xy(_, self.x-min.value, self.x-max.value, self.num-samples))
-        .map(_.get-data())
 
       bbox-combined = link(bbox, function-plots-data.map(_.ps).map(get-bounding-box))
         ^ merge-bounding-box
@@ -1077,11 +1087,10 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow block:
 
       shadow self = self.{y-min: y-min, y-max: y-max}
 
-      fun helper(shadow self, shadow function-plots-data :: Option) -> IM.Image block:
+      fun helper(shadow self, shadow function-plots-data :: Option) -> IM.Image:
         shadow function-plots-data = cases (Option) function-plots-data:
           | none => function-plots
               .map(generate-xy(_, self.x-min.value, self.x-max.value, self.num-samples))
-              .map(_.get-data())
           | some(shadow function-plots-data) => function-plots-data
         end
 
@@ -1138,4 +1147,6 @@ from-list = {
   bar-chart: bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   freq-bar-chart: freq-bar-chart-from-list,
+  labeled-box-plot: labeled-box-plot-from-list,
+  box-plot: box-plot-from-list,
 }

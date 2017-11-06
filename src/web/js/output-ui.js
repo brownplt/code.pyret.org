@@ -1277,6 +1277,7 @@
             var dialog = $("<div>");
             // NOTE(Oak): some magic numbers that "display" nicely
             dialog.dialog({
+              title: 'Image',
               modal: true,
               height: Math.min($(document).height() * .95, realHeight + (9 * 2) + 60),
               width: Math.min($(document).width() * .95, realWidth + (18 * 2)),
