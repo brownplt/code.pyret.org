@@ -1,5 +1,5 @@
 window.$__T = stopify_runtime;
-$__T.makeRTS({transform: "lazyDeep", estimator: "countdown", env: "node", yieldInterval: 10000, deepstacks: 1000});
+$__T.makeRTS({transform: "lazyDeep", estimator: "reservoir", env: "node", yieldInterval: 100, deepstacks: 1000});
 var define, requirejs;
 requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
 
@@ -199,6 +199,10 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
     }
   };
   postLoadHooks[main] = function(answer) {
+
+    repl = gf(gf(gf(answer, "provide-plus-types"), "values"), "repl").val;
+
+    return true;
     var checkerLib = runtime.modules["builtin://checker"];
     var checker = runtime.getField(runtime.getField(checkerLib, "provide-plus-types"), "values");
     var getStack = function(err) {
@@ -207,8 +211,6 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
       var locList = runtime.ffi.makeList(locArray);
       return locList;
     };
-
-    repl = gf(gf(gf(answer, "provide-plus-types"), "values"), "repl").val;
 
     var getStackP = runtime.makeFunction(getStack);
     var toCall = runtime.getField(checker, "render-check-results-stack");

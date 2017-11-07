@@ -158,7 +158,6 @@
           return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
         }
         return runtime.safeCall(function() {
-          debugger;
           return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
             {
               builtin: function(name) {
@@ -167,7 +166,6 @@
                   throw runtime.throwMessageException("Unknown module: " + name);
                 }
                 else {
-                  debugger;
                   return gmf(cpo, "make-builtin-js-locator").app(name, raw);
                 }
               },
@@ -250,7 +248,9 @@
             var pyOptions = defaultOptions.extendWith({
               "type-check": options.typeCheck,
               "check-all": options.checkAll,
-              "on-compile": onCompile
+              "on-compile": onCompile,
+              "straight-line": true,
+              "stopify": true
             });
             var ret = Q.defer();
             setTimeout(function() {
@@ -283,11 +283,9 @@
                         runtime.makeFunction(function() { return str; }))
                     },
                     function(locator) {
-                      debugger;
                       return gf(repl, "run-interaction").app(locator);
                     }, "run:make-interaction-locator");
                 }, function(result) {
-                  debugger;
                   ret.resolve(result);
                 }, "make-interaction-locator")
               );

@@ -296,24 +296,30 @@
         // NOTE(joe): don't move this line down, it's *these* args, not
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
-        runtime.run(function(_, _) {
+        console.log("About to delimit");
+        $__T.getRTS().delimit(() => {
+        console.log("About to run");
+        runtime.runThunk(function() {
           // NOTE(joe): adding safecall here to get some meaningful caller frame
           // so error messages know where the call is coming from
+          console.log("About to safeCall");
           return runtime.safeCall(function() {
             return worldFunction.app.apply(null, pyretArgs);
           }, function(result) {
+            console.log("safeCall result:", result);
             return result;
           }, "big-bang");
-        }, runtime.namespace,
-                    { sync: false },
-                    function(result) {
+        },
+        function(result) {
+          console.log("Done with run:; ", result);
                       if(runtime.isSuccessResult(result)) {
                         success(result.result);
                       }
                       else {
                         return rawJsworld.shutdown({errorShutdown: result.exn});
                       }
-                    });
+        })
+        });
       };
     };
 
