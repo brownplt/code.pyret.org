@@ -49,7 +49,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/post-load-hooks", "pyret-base
 
   var gf = runtime.getField;
 
-  var postLoadHooks = loadHooksLib.makeDefaultPostLoadHooks(runtime, main);
+  var postLoadHooks = loadHooksLib.makeDefaultPostLoadHooks(runtime, {main: main, checkAll: true});
   postLoadHooks["builtin://cpo-builtins"] = function(_) {
     // NOTE(joe): At this point, all the builtin modules are for sure loaded
     // (like image, world, etc)
