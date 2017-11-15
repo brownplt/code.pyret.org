@@ -304,7 +304,7 @@ $(function() {
   var TRUNCATE_LENGTH = 20;
 
   function truncateName(name) {
-    if(name.length < TRUNCATE_LENGTH) { return name; }
+    if(name.length <= TRUNCATE_LENGTH + 1) { return name; }
     return name.slice(0, TRUNCATE_LENGTH / 2) + "…" + name.slice(name.length - TRUNCATE_LENGTH / 2, name.length);
   }
 
