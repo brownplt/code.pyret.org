@@ -605,12 +605,12 @@
           var id = documents[0][picker.Document.ID];
           function load(here) {
             if(here) {
-              var p = drive.getFileById(id);
-
-              window.CPO.showShareContainer(p);
-              history.pushState(null, null, "#program=" + id);
 
               window.CPO.save().then(function() {
+                var p = drive.getFileById(id);
+
+                window.CPO.showShareContainer(p);
+                history.pushState(null, null, "#program=" + id);
                 window.CPO.loadProgram(p).then(function(contents) {
                   window.CPO.editor.cm.setValue(contents);
                   window.CPO.editor.cm.clearHistory();
