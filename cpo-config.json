@@ -11,6 +11,7 @@
     "pyret-base/js/runtime-util": "pyret/build/phaseA/js/runtime-util.js",
     "pyret-base/js/type-util": "pyret/build/phaseA/js/type-util.js",
     "pyret-base/js/secure-loader": "pyret/build/phaseA/js/secure-loader.js",
+    "pyret-base/js/post-load-hooks": "pyret/build/phaseA/js/post-load-hooks.js",
 
     "cpo/gdrive-locators": "src/web/js/gdrive-locators.js",
     "cpo/http-imports": "src/web/js/http-imports.js",

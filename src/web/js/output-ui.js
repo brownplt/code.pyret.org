@@ -1204,9 +1204,11 @@
         var b = jsnums.toFixnum(raw_b); b = (b < 0 ? 0 : (b > 255 ? 255 : b));
         var a = jsnums.toFixnum(raw_a); a = (a < 0 ? 0 : (a > 1.0 ? 1.0 : a));
         var rgba = r + ", " + g + ", " + b + ", " + a;
-        var paint = $("<span>").addClass("paintBlob")
+        var checkers = $("<span>").addClass("checkersBlob");
+        var paintBlob = $("<span>").addClass("paintBlob")
             .css("background-color", "rgba(" + rgba + ")")
             .css("margin-right", "0.25em");
+        var paint = $("<span>").addClass("paintSpan").append(checkers).append(paintBlob);
         var paintBrush = $("<span>").addClass("cycleTarget replToggle replOutput").append(brush).append(paint);
         if (colorName !== undefined) {
           paintBrush.append($("<span>").text(colorName));
