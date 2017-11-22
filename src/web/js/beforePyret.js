@@ -398,12 +398,13 @@ $(function() {
           .then(function(p) {
             // showShareContainer(p); TODO(joe): figure out where to put this
             history.pushState(null, null, "#program=" + p.getUniqueId());
-            updateName(p);
+            updateName(p); // sets filename
             enableFileOptions();
-            save();
             return p;
           });
-        return programToSave;
+        return programToSave.then(function(p) {
+          return save();
+        });
       }
       else {
         return programToSave.then(function(p) {
