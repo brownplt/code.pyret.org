@@ -1884,6 +1884,9 @@ table.pyret-row {
    position: relative;
    z-index: 2;
 }
+.paintSpan {
+   display: inline-block;
+}
 .paintBlob {
    width: 2.5em;
    height: 1.5em;
@@ -1896,6 +1899,15 @@ table.pyret-row {
    -webkit-mask-size: contain;
    mask-size: 100% 100%;
    mask-type: luminance;
+}
+.checkersBlob {
+   margin-right: -2.5em;
+   width: 2.5em;
+   height: 1.5em;
+   position: absolute;
+   background-image: url(/img/checkers.svg);
+   background-size: 2.5em 1.5em;
+   display: inline-block;
 }
 .error-bg {
   background-color: #FF9494;
