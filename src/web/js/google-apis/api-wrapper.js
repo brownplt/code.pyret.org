@@ -245,7 +245,12 @@ function loadAPIWrapper(immediate) {
       return d.promise;
     }));
     if (skipAuth) {
-      gapi.auth.setToken({ access_token: oldAccess });
+      // NOTE(joe): see discussion at https://github.com/brownplt/code.pyret.org/issues/255
+      // for why (A) we do this before the request completes and (B) the
+      // setTimeout here is necessary
+      setTimeout(function() {
+        gapi.auth.setToken({ access_token: oldAccess });
+      });
     }
     return ret;
   }
