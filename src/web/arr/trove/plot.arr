@@ -347,7 +347,7 @@ fun generate-xy(
           | right(v) => none
         end
       end
-        ^ builtins.list-to-raw-array
+        ^ builtins.raw-array-from-list
         ^ scatter-plot-int(_, options)
     | else => raise('internal-plot: expect function-plot, got other')
   end

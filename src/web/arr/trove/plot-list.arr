@@ -389,7 +389,7 @@ fun plot(s :: Series) -> PlotObject:
               {(l :: String, v :: Number, r :: Number): [raw-array: l, v, r]},
               labels,
               values,
-              radiuses) ^ builtins.list-to-raw-array)
+              radiuses) ^ builtins.raw-array-from-list)
         end
       }
     | bar-chart-series(labels, value-lists, maybe-legends) =>
@@ -402,14 +402,14 @@ fun plot(s :: Series) -> PlotObject:
           P.bar-chart(self, map2(
               {(l :: String, vs :: List<Number>): [raw-array: l, vs]},
               labels,
-              value-lists) ^ builtins.list-to-raw-array, legends, is-some(maybe-legends))
+              value-lists) ^ builtins.raw-array-from-list, legends, is-some(maybe-legends))
         end
       }
     | histogram-series(values, n) =>
       plot-object-axis.{
         method _render(self):
           shadow values = values.map({(x): [raw-array: x]})
-          P.histogram(self, builtins.list-to-raw-array(values), n)
+          P.histogram(self, builtins.raw-array-from-list(values), n)
         end
       }
   end
@@ -462,7 +462,7 @@ fun generate-xy(
           | right(v) => none
         end
       end
-        ^ builtins.list-to-raw-array
+        ^ builtins.raw-array-from-list
         ^ scatter-plot-int(_, options)
     | else => raise('int-plot: expect function-plot, got other')
   end
@@ -516,12 +516,12 @@ fun plots(lst :: List<Series>) -> PlotObject block:
               cases (Series) s block:
                 | scatter-plot-series(xs, ys, options) =>
                   scatter-plot-int(
-                    builtins.list-to-raw-array(
+                    builtins.raw-array-from-list(
                       map2({(x, y): [raw-array: x, y]}, xs, ys)),
                     options.{opacity: 80,  size: 4, tip: true})
                 | line-plot-series(xs, ys, options) =>
                   line-plot-int(
-                    builtins.list-to-raw-array(
+                    builtins.raw-array-from-list(
                       map2({(x, y): [raw-array: x, y]}, xs, ys)),
                     options.{opacity: 100, size: 1, tip: false})
                 | function-plot-series(f, options) =>
