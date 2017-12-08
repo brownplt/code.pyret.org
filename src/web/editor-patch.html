@@ -22,7 +22,7 @@
       <h2 class="screenreader-only">Navigation Bar</h2>
       <a class="logo" href="http://www.pyret.org/"></a>
       <span id=headeronelegend>Patch ::</span>
-      <span class="headeronedoclink" role="button" aria-label="Show Documentation"><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
+      <span class="headeronedoclink" id="showDoc" role="button" aria-label="Show Documentation"><a target="_blank" href="http://www.wescheme.org/doc/wescheme.html">Documentation</a></span>
       <span class="headeronelogoutlink" id="logout" role="button" aria-label="Log Out"><a href="/logout">Log out</a></span>
     </div>
     <div id="headertwo">
@@ -59,7 +59,7 @@
       </div>
       <div id="shareContainer"></div>
       <div id="filemenu" class="loginOnly menu">
-        <button role="button" aria-label="More" class="blueButton">More ▾</button>
+        <button role="button" id="morebutton" aria-label="More" class="blueButton">More ▾</button>
       </div>
       <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
         <div id="welcome" class="menuButton inert" style="text-align: center;">
@@ -99,7 +99,7 @@
   </div>
 </div>
 <div id="notification" class="notificationArea"></div>
-<div id="REPL" class="replContainer" role="region" aria-label="Interactions" tabindex="-1">
+<div id="REPL" class="replContainer" role="region" aria-label="Interactions" >
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
 <div id="help-keys">
@@ -123,7 +123,14 @@
 </div>
 </div>
 </div>
-<div id="footer"></div>
+<div id="footer">
+  <div id="announcements" class="screenreader-only" role="region" aria-label="Announcements" tabIndex="-1">
+    <h2>Announcements</h2>
+    <ul id="announcementlist" aria-live="assertive"
+                              aria-relevant="additions" style="list-style: none;">
+    </ul>
+  </div>
+</div>
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
