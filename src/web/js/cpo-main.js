@@ -55,6 +55,7 @@
 
 
     var replContainer = $("<div>").addClass("repl");
+    replContainer.attr("tabindex", "-1");
     $("#REPL").append(replContainer);
 
     var logDetailedOption = $("#detailed-logging");
@@ -347,7 +348,7 @@
       var codeContainer = $("<div>").addClass("replMain");
       codeContainer.attr("role", "region").
         attr("aria-label", "Definitions").
-        attr("tabindex", -1);
+        attr("tabindex", "-1");
       $("#main").prepend(codeContainer);
 
       var replWidget =
@@ -639,6 +640,21 @@
       // pull up help menu
       Mousetrap.bindGlobal('ctrl+shift+/', function(e) {
         $("#help-keys").fadeIn(100);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+
+      Mousetrap.bindGlobal('f6', function(e) {
+        // cycle focus (forward)
+        CPO.cycleFocus();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('shift-f6', function(e) {
+        // cycle focus backward
+        CPO.cycleFocus(true);
         e.stopImmediatePropagation();
         e.preventDefault();
       });
