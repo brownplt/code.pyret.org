@@ -128,6 +128,7 @@ $(function() {
     }
   }
   CPO.makeEditor = function(container, options) {
+    //console.log('makeEditor', container);
     var initial = "";
     if (options.hasOwnProperty("initial")) {
       initial = options.initial;
@@ -220,13 +221,29 @@ $(function() {
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
     }
 
+
+
+    var replMainA = document.getElementById("main").
+      getElementsByClassName("replMain");
+    var replMain = replMainA[replMainA.length -1];
+
+
+    var initFocusCarousel = [ document.getElementById("Toolbar"),
+      //container[0].getElementsByClassName("CodeMirror-scroll")[0],
+      replMain.getElementsByClassName("CodeMirror-scroll")[0],
+      document.getElementById("main").getElementsByClassName("repl")[0],
+      document.getElementById("announcements")];
+
+    //console.log('initFC =', initFocusCarousel);
+
     return {
       cm: CM,
       refresh: function() { CM.refresh(); },
       run: function() {
         runFun(CM.getValue());
       },
-      focus: function() { CM.focus(); }
+      focus: function() { CM.focus(); },
+      focusCarousel: null //initFocusCarousel
     };
   };
   CPO.RUN_CODE = function() {
@@ -362,6 +379,112 @@ $(function() {
         return prog.getContents();
       }
     });
+  }
+
+  function cycleAdvance(currIndex, maxIndex, reverseP) {
+    var nextIndex = currIndex + (reverseP? -1 : +1);
+    nextIndex = ((nextIndex % maxIndex) + maxIndex) % maxIndex;
+    return nextIndex;
+  }
+
+  function populateFocusCarousel(editor) {
+    if (!editor.focusCarousel) {
+      editor.focusCarousel = [];
+    }
+    var fc = editor.focusCarousel;
+    var docmain = document.getElementById("main");
+    if (!fc[0]) {
+      fc[0] = document.getElementById("Toolbar");
+      //fc[0] = document.getElementById("headeronelegend");
+    }
+    if (!fc[1]) {
+      var docreplMain = docmain.getElementsByClassName("replMain");
+      var docreplMain0;
+      if (docreplMain.length === 0) {
+        docreplMain0 = undefined;
+      } else if (docreplMain.length === 1) {
+        docreplMain0 = docreplMain[0];
+      } else {
+        for (var i = 0; i < docreplMain.length; i++) {
+          if (docreplMain[i].innerText !== "") {
+            docreplMain0 = docreplMain[i];
+          }
+        }
+      }
+      fc[1] = docreplMain0;
+    }
+    if (!fc[2]) {
+      var docrepl = docmain.getElementsByClassName("repl");
+      var docreplcode = docrepl[0].getElementsByClassName("prompt-container")[0].
+        getElementsByClassName("CodeMirror")[0];
+      fc[2] = docreplcode;
+    }
+    if (!fc[3]) {
+      fc[3] = document.getElementById("announcements");
+    }
+  }
+
+  function cycleFocus(reverseP) {
+    var editor = this.editor;
+    var fCarousel = editor.focusCarousel;
+    //console.log('***********************');
+    populateFocusCarousel(editor);
+    var fCarousel = editor.focusCarousel;
+    //console.log('activeElement=', document.activeElement);
+    //console.log('fc =', fCarousel);
+    var maxIndex = fCarousel.length;
+    var currentFocusedElt = fCarousel.find(function(node) {
+      if (!node) {
+        return false;
+      } else {
+        return node.contains(document.activeElement);
+      }
+    });
+    //console.log('currfocusedelt=', currentFocusedElt);
+    /*
+    if (currentFocusedElt) {
+    console.log('contains? = ', currentFocusedElt.contains(document.activeElement));
+    }
+    */
+    var currentFocusIndex = fCarousel.indexOf(currentFocusedElt);
+    var nextFocusIndex = currentFocusIndex;
+    var focusElt;
+    do {
+      nextFocusIndex = cycleAdvance(nextFocusIndex, maxIndex, reverseP);
+      focusElt = fCarousel[nextFocusIndex];
+    } while (!focusElt);
+
+    //console.log('nextFocusIndex=', nextFocusIndex);
+    //console.log('focusElt=', focusElt);
+
+    var focusElt0;
+    if (focusElt.classList.contains("replMain") ||
+      focusElt.classList.contains("CodeMirror")) {
+      var textareas = focusElt.getElementsByTagName("textarea");
+      //console.log('textareas=', textareas);
+      if (textareas.length === 0) {
+        focusElt0 = focusElt;
+      } else if (textareas.length === 1) {
+        focusElt0 = textareas[0];
+      } else {
+        for (var i = 0; i < textareas.length; i++) {
+          if (textareas[i].getAttribute('tabIndex')) {
+            focusElt0 = textareas[i];
+          }
+        }
+      }
+    } else {
+      focusElt0 = focusElt;
+    }
+
+    //console.log('focusElt0 = ', focusElt0);
+    document.activeElement.blur();
+    //document.getElementById('editor').setAttribute('aria-activedescendant', focusElt.id);
+    //console.log('clicking', focusElt);
+    focusElt0.click();
+    //console.log('focusing on', focusElt);
+    focusElt0.focus();
+    //console.log('activeElement` = ', document.activeElement);
   }
 
   var programLoaded = loadProgram(initialProgram);
@@ -547,8 +670,8 @@ $(function() {
 
   var codeContainer = $("<div>").addClass("replMain");
   codeContainer.attr("role", "region").
-    attr("aria-label", "Definitions").
-    attr("tabindex", -1);
+    attr("aria-label", "Definitions");
+    //attr("tabIndex", "-1");
   $("#main").prepend(codeContainer);
 
   CPO.editor = CPO.makeEditor(codeContainer, {
@@ -666,5 +789,6 @@ $(function() {
   CPO.updateName = updateName;
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
+  CPO.cycleFocus = cycleFocus;
 
 });
