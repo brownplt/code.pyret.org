@@ -14,6 +14,13 @@ data Color:
       alpha :: Number)
 end
 
+data XPlace: x-left | x-middle | x-right end
+data YPlace: y-top | y-center | y-baseline | y-bottom end
+fun is-transparency(n :: Number) -> Boolean:
+  (n >= 0) and (n <= 1)
+end
+data OutlineMode: mode-solid | mode-outline | mode-fade(n :: Number%(is-transparency)) end
+
 orange = color(255, 165, 0, 1)
 red = color(255, 0, 0, 1)
 orange-red = color(255, 69, 0, 1)

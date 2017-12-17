@@ -40,6 +40,13 @@
     var colorGreen = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255); }
     var colorBlue = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255); }
     var colorAlpha = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "alpha"))), 0, 1); }
+
+    var modePred = gf(image, "is-OutlineMode");
+    var isOutlineMode = function(m) { return unwrap(modePred.app(m)); };
+    var xplacePred = gf(image, "is-XPlace");
+    var isXPlace = function(x) { return unwrap(xplacePred.app(x)); };
+    var yplacePred = gf(image, "is-YPlace");
+    var isYPlace = function(y) { return unwrap(yplacePred.app(y)); };
     
     // Color database
     var ColorDb = function() {
@@ -993,57 +1000,61 @@
     };
 
     //////////////////////////////////////////////////////////////////////
-    // OverlayImage: image image placeX placeY -> image
+    // OverlayImage: Image1, XPlace1, YPlace1, OffsetX, OffsetY, Image2, XPlace2, YPlace2 -> Image
     // Creates an image that overlays img1 on top of the
-    // other image img2.
-    var OverlayImage = function(img1, img2, placeX, placeY) {
+    // other image img2, by aligning the given (x/y)-place of img1
+    // with the given (x/y)-place of img2, and offseting by the given amount
+    var OverlayImage = function(img1, placeX1, placeY1, offsetX, offsetY, img2, placeX2, placeY2) {
       BaseImage.call(this);
 
-      // An overlay image consists of width, height, x1, y1, x2, and
-      // y2.  We need to compute these based on the inputs img1,
-      // img2, placex, and placey.
-
-      // placeX and placeY may be non-numbers, in which case their values
-      // depend on the img1 and img2 geometry.
-
-      var x1, y1, x2, y2;
-
-      if (placeX === "left") {
-        x1 = 0;
-        x2 = 0;
-      } else if (placeX === "right") {
-        x1 = Math.max(img1.width, img2.width) - img1.width;
-        x2 = Math.max(img1.width, img2.width) - img2.width;
-      } else if (placeX === "beside") {
-        x1 = 0;
-        x2 = img1.width;
-      } else if (placeX === "middle" || placeX === "center") {
-        x1 = Math.max(img1.width, img2.width)/2 - img1.width/2;
-        x2 = Math.max(img1.width, img2.width)/2 - img2.width/2;
-      } else {
-        x1 = Math.max(placeX, 0) - placeX;
-        x2 = Math.max(placeX, 0);
+      // To find where to place the two images relative to one another
+      // start in a coordinate system with origin at top/left corners
+      var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+      var anchor1, anchor2;
+      
+      // compute the x1/y1 and x2/y2 offsets, relative to the top/left of img1/img2:
+      switch(placeX1.toLowerCase()) {
+      case "left": x1 -= 0; anchor1 = "-left"; break;
+      case "middle": x1 -= img1.width / 2; anchor1 = "-middle"; break;
+      case "right": x1 -= img1.width; anchor1 = "-right"; break;
+      default: throw new Error("Unknown XPlace option for image 1: " + placeX1);
       }
-
-      if (placeY === "top") {
-        y1 = 0;
-        y2 = 0;
-      } else if (placeY === "bottom") {
-        y1 = Math.max(img1.height, img2.height) - img1.height;
-        y2 = Math.max(img1.height, img2.height) - img2.height;
-      } else if (placeY === "above") {
-        y1 = 0;
-        y2 = img1.height;
-      } else if (placeY === "baseline") {
-        y1 = Math.max(img1.getBaseline(), img2.getBaseline()) - img1.getBaseline();
-        y2 = Math.max(img1.getBaseline(), img2.getBaseline()) - img2.getBaseline();
-      } else if (placeY === "middle" || placeY === "center") {
-        y1 = Math.max(img1.height, img2.height)/2 - img1.height/2;
-        y2 = Math.max(img1.height, img2.height)/2 - img2.height/2;
-      } else {
-        y1 = Math.max(placeY, 0) - placeY;
-        y2 = Math.max(placeY, 0);
+      switch(placeY1.toLowerCase()) {
+      case "top": y1 -= 0; anchor1 = "top" + anchor1; break;
+      case "center": y1 -= img1.height / 2; anchor1 = "center" + anchor1; break;
+      case "baseline": y1 -= (img1.height - img1.getBaseline()); anchor1 = "baseline" + anchor1; break;
+      case "bottom": y1 -= img1.height; anchor1 = "bottom" + anchor1; break;
+      default: throw new Error("Unknown YPlace option for image 1: " + placeY1);
       }
+      switch(placeX2.toLowerCase()) {
+      case "left": x2 -= 0; anchor2 = "-left"; break;
+      case "middle": x2 -= img2.width / 2; anchor2 = "-middle"; break;
+      case "right": x2 -= img2.width; anchor2 = "-right"; break;
+      default: throw new Error("Unknown XPlace option for image 2: " + placeX2);
+      }
+      switch(placeY2.toLowerCase()) {
+      case "top": y2 -= 0; anchor2 = "top" + anchor2; break;
+      case "center": y2 -= img2.height / 2; anchor2 = "center" + anchor2; break;
+      case "baseline": y2 -= (img2.height - img2.getBaseline()); anchor2 = "baseline" + anchor2; break;
+      case "bottom": y2 -= img2.height; anchor2 = "bottom" + anchor2; break;
+      default: throw new Error("Unknown YPlace option for image 2: " + placeY2);
+      }
+      
+      // Next, offset x2/y2 by the given offsetX/Y
+      x2 += offsetX; y2 += offsetY;
+      
+
+      // Translate both offset pairs by the smaller of the half-dimensions
+      var xMin = Math.max(img1.width, img2.width);
+      var yMin = Math.max(img1.height, img2.height);
+      x1 += xMin; x2 += xMin;
+      y1 += yMin; y2 += yMin;
+
+      // Last, translate both offset pairs so that none are negative
+      var xMin = Math.min(x1, x2)
+      var yMin = Math.min(y1, y2)
+      x1 -= xMin; x2 -= xMin;
+      y1 -= yMin; y2 -= yMin;
 
       // calculate the vertices of this image by translating the vertices of the sub-images
       var i, v1 = img1.getVertices(), v2 = img2.getVertices(), xs = [], ys = [];
@@ -1060,30 +1071,16 @@
       this.y2 = y2;
       this.img1 = img1;
       this.img2 = img2;
-      var positionText;
-      if((["middle","center"].indexOf(placeX)>-1) && (["middle","center"].indexOf(placeY)>-1)){
-        positionText = " centered above ";
-      } else if(placeX==="left"){
-        positionText = " left-aligned ";
-      } else if(placeX==="right"){
-        positionText = " right-aligned ";
-      } else if(placeX==="beside"){
-        positionText = " beside ";
-      } else if(!isNaN(placeX)){
-        positionText = " shifted left by "+placeX;
-      }
-      if(placeY==="top"){
-        positionText += " top-aligned ";
-      } else if(placeY==="bottom"){
-        positionText += " bottom-aligned ";
-      } else if(placeY==="above"){
-        positionText += " above ";
-      } else if(!isNaN(placeY)){
-        positionText += " , shifted up by "+placeY;
-      }
+      var shiftText = "";
+      if (offsetX > 0) { shiftText += "shifted right by " + offsetX; }
+      else if (offsetX < 0) { shiftText == "shifted left by " + (-offsetX); }
+      if (shiftText !== "") { shiftText += ", and "; }
+      if (offsetY > 0) { shiftText += "shifted up by " + offsetX; }
+      else if (offsetX < 0) { shiftText += "shifted down by " + (-offsetX); }
+      if (shiftText !== "") { shiftText = ", and " + shiftText; }
       this.width  = findWidth(this._vertices);
       this.height = findHeight(this._vertices);
-      this.ariaText = " an overlay: first image is" + img1.ariaText + positionText + img2.ariaText;
+      this.ariaText = " an overlay: first image is " + img1.ariaText + ", second image is " + img2.ariaText + ", aligning " + anchor1 + " of first image with " + anchor2 + " of second image" + shiftText;
     };
 
     OverlayImage.prototype = heir(BaseImage.prototype);
@@ -1685,8 +1682,8 @@
     var makeLineImage = function(x, y, color, normalPinhole) {
       return new LineImage(x, y, color, normalPinhole);
     };
-    var makeOverlayImage = function(img1, img2, X, Y) {
-      return new OverlayImage(img1, img2, X, Y);
+    var makeOverlayImage = function(img1, x1, y1, offsetX, offsetY, img2, x2, y2) {
+      return new OverlayImage(img1, x1, y1, offsetX, offsetY, img2, x2, y2);
     };
     var makeRotateImage = function(angle, img) {
       return new RotateImage(angle, img);
@@ -1797,6 +1794,12 @@
 
       isImage: isImage,
       isScene: isScene,
+      isOutlineMode: isOutlineMode,
+      outlineModePred: modePred,
+      isXPlace: isXPlace,
+      isYPlace: isYPlace,
+      xplacePred: xplacePred,
+      yplacePred: yplacePred,
       isColorOrColorString: isColorOrColorString,
       isAngle: isAngle,
       isSideCount: isSideCount,
