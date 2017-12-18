@@ -1022,7 +1022,7 @@
       switch(placeY1.toLowerCase()) {
       case "top": y1 -= 0; anchor1 = "top" + anchor1; break;
       case "center": y1 -= img1.height / 2; anchor1 = "center" + anchor1; break;
-      case "baseline": y1 -= (img1.height - img1.getBaseline()); anchor1 = "baseline" + anchor1; break;
+      case "baseline": y1 -= img1.getBaseline(); anchor1 = "baseline" + anchor1; break;
       case "bottom": y1 -= img1.height; anchor1 = "bottom" + anchor1; break;
       default: throw new Error("Unknown YPlace option for image 1: " + placeY1);
       }
@@ -1035,7 +1035,7 @@
       switch(placeY2.toLowerCase()) {
       case "top": y2 -= 0; anchor2 = "top" + anchor2; break;
       case "center": y2 -= img2.height / 2; anchor2 = "center" + anchor2; break;
-      case "baseline": y2 -= (img2.height - img2.getBaseline()); anchor2 = "baseline" + anchor2; break;
+      case "baseline": y2 -= img2.getBaseline(); anchor2 = "baseline" + anchor2; break;
       case "bottom": y2 -= img2.height; anchor2 = "bottom" + anchor2; break;
       default: throw new Error("Unknown YPlace option for image 2: " + placeY2);
       }
