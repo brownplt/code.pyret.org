@@ -273,7 +273,7 @@
       return (sideA*sideA) + (sideB*sideB) - (2*sideA*sideB*Math.cos(angleC * Math.PI/180));
     }
 
-    var c = function(name, argsAndAnns) {
+    var c = function(name, ...argsAndAnns) {
       runtime.checkArgsInternalInline("image", name, ...argsAndAnns);
     };
     var c1 = function(name, arg, ann) {
