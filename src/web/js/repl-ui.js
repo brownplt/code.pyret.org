@@ -250,14 +250,14 @@
     function makeRepl(container, repl, runtime, options) {
 
       var Jsworld = worldLib;
-      var items = [];
+      var items = []; // each entry will be {code: ..., output: ...}
       var pointer = -1;
       var current = "";
       function loadItem() {
-        CM.setValue(items[pointer]);
+        CM.setValue(items[pointer].code);
       }
-      function saveItem() {
-        items.unshift(CM.getValue());
+      function saveItem() { //not used?
+        items.unshift({code: CM.getValue(), output: false});
       }
       function prevItem() {
         if (pointer === -1) {
@@ -280,6 +280,38 @@
           pointer--;
         }
       }
+
+      // a11y stuff
+
+      function say(msg, forget) {
+        if (msg === "") return;
+        var announcements = document.getElementById("announcementlist");
+        var li = document.createElement("LI");
+        li.appendChild(document.createTextNode(msg));
+        announcements.insertBefore(li, announcements.firstChild);
+        if (forget) {
+          setTimeout(function() {
+            announcements.removeChild(li);
+          }, 1000);
+        }
+      }
+
+      function sayAndForget(msg) {
+        say(msg, true);
+      }
+
+      function speakHistory(n) {
+        if (n === 0) { n = 10; }
+        var historySize = items.length;
+        if (n > historySize) { return false; }
+        var history = items[n-1];
+        sayAndForget(history.code + (history.output ?
+          " evaluates to " + history.output :
+          " did not produce any value"));
+        return true;
+      }
+
+      // end a11y stuff
 
       container.append(mkWarningUpper());
       container.append(mkWarningLower());
@@ -537,6 +569,12 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
+          //
+          var thiscode = items[0];
+          var docOutput = document.getElementById("output");
+          var outputs = docOutput.getElementsByClassName("replTextOutput");
+          var outputslen = outputs.length;
+          thiscode.output = outputs[outputs.length -1].innerText;
         }
       }
       function setWhileRunning() {
@@ -703,7 +741,8 @@
       };
 
       var runner = function(code) {
-        items.unshift(code);
+        var thiscode = {code: code, output: false};
+        items.unshift(thiscode);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
@@ -746,7 +785,17 @@
             'Ctrl-Up': "goLineUp",
             'Ctrl-Alt-Up': "goLineUp",
             'Ctrl-Down': "goLineDown",
-            'Ctrl-Alt-Down': "goLineDown"
+            'Ctrl-Alt-Down': "goLineDown",
+            "Alt-1": function() { speakHistory(1); },
+            "Alt-2": function() { speakHistory(2); },
+            "Alt-3": function() { speakHistory(3); },
+            "Alt-4": function() { speakHistory(4); },
+            "Alt-5": function() { speakHistory(5); },
+            "Alt-6": function() { speakHistory(6); },
+            "Alt-7": function() { speakHistory(7); },
+            "Alt-8": function() { speakHistory(8); },
+            "Alt-9": function() { speakHistory(9); },
+            "Alt-0": function() { speakHistory(0); }
           }
         }
       }).cm;
