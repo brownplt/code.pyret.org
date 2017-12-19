@@ -36,7 +36,7 @@ describe("Rendering errors", function() {
 
     ["images-equal-preds", "include image\nimages-equal(5, 'a')", "failed because the 1ˢᵗ argument evaluated to an unexpected value"],
     ["text-preds", "include image\ntext('a', 'a', 'blue')", "failed because the 2ⁿᵈ argument evaluated to an unexpected value"],
-    ["text-font-preds", "include image\ntext-font('a', 5, 'blue', 'times', true, 'italic', 'bold', true)", "failed because the 5ᵗʰ argument evaluated to an unexpected value"],
+    ["text-font-preds", "include image\ninclude image-structs\ntext-font('a', 5, blue, 'times', true, 'italic', 'bold', true)", "failed because the 5ᵗʰ argument evaluated to an unexpected value"],
 
     ["regular-polygon", "include image\nregular-polygon(20, 1/2, 'solid', 'blue')", "failed because the 2ⁿᵈ argument evaluated to an unexpected value"],
 

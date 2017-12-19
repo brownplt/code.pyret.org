@@ -14,8 +14,10 @@ data Color:
       alpha :: Number)
 end
 
-data XPlace: x-left | x-middle | x-right end
-data YPlace: y-top | y-center | y-baseline | y-bottom end
+data XPlace: x-left | x-middle | x-pinhole | x-right end
+data YPlace: y-top | y-center | y-pinhole | y-baseline | y-bottom end
+rec x-center = x-middle # Allow these aliases, but
+rec y-middle = y-center # don't bloat the data definitions
 fun is-transparency(n :: Number) -> Boolean:
   (n >= 0) and (n <= 1)
 end

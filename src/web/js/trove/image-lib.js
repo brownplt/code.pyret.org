@@ -529,13 +529,17 @@
         return Math.max.apply(Math, ys) - Math.min.apply(Math, ys);
     }
     // given a list of vertices and a translationX/Y, shift them
-    var translateVertices = function(vertices) {
-        var vs = unzipVertices(vertices);
-        var translateX = -Math.min.apply( Math, vs.xs );
-        var translateY = -Math.min.apply( Math, vs.ys );
-        return vertices.map(function(v) {
-            return {x: v.x + translateX, y: v.y + translateY };
-        })
+    var translateVertices = function(vertices, translation) {
+      var vs = unzipVertices(vertices);
+      var translateX = -Math.min.apply( Math, vs.xs );
+      var translateY = -Math.min.apply( Math, vs.ys );
+      if (translation) {
+        translation.x = translateX;
+        translation.y = translateY;
+      }
+      return vertices.map(function(v) {
+        return {x: v.x + translateX, y: v.y + translateY };
+      })
     }
 
 
@@ -558,7 +562,7 @@
     };
 
     BaseImage.prototype.getBaseline = function(){
-      return Math.round(this.height);
+      return this.alphaBaseline !== undefined ? this.alphaBaseline : Math.round(this.height);
     };
 
     // return the vertex array if it exists, otherwise make one using height and width
@@ -579,6 +583,7 @@
       if(!this.vertices){
         throw new Error('BaseImage.render is not implemented for this type!');
       }
+      
       ctx.save();
       ctx.beginPath();
 
@@ -673,9 +678,9 @@
        low hundreds something is clearly off.
     */
     BaseImage.prototype.difference = function(other) {
-      if(Math.floor(this.width)    !== Math.floor(other.getWidth())    ||
-         Math.floor(this.height)   !== Math.floor(other.getHeight())){
-        return RUNTIME.ffi.makeLeft("different-size([" + this.width + ", " + this.height + "], [" +
+      if(Math.floor(this.getWidth())    !== Math.floor(other.getWidth())    ||
+         Math.floor(this.getHeight())   !== Math.floor(other.getHeight())){
+        return RUNTIME.ffi.makeLeft("different-size([" + this.getWidth() + ", " + this.getHeight() + "], [" +
                   other.getWidth() + ", " + other.getHeight() + "])");
       }
 
@@ -862,6 +867,8 @@
         this.isLoaded = true;
         self.width = self.img.width;
         self.height = self.img.height;
+        self.pinholeX = self.width / 2;
+        self.pinholeY = self.height / 2;
       } else {
         // fixme: we may want to do something blocking here for
         // onload, since we don't know at this time what the file size
@@ -872,6 +879,8 @@
           self.isLoaded = true;
           self.width = self.img.width;
           self.height = self.img.height;
+          self.pinholeX = self.width / 2;
+          self.pinholeY = self.height / 2;
         };
         this.img.onerror = function(e) {
           self.img.onerror = "";
@@ -1016,12 +1025,14 @@
       switch(placeX1.toLowerCase()) {
       case "left": x1 -= 0; anchor1 = "-left"; break;
       case "middle": x1 -= img1.width / 2; anchor1 = "-middle"; break;
+      case "pinhole": x1 -= img1.pinholeX; anchor1 = "-pinhole"; break;
       case "right": x1 -= img1.width; anchor1 = "-right"; break;
       default: throw new Error("Unknown XPlace option for image 1: " + placeX1);
       }
       switch(placeY1.toLowerCase()) {
       case "top": y1 -= 0; anchor1 = "top" + anchor1; break;
       case "center": y1 -= img1.height / 2; anchor1 = "center" + anchor1; break;
+      case "pinhole": y1 -= img1.pinholeY; anchor1 = "pinhole" + anchor1; break;
       case "baseline": y1 -= img1.getBaseline(); anchor1 = "baseline" + anchor1; break;
       case "bottom": y1 -= img1.height; anchor1 = "bottom" + anchor1; break;
       default: throw new Error("Unknown YPlace option for image 1: " + placeY1);
@@ -1029,12 +1040,14 @@
       switch(placeX2.toLowerCase()) {
       case "left": x2 -= 0; anchor2 = "-left"; break;
       case "middle": x2 -= img2.width / 2; anchor2 = "-middle"; break;
+      case "pinhole": x2 -= img2.pinholeX; anchor2 = "-pinhole"; break;
       case "right": x2 -= img2.width; anchor2 = "-right"; break;
       default: throw new Error("Unknown XPlace option for image 2: " + placeX2);
       }
       switch(placeY2.toLowerCase()) {
       case "top": y2 -= 0; anchor2 = "top" + anchor2; break;
       case "center": y2 -= img2.height / 2; anchor2 = "center" + anchor2; break;
+      case "pinhole": y2 -= img2.pinholeY; anchor2 = "pinhole" + anchor2; break;
       case "baseline": y2 -= img2.getBaseline(); anchor2 = "baseline" + anchor2; break;
       case "bottom": y2 -= img2.height; anchor2 = "bottom" + anchor2; break;
       default: throw new Error("Unknown YPlace option for image 2: " + placeY2);
@@ -1071,6 +1084,10 @@
       this.y2 = y2;
       this.img1 = img1;
       this.img2 = img2;
+      this.pinholeX = img1.pinholeX + x1;
+      this.pinholeY = img1.pinholeY + y1;
+      this.alphaBaseline = img1.alphaBaseline ? img1.alphaBaseline + y1 : img2.alphaBaseline + y2;
+      console.log("Baseline1: " + img1.alphaBaseline + ", Baseline2: " + img2.alphaBaseline + " ==> " + this.alphaBaseline);
       var shiftText = "";
       if (offsetX > 0) { shiftText += "shifted right by " + offsetX; }
       else if (offsetX < 0) { shiftText == "shifted left by " + (-offsetX); }
@@ -1119,23 +1136,26 @@
       }
       var sin   = Math.sin(angle * Math.PI / 180);
       var cos   = Math.cos(angle * Math.PI / 180);
-
-      // rotate each point as if it were rotated about (0,0)
+      // rotate each point as if it were rotated about the pinhole
       var vertices = img.getVertices().map(function(v) {
-          return {x: v.x*cos - v.y*sin, y: v.x*sin + v.y*cos };
+        return {x: v.x*cos - v.y*sin, y: v.x*sin + v.y*cos};
       });
 
       // extract the xs and ys separately
       var vs = unzipVertices(vertices);
 
       // store the vertices as something private, so this.getVertices() will still return undefined
-      this._vertices  = translateVertices(vertices);
+      var translate = {}
+      this._vertices  = translateVertices(vertices, translate);
       this.img        = img;
       this.width      = findWidth(vertices);
       this.height     = findHeight(vertices);
       this.angle      = Math.round(angle);
-      this.translateX = -Math.min.apply( Math, vs.xs );
-      this.translateY = -Math.min.apply( Math, vs.ys );
+      this.translateX = translate.x;
+      this.translateY = translate.y;
+      this.pinholeX   = img.pinholeX*cos - img.pinholeY*sin + translate.x;
+      this.pinholeY   = img.pinholeX*sin + img.pinholeY*cos + translate.y;
+      debugger
       this.ariaText   = "Rotated image, "+angle+" degrees: "+img.ariaText;
     };
 
@@ -1146,7 +1166,7 @@
     // translate the canvas using the calculated values, then draw at the rotated (x,y) offset.
     RotateImage.prototype.render = function(ctx, x, y) {
       ctx.save();
-      ctx.translate(x+this.translateX, y + this.translateY);
+      ctx.translate(x + this.translateX, y + this.translateY);
       ctx.rotate(this.angle * Math.PI / 180);
       this.img.render(ctx, 0, 0);
       ctx.restore();
@@ -1157,8 +1177,8 @@
               this.width     === other.width        &&
               this.height    === other.height       &&
               this.angle     === other.angle        &&
-              this.translateX=== other.translateX   &&
-              this.translateY=== other.translateY   &&
+              this.pinholeX  === other.pinholeX     &&
+              this.pinholeY  === other.pinholeX     &&
               imageEquals(this.img, other.img) )
             || BaseImage.prototype.equals.call(this, other);
     };
@@ -1178,6 +1198,8 @@
       this.height   = img.height * yFactor;
       this.xFactor  = xFactor;
       this.yFactor  = yFactor;
+      this.pinholeX = img.pinholeX * xFactor;
+      this.pinholeY = img.pinholeY * yFactor;
       this.ariaText = "Scaled Image, "+ (xFactor===yFactor? "by "+xFactor
         : "horizontally by "+xFactor+" and vertically by "+yFactor)+". "+img.ariaText;
     };
@@ -1214,6 +1236,14 @@
       this.width      = width;
       this.height     = height;
       this.img        = img;
+      if (img.pinholeX >= x && img.pinholeX <= x + width &&
+          img.pinholeY >= y && img.pinholeY <= y + height) {
+        this.pinholeX = img.pinholeX - x;
+        this.pinholeY = img.pinholeY - y;
+      } else {
+        this.pinholeX   = width / 2;
+        this.pinholeY   = height / 2;
+      }
       this.ariaText = "Cropped image, from "+x+", "+y+" to "+(x+width)+", "+(y+height)+": "+img.ariaText;
     };
 
@@ -1240,13 +1270,15 @@
     };
 
     //////////////////////////////////////////////////////////////////////
-    // FrameImage: factor factor image -> image
+    // FrameImage: image -> image
     // Stick a frame around the image
     var FrameImage = function(img) {
       BaseImage.call(this);
       this.img        = img;
       this.width      = img.width;
       this.height     = img.height;
+      this.pinholeX   = img.pinholeX;
+      this.pinholeY   = img.pinholeY;
       this.ariaText = " Framed image: "+img.ariaText;
     };
 
@@ -1270,14 +1302,57 @@
     };
 
     //////////////////////////////////////////////////////////////////////
+    // PinholeImage: image -> image
+    // Draw a small mark at the pinhole of the image
+    var PinholeImage = function(img) {
+      BaseImage.call(this);
+      this.img        = img;
+      this.width      = img.width;
+      this.height     = img.height;
+      this.pinholeX   = img.pinholeX;
+      this.pinholeY   = img.pinholeY;
+      this.ariaText = " Pinhole image: "+img.ariaText;
+    };
+
+    PinholeImage.prototype = heir(BaseImage.prototype);
+
+    // scale the context, and pass it to the image's render function
+    PinholeImage.prototype.render = function(ctx, x, y) {
+      ctx.save();
+      ctx.save();
+      this.img.render(ctx, x, y);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.strokeStyle = "white"; ctx.lineWidth = 0.75;
+      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowColor = "black"; ctx.shadowBlur = 1;
+      ctx.moveTo(x + this.pinholeX - 5, y + this.pinholeY);
+      ctx.lineTo(x + this.pinholeX + 5, y + this.pinholeY);
+      ctx.moveTo(x + this.pinholeX, y + this.pinholeY - 5);
+      ctx.lineTo(x + this.pinholeX, y + this.pinholeY + 5);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    PinholeImage.prototype.equals = function(other) {
+      return (other instanceof PinholeImage &&
+             BaseImage.prototype.equals.call(this, other) )
+          || imageEquals(this.img, other.img);
+    };
+
+    PinholeImage.prototype.getVertices = function() { return this.img.getVertices(); }
+
+    //////////////////////////////////////////////////////////////////////
     // FlipImage: image string -> image
     // Flip an image either horizontally or vertically
     var FlipImage = function(img, direction) {
       BaseImage.call(this);
       this.img        = img;
-      this.width      = img.getWidth();
-      this.height     = img.getHeight();
+      this.width      = img.width;
+      this.height     = img.height;
       this.direction  = direction;
+      this.pinholeX   = this.width - img.pinholeX;
+      this.pinholeY   = this.height - img.pinholeY;
       this.ariaText   = direction+"ly flipped image: " + img.ariaText;
     };
 
@@ -1318,6 +1393,8 @@
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:0,y:height},{x:0,y:0},{x:width,y:0},{x:width,y:height}];
+      this.pinholeX = width / 2;
+      this.pinholeY = height / 2;
       this.ariaText = " a" + colorToSpokenString(color,style) + ((width===height)? " square of size "+width
           : " rectangle of width "+width+" and height "+height);
     };
@@ -1337,6 +1414,8 @@
                        {x:this.width,   y:this.height/2},
                        {x:this.width/2, y:this.height},
                        {x:0,            y:this.height/2}];
+      this.pinholeX = this.width / 2;
+      this.pinholeY = this.height / 2;
       this.ariaText = " a"+colorToSpokenString(color,style) + " rhombus of size "+side+" and angle "+angle;
     };
     RhombusImage.prototype = heir(BaseImage.prototype);
@@ -1366,14 +1445,60 @@
       this.height     = findHeight(vertices);
       this.style      = style;
       this.color      = color;
-      this.vertices = translateVertices(vertices);
+      var translate = {}
+      this.vertices = translateVertices(vertices, translate);
+      this.pinholeX = translate.x;
+      this.pinholeY = translate.y;
       this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
                       +" sided polygon with each side of length "+length;
     };
 
     PolygonImage.prototype = heir(BaseImage.prototype);
 
-    var textContainer, textParent;
+    // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
+    // based off of https://stackoverflow.com/a/9847841/783424,
+    // and originally the amazing work at http://mudcu.be/journal/2011/01/html5-typographic-metrics/#baselineCanvas
+    // PENDING CANVAS V5 API: http://www.whatwg.org/specs/web-apps/current-work/#textmetrics
+    // Since this relies on offsetTop, which are rounded up to the nearest integer,
+    // it's only good to within +-2px.
+    var ua = "", baselineFudge = 0;
+    if (window.navigator && window.navigator.userAgent) {
+      ua = window.navigator.userAgent;
+    }
+    if (ua.indexOf("Firefox") !== -1) {
+      baselineFudge = 2;
+    }
+    var getTextDimensions = function(str, font) {
+      var text = document.createElement("span");
+      text.textContent = str;
+      text.style.font = font;
+      text.style.whiteSpace = "pre";
+      text.style.margin = "0"; text.style.padding = "0";
+      var block = document.createElement("div");
+      block.style.display = "inline-block";
+      block.style.width = 1; block.style.height = 0;
+      block.style.margin = "0"; block.style.padding = "0";      
+      var div = document.createElement("div");
+      div.style.margin = "0"; div.style.padding = "0";
+      div.append(text, block);
+      var body = document.body;
+      body.append(div);
+      var result = {};
+      try {
+        block.style.verticalAlign = 'baseline';
+        result.width = text.offsetWidth;
+        result.ascent = block.offsetTop - text.offsetTop;
+
+        block.style.verticalAlign = 'bottom';
+        result.height = block.offsetTop - text.offsetTop;
+
+        result.descent = result.height - result.ascent;
+      } finally {
+        body.removeChild(div);
+      }
+
+      return result;
+    };
     //////////////////////////////////////////////////////////////////////
     // TextImage: String Number Color String String String String any/c -> Image
     var TextImage = function(str, size, color, face, family, style, weight, underline) {
@@ -1391,45 +1516,30 @@
       // Default weight is "normal", face is "Arial"
       this.font = (this.style+" " +this.weight+" "+this.size+"px "+'"'+this.face+'", '+this.family);
 
-      // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
-      // based off of the amazing work at http://mudcu.be/journal/2011/01/html5-typographic-metrics/#baselineCanvas
-      // PENDING CANVAS V5 API: http://www.whatwg.org/specs/web-apps/current-work/#textmetrics
-
-      // build a DOM node with the same styling as the canvas, then measure it
-      if (textContainer === undefined) {
-        textContainer = document.createElement("div");
-        textContainer.style.cssText = "position: absolute; top: 0px; left: 0px; visibility: hidden; white-space: pre;";
-        textParent = document.createElement("span");
-        textParent.style.display = "inline";
-        textContainer.appendChild(textParent);
-        document.body.appendChild(textContainer);
-      }
-      textParent.style.font = this.font;                // use the same font settings as the context
-      textParent.textContent = str; // this will blow away any old content
-
-      // getting (more accurate) css equivalent of ctx.measureText()
-      var bounds = textParent.getBoundingClientRect(); // make a single blocking call
-      this.width       = bounds.width;
-      this.height      = bounds.height;
-      this.alphaBaseline = 0;
+      var metrics = getTextDimensions(str, this.font);
+      this.width       = metrics.width;
+      this.height      = metrics.height;
+      // we measure coordinates from the *top* of the image, and getTextDimensions seems to be off by a bit
+      this.alphaBaseline = metrics.ascent + baselineFudge;
+      this.pinholeX    = this.width / 2;
+      this.pinholeY    = this.alphaBaseline;
 
       this.ariaText = " the string "+str+", colored "+colorToSpokenString(color,'solid')+" of size "+ size;
     };
-
     TextImage.prototype = heir(BaseImage.prototype);
 
     TextImage.prototype.render = function(ctx, x, y) {
       ctx.save();
       ctx.textAlign   = 'left';
-      ctx.textBaseline= 'top';
+      ctx.textBaseline= 'alphabetic'; // Note: NOT top, so that we can support accented characters
       ctx.font        = this.font;
 
       // if 'outline' is enabled, use strokeText. Otherwise use fillText
       ctx.fillStyle = this.outline? 'white' : colorString(this.color);
-      ctx.fillText(this.str, x, y);
+      ctx.fillText(this.str, x, y + this.alphaBaseline - 1); // handle the baseline offset here
       if(this.outline){
         ctx.strokeStyle = colorString(this.color);
-        ctx.strokeText(this.str, x, y);
+        ctx.strokeText(this.str, x, y + this.alphaBaseline - 1);
       }
       if(this.underline){
           ctx.beginPath();
@@ -1482,7 +1592,10 @@
       this.height     = findHeight(vertices);
       this.style      = style;
       this.color      = color;
-      this.vertices   = translateVertices(vertices);
+      var translate = {};
+      this.vertices   = translateVertices(vertices, translate);
+      this.pinholeX   = translate.x;
+      this.pinholeY   = translate.y;
       this.ariaText   = " a" + colorToSpokenString(color,style) + ", " + points +
                         "pointed star with inner radius "+inner+" and outer radius "+outer;
     };
@@ -1517,6 +1630,9 @@
       this.style = style;
       this.color = color;
       this.vertices = vertices;
+      // pinhole is set to centroid (or barycenter): average of three corners
+      this.pinholeX = (vertices[0].x + vertices[1].x + vertices[2].x) / 3;
+      this.pinholeY = (vertices[0].y + vertices[1].y + vertices[2].y) / 3;
       this.ariaText = " a"+colorToSpokenString(color,style) + " triangle whose base is of length "+sideC
           +", with an angle of " + (angleA%180) + " degrees between it and a side of length "+sideB;
     };
@@ -1530,6 +1646,8 @@
       this.height = height;
       this.style = style;
       this.color = color;
+      this.pinholeX = width / 2;
+      this.pinholeY = height / 2;
       this.ariaText = " a"+colorToSpokenString(color,style) + ((width===height)? " circle of radius "+(width/2)
             : " ellipse of width "+width+" and height "+height);
     };
@@ -1582,7 +1700,7 @@
     };
 
     //////////////////////////////////////////////////////////////////////
-    // Line: Number Number Color Boolean -> Image
+    // Line: Number Number Color -> Image
     var LineImage = function(x, y, color) {
       BaseImage.call(this);
       var vertices;
@@ -1599,7 +1717,10 @@
       this.style  = "outline"; // all vertex-based images must have a style
       this.color  = color;
       this.vertices = vertices;
+      this.pinholeX = Math.abs(x) / 2;
+      this.pinholeY = Math.abs(y) / 2;
       this.ariaText = " a" + colorToSpokenString(color,'solid') + " line of width "+x+" and height "+y;
+      
     };
 
     LineImage.prototype = heir(BaseImage.prototype);
@@ -1649,7 +1770,10 @@
         data[i+3] = colorAlpha(aColor) * 255;
       }
 
-      return makeImageDataImage(imageData);
+      var ans = makeImageDataImage(imageData);
+      ans.pinholeX = pinholeX;
+      ans.pinholeY = pinholeY;
+      return ans;
     };
 
     var makeSceneImage = function(width, height, children, withBorder) {
@@ -1679,8 +1803,8 @@
     var makeEllipseImage = function(width, height, style, color) {
       return new EllipseImage(width, height, style, color);
     };
-    var makeLineImage = function(x, y, color, normalPinhole) {
-      return new LineImage(x, y, color, normalPinhole);
+    var makeLineImage = function(x, y, color) {
+      return new LineImage(x, y, color);
     };
     var makeOverlayImage = function(img1, x1, y1, offsetX, offsetY, img2, x2, y2) {
       return new OverlayImage(img1, x1, y1, offsetX, offsetY, img2, x2, y2);
@@ -1697,6 +1821,9 @@
     var makeFrameImage = function(img) {
       return new FrameImage(img);
     };
+    var makePinholeImage = function(img) {
+      return new PinholeImage(img);
+    }
     var makeFlipImage = function(img, direction) {
       return new FlipImage(img, direction);
     };
@@ -1729,6 +1856,7 @@
     var isScaleImage	= function(x) { return x instanceof ScaleImage; };
     var isCropImage	= function(x) { return x instanceof CropImage; };
     var isFrameImage	= function(x) { return x instanceof FrameImage; };
+    var isPinholeImage	= function(x) { return x instanceof PinholeImage; };
     var isFlipImage	= function(x) { return x instanceof FlipImage; };
     var isTextImage	= function(x) { return x instanceof TextImage; };
     var isFileImage	= function(x) { return x instanceof FileImage; };
@@ -1751,6 +1879,7 @@
       ScaleImage: ScaleImage,
       CropImage: CropImage,
       FrameImage: FrameImage,
+      PinholeImage: PinholeImage,
       FlipImage: FlipImage,
       RectangleImage: RectangleImage,
       RhombusImage: RhombusImage,
@@ -1783,6 +1912,7 @@
       makeScaleImage: makeScaleImage,
       makeCropImage: makeCropImage,
       makeFrameImage: makeFrameImage,
+      makePinholeImage: makePinholeImage,
       makeFlipImage: makeFlipImage,
       makeTextImage: makeTextImage,
       makeImageDataImage: makeImageDataImage,
@@ -1821,6 +1951,7 @@
       isScaleImage: isScaleImage,
       isCropImage: isCropImage,
       isFrameImage: isFrameImage,
+      isPinholeImage: isPinholeImage,
       isFlipImage: isFlipImage,
       isTextImage: isTextImage,
       isFileImage: isFileImage,

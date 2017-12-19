@@ -34,7 +34,9 @@
       "put-image": "tany",
       "place-image": "tany",
       "place-image-align": "tany",
-      "translate-image": "tany",
+      "translate": "tany",
+      "place-pinhole": "tany",
+      "center-pinhole": "tany",
       "rotate": "tany",
       "scale": "tany",
       "scale-xy": "tany",
@@ -43,6 +45,7 @@
       "reflect-x": "tany",
       "reflect-y": "tany",
       "frame": "tany",
+      "draw-pinhole": "tany",
       "crop": "tany",
       "line": "tany",
       "add-line": "tany",
@@ -178,6 +181,7 @@
       return runtime.ffi.cases(image.xplacePred, "XPlace", px, {
         "x-left": function(_) { return "left"; },
         "x-middle": function(_) { return "middle"; },
+        "x-pinhole": function(_) { return "pinhole"; },
         "x-right": function(_) { return "right"; }
       });
     }
@@ -185,6 +189,7 @@
       return runtime.ffi.cases(image.yplacePred, "YPlace", py, {
         "y-top": function(_) { return "top"; },
         "y-center": function(_) { return "center"; },
+        "y-pinhole": function(_) { return "pinhole"; },
         "y-baseline": function(_) { return "baseline"; },
         "y-bottom": function(_) { return "bottom"; }
       });
@@ -565,6 +570,24 @@
       }
     });
     values["translate"] = values["place-image"];
+    f("place-pinhole", function(maybeX, maybeY, maybeImg) {
+      checkArity(3, arguments, "place-pinhole", false);
+      c3("place-pinhole",
+         maybeX, runtime.Number,
+         maybeY, runtime.Number,
+         maybeImg, annImage);
+      var img = checkImage(maybeImg);
+      var x = jsnums.toFixnum(checkReal(maybeX));
+      var y = jsnums.toFixnum(checkReal(maybeY));
+      return makeImage(img.updatePinhole(x, y));
+    });
+    f("center-pinhole", function(maybeImg) {
+      checkArity(1, arguments, "place-pinhole", false);
+      c1("place-pinhole", maybeImg, annImage);
+      var img = checkImage(maybeImg);
+      return makeImage(img.updatePinhole(img.getWidth() / 2, img.getHeight() / 2));
+    });
+    
     f("place-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
       checkArity(6, arguments, "place-image-align", false);
       c("place-image-align",
@@ -660,6 +683,13 @@
       return makeImage(image.makeFrameImage(img));
     });
 
+    f("draw-pinhole", function(maybeImg) {
+      checkArity(1, arguments, "draw-pinhole", false);
+      c1("draw-pinhole", maybeImg, annImage);
+      var img = checkImage(maybeImg);
+      return makeImage(image.makePinholeImage(img));
+    });
+
     f("crop", function(maybeX, maybeY, maybeWidth, maybeHeight, maybeImg) {
       checkArity(5, arguments, "crop", false);
       c("crop",
@@ -683,7 +713,7 @@
       var y = jsnums.toFixnum(checkReal(maybeY));
       var color = checkColor(maybeC);
       return makeImage(
-        image.makeLineImage(x, y, color, true));
+        image.makeLineImage(x, y, color));
     });
 
     f("add-line", function(maybeImg, maybeX1, maybeY1, maybeX2, maybeY2, maybeC) {
@@ -701,7 +731,7 @@
       var y2 = jsnums.toFixnum(checkReal(maybeY2));
       var color = checkColor(maybeC);
       var img   = checkImage(maybeImg);
-      var line  = image.makeLineImage(x2 - x1, y2 - y1, color, true);
+      var line  = image.makeLineImage(x2 - x1, y2 - y1, color);
       var leftmost = Math.min(x1, x2);
       var topmost  = Math.min(y1, y2);
       return makeImage(image.makeOverlayImage(line, "middle", "center", -leftmost, -topmost, img, "middle", "center"));
@@ -722,19 +752,15 @@
       var y2 = jsnums.toFixnum(checkReal(maybeY2));
       var color = checkColor(maybeC);
       var img = checkImage(maybeImg);
-      var line = image.makeLineImage(x2 - x1, y2 - y1, color, true);
+      var line = image.makeLineImage(x2 - x1, y2 - y1, color);
 
       var newScene = image.makeSceneImage(img.getWidth(),
                                           img.getHeight(),
                                           [],
                                           true);
       newScene = newScene.add(img, img.getWidth()/2, img.getHeight()/2);
-      // make an image containing the line
-      var line = image.makeLineImage(x2 - x1, y2 - y1,
-                                     c,
-                                     false),
-      leftMost = Math.min(x1,x2),
-      topMost = Math.min(y1,y2);
+      var leftMost = Math.min(x1,x2);
+      var topMost = Math.min(y1,y2);
       return makeImage(newScene.add(line, line.getWidth()/2+leftMost, line.getHeight()/2+topMost));
     });
 
