@@ -7,9 +7,18 @@
   ],
   provides: {
     shorthands: {
-      "OutlineMode": { tag: "name",
-                       origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                       name: "OutlineMode" },
+      "FillMode": { tag: "name",
+                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
+                    name: "FillMode" },
+      "FontFamily": { tag: "name",
+                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
+                    name: "FontFamily" },
+      "FontStyle": { tag: "name",
+                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
+                    name: "FontStyle" },
+      "FontWeight": { tag: "name",
+                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
+                    name: "FontWeight" },
       "XPlace": { tag: "name",
                   origin: { "import-type": "uri", uri: "builtin://image-structs" },
                   name: "XPlace" },
@@ -37,7 +46,7 @@
       "Image": ["local", "Image"]
     },
     values: {
-      "circle": ["arrow", ["Number", "OutlineMode", "Color"], "Image"],
+      "circle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
       "is-angle": ["arrow", ["tany"], "Boolean"],
       "is-side-count": ["arrow", ["tany"], "Boolean"],
       "is-step-count": ["arrow", ["tany"], "Boolean"],
@@ -47,7 +56,8 @@
       "images-equal": ["arrow", ["Image", "Image"], "Boolean"],
       "images-difference": ["arrow", ["Image", "Image"], ["tyapp", "Either", ["String", "Number"]]],
       "text": ["arrow", ["String", "Number", "Color"], "Image"],
-      "text-font": ["arrow", ["String", "Number", "Color", "String", "String", "String", "String", "Boolean"],
+      "text-font": ["arrow",
+                    ["String", "Number", "Color", "String", "FontFamily", "FontStyle", "FontWeight", "Boolean"],
                     "Image"],
       "overlay": ["arrow", ["Image", "Image"], "Image"],
       "overlay-xy": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
@@ -81,25 +91,25 @@
       "line": ["arrow", ["Number", "Number", "Color"], "Image"],
       "add-line": ["arrow", ["Image", "Number", "Number", "Number", "Number", "Color"], "Image"],
       "scene-line": ["arrow", ["Image", "Number", "Number", "Number", "Number", "Color"], "Image"],
-      "square": ["arrow", ["Number", "OutlineMode", "Color"], "Image"],
-      "rectangle": ["arrow", ["Number", "Number", "OutlineMode", "Color"], "Image"],
-      "regular-polygon": ["arrow", ["Number", "Number", "OutlineMode", "Color"], "Image"],
-      "ellipse": ["arrow", ["Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle": ["arrow", ["Number", "OutlineMode", "Color"], "Image"],
-      "triangle-sas": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle-sss": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle-ass": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle-ssa": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle-aas": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle-asa": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "triangle-saa": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "right-triangle": ["arrow", ["Number", "Number", "OutlineMode", "Color"], "Image"],
-      "isosceles-triangle": ["arrow", ["Number", "Number", "OutlineMode", "Color"], "Image"],
-      "star": ["arrow", ["Number", "OutlineMode", "Color"], "Image"],
-      "star-sized": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "radial-star": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "star-polygon": ["arrow", ["Number", "Number", "Number", "OutlineMode", "Color"], "Image"],
-      "rhombus": ["arrow", ["Number", "Number", "OutlineMode", "Color"], "Image"],
+      "square": ["arrow", ["Number", "FillMode", "Color"], "Image"],
+      "rectangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "regular-polygon": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "ellipse": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
+      "triangle-sas": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle-sss": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle-ass": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle-ssa": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle-aas": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle-asa": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "triangle-saa": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "right-triangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "isosceles-triangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "star": ["arrow", ["Number", "FillMode", "Color"], "Image"],
+      "star-sized": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "radial-star": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "star-polygon": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
+      "rhombus": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "image-to-color-list": ["arrow", ["Image"], "LoC"],
       "color-list-to-image": ["arrow", ["LoC", "Number", "Number", "Number", "Number"], "Image"],
       "color-list-to-bitmap": ["arrow", ["LoC", "Number", "Number"], "Image"],
@@ -121,32 +131,6 @@
 
     var isString = runtime.isString;
 
-    var isFontFamily = function(x){
-      return (isString(x) &&
-              (x.toString().toLowerCase() == "default" ||
-               x.toString().toLowerCase() == "decorative" ||
-               x.toString().toLowerCase() == "roman" ||
-               x.toString().toLowerCase() == "script" ||
-               x.toString().toLowerCase() == "swiss" ||
-               x.toString().toLowerCase() == "modern" ||
-               x.toString().toLowerCase() == "symbol" ||
-               x.toString().toLowerCase() == "system"))
-        || (x === false);		// false is also acceptable
-    };
-    var isFontStyle = function(x){
-      return (isString(x) &&
-              (x.toString().toLowerCase() == "normal" ||
-               x.toString().toLowerCase() == "italic" ||
-               x.toString().toLowerCase() == "slant"))
-        || (x === false);		// false is also acceptable
-    };
-    var isFontWeight = function(x){
-      return (isString(x) &&
-              (x.toString().toLowerCase() == "normal" ||
-               x.toString().toLowerCase() == "bold" ||
-               x.toString().toLowerCase() == "light"))
-        || (x === false);		// false is also acceptable
-    };
     var less = function(lhs, rhs) {
       return (rhs - lhs) > 0.00001;
     }
@@ -165,7 +149,6 @@
     var annNumNonNegative = runtime.NumNonNegative;
 
     var checkString = p(runtime.isString, "String");
-    var checkStringOrFalse = p(function(val) { return runtime.isString(val) || runtime.isPyretFalse; }, "String or false");
 
     var checkByte = p(function(val) {
       return runtime.isNumber(val)
@@ -197,28 +180,63 @@
     }, "Non-negative Real Number");
 
 
-    var checkColor = p(image.isColor, "Color");
-
-    var annColor = ann("Color", image.isColor);
-    var annMode = ann("OutlineMode", image.isOutlineMode);
-
-    var checkMode = function(m) {
-      return runtime.ffi.cases(image.outlineModePred, "OutlineMode", m, {
-        "mode-solid": function(_) { return "solid"; },
+    var identity = function(x) { return x; };
+    var pIdentity = runtime.makeFunction(identity, "No-op");
+    var unwrapColor = identity;
+    var annColor = image.annColor;
+    
+    var annMode = image.annFillMode;
+    var unwrapMode = function(m) {
+      return runtime.ffi.cases(pIdentity, "FillMode", m, {
+        "mode-solid":   function(_) { return "solid"; },
         "mode-outline": function(_) { return "outline"; },
-        "mode-fade": function(v) { return jsnums.toFixnum(v); }
+        "mode-fade":    function(v) { return jsnums.toFixnum(v); },
       });
     }
+
+    var annFontFamily = image.annFontFamily;
+    var unwrapFontFamily = function(ff) {
+      return runtime.ffi.cases(pIdentity, "FontFamily", ff, {
+        "ff-default":    function(_) { return "default"; },
+        "ff-decorative": function(_) { return "decorative"; },
+        "ff-roman":      function(_) { return "roman"; },
+        "ff-script":     function(_) { return "script"; },
+        "ff-swiss":      function(_) { return "swiss"; },
+        "ff-modern":     function(_) { return "modern"; },
+        "ff-symbol":     function(_) { return "symbol"; },
+        "ff-system":     function(_) { return "system"; },
+      });
+    };
+    var annFontStyle = image.annFontStyle;
+    var unwrapFontStyle = function(fs) {
+      return runtime.ffi.cases(pIdentity, "FontStyle", fs, {
+        "fs-normal": function(_) { return "normal"; },
+        "fs-italic": function(_) { return "italic"; },
+        "fs-slant":  function(_) { return "slant"; },
+      });
+    };
+  
+    var annFontWeight = image.annFontWeight;
+    var unwrapFontWeight = function(fw){
+      return runtime.ffi.cases(pIdentity, "FontWeight", fw, {
+        "fw-normal": function(_) { return "normal"; },
+        "fw-bold": function(_) { return "bold"; },
+        "fw-light": function(_) { return "light"; },
+      });
+    };
+
+    var annPlaceX = image.annXPlace;
     var checkPlaceX = function(px) {
-      return runtime.ffi.cases(image.xplacePred, "XPlace", px, {
+      return runtime.ffi.cases(pIdentity, "XPlace", px, {
         "x-left": function(_) { return "left"; },
         "x-middle": function(_) { return "middle"; },
         "x-pinhole": function(_) { return "pinhole"; },
         "x-right": function(_) { return "right"; }
       });
     }
+    var annPlaceY = image.annYPlace;
     var checkPlaceY = function(py) {
-      return runtime.ffi.cases(image.yplacePred, "YPlace", py, {
+      return runtime.ffi.cases(pIdentity, "YPlace", py, {
         "y-top": function(_) { return "top"; },
         "y-center": function(_) { return "center"; },
         "y-pinhole": function(_) { return "pinhole"; },
@@ -226,8 +244,6 @@
         "y-bottom": function(_) { return "bottom"; }
       });
     }
-    var annPlaceX = ann("XPlace", image.isXPlace);
-    var annPlaceY = ann("YPlace", image.isYPlace);
 
     var checkImagePred = function(val) {
       return runtime.isOpaque(val) && image.isImage(val.val);
@@ -252,15 +268,6 @@
       return runtime.isOpaque(val) && image.isScene(val.val);
     };
 
-    var annFontFamily = ann("Font Family", isFontFamily);
-    var checkFontFamily = p(isFontFamily, "Font Family");
-
-    var annFontStyle = ann("Font Style (\"normal\", \"italic\", or \"slant\")", isFontStyle);
-    var checkFontStyle = p(isFontStyle, "Font Style");
-
-    var annFontWeight = ann("Font Weight", isFontWeight);
-    var checkFontWeight = p(isFontWeight, "Font Weight");
-
     var annAngle = ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 
@@ -274,11 +281,17 @@
     };
 
     var annListColor = ann("List<Color>", function(val) {
-      return runtime.ffi.isList(val);
+      if (!runtime.ffi.isList(val)) return false;
+      var cur = val;
+      var gf = runtime.getField;
+      while (runtime.unwrap(ffi.isLink(cur))) {
+        var f = gf(cur, "first");
+        if (!image.isColor(f)) return false;
+        cur = gf(cur, "rest");
+      }
+      return true;
     });
-    var checkListofColor = p(function(val) {
-      return ffi.makeList(ffi.toArray(val).map(checkColor));
-    }, "List<Color>");
+    var unwrapListofColor = identity;
 
 
     var checkSideCount = p(image.isSideCount, "Side Count");
@@ -348,8 +361,8 @@
     f("circle", function(radius, maybeMode, maybeColor) {
       checkArity(3, arguments, "image", false);
       c3("circle", radius, annNumNonNegative, maybeMode, annMode, maybeColor, annColor);
-      var color = checkColor(maybeColor);
-      var mode = checkMode(maybeMode)
+      var color = unwrapColor(maybeColor);
+      var mode = unwrapMode(maybeMode)
       return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), mode, color));
     });
     f("is-angle", function(maybeAngle) {
@@ -390,7 +403,7 @@
       c3("text", maybeString, runtime.String, maybeSize, annNumNonNegative, maybeColor, annColor);
       var string = checkString(maybeString);
       var size = jsnums.toFixnum(checkPositiveInteger(maybeSize));
-      var color = checkColor(maybeColor);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeTextImage(String(string), size, color,
                             "normal", "Optimer", "", "", false));
@@ -409,16 +422,13 @@
         maybeUnderline, runtime.Boolean);
       var string = checkString(maybeString);
       var size = jsnums.toFixnum(checkByte(maybeSize));
-      var color = checkColor(maybeColor);
-      var face = checkStringOrFalse(maybeFace);
-      var family = checkFontFamily(maybeFamily);
-      var style = checkFontStyle(maybeStyle);
-      var weight = checkFontWeight(maybeWeight);
+      var color = unwrapColor(maybeColor);
+      var face = checkString(maybeFace);
+      var family = unwrapFontFamily(maybeFamily);
+      var style = unwrapFontStyle(maybeStyle);
+      var weight = unwrapFontWeight(maybeWeight);
       var underline = checkBoolean(maybeUnderline);
-      return makeImage(
-        image.makeTextImage(String(string), size, color,
-                            String(face), String(family), String(style),
-                            String(weight), underline));
+      return makeImage(image.makeTextImage(string, size, color, face, family, style, weight, underline));
     }),
 
     f("overlay", function(maybeImg1, maybeImg2) {
@@ -743,7 +753,7 @@
       c3("line", maybeX, runtime.Number, maybeY, runtime.Number, maybeC, annColor);
       var x = jsnums.toFixnum(checkReal(maybeX));
       var y = jsnums.toFixnum(checkReal(maybeY));
-      var color = checkColor(maybeC);
+      var color = unwrapColor(maybeC);
       return makeImage(
         image.makeLineImage(x, y, color));
     });
@@ -761,7 +771,7 @@
       var y1 = jsnums.toFixnum(checkReal(maybeY1));
       var x2 = jsnums.toFixnum(checkReal(maybeX2));
       var y2 = jsnums.toFixnum(checkReal(maybeY2));
-      var color = checkColor(maybeC);
+      var color = unwrapColor(maybeC);
       var img   = checkImage(maybeImg);
       var line  = image.makeLineImage(x2 - x1, y2 - y1, color);
       var leftmost = Math.min(x1, x2);
@@ -782,7 +792,7 @@
       var y1 = jsnums.toFixnum(checkReal(maybeY1));
       var x2 = jsnums.toFixnum(checkReal(maybeX2));
       var y2 = jsnums.toFixnum(checkReal(maybeY2));
-      var color = checkColor(maybeC);
+      var color = unwrapColor(maybeC);
       var img = checkImage(maybeImg);
       var line = image.makeLineImage(x2 - x1, y2 - y1, color);
 
@@ -800,8 +810,8 @@
       checkArity(3, arguments, "square", false);
       c3("square", maybeSide, annNumNonNegative, maybeMode, annMode, maybeColor, annColor);
       var side = jsnums.toFixnum(checkNonNegativeReal(maybeSide));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(image.makeSquareImage(side, mode, color));
     });
 
@@ -814,8 +824,8 @@
         maybeColor, annColor);
       var width = jsnums.toFixnum(checkNonNegativeReal(maybeWidth));
       var height = jsnums.toFixnum(checkNonNegativeReal(maybeHeight));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeRectangleImage(width, height, mode, color));
     });
@@ -829,8 +839,8 @@
         maybeColor, annColor);
       var length = jsnums.toFixnum(checkNonNegativeReal(maybeLength));
       var count = jsnums.toFixnum(checkNonNegativeReal(maybeCount));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makePolygonImage(length, count, 1, mode, color));
     });
@@ -844,8 +854,8 @@
         maybeColor, annColor);
       var width = jsnums.toFixnum(checkNonNegativeReal(maybeWidth));
       var height = jsnums.toFixnum(checkNonNegativeReal(maybeHeight));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeEllipseImage(width, height, mode, color));
     });
@@ -854,8 +864,8 @@
       checkArity(3, arguments, "triangle", false);
       c3("triangle", maybeSide, annNumNonNegative, maybeMode, annMode, maybeColor, annColor);
       var side = jsnums.toFixnum(checkNonNegativeReal(maybeSide));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         // Angle makes triangle point up
         image.makeTriangleImage(side, 360-60, side, mode, color));
@@ -897,8 +907,8 @@
 
       var angleA = Math.acos(excess(sideB, sideC, sideA) / (2 * sideB * sideC)) * (180 / Math.PI);
 
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
@@ -923,8 +933,8 @@
 
       var angleA = Math.acos(excess(sideB, sideC, sideA) / (2 * sideB * sideC)) * (180 / Math.PI);
 
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
@@ -944,8 +954,8 @@
         throwMessage("The given angle, side and side will not form a triangle: "
                      + maybeAngleA + ", " + maybeSideB + ", " + maybeSideC);
       }
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
@@ -982,8 +992,8 @@
 
       var angleA = Math.acos(excess(sideB, sideC, sideA) / (2 * sideB * sideC)) * (180 / Math.PI);
 
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeTriangleImage(sideC, angleA, sideB, mode, color));
     });
@@ -999,8 +1009,8 @@
       var angleA = jsnums.toFixnum(checkAngle(maybeAngleA));
       var angleB = jsnums.toFixnum(checkAngle(maybeAngleB));
       var sideC = jsnums.toFixnum(checkNonNegativeReal(maybeSideC));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       var angleC = (180 - angleA - angleB);
       if (less(angleC, 0)) {
         throwMessage("The given angle, angle and side will not form a triangle: "
@@ -1023,8 +1033,8 @@
       var angleA = jsnums.toFixnum(checkAngle(maybeAngleA));
       var sideB = jsnums.toFixnum(checkNonNegativeReal(maybeSideB));
       var angleC = jsnums.toFixnum(checkAngle(maybeAngleC));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       var angleB = 180 - angleA - angleC;
       if (less(angleB, 0)) {
         throwMessage("The given angle, side and angle will not form a triangle: "
@@ -1047,8 +1057,8 @@
       var sideA = jsnums.toFixnum(checkNonNegativeReal(maybeSideA));
       var angleB = jsnums.toFixnum(checkAngle(maybeAngleB));
       var angleC = jsnums.toFixnum(checkAngle(maybeAngleC));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       var angleA = (180 - angleC - angleB);
       var hypotenuse = sideA / (Math.sin(angleA*Math.PI/180));
       var sideC = hypotenuse * Math.sin(angleC*Math.PI/180);
@@ -1066,8 +1076,8 @@
         maybeColor, annColor);
       var side1 = jsnums.toFixnum(checkNonNegativeReal(maybeSide1));
       var side2 = jsnums.toFixnum(checkNonNegativeReal(maybeSide2));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         // add 180 to make the triangle point up
         image.makeTriangleImage(side1, 360 - 90, side2, mode, color));
@@ -1082,8 +1092,8 @@
         maybeColor, annColor);
       var side = jsnums.toFixnum(checkNonNegativeReal(maybeSide));
       var angleC = jsnums.toFixnum(checkAngle(maybeAngleC));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       var angleAB = (180-angleC)/2;
       var base = 2*side*Math.sin((angleC*Math.PI/180)/2);
       return makeImage(
@@ -1095,8 +1105,8 @@
       checkArity(3, arguments, "star", false);
       c3("star", maybeSide, annNumNonNegative, maybeMode, annMode, maybeColor, annColor);
       var side = jsnums.toFixnum(checkNonNegativeReal(maybeSide));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makePolygonImage(side, 5, 2, mode, color));
     });
@@ -1112,8 +1122,8 @@
       var sideCount = jsnums.toFixnum(checkSideCount(maybeSideCount));
       var outer = jsnums.toFixnum(checkNonNegativeReal(maybeOuter));
       var inner = jsnums.toFixnum(checkNonNegativeReal(maybeInner));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeStarImage(sideCount, inner, outer, mode, color));
     });
@@ -1129,8 +1139,8 @@
       var points = jsnums.toFixnum(checkPointsCount(maybePoints));
       var outer = jsnums.toFixnum(checkNonNegativeReal(maybeOuter));
       var inner = jsnums.toFixnum(checkNonNegativeReal(maybeInner));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeStarImage(points, inner, outer, mode, color));
     });
@@ -1146,8 +1156,8 @@
       var length = jsnums.toFixnum(checkNonNegativeReal(maybeLength));
       var count = jsnums.toFixnum(checkNonNegativeReal(maybeCount));
       var step = jsnums.toFixnum(checkStepCount(maybeStep));
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makePolygonImage(length, count, step, mode, color));
     });
@@ -1161,8 +1171,8 @@
         maybeColor, annColor);
       var length = jsnums.toFixnum(checkNonNegativeReal(maybeLength));
       var angle = jsnums.toFixnum(checkAngle(maybeAngle)); // TODO: This was originally checkNonNegativeReal, seemed like a bug
-      var mode = checkMode(maybeMode);
-      var color = checkColor(maybeColor);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeRhombusImage(length, angle, mode, color));
     });
@@ -1182,7 +1192,7 @@
         maybeHeight, annNatural,
         maybePinholeX, annNatural,
         maybePinholeY, annNatural);
-      var loc = checkListofColor(maybeList);
+      var loc = unwrapListofColor(maybeList);
       var width = jsnums.toFixnum(checkNatural(maybeWidth));
       var height = jsnums.toFixnum(checkNatural(maybeHeight));
       var pinholeX = jsnums.toFixnum(checkNatural(maybePinholeX));
@@ -1193,7 +1203,7 @@
     f("color-list-to-bitmap", function(maybeList, maybeWidth, maybeHeight) {
       checkArity(3, arguments, "color-list-to-bitmap", false);
       c3("color-list-to-bitmap", maybeList, annListColor, maybeWidth, annNatural, maybeHeight, annNatural);
-      var loc = checkListofColor(maybeList);
+      var loc = unwrapListofColor(maybeList);
       var width = checkNatural(maybeWidth);
       var height = checkNatural(maybeHeight);
       return makeImage(image.colorListToImage(loc, width, height, 0, 0));

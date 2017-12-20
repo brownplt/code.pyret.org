@@ -94,7 +94,7 @@ check "properties":
   image-height(even-overlay) is 40
   image-width(even-overlay) is 40
 
-  indigo-text = text-font("Goodbye", 48, indigo, "Helvetica", "modern", "normal", "normal", false)
+  indigo-text = text-font("Goodbye", 48, indigo, "Helvetica", ff-modern, fs-normal, fw-normal, false)
   image-height(indigo-text) is%(within-abs(5)) 50
   image-baseline(indigo-text) is%(within-abs(2)) 43
 
@@ -104,9 +104,9 @@ check "properties":
 end
 
 check "predicates":
-  mode-solid satisfies is-OutlineMode
-  mode-outline satisfies is-OutlineMode
-  "checkered" violates is-OutlineMode
+  mode-solid satisfies is-FillMode
+  mode-outline satisfies is-FillMode
+  "checkered" violates is-FillMode
 
   0 violates is-step-count
   1 satisfies is-step-count

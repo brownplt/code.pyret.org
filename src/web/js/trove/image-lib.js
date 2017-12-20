@@ -8,8 +8,10 @@
     var gf = RUNTIME.getField;
 
     var image = gf(imageImp, "values");
+    var imageTypes = gf(imageImp, "types");
     var color = gf(image, "color");
-    var colorPred = gf(image, "is-Color");
+    var annColor = imageTypes["Color"]; // can't use getField here
+    var rawIsColor = gf(image, "is-Color");
     var isNum = function(n) { return typeof n === "number"; }
     var unwrap = RUNTIME.unwrap;
 
@@ -35,18 +37,18 @@
       else if (num > max) { return max; }
       else { return num; }
     }
-    var isColor = function(c) { return unwrap(colorPred.app(c)); };
+    var isColor = function(c) { return unwrap(rawIsColor.app(c)); };
     var colorRed = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "red"))), 0, 255); }
     var colorGreen = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255); }
     var colorBlue = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255); }
     var colorAlpha = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "alpha"))), 0, 1); }
 
-    var modePred = gf(image, "is-OutlineMode");
-    var isOutlineMode = function(m) { return unwrap(modePred.app(m)); };
-    var xplacePred = gf(image, "is-XPlace");
-    var isXPlace = function(x) { return unwrap(xplacePred.app(x)); };
-    var yplacePred = gf(image, "is-YPlace");
-    var isYPlace = function(y) { return unwrap(yplacePred.app(y)); };
+    var annFillMode = imageTypes["FillMode"];
+    var annXPlace = imageTypes["XPlace"];
+    var annYPlace = imageTypes["YPlace"];
+    var annFontFamily = imageTypes["FontFamily"];
+    var annFontStyle = imageTypes["FontStyle"];
+    var annFontWeight = imageTypes["FontWeight"];
     
     // Color database
     var ColorDb = function() {
@@ -1005,7 +1007,11 @@
     ImageDataImage.prototype = heir(BaseImage.prototype);
 
     ImageDataImage.prototype.render = function(ctx, x, y) {
-      ctx.putImageData(this.imageData, x, y);
+      // Simply using putImageData on ctx would ignore the current transformation matrix,
+      // so it wouldn't scale or rotate images.  This temp-drawing approach solves that.
+      var tempCanvas = makeCanvas(this.width, this.height);
+      tempCanvas.getContext("2d").putImageData(this.imageData, 0, 0);
+      ctx.drawImage(tempCanvas, x, y);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1922,14 +1928,15 @@
       imageToColorList: imageToColorList,
       colorListToImage: colorListToImage,
 
+
       isImage: isImage,
       isScene: isScene,
-      isOutlineMode: isOutlineMode,
-      outlineModePred: modePred,
-      isXPlace: isXPlace,
-      isYPlace: isYPlace,
-      xplacePred: xplacePred,
-      yplacePred: yplacePred,
+      annFillMode: annFillMode,
+      annXPlace: annXPlace,
+      annYPlace: annYPlace,
+      annFontFamily: annFontFamily,
+      annFontStyle: annFontStyle,
+      annFontWeight: annFontWeight,
       isColorOrColorString: isColorOrColorString,
       isAngle: isAngle,
       isSideCount: isSideCount,
@@ -1959,6 +1966,7 @@
 
       makeColor: makeColor,
       isColor: isColor,
+      annColor: annColor,
       colorRed: colorRed,
       colorGreen: colorGreen,
       colorBlue: colorBlue,

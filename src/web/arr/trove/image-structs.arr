@@ -21,7 +21,19 @@ rec y-middle = y-center # don't bloat the data definitions
 fun is-transparency(n :: Number) -> Boolean:
   (n >= 0) and (n <= 1)
 end
-data OutlineMode: mode-solid | mode-outline | mode-fade(n :: Number%(is-transparency)) end
+data FillMode: mode-solid | mode-outline | mode-fade(n :: Number%(is-transparency)) end
+data FontFamily:
+  | ff-default
+  | ff-decorative
+  | ff-roman
+  | ff-script
+  | ff-swiss
+  | ff-modern
+  | ff-symbol
+  | ff-system
+end
+data FontStyle: fs-normal | fs-italic | fs-slant end
+data FontWeight: fw-normal | fw-bold | fw-light end
 
 orange = color(255, 165, 0, 1)
 red = color(255, 0, 0, 1)
