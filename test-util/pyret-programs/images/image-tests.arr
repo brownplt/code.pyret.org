@@ -89,6 +89,11 @@ check "Polygons":
   empty-scene(20, 50) satisfies is-image
 end
 
+check "color-lists":
+  color-list-to-image([list: red, green, blue], 2, 2) raises ""
+  color-list-to-image([list: red, green, blue, black], 2, 2) satisfies is-image
+end
+
 check "properties":
   
   image-width(ellipse(30, 40, mode-solid, orange)) is 30

@@ -1141,9 +1141,14 @@
     f("color-list-to-image", function(maybeList, maybeWidth, maybeHeight) {
       checkArity(3, arguments, "color-list-to-image", false);
       c3("color-list-to-image", maybeList, annListColor, maybeWidth, annNatural, maybeHeight, annNatural);
+      var len = ffi.listLength(maybeList);
       var loc = unwrapListofColor(maybeList);
       var width = jsnums.toFixnum(maybeWidth);
       var height = jsnums.toFixnum(maybeHeight);
+      if (len != width * height) {
+        throwMessage("The color list does not have the right number of elements: " +
+                     "expected " + (width * height) + " but got " + len);
+      }
       return makeImage(image.colorListToImage(loc, width, height, width / 2, height / 2));
     });
 

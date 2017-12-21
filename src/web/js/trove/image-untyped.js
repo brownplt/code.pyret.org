@@ -1103,9 +1103,14 @@
          maybeHeight, annNatural,
          maybePinholeX, annNatural,
          maybePinholeY, annNatural);
+      var len = ffi.listLength(maybeList);
       var loc = unwrapListofColor(maybeList);
       var width = jsnums.toFixnum(maybeWidth);
       var height = jsnums.toFixnum(maybeHeight);
+      if (len != width * height) {
+        throwMessage("The color list does not have the right number of elements: " +
+                     "expected " + (width * height) + " but got " + len);
+      }
       var pinholeX = jsnums.toFixnum(maybePinholeX);
       var pinholeY = jsnums.toFixnum(maybePinholeY);
       return makeImage(image.colorListToImage(loc, width, height, pinholeX, pinholeY));
@@ -1117,9 +1122,14 @@
          maybeList, annListColor,
          maybeWidth, annNatural,
          maybeHeight, annNatural);
+      var len = ffi.listLength(maybeList);
       var loc = unwrapListofColor(maybeList);
       var width = jsnums.toFixnum(maybeWidth);
       var height = jsnums.toFixnum(maybeHeight);
+      if (len != width * height) {
+        throwMessage("The color list does not have the right number of elements: " +
+                     "expected " + (width * height) + " but got " + len);
+      }
       return makeImage(image.colorListToImage(loc, width, height, width / 2, height / 2));
     });
 
