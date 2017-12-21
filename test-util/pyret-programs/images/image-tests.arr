@@ -65,21 +65,26 @@ check "Polygons":
   radial-star(33, ~10, ~50, mode-solid, blue) satisfies is-image
   radial-star(blue, 10, 50, mode-solid, blue) raises ""
   radial-star(33, 10, 50, mode-solid, blue, true) raises ""
+  radial-star(1, 10, 50, mode-solid, blue) raises ""
 
   star-sized(33, 10, 50, mode-solid, blue) satisfies is-image
   star-sized(33, ~10, ~50, mode-solid, blue) satisfies is-image
   star-sized(blue, 10, 50, mode-solid, blue) raises ""
   star-sized(33, 10, 50, mode-solid, blue, true) raises ""
+  star-sized(1, 10, 50, mode-solid, blue) raises ""
 
-  star-polygon(43, 2, 5, mode-solid, blue) satisfies is-image
-  star-polygon(~43, 2, 5, mode-solid, blue) satisfies is-image
-  star-polygon(blue, 2, 5, mode-solid, blue) raises ""
-  star-polygon(43, 2, 5, mode-solid, blue, {}) raises ""
+  star-polygon(43, 3, 5, mode-solid, blue) satisfies is-image
+  star-polygon(~43, 3, 5, mode-solid, blue) satisfies is-image
+  star-polygon(blue, 3, 5, mode-solid, blue) raises ""
+  star-polygon(43, 3, 5, mode-solid, blue, {}) raises ""
+  star-polygon(43, 2, 5, mode-solid, blue) raises ""
+  star-polygon(43, 3, 0, mode-solid, blue) raises ""
 
   regular-polygon(45, 10, mode-solid, blue) satisfies is-image
   regular-polygon(45, 10, mode-solid, blue) satisfies is-image
   regular-polygon(true, 10, mode-solid, blue) raises ""
   regular-polygon(45, 10, mode-solid, blue, 4) raises ""
+  regular-polygon(45, 2, mode-solid, blue) raises ""
 
   empty-scene(20, 50) satisfies is-image
 end

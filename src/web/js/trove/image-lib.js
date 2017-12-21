@@ -1520,7 +1520,11 @@
       // NOTE: we *ignore* font-family, as it causes a number of font bugs due the browser inconsistencies
       // example: "bold italic 20px 'Times', sans-serif".
       // Default weight is "normal", face is "Arial"
-      this.font = (this.style+" " +this.weight+" "+this.size+"px "+'"'+this.face+'", '+this.family);
+      this.font = this.style !== false ? this.style + " " : "";
+      this.font += this.weight !== false ? this.weight + " " : "normal ";
+      this.font += this.size !== false ? this.size + "px " : "";
+      this.font += '"' + (this.face !== false ? this.face : "Arial") + '" ';
+      this.font += this.family !== false ? ", " + this.family : "";
 
       var metrics = getTextDimensions(str, this.font);
       this.width       = metrics.width;

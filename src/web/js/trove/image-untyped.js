@@ -6,118 +6,73 @@
     "pyret-base/js/js-numbers"
   ],
   provides: {
-    shorthands: {
-      "FillMode": { tag: "name",
-                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                    name: "FillMode" },
-      "FontFamily": { tag: "name",
-                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                    name: "FontFamily" },
-      "FontStyle": { tag: "name",
-                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                    name: "FontStyle" },
-      "FontWeight": { tag: "name",
-                    origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                    name: "FontWeight" },
-      "XPlace": { tag: "name",
-                  origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                  name: "XPlace" },
-      "YPlace": { tag: "name",
-                  origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                  name: "YPlace" },
-      "Color": { tag: "name",
-                 origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                 name: "Color" },
-      "OptColor": ["tyapp", { tag: "name",
-                              origin: { "import-type": "uri", uri: "builtin://option" },
-                              name: "Option" },
-                   [{ tag: "name",
-                      origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                      name: "Color" }]],
-      "Either": { tag: "name",
-                  origin: { "import-type": "uri", uri: "builtin://either" },
-                  name: "Either" },
-      "LoC": ["tyapp", { tag: "name",
-                         origin: { "import-type": "uri", uri: "builtin://lists" },
-                         name: "List" },
-              [{ tag: "name",
-                 origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                 name: "Color" }]],
-      "Image": ["local", "Image"]
-    },
     values: {
-      "circle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
-      "is-angle": ["arrow", ["tany"], "Boolean"],
-      "is-side-count": ["arrow", ["tany"], "Boolean"],
-      "is-step-count": ["arrow", ["tany"], "Boolean"],
-      "is-image": ["arrow", ["tany"], "Boolean"],
-      "image-url": ["arrow", ["String"], "Image"],
-      "images-equal": ["arrow", ["Image", "Image"], "Boolean"],
-      "images-difference": ["arrow", ["Image", "Image"], ["tyapp", "Either", ["String", "Number"]]],
-      "text": ["arrow", ["String", "Number", "Color"], "Image"],
-      "text-font": ["arrow",
-                    ["String", "Number", "Color", "String", "FontFamily", "FontStyle", "FontWeight", "Boolean"],
-                    "Image"],
-      "overlay": ["arrow", ["Image", "Image"], "Image"],
-      "overlay-xy": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
-      "overlay-align": ["arrow", ["XPlace", "YPlace", "Image", "Image"], "Image"],
-      "overlay-onto-offset": ["arrow",
-                              ["Image", "XPlace", "YPlace", "Number", "Number", "Image", "XPlace", "YPlace"],
-                              "Image"],
-      "underlay": ["arrow", ["Image", "Image"], "Image"],
-      "underlay-xy": ["arrow", ["Image", "Number", "Number","Image"], "Image"],
-      "underlay-align": ["arrow", ["XPlace", "YPlace", "Image", "Image"], "Image"],
-      "beside": ["arrow", ["Image", "Image"], "Image"],
-      "beside-align": ["arrow", ["YPlace", "Image", "Image"], "Image"],
-      "above": ["arrow", ["Image", "Image"], "Image"],
-      "above-align": ["arrow", ["XPlace", "Image", "Image"], "Image"],
-      "empty-scene": ["arrow", ["Number", "Number"], "Image"],
-      "put-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
-      "place-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
-      "translate": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
-      "place-image-align": ["arrow", ["Image", "Number", "Number", "XPlace", "YPlace", "Image"], "Image"],
-      "place-pinhole": ["arrow", ["Number", "Number", "Image"], "Image"],
-      "center-pinhole": ["arrow", ["Image"], "Image"],
-      "rotate": ["arrow", ["Number", "Image"], "Image"],
-      "scale": ["arrow", ["Number", "Image"], "Image"],
-      "scale-xy": ["arrow", ["Number", "Number", "Image"], "Image"],
-      "flip-horizontal": ["arrow", ["Image"], "Image"],
-      "flip-vertical": ["arrow", ["Image"], "Image"],
-      "reflect-x": ["arrow", ["Image"], "Image"],
-      "reflect-y": ["arrow", ["Image"], "Image"],
-      "frame": ["arrow", ["Image"], "Image"],
-      "draw-pinhole": ["arrow", ["Image"], "Image"],
-      "crop": ["arrow", ["Number", "Number", "Number", "Number", "Image"], "Image"],
-      "line": ["arrow", ["Number", "Number", "Color"], "Image"],
-      "add-line": ["arrow", ["Image", "Number", "Number", "Number", "Number", "Color"], "Image"],
-      "scene-line": ["arrow", ["Image", "Number", "Number", "Number", "Number", "Color"], "Image"],
-      "square": ["arrow", ["Number", "FillMode", "Color"], "Image"],
-      "rectangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
-      "regular-polygon": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
-      "ellipse": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
-      "triangle-sas": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle-sss": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle-ass": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle-ssa": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle-aas": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle-asa": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "triangle-saa": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "right-triangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
-      "isosceles-triangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
-      "star": ["arrow", ["Number", "FillMode", "Color"], "Image"],
-      "star-sized": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "radial-star": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "star-polygon": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
-      "rhombus": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
-      "image-to-color-list": ["arrow", ["Image"], "LoC"],
-      "color-list-to-image": ["arrow", ["LoC", "Number", "Number"], "Image"],
-      "image-width": ["arrow", ["Image"], "Number"],
-      "image-height": ["arrow", ["Image"], "Number"],
-      "image-baseline": ["arrow", ["Image"], "Number"],
-      "name-to-color": ["arrow", ["String"], "OptColor"],
-      "color-named": ["arrow", ["String"], "Color"],
-      "empty-image": "Image"
+      "circle": "tany",
+      "is-image-color": "tany",
+      "is-mode": "tany",
+      "is-x-place": "tany",
+      "is-y-place": "tany",
+      "is-angle": "tany",
+      "is-side-count": "tany",
+      "is-step-count": "tany",
+      "is-image": "tany",
+      "bitmap-url": "tany",
+      "image-url": "tany",
+      "images-equal": "tany",
+      "images-difference": "tany",
+      "text": "tany",
+      "text-font": "tany",
+      "overlay": "tany",
+      "overlay-xy": "tany",
+      "overlay-align": "tany",
+      "underlay": "tany",
+      "underlay-xy": "tany",
+      "underlay-align": "tany",
+      "beside": "tany",
+      "beside-align": "tany",
+      "above": "tany",
+      "above-align": "tany",
+      "empty-scene": "tany",
+      "put-image": "tany",
+      "place-image": "tany",
+      "place-image-align": "tany",
+      "rotate": "tany",
+      "scale": "tany",
+      "scale-xy": "tany",
+      "flip-horizontal": "tany",
+      "flip-vertical": "tany",
+      "frame": "tany",
+      "crop": "tany",
+      "line": "tany",
+      "add-line": "tany",
+      "scene-line": "tany",
+      "square": "tany",
+      "rectangle": "tany",
+      "regular-polygon": "tany",
+      "ellipse": "tany",
+      "triangle": "tany",
+      "triangle-sas": "tany",
+      "triangle-sss": "tany",
+      "triangle-ass": "tany",
+      "triangle-ssa": "tany",
+      "triangle-aas": "tany",
+      "triangle-asa": "tany",
+      "triangle-saa": "tany",
+      "right-triangle": "tany",
+      "isosceles-triangle": "tany",
+      "star": "tany",
+      "star-sized": "tany",
+      "radial-star": "tany",
+      "star-polygon": "tany",
+      "rhombus": "tany",
+      "image-to-color-list": "tany",
+      "color-list-to-image": "tany",
+      "color-list-to-bitmap": "tany",
+      "image-width": "tany",
+      "image-height": "tany",
+      "image-baseline": "tany",
+      "name-to-color": "tany",
+      "empty-image": "tany"
     },
     aliases: {
       "Image": ["local", "Image"]
@@ -129,6 +84,64 @@
     var ffi = runtime.ffi
 
     var isString = runtime.isString;
+
+    var isFontFamily = function(x){
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "default" ||
+               x.toString().toLowerCase() == "decorative" ||
+               x.toString().toLowerCase() == "roman" ||
+               x.toString().toLowerCase() == "script" ||
+               x.toString().toLowerCase() == "swiss" ||
+               x.toString().toLowerCase() == "modern" ||
+               x.toString().toLowerCase() == "symbol" ||
+               x.toString().toLowerCase() == "system"))
+        || (x === false);		// false is also acceptable
+    };
+    var isFontStyle = function(x){
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "normal" ||
+               x.toString().toLowerCase() == "italic" ||
+               x.toString().toLowerCase() == "slant"))
+        || (x === false);		// false is also acceptable
+    };
+    var isFontWeight = function(x){
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "normal" ||
+               x.toString().toLowerCase() == "bold" ||
+               x.toString().toLowerCase() == "light"))
+        || (x === false);		// false is also acceptable
+    };
+    var isMode = function(x) {
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "solid" ||
+               x.toString().toLowerCase() == "outline")) ||
+        ((jsnums.isReal(x)) &&
+         (jsnums.greaterThanOrEqual(x, 0, runtime.NumberErrbacks) &&
+          jsnums.lessThanOrEqual(x, 1, runtime.NumberErrbacks)));
+    };
+
+    var isPlaceX = function(x) {
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "left"  ||
+               x.toString().toLowerCase() == "right" ||
+               x.toString().toLowerCase() == "center" ||
+               x.toString().toLowerCase() == "middle"));
+    };
+
+    var isPlaceY = function(x) {
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "top"	  ||
+               x.toString().toLowerCase() == "bottom"   ||
+               x.toString().toLowerCase() == "baseline" ||
+               x.toString().toLowerCase() == "center"   ||
+               x.toString().toLowerCase() == "middle"));
+    };
+
+    var isStyle = function(x) {
+      return (isString(x) &&
+              (x.toString().toLowerCase() == "solid" ||
+               x.toString().toLowerCase() == "outline"));
+    };
 
     var less = function(lhs, rhs) {
       return (rhs - lhs) > 0.00001;
@@ -148,6 +161,8 @@
     var annNumNonNegative = runtime.NumNonNegative;
 
     var checkString = p(runtime.isString, "String");
+    var checkStringOrFalse = p(function(val) { return runtime.isString(val) || runtime.isPyretFalse; }, "String or false");
+    var annStringOrFalse = ann("String or false", function(val) { return runtime.isString(val) || runtime.isPyretFalse; });
 
     var annByte = ann("Number between 0 and 255", function(val) {
       return runtime.isNumber(val)
@@ -169,70 +184,17 @@
     });
 
 
-    var identity = function(x) { return x; };
-    var pyAlwaysTrue = runtime.makeFunction(function(_) { return true; }, "No-op");
-    var unwrapColor = identity;
-    var annColor = image.annColor;
-    
-    var annMode = image.annFillMode;
-    var unwrapMode = function(m) {
-      return runtime.ffi.cases(pyAlwaysTrue, "FillMode", m, {
-        "mode-solid":   function(_) { return "solid"; },
-        "mode-outline": function(_) { return "outline"; },
-        "mode-fade":    function(v) { return jsnums.toFixnum(v); },
-      });
-    }
+    var _checkColor = p(image.isColorOrColorString, "Color");
 
-    var annFontFamily = image.annFontFamily;
-    var unwrapFontFamily = function(ff) {
-      return runtime.ffi.cases(pyAlwaysTrue, "FontFamily", ff, {
-        "ff-default":    function(_) { return "default"; },
-        "ff-decorative": function(_) { return "decorative"; },
-        "ff-roman":      function(_) { return "roman"; },
-        "ff-script":     function(_) { return "script"; },
-        "ff-swiss":      function(_) { return "swiss"; },
-        "ff-modern":     function(_) { return "modern"; },
-        "ff-symbol":     function(_) { return "symbol"; },
-        "ff-system":     function(_) { return "system"; },
-      });
-    };
-    var annFontStyle = image.annFontStyle;
-    var unwrapFontStyle = function(fs) {
-      return runtime.ffi.cases(pyAlwaysTrue, "FontStyle", fs, {
-        "fs-normal": function(_) { return "normal"; },
-        "fs-italic": function(_) { return "italic"; },
-        "fs-slant":  function(_) { return "slant"; },
-      });
-    };
-  
-    var annFontWeight = image.annFontWeight;
-    var unwrapFontWeight = function(fw){
-      return runtime.ffi.cases(pyAlwaysTrue, "FontWeight", fw, {
-        "fw-normal": function(_) { return "normal"; },
-        "fw-bold": function(_) { return "bold"; },
-        "fw-light": function(_) { return "light"; },
-      });
-    };
+    var annColor = ann("Color", image.isColorOrColorString);
 
-    var annPlaceX = image.annXPlace;
-    var unwrapPlaceX = function(px) {
-      return runtime.ffi.cases(pyAlwaysTrue, "XPlace", px, {
-        "x-left": function(_) { return "left"; },
-        "x-middle": function(_) { return "middle"; },
-        "x-pinhole": function(_) { return "pinhole"; },
-        "x-right": function(_) { return "right"; }
-      });
-    }
-    var annPlaceY = image.annYPlace;
-    var unwrapPlaceY = function(py) {
-      return runtime.ffi.cases(pyAlwaysTrue, "YPlace", py, {
-        "y-top": function(_) { return "top"; },
-        "y-center": function(_) { return "center"; },
-        "y-pinhole": function(_) { return "pinhole"; },
-        "y-baseline": function(_) { return "baseline"; },
-        "y-bottom": function(_) { return "bottom"; }
-      });
-    }
+    var unwrapColor = function(val) {
+      var aColor = _checkColor(val);
+      if (colorDb.get(aColor)) {
+        aColor = colorDb.get(aColor);
+      }
+      return aColor;
+    };
 
     var checkImagePred = function(val) {
       return runtime.isOpaque(val) && image.isImage(val.val);
@@ -253,6 +215,28 @@
       return runtime.isOpaque(val) && image.isScene(val.val);
     };
 
+    var annFontFamily = ann("Font Family", isFontFamily);
+    var checkFontFamily = p(isFontFamily, "Font Family");
+
+    var annFontStyle = ann("Font Style (\"normal\", \"italic\", or \"slant\")", isFontStyle);
+    var checkFontStyle = p(isFontStyle, "Font Style");
+
+    var annFontWeight = ann("Font Weight", isFontWeight);
+    var checkFontWeight = p(isFontWeight, "Font Weight");
+
+    var annPlaceX = ann("X Place (\"left\", \"middle\", \"center\", or \"right\")", isPlaceX);
+    var unwrapPlaceX = function(val) {
+      if (val.toString().toLowerCase() == "center") return "middle";
+      return val;
+    };
+    
+    var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"baseline\", or \"middle\")", isPlaceY);
+    var unwrapPlaceY = function(val) {
+      if (val.toString().toLowerCase() == "middle") return "center";
+      return val;
+    };
+
+
     var annAngle = ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle);
     var checkAngle = p(image.isAngle, "Angle");
 
@@ -265,18 +249,20 @@
     };
 
     var annListColor = ann("List<Color>", function(val) {
-      if (!runtime.ffi.isList(val)) return false;
-      var cur = val;
-      var gf = runtime.getField;
-      while (runtime.unwrap(ffi.isLink(cur))) {
-        var f = gf(cur, "first");
-        if (!image.isColor(f)) return false;
-        cur = gf(cur, "rest");
-      }
-      return true;
+      return runtime.ffi.isList(val);
     });
-    var unwrapListofColor = identity;
+    var unwrapListofColor = p(function(val) {
+      return ffi.makeList(ffi.toArray(val).map(unwrapColor));
+    }, "List<Color>");
 
+
+    var unwrapMode = function(val) {
+      if (typeof val === "string")
+        return val;
+      else
+        return jsnums.toFixnum(val);
+    }
+    var annMode = ann("Mode (\"outline\" or \"solid\")", isMode);
 
     var annSideCount = ann("Side Count", image.isSideCount);
 
@@ -308,7 +294,7 @@
     }
 
     var c = function(name, ...argsAndAnns) {
-      runtime.checkArgsInternalInline("image", name, ...argsAndAnns);
+      runtime.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
     };
     var c1 = function(name, arg, ann) {
       runtime.checkArgsInternal1("image", name, arg, ann);
@@ -320,6 +306,24 @@
       runtime.checkArgsInternal3("image", name, arg1, ann1, arg2, ann2, arg3, ann3);
     };
     //////////////////////////////////////////////////////////////////////
+    var bitmapURL = function(funName, maybeUrl) {
+      checkArity(1, arguments, funName, false);
+      c1("image-url", maybeUrl, annString);
+      var url = maybeUrl;
+      return runtime.pauseStack(function(restarter) {
+        var rawImage = new Image();
+        if(runtime.hasParam("imgUrlProxy")) {
+          url = runtime.getParam("imgUrlProxy")(url);
+        }
+        rawImage.onload = function() {
+          restarter.resume(makeImage(image.makeFileImage(String(url), rawImage)));
+        };
+        rawImage.onerror = function(e) {
+          restarter.error(runtime.ffi.makeMessageException("unable to load " + url + ": " + e.message));
+        };
+        rawImage.src = String(url);
+      });
+    };
     var values = {};
     function f(name, fun) {
       values[name] = runtime.makeFunction(fun, name);
@@ -330,6 +334,22 @@
       var color = unwrapColor(maybeColor);
       var mode = unwrapMode(maybeMode)
       return makeImage(image.makeCircleImage(jsnums.toFixnum(radius), mode, color));
+    });
+    f("is-image-color", function(maybeColor) {
+      checkArity(1, arguments, "image", false);
+      return runtime.wrap(image.isColorOrColorString(maybeColor));
+    });
+    f("is-mode", function(maybeMode) {
+      checkArity(1, arguments, "is-mode", false);
+      return runtime.wrap(isMode(maybeMode));
+    });
+    f("is-x-place", function(maybeXPlace) {
+      checkArity(1, arguments, "is-x-place", false);
+      return runtime.wrap(isPlaceX(maybeXPlace));
+    });
+    f("is-y-place", function(maybeYPlace) {
+      checkArity(1, arguments, "is-y-place", false);
+      return runtime.wrap(isPlaceY(maybeYPlace));
     });
     f("is-angle", function(maybeAngle) {
       checkArity(1, arguments, "is-angle", false);
@@ -348,24 +368,8 @@
       runtime.confirm(maybeImage, runtime.isOpaque);
       return runtime.wrap(image.isImage(maybeImage.val));
     });
-    f("image-url", function(maybeUrl) {
-      checkArity(1, arguments, "image", false);
-      c1("image-url", maybeUrl, annString);
-      var url = maybeUrl;
-      return runtime.pauseStack(function(restarter) {
-        var rawImage = new Image();
-        if(runtime.hasParam("imgUrlProxy")) {
-          url = runtime.getParam("imgUrlProxy")(url);
-        }
-        rawImage.onload = function() {
-          restarter.resume(makeImage(image.makeFileImage(String(url), rawImage)));
-        };
-        rawImage.onerror = function(e) {
-          restarter.error(runtime.ffi.makeMessageException("unable to load " + url + ": " + e.message));
-        };
-        rawImage.src = String(url);
-      });
-    });
+    f("bitmap-url", function(maybeURL) { return bitmapURL("bitmap-url", maybeURL); }),
+    f("image-url", function(maybeURL) { return bitmapURL("image-url", maybeURL); }),
     f("images-difference", function(maybeImage1, maybeImage2) {
       checkArity(2, arguments, "image", false);
       c2("images-difference", maybeImage1, annImage, maybeImage2, annImage);
@@ -397,7 +401,7 @@
         maybeString, runtime.String,
         maybeSize, annByte,
         maybeColor, annColor,
-        maybeFace, runtime.String,
+        maybeFace, annStringOrFalse,
         maybeFamily, annFontFamily,
         maybeStyle, annFontStyle,
         maybeWeight, annFontWeight,
@@ -406,11 +410,13 @@
       var size = jsnums.toFixnum(maybeSize);
       var color = unwrapColor(maybeColor);
       var face = maybeFace;
-      var family = unwrapFontFamily(maybeFamily);
-      var style = unwrapFontStyle(maybeStyle);
-      var weight = unwrapFontWeight(maybeWeight);
+      var family = maybeFamily;
+      var style = maybeStyle;
+      var weight = maybeWeight;
       var underline = maybeUnderline;
-      return makeImage(image.makeTextImage(string, size, color, face, family, style, weight, underline));
+      return makeImage(
+        image.makeTextImage(String(string), size, color,
+                            face, family, style, weight, underline));
     }),
 
     f("overlay", function(maybeImg1, maybeImg2) {
@@ -448,30 +454,6 @@
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, placeX, placeY, 0, 0, img2, placeX, placeY));
-    });
-
-    f("overlay-onto-offset", function(maybeImg1, maybePlaceX1, maybePlaceY1,
-                                      maybeOffsetX, maybeOffsetY,
-                                      maybeImg2, maybePlaceX2, maybePlaceY2) {
-      checkArity(8, arguments, "overlay-onto-offset", false);
-      c("overlay-onto-offset",
-        maybeImg1, annImage,
-        maybePlaceX1, annPlaceX,
-        maybePlaceY1, annPlaceY,
-        maybeOffsetX, runtime.Number,
-        maybeOffsetY, runtime.Number,
-        maybeImg2, annImage,
-        maybePlaceX2, annPlaceX,
-        maybePlaceY2, annPlaceY);
-      var placeX1 = unwrapPlaceX(maybePlaceX1);
-      var placeY1 = unwrapPlaceY(maybePlaceY1);
-      var placeX2 = unwrapPlaceX(maybePlaceX2);
-      var placeY2 = unwrapPlaceY(maybePlaceY2);
-      var img1 = unwrapImage(maybeImg1);
-      var img2 = unwrapImage(maybeImg2);
-      var offsetX = jsnums.toFixnum(checkReal(maybeOffsetX));
-      var offsetY = jsnums.toFixnum(checkReal(maybeOffsetY));
-      return makeImage(image.makeOverlayImage(img1, placeX1, placeY1, offsetX, offsetY, img2, placeX2, placeY2));
     });
 
     f("underlay", function(maybeImg1, maybeImg2) {
@@ -594,24 +576,6 @@
       }
     });
     f("translate", values["place-image"].app);
-    f("place-pinhole", function(maybeX, maybeY, maybeImg) {
-      checkArity(3, arguments, "place-pinhole", false);
-      c3("place-pinhole",
-         maybeX, annReal,
-         maybeY, annReal,
-         maybeImg, annImage);
-      var img = unwrapImage(maybeImg);
-      var x = jsnums.toFixnum(maybeX);
-      var y = jsnums.toFixnum(maybeY);
-      return makeImage(img.updatePinhole(x, y));
-    });
-    f("center-pinhole", function(maybeImg) {
-      checkArity(1, arguments, "place-pinhole", false);
-      c1("place-pinhole", maybeImg, annImage);
-      var img = unwrapImage(maybeImg);
-      return makeImage(img.updatePinhole(img.getWidth() / 2, img.getHeight() / 2));
-    });
-    
     f("place-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
       checkArity(6, arguments, "place-image-align", false);
       c("place-image-align",
@@ -692,13 +656,6 @@
       c1("frame", maybeImg, annImage);
       var img = unwrapImage(maybeImg);
       return makeImage(image.makeFrameImage(img));
-    });
-
-    f("draw-pinhole", function(maybeImg) {
-      checkArity(1, arguments, "draw-pinhole", false);
-      c1("draw-pinhole", maybeImg, annImage);
-      var img = unwrapImage(maybeImg);
-      return makeImage(image.makePinholeImage(img));
     });
 
     f("crop", function(maybeX, maybeY, maybeWidth, maybeHeight, maybeImg) {
@@ -1138,9 +1095,28 @@
       return image.imageToColorList(img);
     });
 
-    f("color-list-to-image", function(maybeList, maybeWidth, maybeHeight) {
-      checkArity(3, arguments, "color-list-to-image", false);
-      c3("color-list-to-image", maybeList, annListColor, maybeWidth, annNatural, maybeHeight, annNatural);
+    f("color-list-to-image", function(maybeList, maybeWidth, maybeHeight, maybePinholeX, maybePinholeY) {
+      checkArity(5, arguments, "color-list-to-image", false);
+      c3("color-list-to-image",
+         maybeList, annListColor,
+         maybeWidth, annNatural,
+         maybeHeight, annNatural,
+         maybePinholeX, annNatural,
+         maybePinholeY, annNatural);
+      var loc = unwrapListofColor(maybeList);
+      var width = jsnums.toFixnum(maybeWidth);
+      var height = jsnums.toFixnum(maybeHeight);
+      var pinholeX = jsnums.toFixnum(maybePinholeX);
+      var pinholeY = jsnums.toFixnum(maybePinholeY);
+      return makeImage(image.colorListToImage(loc, width, height, pinholeX, pinholeY));
+    });
+
+    f("color-list-to-bitmap", function(maybeList, maybeWidth, maybeHeight) {
+      checkArity(3, arguments, "color-list-to-bitmap", false);
+      c3("color-list-to-bitmap",
+         maybeList, annListColor,
+         maybeWidth, annNatural,
+         maybeHeight, annNatural);
       var loc = unwrapListofColor(maybeList);
       var width = jsnums.toFixnum(maybeWidth);
       var height = jsnums.toFixnum(maybeHeight);
@@ -1172,22 +1148,7 @@
       checkArity(1, arguments, "name-to-color", false);
       c1("name-to-color", maybeName, runtime.String);
       var name = checkString(maybeName);
-      var val = colorDb.get(String(name));
-      if (val) {
-        return runtime.ffi.makeSome(val);
-      } else {
-        return runtime.ffi.makeNone();
-      }
-    });
-    f("color-named", function(maybeName) {
-      checkArity(1, arguments, "name-to-color", false);
-      c1("color-named", maybeName, runtime.String);
-      var name = checkString(maybeName);
-      var val = colorDb.get(String(name));
-      if (val) {
-        return runtime.wrap(val);
-      }
-      throwMessage("Unknown color name '" + String(name) + "'");
+      return runtime.wrap(colorDb.get(String(name)) || false);
     });
 
     values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true));
