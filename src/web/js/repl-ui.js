@@ -686,7 +686,7 @@
         run: runner,
         initial: "",
         cmOptions: {
-          extraKeys: {
+          extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
             'Up': prevItem,
@@ -694,8 +694,14 @@
             'Ctrl-Up': "goLineUp",
             'Ctrl-Alt-Up': "goLineUp",
             'Ctrl-Down': "goLineDown",
-            'Ctrl-Alt-Down': "goLineDown"
-          }
+            'Ctrl-Alt-Down': "goLineDown",
+            'Esc Left': "goBackwardSexp",
+            'Alt-Left': "goBackwardSexp",
+            'Esc Right': "goForwardSexp",
+            'Alt-Right': "goForwardSexp",
+            'Ctrl-Left': "goBackwardToken",
+            'Ctrl-Right': "goForwardToken"
+          })
         }
       }).cm;
 

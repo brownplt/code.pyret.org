@@ -155,12 +155,18 @@ $(function() {
     }
 
     var cmOptions = {
-      extraKeys: {
+      extraKeys: CodeMirror.normalizeKeyMap({
         "Shift-Enter": function(cm) { runFun(cm.getValue()); },
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
         "Tab": "indentAuto",
-        "Ctrl-I": reindentAllLines
-      },
+        "Ctrl-I": reindentAllLines,
+        "Esc Left": "goBackwardSexp",
+        "Alt-Left": "goBackwardSexp",
+        "Esc Right": "goForwardSexp",
+        "Alt-Right": "goForwardSexp",
+        "Ctrl-Left": "goBackwardToken",
+        "Ctrl-Right": "goForwardToken"
+      }),
       indentUnit: 2,
       tabSize: 2,
       viewportMargin: Infinity,
