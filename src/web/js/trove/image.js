@@ -73,8 +73,8 @@
       "above-align": ["arrow", ["XPlace", "Image", "Image"], "Image"],
       "empty-scene": ["arrow", ["Number", "Number"], "Image"],
       "put-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
-      "place-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "translate": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
+      "place-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "place-image-align": ["arrow", ["Image", "Number", "Number", "XPlace", "YPlace", "Image"], "Image"],
       "place-pinhole": ["arrow", ["Number", "Number", "Image"], "Image"],
       "center-pinhole": ["arrow", ["Image"], "Image"],
@@ -95,6 +95,7 @@
       "rectangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "regular-polygon": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "ellipse": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "wedge": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "triangle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
       "triangle-sas": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
       "triangle-sss": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
@@ -418,7 +419,7 @@
       c2("overlay", maybeImg1, annImage, maybeImg2, annImage);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
-      return makeImage(image.makeOverlayImage(img1, "middle", "center", 0, 0, img2, "middle", "center"));
+      return makeImage(image.makeOverlayImage(img1, "pinhole", "pinhole", 0, 0, img2, "pinhole", "pinhole"));
     });
 
     f("overlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
@@ -479,7 +480,7 @@
       c2("underlay", maybeImg1, annImage, maybeImg2, annImage);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
-      return makeImage(image.makeOverlayImage(img2, "middle", "center", 0, 0, img1, "middle", "center"));
+      return makeImage(image.makeOverlayImage(img2, "pinhole", "pinhole", 0, 0, img1, "pinhole", "pinhole"));
     });
 
     f("underlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
@@ -827,6 +828,21 @@
       var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeEllipseImage(width, height, mode, color));
+    });
+
+    f("wedge", function(maybeRadius, maybeAngle, maybeMode, maybeColor) {
+      checkArity(4, arguments, "wedge", false);
+      c("wedge",
+        maybeRadius, annNumNonNegative,
+        maybeAngle, annAngle,
+        maybeMode, annMode,
+        maybeColor, annColor);
+      var radius = jsnums.toFixnum(maybeRadius);
+      var angle = jsnums.toFixnum(maybeAngle);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
+      return makeImage(
+        image.makeWedgeImage(radius, angle, mode, color));
     });
 
     f("triangle", function(maybeSide, maybeMode, maybeColor) {

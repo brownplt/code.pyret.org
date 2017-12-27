@@ -791,6 +791,8 @@
       this.height   = height;
       this.children = children; // arrayof [image, number, number]
       this.withBorder = withBorder;
+      this.pinholeX = 0;
+      this.pinholeY = 0;
       this.ariaText = " scene that is "+width+" by "+height+". children are: ";
       this.ariaText += children.map(function(c,i){
         return "child "+(i+1)+": "+c[0].ariaText+", positioned at "+c[1]+","+c[2]+" ";
@@ -1161,7 +1163,6 @@
       this.translateY = translate.y;
       this.pinholeX   = img.pinholeX*cos - img.pinholeY*sin + translate.x;
       this.pinholeY   = img.pinholeX*sin + img.pinholeY*cos + translate.y;
-      debugger
       this.ariaText   = "Rotated image, "+angle+" degrees: "+img.ariaText;
     };
 
@@ -1329,8 +1330,15 @@
       this.img.render(ctx, x, y);
       ctx.restore();
       ctx.beginPath();
+      ctx.strokeStyle = "black"; ctx.lineWidth = 1.5;
+      ctx.moveTo(x + this.pinholeX - 5, y + this.pinholeY);
+      ctx.lineTo(x + this.pinholeX + 5, y + this.pinholeY);
+      ctx.moveTo(x + this.pinholeX, y + this.pinholeY - 5);
+      ctx.lineTo(x + this.pinholeX, y + this.pinholeY + 5);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.beginPath();
       ctx.strokeStyle = "white"; ctx.lineWidth = 0.75;
-      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowColor = "black"; ctx.shadowBlur = 1;
       ctx.moveTo(x + this.pinholeX - 5, y + this.pinholeY);
       ctx.lineTo(x + this.pinholeX + 5, y + this.pinholeY);
       ctx.moveTo(x + this.pinholeX, y + this.pinholeY - 5);
@@ -1710,6 +1718,71 @@
     };
 
     //////////////////////////////////////////////////////////////////////
+    //Wedge : Number Number Number Mode Color -> Image
+    var WedgeImage = function(radius, angle, style, color) {
+      BaseImage.call(this);
+      this.radius = radius;
+      this.angle = (angle % 360.0) * Math.PI / 180;
+      this.style = style;
+      this.color = color;
+      var endPointX = radius * Math.cos(this.angle);
+      var endPointY = radius * Math.sin(this.angle);
+      var vertices = [{x: 0, y: 0}, {x: radius, y: 0}];
+      // Going in 5-degree increments ensures we hit the extremal points if they are part of the wedge
+      // Negate the y-components, because we want y-up behavior
+      for (var i = 5; i < angle; i += 5) {
+        vertices.push({x: radius * Math.cos(i * Math.PI / 180), y: -1 * radius * Math.sin(i * Math.PI / 180)});
+      }
+      vertices.push({x: endPointX, y: -endPointY});
+      this.width = Math.max(1, findWidth(vertices));
+      this.height = Math.max(1, findHeight(vertices));
+      this.vertices = translateVertices(vertices);
+      this.pinholeX = this.vertices[0].x;
+      this.pinholeY = this.vertices[0].y;
+      this.ariaText = " a"+colorToSpokenString(color,style) + " wedge of angle "+angle;
+    };
+
+    WedgeImage.prototype.rotate = function(angle) {
+      return new WedgeImage(this.radius, this.startAngle + angle, this.angle, this.style, this.color);
+    }
+
+    WedgeImage.prototype = heir(BaseImage.prototype);
+
+    WedgeImage.prototype.render = function(ctx, aX, aY) {
+      ctx.save();
+      ctx.beginPath();
+
+      // if it's a solid wedge...
+      var isSolid = this.style.toString().toLowerCase() !== "outline";
+      var adjust = isSolid? 0 : 0.5;
+      // ...account for the 1px border width
+      var width = this.width - 2*adjust, height = this.height - 2*adjust;
+      aX += adjust; aY += adjust;
+
+      ctx.moveTo(aX + this.pinholeX - adjust, aY + this.pinholeY - adjust);
+      ctx.arc(aX + this.pinholeX - adjust, aY + this.pinholeY - adjust, this.radius - 2*adjust, 0, -this.angle, true);
+      ctx.closePath();
+      if (this.style.toString().toLowerCase() === "outline") {
+        ctx.strokeStyle = colorString(this.color);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = colorString(this.color, this.style);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    };
+
+    WedgeImage.prototype.equals = function(other) {
+      return ((other instanceof WedgeImage) &&
+             this.radius  === other.radius &&
+             this.angle   === other.angle &&
+             this.style   === other.style &&
+             equals(this.color, other.color))
+      || BaseImage.prototype.equals.call(this, other);
+    };
+
+    //////////////////////////////////////////////////////////////////////
     // Line: Number Number Color -> Image
     var LineImage = function(x, y, color) {
       BaseImage.call(this);
@@ -1813,6 +1886,9 @@
     var makeEllipseImage = function(width, height, style, color) {
       return new EllipseImage(width, height, style, color);
     };
+    var makeWedgeImage = function(radius, angle, style, color) {
+      return new WedgeImage(radius, angle, style, color);
+    };
     var makeLineImage = function(x, y, color) {
       return new LineImage(x, y, color);
     };
@@ -1859,6 +1935,7 @@
     var isRhombusImage = function(x) { return x instanceof RhombusImage; };
     var isSquareImage	= function(x) { return x instanceof SquareImage; };
     var isTriangleImage= function(x) { return x instanceof TriangleImage; };
+    var isWedgeImage = function(x) { return x instanceof WedgeImage; };
     var isEllipseImage = function(x) { return x instanceof EllipseImage; };
     var isLineImage	= function(x) { return x instanceof LineImage; };
     var isOverlayImage = function(x) { return x instanceof OverlayImage; };
@@ -1899,6 +1976,7 @@
       StarImage: StarImage,
       TriangleImage: TriangleImage,
       EllipseImage: EllipseImage,
+      WedgeImage: WedgeImage,
       LineImage: LineImage,
       StarImage: StarImage,
 
@@ -1916,6 +1994,7 @@
       makeSquareImage: makeSquareImage,
       makeTriangleImage: makeTriangleImage,
       makeEllipseImage: makeEllipseImage,
+      makeWedgeImage: makeWedgeImage,
       makeLineImage: makeLineImage,
       makeOverlayImage: makeOverlayImage,
       makeRotateImage: makeRotateImage,

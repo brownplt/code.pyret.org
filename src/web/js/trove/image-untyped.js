@@ -34,14 +34,18 @@
       "above-align": "tany",
       "empty-scene": "tany",
       "put-image": "tany",
+      "translate": "tany",
       "place-image": "tany",
       "place-image-align": "tany",
+      "place-pinhole": "tany",
+      "center-pinhole": "tany",
       "rotate": "tany",
       "scale": "tany",
       "scale-xy": "tany",
       "flip-horizontal": "tany",
       "flip-vertical": "tany",
       "frame": "tany",
+      "draw-pinhole": "tany",
       "crop": "tany",
       "line": "tany",
       "add-line": "tany",
@@ -50,6 +54,7 @@
       "rectangle": "tany",
       "regular-polygon": "tany",
       "ellipse": "tany",
+      "wedge": "tany",
       "triangle": "tany",
       "triangle-sas": "tany",
       "triangle-sss": "tany",
@@ -125,6 +130,7 @@
               (x.toString().toLowerCase() == "left"  ||
                x.toString().toLowerCase() == "right" ||
                x.toString().toLowerCase() == "center" ||
+               x.toString().toLowerCase() == "pinhole" ||
                x.toString().toLowerCase() == "middle"));
     };
 
@@ -134,6 +140,7 @@
                x.toString().toLowerCase() == "bottom"   ||
                x.toString().toLowerCase() == "baseline" ||
                x.toString().toLowerCase() == "center"   ||
+               x.toString().toLowerCase() == "pinhole"  ||
                x.toString().toLowerCase() == "middle"));
     };
 
@@ -224,13 +231,13 @@
     var annFontWeight = ann("Font Weight", isFontWeight);
     var checkFontWeight = p(isFontWeight, "Font Weight");
 
-    var annPlaceX = ann("X Place (\"left\", \"middle\", \"center\", or \"right\")", isPlaceX);
+    var annPlaceX = ann("X Place (\"left\", \"middle\", \"center\", \"pinhole\", or \"right\")", isPlaceX);
     var unwrapPlaceX = function(val) {
       if (val.toString().toLowerCase() == "center") return "middle";
       return val;
     };
     
-    var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"baseline\", or \"middle\")", isPlaceY);
+    var annPlaceY = ann("Y Place (\"top\", \"bottom\", \"center\", \"pinhole\", \"baseline\", or \"middle\")", isPlaceY);
     var unwrapPlaceY = function(val) {
       if (val.toString().toLowerCase() == "middle") return "center";
       return val;
@@ -306,8 +313,7 @@
       runtime.checkArgsInternal3("image", name, arg1, ann1, arg2, ann2, arg3, ann3);
     };
     //////////////////////////////////////////////////////////////////////
-    var bitmapURL = function(funName, maybeUrl) {
-      checkArity(1, arguments, funName, false);
+    var bitmapURL = function(maybeUrl) {
       c1("image-url", maybeUrl, annString);
       var url = maybeUrl;
       return runtime.pauseStack(function(restarter) {
@@ -368,8 +374,14 @@
       runtime.confirm(maybeImage, runtime.isOpaque);
       return runtime.wrap(image.isImage(maybeImage.val));
     });
-    f("bitmap-url", function(maybeURL) { return bitmapURL("bitmap-url", maybeURL); }),
-    f("image-url", function(maybeURL) { return bitmapURL("image-url", maybeURL); }),
+    f("bitmap-url", function(maybeURL) {
+      checkArity(1, arguments, "bitmap-url", false);
+      return bitmapURL(maybeURL);
+    }),
+    f("image-url", function(maybeURL) {
+      checkArity(1, arguments, "image-url", false);
+      return bitmapURL(maybeURL);
+    }),
     f("images-difference", function(maybeImage1, maybeImage2) {
       checkArity(2, arguments, "image", false);
       c2("images-difference", maybeImage1, annImage, maybeImage2, annImage);
@@ -424,7 +436,7 @@
       c2("overlay", maybeImg1, annImage, maybeImg2, annImage);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
-      return makeImage(image.makeOverlayImage(img1, "middle", "center", 0, 0, img2, "middle", "center"));
+      return makeImage(image.makeOverlayImage(img1, "pinhole", "pinhole", 0, 0, img2, "pinhole", "pinhole"));
     });
 
     f("overlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
@@ -461,7 +473,7 @@
       c2("underlay", maybeImg1, annImage, maybeImg2, annImage);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
-      return makeImage(image.makeOverlayImage(img2, "middle", "center", 0, 0, img1, "middle", "center"));
+      return makeImage(image.makeOverlayImage(img2, "pinhole", "pinhole", 0, 0, img1, "pinhole", "pinhole"));
     });
 
     f("underlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
@@ -576,6 +588,24 @@
       }
     });
     f("translate", values["place-image"].app);
+    f("place-pinhole", function(maybeX, maybeY, maybeImg) {
+      checkArity(3, arguments, "place-pinhole", false);
+      c3("place-pinhole",
+         maybeX, annReal,
+         maybeY, annReal,
+         maybeImg, annImage);
+      var img = unwrapImage(maybeImg);
+      var x = jsnums.toFixnum(maybeX);
+      var y = jsnums.toFixnum(maybeY);
+      return makeImage(img.updatePinhole(x, y));
+    });
+    f("center-pinhole", function(maybeImg) {
+      checkArity(1, arguments, "place-pinhole", false);
+      c1("place-pinhole", maybeImg, annImage);
+      var img = unwrapImage(maybeImg);
+      return makeImage(img.updatePinhole(img.getWidth() / 2, img.getHeight() / 2));
+    });
+    
     f("place-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
       checkArity(6, arguments, "place-image-align", false);
       c("place-image-align",
@@ -656,6 +686,13 @@
       c1("frame", maybeImg, annImage);
       var img = unwrapImage(maybeImg);
       return makeImage(image.makeFrameImage(img));
+    });
+
+    f("draw-pinhole", function(maybeImg) {
+      checkArity(1, arguments, "draw-pinhole", false);
+      c1("draw-pinhole", maybeImg, annImage);
+      var img = unwrapImage(maybeImg);
+      return makeImage(image.makePinholeImage(img));
     });
 
     f("crop", function(maybeX, maybeY, maybeWidth, maybeHeight, maybeImg) {
@@ -784,6 +821,22 @@
       var color = unwrapColor(maybeColor);
       return makeImage(
         image.makeEllipseImage(width, height, mode, color));
+    });
+
+    f("wedge", function(maybeRadius, maybeAngle, maybeMode, maybeColor) {
+      checkArity(4, arguments, "wedge", false);
+      c("wedge",
+        maybeRadius, annNumNonNegative,
+        maybeAngle, annAngle,
+        maybeMode, annMode,
+        maybeColor, annColor);
+      var radius = jsnums.toFixnum(maybeRadius);
+      var angle = jsnums.toFixnum(maybeAngle);
+      var mode = unwrapMode(maybeMode);
+      var color = unwrapColor(maybeColor);
+      return makeImage(
+          image.makeWedgeImage(radius, angle, mode, color)
+        );
     });
 
     f("triangle", function(maybeSide, maybeMode, maybeColor) {
