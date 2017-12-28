@@ -81,10 +81,10 @@
         patchLoc.endRow, patchLoc.endCol, patchLoc.endChar
       ])
     }
-    
+
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
-    function displayResult(output, callingRuntime, resultRuntime, isMain) {
+    function displayResult(output, callingRuntime, resultRuntime, isMain, updateItems) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
@@ -237,6 +237,8 @@
             for (var i = 0; i < snippets.length; i++) {
               snippets[i].CodeMirror.refresh();
             }
+          } else if (updateItems) {
+            updateItems();
           }
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
@@ -297,10 +299,12 @@
       }
 
       function sayAndForget(msg) {
+        //console.log('doing sayAndForget', msg);
         say(msg, true);
       }
 
       function speakHistory(n) {
+        //console.log('doing speakHistory', n);
         if (n === 0) { n = 10; }
         var historySize = items.length;
         if (n > historySize) { return false; }
@@ -552,6 +556,15 @@
         "vertical-align": "middle"
       });
       var runContents;
+      function updateItems() {
+        //console.log('doing updateItems');
+        //console.log('afterrun/cm =', cm);
+        var thiscode = items[0];
+        var docOutput = document.getElementById("output");
+        var outputs = docOutput.getElementsByClassName("replTextOutput");
+        var outputslen = outputs.length;
+        thiscode.output = outputs[outputs.length -1].innerText;
+      }
       function afterRun(cm) {
         return function() {
           outputPending.remove();
@@ -569,12 +582,6 @@
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
-          //
-          var thiscode = items[0];
-          var docOutput = document.getElementById("output");
-          var outputs = docOutput.getElementsByClassName("replTextOutput");
-          var outputslen = outputs.length;
-          thiscode.output = outputs[outputs.length -1].innerText;
         }
       }
       function setWhileRunning() {
@@ -766,7 +773,8 @@
           maybeShowOutputPending();
           return r;
         });
-        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false, updateItems)).
+          fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(CM));
