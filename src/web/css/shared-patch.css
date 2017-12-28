@@ -244,6 +244,11 @@ em {
   font-size: 28px;
   padding-left: 15px;
   font-family: Lato, Century Gothic, Arial, Helvetica, sans-serif;
+  text-decoration: none;
+}
+
+#headeronelegend a {
+  text-decoration: none;
 }
 
 .headeronedoclink {
