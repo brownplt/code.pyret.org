@@ -16,6 +16,8 @@
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
 </head>
 <body>
+  <main>
+  <div id="Toolbar" role="region" aria-label="Toolbar" tabindex="-1">
 <div id="header">
   <div id="bonniemenu" class="menu">
     <button class="blueButton">
@@ -71,21 +73,22 @@
     <div id="rename" class="menuButton disabled"><a href="javascript:void(0)">Rename</a></div>
 
   </div>
-  <button id="insert" class="blueButton loginOnly">Insert</button>
+  <button role="button" aria-label="Insert, F11" id="insert" class="blueButton loginOnly">Insert</button>
   <div id="shareContainer"></div>
   <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
   <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
 
-  <button disabled id="breakButton" class="blueButton rhs">Stop</button>
+  <button role="button" aria-label="Stop, F8" disabled id="breakButton" class="blueButton rhs">Stop</button>
   <div id="runPart" class="blueButton rhs">
     <button disabled id="runDropdown" class="blueButton dropdown rhs">↴</button>
-    <button disabled id="runButton" class="blueButton rhs">Run</button>
+    <button role="button" aria-label="Run, F7" disabled id="runButton" class="blueButton rhs">Run</button>
   </div>
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
     <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
   </ul>
 </div>
+  </div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
@@ -104,7 +107,7 @@
   </div>
 </div>
 <div id="notification" class="notificationArea"></div>
-<div id="REPL" class="replContainer">
+<div id="REPL" class="replContainer" role="region" aria-label="Interactions">
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
 <div id="help-keys">
@@ -128,7 +131,14 @@
 </div>
 </div>
 </div>
-<div id="footer"></div>
+<div id="footer">
+  <div id="announcements" class="screenreader-only" role="region" aria-label="Announcements" tabIndex="-1">
+    <h2>Announcements</h2>
+    <ul id="announcementlist" aria-live="assertive"
+                              aria-relevant="additions" style="list-style: none;">
+    </ul>
+  </div>
+</div>
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -185,5 +195,6 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 
 <!-- <script type="text/javascript"
         src="https://caja.appspot.com/caja.js"></script> -->
+  </main>
 </body>
 </html>

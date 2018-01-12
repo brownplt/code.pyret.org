@@ -221,18 +221,17 @@ $(function() {
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
     }
 
-
-
-    var replMainA = document.getElementById("main").
-      getElementsByClassName("replMain");
-    var replMain = replMainA[replMainA.length -1];
-
-
-    var initFocusCarousel = [ document.getElementById("Toolbar"),
-      //container[0].getElementsByClassName("CodeMirror-scroll")[0],
-      replMain.getElementsByClassName("CodeMirror-scroll")[0],
-      document.getElementById("main").getElementsByClassName("repl")[0],
-      document.getElementById("announcements")];
+    /*
+//    var replMainA = document.getElementById("main").
+//      getElementsByClassName("replMain");
+//    var replMain = replMainA[replMainA.length -1];
+//
+//    var initFocusCarousel = [ document.getElementById("Toolbar"),
+//      //container[0].getElementsByClassName("CodeMirror-scroll")[0],
+//      replMain.getElementsByClassName("CodeMirror-scroll")[0],
+//      document.getElementById("main").getElementsByClassName("repl")[0],
+//      document.getElementById("announcements")];
+    */
 
     //console.log('initFC =', initFocusCarousel);
 
@@ -514,7 +513,6 @@ $(function() {
   function menuItemDisabled(id) {
     return $("#" + id).hasClass("disabled");
   }
-
 
   function newEvent(e) {
     window.open(window.APP_BASE_URL + "/editor");
