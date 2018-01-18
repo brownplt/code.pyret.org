@@ -237,9 +237,8 @@
             for (var i = 0; i < snippets.length; i++) {
               snippets[i].CodeMirror.refresh();
             }
-          } else if (updateItems) {
-            updateItems();
           }
+          if (updateItems) { updateItems(); }
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -311,7 +310,7 @@
         var history = items[n-1];
         sayAndForget(history.code + (history.output ?
           " evaluates to " + history.output :
-          " did not produce any value"));
+          " resulted in an error." + history.erroroutput));
         return true;
       }
 
@@ -561,9 +560,17 @@
         //console.log('afterrun/cm =', cm);
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
-        var outputs = docOutput.getElementsByClassName("replTextOutput");
-        var outputslen = outputs.length;
-        thiscode.output = outputs[outputs.length -1].innerText;
+        var lastOutput = docOutput.lastElementChild;
+        if (lastOutput.classList.contains('compile-error')) {
+          var pList = lastOutput.getElementsByTagName('p');
+          var text = '';
+          for (var i = 0; i < pList.length; i++) {
+            text += ' ' + pList[i].innerText;
+          }
+          thiscode.erroroutput = text;
+        } else {
+          thiscode.output = lastOutput.innerText;
+        }
       }
       function afterRun(cm) {
         return function() {
@@ -748,7 +755,7 @@
       };
 
       var runner = function(code) {
-        var thiscode = {code: code, output: false};
+        var thiscode = {code: code, output: false, erroroutput: false};
         items.unshift(thiscode);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
