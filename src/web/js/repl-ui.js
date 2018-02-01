@@ -103,6 +103,7 @@
                 html.addClass("highlights-active");
               });
               html.addClass('compile-error').appendTo(output);
+              if (updateItems) updateItems();
               if (click) html.click();
             }).done(function () {restarter.resume(runtime.nothing)});
         });
@@ -164,6 +165,7 @@
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
+            if (updateItems) updateItems();
             return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
@@ -221,6 +223,7 @@
             });
           }
           else {
+            if (updateItems) updateItems();
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
@@ -238,7 +241,6 @@
               snippets[i].CodeMirror.refresh();
             }
           }
-          if (updateItems) { updateItems(); }
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -561,15 +563,19 @@
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
+        var text;
         if (lastOutput.classList.contains('compile-error')) {
           var pList = lastOutput.getElementsByTagName('p');
-          var text = '';
+          text = '';
           for (var i = 0; i < pList.length; i++) {
             text += ' ' + pList[i].innerText;
           }
           thiscode.erroroutput = text;
+          sayAndForget(thiscode.code + ' resulted in an error. ' + text);
         } else {
-          thiscode.output = lastOutput.innerText;
+          text = lastOutput.innerText;
+          thiscode.output = text;
+          sayAndForget(thiscode.code + ' evaluates to ' + text);
         }
       }
       function afterRun(cm) {
