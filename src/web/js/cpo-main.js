@@ -652,7 +652,7 @@
         e.preventDefault();
       });
 
-      Mousetrap.bindGlobal('shift-f6', function(e) {
+      Mousetrap.bindGlobal('shift+f6', function(e) {
         // cycle focus backward
         CPO.cycleFocus(true);
         e.stopImmediatePropagation();
