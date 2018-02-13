@@ -178,8 +178,8 @@ function start(config, onServerReady) {
       }
       else {
         var h = imgResponse.headers;
-        var ct = h['content-type']
-        if(ct.indexOf('image/') !== 0) {
+        var ct = h['content-type'];
+        if((!ct) || (ct.indexOf('image/') !== 0)) {
           response.status(400).send({type: "non-image", error: "Invalid image type " + ct});
           return;
         }
