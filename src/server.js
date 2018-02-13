@@ -114,7 +114,6 @@ function start(config, onServerReady) {
 
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
-    console.log("Config: ", config);
     res.render("index.html", {
       LEFT_LINK: content,
       GOOGLE_API_KEY: config.google.apiKey,
