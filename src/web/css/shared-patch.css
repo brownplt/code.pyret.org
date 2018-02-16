@@ -185,6 +185,50 @@ em {
   font-family: sans-serif;
 }
 
+nav {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+nav ul {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+nav ul li {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+#headeronelegend {
+  padding-top: 10px;
+}
+
+.headeronedoclink, .headeronelogoutlink {
+  padding-top: 14px;
+}
+
+#headeronelegend, .headeronedoclink, .headeronelogoutlink {
+  vertical-align: bottom;
+}
+
+nav ul li div {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+nav ul li div button {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
 #headerone {
   position: fixed;
   z-index: 9001;
@@ -236,7 +280,8 @@ em {
   color: #111;
 }
 
-#headerone * {display: inline-block; padding-top: 5px;}
+#headerone * {display: inline-block; }
+
 
 #headeronelegend {
   font-family: sans-serif;
