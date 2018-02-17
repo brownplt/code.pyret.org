@@ -280,6 +280,10 @@ $(function() {
       programLoad.then(function(p) { showShareContainer(p); });
     }
     if(params["get"] && params["get"]["share"]) {
+      logger.log('shared-program-load',
+        {
+          id: params["get"]["share"]
+        });
       programLoad = api.getSharedFileById(params["get"]["share"]);
     }
     if(programLoad) {
