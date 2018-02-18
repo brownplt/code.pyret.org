@@ -244,11 +244,10 @@ $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js sr
     --standalone-file cpo-standalone.js \
     --compiled-dir ./compiled \
     --deps-file $(BUNDLED_DEPS) \
-    --outfile $(CPOMAIN) \
-                      -stopify \
-                      -straight-line \
-                    --require-config cpo-config.json
-	#perl -pi -e "print 'var \$$__T = stopify_runtime;\$$__T.makeRTS({transform: \"lazyDeep\", estimator: \"reservoir\", env: \"node\", yieldInterval: 100, deepstacks: 1000});' if $$. == 1" $@
+		--outfile $(CPOMAIN) \
+		-stopify \
+		-straight-line \
+		--require-config cpo-config.json
 
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
 # non-.js extension.

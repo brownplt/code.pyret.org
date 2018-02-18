@@ -51,11 +51,27 @@ define("lockfile", [], function () { return {}; });
 
 define("websocket", [], function () { return {}; });
 
-Stopify = require("Stopify")
-define("Stopify", [], function () { return Stopify })
+stopify = require("stopify/dist/src/stopify/compileFunction")
+define("stopify", [], function () { return stopify })
 
-stopify_runtime = require("Stopify/built/src/rts")
+const defaultOpts = {
+  filename: "",
+  estimator: "reservoir",
+  yieldInterval: 100,
+  resampleInterval: 100,
+  timePerElapsed: 1,
+  stop: undefined,
+  variance: false,
+  env: "node"
+}
+
+$__T = require("stopify-continuations/dist/src/runtime/runtime")
+$__R = $__T.newRTS("lazy")
+$S = require("stopify/dist/src/runtime/node").init($__R);
+
+stopify_runtime = $__T
 window.stopify_runtime = stopify_runtime;
+
 define("stopify_runtime", [], function () {
   return stopify_runtime
 })

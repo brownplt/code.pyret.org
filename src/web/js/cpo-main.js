@@ -254,7 +254,7 @@
             });
             var ret = Q.defer();
             setTimeout(function() {
-              $__T.getRTS().delimit(() =>
+              $__R.delimit(() =>
                 runtime.runThunk(function() {
                   return runtime.safeCall(
                     function() {
@@ -274,7 +274,7 @@
           run: function(str, name) {
             var ret = Q.defer();
             setTimeout(function() {
-              $__T.getRTS().delimit(() =>
+              $__R.delimit(() =>
                 runtime.runThunk(function() {
                   return runtime.safeCall(
                     function() {

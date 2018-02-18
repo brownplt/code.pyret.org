@@ -297,7 +297,7 @@
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
         console.log("About to delimit");
-        $__T.getRTS().delimit(() => {
+        $__R.delimit(() => {
         console.log("About to run");
         runtime.runThunk(function() {
           // NOTE(joe): adding safecall here to get some meaningful caller frame

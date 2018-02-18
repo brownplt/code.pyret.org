@@ -1,6 +1,7 @@
 window.$__T = stopify_runtime;
-$__T.makeRTS({transform: "lazyDeep", estimator: "reservoir", env: "node", yieldInterval: 100, deepstacks: 1000});
+
 var define, requirejs;
+
 requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program", "cpo/cpo-builtin-modules"], function(runtimeLib, stackLib, program, cpoBuiltinModules) {
 
   var staticModules = program.staticModules;
@@ -10,21 +11,16 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
   var main = toLoad[toLoad.length - 1];
 
   // The evaluation of the runtime should never suspend.
-  $__T.getRTS().delimitDepth = 2;
+  $__R.delimitDepth = 2;
   var runtime = runtimeLib.makeRuntime({
     stdout: function(s) { process.stdout.write(s); },
     stderr: function(s) { process.stderr.write(s); }
   });
-  $__T.getRTS().delimitDepth = 0;
+  $__R.delimitDepth = 0;
 
   var realm = {};
 
   cpoBuiltinModules.setStaticModules(program.staticModules);
-
-  var runtime = runtimeLib.makeRuntime({
-    stdout: function(s) { console.log(s); },
-    stderr: function(s) { console.error(s); }
-  });
 
   // NOTE(joe): intentional, for debuggability
   window.THE_RUNTIME = runtime;
@@ -286,10 +282,13 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
   function onComplete(result) {
     if(runtime.isSuccessResult(result)) {
       // NOTE(joe): This forces the loading of all the built-in compiler libs
-      var interactionsReady = repl.restartInteractions("", { typeCheck: false, checkAll: false });
+      var interactionsReady = repl.restartInteractions("",
+        { typeCheck: false, checkAll: false });
+
       interactionsReady.fail(function(err) {
         console.error("Couldn't start REPL: ", err);
       });
+
       interactionsReady.then(function(result) {
         $("#runButton").attr("disabled", false);
         $("#runDropdown").attr("disabled", false);
@@ -309,8 +308,9 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
 
   var toRun = function() {
     runtime.modules = realm;
-    return runtime.runStandalone(staticModules, realm, depMap, toLoad, postLoadHooks);
+    return runtime.runStandalone(
+      staticModules, realm, depMap, toLoad, postLoadHooks);
   };
-  $__T.getRTS().delimit(() => runtime.runThunk(toRun, onComplete))
+  $__R.delimit(() => runtime.runThunk(toRun, onComplete))
 
 });
