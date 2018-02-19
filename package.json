@@ -66,6 +66,8 @@
     "seedrandom": "~2.3.10",
     "sha.js": "^2.4.8",
     "source-map": "^0.5.7",
+    "stopify": "0.0.13",
+    "stopify-continuations": "0.0.1",
     "style-loader": "0.13.1",
     "stylus": "^0.54.5",
     "supervisor": "^0.11.0",
