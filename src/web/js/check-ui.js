@@ -425,8 +425,12 @@
       var keywordExamples = false;
       for (var i = 0; i < checkBlocks.length; i++) {
         if (get(option, "is-some").app(get(checkBlocks[i], "maybe-err"))) {
+          keywordCheck = true;
+          // NOTE(joe): Hack for stopify because ASTs differ slightly
+          /*
           if (get(checkBlocks[i], "keyword-check")) keywordCheck = true;
           else keywordExamples = true;
+          */
         }
       }
       var blockType;
@@ -477,7 +481,7 @@
           new CheckBlockSkeleton(
             get(checkBlock, "name"), 
             get(checkBlock, "loc"),
-            get(checkBlock, "keyword-check"),
+            true /* NOTE(joe): Hack for stopify get(checkBlock, "keyword-check") */,
             { skeletons: tests,
               passing  : testsPassing,
               executed : testsExecuted }, error);

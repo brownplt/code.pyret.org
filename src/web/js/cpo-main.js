@@ -254,7 +254,6 @@
             });
             var ret = Q.defer();
             setTimeout(function() {
-              $__R.delimit(() =>
                 runtime.runThunk(function() {
                   return runtime.safeCall(
                     function() {
@@ -267,14 +266,12 @@
                 }, function(result) {
                   ret.resolve(result);
                 })
-              );
             }, 0);
             return ret.promise;
           },
           run: function(str, name) {
             var ret = Q.defer();
             setTimeout(function() {
-              $__R.delimit(() =>
                 runtime.runThunk(function() {
                   return runtime.safeCall(
                     function() {
@@ -288,7 +285,6 @@
                 }, function(result) {
                   ret.resolve(result);
                 }, "make-interaction-locator")
-              );
             }, 0);
             return ret.promise;
           },

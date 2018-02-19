@@ -296,9 +296,6 @@
         // NOTE(joe): don't move this line down, it's *these* args, not
         // any other nested function's args
         var pyretArgs = [].slice.call(arguments, 0, arguments.length - 1);
-        console.log("About to delimit");
-        $__R.delimit(() => {
-        console.log("About to run");
         runtime.runThunk(function() {
           // NOTE(joe): adding safecall here to get some meaningful caller frame
           // so error messages know where the call is coming from
@@ -319,7 +316,6 @@
                         return rawJsworld.shutdown({errorShutdown: result.exn});
                       }
         })
-        });
       };
     };
 
