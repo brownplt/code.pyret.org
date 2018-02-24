@@ -186,7 +186,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
     "builtin://cpo-builtins": function(_) {
       // NOTE(joe): At this point, all the builtin modules are for sure loaded
       // (like image, world, etc)
-      
+
       var reactors = gf(gf(realm["builtin://reactors"], "provide-plus-types"), "internal");
       var world = gf(gf(realm["builtin://world"], "provide-plus-types"), "internal");
       reactors.setInteract(world.bigBangFromDict);
@@ -245,14 +245,14 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
             console.error("Stack:\n" + JSON.stringify(exnStack));
             console.error("Pyret stack:\n" + execRt.printPyretStack(pyretStack, true));
             // process.exit(EXIT_ERROR_RENDERING_ERROR);
-          } else {            
+          } else {
             execRt.runThunk(
               function() {
                 return gf(gf(rendererror, "values"), "display-to-string").app(
                   reasonResult.result,
                   execRt.namespace.get("torepr"),
                   execRt.ffi.makeList(res.exn.pyretStack.map(execRt.makeSrcloc)));
-              }, 
+              },
               function(printResult) {
                 if (execRt.isSuccessResult(printResult)) {
                   console.error(printResult.result);
@@ -265,7 +265,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/exn-stack-parser", "program",
                   console.error("Stack:\n" + JSON.stringify(exnStack));
                   console.error("Pyret stack:\n" + execRt.printPyretStack(pyretStack, true));
                   // process.exit(EXIT_ERROR_DISPLAYING_ERROR);
-                }                  
+                }
               }, "errordisplay->to-string");
           }
         }, "error->display");
