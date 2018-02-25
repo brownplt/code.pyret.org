@@ -58,7 +58,7 @@ const defaultOpts = {
   filename: "",
   estimator: "reservoir",
   yieldInterval: 100,
-  resampleInterval: 100,
+  resampleInterval: undefined,
   timePerElapsed: 1,
   stop: undefined,
   variance: false,
@@ -68,7 +68,7 @@ const defaultOpts = {
 
 $__T = require("stopify-continuations/dist/src/runtime/runtime")
 $__R = $__T.newRTS("lazyDeep")
-$S = require("stopify/dist/src/runtime/node").init($__R);
+$S = require("stopify/dist/src/runtime/node").init($__R, defaultOpts);
 
 stopify_runtime = $__T
 window.stopify_runtime = stopify_runtime;
