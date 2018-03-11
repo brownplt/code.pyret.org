@@ -7,7 +7,9 @@
     "PYRET": "https://s3.amazonaws.com/pyret-horizon/on-raw-key/cpo-main.jarr.gz.js",
     "REDISCLOUD_URL": "",
     "GIT_BRANCH": "on-raw-key",
-    "GIT_REV": "on-raw-key-HEAD"
+    "GIT_REV": "on-raw-key-HEAD",
+    "PORT": 80,
+    "SESSION_SECRET": { "required": true }
   },
   "formation": {
     "web": {
