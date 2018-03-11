@@ -8,7 +8,7 @@
     "REDISCLOUD_URL": "",
     "GIT_BRANCH": "on-raw-key",
     "GIT_REV": "on-raw-key-HEAD",
-    "PORT": 80,
+    "PORT": "80",
     "SESSION_SECRET": { "required": true }
   },
   "formation": {
