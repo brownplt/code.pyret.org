@@ -5,7 +5,9 @@
   },
   "env": {
     "PYRET": "https://s3.amazonaws.com/pyret-horizon/on-raw-key/cpo-main.jarr.gz.js",
-    "REDISCLOUD_URL": ""
+    "REDISCLOUD_URL": "",
+    "GIT_BRANCH": "on-raw-key",
+    "GIT_REV": "on-raw-key-HEAD"
   },
   "formation": {
     "web": {
