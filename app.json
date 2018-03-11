@@ -4,9 +4,8 @@
   "scripts": {
   },
   "env": {
-    "PYRET": {
-      "required": true
-    }
+    "PYRET": "https://s3.amazonaws.com/pyret-horizon/on-raw-key/cpo-main.jarr.gz.js",
+    "REDISCLOUD_URL": ""
   },
   "formation": {
     "web": {
