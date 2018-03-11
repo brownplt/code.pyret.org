@@ -1,0 +1,99 @@
+{
+  "name": "code.pyret.org – Feature Tests",
+  "description": "",
+  "scripts": {
+  },
+  "env": {
+    "BASE_URL": {
+      "required": true
+    },
+    "BUILDPACK_URL": {
+      "required": true
+    },
+    "CLIENT_ID": {
+      "required": true
+    },
+    "CLIENT_SECRET": {
+      "required": true
+    },
+    "CSRF_TOKEN": {
+      "required": true
+    },
+    "CURRENT_PYRET_DOCS": {
+      "required": true
+    },
+    "CURRENT_PYRET_RELEASE": {
+      "required": true
+    },
+    "GIT_BRANCH": {
+      "required": true
+    },
+    "GIT_REV": {
+      "required": true
+    },
+    "google_api_key": {
+      "required": true
+    },
+    "GOOGLE_API_KEY": {
+      "required": true
+    },
+    "google_client_id": {
+      "required": true
+    },
+    "GOOGLE_CLIENT_ID": {
+      "required": true
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "required": true
+    },
+    "GOOGLE_SERVER_KEY": {
+      "required": true
+    },
+    "LOG_URL": {
+      "required": true
+    },
+    "NODE_ENV": {
+      "required": true
+    },
+    "OK_GOOGLE_IDS": {
+      "required": true
+    },
+    "PORT": {
+      "required": true
+    },
+    "PYRET": {
+      "required": true
+    },
+    "PYRET_BACKUP": {
+      "required": true
+    },
+    "PYRET_RELEASE_BASE": {
+      "required": true
+    },
+    "REDISCLOUD_CRIMSON_URL": {
+      "required": true
+    },
+    "REDISCLOUD_URL": {
+      "required": true
+    },
+    "SESSION_SECRET": {
+      "required": true
+    },
+    "USE_STANDALONE_PYRET": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "rediscloud"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nodejs"
+    }
+  ]
+}
