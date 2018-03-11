@@ -837,6 +837,33 @@
     }
     Jsworld.on_key = on_key;
 
+    function on_raw_key(press) {
+      return function(thisWorldIndex) {
+        var wrappedPress = function(e) {
+          if (thisWorldIndex != worldIndex) { return; }
+          if(e.keyCode === 27) { return; } // Escape events are not for world; the environment handles them
+          stopPropagation(e);
+          preventDefault(e);
+          change_world(function(w, k) { press(w, e, k); }, doNothing);
+        };
+        return {
+          onRegister: function(top) {
+            //http://www.w3.org/TR/html5/editing.html#sequential-focus-navigation-and-the-tabindex-attribue
+            jQuery(top).attr('tabindex', 1);
+            jQuery(top).focus();
+            attachEvent(top, 'keydown', wrappedPress);
+            attachEvent(top, 'keyup', wrappedPress);
+            attachEvent(top, 'keypress', wrappedPress);
+          },
+          onUnregister: function(top) {
+            detachEvent(top, 'keydown', wrappedPress);
+            detachEvent(top, 'keyup', wrappedPress);
+            detachEvent(top, 'keypress', wrappedPress);
+          }
+        };
+      };
+    }
+    Jsworld.on_raw_key = on_raw_key;
 
 
 
