@@ -20,6 +20,10 @@
       protocol: "js-file",
       args: ["./repl-ui"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./text-handlers"]
+    },
     { "import-type": "builtin",
       name: "parse-pyret"
     },
@@ -45,7 +49,7 @@
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
-                      compileLib, compileStructs, pyRepl, cpo, replUI,
+                      compileLib, compileStructs, pyRepl, cpo, replUI, textHandlers,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, cpoModules, _modalPrompt,
                       rtLib) {
@@ -438,41 +442,7 @@
 
       $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
 
-      editor.cm.on('beforeChange', curlyQuotes);
-
-      function curlyQuotes(instance, changeObj){
-        $('.notificationArea .curlyQ').remove();
-        curlybool = false;
-        if((changeObj.origin == "paste")){
-        var newText = jQuery.map(changeObj.text, function(str, i) {
-          curlybool = curlybool || (str.search(/[\u2018\u2019\u201C\u201D]/g) > -1);
-          str = str.replace(/\u201D/g, "\"")
-          str = str.replace(/\u201C/g, "\"")
-          str = str.replace(/\u2019/g, "\'")
-          str = str.replace(/\u2018/g, "\'")
-          return str;
-        });
-        if(curlybool){
-        curlyQUndo(changeObj.text, changeObj.from);
-        changeObj.update(undefined, undefined, newText);
-      }
-      }}
-
-      function curlyQUndo(oldText, from){
-        var lineN = oldText.length - 1
-        var to = {line: from.line + lineN, ch: from.ch + oldText[lineN].length}
-        console.log(from, to);
-        message = "Curly quotes converted"
-        var container = $('<div>').addClass("curlyQ")
-        var msg = $("<span>").addClass("curlyQ-msg").text(message);
-        var button = $("<span>").addClass("curlyQ-button").text("Click to Undo");
-        container.append(msg).append(button);
-        container.click(function(){
-          editor.cm.replaceRange(oldText, from, to);
-        });
-        $(".notificationArea").prepend(container);
-        container.delay(15000).fadeOut(3000);
-      }
+      editor.cm.on('beforeChange', function(instance, changeObj){textHandlers.curlyQuotes(instance, changeObj, editor.cm);});
 
       // Resizable
       var replHeight = $( "#REPL" ).height();
