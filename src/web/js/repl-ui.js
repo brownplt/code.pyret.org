@@ -12,6 +12,10 @@
       protocol: "js-file",
       args: ["./error-ui"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./text-handlers"]
+    },
     { "import-type": "builtin",
       name: "world-lib"
     },
@@ -25,7 +29,7 @@
   provides: {},
   theModule: function(runtime, _, uri,
                       checkUI, outputUI, errorUI,
-                      worldLib, loadLib,
+                      textHandlers, worldLib, loadLib,
                       util) {
     var ffi = runtime.ffi;
 
@@ -704,6 +708,8 @@
           })
         }
       }).cm;
+
+      CM.on('beforeChange', function(instance, changeObj){textHandlers.curlyQuotes(instance, changeObj, CM);});
 
       CPO.documents.set('definitions://', CM.getDoc());
 
