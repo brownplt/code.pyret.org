@@ -73,6 +73,7 @@ deploy:
     detect_encoding: true
     on:
       repo: brownplt/code.pyret.org
+      branch: on-raw-key
   - provider: heroku
     app: pyret-horizon
     api_key:
