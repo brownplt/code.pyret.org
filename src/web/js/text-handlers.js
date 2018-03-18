@@ -8,41 +8,39 @@
 
     function autoCorrect(instance, changeObj, cm){
       $('.notificationArea .autoCorrect').remove();
-      curlyQuotes(instance, changeObj, cm);
-      enDash(instance, changeObj, cm);
-    }
-
-    function enDash(instance, changeObj, cm){
-      endashbool = false;
-      if((changeObj.origin == "paste")){
-          var newText = jQuery.map(changeObj.text, function(str, i) {
-            endashbool = endashbool || (str.search(/[\u2013]/g) > -1);
-            str = str.replace(/\u2013/g, "-")
-            return str;
-          });
-        if(endashbool){
-          autoCorrectUndo("Invalid Dash (en dash) converted", changeObj.text, changeObj.from, cm);
-          changeObj.update(undefined, undefined, newText);
-        }
+      var originalText = changeObj.text
+      var curlyq = change([[/\u201D/g, "\""],
+                            [/\u201C/g, "\""],
+                            [/\u2019/g, "\'"],
+                            [/\u2018/g, "\'"]], changeObj, cm);
+      var endash = change([[/\u2013/g, "-"]], changeObj, cm);
+      if (curlyq && endash) {
+        autoCorrectUndo("Curly Quotes and Invalid Dash (en dash) converted", originalText, changeObj.from, cm);
+      }
+      else if (curlyq) {
+        autoCorrectUndo("Curly Quotes converted", originalText, changeObj.from, cm);
+      }
+      else if (endash) {
+        autoCorrectUndo("Invalid Dash (en dash) converted", originalText, changeObj.from, cm);
       }
     }
 
-    function curlyQuotes(instance, changeObj, cm){
-      curlybool = false;
-      if((changeObj.origin == "paste")){
-          var newText = jQuery.map(changeObj.text, function(str, i) {
-            curlybool = curlybool || (str.search(/[\u2018\u2019\u201C\u201D]/g) > -1);
-            str = str.replace(/\u201D/g, "\"")
-            str = str.replace(/\u201C/g, "\"")
-            str = str.replace(/\u2019/g, "\'")
-            str = str.replace(/\u2018/g, "\'")
-            return str;
+    function change(pairs, changeObj, cm){
+      changed = false;
+      if(changeObj.origin == "paste"){
+        var newText = jQuery.map(changeObj.text, function(str, i) {
+            var newStr = str;
+            for(var i = 0; i < pairs.length; ++i) {
+              newStr = newStr.replace(pairs[i][0], pairs[i][1]);
+            }
+            changed = changed || (newStr !== str);
+            return newStr;
           });
-        if(curlybool){
-          autoCorrectUndo("Curly quotes converted", changeObj.text, changeObj.from, cm);
+        if (changed) {
           changeObj.update(undefined, undefined, newText);
         }
       }
+      return changed;
     }
 
     function autoCorrectUndo(message, oldText, from, cm){
@@ -55,8 +53,6 @@
       container.append(msg).append(button);
       container.click(function(){
         cm.replaceRange(oldText, from, to);
-        console.log("oldtext, from, to", oldText)
-        console.log(from, to);
       });
       $(".notificationArea").prepend(container);
       container.delay(15000).fadeOut(3000);
