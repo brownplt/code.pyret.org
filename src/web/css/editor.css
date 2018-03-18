@@ -598,15 +598,15 @@ body {
   font-weight: bold;
 }
 
-.notificationArea .curlyQ{
+.notificationArea .autoCorrect{
   cursor:pointer;
 }
 
-.notificationArea .curlyQ-msg{
+.notificationArea .autoCorrect-msg{
   color: #eee;
 }
 
-.notificationArea .curlyQ-button{
+.notificationArea .autoCorrect-button{
   color: #F44336;
   font-weight: bold;
   float:right;
@@ -999,7 +999,6 @@ code div {
   }
 }
 
->>>>>>> horizon
 .emphasize-line {
   background-color:#BBB;
   opacity: 1;
