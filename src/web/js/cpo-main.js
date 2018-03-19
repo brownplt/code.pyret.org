@@ -442,7 +442,7 @@
 
       $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
 
-      editor.cm.on('beforeChange', function(instance, changeObj){textHandlers.curlyQuotes(instance, changeObj, editor.cm);});
+      editor.cm.on('beforeChange', function(instance, changeObj){textHandlers.autoCorrect(instance, changeObj, editor.cm);});
 
       // Resizable
       var replHeight = $( "#REPL" ).height();

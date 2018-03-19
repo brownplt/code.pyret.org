@@ -709,7 +709,7 @@
         }
       }).cm;
 
-      CM.on('beforeChange', function(instance, changeObj){textHandlers.curlyQuotes(instance, changeObj, CM);});
+      CM.on('beforeChange', function(instance, changeObj){textHandlers.autoCorrect(instance, changeObj, CM);});
 
       CPO.documents.set('definitions://', CM.getDoc());
 
