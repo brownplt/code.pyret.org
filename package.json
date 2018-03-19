@@ -48,7 +48,7 @@
     "lodash": "~2.4.1",
     "mocha": "^2.2.1",
     "mousetrap": "^1.6.1",
-    "mustache": "^0.8.1",
+    "mustache": "^2.2.1",
     "mustache-express": "^1.2.1",
     "node-static": "^0.7.3",
     "node-uuid": "^1.4.1",
