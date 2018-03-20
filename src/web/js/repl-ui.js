@@ -316,6 +316,19 @@
         return true;
       }
 
+      function speakChar(cm) {
+        console.log('doing speakChar', cm);
+        var pos = cm.getCursor();
+        console.log('pos=', pos);
+        var ln = pos.line; var ch = pos.ch;
+        console.log('ln=', ln, 'ch=', ch);
+        console.log('speakChar ' , ln, ch);
+        var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
+        console.log('char=', char);
+        sayAndForget(char);
+      }
+
+
       // end a11y stuff
 
       container.append(mkWarningUpper());
@@ -807,6 +820,8 @@
             'Ctrl-Alt-Up': "goLineUp",
             'Ctrl-Down': "goLineDown",
             'Ctrl-Alt-Down': "goLineDown",
+            'Left': function(cm) { cm.moveH(-1, 'char'); speakChar(cm); },
+            'Right': function(cm) { cm.moveH(1, 'char'); speakChar(cm); },
             "Alt-1": function() { speakHistory(1); },
             "Alt-2": function() { speakHistory(2); },
             "Alt-3": function() { speakHistory(3); },
