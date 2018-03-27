@@ -1215,7 +1215,7 @@
         return renderers.__proto__[valType](val);
       }
       function collapsedComma() {
-        return $("<span>").text(", ").addClass("collapsed").css("white-space", "pre");
+        return $("<span>").text(cpoDialect==='patch'? " ": ", ").addClass("collapsed").css("white-space", "pre");
       }
       var renderers = runtime.ReprMethods["$cpo"];
       renderers["opaque"] = function renderPOpaque(val) {

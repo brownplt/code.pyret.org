@@ -317,14 +317,14 @@
       }
 
       function speakChar(cm) {
-        console.log('doing speakChar', cm);
+        //console.log('doing speakChar', cm);
         var pos = cm.getCursor();
-        console.log('pos=', pos);
+        //console.log('pos=', pos);
         var ln = pos.line; var ch = pos.ch;
-        console.log('ln=', ln, 'ch=', ch);
-        console.log('speakChar ' , ln, ch);
+        //console.log('ln=', ln, 'ch=', ch);
+        //console.log('speakChar ' , ln, ch);
         var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
-        console.log('char=', char);
+        //console.log('char=', char);
         sayAndForget(char);
       }
 
