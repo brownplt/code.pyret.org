@@ -196,12 +196,16 @@
         });
       };
 
+      Position.existsFromSrcArray = function(locarray, documents, options) {
+        return locarray.length === 7 && documents.has(locarray[0]);
+      }
+
       Position.fromSrcArray = function (locarray, documents, options) {
         if (locarray.length === 7) {
           var extraCharForZeroWidthLocs = locarray[3] === locarray[6] ? 1 : 0;
           var source = locarray[0];
           if (!documents.has(source)) {
-            throw new Error("No document for this location: ", loc);
+            throw new Error("No document for this location: ", locarray);
           }
           return new Position(
             documents.get(source),
