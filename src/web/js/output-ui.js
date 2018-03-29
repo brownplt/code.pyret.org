@@ -875,7 +875,7 @@
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
               var richStack = runtime.getField(loadLib, "internal")
-                .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultProgram(result));
+                .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultRealm(result));
               var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, richStack);
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);
