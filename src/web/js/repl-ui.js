@@ -32,6 +32,8 @@
     var output = jQuery("<div id='output' class='cm-s-default'>");
     var outputPending = jQuery("<span>").text("Gathering results...");
     var outputPendingHidden = true;
+    var canShowRunningIndicator = false;
+    var running = false;
 
     function merge(obj, extension) {
       var newobj = {};
@@ -470,12 +472,15 @@
       var runContents;
       function afterRun(cm) {
         return function() {
+          running = false;
           outputPending.remove();
           outputPendingHidden = true;
+
           options.runButton.empty();
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
           breakButton.attr("disabled", true);
+          canShowRunningIndicator = false;
           if(cm) {
             cm.setValue("");
             cm.setOption("readonly", false);
@@ -489,13 +494,19 @@
       }
       function setWhileRunning() {
         runContents = options.runButton.contents();
-        options.runButton.empty();
-        var text = $("<span>").text("Running...");
-        text.css({
-          "vertical-align": "middle"
-        });
-        options.runButton.append([img, text]);
-        options.runButton.attr("disabled", true);
+        canShowRunningIndicator = true;
+        setTimeout(function() {
+         if(canShowRunningIndicator) {
+            options.runButton.attr("disabled", true);
+            breakButton.attr("disabled", false);
+            options.runButton.empty();
+            var text = $("<span>").text("Running...");
+            text.css({
+              "vertical-align": "middle"
+            });
+            options.runButton.append([img, text]);
+          }
+        }, 200);
       }
 
       // SETUP FOR TRACING ALL OUTPUTS
@@ -616,7 +627,8 @@
       });
 
       var runMainCode = function(src, uiOptions) {
-        breakButton.attr("disabled", false);
+        if(running) { return; }
+        running = true;
         output.empty();
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
@@ -651,6 +663,8 @@
       };
 
       var runner = function(code) {
+        if(running) { return; }
+        running = true;
         items.unshift(code);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
@@ -661,7 +675,6 @@
         write(echoContainer);
         var echoCM = CodeMirror.fromTextArea(echo[0], { readOnly: true });
         echoCM.setValue(code);
-        breakButton.attr("disabled", false);
         CM.setValue("");
         promptContainer.hide();
         setWhileRunning();
