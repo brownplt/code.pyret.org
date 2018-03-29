@@ -35,6 +35,8 @@
     var canShowRunningIndicator = false;
     var running = false;
 
+    var RUNNING_SPINWHEEL_DELAY_MS = 1000;
+
     function merge(obj, extension) {
       var newobj = {};
       Object.keys(obj).forEach(function(k) {
@@ -506,7 +508,7 @@
             });
             options.runButton.append([img, text]);
           }
-        }, 200);
+        }, RUNNING_SPINWHEEL_DELAY_MS);
       }
 
       // SETUP FOR TRACING ALL OUTPUTS
