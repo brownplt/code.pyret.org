@@ -2,7 +2,8 @@
   requires: [
     { "import-type": "builtin", "name": "image-lib" },
     { "import-type": "builtin", "name": "world-lib" },
-    { "import-type": "builtin", "name": "valueskeleton" }
+    { "import-type": "builtin", "name": "valueskeleton" },
+    { "import-type": "builtin", "name": "reactors" }
   ],
   nativeRequires: ["pyret-base/js/js-numbers"],
   provides: {
@@ -51,9 +52,10 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld, VSlib, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld, VSlib, reactors, jsnums) {
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
+    var Reactors = runtime.getField(reactors, "values");
 
     //////////////////////////////////////////////////////////////////////
 
@@ -173,6 +175,7 @@
       }
       add("on-mouse", OnMouse);
       add("on-key", OnKey);
+      add("on-raw-key", OnRawKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
       add("close-when-stop", CloseWhenStop);
@@ -333,6 +336,37 @@
       var worldFunction = adaptWorldFunction(that.handler);
       return rawJsworld.on_tick(this.delay, worldFunction);
     };
+
+
+    var OnRawKey = function(handler) {
+      WorldConfigOption.call(this, 'on-raw-key');
+      this.handler = handler;
+    }
+
+    OnRawKey.prototype = Object.create(WorldConfigOption.prototype);
+
+    OnRawKey.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var worldFunction = adaptWorldFunction(that.handler);
+
+
+      return rawJsworld.on_raw_key(
+        function(w, e, success) {
+          console.log("the key event: ", e)
+
+          var eventValue = 
+              runtime.getField(Reactors, "raw-key").app(
+                e.key,
+                e.type,
+                false,
+                e.shiftKey,
+                e.altKey,
+                e.metaKey,
+                e.ctrlKey
+              );
+          worldFunction(w, eventValue, success);
+        });
+    }
 
 
     //////////////////////////////////////////////////////////////////////
