@@ -244,6 +244,7 @@ function doForEachPyretFile(it, name, base, testFun, baseTimeout) {
 function evalPyret(driver, toEval) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   var breakButton = driver.findElement(webdriver.By.id('breakButton'));
+  var livePrompt = driver.findElement(webdriver.By.className('prompt-container'));
   var escaped = escape(toEval);
   driver.executeScript([
     "(function(cm){",
@@ -252,7 +253,7 @@ function evalPyret(driver, toEval) {
     "})",
     "($(\".repl-prompt > .CodeMirror\")[0].CodeMirror)"
   ].join(""));
-  driver.wait(webdriver.until.elementIsDisabled(breakButton));
+  driver.wait(webdriver.until.elementIsVisible(livePrompt));
   return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
     if (elements.length === 0) {
       throw new Error("Failed to run Pyret code, no elements after executing: " + toEval);
