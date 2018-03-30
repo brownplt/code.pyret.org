@@ -7,6 +7,7 @@ import file("../../../pyret/src/arr/compiler/compile-structs.arr") as CS
 import file("../../../pyret/src/arr/compiler/compile-lib.arr") as CL
 import file("../../../pyret/src/arr/compiler/repl.arr") as R
 import file("../../../pyret/src/arr/compiler/js-of-pyret.arr") as JSP
+import file("../../../pyret/src/arr/compiler/ast-util.arr") as AU
 
 fun make-dep(raw-dep):
  if raw-dep.import-type == "builtin":
@@ -24,7 +25,7 @@ fun get-builtin-loadable(raw, uri) -> CL.Loadable:
     datatypes: raw-array-to-list(raw.get-raw-datatype-provides())
   })
   CL.module-as-string(
-      provs,
+      AU.canonicalize-provides(provs, CS.minimal-builtins),
       CS.minimal-builtins,
       CS.ok(JSP.ccp-string(raw.get-raw-compiled())))
 end
