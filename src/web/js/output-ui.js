@@ -196,12 +196,16 @@
         });
       };
 
+      Position.existsFromSrcArray = function(locarray, documents, options) {
+        return locarray.length === 7 && documents.has(locarray[0]);
+      }
+
       Position.fromSrcArray = function (locarray, documents, options) {
         if (locarray.length === 7) {
           var extraCharForZeroWidthLocs = locarray[3] === locarray[6] ? 1 : 0;
           var source = locarray[0];
           if (!documents.has(source)) {
-            throw new Error("No document for this location: ", loc);
+            throw new Error("No document for this location: ", locarray);
           }
           return new Position(
             documents.get(source),
@@ -855,7 +859,7 @@
             if (runtime.isPyretException(val.val)) {
               var e = val.val;
               var richStack = runtime.getField(loadLib, "internal")
-                .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultProgram(result));
+                .enrichStack(e, runtime.getField(loadLib, "internal").getModuleResultRealm(result));
               var maybeStackLoc   = makeMaybeStackLoc(runtime, documents, srcloc, richStack);
               var srclocAvaliable = makeSrclocAvaliable(runtime, documents, srcloc);
               var maybeLocToAST   = makeMaybeLocToAST(runtime, documents, srcloc);

@@ -177,7 +177,7 @@
           
           if(runtime.hasField(test, "actual-exn")) {
             var stack = get(loadLib, "internal")
-              .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultProgram(result));
+              .enrichStack(get(test, "actual-exn").val, get(loadLib, "internal").getModuleResultRealm(result));
             this.maybeStackLoc = outputUI.makeMaybeStackLoc(
               runtime, documents, srcloc, stack);
           } else {
@@ -325,7 +325,7 @@
             this.renderable = error.exn;
             container.appendChild(tombstone);
             var richStack = get(loadLib, "internal")
-              .enrichStack(error, get(loadLib, "internal").getModuleResultProgram(result)); 
+              .enrichStack(error, get(loadLib, "internal").getModuleResultRealm(result)); 
             this.maybeStackLoc = outputUI.makeMaybeStackLoc(runtime, documents, srcloc, richStack);
             this.pyretStack = richStack;
           }
