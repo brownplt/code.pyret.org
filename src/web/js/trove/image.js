@@ -76,6 +76,7 @@
       "translate": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "place-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "place-image-align": ["arrow", ["Image", "Number", "Number", "XPlace", "YPlace", "Image"], "Image"],
+      "move-pinhole": ["arrow", ["Number", "Number", "Image"], "Image"],
       "place-pinhole": ["arrow", ["Number", "Number", "Image"], "Image"],
       "center-pinhole": ["arrow", ["Image"], "Image"],
       "rotate": ["arrow", ["Number", "Image"], "Image"],
@@ -459,8 +460,8 @@
         maybeImg1, annImage,
         maybePlaceX1, annPlaceX,
         maybePlaceY1, annPlaceY,
-        maybeOffsetX, runtime.Number,
-        maybeOffsetY, runtime.Number,
+        maybeOffsetX, annReal,
+        maybeOffsetY, annReal,
         maybeImg2, annImage,
         maybePlaceX2, annPlaceX,
         maybePlaceY2, annPlaceY);
@@ -470,8 +471,8 @@
       var placeY2 = unwrapPlaceY(maybePlaceY2);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
-      var offsetX = jsnums.toFixnum(checkReal(maybeOffsetX));
-      var offsetY = jsnums.toFixnum(checkReal(maybeOffsetY));
+      var offsetX = jsnums.toFixnum(maybeOffsetX);
+      var offsetY = jsnums.toFixnum(maybeOffsetY);
       return makeImage(image.makeOverlayImage(img1, placeX1, placeY1, offsetX, offsetY, img2, placeX2, placeY2));
     });
 
@@ -595,6 +596,17 @@
       }
     });
     f("translate", values["place-image"].app);
+    f("move-pinhole", function(maybeDx, maybeDy, maybeImg) {
+      checkArity(3, arguments, "move-pinhole", false);
+      c3("move-pinhole",
+         maybeDx, annReal,
+         maybeDy, annReal,
+         maybeImg, annImage);
+      var img = unwrapImage(maybeImg);
+      var dx = jsnums.toFixnum(maybeDx);
+      var dy = jsnums.toFixnum(maybeDy);
+      return makeImage(img.offsetPinhole(dx, dy));
+    });
     f("place-pinhole", function(maybeX, maybeY, maybeImg) {
       checkArity(3, arguments, "place-pinhole", false);
       c3("place-pinhole",
@@ -607,8 +619,8 @@
       return makeImage(img.updatePinhole(x, y));
     });
     f("center-pinhole", function(maybeImg) {
-      checkArity(1, arguments, "place-pinhole", false);
-      c1("place-pinhole", maybeImg, annImage);
+      checkArity(1, arguments, "center-pinhole", false);
+      c1("center-pinhole", maybeImg, annImage);
       var img = unwrapImage(maybeImg);
       return makeImage(img.updatePinhole(img.getWidth() / 2, img.getHeight() / 2));
     });

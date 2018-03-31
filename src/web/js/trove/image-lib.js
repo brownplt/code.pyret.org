@@ -240,6 +240,8 @@
         return false;
       if (typeof(thing.updatePinhole) !== 'function')
         return false;
+      if (typeof(thing.offsetPinhole) !== 'function')
+        return false;
       if (typeof(thing.render) !== 'function')
         return false;
       return true;
@@ -294,6 +296,13 @@
       return aCopy;
     };
 
+    BaseImage.prototype.offsetPinhole = function(dx, dy) {
+      var aCopy = clone(this);
+      aCopy.pinholeX += dx;
+      aCopy.pinholeY += dy;
+      return aCopy;
+    };
+
     BaseImage.prototype.getHeight = function(){
       return Math.round(this.height);
     };
@@ -321,6 +330,7 @@
     // If the image isn't vertex-based, throw an error
     // Otherwise, stroke and fill the vertices.
     BaseImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       if(!this.vertices){
         throw new Error('BaseImage.render is not implemented for this type!');
       }
@@ -551,6 +561,7 @@
 
     // render: 2d-context primitive-number primitive-number -> void
     SceneImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
@@ -563,13 +574,16 @@
       ctx.rect(x, y, this.width, this.height);
       ctx.clip();
       // Ask every object to render itself inside the region
-        this.children.forEach(function(child) { 
-            // then, render the child images
-            childImage = child[0];
-            childX = child[1];
-            childY = child[2];
-            childImage.render(ctx, childX + x, childY + y);
-        });
+      this.children.forEach(function(child) { 
+        // then, render the child images
+        childImage = child[0];
+        childX = child[1];
+        childY = child[2];
+        ctx.save();
+        ctx.translate(childX, childY);
+        childImage.render(ctx, x, y);
+        ctx.restore();
+      });
       // unclip
       ctx.restore();
 
@@ -652,6 +666,7 @@
     };
 
     FileImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       this.installHackToSupportAnimatedGifs();
       ctx.drawImage(this.animationHackImg, x, y);
     };
@@ -729,6 +744,7 @@
     };
 
     FileVideo.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.drawImage(this.video, x, y);
     };
     FileVideo.prototype.equals = function(other) {
@@ -748,6 +764,7 @@
     ImageDataImage.prototype = heir(BaseImage.prototype);
 
     ImageDataImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       // Simply using putImageData on ctx would ignore the current transformation matrix,
       // so it wouldn't scale or rotate images.  This temp-drawing approach solves that.
       var tempCanvas = makeCanvas(this.width, this.height);
@@ -805,10 +822,10 @@
       
 
       // Translate both offset pairs by the smaller of the half-dimensions
-      var xMin = Math.max(img1.width, img2.width);
-      var yMin = Math.max(img1.height, img2.height);
-      x1 += xMin; x2 += xMin;
-      y1 += yMin; y2 += yMin;
+      var xMax = Math.max(img1.width, img2.width);
+      var yMax = Math.max(img1.height, img2.height);
+      x1 += xMax; x2 += xMax;
+      y1 += yMax; y2 += yMax;
 
       // Last, translate both offset pairs so that none are negative
       var xMin = Math.min(x1, x2)
@@ -833,7 +850,7 @@
       this.img2 = img2;
       this.pinholeX = img1.pinholeX + x1;
       this.pinholeY = img1.pinholeY + y1;
-      this.alphaBaseline = img1.alphaBaseline ? img1.alphaBaseline + y1 : img2.alphaBaseline + y2;
+      this.alphaBaseline = img1.alphaBaseline ? img1.getBaseline() + y1 : img2.getBaseline() + y2;
       console.log("Baseline1: " + img1.alphaBaseline + ", Baseline2: " + img2.alphaBaseline + " ==> " + this.alphaBaseline);
       var shiftText = "";
       if (offsetX > 0) { shiftText += "shifted right by " + offsetX; }
@@ -852,9 +869,14 @@
     OverlayImage.prototype.getVertices = function() { return this._vertices; };
 
     OverlayImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
-      this.img2.render(ctx, x + this.x2, y + this.y2);
-      this.img1.render(ctx, x + this.x1, y + this.y1);
+      ctx.translate(this.x2, this.y2);
+      this.img2.render(ctx, x, y);
+      ctx.restore();
+      ctx.save();
+      ctx.translate(this.x1, this.y1);
+      this.img1.render(ctx, x, y);
       ctx.restore();
     };
 
@@ -911,6 +933,7 @@
 
     // translate the canvas using the calculated values, then draw at the rotated (x,y) offset.
     RotateImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
       ctx.translate(x + this.translateX, y + this.translateY);
       ctx.rotate(this.angle * Math.PI / 180);
@@ -940,12 +963,20 @@
       });
 
       this.img      = img;
-      this.width    = img.width * xFactor;
-      this.height   = img.height * yFactor;
+      this.width    = img.width * Math.abs(xFactor);
+      this.height   = img.height * Math.abs(yFactor);
       this.xFactor  = xFactor;
       this.yFactor  = yFactor;
       this.pinholeX = img.pinholeX * xFactor;
+      if (xFactor < 0) { // translate pinhole into image region
+        this.pinholeX += this.width;
+        this._vertices.forEach((v) => v.x += this.width);
+      }
       this.pinholeY = img.pinholeY * yFactor;
+      if (yFactor < 0) { // translate pinhole into image region
+        this.pinholeY += this.height;
+        this._vertices.forEach((v) => v.y += this.height);
+      }
       this.ariaText = "Scaled Image, "+ (xFactor===yFactor? "by "+xFactor
         : "horizontally by "+xFactor+" and vertically by "+yFactor)+". "+img.ariaText;
     };
@@ -956,8 +987,15 @@
 
     // scale the context, and pass it to the image's render function
     ScaleImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
       ctx.scale(this.xFactor, this.yFactor);
+      if (this.xFactor < 0) {
+        ctx.translate((this.width+2*x)/(this.xFactor), 0);
+      }
+      if (this.yFactor < 0) {
+        ctx.translate(0, (this.height+2*y)/(this.yFactor));
+      }
       this.img.render(ctx, x / this.xFactor, y / this.yFactor);
       ctx.restore();
     };
@@ -996,6 +1034,7 @@
     CropImage.prototype = heir(BaseImage.prototype);
 
     CropImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
       ctx.beginPath();
       ctx.rect(x, y, this.width, this.height);
@@ -1032,6 +1071,7 @@
 
     // scale the context, and pass it to the image's render function
     FrameImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
       this.img.render(ctx, x, y);
       ctx.beginPath();
@@ -1064,6 +1104,7 @@
 
     // scale the context, and pass it to the image's render function
     PinholeImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
       ctx.save();
       this.img.render(ctx, x, y);
@@ -1104,14 +1145,20 @@
       this.width      = img.width;
       this.height     = img.height;
       this.direction  = direction;
-      this.pinholeX   = this.width - img.pinholeX;
-      this.pinholeY   = this.height - img.pinholeY;
+      if (direction === "horizontal") {
+        this.pinholeX   = this.width - img.pinholeX;
+        this.pinholeY   = img.pinholeY;
+      } else {
+        this.pinholeX   = img.pinholeX;
+        this.pinholeY   = this.height - img.pinholeY;
+      }
       this.ariaText   = direction+"ly flipped image: " + img.ariaText;
     };
 
     FlipImage.prototype = heir(BaseImage.prototype);
 
     FlipImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       // when flipping an image of dimension M and offset by N across an axis,
       // we need to translate the canvas by M+2N in the opposite direction
       ctx.save();
@@ -1286,6 +1333,7 @@
     TextImage.prototype = heir(BaseImage.prototype);
 
     TextImage.prototype.render = function(ctx, x, y) {
+      x = 0; y = 0;
       ctx.save();
       ctx.textAlign   = 'left';
       ctx.textBaseline= 'alphabetic'; // Note: NOT top, so that we can support accented characters
@@ -1412,6 +1460,7 @@
     EllipseImage.prototype = heir(BaseImage.prototype);
 
     EllipseImage.prototype.render = function(ctx, aX, aY) {
+      aX = 0; aY = 0;
       ctx.save();
       ctx.beginPath();
 
@@ -1488,6 +1537,7 @@
     WedgeImage.prototype = heir(BaseImage.prototype);
 
     WedgeImage.prototype.render = function(ctx, aX, aY) {
+      aX = 0; aY = 0;
       ctx.save();
       ctx.beginPath();
 
