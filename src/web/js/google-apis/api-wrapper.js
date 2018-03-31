@@ -249,7 +249,7 @@ function loadAPIWrapper(immediate) {
       // for why (A) we do this before the request completes and (B) the
       // setTimeout here is necessary
       setTimeout(function() {
-        gapi.auth.setToken({ access_token: oldAccess });
+        gapi.auth.setToken(oldAccess);
       });
     }
     return ret;
