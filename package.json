@@ -91,7 +91,7 @@
   "author": "Joe Politz",
   "license": "Apache-2.0",
   "devDependencies": {
-    "chromedriver": "^2.32.2",
+    "chromedriver": "^2.36.2",
     "selenium-webdriver": "^2.53.3"
   }
 }
