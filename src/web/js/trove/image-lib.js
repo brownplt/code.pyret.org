@@ -1177,8 +1177,8 @@
       });
 
       this.img      = img;
-      this.width    = img.width * xFactor;
-      this.height   = img.height * yFactor;
+      this.width    = img.width * Math.abs(xFactor);
+      this.height   = img.height * Math.abs(yFactor);
       this.xFactor  = xFactor;
       this.yFactor  = yFactor;
       this.ariaText = "Scaled Image, "+ (xFactor===yFactor? "by "+xFactor
@@ -1193,6 +1193,12 @@
     ScaleImage.prototype.render = function(ctx, x, y) {
       ctx.save();
       ctx.scale(this.xFactor, this.yFactor);
+      if (this.xFactor < 0) {
+        ctx.translate((this.width+2*x)/(this.xFactor), 0);
+      }
+      if (this.yFactor < 0) {
+        ctx.translate(0, (this.height+2*y)/(this.yFactor));
+      }
       this.img.render(ctx, x / this.xFactor, y / this.yFactor);
       ctx.restore();
     };
