@@ -14,6 +14,8 @@ else {
   PATH_TO_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 }
 
+let leave_open = process.env.LEAVE_OPEN === "true" || false;
+
 let args = process.env.SHOW_BROWSER ? [] : [
   '--headless',
 ];
@@ -30,13 +32,15 @@ chromeCapabilities.set('chromeOptions', {
 
 
 function teardown() {
-  if(!(this.currentTest.state === 'failed')) {
+  if(!(this.currentTest.state === 'failed' || leave_open)) {
     return this.browser.quit();
   }
 }
 
 function teardownMulti() {
-  return this.browser.quit();
+  if(!leave_open) {
+    return this.browser.quit();
+  }
 }
 
 function setupWithName(name) {
