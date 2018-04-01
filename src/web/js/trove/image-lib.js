@@ -324,13 +324,12 @@
                     {x: this.width, y: this.height}]; }
     };
 
-    // render: context fixnum fixnum: -> void
-    // Render the image, where the upper-left corner of the image is drawn at
-    // (x, y).
+    // render: context: -> void
+    // Render the image in its local coordinate system
+    // (i.e., (0,0) maps to the origin of the context)
     // If the image isn't vertex-based, throw an error
     // Otherwise, stroke and fill the vertices.
-    BaseImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    BaseImage.prototype.render = function(ctx) {
       if(!this.vertices){
         throw new Error('BaseImage.render is not implemented for this type!');
       }
@@ -362,8 +361,8 @@
           });
       }
 
-      ctx.moveTo( x + vertices[0].x, y + vertices[0].y );
-      vertices.forEach(function(v) { ctx.lineTo( x + v.x, y + v.y); });
+      ctx.moveTo( vertices[0].x, vertices[0].y );
+      vertices.forEach(function(v) { ctx.lineTo( v.x, v.y); });
       ctx.closePath();
 
       if (isSolid) {
@@ -404,7 +403,7 @@
       var onAfterAttach = function(event) {
         // jQuery(canvas).unbind('afterAttach', onAfterAttach);
         ctx = this.getContext("2d");
-        that.render(ctx, 0, 0);
+        that.render(ctx);
       };
       jQuery(canvas).bind('afterAttach', onAfterAttach);
 
@@ -458,8 +457,8 @@
                   c2.width + ", " + c2.height + "])");
       }
       var ctx1 = c1.getContext('2d'), ctx2 = c2.getContext('2d');
-      this.render(ctx1, 0, 0);
-      other.render(ctx2, 0, 0);
+      this.render(ctx1);
+      other.render(ctx2);
       try{
         var data1 = ctx1.getImageData(0, 0, w1, h1),
         data2 = ctx2.getImageData(0, 0, w2, h2);
@@ -494,7 +493,7 @@
         var ctx1 = c1.getContext('2d'), ctx2 = c2.getContext('2d');
         ctx1.isEqualityTest = true;
         ctx2.isEqualityTest = true;
-        this.render(ctx1, 0, 0); other.render(ctx2, 0, 0);
+        this.render(ctx1); other.render(ctx2);
         // create temporary canvases
         var slice1 = document.createElement('canvas').getContext('2d'),
             slice2 = document.createElement('canvas').getContext('2d');
@@ -559,19 +558,18 @@
                             this.withBorder);
     };
 
-    // render: 2d-context primitive-number primitive-number -> void
-    SceneImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    // render: 2d-context -> void
+    SceneImage.prototype.render = function(ctx) {
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
       ctx.fillStyle = "rgba(0,0,0,0)";
-      ctx.fillRect(x, y, this.width, this.height);
+      ctx.fillRect(0, 0, this.width, this.height);
       ctx.restore();
       // save the context, reset the path, and clip to the path around the scene edge
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x, y, this.width, this.height);
+      ctx.rect(0, 0, this.width, this.height);
       ctx.clip();
       // Ask every object to render itself inside the region
       this.children.forEach(function(child) { 
@@ -581,7 +579,7 @@
         childY = child[2];
         ctx.save();
         ctx.translate(childX, childY);
-        childImage.render(ctx, x, y);
+        childImage.render(ctx);
         ctx.restore();
       });
       // unclip
@@ -589,7 +587,7 @@
 
       if (this.withBorder) {
         ctx.strokeStyle = 'black';
-        ctx.strokeRect(x, y, this.width, this.height);
+        ctx.strokeRect(0, 0, this.width, this.height);
       }
     };
 
@@ -665,10 +663,9 @@
                                        "normal", "Optimer","","",false);
     };
 
-    FileImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    FileImage.prototype.render = function(ctx) {
       this.installHackToSupportAnimatedGifs();
-      ctx.drawImage(this.animationHackImg, x, y);
+      ctx.drawImage(this.animationHackImg, 0, 0);
     };
 
     // The following is a hack that we use to allow animated gifs to show
@@ -743,9 +740,8 @@
       return videoCache[path];
     };
 
-    FileVideo.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
-      ctx.drawImage(this.video, x, y);
+    FileVideo.prototype.render = function(ctx) {
+      ctx.drawImage(this.video, 0, 0);
     };
     FileVideo.prototype.equals = function(other) {
       return (other instanceof FileVideo) && (this.src === other.src);
@@ -763,13 +759,12 @@
 
     ImageDataImage.prototype = heir(BaseImage.prototype);
 
-    ImageDataImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    ImageDataImage.prototype.render = function(ctx) {
       // Simply using putImageData on ctx would ignore the current transformation matrix,
       // so it wouldn't scale or rotate images.  This temp-drawing approach solves that.
       var tempCanvas = makeCanvas(this.width, this.height);
       tempCanvas.getContext("2d").putImageData(this.imageData, 0, 0);
-      ctx.drawImage(tempCanvas, x, y);
+      ctx.drawImage(tempCanvas, 0, 0);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -868,15 +863,14 @@
 
     OverlayImage.prototype.getVertices = function() { return this._vertices; };
 
-    OverlayImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    OverlayImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.translate(this.x2, this.y2);
-      this.img2.render(ctx, x, y);
+      this.img2.render(ctx);
       ctx.restore();
       ctx.save();
       ctx.translate(this.x1, this.y1);
-      this.img1.render(ctx, x, y);
+      this.img1.render(ctx);
       ctx.restore();
     };
 
@@ -931,13 +925,12 @@
 
     RotateImage.prototype.getVertices = function() { return this._vertices; };
 
-    // translate the canvas using the calculated values, then draw at the rotated (x,y) offset.
-    RotateImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    // translate the canvas using the calculated values, then rotate as needed.
+    RotateImage.prototype.render = function(ctx) {
       ctx.save();
-      ctx.translate(x + this.translateX, y + this.translateY);
+      ctx.translate(this.translateX, this.translateY);
       ctx.rotate(this.angle * Math.PI / 180);
-      this.img.render(ctx, 0, 0);
+      this.img.render(ctx);
       ctx.restore();
     };
 
@@ -986,17 +979,16 @@
     ScaleImage.prototype.getVertices = function() { return this._vertices; };
 
     // scale the context, and pass it to the image's render function
-    ScaleImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    ScaleImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.scale(this.xFactor, this.yFactor);
       if (this.xFactor < 0) {
-        ctx.translate((this.width+2*x)/(this.xFactor), 0);
+        ctx.translate((this.width)/(this.xFactor), 0);
       }
       if (this.yFactor < 0) {
-        ctx.translate(0, (this.height+2*y)/(this.yFactor));
+        ctx.translate(0, (this.height)/(this.yFactor));
       }
-      this.img.render(ctx, x / this.xFactor, y / this.yFactor);
+      this.img.render(ctx);
       ctx.restore();
     };
 
@@ -1033,14 +1025,13 @@
 
     CropImage.prototype = heir(BaseImage.prototype);
 
-    CropImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    CropImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x, y, this.width, this.height);
+      ctx.rect(0, 0, this.width, this.height);
       ctx.clip();
       ctx.translate(-this.x, -this.y);
-      this.img.render(ctx, x, y);
+      this.img.render(ctx);
       ctx.restore();
     };
 
@@ -1070,13 +1061,12 @@
     FrameImage.prototype = heir(BaseImage.prototype);
 
     // scale the context, and pass it to the image's render function
-    FrameImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    FrameImage.prototype.render = function(ctx) {
       ctx.save();
-      this.img.render(ctx, x, y);
+      this.img.render(ctx);
       ctx.beginPath();
       ctx.strokeStyle = "black";
-      ctx.strokeRect(x, y, this.width, this.height);
+      ctx.strokeRect(0, 0, this.width, this.height);
       ctx.closePath();
       ctx.restore();
     };
@@ -1103,26 +1093,25 @@
     PinholeImage.prototype = heir(BaseImage.prototype);
 
     // scale the context, and pass it to the image's render function
-    PinholeImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    PinholeImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.save();
-      this.img.render(ctx, x, y);
+      this.img.render(ctx);
       ctx.restore();
       ctx.beginPath();
       ctx.strokeStyle = "black"; ctx.lineWidth = 1.5;
-      ctx.moveTo(x + this.pinholeX - 5, y + this.pinholeY);
-      ctx.lineTo(x + this.pinholeX + 5, y + this.pinholeY);
-      ctx.moveTo(x + this.pinholeX, y + this.pinholeY - 5);
-      ctx.lineTo(x + this.pinholeX, y + this.pinholeY + 5);
+      ctx.moveTo(this.pinholeX - 5, this.pinholeY);
+      ctx.lineTo(this.pinholeX + 5, this.pinholeY);
+      ctx.moveTo(this.pinholeX, this.pinholeY - 5);
+      ctx.lineTo(this.pinholeX, this.pinholeY + 5);
       ctx.closePath();
       ctx.stroke();
       ctx.beginPath();
       ctx.strokeStyle = "white"; ctx.lineWidth = 0.75;
-      ctx.moveTo(x + this.pinholeX - 5, y + this.pinholeY);
-      ctx.lineTo(x + this.pinholeX + 5, y + this.pinholeY);
-      ctx.moveTo(x + this.pinholeX, y + this.pinholeY - 5);
-      ctx.lineTo(x + this.pinholeX, y + this.pinholeY + 5);
+      ctx.moveTo(this.pinholeX - 5, this.pinholeY);
+      ctx.lineTo(this.pinholeX + 5, this.pinholeY);
+      ctx.moveTo(this.pinholeX, this.pinholeY - 5);
+      ctx.lineTo(this.pinholeX, this.pinholeY + 5);
       ctx.closePath();
       ctx.stroke();
       ctx.restore();
@@ -1157,20 +1146,19 @@
 
     FlipImage.prototype = heir(BaseImage.prototype);
 
-    FlipImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
-      // when flipping an image of dimension M and offset by N across an axis,
-      // we need to translate the canvas by M+2N in the opposite direction
+    FlipImage.prototype.render = function(ctx) {
+      // when flipping an image of dimension M across an axis,
+      // we need to translate the canvas by M in the opposite direction
       ctx.save();
       if(this.direction === "horizontal"){
         ctx.scale(-1, 1);
-        ctx.translate(-(this.width+2*x), 0);
-        this.img.render(ctx, x, y);
+        ctx.translate(-(this.width), 0);
+        this.img.render(ctx);
       }
       if (this.direction === "vertical"){
         ctx.scale(1, -1);
-        ctx.translate(0, -(this.height+2*y));
-        this.img.render(ctx, x, y);
+        ctx.translate(0, -(this.height));
+        this.img.render(ctx);
       }
       ctx.restore();
     };
@@ -1332,8 +1320,7 @@
     };
     TextImage.prototype = heir(BaseImage.prototype);
 
-    TextImage.prototype.render = function(ctx, x, y) {
-      x = 0; y = 0;
+    TextImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.textAlign   = 'left';
       ctx.textBaseline= 'alphabetic'; // Note: NOT top, so that we can support accented characters
@@ -1341,16 +1328,16 @@
 
       // if 'outline' is enabled, use strokeText. Otherwise use fillText
       ctx.fillStyle = this.outline? 'white' : colorString(this.color);
-      ctx.fillText(this.str, x, y + this.alphaBaseline - 1); // handle the baseline offset here
+      ctx.fillText(this.str, 0, this.alphaBaseline - 1); // handle the baseline offset here
       if(this.outline){
         ctx.strokeStyle = colorString(this.color);
-        ctx.strokeText(this.str, x, y + this.alphaBaseline - 1);
+        ctx.strokeText(this.str, 0, this.alphaBaseline - 1);
       }
       if(this.underline){
           ctx.beginPath();
-          ctx.moveTo(x, y+this.size);
+          ctx.moveTo(0, this.size);
           // we use this.size, as it is more accurate for underlining than this.height
-          ctx.lineTo(x+this.width, y+this.size);
+          ctx.lineTo(this.width, this.size);
           ctx.closePath();
           ctx.strokeStyle = colorString(this.color);
           ctx.stroke();
@@ -1459,8 +1446,7 @@
 
     EllipseImage.prototype = heir(BaseImage.prototype);
 
-    EllipseImage.prototype.render = function(ctx, aX, aY) {
-      aX = 0; aY = 0;
+    EllipseImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.beginPath();
 
@@ -1469,7 +1455,7 @@
       var adjust = isSolid? 0 : 0.5;
       // ...account for the 1px border width
       var width = this.width - 2*adjust, height = this.height - 2*adjust;
-      aX += adjust; aY += adjust;
+      var aX = adjust, aY = adjust;
 
       // Most of this code is taken from:
       // http://webreflection.blogspot.com/2009/01/ellipse-and-circle-for-canvas-2d.html
@@ -1536,8 +1522,7 @@
 
     WedgeImage.prototype = heir(BaseImage.prototype);
 
-    WedgeImage.prototype.render = function(ctx, aX, aY) {
-      aX = 0; aY = 0;
+    WedgeImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.beginPath();
 
@@ -1546,7 +1531,7 @@
       var adjust = isSolid? 0 : 0.5;
       // ...account for the 1px border width
       var width = this.width - 2*adjust, height = this.height - 2*adjust;
-      aX += adjust; aY += adjust;
+      var aX = adjust, aY = adjust;
 
       ctx.moveTo(aX + this.pinholeX - adjust, aY + this.pinholeY - adjust);
       ctx.arc(aX + this.pinholeX - adjust, aY + this.pinholeY - adjust, this.radius - 2*adjust, 0, -this.angle, true);
@@ -1606,7 +1591,7 @@
       data,
       i,
       r, g, b, a;
-      img.render(ctx, 0, 0);
+      img.render(ctx);
       imageData = ctx.getImageData(0, 0, width, height);
       data = imageData.data;
       var colors = [];
