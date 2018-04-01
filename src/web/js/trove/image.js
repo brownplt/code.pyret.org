@@ -43,6 +43,10 @@
               [{ tag: "name",
                  origin: { "import-type": "uri", uri: "builtin://image-structs" },
                  name: "Color" }]],
+      "LoI": ["tyapp", { tag: "name",
+                         origin: { "import-type": "uri", uri: "builtin://lists" },
+                         name: "List" },
+              [["local", "Image" ]]],
       "Image": ["local", "Image"]
     },
     values: {
@@ -59,18 +63,30 @@
                     ["String", "Number", "Color", "String", "FontFamily", "FontStyle", "FontWeight", "Boolean"],
                     "Image"],
       "overlay": ["arrow", ["Image", "Image"], "Image"],
+      "overlay-list": ["arrow", ["LoI"], "Image"],
       "overlay-xy": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "overlay-align": ["arrow", ["XPlace", "YPlace", "Image", "Image"], "Image"],
+      "overlay-align-list": ["arrow", ["XPlace", "YPlace", "LoI"], "Image"],
       "overlay-onto-offset": ["arrow",
                               ["Image", "XPlace", "YPlace", "Number", "Number", "Image", "XPlace", "YPlace"],
                               "Image"],
       "underlay": ["arrow", ["Image", "Image"], "Image"],
+      "underlay-list": ["arrow", ["LoI"], "Image"],
       "underlay-xy": ["arrow", ["Image", "Number", "Number","Image"], "Image"],
       "underlay-align": ["arrow", ["XPlace", "YPlace", "Image", "Image"], "Image"],
+      "underlay-align-list": ["arrow", ["XPlace", "YPlace", "LoI"], "Image"],
       "beside": ["arrow", ["Image", "Image"], "Image"],
+      "beside-list": ["arrow", ["LoI"], "Image"],
       "beside-align": ["arrow", ["YPlace", "Image", "Image"], "Image"],
+      "beside-align-list": ["arrow", ["YPlace", "LoI"], "Image"],
       "above": ["arrow", ["Image", "Image"], "Image"],
+      "above-list": ["arrow", ["LoI"], "Image"],
       "above-align": ["arrow", ["XPlace", "Image", "Image"], "Image"],
+      "above-align-list": ["arrow", ["XPlace", "LoI"], "Image"],
+      "below": ["arrow", ["Image", "Image"], "Image"],
+      "below-list": ["arrow", ["LoI"], "Image"],
+      "below-align": ["arrow", ["XPlace", "Image", "Image"], "Image"],
+      "below-align-list": ["arrow", ["XPlace", "LoI"], "Image"],
       "empty-scene": ["arrow", ["Number", "Number"], "Image"],
       "put-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "translate": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
@@ -279,6 +295,19 @@
     });
     var unwrapListofColor = identity;
 
+    var annListImage = ann("List<Image>", function(val) {
+      if (!runtime.ffi.isList(val)) return false;
+      var cur = val;
+      var gf = runtime.getField;
+      while (runtime.unwrap(ffi.isLink(cur))) {
+        var f = gf(cur, "first");
+        if (!checkImagePred(f)) return false;
+        cur = gf(cur, "rest");
+      }
+      return true;
+    });
+    var unwrapListofImage = identity;
+
 
     var annSideCount = ann("Side Count", image.isSideCount);
 
@@ -289,6 +318,20 @@
     var checkArity = ffi.checkArity;
 
     var throwMessage = ffi.throwMessageException;
+
+    // [Image int Image -> Image] [Listof PyretImage] Image -> Image
+    var imageListFoldIndex = function(func, lst, base) {
+      var cur = lst;
+      var ans = base;
+      var gf = runtime.getField;
+      var index = 0;
+      while (runtime.unwrap(ffi.isLink(cur))) {
+        var f = gf(cur, "first");
+        ans = func(ans, index++, unwrapImage(f));
+        cur = gf(cur, "rest");
+      }
+      return ans;
+    };
 
     function makeImage(i) {
       return runtime.makeOpaque(i, image.imageEquals);
@@ -423,6 +466,16 @@
       return makeImage(image.makeOverlayImage(img1, "pinhole", "pinhole", 0, 0, img2, "pinhole", "pinhole"));
     });
 
+    f("overlay-list", function(maybeImgs) {
+      checkArity(1, arguments, "overlay-list", false);
+      c1("overlay-list", maybeImgs, annListImage);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(acc, "pinhole", "pinhole", 0, 0, img, "pinhole", "pinhole"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
+    });
+
     f("overlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
       checkArity(4, arguments, "overlay-xy", false);
       c("overlay-xy",
@@ -450,6 +503,18 @@
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, placeX, placeY, 0, 0, img2, placeX, placeY));
+    });
+
+    f("overlay-align-list", function(maybePlaceX, maybePlaceY, maybeImgs) {
+      checkArity(3, arguments, "overlay-align-list", false);
+      c3("overlay-align-list", maybePlaceX, annPlaceX, maybePlaceY, annPlaceY, maybeImgs, annListImage);
+      var placeX = unwrapPlaceX(maybePlaceX);
+      var placeY = unwrapPlaceY(maybePlaceY);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(acc, placeX, placeY, 0, 0, img, placeX, placeY); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
     });
 
     f("overlay-onto-offset", function(maybeImg1, maybePlaceX1, maybePlaceY1,
@@ -484,6 +549,16 @@
       return makeImage(image.makeOverlayImage(img2, "pinhole", "pinhole", 0, 0, img1, "pinhole", "pinhole"));
     });
 
+    f("underlay-list", function(maybeImgs) {
+      checkArity(1, arguments, "underlay-list", false);
+      c1("underlay-list", maybeImgs, annListImage);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(img, "pinhole", "pinhole", 0, 0, acc, "pinhole", "pinhole"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
+    });
+
     f("underlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
       checkArity(4, arguments, "underlay-xy", false);
       c("underlay-xy",
@@ -513,12 +588,34 @@
       return makeImage(image.makeOverlayImage(img2, placeX, placeY, 0, 0, img1, placeX, placeY));
     });
 
+    f("underlay-align-list", function(maybePlaceX, maybePlaceY, maybeImgs) {
+      checkArity(3, arguments, "underlay-align-list", false);
+      c3("underlay-align-list", maybePlaceX, annPlaceX, maybePlaceY, annPlaceY, maybeImgs, annListImage);
+      var placeX = unwrapPlaceX(maybePlaceX);
+      var placeY = unwrapPlaceY(maybePlaceY);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(img, placeX, placeY, 0, 0, acc, placeX, placeY); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
+    });
+
     f("beside", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "beside", false);
       c2("beside", maybeImg1, annImage, maybeImg2, annImage);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, "right", "center", 0, 0, img2, "left", "center"));
+    });
+
+    f("beside-list", function(maybeImgs) {
+      checkArity(1, arguments, "beside-list", false);
+      c1("beside-list", maybeImgs, annListImage);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(acc, "right", "center", 0, 0, img, "left", "center"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
     });
 
     f("beside-align", function(maybePlaceY, maybeImg1, maybeImg2) {
@@ -530,12 +627,33 @@
       return makeImage(image.makeOverlayImage(img1, "right", placeY, 0, 0, img2, "left", placeY));
     });
 
+    f("beside-align-list", function(maybePlaceY, maybeImgs) {
+      checkArity(2, arguments, "beside-align-list", false);
+      c2("beside-align-list", maybePlaceY, annPlaceY, maybeImgs, annListImage);
+      var placeY = unwrapPlaceY(maybePlaceY);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(acc, "right", placeY, 0, 0, img, "left", placeY); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
+    });
+
     f("above", function(maybeImg1, maybeImg2) {
       checkArity(2, arguments, "above", false);
-      c2("beside", maybeImg1, annImage, maybeImg2, annImage);
+      c2("above", maybeImg1, annImage, maybeImg2, annImage);
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, "middle", "bottom", 0, 0, img2, "middle", "top"));
+    });
+
+    f("above-list", function(maybeImgs) {
+      checkArity(1, arguments, "above-list", false);
+      c1("above-list", maybeImgs, annListImage);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(acc, "middle", "bottom", 0, 0, img, "middle", "top"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
     });
 
     f("above-align", function(maybePlaceX, maybeImg1, maybeImg2) {
@@ -545,6 +663,55 @@
       var img1 = unwrapImage(maybeImg1);
       var img2 = unwrapImage(maybeImg2);
       return makeImage(image.makeOverlayImage(img1, placeX, "bottom", 0, 0, img2, placeX, "top"));
+    });
+
+    f("above-align-list", function(maybePlaceX, maybeImgs) {
+      checkArity(2, arguments, "above-align-list", false);
+      c2("above-list", maybePlaceX, annPlaceX, maybeImgs, annListImage);
+      var placeX = unwrapPlaceX(maybePlaceX);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(acc, placeX, "bottom", 0, 0, img, placeX, "top"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
+    });
+    
+    f("below", function(maybeImg1, maybeImg2) {
+      checkArity(2, arguments, "below", false);
+      c2("below", maybeImg1, annImage, maybeImg2, annImage);
+      var img1 = unwrapImage(maybeImg1);
+      var img2 = unwrapImage(maybeImg2);
+      return makeImage(image.makeOverlayImage(img2, "middle", "bottom", 0, 0, img1, "middle", "top"));
+    });
+
+    f("below-list", function(maybeImgs) {
+      checkArity(1, arguments, "below-list", false);
+      c1("below-list", maybeImgs, annListImage);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(img, "middle", "bottom", 0, 0, acc, "middle", "top"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
+    });
+
+    f("below-align", function(maybePlaceX, maybeImg1, maybeImg2) {
+      checkArity(3, arguments, "below-align", false);
+      c3("below-align", maybePlaceX, annPlaceX, maybeImg1, annImage, maybeImg2, annImage);
+      var placeX = unwrapPlaceX(maybePlaceX);
+      var img1 = unwrapImage(maybeImg1);
+      var img2 = unwrapImage(maybeImg2);
+      return makeImage(image.makeOverlayImage(img2, placeX, "bottom", 0, 0, img1, placeX, "top"));
+    });
+
+    f("below-align-list", function(maybePlaceX, maybeImgs) {
+      checkArity(2, arguments, "below-align-list", false);
+      c2("below-list", maybePlaceX, annPlaceX, maybeImgs, annListImage);
+      var placeX = unwrapPlaceX(maybePlaceX);
+      var imgs = unwrapListofImage(maybeImgs);
+      return makeImage(imageListFoldIndex(function(acc, idx, img) {
+        if (idx == 0) { return img; }
+        else { return image.makeOverlayImage(img, placeX, "bottom", 0, 0, acc, placeX, "top"); }
+      }, imgs, image.makeSceneImage(0, 0, [], false)));
     });
 
     f("empty-scene", function(maybeWidth, maybeHeight) {

@@ -9,6 +9,33 @@ check "Overlay equality":
   mk-image() is underlay(circle(50, mode-solid, red), circle(100, mode-solid, red))
 end
 
+check "Composing lists of images":
+  red-circ = circle(10, mode-solid, red)
+  yellow-circ = circle(20, mode-solid, yellow)
+  green-circ = circle(30, mode-solid, green)
+
+  overlay-list([list: red-circ, yellow-circ, green-circ])
+    is overlay(red-circ, overlay(yellow-circ, green-circ))
+  overlay-align-list(x-left, y-bottom, [list: red-circ, yellow-circ, green-circ])
+    is overlay-align(x-left, y-bottom, red-circ, overlay-align(x-left, y-bottom, yellow-circ, green-circ))
+  underlay-list([list: red-circ, yellow-circ, green-circ])
+    is underlay(red-circ, underlay(yellow-circ, green-circ))
+  underlay-align-list(x-left, y-bottom, [list: red-circ, yellow-circ, green-circ])
+    is underlay-align(x-left, y-bottom, red-circ, underlay-align(x-left, y-bottom, yellow-circ, green-circ))
+  above-list([list: red-circ, yellow-circ, green-circ])
+    is above(red-circ, above(yellow-circ, green-circ))
+  above-align-list(x-left, [list: red-circ, yellow-circ, green-circ])
+    is above-align(x-left, red-circ, above-align(x-left, yellow-circ, green-circ))
+  below-list([list: red-circ, yellow-circ, green-circ])
+    is flip-vertical(above-list([list: red-circ, yellow-circ, green-circ]))
+  below-align-list(x-left, [list: red-circ, yellow-circ, green-circ])
+    is flip-vertical(above-align(x-left, red-circ, above-align(x-left, yellow-circ, green-circ)))
+  beside-list([list: red-circ, yellow-circ, green-circ])
+    is beside(red-circ, beside(yellow-circ, green-circ))
+  beside-align-list(y-top, [list: red-circ, yellow-circ, green-circ])
+    is beside-align(y-top, red-circ, beside-align(y-top, yellow-circ, green-circ))
+end
+
 check "Polygons":
   triangle(4, mode-solid, red) satisfies is-image
   triangle(~4, mode-solid, red) satisfies is-image
