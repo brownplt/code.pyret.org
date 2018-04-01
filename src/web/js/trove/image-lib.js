@@ -532,15 +532,16 @@
     };
 
     //////////////////////////////////////////////////////////////////////
-    // SceneImage: primitive-number primitive-number (listof image) -> Scene
-    var SceneImage = function(width, height, children, withBorder) {
+    // SceneImage: primitive-number primitive-number (listof image) color -> Scene
+    var SceneImage = function(width, height, children, withBorder, color) {
       BaseImage.call(this);
       this.width    = width;
       this.height   = height;
       this.children = children; // arrayof [image, number, number]
       this.withBorder = withBorder;
-      this.pinholeX = 0;
-      this.pinholeY = 0;
+      this.color = color;
+      this.pinholeX = width / 2;
+      this.pinholeY = height / 2;
       this.ariaText = " scene that is "+width+" by "+height+". children are: ";
       this.ariaText += children.map(function(c,i){
         return "child "+(i+1)+": "+c[0].ariaText+", positioned at "+c[1]+","+c[2]+" ";
@@ -555,7 +556,8 @@
                             this.children.concat([[anImage,
                                                    x - anImage.getWidth()/2,
                                                    y - anImage.getHeight()/2]]),
-                            this.withBorder);
+                            this.withBorder,
+                            this.color);
     };
 
     // render: 2d-context -> void
@@ -563,7 +565,7 @@
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0)";
+      ctx.fillStyle = colorString(this.color);
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.restore();
       // save the context, reset the path, and clip to the path around the scene edge
@@ -595,6 +597,7 @@
         return (other instanceof SceneImage     &&
                 this.width    == other.width    &&
                 this.height   == other.height   &&
+                this.color    == other.color    &&
                 this.children.length == other.children.length && 
                 this.children.every(function(child1, i) {
                     var child2 = other.children[i];
@@ -1633,8 +1636,8 @@
       return ans;
     };
 
-    var makeSceneImage = function(width, height, children, withBorder) {
-      return new SceneImage(width, height, children, withBorder);
+    var makeSceneImage = function(width, height, children, withBorder, color) {
+      return new SceneImage(width, height, children, withBorder, color);
     };
     var makeCircleImage = function(radius, style, color) {
       return new EllipseImage(2*radius, 2*radius, style, color);

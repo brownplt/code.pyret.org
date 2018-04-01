@@ -88,6 +88,7 @@
       "below-align": ["arrow", ["XPlace", "Image", "Image"], "Image"],
       "below-align-list": ["arrow", ["XPlace", "LoI"], "Image"],
       "empty-scene": ["arrow", ["Number", "Number"], "Image"],
+      "empty-color-scene": ["arrow", ["Number", "Number", "Color"], "Image"],
       "put-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "translate": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "place-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
@@ -473,7 +474,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(acc, "pinhole", "pinhole", 0, 0, img, "pinhole", "pinhole"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("overlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
@@ -514,7 +515,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(acc, placeX, placeY, 0, 0, img, placeX, placeY); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("overlay-onto-offset", function(maybeImg1, maybePlaceX1, maybePlaceY1,
@@ -556,7 +557,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(img, "pinhole", "pinhole", 0, 0, acc, "pinhole", "pinhole"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("underlay-xy", function(maybeImg1, maybeDx, maybeDy, maybeImg2) {
@@ -597,7 +598,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(img, placeX, placeY, 0, 0, acc, placeX, placeY); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("beside", function(maybeImg1, maybeImg2) {
@@ -615,7 +616,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(acc, "right", "center", 0, 0, img, "left", "center"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("beside-align", function(maybePlaceY, maybeImg1, maybeImg2) {
@@ -635,7 +636,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(acc, "right", placeY, 0, 0, img, "left", placeY); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("above", function(maybeImg1, maybeImg2) {
@@ -653,7 +654,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(acc, "middle", "bottom", 0, 0, img, "middle", "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("above-align", function(maybePlaceX, maybeImg1, maybeImg2) {
@@ -673,7 +674,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(acc, placeX, "bottom", 0, 0, img, placeX, "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
     
     f("below", function(maybeImg1, maybeImg2) {
@@ -691,7 +692,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(img, "middle", "bottom", 0, 0, acc, "middle", "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("below-align", function(maybePlaceX, maybeImg1, maybeImg2) {
@@ -711,7 +712,7 @@
       return makeImage(imageListFoldIndex(function(acc, idx, img) {
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(img, placeX, "bottom", 0, 0, acc, placeX, "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false)));
+      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
 
     f("empty-scene", function(maybeWidth, maybeHeight) {
@@ -720,7 +721,16 @@
       var width = jsnums.toFixnum(maybeWidth);
       var height = jsnums.toFixnum(maybeHeight);
       return makeImage(
-        image.makeSceneImage(width, height, [], true));
+        image.makeSceneImage(width, height, [], true, colorDb.get("transparent")));
+    });
+    f("empty-color-scene", function(maybeWidth, maybeHeight, maybeColor) {
+      checkArity(3, arguments, "empty-color-scene", false);
+      c3("empty-color-scene", maybeWidth, annNumNonNegative, maybeHeight, annNumNonNegative, maybeColor, annColor);
+      var width = jsnums.toFixnum(maybeWidth);
+      var height = jsnums.toFixnum(maybeHeight);
+      var color = unwrapColor(maybeColor);
+      return makeImage(
+        image.makeSceneImage(width, height, [], true, color));
     });
     f("put-image", function(maybePicture, maybeX, maybeY, maybeBackground) {
       checkArity(4, arguments, "put-image", false);
@@ -736,7 +746,7 @@
       if (image.isScene(background)) {
         return makeImage(background.add(picture, x, background.getHeight() - y));
       } else {
-        var newScene = image.makeSceneImage(background.getWidth(), background.getHeight(), [], false);
+        var newScene = image.makeSceneImage(background.getWidth(), background.getHeight(), [], false, colorDb.get("transparent"));
         newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
         newScene = newScene.add(picture, x, background.getHeight() - y);
         return makeImage(newScene);
@@ -756,7 +766,7 @@
       if (image.isScene(background)) {
         return makeImage(background.add(picture, x, y));
       } else {
-        var newScene = image.makeSceneImage(background.getWidth(), background.getHeight(), [], false);
+        var newScene = image.makeSceneImage(background.getWidth(), background.getHeight(), [], false, colorDb.get("transparent"));
         newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
         newScene = newScene.add(picture, x, y);
         return makeImage(newScene);
@@ -818,7 +828,8 @@
         var newScene = image.makeSceneImage(background.getWidth(),
                                             background.getHeight(),
                                             [],
-                                            false);
+                                            false,
+                                            colorDb.get("transparent"));
         newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
         newScene = newScene.add(img, x, y);
         return makeImage(newScene);
@@ -948,7 +959,8 @@
       var newScene = image.makeSceneImage(img.getWidth(),
                                           img.getHeight(),
                                           [],
-                                          true);
+                                          true,
+                                          colorDb.get("transparent"));
       newScene = newScene.add(img, img.getWidth()/2, img.getHeight()/2);
       var leftMost = Math.min(x1,x2);
       var topMost = Math.min(y1,y2);
@@ -1390,7 +1402,7 @@
       throwMessage("Unknown color name '" + String(name) + "'");
     });
 
-    values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true));
+    values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true, colorDb.get("transparent")));
     return runtime.makeModuleReturn(values, {
         "Image": runtime.makePrimitiveAnn("Image", checkImagePred),
         "Scene": runtime.makePrimitiveAnn("Scene", checkScenePred)
