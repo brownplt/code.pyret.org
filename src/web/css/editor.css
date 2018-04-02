@@ -17,6 +17,8 @@
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+.CodeMirror div.CodeMirror-ruler { z-index: 100; }
+.CodeMirror div.CodeMirror-ruler.hidden { display: none; }
 .cm-s-default.CodeMirror { color: black; }
 .cm-s-default .cm-comment { color: #cd7054; }
 .cm-s-default .cm-boolean { color: darkred; }
