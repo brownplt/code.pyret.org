@@ -158,7 +158,7 @@ $(function() {
     if (options.simpleEditor) {
       rulers = [];
     } else{
-      var rulers = [{color: "#317BCF", column: 80, lineStyle: "dashed"}];
+      var rulers = [{color: "#317BCF", column: 80, lineStyle: "dashed", className: "hidden"}];
     }
 
     var cmOptions = {
@@ -533,6 +533,23 @@ $(function() {
     initialGas: 100
   });
   CPO.editor.cm.setOption("readOnly", "nocursor");
+  // HACK to force CM to compute maximum line lengths
+  CPO.editor.cm.on('change', function(instance, changeObj) { instance.curOp.updateMaxLine = true; });
+  CPO.editor.cm.on('update', function(instance, changeObjs) {
+    // NOTE: this is deliberately using non-public APIs to access the line lengths
+    var d = instance.display;
+    if (!d.maxLineChanged) return;
+    instance.getOption("rulers").forEach(function(r) {
+      if (r.column < d.maxLineLength) {
+        r.className = undefined;
+      } else {
+        r.className = "hidden";
+      }
+    });
+    // HACK to trigger the rulers addon to redraw itself, without actually forcing
+    // a complete refresh of the CM instance (which would lead to infinite regress)
+    CodeMirror.signal(instance, "refresh", instance);
+  });
 
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
