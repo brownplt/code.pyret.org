@@ -771,12 +771,13 @@
 
     //////////////////////////////////////////////////////////////////////
     // SceneImage: primitive-number primitive-number (listof image) -> Scene
-    var SceneImage = function(width, height, children, withBorder) {
+    var SceneImage = function(width, height, children, withBorder, color) {
       BaseImage.call(this);
       this.width    = width;
       this.height   = height;
       this.children = children; // arrayof [image, number, number]
       this.withBorder = withBorder;
+      this.color = color;
       this.ariaText = " scene that is "+width+" by "+height+". children are: ";
       this.ariaText += children.map(function(c,i){
         return "child "+(i+1)+": "+c[0].ariaText+", positioned at "+c[1]+","+c[2]+" ";
@@ -791,7 +792,8 @@
                             this.children.concat([[anImage,
                                                    x - anImage.getWidth()/2,
                                                    y - anImage.getHeight()/2]]),
-                            this.withBorder);
+                            this.withBorder,
+                            this.color);
     };
 
     // render: 2d-context primitive-number primitive-number -> void
@@ -799,7 +801,8 @@
       var childImage, childX, childY;
       // create a clipping region around the boundaries of the Scene
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0)";
+      //ctx.fillStyle = "rgba(0,0,0,0)";
+      ctx.fillStyle = this.color? colorString(this.color) : 'transparent';
       ctx.fillRect(x, y, this.width, this.height);
       ctx.restore();
       // save the context, reset the path, and clip to the path around the scene edge
@@ -1655,8 +1658,8 @@
       return makeImageDataImage(imageData);
     };
 
-    var makeSceneImage = function(width, height, children, withBorder) {
-      return new SceneImage(width, height, children, withBorder);
+    var makeSceneImage = function(width, height, children, withBorder, color) {
+      return new SceneImage(width, height, children, withBorder, color);
     };
     var makeCircleImage = function(radius, style, color) {
       return new EllipseImage(2*radius, 2*radius, style, color);

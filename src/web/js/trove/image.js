@@ -33,6 +33,7 @@
       "above": "tany",
       "above-align": "tany",
       "empty-scene": "tany",
+      "empty-color-scene": "tany",
       "put-image": "tany",
       "place-image": "tany",
       "place-image-align": "tany",
@@ -544,6 +545,15 @@
       var height = jsnums.toFixnum(checkNonNegativeReal(maybeHeight));
       return makeImage(
         image.makeSceneImage(width, height, [], true));
+    });
+    f("empty-color-scene", function(maybeWidth, maybeHeight, maybeColor) {
+      checkArity(3, arguments, "empty-color-scene");
+      c("empty-color-scene", [maybeWidth, maybeHeight, maybeColor], [annNumNonNegative, annNumNonNegative, annColor]);
+      var width = checkNonNegativeReal(maybeWidth);
+      var height = checkNonNegativeReal(maybeHeight);
+      var color = checkColor(maybeColor);
+      return makeImage(
+        image.makeSceneImage(jsnums.toFixnum(width), jsnums.toFixnum(height), [], true, color));
     });
     f("put-image", function(maybePicture, maybeX, maybeY, maybeBackground) {
       checkArity(4, arguments, "put-image", false);
