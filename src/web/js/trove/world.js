@@ -39,6 +39,10 @@
           ["arrow",
              [["arrow", [ ["tid", "a"] ], "Boolean"]],
              "WCOofA"]],
+      "last-image": ["forall", ["a"],
+          ["arrow",
+             [["arrow", [ ["tid", "a"] ], "Image"]],
+             "WCOofA"]],
       "close-when-stop": ["forall", ["a"],
           ["arrow",
              ["Boolean"],
@@ -175,6 +179,7 @@
       add("on-key", OnKey);
       add("to-draw", ToDraw);
       add("stop-when", StopWhen);
+      add("last-image", LastImage);
       add("close-when-stop", CloseWhenStop);
 
       return bigBang(init, handlers, tracer, title);
@@ -454,6 +459,34 @@
 
     ToDraw.prototype = Object.create(OutputConfig.prototype);
 
+    function renderImageonCanvas(theImage, reusableCanvas) {
+      var width = theImage.getWidth();
+      var height = theImage.getHeight();
+      if (reusableCanvas.width !== width) {
+        reusableCanvas.width = width;
+      }
+      if (reusableCanvas.height !== height) {
+        reusableCanvas.height = height;
+      }
+      var ctx = reusableCanvas.getContext("2d");
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+      theImage.render(ctx, 0, 0);
+    }
+
+    function setCssforCanvas(reusableCanvas, k) {
+      if (reusableCanvas) {
+        k([[reusableCanvas,
+            ["padding", "0px"],
+            ["width", reusableCanvas.width + "px"],
+            ["height", reusableCanvas.height + "px"]]]);
+      } else {
+        k([]);
+      }
+    }
+
     ToDraw.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
       var reusableCanvas;
@@ -487,31 +520,13 @@
                 reusableCanvas.jsworldOpaque = true;
                 reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
               }
-              if (reusableCanvas.width !== width) {
-                reusableCanvas.width = width;
-              }
-              if (reusableCanvas.height !== height) {
-                reusableCanvas.height = height;
-              }
-              var ctx = reusableCanvas.getContext("2d");
-              ctx.save();
-              ctx.fillStyle = "rgba(255,255,255,1)";
-              ctx.fillRect(0, 0, width, height);
-              ctx.restore();
-              theImage.render(ctx, 0, 0);
+              renderImageonCanvas(theImage, reusableCanvas);
               success([toplevelNode, reusableCanvasNode]);
             });
       };
 
       var cssFunction = function(w, k) {
-        if (reusableCanvas) {
-          k([[reusableCanvas,
-              ["padding", "0px"],
-              ["width", reusableCanvas.width + "px"],
-              ["height", reusableCanvas.height + "px"]]]);
-        } else {
-          k([]);
-        }
+        setCssforCanvas(reusableCanvas, k);
       }
 
       return rawJsworld.on_draw(worldFunction, cssFunction);
@@ -575,6 +590,44 @@
       return rawJsworld.stop_when(worldFunction);
     };
 
+    var LastImage = function(handler) {
+      WorldConfigOption.call(this, 'last-image');
+      this.handler = handler;
+    };
+
+    LastImage.prototype = Object.create(WorldConfigOption.prototype);
+
+    LastImage.prototype.toRawHandler = function(toplevelNode) {
+      var that = this;
+      var reusableCanvas, reusableCanvasNode;
+      var lastImageFunction = function() {
+        var nextFrame = function(t, success) {
+          var lih = adaptWorldFunction(that.handler);
+          lih(t, function(theImageObj) {
+            var theImage = theImageObj.val;
+            if (imageLibrary.isImage(theImage)) {
+              setTimeout(function() {
+                if (!reusableCanvas) {
+                  reusableCanvas = imageLibrary.makeCanvas(10, 10);
+                  reusableCanvas.jsworldOpaque = true;
+                  reusableCanvasNode = rawJsworld.node_to_tree(reusableCanvas);
+                }
+                renderImageonCanvas(theImage, reusableCanvas);
+                success([toplevelNode, reusableCanvasNode]);
+              }, 0);
+            } else {
+              runtime.ffi.throwMessageException('stop-when handler is expected to return a scene or image');
+            }
+          });
+        };
+        var lastImageCss = function(w, k) {
+          setCssforCanvas(reusableCanvas, k);
+        };
+        return rawJsworld.on_draw(nextFrame, lastImageCss);
+      };
+      return rawJsworld.last_image(lastImageFunction);
+    };
+
     var checkHandler = runtime.makeCheckType(isOpaqueWorldConfigOption, "WorldConfigOption");
     //////////////////////////////////////////////////////////////////////
 
@@ -618,6 +671,11 @@
           runtime.ffi.checkArity(1, arguments, "stop-when", false);
           runtime.checkFunction(stopper);
           return runtime.makeOpaque(new StopWhen(stopper));
+        }),
+        "last-image": makeFunction(function(lastImageHandler) {
+          runtime.ffi.checkArity(1, arguments, 'last-image');
+          runtime.checkFunction(lastImageHandler);
+          return runtime.makeOpaque(new LastImage(lastImageHandler));
         }),
         "close-when-stop": makeFunction(function(isClose) {
           runtime.ffi.checkArity(1, arguments, "close-when-stop", false);
