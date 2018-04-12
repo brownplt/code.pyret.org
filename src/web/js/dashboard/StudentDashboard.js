@@ -166,11 +166,11 @@ class StudentDashboard extends Component {
       <div className='wrap'>
         <div id='header' className=''>
           <div className='container'>
-            <div className='left'>
-              <img src='/img/pyret-logo.png' className='dashboard-logo'></img>
+            <div className='left' aria-label='Welcome to Pyret'>
+              <img src='/img/pyret-logo.png' aria-hidden='true' className='dashboard-logo'></img>
               <div className='header'>
                 <h1 className='logo-text'>{APP_NAME}</h1>
-                <h2 className={'person-text ' + (this.state.userName === false ? 'hidden' : '')}>{this.state.userName}</h2> 
+                <h2 className={'person-text ' + (this.state.userName === false ? 'hidden' : '')}>{this.state.userName}</h2>
               </div>
             </div>
             <div className='button-wrapper right'>
@@ -183,8 +183,8 @@ class StudentDashboard extends Component {
         </div>
         <div className={'main middle container ' + (this.state.signedIn === NOT_SIGNED_IN ? '' : 'hidden')}>
 
-          <div className={'middle large-logo-container'}>
-            <img src="/img/pyret-logo.png"></img>
+          <div className={'middle large-logo-container'} aria-label='Pyret'>
+            <img src="/img/pyret-logo.png" aria-hidden='true'></img>
           </div>
 
           <div className='clearfix'></div>
@@ -202,7 +202,7 @@ class StudentDashboard extends Component {
 
           <br/><br/>
 
-          <p>You can also check out <a href="http://papl.cs.brown.edu">our book that uses Pyret</a> or <a href="http://www.bootstrapworld.org">our curricula</a>.</p>
+          <p>You can also check out <a href="http://papl.cs.brown.edu" aria-label="Pyret book">our book that uses Pyret</a> or <a href="http://www.bootstrapworld.org" aria-label="Bootstrap curricula">our curricula</a>.</p>
 
         </div>
         <div id='loading-spinner' className={this.state.signedIn === WAITING_FOR_SIGNIN ? '' : 'hidden'}>
@@ -224,7 +224,7 @@ class StudentDashboard extends Component {
                 <h2>Loading files...</h2>
                 <i className='fa fa-circle-o-notch fast-spin fa-3x fa-fw'></i>
               </div>)
-              :  
+              :
                 this.state.files.length > 0 ?
                     (<div className='file-list cf'>
                       {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
