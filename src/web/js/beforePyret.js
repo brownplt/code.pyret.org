@@ -207,7 +207,8 @@ $(function() {
       run: function() {
         runFun(CM.getValue());
       },
-      focus: function() { CM.focus(); }
+      focus: function() { CM.focus(); },
+      focusCarousel: null //initFocusCarousel
     };
   };
   CPO.RUN_CODE = function() {
@@ -344,6 +345,94 @@ $(function() {
         return prog.getContents();
       }
     });
+  }
+
+  function cycleAdvance(currIndex, maxIndex, reverseP) {
+    var nextIndex = currIndex + (reverseP? -1 : +1);
+    nextIndex = ((nextIndex % maxIndex) + maxIndex) % maxIndex;
+    return nextIndex;
+  }
+
+  function populateFocusCarousel(editor) {
+    if (!editor.focusCarousel) {
+      editor.focusCarousel = [];
+    }
+    var fc = editor.focusCarousel;
+    var docmain = document.getElementById("main");
+    if (!fc[0]) {
+      fc[0] = document.getElementById("Toolbar");
+      //fc[0] = document.getElementById("headeronelegend");
+    }
+    if (!fc[1]) {
+      var docreplMain = docmain.getElementsByClassName("replMain");
+      var docreplMain0;
+      if (docreplMain.length === 0) {
+        docreplMain0 = undefined;
+      } else if (docreplMain.length === 1) {
+        docreplMain0 = docreplMain[0];
+      } else {
+        for (var i = 0; i < docreplMain.length; i++) {
+          if (docreplMain[i].innerText !== "") {
+            docreplMain0 = docreplMain[i];
+          }
+        }
+      }
+      fc[1] = docreplMain0;
+    }
+    if (!fc[2]) {
+      var docrepl = docmain.getElementsByClassName("repl");
+      var docreplcode = docrepl[0].getElementsByClassName("prompt-container")[0].
+        getElementsByClassName("CodeMirror")[0];
+      fc[2] = docreplcode;
+    }
+    if (!fc[3]) {
+      fc[3] = document.getElementById("announcements");
+    }
+  }
+
+  function cycleFocus(reverseP) {
+    var editor = this.editor;
+    var fCarousel = editor.focusCarousel;
+    populateFocusCarousel(editor);
+    var fCarousel = editor.focusCarousel;
+    var maxIndex = fCarousel.length;
+    var currentFocusedElt = fCarousel.find(function(node) {
+      if (!node) {
+        return false;
+      } else {
+        return node.contains(document.activeElement);
+      }
+    });
+    var currentFocusIndex = fCarousel.indexOf(currentFocusedElt);
+    var nextFocusIndex = currentFocusIndex;
+    var focusElt;
+    do {
+      nextFocusIndex = cycleAdvance(nextFocusIndex, maxIndex, reverseP);
+      focusElt = fCarousel[nextFocusIndex];
+    } while (!focusElt);
+
+    var focusElt0;
+    if (focusElt.classList.contains("replMain") ||
+      focusElt.classList.contains("CodeMirror")) {
+      var textareas = focusElt.getElementsByTagName("textarea");
+      if (textareas.length === 0) {
+        focusElt0 = focusElt;
+      } else if (textareas.length === 1) {
+        focusElt0 = textareas[0];
+      } else {
+        for (var i = 0; i < textareas.length; i++) {
+          if (textareas[i].getAttribute('tabIndex')) {
+            focusElt0 = textareas[i];
+          }
+        }
+      }
+    } else {
+      focusElt0 = focusElt;
+    }
+
+    document.activeElement.blur();
+    focusElt0.click();
+    focusElt0.focus();
   }
 
   var programLoaded = loadProgram(initialProgram);
@@ -527,6 +616,9 @@ $(function() {
   shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
   var codeContainer = $("<div>").addClass("replMain");
+  codeContainer.attr("role", "region").
+    attr("aria-label", "Definitions");
+    //attr("tabIndex", "-1");
   $("#main").prepend(codeContainer);
 
   CPO.editor = CPO.makeEditor(codeContainer, {
@@ -708,5 +800,6 @@ $(function() {
   CPO.updateName = updateName;
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
+  CPO.cycleFocus = cycleFocus;
 
 });
