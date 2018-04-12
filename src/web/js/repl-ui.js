@@ -85,7 +85,7 @@
 
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
-    function displayResult(output, callingRuntime, resultRuntime, isMain) {
+    function displayResult(output, callingRuntime, resultRuntime, isMain, updateItems) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
@@ -104,6 +104,9 @@
                 html.addClass("highlights-active");
               });
               html.addClass('compile-error').appendTo(output);
+              if (updateItems) {
+                updateItems();
+              }
               if (click) html.click();
             }).done(function () {restarter.resume(runtime.nothing)});
         });
@@ -127,6 +130,9 @@
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
+            if (updateItems) {
+              updateItems();
+            }
             return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
@@ -184,6 +190,9 @@
             });
           }
           else {
+            if (updateItems) {
+              updateItems();
+            }
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
@@ -216,10 +225,10 @@
       var pointer = -1;
       var current = "";
       function loadItem() {
-        CM.setValue(items[pointer]);
+        CM.setValue(items[pointer].code);
       }
-      function saveItem() {
-        items.unshift(CM.getValue());
+      function saveItem() { //not used?
+        items.unshift({code: CM.getValue(), output: false});
       }
       function prevItem() {
         if (pointer === -1) {
@@ -242,6 +251,48 @@
           pointer--;
         }
       }
+
+      // a11y stuff
+
+      function say(msg, forget) {
+        if (msg === "") return;
+        var announcements = document.getElementById("announcementlist");
+        var li = document.createElement("LI");
+        li.appendChild(document.createTextNode(msg));
+        announcements.insertBefore(li, announcements.firstChild);
+        if (forget) {
+          setTimeout(function() {
+            announcements.removeChild(li);
+          }, 1000);
+        }
+      }
+
+      function sayAndForget(msg) {
+        //console.log('doing sayAndForget', msg);
+        say(msg, true);
+      }
+
+      function speakHistory(n) {
+        if (n === 0) { n = 10; }
+        var historySize = items.length;
+        console.log('historySize =', historySize);
+        if (n > historySize) { return false; }
+        var history = items[n-1];
+        sayAndForget(history.code + (history.output ?
+          " evaluates to " + history.output :
+          " resulted in an error." + history.erroroutput));
+        return true;
+      }
+
+      function speakChar(cm) {
+        var pos = cm.getCursor();
+        var ln = pos.line; var ch = pos.ch;
+        var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
+        sayAndForget(char);
+      }
+
+
+      // end a11y stuff
 
       container.append(mkWarningUpper());
       container.append(mkWarningLower());
@@ -476,6 +527,26 @@
         "vertical-align": "middle"
       });
       var runContents;
+      function updateItems() {
+        var thiscode = items[0];
+        var docOutput = document.getElementById("output");
+        var lastOutput = docOutput.lastElementChild;
+        var text;
+        if (lastOutput.classList.contains('compile-error')) {
+          var pList = lastOutput.getElementsByTagName('p');
+          text = '';
+          for (var i = 0; i < pList.length; i++) {
+            text += '. ' + pList[i].innerText;
+          }
+          thiscode.erroroutput = text;
+          thiscode.output = false;
+          sayAndForget(thiscode.code + ' resulted in an error. ' + text);
+        } else {
+          text = lastOutput.innerText;
+          thiscode.output = text;
+          sayAndForget(thiscode.code + ' evaluates to ' + text);
+        }
+      }
       function afterRun(cm) {
         return function() {
           running = false;
@@ -671,7 +742,8 @@
       var runner = function(code) {
         if(running) { return; }
         running = true;
-        items.unshift(code);
+        var thiscode = {code: code, output: false, erroroutput: false};
+        items.unshift(thiscode);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
@@ -694,7 +766,7 @@
           maybeShowOutputPending();
           return r;
         });
-        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(CM));
@@ -719,7 +791,19 @@
             'Esc Right': "goForwardSexp",
             'Alt-Right': "goForwardSexp",
             'Ctrl-Left': "goBackwardToken",
-            'Ctrl-Right': "goForwardToken"
+            'Ctrl-Right': "goForwardToken",
+            'Left': function(cm) { cm.moveH(-1, 'char'); speakChar(cm); },
+            'Right': function(cm) { cm.moveH(1, 'char'); speakChar(cm); },
+            "Alt-1": function() { speakHistory(1); },
+            "Alt-2": function() { speakHistory(2); },
+            "Alt-3": function() { speakHistory(3); },
+            "Alt-4": function() { speakHistory(4); },
+            "Alt-5": function() { speakHistory(5); },
+            "Alt-6": function() { speakHistory(6); },
+            "Alt-7": function() { speakHistory(7); },
+            "Alt-8": function() { speakHistory(8); },
+            "Alt-9": function() { speakHistory(9); },
+            "Alt-0": function() { speakHistory(0); }
           })
         }
       }).cm;
