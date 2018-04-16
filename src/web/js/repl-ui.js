@@ -288,6 +288,7 @@
         var pos = cm.getCursor();
         var ln = pos.line; var ch = pos.ch;
         var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
+        if (char === " ") char = "space";
         sayAndForget(char);
       }
 
