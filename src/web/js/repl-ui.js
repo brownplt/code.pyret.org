@@ -576,6 +576,7 @@
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
+        //console.log('lastOutput=', lastOutput);
         var text;
         if (lastOutput.classList.contains('compile-error')) {
           var pList = lastOutput.getElementsByTagName('p');
@@ -586,7 +587,12 @@
           thiscode.erroroutput = text;
           sayAndForget(thiscode.code + ' resulted in an error. ' + text);
         } else {
-          text = lastOutput.innerText;
+          var loro = lastOutput.getElementsByClassName('replOutput');
+          //console.log('loro=', loro);
+          if (loro.length > 0) text = loro[0].ariaText;
+          //console.log('text=', text);
+          if (!text) text = lastOutput.innerText;
+          //console.log('text=', text);
           thiscode.output = text;
           sayAndForget(thiscode.code + ' evaluates to ' + text);
         }
