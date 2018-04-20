@@ -509,12 +509,12 @@
               var ret = Q.defer();
               runtime.runThunk(function() {
                 if (cpoDialect === 'patch') {
-                  console.log('calling patchtopyretast on', source);
+                  //console.log('calling patchtopyretast on', source);
                   return runtime.getField(PP, 'patch-surface-parse').app(
                     patchParse.patchToPyretAST(source, filename, possTestResult),
                     filename);
                 } else {
-                  console.log('calling regular surface-parse');
+                  //console.log('calling regular surface-parse');
                   return runtime.getField(PP, "surface-parse").app(source, filename);
                 }
               }, function (result) {
@@ -1343,28 +1343,29 @@
             $('*', originalImageDom).trigger({type : 'afterAttach'});
             e.stopPropagation();
           });
-          return container;
         } else {
           imageDom = img.toDomNode();
           container.append(imageDom);
           $(imageDom).trigger({type: 'afterAttach'});
           $('*', imageDom).trigger({type : 'afterAttach'});
-          return container;
         }
+        return container;
       };
       renderers["number"] = function renderPNumber(num) {
+        var outText, ariaText;
         // If we're looking at a rational number, arrange it so that a
         // click will toggle the decimal representation of that
         // number.  Note that this feature abandons the convenience of
         // publishing output via the CodeMirror textarea.
         if (jsnums.isRational(num) && !jsnums.isInteger(num)) {
+          ariaText = num.toSchemeString();
           // This function returns three string values, numerals to
           // appear before the decimal point, numerals to appear
           // after, and numerals to be repeated.
           var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), runtime.NumberErrbacks);
           var decimalString = decimal[0].toString() + "." + decimal[1].toString();
 
-          var outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
+          outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
             .text(num.toString());
 
           outText.toggleFrac(num.toString(), decimalString, decimal[2]);
@@ -1384,15 +1385,28 @@
             isClick = false;
           });
 
-          return outText;
         } else if (jsnums.isComplexRoughnum(num) && cpoDialect==='patch') {
-          return renderText(sooper(renderers, "number", num.toSchemeString()));
+          ariaText = num.toSchemeString();
+          outText = renderText(sooper(renderers, "number", num.toSchemeString()));
         } else {
-          return renderText(sooper(renderers, "number", num));
+          ariaText = num.toString();
+          outText = renderText(sooper(renderers, "number", num));
         }
+        outText[0].ariaText = ariaText;
+        outText[0].setAttribute('aria-label', ariaText);
+        return outText;
       };
-      renderers["nothing"] = function(val) { return renderText("nothing"); }
-      renderers["boolean"] = function(val) { return renderText(sooper(renderers, "boolean", val)); };
+      renderers["nothing"] = function(val) { var res = renderText("nothing");
+        res[0].ariaText = 'nothing';
+        res[0].setAttribute('aria-label', 'nothing');
+        return res;
+
+      }
+      renderers["boolean"] = function(val) { var res = renderText(sooper(renderers, "boolean", val));
+        res[0].ariaText = val;
+        res[0].setAttribute('aria-label', val);
+        return res;
+      };
       renderers["string"] = function(val) {
         var outText = $("<span>").addClass("replTextOutput escaped");
         var escapedUnicode = '"' + replaceUnprintableStringChars(val, true) + '"';
@@ -1406,6 +1420,9 @@
             e.stopPropagation();
           });
         }
+        var ariaText = 'string ' + unescapedUnicode;
+        outText[0].ariaText = ariaText;
+        outText[0].setAttribute('aria-label', ariaText);
         return outText;
       };
       // Copied from runtime-anf, and tweaked.  Probably should be exported from runtime-anf instad
@@ -1601,8 +1618,10 @@
         $(this).toggleClass("inlineCollection");
       }
       function helper(container, val, values, wantCommaAtEnd) {
-        if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
-        else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
+        if (runtime.ffi.isVSValue(val)) {
+          container.append(values.pop()); }
+        else if (runtime.ffi.isVSStr(val)) {
+          container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
           var name = runtime.unwrap(runtime.getField(val, "name"));
           container.addClass("replToggle");
@@ -1610,6 +1629,7 @@
             if (name === "list") {
               container.append($("<span>").text("(list "));
             } else {
+              name = 'vector';
               container.append($("<span>").text("(vector "));
             }
           } else {
@@ -1618,7 +1638,21 @@
           var ul = $("<ul>").addClass("inlineCollection");
           container.append(ul);
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
-          groupItems(ul, items, values, 0, items.length);
+          var maxIdx = items.length;
+          var ariaText = name + ' of ' + maxIdx + ' items: ';
+          var ariaElts = '';
+          //groupItems(ul, items, values, 0, items.length);
+          for (var i = 0; i < maxIdx; i++) {
+            var li = $("<li>").addClass("expanded");
+            var title = $("<span>").addClass("label").text("Item " + i);
+            var contents = $("<span>").addClass("contents");
+            ul.append(li.append(title).append(contents));
+            helper(contents, items[i], values, (i + 1 < maxIdx));
+            ariaElts += ', ' + contents[0].childNodes[0].ariaText;
+          }
+          ariaText += ariaElts;
+          container[0].ariaText = ariaText;
+          container[0].setAttribute('aria-label', ariaText);
           if (cpoDialect==='patch' && (name === "list" || name === "array")) {
             container.append($("<span>").text(")"));
           } else {
@@ -1811,7 +1845,8 @@
       renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
         //console.log('doing renderValueSkeleton');
         var container = $("<span>").addClass("replOutput");
-        return helper(container, top.extra.skeleton, top.done);
+        var r = helper(container, top.extra.skeleton, top.done);
+        return r;
       };
     }
     // Because some finicky functions (like images and CodeMirrors), require
