@@ -572,7 +572,6 @@
       var runContents;
       function updateItems() {
         //console.log('doing updateItems');
-        //console.log('afterrun/cm =', cm);
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
@@ -588,6 +587,7 @@
           sayAndForget(thiscode.code + ' resulted in an error. ' + text);
         } else {
           var loro = lastOutput.getElementsByClassName('replOutput');
+          if (loro.length === 0) loro = lastOutput.getElementsByClassName('replTextOutput');
           //console.log('loro=', loro);
           if (loro.length > 0) text = loro[0].ariaText;
           //console.log('text=', text);
