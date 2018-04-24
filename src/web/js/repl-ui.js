@@ -532,18 +532,25 @@
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
+        //console.log('lastOutput=', lastOutput);
         var text;
         if (lastOutput.classList.contains('compile-error')) {
           var pList = lastOutput.getElementsByTagName('p');
           text = '';
           for (var i = 0; i < pList.length; i++) {
-            text += '. ' + pList[i].innerText;
+            text += ' ' + pList[i].innerText;
           }
           thiscode.erroroutput = text;
           thiscode.output = false;
           sayAndForget(thiscode.code + ' resulted in an error. ' + text);
         } else {
-          text = lastOutput.innerText;
+          var loro = lastOutput.getElementsByClassName('replOutput');
+          if (loro.length === 0) loro = lastOutput.getElementsByClassName('replTextOutput');
+          //console.log('loro=', loro);
+          if (loro.length > 0) text = loro[0].ariaText;
+          //console.log('text=', text);
+          if (!text) text = lastOutput.innerText;
+          //console.log('text=', text);
           thiscode.output = text;
           sayAndForget(thiscode.code + ' evaluates to ' + text);
         }
