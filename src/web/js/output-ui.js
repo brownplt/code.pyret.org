@@ -1278,6 +1278,7 @@
         e.stopPropagation();
       }
       renderers.renderImage = function renderImage(img) {
+        //console.log('doing renderImage');
         var container = $("<span>").addClass('replOutput');
         var imageDom;
         var maxWidth = $(document).width() * .375;
@@ -1318,28 +1319,35 @@
             $('*', originalImageDom).trigger({type : 'afterAttach'});
             e.stopPropagation();
           });
-          return container;
         } else {
           imageDom = img.toDomNode();
           container.append(imageDom);
           $(imageDom).trigger({type: 'afterAttach'});
           $('*', imageDom).trigger({type : 'afterAttach'});
-          return container;
         }
+        var ariaText = imageDom.ariaText;
+        container[0].ariaText = ariaText;
+        container[0].setAttribute('aria-label', ariaText);
+        //console.log('imageDom=', imageDom);
+        //console.log('imageDom.ariaText=', ariaText);
+        //console.log('renderImage retning', container);
+        return container;
       };
       renderers["number"] = function renderPNumber(num) {
+        var outText, ariaText;
         // If we're looking at a rational number, arrange it so that a
         // click will toggle the decimal representation of that
         // number.  Note that this feature abandons the convenience of
         // publishing output via the CodeMirror textarea.
         if (jsnums.isRational(num) && !jsnums.isInteger(num)) {
+          ariaText = num.toString() + ', a rational number';
           // This function returns three string values, numerals to
           // appear before the decimal point, numerals to appear
           // after, and numerals to be repeated.
           var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), runtime.NumberErrbacks);
           var decimalString = decimal[0].toString() + "." + decimal[1].toString();
 
-          var outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
+          outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
             .text(num.toString());
 
           outText.toggleFrac(num.toString(), decimalString, decimal[2]);
@@ -1358,14 +1366,26 @@
           }).mousemove(function () {
             isClick = false;
           });
-
-          return outText;
         } else {
-          return renderText(sooper(renderers, "number", num));
+          ariaText = num.toString();
+          outText = renderText(sooper(renderers, "number", num));
         }
+        outText[0].ariaText = ariaText;
+        outText[0].setAttribute('aria-label', ariaText);
+        return outText;
       };
-      renderers["nothing"] = function(val) { return renderText("nothing"); }
-      renderers["boolean"] = function(val) { return renderText(sooper(renderers, "boolean", val)); };
+      renderers["nothing"] = function(val) {
+        var res = renderText("nothing");
+        res[0].ariaText = 'nothing';
+        res[0].setAttribute('aria-label', 'nothing');
+      }
+      renderers["boolean"] = function(val) {
+        var res = renderText(sooper(renderers, "boolean", val));
+        var ariaText = val + ', a boolean';
+        res[0].ariaText = ariaText;
+        res[0].setAttribute('aria-label', ariaText);
+        return res;
+      };
       renderers["string"] = function(val) {
         var outText = $("<span>").addClass("replTextOutput escaped");
         var escapedUnicode = '"' + replaceUnprintableStringChars(val, true) + '"';
@@ -1379,6 +1399,9 @@
             e.stopPropagation();
           });
         }
+        var ariaText = unescapedUnicode + ', a string';
+        outText[0].ariaText = ariaText;
+        outText[0].setAttribute('aria-label', ariaText);
         return outText;
       };
       // Copied from runtime-anf, and tweaked.  Probably should be exported from runtime-anf instad
@@ -1561,12 +1584,27 @@
         if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
         else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
         else if (runtime.ffi.isVSCollection(val)) {
+          var name = runtime.unwrap(runtime.getField(val, "name"));
           container.addClass("replToggle");
-          container.append($("<span>").text("[" + runtime.unwrap(runtime.getField(val, "name")) + ": "));
+          container.append($("<span>").text("[" + name + ": "));
           var ul = $("<ul>").addClass("inlineCollection");
           container.append(ul);
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
-          groupItems(ul, items, values, 0, items.length);
+          var maxIdx = items.length;
+          var ariaText = name + ' of ' + maxIdx + ' items: ';
+          var ariaElts = '';
+          //groupItems(ul, items, values, 0, items.length);
+          for (var i = 0; i < maxIdx; i++) {
+            var li = $("<li>").addClass("expanded");
+            var title = $("<span>").addClass("label").text("Item " + i);
+            var contents = $("<span>").addClass("contents");
+            ul.append(li.append(title).append(contents));
+            helper(contents, items[i], values, (i + 1 < maxIdx));
+            ariaElts += ', ' + contents[0].childNodes[0].ariaText;
+          }
+          ariaText += ariaElts;
+          container[0].ariaText = ariaText;
+          container[0].setAttribute('aria-label', ariaText);
           container.append($("<span>").text("]"));
           container.click(function(e) {
             ul.each(makeInline);
