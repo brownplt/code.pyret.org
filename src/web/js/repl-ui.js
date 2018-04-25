@@ -86,6 +86,7 @@
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
     function displayResult(output, callingRuntime, resultRuntime, isMain, updateItems) {
+      // updateItems() is used to update the repl interaction history
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
@@ -221,7 +222,7 @@
     function makeRepl(container, repl, runtime, options) {
 
       var Jsworld = worldLib;
-      var items = [];
+      var items = []; // repl interaction history
       var pointer = -1;
       var current = "";
       function loadItem() {
