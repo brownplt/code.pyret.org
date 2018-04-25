@@ -535,10 +535,17 @@
         //console.log('lastOutput=', lastOutput);
         var text;
         if (lastOutput.classList.contains('compile-error')) {
-          var pList = lastOutput.getElementsByTagName('p');
+          var loChildren = lastOutput.childNodes;
+          //console.log('loChildren=', loChildren);
           text = '';
-          for (var i = 0; i < pList.length; i++) {
-            text += ' ' + pList[i].innerText;
+          for (var i = 0; i < loChildren.length; i++) {
+            var thisChild = loChildren[i];
+            //console.log('thisChild=', thisChild);
+            if (thisChild.tagName === 'DIV' && thisChild.classList.contains('cm-snippet')) {
+              text += 'in ' + thiscode.code + '.';
+            } else if (thisChild.tagName === 'P') {
+              text += ' ' + thisChild.innerText;
+            }
           }
           thiscode.erroroutput = text;
           thiscode.output = false;
