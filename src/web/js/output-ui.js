@@ -1366,6 +1366,9 @@
           }).mousemove(function () {
             isClick = false;
           });
+        } else if (jsnums.isRoughnum(num)) {
+          ariaText = num.n.toString() + ', roughly';
+          outText = $('<span>').addClass('replTextOutput roughNumber').text(num.toString());
         } else {
           ariaText = num.toString();
           outText = renderText(sooper(renderers, "number", num));
