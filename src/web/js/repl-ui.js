@@ -87,11 +87,13 @@
     // NOT BE CALLED ON THE PYRET STACK.
     function displayResult(output, callingRuntime, resultRuntime, isMain, updateItems) {
       // updateItems() is used to update the repl interaction history
+      //console.log('doing displayResult', isMain);
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
       // MUST BE CALLED ON THE PYRET STACK
       function renderAndDisplayError(runtime, error, stack, click, result) {
+        //updateItems?
         var error_to_html = errorUI.error_to_html;
         // `renderAndDisplayError` must be called on the pyret stack
         // because of this call to `pauseStack`
@@ -105,11 +107,12 @@
                 html.addClass("highlights-active");
               });
               html.addClass('compile-error').appendTo(output);
-              if (updateItems) {
-                updateItems();
-              }
+              //updateItems?
               if (click) html.click();
-            }).done(function () {restarter.resume(runtime.nothing)});
+            }).done(function () {
+              //updateItems?
+              restarter.resume(runtime.nothing)
+            });
         });
       }
 
@@ -131,9 +134,7 @@
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
-            if (updateItems) {
-              updateItems();
-            }
+            //updateItems?
             return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
@@ -156,7 +157,10 @@
                       // pyret stack.
                       return renderAndDisplayError(callingRuntime, errors[i], [], true, result);
                     }), 0, errors.length);
-                  }, function (result) { return result; }, "renderMultipleErrors");
+                  }, function (result) {
+                    updateItems(isMain);
+                    return result;
+                  }, "renderMultipleErrors");
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
@@ -174,12 +178,14 @@
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;
+                        updateItems(isMain);
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
                       didError = true;
                       // `renderAndDisplayError` must be called in the context of the pyret stack.
                       // this application runs in the context of the above `rr.runThunk`.
+                      //updateItems?
                       return renderAndDisplayError(resultRuntime, runResult.exn.exn,
                                                    runResult.exn.pyretStack, true, runResult);
                     }
@@ -191,9 +197,7 @@
             });
           }
           else {
-            if (updateItems) {
-              updateItems();
-            }
+            //updateItems?
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
@@ -276,11 +280,13 @@
       function speakHistory(n) {
         if (n === 0) { n = 10; }
         var historySize = items.length;
-        console.log('historySize =', historySize);
+        //console.log('historySize =', historySize);
         if (n > historySize) { return false; }
         var history = items[n-1];
-        sayAndForget(history.code + (history.output ?
-          " evaluates to " + history.output :
+        var isMain = (history.code === 'def//');
+        sayAndForget((isMain ? "Loading definitions window" : history.code) +
+          (history.output ?
+          (isMain ? " produced output " : " evaluates to ") + history.output :
           " resulted in an error." + history.erroroutput));
         return true;
       }
@@ -529,7 +535,8 @@
         "vertical-align": "middle"
       });
       var runContents;
-      function updateItems() {
+      function updateItems(isMain) {
+        //console.log('doing updateItems', isMain);
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
@@ -543,14 +550,28 @@
             var thisChild = loChildren[i];
             //console.log('thisChild=', thisChild);
             if (thisChild.tagName === 'DIV' && thisChild.classList.contains('cm-snippet')) {
-              text += 'in ' + thiscode.code + '.';
+              if (!isMain) {
+                text += ' in ' + thiscode.code + '.';
+              }
             } else if (thisChild.tagName === 'P') {
               text += ' ' + thisChild.innerText;
             }
           }
           thiscode.erroroutput = text;
           thiscode.output = false;
-          sayAndForget(thiscode.code + ' resulted in an error. ' + text);
+        } else if (isMain) {
+          var allTraces = docOutput.childNodes;
+          text = '';
+          var dtext;
+          for (var i = 0; i < allTraces.length; i++) {
+            dtext = undefined;
+            var ro = allTraces[i].getElementsByClassName('replOutput');
+            if (ro.length === 0) ro = allTraces[i].getElementsByClassName('replTextOutput');
+            if (ro.length > 0) dtext = ro[0].ariaText;
+            if (!dtext) dtext = allTraces[i].innerText;
+            text += '. ' + dtext;
+          }
+          thiscode.output = text;
         } else {
           var loro = lastOutput.getElementsByClassName('replOutput');
           if (loro.length === 0) loro = lastOutput.getElementsByClassName('replTextOutput');
@@ -560,11 +581,12 @@
           if (!text) text = lastOutput.innerText;
           //console.log('text=', text);
           thiscode.output = text;
-          sayAndForget(thiscode.code + ' evaluates to ' + text);
         }
+        return true;
       }
       function afterRun(cm) {
         return function() {
+          speakHistory(1);
           running = false;
           outputPending.remove();
           outputPendingHidden = true;
@@ -722,6 +744,9 @@
       var runMainCode = function(src, uiOptions) {
         if(running) { return; }
         running = true;
+        items = [];
+        var thiscode = {code: 'def//', output: false, erroroutput: false};
+        items.unshift(thiscode);
         output.empty();
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
@@ -749,7 +774,7 @@
           maybeShowOutputPending();
           return r;
         });
-        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(false));
