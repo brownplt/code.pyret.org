@@ -92,8 +92,9 @@
       var rr = resultRuntime;
 
       // MUST BE CALLED ON THE PYRET STACK
-      function renderAndDisplayError(runtime, error, stack, click, result) {
-        //updateItems?
+      function renderAndDisplayError(runtime, error, stack, click, result, bogarg) {
+        //console.log('renderAndDisplayError', bogarg);
+        //updateItems(isMain, 'i'); //fixme
         var error_to_html = errorUI.error_to_html;
         // `renderAndDisplayError` must be called on the pyret stack
         // because of this call to `pauseStack`
@@ -110,7 +111,7 @@
               //updateItems?
               if (click) html.click();
             }).done(function () {
-              //updateItems?
+              //updateItems(isMain, 'iv');
               restarter.resume(runtime.nothing)
             });
         });
@@ -130,7 +131,7 @@
             // Parse Errors
             // `renderAndDisplayError` must be called on the pyret stack
             // this application runs in the context of the above `callingRuntime.runThunk`
-            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
+            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result, 'i');
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -155,10 +156,10 @@
                     return callingRuntime.eachLoop(runtime.makeFunction(function(i) {
                       // `renderAndDisplayError` must be called in the context of the
                       // pyret stack.
-                      return renderAndDisplayError(callingRuntime, errors[i], [], true, result);
+                      return renderAndDisplayError(callingRuntime, errors[i], [], true, result, 'ii');
                     }), 0, errors.length);
                   }, function (result) {
-                    updateItems(isMain);
+                    //updateItems(isMain, 'ii');
                     return result;
                   }, "renderMultipleErrors");
               },
@@ -178,7 +179,7 @@
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;
-                        updateItems(isMain);
+                        //updateItems(isMain, 'iii'); //fixme
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
@@ -187,7 +188,7 @@
                       // this application runs in the context of the above `rr.runThunk`.
                       //updateItems?
                       return renderAndDisplayError(resultRuntime, runResult.exn.exn,
-                                                   runResult.exn.pyretStack, true, runResult);
+                                                   runResult.exn.pyretStack, true, runResult, 'iii');
                     }
                   }, function(_) {
                     restarter.resume(callingRuntime.nothing);
@@ -206,7 +207,7 @@
             return renderAndDisplayError(
               callingRuntime,
               ffi.InternalError("Got something other than a Pyret result when running the program.",
-                                ffi.makeList(result)));
+                                ffi.makeList(result)), null, null, null, 'iv');
           }
         }, function(_) {
           if (didError) {
@@ -215,6 +216,8 @@
               snippets[i].CodeMirror.refresh();
             }
           }
+          updateItems(isMain, 'vv');
+          //speakHistory(1);
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -277,14 +280,16 @@
         say(msg, true);
       }
 
-      function speakHistory(n) {
+      function speakHistory(n, loudp) {
+        //console.log('doing speakHistory', n);
         if (n === 0) { n = 10; }
         var historySize = items.length;
         //console.log('historySize =', historySize);
         if (n > historySize) { return false; }
         var history = items[n-1];
         var isMain = (history.code === 'def//');
-        sayAndForget((isMain ? "Loading definitions window" : history.code) +
+        var say1 = (loudp? say : sayAndForget);
+        say1((isMain ? "Loading definitions window" : history.code) +
           (history.output ?
           (isMain ? " produced output " : " evaluates to ") + history.output :
           " resulted in an error." + history.erroroutput));
@@ -535,8 +540,8 @@
         "vertical-align": "middle"
       });
       var runContents;
-      function updateItems(isMain) {
-        //console.log('doing updateItems', isMain);
+      function updateItems(isMain, bogarg) {
+        //console.log('doing updateItems', isMain, bogarg);
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
@@ -551,12 +556,15 @@
             //console.log('thisChild=', thisChild);
             if (thisChild.tagName === 'DIV' && thisChild.classList.contains('cm-snippet')) {
               if (!isMain) {
+                //console.log('adding in', thiscode.code);
                 text += ' in ' + thiscode.code + '.';
               }
             } else if (thisChild.tagName === 'P') {
+              //console.log('adding', thisChild.innerText);
               text += ' ' + thisChild.innerText;
             }
           }
+          //console.log('final text=', text);
           thiscode.erroroutput = text;
           thiscode.output = false;
         } else if (isMain) {
@@ -582,11 +590,12 @@
           //console.log('text=', text);
           thiscode.output = text;
         }
+        speakHistory(1, true);
         return true;
       }
       function afterRun(cm) {
         return function() {
-          speakHistory(1);
+          //speakHistory(1);
           running = false;
           outputPending.remove();
           outputPendingHidden = true;
@@ -600,6 +609,7 @@
             cm.setValue("");
             cm.setOption("readonly", false);
           }
+          //speakHistory(1, true);
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
           setTimeout(function(){
