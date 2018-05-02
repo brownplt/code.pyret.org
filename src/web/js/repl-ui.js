@@ -33,7 +33,7 @@
                       util) {
     var ffi = runtime.ffi;
 
-    var output = jQuery("<div id='output' class='cm-s-default'>");
+    var output = jQuery("<div id='output' aria-hidden='true' class='cm-s-default'>");
     var outputPending = jQuery("<span>").text("Gathering results...");
     var outputPendingHidden = true;
     var canShowRunningIndicator = false;
@@ -208,7 +208,7 @@
             return renderAndDisplayError(
               callingRuntime,
               ffi.InternalError("Got something other than a Pyret result when running the program.",
-                                ffi.makeList(result)), null, null, null);
+                                ffi.makeList(result)));
           }
         }, function(_) {
           if (didError) {
@@ -590,7 +590,7 @@
           //console.log('text=', text);
           thiscode.output = text;
         }
-        speakHistory(1, true);
+        speakHistory(1);
         return true;
       }
       function afterRun(cm) {
@@ -609,7 +609,7 @@
             cm.setValue("");
             cm.setOption("readonly", false);
           }
-          //speakHistory(1, true);
+          //speakHistory(1);
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
           setTimeout(function(){

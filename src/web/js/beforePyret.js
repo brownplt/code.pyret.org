@@ -132,7 +132,7 @@ $(function() {
       initial = options.initial;
     }
 
-    var textarea = jQuery("<textarea>");
+    var textarea = jQuery("<textarea aria-hidden='true'>");
     textarea.val(initial);
     container.append(textarea);
 
