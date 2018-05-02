@@ -35,6 +35,7 @@ em {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   display: none;
+  aria-hidden: true;
 }
 
 #doc-containment{
@@ -45,6 +46,7 @@ em {
   z-index:10000;
   pointer-events: none;
   display:none;
+  aria-hidden: true;
 }
 
 #doc-overlay{

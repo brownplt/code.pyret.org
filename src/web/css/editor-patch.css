@@ -285,6 +285,7 @@ div.spy-block > table > th { display: none; }
   overflow-y: scroll;
   background-color: #f8f8f8;
   cursor: text;
+  aria-hidden: true;
 }
 .check {
   font-family: monospace;

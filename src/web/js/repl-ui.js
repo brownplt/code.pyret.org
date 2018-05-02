@@ -29,7 +29,7 @@
                       util) {
     var ffi = runtime.ffi;
 
-    var output = jQuery("<div id='output' class='cm-s-default'>");
+    var output = jQuery("<div id='output' aria-hidden='true' class='cm-s-default'>");
     var outputPending = jQuery("<span>").text("Gathering results...");
     var outputPendingHidden = true;
 
@@ -85,6 +85,7 @@
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
     function displayResult(output, callingRuntime, resultRuntime, isMain, updateItems) {
+      // updateItems() is used to update the repl interaction history
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
@@ -102,8 +103,9 @@
                 html.trigger('toggleHighlight');
                 html.addClass("highlights-active");
               });
+              html[0].setAttribute('aria-hidden', 'true');
               html.addClass('compile-error').appendTo(output);
-              if (updateItems) updateItems();
+              //updateItems?
               if (click) html.click();
             }).done(function () {restarter.resume(runtime.nothing)});
         });
@@ -165,7 +167,7 @@
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
-            if (updateItems) updateItems();
+            //updateItems?
             return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
@@ -223,7 +225,7 @@
             });
           }
           else {
-            if (updateItems) updateItems();
+            //updateItems?
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
@@ -241,6 +243,8 @@
               snippets[i].CodeMirror.refresh();
             }
           }
+          updateItems(isMain);
+          //speakHistory(1);
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -253,7 +257,7 @@
     function makeRepl(container, repl, runtime, options) {
 
       var Jsworld = worldLib;
-      var items = []; // each entry will be {code: ..., output: ...}
+      var items = []; // repl interaction history
       var pointer = -1;
       var current = "";
       function loadItem() {
@@ -310,8 +314,10 @@
         var historySize = items.length;
         if (n > historySize) { return false; }
         var history = items[n-1];
-        sayAndForget(history.code + (history.output ?
-          " evaluates to " + history.output :
+        var isMain = (history.code === 'def//');
+        sayAndForget((isMain ? "Loading definitions window" : history.code) +
+          (history.output ?
+          (isMain ? " produced output " : " evaluates to ") + history.output :
           " resulted in an error." + history.erroroutput));
         return true;
       }
@@ -325,6 +331,7 @@
         //console.log('speakChar ' , ln, ch);
         var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
         //console.log('char=', char);
+        if (char === ' ') char = 'space';
         sayAndForget(char);
       }
 
@@ -570,21 +577,46 @@
         "vertical-align": "middle"
       });
       var runContents;
-      function updateItems() {
-        //console.log('doing updateItems');
+      function updateItems(isMain) {
+        //console.log('doing updateItems', isMain);
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
         var lastOutput = docOutput.lastElementChild;
         //console.log('lastOutput=', lastOutput);
         var text;
         if (lastOutput.classList.contains('compile-error')) {
-          var pList = lastOutput.getElementsByTagName('p');
+          var loChildren = lastOutput.childNodes;
+          //console.log('loChildren=', loChildren);
           text = '';
-          for (var i = 0; i < pList.length; i++) {
-            text += ' ' + pList[i].innerText;
+          for (var i = 0; i < loChildren.length; i++) {
+            var thisChild = loChildren[i];
+            //console.log('thisChild=', thisChild);
+            if (thisChild.tagName === 'DIV' && thisChild.classList.contains('cm-snippet')) {
+              if (!isMain) {
+                //console.log('adding in', thiscode.code);
+                text += ' in ' + thiscode.code + '.';
+              }
+            } else if (thisChild.tagName === 'P') {
+              //console.log('adding', thisChild.innerText);
+              text += ' ' + thisChild.innerText;
+            }
           }
+          //console.log('final text=', text);
           thiscode.erroroutput = text;
-          sayAndForget(thiscode.code + ' resulted in an error. ' + text);
+          thiscode.output = false;
+        } else if (isMain) {
+          var allTraces = docOutput.childNodes;
+          text = '';
+          var dtext;
+          for (var i = 0; i < allTraces.length; i++) {
+            dtext = undefined;
+            var ro = allTraces[i].getElementsByClassName('replOutput');
+            if (ro.length === 0) ro = allTraces[i].getElementsByClassName('replTextOutput');
+            if (ro.length > 0) dtext = ro[0].ariaText;
+            if (!dtext) dtext = allTraces[i].innerText;
+            text += '. ' + dtext;
+          }
+          thiscode.output = text;
         } else {
           var loro = lastOutput.getElementsByClassName('replOutput');
           if (loro.length === 0) loro = lastOutput.getElementsByClassName('replTextOutput');
@@ -594,8 +626,9 @@
           if (!text) text = lastOutput.innerText;
           //console.log('text=', text);
           thiscode.output = text;
-          sayAndForget(thiscode.code + ' evaluates to ' + text);
         }
+        speakHistory(1);
+        return true;
       }
       function afterRun(cm) {
         return function() {
@@ -746,6 +779,9 @@
 
       var runMainCode = function(src, uiOptions) {
         breakButton.attr("disabled", false);
+        items = [];
+        var thiscode = {code: 'def//', output: false, erroroutput: false};
+        items.unshift(thiscode);
         output.empty();
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
@@ -773,7 +809,7 @@
           maybeShowOutputPending();
           return r;
         });
-        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(false));

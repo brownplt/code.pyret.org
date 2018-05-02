@@ -56,6 +56,7 @@
 
     var replContainer = $("<div>").addClass("repl");
     replContainer.attr("tabindex", "-1");
+    replContainer.attr("aria-hidden", "true");
     $("#REPL").append(replContainer);
 
     var logDetailedOption = $("#detailed-logging");
@@ -252,7 +253,7 @@
         var ws_str = source;
         if (cpoDialect === 'patch') {
           console.log('cpo-main/getdefs calling patchToPyretAST', ws_str);
-          ws_str = patchParse.patchToPyretAST(ws_str, 'definitions', 'definitions');
+          ws_str = patchParse.patchToPyretAST(ws_str, 'definitions://', 'definitions');
         }
         return ws_str;
       });
