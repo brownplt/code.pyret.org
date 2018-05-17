@@ -1144,22 +1144,28 @@
     // part of the decimal number, and a string to be
     // repeated. The 'rationalRepeat' class puts a bar over
     // the string.
-    $.fn.toggleFrac = function(frac, dec, decRpt) {
+    $.fn.toggleFrac = function(numrString, denrString, prePointString, postPointString, decRpt) {
+      //console.log('doing toggleFrac', numrString, denrString, prePointString, postPointString, decRpt);
+      var ariaText;
       if (this.hasClass("fraction")) {
-        this.text(dec);
+        this.text(prePointString + '.' + postPointString);
+        ariaText = prePointString + ' point ' + postPointString;
         // This is the stuff to be repeated.  If the digit to
         // be repeated is just a zero, then ignore this
         // feature, and leave off the zero.
         if (decRpt != "0") {
           var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
           this.append(cont);
+          ariaText += ' with repeating ' + decRpt;
         }
         this.removeClass("fraction");
       } else {
-        this.text(frac);
+        this.text(numrString + '/' + denrString);
+        ariaText = numrString + ' over ' + denrString;
         this.addClass("fraction");
       }
-      return this;
+      ariaText += ', a rational number';
+      return ariaText;
     }
     // A function to use the class of a container to toggle
     // between the two representations of a string.  The
@@ -1340,25 +1346,32 @@
         // number.  Note that this feature abandons the convenience of
         // publishing output via the CodeMirror textarea.
         if (jsnums.isRational(num) && !jsnums.isInteger(num)) {
-          ariaText = num.toString() + ', a rational number';
           // This function returns three string values, numerals to
           // appear before the decimal point, numerals to appear
           // after, and numerals to be repeated.
-          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), runtime.NumberErrbacks);
-          var decimalString = decimal[0].toString() + "." + decimal[1].toString();
+          var numr = num.numerator();
+          var denr = num.denominator();
+          var decimal = jsnums.toRepeatingDecimal(numr, denr, runtime.NumberErrbacks);
+          var prePointString = decimal[0];
+          var postPointString = decimal[1];
+          var decRpt = decimal[2];
+          var numrString = numr.toString();
+          var denrString = denr.toString();
 
           outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
             .text(num.toString());
 
-          outText.toggleFrac(num.toString(), decimalString, decimal[2]);
+          ariaText = outText.toggleFrac(numrString, denrString, prePointString, postPointString, decRpt);
 
           // On click, switch the representation from a fraction to
           // decimal, and back again.
           // https://stackoverflow.com/a/10390111/7501301
           var isClick = false;
-          outText.click(function() {
+          outText.click(function(e) {
             if (isClick) {
-              outText.toggleFrac(num.toString(), decimalString, decimal[2]);
+              var ariaText = outText.toggleFrac(numrString, denrString, prePointString, postPointString, decRpt);
+              outText[0].ariaText = ariaText;
+              outText[0].setAttribute('aria-label', ariaText);
             }
             e.stopPropagation();
           }).mousedown(function () {
