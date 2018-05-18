@@ -1418,7 +1418,7 @@
             e.stopPropagation();
           });
         }
-        var ariaText = unescapedUnicode + ', a string';
+        var ariaText = val + ', a string';
         outText[0].ariaText = ariaText;
         outText[0].setAttribute('aria-label', ariaText);
         return outText;
