@@ -289,10 +289,45 @@
         if (n > historySize) { return false; }
         var history = items[n-1];
         var isMain = (history.code === 'def//');
-        sayAndForget((isMain ? "Loading definitions window" : history.code) +
-          (history.output ?
-          (isMain ? " produced output " : " evaluates to ") + history.output :
-          " resulted in an error." + history.erroroutput));
+        var recital;
+        if (isMain) {
+          recital = 'Loading definitions window';
+        } else {
+          recital = history.code;
+        }
+        if (history.erroroutput) {
+          recital += ' resulted in an error. ' + history.erroroutput;
+        } else {
+          if (isMain) {
+            recital += ' produced output ';
+          } else {
+            recital += ' evaluates to ';
+          }
+          var docOutput = document.getElementById('output').childNodes;
+          if (!history.end) {
+            var relOutput = docOutput[history.start];
+            var text;
+            var ro = relOutput.getElementsByClassName('replOutput');
+            if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
+            //console.log('ro=', ro);
+            if (ro.length > 0) text = ro[0].ariaText;
+            //console.log('text=', text);
+            if (!text) text = relOutput.innerText;
+            //console.log('text=', text);
+            recital += text;
+          } else {
+            for (var i = history.start; i < history.end; i++) {
+              var relOutput = docOutput[i];
+              var dtext;
+              var ro = relOutput.getElementsByClassName('replOutput');
+              if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
+              if (ro.length > 0) dtext = ro[0].ariaText;
+              if (!dtext) dtext = relOutput.innerText;
+              recital += '. ' + dtext;
+            }
+          }
+        }
+        sayAndForget(recital);
         return true;
       }
 
@@ -544,10 +579,12 @@
         //console.log('doing updateItems', isMain);
         var thiscode = items[0];
         var docOutput = document.getElementById("output");
+        var docOutputLen = docOutput.childNodes.length;
         var lastOutput = docOutput.lastElementChild;
         //console.log('lastOutput=', lastOutput);
         var text;
         if (lastOutput.classList.contains('compile-error')) {
+          thiscode.start = docOutputLen - 1;
           var loChildren = lastOutput.childNodes;
           //console.log('loChildren=', loChildren);
           text = '';
@@ -566,29 +603,11 @@
           }
           //console.log('final text=', text);
           thiscode.erroroutput = text;
-          thiscode.output = false;
         } else if (isMain) {
-          var allTraces = docOutput.childNodes;
-          text = '';
-          var dtext;
-          for (var i = 0; i < allTraces.length; i++) {
-            dtext = undefined;
-            var ro = allTraces[i].getElementsByClassName('replOutput');
-            if (ro.length === 0) ro = allTraces[i].getElementsByClassName('replTextOutput');
-            if (ro.length > 0) dtext = ro[0].ariaText;
-            if (!dtext) dtext = allTraces[i].innerText;
-            text += '. ' + dtext;
-          }
-          thiscode.output = text;
+          thiscode.start = 0;
+          thiscode.end = docOutputLen;
         } else {
-          var loro = lastOutput.getElementsByClassName('replOutput');
-          if (loro.length === 0) loro = lastOutput.getElementsByClassName('replTextOutput');
-          //console.log('loro=', loro);
-          if (loro.length > 0) text = loro[0].ariaText;
-          //console.log('text=', text);
-          if (!text) text = lastOutput.innerText;
-          //console.log('text=', text);
-          thiscode.output = text;
+          thiscode.start = docOutputLen - 1;
         }
         speakHistory(1);
         return true;
@@ -755,7 +774,7 @@
         if(running) { return; }
         running = true;
         items = [];
-        var thiscode = {code: 'def//', output: false, erroroutput: false};
+        var thiscode = {code: 'def//', erroroutput: false, start: false, end: false};
         items.unshift(thiscode);
         output.empty();
         promptContainer.hide();
@@ -793,7 +812,7 @@
       var runner = function(code) {
         if(running) { return; }
         running = true;
-        var thiscode = {code: code, output: false, erroroutput: false};
+        var thiscode = {code: code, erroroutput: false, start: false, end: false};
         items.unshift(thiscode);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
