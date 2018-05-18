@@ -1145,7 +1145,7 @@
     // repeated. The 'rationalRepeat' class puts a bar over
     // the string.
     $.fn.toggleFrac = function(numrString, denrString, prePointString, postPointString, decRpt) {
-      //console.log('doing toggleFrac', numrString, denrString, prePointString, postPointString, decRpt);
+      console.log('doing toggleFrac', numrString, denrString, 'P=', prePointString, 'p=', postPointString, 'r=', decRpt);
       var ariaText;
       if (this.hasClass("fraction")) {
         this.text(prePointString + '.' + postPointString);
@@ -1156,7 +1156,10 @@
         if (decRpt != "0") {
           var cont = $("<span>").addClass("rationalNumber rationalRepeat").text(decRpt);
           this.append(cont);
-          ariaText += ' with repeating ' + decRpt;
+          if (postPointString != '') {
+            ariaText += ' with ';
+          }
+          ariaText += decRpt + ' repeating';
         }
         this.removeClass("fraction");
       } else {
