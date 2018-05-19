@@ -1145,7 +1145,7 @@
     // repeated. The 'rationalRepeat' class puts a bar over
     // the string.
     $.fn.toggleFrac = function(numrString, denrString, prePointString, postPointString, decRpt) {
-      console.log('doing toggleFrac', numrString, denrString, 'P=', prePointString, 'p=', postPointString, 'r=', decRpt);
+      //console.log('doing toggleFrac', numrString, denrString, 'P=', prePointString, 'p=', postPointString, 'r=', decRpt);
       var ariaText;
       if (this.hasClass("fraction")) {
         this.text(prePointString + '.' + postPointString);

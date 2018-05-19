@@ -307,22 +307,31 @@
           if (!history.end) {
             var relOutput = docOutput[history.start];
             var text;
-            var ro = relOutput.getElementsByClassName('replOutput');
-            if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
-            //console.log('ro=', ro);
-            if (ro.length > 0) text = ro[0].ariaText;
-            //console.log('text=', text);
-            if (!text) text = relOutput.innerText;
-            //console.log('text=', text);
+            if (relOutput.classList.contains('test-results')) {
+              text = relOutput.innerText;
+            } else {
+              var ro = relOutput.getElementsByClassName('replOutput');
+              if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
+              //console.log('ro=', ro);
+              if (ro.length > 0) text = ro[0].ariaText;
+              //console.log('text=', text);
+              if (!text) text = relOutput.innerText;
+              //console.log('text=', text);
+            }
             recital += text;
           } else {
+            //console.log('speakhistory from', history.start, 'to', history.end);
             for (var i = history.start; i < history.end; i++) {
               var relOutput = docOutput[i];
               var dtext;
-              var ro = relOutput.getElementsByClassName('replOutput');
-              if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
-              if (ro.length > 0) dtext = ro[0].ariaText;
-              if (!dtext) dtext = relOutput.innerText;
+              if (relOutput.classList.contains('test-results')) {
+                dtext = relOutput.innerText;
+              } else {
+                var ro = relOutput.getElementsByClassName('replOutput');
+                if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
+                if (ro.length > 0) dtext = ro[0].ariaText;
+                if (!dtext) dtext = relOutput.innerText;
+              }
               recital += '. ' + dtext;
             }
           }
@@ -584,6 +593,7 @@
         //console.log('lastOutput=', lastOutput);
         var text;
         if (lastOutput.classList.contains('compile-error')) {
+          //console.log('result is a compile-error');
           thiscode.start = docOutputLen - 1;
           var loChildren = lastOutput.childNodes;
           //console.log('loChildren=', loChildren);
@@ -604,9 +614,11 @@
           //console.log('final text=', text);
           thiscode.erroroutput = text;
         } else if (isMain) {
+          //console.log('result is a successful load, 0 to', docOutputLen);
           thiscode.start = 0;
           thiscode.end = docOutputLen;
         } else {
+          //console.log('result is a successful single interaction');
           thiscode.start = docOutputLen - 1;
         }
         speakHistory(1);
