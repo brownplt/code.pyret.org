@@ -288,7 +288,15 @@
           text = '';
           for (var i = 0; i < eltChildren.length; i++) {
             var eltI = eltChildren[i];
-            if (eltI.classList.contains('check-block-success') ||
+            if (eltI.classList.contains('testing-summary')) {
+              var succ = eltI.getElementsByClassName('summary-bits');
+              if (succ.length > 0) {
+                text += eltI.getElementsByClassName('summary-passed')[0].innerText +
+                  ', ' + eltI.getElementsByClassName('summary-failed')[0].innerText + '. ';
+              } else {
+                text += eltI.innerText + '. ';
+              }
+            } else if (eltI.classList.contains('check-block-success') ||
               eltI.classList.contains('check-block-failed')) {
               var eltIChildren = eltI.childNodes;
               for (j = 0; j < eltIChildren.length; j++) {
