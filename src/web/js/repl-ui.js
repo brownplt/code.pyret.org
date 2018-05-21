@@ -281,6 +281,37 @@
         say(msg, true);
       }
 
+      function outputText(elt) {
+        var text;
+        if (elt.classList.contains('test-results')) {
+          var eltChildren = elt.childNodes;
+          text = '';
+          for (var i = 0; i < eltChildren.length; i++) {
+            var eltI = eltChildren[i];
+            if (eltI.classList.contains('check-block-success') ||
+              eltI.classList.contains('check-block-failed')) {
+              var eltIChildren = eltI.childNodes;
+              for (j = 0; j < eltIChildren.length; j++) {
+                var eltIJ = eltIChildren[j];
+                if (!eltIJ.classList.contains('check-block-tests')) {
+                  text += eltIJ.innerText + '. ';
+                }
+              }
+            }
+            else {
+              text += eltI.innerText + '. ';
+            }
+          }
+        } else {
+          var ro = elt.getElementsByClassName('replOutput');
+          if (ro.length === 0) ro = elt.getElementsByClassName('replTextOutput');
+          if (ro.length > 0) text = ro[0].ariaText;
+          if (!text) text = elt.innerText;
+        }
+        return text;
+      }
+
+
       function speakHistory(n) {
         //console.log('doing speakHistory', n);
         if (n === 0) { n = 10; }
@@ -299,40 +330,17 @@
           recital += ' resulted in an error. ' + history.erroroutput;
         } else {
           if (isMain) {
-            recital += ' produced output ';
+            recital += ' produced output: ';
           } else {
             recital += ' evaluates to ';
           }
           var docOutput = document.getElementById('output').childNodes;
           if (!history.end) {
-            var relOutput = docOutput[history.start];
-            var text;
-            if (relOutput.classList.contains('test-results')) {
-              text = relOutput.innerText;
-            } else {
-              var ro = relOutput.getElementsByClassName('replOutput');
-              if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
-              //console.log('ro=', ro);
-              if (ro.length > 0) text = ro[0].ariaText;
-              //console.log('text=', text);
-              if (!text) text = relOutput.innerText;
-              //console.log('text=', text);
-            }
-            recital += text;
+            recital += outputText(docOutput[history.start]);
           } else {
             //console.log('speakhistory from', history.start, 'to', history.end);
             for (var i = history.start; i < history.end; i++) {
-              var relOutput = docOutput[i];
-              var dtext;
-              if (relOutput.classList.contains('test-results')) {
-                dtext = relOutput.innerText;
-              } else {
-                var ro = relOutput.getElementsByClassName('replOutput');
-                if (ro.length === 0) ro = relOutput.getElementsByClassName('replTextOutput');
-                if (ro.length > 0) dtext = ro[0].ariaText;
-                if (!dtext) dtext = relOutput.innerText;
-              }
-              recital += '. ' + dtext;
+              recital += '. ' + outputText(docOutput[i]);
             }
           }
         }
