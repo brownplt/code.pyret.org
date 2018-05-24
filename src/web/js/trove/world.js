@@ -357,12 +357,15 @@
           var eventValue = 
               runtime.getField(Reactors, "raw-key").app(
                 e.key,
+                e.charCode || e.keyCode,
+                getKeyCodeName(e),
                 e.type,
-                false,
-                e.shiftKey,
-                e.altKey,
-                e.metaKey,
-                e.ctrlKey
+                runtime.makeObject({
+                  shift: e.shiftKey,
+                  alt: e.altKey,
+                  meta: e.metaKey,
+                  control: e.ctrlKey
+                })
               );
           worldFunction(w, eventValue, success);
         });
