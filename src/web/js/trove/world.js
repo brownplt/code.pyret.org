@@ -352,7 +352,6 @@
 
       return rawJsworld.on_raw_key(
         function(w, e, success) {
-          console.log("the key event: ", e)
 
           var eventValue = 
               runtime.getField(Reactors, "raw-key").app(
