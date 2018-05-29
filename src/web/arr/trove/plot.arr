@@ -44,6 +44,8 @@ import base as B
 import image-structs as I
 import image as IM
 include lists
+include option
+include either
 import plot-lib as P
 import either as E
 import string-dict as SD
