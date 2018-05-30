@@ -252,7 +252,8 @@
             var pyOptions = defaultOptions.extendWith({
               "type-check": options.typeCheck,
               "check-all": options.checkAll,
-              "on-compile": onCompile
+              "on-compile": onCompile,
+              "trace": true
             });
             var ret = Q.defer();
             setTimeout(function() {
