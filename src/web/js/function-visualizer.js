@@ -3,6 +3,7 @@
  * For now, just `console.log`'s function calls
  * and returns, but eventually will integrate d3
  * and display windows.
+ * Looking at http://d3indepth.com/layouts/
  */
 ({
   requires: [],
