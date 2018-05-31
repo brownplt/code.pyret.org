@@ -253,7 +253,7 @@
               "type-check": options.typeCheck,
               "check-all": options.checkAll,
               "on-compile": onCompile,
-              "trace": true
+              "trace": options.trace
             });
             var ret = Q.defer();
             setTimeout(function() {
@@ -342,6 +342,13 @@
         doRunAction(editor.cm.getValue());
         $("#run-dropdown-content").hide();
       });
+
+      $("#select-trace-run").click(function() {
+        runButton.text("Trace and Run");
+        currentAction = "trace-and-run";
+        doRunAction(editor.cm.getValue());
+        $("#run-dropdown-content").hide();
+      });
       /*
       $("#select-scsh").click(function() {
         highlightMode = "scsh"; $("#run-dropdown-content").hide();});
@@ -371,6 +378,9 @@
             break;
           case "tc-and-run":
             replWidget.runCode(src, {check: true, cm: editor.cm, "type-check": true});
+            break;
+          case "trace-and-run":
+            replWidget.runCode(src, {check: true, cm: editor.cm, "trace": true});
             break;
         }
       }

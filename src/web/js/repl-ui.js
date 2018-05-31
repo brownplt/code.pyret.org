@@ -650,10 +650,12 @@
         interactionsCount = 0;
         replOutputCount = 0;
         logger.log('run', { name      : "definitions://",
-                            type_check: !!uiOptions["type-check"]
+            type_check: !!uiOptions["type-check"],
+            trace: !!uiOptions["trace"]
                           });
         var options = {
           typeCheck: !!uiOptions["type-check"],
+          trace: !!uiOptions["trace"],
           checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
                           // if this becomes a check box somewhere in CPO
         };
