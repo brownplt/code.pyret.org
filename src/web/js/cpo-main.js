@@ -97,6 +97,21 @@
 
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
 
+    var indentation = 1;
+    var indentation_char = "-";
+    var simpleOnPush = function(packet_list) {
+      console.log(Array(indentation).join(indentation_char) + packet_list.join(" "));
+      indentation++;
+    }
+
+    var simpleOnPop = function(packet_list) {
+      indentation--;
+      console.log(Array(indentation).join(indentation_char) + packet_list.join(" "));
+    }
+
+    var function_trace_subscription_token = runtime.ffi.subscribeToFunctionTraces(
+      simpleOnPush, simpleOnPop);
+
     // NOTE(joe): In order to yield control quickly, this doesn't pause the
     // stack in order to save.  It simply sends the save requests and
     // immediately returns.  This avoids needlessly serializing multiple save
