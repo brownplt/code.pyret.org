@@ -24,6 +24,10 @@
       protocol: "js-file",
       args: ["./text-handlers"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./function-visualizer"]
+    },
     { "import-type": "builtin",
       name: "parse-pyret"
     },
@@ -50,6 +54,7 @@
   provides: {},
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI, textHandlers,
+                      functionVisualizer,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
                       gdriveLocators, http, cpoModules, _modalPrompt,
                       rtLib) {
@@ -97,20 +102,8 @@
 
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
 
-    var indentation = 1;
-    var indentation_char = "-";
-    var simpleOnPush = function(packet_list) {
-      console.log(Array(indentation).join(indentation_char) + packet_list.join(" "));
-      indentation++;
-    }
-
-    var simpleOnPop = function(packet_list) {
-      indentation--;
-      console.log(Array(indentation).join(indentation_char) + packet_list.join(" "));
-    }
-
     var function_trace_subscription_token = runtime.ffi.subscribeToFunctionTraces(
-      simpleOnPush, simpleOnPop);
+      functionVisualizer.pushFun, functionVisualizer.popFun);
 
     // NOTE(joe): In order to yield control quickly, this doesn't pause the
     // stack in order to save.  It simply sends the save requests and
