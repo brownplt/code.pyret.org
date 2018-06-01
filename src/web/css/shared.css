@@ -183,6 +183,26 @@ em {
   font-family: sans-serif;
 }
 
+nav {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+nav ul {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+nav ul li {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
 #logo{
   height:100%;
   background: url("/img/pyret-logo.png") 15px 5px no-repeat;
@@ -254,6 +274,10 @@ em {
     color: rgba(0, 0, 0, 0.26);
     cursor: default;
     box-shadow: none;
+}
+
+.lhs {
+  float: left;
 }
 
 .rhs {
