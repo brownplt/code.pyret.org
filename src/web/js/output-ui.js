@@ -1768,7 +1768,7 @@
           function drawRows(start, end) {
             var realEnd = end > rows.length ? rows.length : end;
             for(var i = start; i < realEnd; i++) {
-              ariaText += 'row ' + i + ': ';
+              ariaText += 'row ' + i + '. ';
               var rowAsText = [];
               tableAsText.push(rowAsText);
               var rowv  = rows[i]

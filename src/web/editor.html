@@ -16,10 +16,12 @@
 </head>
 <body>
   <main>
-  <div id="Toolbar" role="region" aria-label="Toolbar" tabindex="-1">
-<div id="header">
+  <div id="Toolbar" role="region" aria-label="Tool Controls" tabindex="-1">
+<nav id="header">
+  <ul>
+    <li class="lhs">
   <div id="bonniemenu" class="menu">
-    <button class="blueButton" aria-label="Main Menu">
+    <button role="button" class="blueButton" aria-label="Main Menu">
       <span>▾</span>
       <img class="logo" src="/img/pyret-logo.png"></img>
     </button>
@@ -50,8 +52,10 @@
     </div>
     <div id="logout" class="menuButton"><a href="/logout">Log out</a></div>
   </div>
+    </li>
 
-  <button id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
+    <li class="lhs">
+  <button role="button" id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
   <!--
   <div id="program-name-container" class="loginOnly">
     <input id="program-name" type="text" placeholder="Program Name"></input>
@@ -59,7 +63,7 @@
   -->
 
   <div id="filemenu" class="loginOnly menu">
-    <button class="blueButton">
+    <button role="button" class="blueButton" aria-label="File">
       <span>▾ File</span><span id="filename"></span>
     </button>
   </div>
@@ -72,21 +76,31 @@
     <div id="rename" class="menuButton disabled"><a href="javascript:void(0)">Rename</a></div>
 
   </div>
+    </li>
+
+    <li class="lhs">
   <button role="button" aria-label="Insert, F11" id="insert" class="blueButton loginOnly">Insert</button>
   <div id="shareContainer"></div>
   <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
   <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
+  </li>
 
+  <li class="rhs">
   <button role="button" aria-label="Stop, F8" disabled id="breakButton" class="blueButton rhs">Stop</button>
+  </li>
+
+  <li class="rhs">
   <div id="runPart" class="blueButton rhs">
-    <button disabled id="runDropdown" class="blueButton dropdown rhs" aria-label="Run Options">↴</button>
     <button role="button" aria-label="Run, F7" disabled id="runButton" class="blueButton rhs">Run</button>
+    <button disabled id="runDropdown" class="blueButton dropdown rhs" aria-label="Run Options">↴</button>
   </div>
   <ul id="run-dropdown-content">
     <li id="select-run">Run</li>
     <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
   </ul>
-</div>
+  </li>
+  </ul>
+</nav>
   </div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
