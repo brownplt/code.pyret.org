@@ -1600,9 +1600,25 @@
         $(this).toggleClass("inlineCollection");
       }
       function helper(container, val, values, wantCommaAtEnd) {
-        if (runtime.ffi.isVSValue(val)) { container.append(values.pop()); }
-        else if (runtime.ffi.isVSStr(val)) { container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "s")))); }
+        var ariaText;
+        if (runtime.ffi.isVSValue(val)) {
+          //console.log('helper i', val);
+          var val1 = values.pop();
+          ariaText = val1[0].ariaText;
+          //console.log('ariaT=', ariaText);
+          container[0].ariaText = ariaText;
+          container[0].setAttribute('aria-label', ariaText);
+          container.append(val1); }
+        else if (runtime.ffi.isVSStr(val)) {
+          //console.log('helper ii', val);
+          var val1 = runtime.unwrap(runtime.getField(val, "s"));
+          ariaText = val1;
+          //console.log('ariaT=', ariaText);
+          container[0].ariaText = ariaText;
+          container[0].setAttribute('aria-label', ariaText);
+          container.append($("<span>").text(val1)); }
         else if (runtime.ffi.isVSCollection(val)) {
+          //console.log('helper iii');
           var name = runtime.unwrap(runtime.getField(val, "name"));
           container.addClass("replToggle");
           container.append($("<span>").text("[" + name + ": "));
@@ -1610,7 +1626,7 @@
           container.append(ul);
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           var maxIdx = items.length;
-          var ariaText = name + ' of ' + maxIdx + ' items: ';
+          ariaText = name + ' of ' + maxIdx + ' items: ';
           var ariaElts = '';
           //groupItems(ul, items, values, 0, items.length);
           for (var i = 0; i < maxIdx; i++) {
@@ -1630,6 +1646,7 @@
             e.stopPropagation();
           });
         } else if (runtime.ffi.isVSConstr(val)) {
+          //console.log('helper iv');
           container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
           for (var i = 0; i < items.length; i++) {
@@ -1637,12 +1654,13 @@
           }
           container.append($("<span>").text(")"));
         } else if (runtime.ffi.isVSSeq(val)) {
+          //console.log('helper v');
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
             helper(container, items[i], values, (i + 1 < items.length));
           }
         } else if (runtime.ffi.isVSRow(val)) {
-
+          //console.log('helper vi');
           var cols = runtime.getField(val, "headers")
           var rowVals = runtime.getField(val, "values")
 
@@ -1673,6 +1691,8 @@
           container.append(table);
 
         } else if (runtime.ffi.isVSTable(val)) {
+          //console.log('helper vii; TABLE is', val, ' , container is', container);
+          ariaText = 'table with ';
           var showText = document.createElement("a");
           $(showText).html("<i class=\"fa fa-clipboard\" aria-hidden=\"true\"></i>");
           $(showText).css({
@@ -1689,6 +1709,7 @@
               return line.join("\t");
             });
             var allText = textLines.join("\n");
+            //console.log('allText =', allText);
 
             var textBox = $("<textarea>").addClass("auto-highlight");
             textBox.attr("editable", false);
@@ -1718,23 +1739,36 @@
             $(showText).hide();
           });
           var cols = runtime.getField(val, "headers")
+          var rows = runtime.getField(val, "rows")
+          ariaText +=
+            cols.length + ' column' +
+            (cols.length===1? '': 's') +
+            ' and ' +
+            rows.length + ' row' +
+            (rows.length===1? '': 's') +
+            ': ';
           var headers = document.createElement("thead");
           var header = document.createElement("tr");
           var headersAsText = [];
+          ariaText += 'header row: ';
           for(var i = 0; i < cols.length; i++) {
             var col = document.createElement("th");
             helper($(col), cols[i], values);
             header.appendChild(col);
             headersAsText.push($(col).text());
+            if (i !== 0) ariaText += ', ';
+            ariaText += col.ariaText;
           }
+          ariaText += '. ';
+          //console.log('headerText =', ariaText);
           tableAsText.push(headersAsText);
           headers.appendChild(header);
           table.appendChild(headers);
           var body = document.createElement("tbody");
-          var rows = runtime.getField(val, "rows")
           function drawRows(start, end) {
             var realEnd = end > rows.length ? rows.length : end;
             for(var i = start; i < realEnd; i++) {
+              ariaText += 'row ' + i + ': ';
               var rowAsText = [];
               tableAsText.push(rowAsText);
               var rowv  = rows[i]
@@ -1744,7 +1778,11 @@
                 helper($(cellel), rowv[j], values);
                 rowel.appendChild(cellel);
                 rowAsText.push($(cellel).text());
+                if (j !== 0) ariaText += ', ';
+                ariaText += cellel.ariaText;
               }
+              ariaText += '. ';
+              // console.log('rowAsText=', rowAsText);
               body.appendChild(rowel);
             }
           }
@@ -1773,16 +1811,23 @@
             drawRows(0, previewLimit);
             body.appendChild(clickTR);
           }
+          ariaText += ' end table.';
           table.appendChild(body);
+          container[0].ariaText = ariaText;
+          container[0].setAttribute('aria-label', ariaText);
           container.append(table);
 
         } else {
+          //console.log('helper viii');
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
           for (var i = 0; i < items.length; i++) {
             helper(container, items[i], values, (i + 1 < items.length));
           }
         }
-        if (wantCommaAtEnd) { container.append(collapsedComma()); }
+        if (wantCommaAtEnd) {
+          //console.log('adding a comma');
+          container.append(collapsedComma());
+        }
         return container;
       }
       function groupItems(ul, items, values, minIdx, maxIdx) {
