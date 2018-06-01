@@ -14,14 +14,18 @@
 
     var indentation = 1;
     var indentation_char = "-";
-    var simpleOnPush = function(packet_list) {
-      console.log(Array(indentation).join(indentation_char) + packet_list.join(" "));
+    // packet: {action: String, funName: String, params: List<String>, args: List<Vals>}
+    var simpleOnPush = function(packet) {
+      console.log(Array(indentation).join(indentation_char) +
+        [packet.action, packet.funName, packet.params.toString(), packet.args.toString()].join(" "));
       indentation++;
     }
 
-    var simpleOnPop = function(packet_list) {
+    // packet: {action: String, retVal: Vals}
+    var simpleOnPop = function(packet) {
       indentation--;
-      console.log(Array(indentation).join(indentation_char) + packet_list.join(" "));
+      console.log(Array(indentation).join(indentation_char) +
+        [packet.action, packet.retVal].join(" "));
     }
 
     return runtime.makeJSModuleReturn({
