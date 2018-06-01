@@ -4,6 +4,7 @@
  * and returns, but eventually will integrate d3
  * and display windows.
  * Looking at http://d3indepth.com/layouts/
+ * and https://stackoverflow.com/questions/21727202/append-dom-element-to-the-d3
  */
 ({
   requires: [],
