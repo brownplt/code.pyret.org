@@ -615,6 +615,49 @@ $(function() {
   shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
   shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
+  function nextTabbableElt() {
+    var allTabbables = $(document).find(':tabbable').toArray();
+    var currIndex = allTabbables.indexOf(document.activeElement);
+    return allTabbables[currIndex+1];
+  }
+
+  function submenuFocus(menubarItemElt, submenuElt) {
+    $(menubarItemElt).focusin(function() {
+      var currElt = document.activeElement;
+      //console.log(menubarItemElt, 'focusin', $(this).has(currElt).length);
+      //console.log(menubarItemElt, 'focusin 1st elt?', $(submenuElt).has(currElt));
+      //console.log('docactelt=', currElt);
+      if (!$(menubarItemElt)[0].tabsEnabled &&
+        ($(this).has(currElt).length === 0 || $(submenuElt).has(currElt).length !== 0)) {
+        // entering the menubarItem for the first time
+        // activate the submenu (makes it visible and tabbable)
+        $(menubarItemElt)[0].tabsEnabled = true;
+        $(submenuElt).click();
+      }
+      var nextTab = nextTabbableElt();
+      //console.log('nextTab=', nextTab);
+      // remember next tabbable element
+      $(submenuElt)[0].nextTab = nextTab;
+    });
+    ;
+    $(menubarItemElt).focusout(function() {
+      var currElt = document.activeElement;
+      //console.log(menubarItemElt, 'focusout');
+      // if next tabbable element is outside this menubarItem,
+      // deactivate the submenu
+      var nextTab = $(submenuElt)[0].nextTab;
+      //console.log('nextTab=', nextTab);
+      //console.log('where is it?', $(this).has(nextTab).length);
+      if ($(menubarItemElt)[0].tabsEnabled && $(this).has(nextTab).length === 0) {
+        $(submenuElt).click();
+        $(menubarItemElt)[0].tabsEnabled = false;
+      }
+    });
+  }
+
+  submenuFocus('#filemenuli', '#filemenu');
+  submenuFocus('#bonniemenuli', '#bonniemenu');
+
   var codeContainer = $("<div>").addClass("replMain");
   codeContainer.attr("role", "region").
     attr("aria-label", "Definitions");
