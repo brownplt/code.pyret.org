@@ -22,7 +22,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
           left: triggerElt.offset().left,
           "z-index": 10000
         });
-        $(document.body).append(menuElt);
+        //$(document.body).append(menuElt);
         menuElt.fadeIn(250);
         showing = true;
         setTimeout(function() {
@@ -41,8 +41,18 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       evt.stopPropagation();
     });
     triggerElt.on("click", function(e) {
-      if(!showing) { show(); e.stopPropagation(); }
-      else { hide(); }
+      //console.log('triggerElt clicked');
+      if(!showing) { show(); e.stopPropagation();
+        menuElt.find('div').find('a').attr('tabIndex', 0);
+        menuElt.find('div').find('input').attr('tabIndex', 0);
+        menuElt.find('div.disabled').find('a').attr('tabIndex', -1);
+        //console.log('set filemenu submenu tabindex to 0');
+      }
+      else { hide();
+        menuElt.find('a').attr('tabIndex', -1);
+        menuElt.find('input').attr('tabIndex', -1);
+        //console.log('set filemenu submenu tabindex to -1');
+      }
     });
     return triggerElt;
   }
