@@ -18,8 +18,9 @@
   <main>
   <div id="Toolbar" role="region" aria-label="Tool Controls" tabindex="-1">
 <nav id="header">
-  <ul>
-    <li class="lhs">
+  <h2 class="screenreader-only">Navigation Controls</h2>
+  <ul role="menubar">
+    <li class="lhs" id="bonniemenuli">
   <div id="bonniemenu" class="menu">
     <button role="button" class="blueButton" aria-label="Main Menu">
       <span>▾</span>
@@ -61,7 +62,9 @@
     <input id="program-name" type="text" placeholder="Program Name"></input>
   </div>
   -->
+    </li>
 
+    <li class="lhs" id="filemenuli" tabindex="0">
   <div id="filemenu" class="loginOnly menu">
     <button role="button" class="blueButton" aria-label="File">
       <span>▾ File</span><span id="filename"></span>
@@ -74,7 +77,6 @@
     <div id="saveas" class="menuButton"><a href="javascript:void(0)">Save a copy</a></div>
     <div id="download" class="menuButton"><a href="javascript:void(0)">Download</a></div>
     <div id="rename" class="menuButton disabled"><a href="javascript:void(0)">Rename</a></div>
-
   </div>
     </li>
 
