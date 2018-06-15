@@ -676,9 +676,14 @@ $(function() {
       if (!firstTierUl) {
         submenu = $(this).closest('li').prevAll().find('div:not(.disabled)')
           .find('.focusable').filter(':visible');
+        if (submenu.length === 0) {
+          submenu = $(this).closest('li').closest('ul').find('div:not(.disabled)')
+          .find('.focusable').filter(':visible').last();
+        }
         if (submenu.length > 0) {
-          submenu.first().focus();
+          submenu.last().focus();
         } else {
+          /*
           //console.log('no actionable submenu found')
           var topmenuItem = $(this).closest('ul[role=menu]').closest('li')
           .children().first().find('.focusable:not([disabled])').filter(':visible');
@@ -687,6 +692,7 @@ $(function() {
           } else {
             //console.log('no actionable topmenuitem found either')
           }
+          */
         }
       }
     } else if (e.keyCode === 40) { // dn aro
@@ -700,6 +706,10 @@ $(function() {
         //console.log('2nd tier')
         submenu = $(this).closest('li').nextAll().find('div:not(.disabled)')
           .find('.focusable').filter(':visible');
+        if (submenu.length === 0) {
+          submenu = $(this).closest('li').closest('ul').find('div:not(.disabled)')
+            .find('.focusable').filter(':visible');
+        }
       }
       //console.log('submenu=', submenu)
       if (submenu.length > 0) {
