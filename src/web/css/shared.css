@@ -171,6 +171,7 @@ em {
   box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
 }
 
+/*
 #header div a {
   width: 100px;
   margin-top: 15px;
@@ -182,25 +183,96 @@ em {
   color: #111;
   font-family: sans-serif;
 }
+*/
 
 nav {
-  height: 100%;
+  /* height: 100%; */
   padding: 0;
   margin: 0;
 }
 
-nav ul {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+nav ul a, nav ul button {
+  /* width: 100px; */
+  /* margin-top: 15px; */
+  float: left;
+  padding-right: 2em;
+}
+
+nav a, nav button {
+  color: #111;
+  font-family: sans-serif;
+}
+
+nav > ul {
+  height: 100%; 
+  margin: 1px; /* actually 0 */
+  padding: 1px;
   list-style-type: none;
 }
 
-nav ul li {
-  height: 100%;
+nav > ul > li {
+  height: 100%; 
+  margin: 1px; 
+  padding: 1px;
+  position: relative;
+ /* border: thin solid green; */
+  list-style-type: none;
+}
+
+nav > ul > li  ul {
+   position: absolute; 
+  top: 2.5em; 
+  margin: 1px;
+  padding: 1px;
+  left: 0;
+  aria-hidden: true;
+  display: none;
+  list-style-type: none;
+}
+
+nav > ul > li:hover ul,
+nav > ul > li:focus ul {
+  aria-hidden: false;
+  display: block;
+}
+
+nav > ul ul > li {
+  /* height: 20px; */
+  float: none;
+  position: static;
+  margin: 1px;
+  padding: 1px;
+  /* border: thin solid blue; */
+  overflow: hidden;
+  list-style-type: none;
+}
+
+ul[role="menu"] > li {
+  padding: 0;
+}
+
+nav > ul ul > li > div {
+  margin: 1px;
+  padding: 1px;
+  /* border: thin solid cyan; */
+  overflow: hidden;
+}
+
+.menuitemtitle > button {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+.menuButton {
+  overflow: hidden;
   margin: 0;
   padding: 0;
-  list-style-type: none;
+}
+
+nav > ul ul a, nav > ul ul button {
+  float: none;
+  display: block;
+  overflow: hidden;
 }
 
 #logo{
@@ -210,6 +282,11 @@ nav ul li {
   display:block;
   float:left;
   width: 60px;
+}
+
+li.lhs > div,
+li.rhs > div {
+  float: none;
 }
 
 .logo{
@@ -224,8 +301,14 @@ nav ul li {
   display: inline-block;
   height: 100%;
   vertical-align: top;
-  float:left;
+  float:left;  /*latest*/
 }
+
+/*
+.menu, .menuContents {
+  float: none;
+}
+*/
 
 #toolbar {
   position: fixed;
@@ -360,4 +443,13 @@ code {
   font-size: 65%;
   top: -.15em;
   vertical-align: top;
+}
+
+.showmenu {
+  display: block;
+}
+
+.focusable {
+  margin: 0;
+  padding: 0;
 }
