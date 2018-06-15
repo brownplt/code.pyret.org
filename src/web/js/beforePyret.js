@@ -195,7 +195,6 @@ $(function() {
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
 
-
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
@@ -433,6 +432,7 @@ $(function() {
     document.activeElement.blur();
     focusElt0.click();
     focusElt0.focus();
+    //console.log('docactelt=', document.activeElement);
   }
 
   var programLoaded = loadProgram(initialProgram);
@@ -462,7 +462,6 @@ $(function() {
   function menuItemDisabled(id) {
     return $("#" + id).hasClass("disabled");
   }
-
 
   function newEvent(e) {
     window.open(window.APP_BASE_URL + "/editor");
@@ -612,9 +611,113 @@ $(function() {
   $("#rename").click(rename);
   $("#saveas").click(saveAs);
 
-  shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
-  shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
+  var focusableElts = $(document).find('nav .focusable');
 
+  function showSubmenu() {
+    //console.log('doing showSubmenu', $(this));
+    $(this).closest('ul').find('.showmenu').attr('aria-hidden', 'true').removeClass('showmenu');
+    $(this).closest('ul').find('.showmenu').prev().find('[aria-expanded]').attr('aria-expanded', 'false');
+    $(this).closest('li').children('ul').attr('aria-hidden', 'false').addClass('showmenu');
+    $(this).closest('li').children('ul').prev().find('[aria-expanded]').attr('aria-expanded','true');
+  }
+
+  focusableElts.hover(showSubmenu);
+  focusableElts.focus(showSubmenu);
+
+  focusableElts.keydown(function (e) {
+    var firstTierUl;
+    var secondTierUl = $(this).closest('ul[role=menu]');
+    if (secondTierUl.length === 0) {
+      firstTierUl = $(this).closest('ul[role=menubar]');
+    }
+    if (e.keyCode === 39) { // rt aro
+      //console.log('rt aro pressed');
+      var bubbleUp;
+      if (!firstTierUl) {
+        bubbleUp = $(this).closest('ul[role=menu]');
+      } else {
+        bubbleUp = $(this);
+      }
+      //console.log('bubbleUp=', bubbleUp)
+      var topmenu = bubbleUp.closest('li').nextAll();
+      //console.log('topmenu=', topmenu)
+      for (var i = 0; i < topmenu.length; i++) {
+        //console.log('i=', i)
+        var possElts = topmenu.eq(i).find('.focusable:not([disabled])').filter(':visible');
+        //console.log('possElts=', possElts)
+        if (possElts.length > 0) {
+          //console.log('landing on', possElts.first());
+          possElts.first().focus(); break;
+        }
+      }
+    } else if (e.keyCode === 37) { // lft aro
+      //console.log('lft aro pressed');
+      var bubbleUp;
+      if (!firstTierUl) {
+        bubbleUp = $(this).closest('ul[role=menu]');
+      } else {
+        bubbleUp = $(this);
+      }
+      //console.log('bubbleUp=', bubbleUp)
+      var topmenu = bubbleUp.closest('li').prevAll();
+      //console.log('topmenu=', topmenu)
+      for (var i = 0; i < topmenu.length; i++) {
+        //console.log('i=', i)
+        var possElts = topmenu.eq(i).find('.focusable:not([disabled])').filter(':visible');
+        //console.log('possElts=', possElts)
+        if (possElts.length > 0) {
+          //console.log('landing on', possElts.first());
+          possElts.first().focus(); break;
+        }
+      }
+    } else if (e.keyCode === 38) { // up aro
+      //console.log('up aro pressed');
+      var submenu;
+      if (!firstTierUl) {
+        submenu = $(this).closest('li').prevAll().find('div:not(.disabled)')
+          .find('.focusable').filter(':visible');
+        if (submenu.length > 0) {
+          submenu.first().focus();
+        } else {
+          //console.log('no actionable submenu found')
+          var topmenuItem = $(this).closest('ul[role=menu]').closest('li')
+          .children().first().find('.focusable:not([disabled])').filter(':visible');
+          if (topmenuItem.length > 0) {
+            topmenuItem.first().focus();
+          } else {
+            //console.log('no actionable topmenuitem found either')
+          }
+        }
+      }
+    } else if (e.keyCode === 40) { // dn aro
+      //console.log('dn aro pressed');
+      var submenu;
+      if (firstTierUl) {
+        //console.log('1st tier')
+        submenu = $(this).closest('li').children('ul').find('div:not(.disabled)')
+          .find('.focusable').filter(':visible');
+      } else {
+        //console.log('2nd tier')
+        submenu = $(this).closest('li').nextAll().find('div:not(.disabled)')
+          .find('.focusable').filter(':visible');
+      }
+      //console.log('submenu=', submenu)
+      if (submenu.length > 0) {
+        submenu.first().focus();
+      } else {
+        //console.log('no actionable submenu found')
+      }
+    } else if (e.keyCode === 27) {
+      //console.log('esc pressed');
+      CPO.cycleFocus();
+      //$(this).closest('nav').closest('main').focus();
+    }// e.keyCode === 13 (enter), 32 (spc), 27 (esc)
+  });
+
+  // shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
+  // shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
+
+  /*
   function nextTabbableElt() {
     var allTabbables = $(document).find(':tabbable').toArray();
     var currIndex = allTabbables.indexOf(document.activeElement);
@@ -655,8 +758,9 @@ $(function() {
     });
   }
 
-  submenuFocus('#filemenuli', '#filemenu');
-  submenuFocus('#bonniemenuli', '#bonniemenu');
+  //submenuFocus('#filemenuli', '#filemenu');
+  //submenuFocus('#bonniemenuli', '#bonniemenu');
+*/
 
   var codeContainer = $("<div>").addClass("replMain");
   codeContainer.attr("role", "region").
