@@ -17,92 +17,169 @@
 <body>
   <main>
   <div id="Toolbar" role="region" aria-label="Tool Controls" tabindex="-1">
-<nav id="header">
-  <h2 class="screenreader-only">Navigation Controls</h2>
-  <ul role="menubar">
-    <li class="lhs" id="bonniemenuli">
-  <div id="bonniemenu" class="menu">
-    <button role="button" class="blueButton" aria-label="Main Menu">
-      <span>▾</span>
-      <img class="logo" src="/img/pyret-logo.png"></img>
-    </button>
-  </div>
-  <div id="bonniemenuContents" class="menuContents" style="display: none; z-index: 8990;">
-    <div id="welcome" class="menuButton inert" style="text-align: center;">
-      <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
-    </div>
-    <div id="drive-view" class="loginOnly menuButton">
-      <a target="_blank" href="/">My Programs</a>
-    </div>
-    <div id="docs" class="menuButton">
-      <a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
-    </div>
-    <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
-    <div id="issues" class="menuButton">
-      <a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
-    </div>
-    <div id="discuss" class="menuButton">
-      <a target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
-    </div>
-    <div id="logging">
-      <span>
-        <input id="detailed-logging" type="checkbox"/>
-        <label for="detailed-logging">Contribute detailed usage information.</label>
-        <a href="https://www.pyret.org/cpo-faq#(part._logging)" target="_blank" rel="noopener noreferrer" class="info-btn" title="Learn More">?</a>
-      </span>
-    </div>
-    <div id="logout" class="menuButton"><a href="/logout">Log out</a></div>
-  </div>
-    </li>
+    <nav aria-label="Toolbar" id="header">
+      <h2 class="screenreader-only">Navigation Controls</h2>
+      <ul id="menubar1" role="menubar" aria-label="Toolbar" tabindex="-1">
+        <li class="lhs" id="bonniemenuli">
+          <div id="bonniemenu" class="menu menuitemtitle" style="float:none" >
+            <button role="menuitem" 
+                    aria-label="Main Menu"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="bonniemenuContents" 
+                    tabindex="0"
+                    class="blueButton focusable">
+              <span>▾</span>
+              <img class="logo" src="/img/pyret-logo.png"></img>
+            </button>
+          </div>
+          <ul id="bonniemenuContents" class="menuContents" role="menu" aria-hidden="true"
+            aria-label="Main Menu">
+            <li role="menuitem">
+              <div id="welcome" class="menuButton inert" style="text-align: center;">
+                <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="drive-view" class="loginOnly menuButton">
+                <a class="focusable" tabindex="-1" target="_blank" href="/">My Programs</a>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="docs" class="menuButton">
+                <a class="focusable" tabindex="-1" target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="issues" class="menuButton">
+                <a class="focusable" tabindex="-1" target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="discuss" class="menuButton">
+                <a class="focusable" tabindex="-1" target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="logging">
+                <span>
+                  <input class="focusable" tabindex="-1" id="detailed-logging" type="checkbox"/>
+                  <label for="detailed-logging">Contribute detailed usage information.</label>
+                  <a href="https://www.pyret.org/cpo-faq#(part._logging)" target="_blank" rel="noopener noreferrer" class="focusable info-btn" tabindex="-1" title="Learn More">?</a>
+                </span>
+              </div>
+            </li>
+            <li role="menuitem">
+              <div id="logout" class="menuButton"><a  class="focusable" tabindex="-1" href="/logout">Log out</a>
+              </div>
+            </li>
+          </ul>
+        </li>
 
-    <li class="lhs">
-  <button role="button" id="connectButton" class="logoutOnly blueButton">Connect to Google Drive</button>
-  <!--
-  <div id="program-name-container" class="loginOnly">
-    <input id="program-name" type="text" placeholder="Program Name"></input>
-  </div>
-  -->
-    </li>
+        <li class="lhs" id="connectButtonli">
+          <div class="menu menuitemtitle">
+            <button role="menuitem" id="connectButton"  class="logoutOnly focusable blueButton" tabindex="-1">Connect to Google Drive</button>
+          </div>
+          <!--
+            <div id="program-name-container" class="loginOnly">
+            <input id="program-name" type="text" placeholder="Program Name"></input>
+            </div>
+          -->
+        </li>
 
-    <li class="lhs" id="filemenuli" tabindex="0">
-  <div id="filemenu" class="loginOnly menu">
-    <button role="button" class="blueButton" aria-label="File">
-      <span>▾ File</span><span id="filename"></span>
-    </button>
-  </div>
-  <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;">
-    <div id="new" class="menuButton"><a href="javascript:void(0)">New</a></div>
-    <div id="open" class="menuButton"><a href="javascript:void(0)">Open</a></div>
-    <div id="save" class="menuButton disabled"><a href="javascript:void(0)">Save</a></div>
-    <div id="saveas" class="menuButton"><a href="javascript:void(0)">Save a copy</a></div>
-    <div id="download" class="menuButton"><a href="javascript:void(0)">Download</a></div>
-    <div id="rename" class="menuButton disabled"><a href="javascript:void(0)">Rename</a></div>
-  </div>
-    </li>
+        <li class="loginOnly lhs" id="filemenuli">
+          <div id="filemenu" class="loginOnly menu menuitemtitle" style="float:none" >
+            <button role="menuitem"
+              aria-label="File" 
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="filemenuContents"
+              id="filemenuItem" 
+              tabindex="-1"
+              class="focusable blueButton">
+              <span>▾ File</span><span id="filename"></span>
+            </button>
+          </div>
+          <!-- <div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;"> -->
+          <ul id="filemenuContents" class="menuContents" role="menu" aria-hidden="true"
+            aria-label="File Menu">
+            <li>
+              <div id="new" class="menuButton"><a class="focusable" tabindex="-1" href="javascript:void(0)" >New</a></div>
+            </li>
+            <li>
+              <div id="open" class="menuButton"><a tabindex="-1" href="javascript:void(0)" class="focusable" >Open</a></div>
+            </li>
+            <li>
+              <div id="save" class="menuButton disabled"><a class="focusable disabled" tabindex="-1" href="javascript:void(0)">Save</a></div>
+            </li>
+            <li>
+              <div id="saveas" class="menuButton"><a class="focusable" tabindex="-1" href="javascript:void(0)">Save a copy</a></div>
+            </li>
+            <li>
+              <div id="download" class="menuButton"><a class="focusable" tabindex="-1" href="javascript:void(0)">Download</a></div>
+            </li>
+            <li>
+              <div id="rename" class="menuButton disabled"><a class="focusable disabled" tabindex="-1" href="javascript:void(0)">Rename</a></div>
+            </li>
+          </ul>
+        </li>
 
-    <li class="lhs">
-  <button role="button" aria-label="Insert, F11" id="insert" class="blueButton loginOnly">Insert</button>
-  <div id="shareContainer"></div>
-  <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
-  <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
-  </li>
+        <li class="lhs" >
+          <div id="insertPart" class="loginOnly menu menuitemtitle">
+            <button role="button" aria-label="Insert, F11" id="insert" class="focusable blueButton loginOnly"  tabindex="-1">Insert</button>
+          </div>
+          <div id="shareContainer"></div>
+          <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
+          <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
+        </li>
 
-  <li class="rhs">
-  <button role="button" aria-label="Stop, F8" disabled id="breakButton" class="blueButton rhs">Stop</button>
-  </li>
+        <li class="rhs" >
+          <div class="menu menuitemtitle">
+            <button role="button" aria-label="Stop, F8" disabled id="breakButton" class="focusable blueButton rhs"  tabindex="-1">Stop</button>
+          </div>
+        </li>
 
-  <li class="rhs">
-  <div id="runPart" class="blueButton rhs">
-    <button role="button" aria-label="Run, F7" disabled id="runButton" class="blueButton rhs">Run</button>
-    <button disabled id="runDropdown" class="blueButton dropdown rhs" aria-label="Run Options">↴</button>
-  </div>
-  <ul id="run-dropdown-content">
-    <li id="select-run">Run</li>
-    <li id="select-tc-run">Type-check and run<sup>(beta)</sup></li>
-  </ul>
-  </li>
-  </ul>
-</nav>
+        <li class="rhs" id="rundropdownli">
+          <div class="menu rhs menuitemtitle" style="float:none">
+            <button role="menuitem"
+                    id="runDropdown"
+                    class="focusable blueButton dropdown rhs"
+                    aria-label="Run Options"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="run-dropdown-content"
+                    disabled 
+                    tabindex="-1">↴
+            </button>
+          </div>
+
+          <ul id="run-dropdown-content" class="menuContents" role="menu"  aria-hidden="true"
+            aria-label="Run Options">
+            <li id="select-run-old" role="menuitem">
+              <div id="select-run" class="menuButton">
+                <a class="focusable" tabindex="-1" href="javascript:void(0)">Run</a>
+              </div>
+            </li>
+            <li id="select-tc-run-old" role="menuitem">
+              <div id="select-tc-run" class="menuButton">
+                <a class="focusable" tabindex="-1" href="javascript:void(0)">Type-check and run<sup>(beta)</sup></a>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <li class="rhs">
+          <div id="runPart" class="blueButton rhs menuitemtitle" >
+            <button role="menuitem" aria-label="Run, F7" disabled id="runButton" class="focusable blueButton rhs" tabindex="-1">Run</button>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
   </div>
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
