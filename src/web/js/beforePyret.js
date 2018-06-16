@@ -617,8 +617,8 @@ $(function() {
     //console.log('doing showSubmenu', $(this));
     $(this).closest('ul').find('.showmenu').attr('aria-hidden', 'true').removeClass('showmenu');
     $(this).closest('ul').find('.showmenu').prev().find('[aria-expanded]').attr('aria-expanded', 'false');
-    $(this).closest('li').children('ul').attr('aria-hidden', 'false').addClass('showmenu');
-    $(this).closest('li').children('ul').prev().find('[aria-expanded]').attr('aria-expanded','true');
+    $(this).closest('li[role!=menuitem]').children('ul').attr('aria-hidden', 'false').addClass('showmenu');
+    $(this).closest('li[role!=menuitem]').children('ul').prev().find('[aria-expanded]').attr('aria-expanded','true');
   }
 
   focusableElts.hover(showSubmenu);
@@ -634,40 +634,44 @@ $(function() {
       //console.log('rt aro pressed');
       var bubbleUp;
       if (!firstTierUl) {
-        bubbleUp = $(this).closest('ul[role=menu]');
+        bubbleUp = secondTierUl;
       } else {
         bubbleUp = $(this);
       }
       //console.log('bubbleUp=', bubbleUp)
-      var topmenu = bubbleUp.closest('li').nextAll();
-      //console.log('topmenu=', topmenu)
-      for (var i = 0; i < topmenu.length; i++) {
+      var topMenuitem = bubbleUp.closest('li');
+      topMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
+      var otherTopMenuitems = topMenuitem.nextAll();
+      //console.log('otherTopMenuitems=', otherTopMenuitems)
+      for (var i = 0; i < otherTopMenuitems.length; i++) {
         //console.log('i=', i)
-        var possElts = topmenu.eq(i).find('.focusable:not([disabled])').filter(':visible');
+        var possElts = otherTopMenuitems.eq(i).find('.focusable:not([disabled])').filter(':visible');
         //console.log('possElts=', possElts)
         if (possElts.length > 0) {
           //console.log('landing on', possElts.first());
-          possElts.first().focus(); break;
+          possElts.first().attr('tabIndex', '0').focus(); break;
         }
       }
     } else if (e.keyCode === 37) { // lft aro
       //console.log('lft aro pressed');
       var bubbleUp;
       if (!firstTierUl) {
-        bubbleUp = $(this).closest('ul[role=menu]');
+        bubbleUp = secondTierUl;
       } else {
         bubbleUp = $(this);
       }
       //console.log('bubbleUp=', bubbleUp)
-      var topmenu = bubbleUp.closest('li').prevAll();
-      //console.log('topmenu=', topmenu)
-      for (var i = 0; i < topmenu.length; i++) {
+      var topMenuitem = bubbleUp.closest('li');
+      topMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
+      var otherTopMenuitems = topMenuitem.prevAll();
+      //console.log('otherTopMenuitems=', otherTopMenuitems)
+      for (var i = 0; i < otherTopMenuitems.length; i++) {
         //console.log('i=', i)
-        var possElts = topmenu.eq(i).find('.focusable:not([disabled])').filter(':visible');
+        var possElts = otherTopMenuitems.eq(i).find('.focusable:not([disabled])').filter(':visible');
         //console.log('possElts=', possElts)
         if (possElts.length > 0) {
           //console.log('landing on', possElts.first());
-          possElts.first().focus(); break;
+          possElts.first().attr('tabIndex', '0').focus(); break;
         }
       }
     } else if (e.keyCode === 38) { // up aro
