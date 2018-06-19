@@ -230,7 +230,6 @@ nav > ul > li  ul {
   list-style-type: none;
 }
 
-nav > ul > li:hover ul,
 nav > ul > li:focus ul {
   aria-hidden: false;
   display: block;
