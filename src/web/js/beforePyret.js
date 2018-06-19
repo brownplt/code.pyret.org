@@ -615,25 +615,35 @@ $(function() {
 
   function showSubmenu() {
     //console.log('doing showSubmenu', $(this));
-    $(this).closest('ul').find('.showmenu').attr('aria-hidden', 'true').removeClass('showmenu');
-    $(this).closest('ul').find('.showmenu').prev().find('[aria-expanded]').attr('aria-expanded', 'false');
-    $(this).closest('li[role!=menuitem]').children('ul').attr('aria-hidden', 'false').addClass('showmenu');
-    $(this).closest('li[role!=menuitem]').children('ul').prev().find('[aria-expanded]').attr('aria-expanded','true');
+    var firstTierLi = $(this).closest('li[role!=menuitem]');
+    firstTierLi.children('ul[role=menu]').attr('aria-hidden', 'false').addClass('showmenu');
+    firstTierLi.children().first().find('[aria-expanded]').attr('aria-expanded','true');
+  }
+
+  function hideSubmenu() {
+    //console.log('doing hideSubmenu', $(this));
+    var firstTierLi = $(this).closest('li[role!=menuitem]');
+    firstTierLi.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
+    firstTierLi.children('ul[role=menu]').attr('aria-hidden', 'false').removeClass('showmenu');
   }
 
   //focusableElts.hover(showSubmenu);
   focusableElts.focus(showSubmenu);
+  focusableElts.blur(hideSubmenu);
+
 
   focusableElts.keydown(function (e) {
+    var withinSecondTierUl = true;
     var firstTierUl;
     var secondTierUl = $(this).closest('ul[role=menu]');
     if (secondTierUl.length === 0) {
+      withinSecondTierUl = false;
       firstTierUl = $(this).closest('ul[role=menubar]');
     }
     if (e.keyCode === 39) { // rt aro
       //console.log('rt aro pressed');
       var bubbleUp;
-      if (!firstTierUl) {
+      if (withinSecondTierUl) {
         bubbleUp = secondTierUl;
       } else {
         bubbleUp = $(this);
@@ -650,10 +660,6 @@ $(function() {
         //console.log('possElts=', possElts)
         if (possElts.length > 0) {
           //console.log('landing on', possElts.first());
-          srcTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
-          srcTopMenuitem.next('ul').removeClass('showmenu').attr('aria-hidden', 'true');
-          destTopMenuitem.next('ul').addClass('showmenu').attr('aria-hidden', 'false');
-          destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
           possElts.first().attr('tabIndex', '0').focus();
           break;
         }
@@ -661,7 +667,7 @@ $(function() {
     } else if (e.keyCode === 37) { // lft aro
       //console.log('lft aro pressed');
       var bubbleUp;
-      if (!firstTierUl) {
+      if (withinSecondTierUl) {
         bubbleUp = secondTierUl;
       } else {
         bubbleUp = $(this);
@@ -678,10 +684,6 @@ $(function() {
         //console.log('possElts=', possElts)
         if (possElts.length > 0) {
           //console.log('landing on', possElts.first());
-          srcTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
-          srcTopMenuitem.next('ul').removeClass('showmenu').attr('aria-hidden', 'true');
-          destTopMenuitem.next('ul').addClass('showmenu').attr('aria-hidden', 'false');
-          destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
           possElts.first().attr('tabIndex', '0').focus();
           break;
         }
