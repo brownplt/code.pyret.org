@@ -191,6 +191,10 @@ nav {
   margin: 0;
 }
 
+nav:hover {
+  border-left: thin solid red;
+}
+
 nav ul a, nav ul button {
   /* width: 100px; */
   /* margin-top: 15px; */
@@ -205,15 +209,15 @@ nav a, nav button {
 
 nav > ul {
   height: 100%; 
-  margin: 1px; /* actually 0 */
-  padding: 1px;
+  margin: 0;
+  padding: 0;
   list-style-type: none;
 }
 
 nav > ul > li {
   height: 100%; 
-  margin: 1px; 
-  padding: 1px;
+  margin: 0;
+  padding: 0;
   position: relative;
  /* border: thin solid green; */
   list-style-type: none;
@@ -222,8 +226,8 @@ nav > ul > li {
 nav > ul > li  ul {
    position: absolute; 
   top: 2.5em; 
-  margin: 1px;
-  padding: 1px;
+  margin: 0;
+  padding: 0;
   left: 0;
   aria-hidden: true;
   display: none;
@@ -239,8 +243,8 @@ nav > ul ul > li {
   /* height: 20px; */
   float: none;
   position: static;
-  margin: 1px;
-  padding: 1px;
+  margin: 0;
+  padding: 0;
   /* border: thin solid blue; */
   overflow: hidden;
   list-style-type: none;
@@ -251,8 +255,8 @@ ul[role="menu"] > li {
 }
 
 nav > ul ul > li > div {
-  margin: 1px;
-  padding: 1px;
+  margin: 0;
+  padding: 0;
   /* border: thin solid cyan; */
   overflow: hidden;
 }
@@ -332,6 +336,7 @@ li.rhs > div {
 /*  darker blue option #2a348b */
     background-color: rgba(0,0,0,0.3);
     border: none;
+    border-right: thin solid black;
     border-radius: 0px;
     color: #fff;
     text-align: center;
@@ -451,4 +456,8 @@ code {
 .focusable {
   margin: 0;
   padding: 0;
+}
+
+.focusable:focus {
+  background: rgba(0,0,0,0.3);
 }
