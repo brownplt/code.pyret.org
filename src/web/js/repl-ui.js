@@ -247,7 +247,7 @@
       container.append(mkWarningLower());
 
       var promptContainer = jQuery("<div class='prompt-container'>");
-      var prompt = jQuery("<span>").addClass("repl-prompt");
+      var prompt = jQuery("<span>").addClass("repl-prompt").attr("title", "Enter Pyret code here");
       function showPrompt() {
         promptContainer.hide();
         promptContainer.fadeIn(100);

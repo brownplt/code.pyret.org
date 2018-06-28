@@ -463,7 +463,7 @@ div.spy-block > table > th { display: none; }
 
 .repl-echo::before,
 .repl-prompt::before {
-  content: '>';
+  content: '\203a\203a\203a';
   display: inline;
   line-height: calc(1em + 10px);
   float: left;
