@@ -664,7 +664,7 @@
         forEach(function(frame) {
           container.append(frame);
         });
-      return expandable(container, "program execution trace");
+      return expandable(container, "program evaluation trace");
     }
 
     var allHighlightAnchors   = new Map();
