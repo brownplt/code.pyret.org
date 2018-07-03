@@ -6,7 +6,6 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       hideIt();
     });
   }
-  /*
   function makeHoverMenu(triggerElt, menuElt, showOnHover, onShow) {
     var divHover = false;
     var linkHover = false;
@@ -23,7 +22,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
           left: triggerElt.offset().left,
           "z-index": 10000
         });
-        //$(document.body).append(menuElt);
+        $(document.body).append(menuElt);
         menuElt.fadeIn(250);
         showing = true;
         setTimeout(function() {
@@ -42,27 +41,16 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       evt.stopPropagation();
     });
     triggerElt.on("click", function(e) {
-      //console.log('triggerElt clicked');
-      if(!showing) { show(); e.stopPropagation();
-        //menuElt.find('div').find('a').attr('tabIndex', -1);
-        //menuElt.find('div').find('input').attr('tabIndex', -1);
-        //menuElt.find('div.disabled').find('a').attr('tabIndex', -1);
-        //console.log('set filemenu submenu tabindex to 0');
-      }
-      else { hide();
-        //menuElt.find('a').attr('tabIndex', -1);
-        //menuElt.find('input').attr('tabIndex', -1);
-        //console.log('set filemenu submenu tabindex to -1');
-      }
+      if(!showing) { show(); e.stopPropagation(); }
+      else { hide(); }
     });
     return triggerElt;
   }
-  */
 
   $(".menuButton a").click(hideAllHovers);
 
   function makeShareLink(originalFile) {
-    var link = $("<div>").append($('<button aria-label="Publish, F9" class=blueButton>').text("Publish"));
+    var link = $("<div>").append($("<button class=blueButton>").text("Publish"));
     var shareDiv = $("<div>").addClass("share");
     link.click(function() { showShares(shareDiv, originalFile); });
     return link;
@@ -244,7 +232,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
 
   return {
     makeShareLink: makeShareLink,
-    //makeHoverMenu: makeHoverMenu,
+    makeHoverMenu: makeHoverMenu,
     makeShareUrl: makeShareUrl
   };
 
