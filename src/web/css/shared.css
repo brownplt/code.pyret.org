@@ -191,9 +191,11 @@ nav {
   margin: 0;
 }
 
+/*
 nav:hover {
   border-left: thin solid red;
 }
+*/
 
 nav ul a, nav ul button {
   /* width: 100px; */
