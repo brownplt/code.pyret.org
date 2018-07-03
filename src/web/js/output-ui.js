@@ -664,7 +664,7 @@
         forEach(function(frame) {
           container.append(frame);
         });
-      return expandable(container, "program execution trace");
+      return expandable(container, "program evaluation trace");
     }
 
     var allHighlightAnchors   = new Map();
@@ -846,8 +846,10 @@
             var contents = ffi.toArray(seq);
             return runtime.safeCall(function() {
               return runtime.eachLoop(runtime.makeFunction(function(i) {
-                if (i === contents.length - 1 && lastSep !== "") result.append(lastSep);
-                else if (i != 0 && separator !== "") result.append(separator);
+                if (i > 0) {
+                  if (i === contents.length - 1 && lastSep !== "") result.append(lastSep);
+                  else if (separator !== "") result.append(separator);
+                }
                 return runtime.safeCall(function() {
                   return help(contents[i], stack);
                 }, function(helpContents) {

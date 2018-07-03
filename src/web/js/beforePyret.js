@@ -155,10 +155,12 @@ $(function() {
     }
 
     // place a vertical line at character 80 in code editor, not repl
+    var rulers, rulersMinCol;
     if (options.simpleEditor) {
       rulers = [];
     } else{
-      var rulers = [{color: "#317BCF", column: 80, lineStyle: "dashed"}];
+      rulers = [{color: "#317BCF", column: 80, lineStyle: "dashed", className: "hidden"}];
+      rulersMinCol = 80;
     }
 
     var cmOptions = {
@@ -185,7 +187,8 @@ $(function() {
       gutters: gutters,
       lineWrapping: true,
       logging: true,
-      rulers: rulers
+      rulers: rulers,
+      rulersMinCol: rulersMinCol
     };
 
     cmOptions = merge(cmOptions, options.cmOptions || {});
@@ -533,6 +536,83 @@ $(function() {
     initialGas: 100
   });
   CPO.editor.cm.setOption("readOnly", "nocursor");
+  CPO.editor.cm.setOption("longLines", new Map());
+  function removeShortenedLine(lineHandle) {
+    var rulers = CPO.editor.cm.getOption("rulers");
+    var rulersMinCol = CPO.editor.cm.getOption("rulersMinCol");
+    var longLines = CPO.editor.cm.getOption("longLines");
+    if (lineHandle.text.length <= rulersMinCol) {
+      lineHandle.rulerListeners.forEach((f, evt) => lineHandle.off(evt, f));
+      longLines.delete(lineHandle);
+      // console.log("Removed ", lineHandle);
+      refreshRulers();
+    }
+  }
+  function deleteLine(lineHandle) {
+    var longLines = CPO.editor.cm.getOption("longLines");
+    lineHandle.rulerListeners.forEach((f, evt) => lineHandle.off(evt, f));
+    longLines.delete(lineHandle);
+    // console.log("Removed ", lineHandle);
+    refreshRulers();
+  }
+  function refreshRulers() {
+    var rulers = CPO.editor.cm.getOption("rulers");
+    var longLines = CPO.editor.cm.getOption("longLines");
+    var minLength;
+    if (longLines.size == 0) {
+      minLength = 0; // if there are no long lines, then we don't care about showing any rulers
+    } else {
+      minLength = Number.MAX_VALUE;
+      longLines.forEach(function(lineNo, lineHandle) {
+        if (lineHandle.text.length < minLength) { minLength = lineHandle.text.length; }
+      });
+    }
+    for (var i = 0; i < rulers.length; i++) {
+      if (rulers[i].column >= minLength) {
+        rulers[i].className = "hidden";
+      } else {
+        rulers[i].className = undefined;
+      }
+    }
+    // gotta set the option twice, or else CM short-circuits and ignores it
+    CPO.editor.cm.setOption("rulers", undefined);
+    CPO.editor.cm.setOption("rulers", rulers);
+  }
+  CPO.editor.cm.on('changes', function(instance, changeObjs) {
+    var minLine = instance.lastLine(), maxLine = 0;
+    var rulersMinCol = instance.getOption("rulersMinCol");
+    var longLines = instance.getOption("longLines");
+    changeObjs.forEach(function(change) {
+      if (minLine > change.from.line) { minLine = change.from.line; }
+      if (maxLine < change.from.line + change.text.length) { maxLine = change.from.line + change.text.length; }
+    });
+    var changed = false;
+    instance.eachLine(minLine, maxLine, function(lineHandle) {
+      if (lineHandle.text.length > rulersMinCol) {
+        if (!longLines.has(lineHandle)) {
+          changed = true;
+          longLines.set(lineHandle, lineHandle.lineNo());
+          lineHandle.rulerListeners = new Map([
+            ["change", removeShortenedLine],
+            ["delete", function() { // needed because the delete handler gets no arguments at all
+              deleteLine(lineHandle);
+            }]
+          ]);
+          lineHandle.rulerListeners.forEach((f, evt) => lineHandle.on(evt, f));
+          // console.log("Added ", lineHandle);
+        }
+      } else {
+        if (longLines.has(lineHandle)) {
+          changed = true;
+          longLines.delete(lineHandle);
+          // console.log("Removed ", lineHandle);
+        }
+      }
+    });
+    if (changed) {
+      refreshRulers();
+    }
+  });
 
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
