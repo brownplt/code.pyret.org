@@ -282,6 +282,7 @@
       }
 
       function outputText(elt) {
+        //console.log('outputText of', elt);
         var text;
         if (elt.classList.contains('test-results')) {
           var eltChildren = elt.childNodes;
@@ -324,9 +325,11 @@
         //console.log('doing speakHistory', n);
         if (n === 0) { n = 10; }
         var historySize = items.length;
+        //console.log('items =', items);
         //console.log('historySize =', historySize);
         if (n > historySize) { return false; }
         var history = items[n-1];
+        //console.log('history=', history);
         var isMain = (history.code === 'def//');
         var recital;
         if (isMain) {
@@ -338,12 +341,16 @@
           recital += ' resulted in an error. ' + history.erroroutput;
         } else {
           if (isMain) {
-            recital += ' produced output: ';
+            if (!history.end && !history.start) {
+              recital += ' produced no output.';
+            } else {
+              recital += ' produced output: ';
+            }
           } else {
             recital += ' evaluates to ';
           }
           var docOutput = document.getElementById('output').childNodes;
-          if (!history.end) {
+          if (!history.end && history.start) {
             recital += outputText(docOutput[history.start]);
           } else {
             //console.log('speakhistory from', history.start, 'to', history.end);
@@ -608,7 +615,7 @@
         var lastOutput = docOutput.lastElementChild;
         //console.log('lastOutput=', lastOutput);
         var text;
-        if (lastOutput.classList.contains('compile-error')) {
+        if (lastOutput && lastOutput.classList.contains('compile-error')) {
           //console.log('result is a compile-error');
           thiscode.start = docOutputLen - 1;
           var loChildren = lastOutput.childNodes;
