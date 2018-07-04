@@ -331,9 +331,11 @@
         doRunAction(src);
       };
 
+      /*
       $("#runDropdown").click(function() {
         $("#run-dropdown-content").toggle();
       });
+      */
 
       // CPO.editor is set in beforePyret.js
       var editor = CPO.editor;
@@ -343,14 +345,16 @@
         runButton.text("Run");
         currentAction = "run";
         doRunAction(editor.cm.getValue());
-        $("#run-dropdown-content").hide();
+        $('#runDropdown').attr('aria-expanded', 'false');
+        $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
 
       $("#select-tc-run").click(function() {
         runButton.text("Type-check and Run");
         currentAction = "tc-and-run";
         doRunAction(editor.cm.getValue());
-        $("#run-dropdown-content").hide();
+        $('#runDropdown').attr('aria-expanded', 'false');
+        $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
       /*
       $("#select-scsh").click(function() {
