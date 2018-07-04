@@ -1,7 +1,8 @@
 ({
   requires: [
     { "import-type": "builtin", "name": "table" },
-    { "import-type": "builtin", "name": "lists" }
+    { "import-type": "builtin", "name": "lists" },
+    { "import-type": "builtin", "name": "valueskeleton" }
   ],
   nativeRequires: [
     "pyret-base/js/type-util"
@@ -17,7 +18,7 @@
     aliases: {},
     datatypes: {}
   },
-  theModule: function(runtime, namespace, uri, table, list, t){
+  theModule: function(runtime, namespace, uri, table, list, VSlib, t){
     var List = function(thing) { 
       return t.tyapp(t.libName("lists", "List"), [thing]);
     };
@@ -45,6 +46,7 @@
     
     var F = runtime.makeFunction;
     var O = runtime.makeObject;
+    var VS = runtime.getField(VSlib, "values");
 
     var None = runtime.ffi.makeNone;
     var Some = runtime.ffi.makeSome;
@@ -426,10 +428,13 @@
     }
 
     function makePyretSpreadsheet(ss) {
-      var sheets = runtime.ffi.makeList(
-        ss.worksheetsInfo.map(function(ws) {
-          return runtime.makeString(ws.properties.title);
-        }));
+      function rawSheetNames() {
+        return ss.worksheetsInfo.map(function(ws) { return runtime.makeString(ws.properties.title); });
+      }
+      function sheetNames() {
+        runtime.ffi.checkArity(0, arguments, "sheet-names", true);
+        return runtime.ffi.makeList(rawSheetNames);
+      }
       
       function sheetByName(name, skipHeaders) {
         runtime.ffi.checkArity(2, arguments, "sheet-by-name", true);
@@ -467,12 +472,17 @@
       }
 
       return applyBrand(brandSS, O({
-        'sheet-list': sheets,
+        'sheet-names': sheetNames,
         'sheet-by-name': F(sheetByName),
         'sheet-by-index': F(sheetByPos),
         'delete-sheet-by-name': F(deleteSheetByName),
         'delete-sheet-by-index': F(deleteSheetByPos),
-        'add-sheet': F(addSheet)
+        'add-sheet': F(addSheet),
+        '_output': runtime.makeMethod0(function(self) {
+          return runtime.getField(VS, "vs-constr").app(
+            "spreadsheet",
+            runtime.ffi.makeList(rawSheetNames().map(function(v) { return runtime.getField(VS, "vs-value").app(v); })));
+        })
       }));
     }
     
