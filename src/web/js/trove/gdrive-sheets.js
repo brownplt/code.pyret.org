@@ -433,7 +433,7 @@
       }
       function sheetNames() {
         runtime.ffi.checkArity(0, arguments, "sheet-names", true);
-        return runtime.ffi.makeList(rawSheetNames);
+        return runtime.ffi.makeList(rawSheetNames());
       }
       
       function sheetByName(name, skipHeaders) {
@@ -472,7 +472,7 @@
       }
 
       return applyBrand(brandSS, O({
-        'sheet-names': sheetNames,
+        'sheet-names': F(sheetNames),
         'sheet-by-name': F(sheetByName),
         'sheet-by-index': F(sheetByPos),
         'delete-sheet-by-name': F(deleteSheetByName),
