@@ -244,11 +244,15 @@ $(function() {
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");
     $("#connectButton").attr("disabled", "disabled");
+    $("#connectButton").attr("tabIndex", "-1");
+    $("#topTierUl").attr("tabIndex", "0");
     storageAPI = createProgramCollectionAPI("code.pyret.org", false);
     storageAPI.then(function(api) {
       api.collection.then(function() {
         $(".loginOnly").show();
         $(".logoutOnly").hide();
+        document.activeElement.blur();
+        $("#topTierUl").focus();
         setUsername($("#username"));
         if(params["get"] && params["get"]["program"]) {
           var toLoad = api.api.getFileById(params["get"]["program"]);
@@ -262,6 +266,10 @@ $(function() {
       api.collection.fail(function() {
         $("#connectButton").text("Connect to Google Drive");
         $("#connectButton").attr("disabled", false);
+        $("#connectButton").attr("tabIndex", "0");
+        document.activeElement.blur();
+        $("#connectButton").focus();
+        $("#topTierUl").attr("tabIndex", "-1");
       });
     });
     storageAPI = storageAPI.then(function(api) { return api.api; });
@@ -615,8 +623,8 @@ $(function() {
   //console.log('focusableElts=', focusableElts)
   var theToolbar = $(document).find('#Toolbar');
 
-  function getTopTierMenuitems() {
-    var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.toptier').toArray();
+  function gettopTierMenuitems() {
+    var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
     var ttmiA = topTierMenuitems.pop();
     var ttmiB = topTierMenuitems.pop();
     var ttmiC = topTierMenuitems.pop();
@@ -628,30 +636,50 @@ $(function() {
   focusableElts.filter('[role=menuitem]').click(function(e) {
     //console.log('clicking', $(this));
     switchTopMenuitem($(this).closest('ul[role=menubar]'),
-      $(this).closest('li.toptier'),
+      $(this).closest('li.topTier'),
       $(this));
     //console.log('docactelt=', document.activeElement);
     e.stopPropagation();
   });
   */
 
+  document.addEventListener('click', function () {
+    hideAllTopMenuitems();
+  });
+
+  theToolbar.click(function (e) {
+    e.stopPropagation();
+  });
+
   theToolbar.keydown(function (e) {
-    //any key at all
+    //most any key at all
+    var kc = e.keyCode;
     //console.log('toolbar keydown', e.keyCode);
-    if (e.keyCode === 9 || e.keyCode === 27) {
+    if (e.obskeyCode === 9 || kc === 27) {
+      //console.log('toolbar keydown: 1st br');
+      hideAllTopMenuitems();
+      //console.log('calling cycleFocus')
       CPO.cycleFocus();
       e.stopPropagation();
-    } else {
-      var target = $(this).find('nav [tabIndex=0]');
+    } else if (kc === 37 || kc === 38 || kc === 39 || kc === 40) {
+      //console.log('toolbar keydown: 2nd br');
+      var target = $(this).find('[tabIndex=0]');
       //console.log('target=', target);
-      var firstTierLi = target.closest('li.toptier');
-      //console.log('firstTierLi=', firstTierLi);
-      switchTopMenuitem(firstTierLi.closest('ul[role=menubar]'), firstTierLi, target);
+      //console.log('target.len=', target.length);
+      var topTierLi = target.closest('li.topTier');
+      //console.log('topTierLi=', topTierLi.length);
+      if (topTierLi.length === 0) {
+        topTierLi = $('#bonniemenuli')
+        target = topTierLi.find('.focusable').first();
+      }
+      switchTopMenuitem(topTierLi.closest('ul[role=menubar]'), topTierLi, target);
       //console.log('docactelt=', document.activeElement);
-      document.activeElement.blur();
-      target.first().focus();
+      document.activeElement.blur(); //needed?
+      target.first().focus(); //needed?
       //console.log('docactelt=', document.activeElement);
       e.stopPropagation();
+    } else {
+      hideAllTopMenuitems();
     }
   });
 
@@ -659,25 +687,24 @@ $(function() {
     var thisElt = $(this);
     //console.log('doing clickTopMenuitem on', thisElt);
     //console.log('dict before clk=', expandableEltsOpen);
-    var firstTierUl = thisElt.closest('ul[role=menubar]');
+    var topTierUl = thisElt.closest('ul[role=menubar]');
     if (thisElt[0].hasAttribute('aria-hidden')) return;
     //var hiddenP = (thisElt[0].getAttribute('aria-expanded') === 'false');
     //hiddenP always false?
-    var thisTopMenuitem = thisElt.closest('li.toptier');
+    var thisTopMenuitem = thisElt.closest('li.topTier');
     //console.log('thisTopMenuitem=', thisTopMenuitem);
     var t1 = thisTopMenuitem[0];
-    var submenuOpen = expandableEltsOpen[t1.getAttribute('id')];
+    //var submenuOpen = expandableEltsOpen[t1.getAttribute('id')];
+    var submenuOpen = (thisElt[0].getAttribute('aria-expanded') === 'true');
     if (!submenuOpen) {
       //console.log('hiddenp true branch');
-      firstTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
-      firstTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
       hideAllTopMenuitems();
-      expandableEltsOpen[t1.getAttribute('id')] = true;
+      //expandableEltsOpen[t1.getAttribute('id')] = true;
       thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
       thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
     } else {
       //console.log('hiddenp false branch');
-      expandableEltsOpen[t1.getAttribute('id')] = false;
+      //expandableEltsOpen[t1.getAttribute('id')] = false;
       thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'true').hide();
       thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
     }
@@ -686,29 +713,37 @@ $(function() {
   }
 
   var expandableElts = $(document).find('nav[aria-label=Toolbar] [aria-expanded]');
-  var expandableEltsOpen = {};
+  //var expandableEltsOpen = {};
   expandableElts.click(clickTopMenuitem);
 
   function hideAllTopMenuitems() {
-    var topTierMenuitems = getTopTierMenuitems();
+    //console.log('doing hideAllTopMenuitems');
+    var topTierUl = $(document).find('nav[aria-label=Toolbar] ul[role=menubar]');
+    topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
+    topTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
+    var topTierMenuitems = gettopTierMenuitems();
+    /*
     for (var i = 0; i < topTierMenuitems.length; i++) {
       expandableEltsOpen[topTierMenuitems[i].getAttribute('id')] = false;
     }
+    */
   }
 
-  function switchTopMenuitem(firstTierUl, destTopMenuitem, destElt) {
-    //console.log('doing switchTopMenuitem', firstTierUl, destTopMenuitem, destElt);
-    firstTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
-    firstTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
+  function switchTopMenuitem(topTierUl, destTopMenuitem, destElt) {
+    //console.log('doing switchTopMenuitem', topTierUl, destTopMenuitem, destElt);
+    //console.log('dtmil=', destTopMenuitem.length);
     hideAllTopMenuitems();
-    if (destTopMenuitem) {
-      expandableEltsOpen[destTopMenuitem[0].getAttribute('id')] = true;
-      destTopMenuitem.children('ul[role=menu][id!=run-dropdown-content]')
-        .attr('aria-hidden', 'false').show();
-      destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
-      if (destElt) {
-        destElt.attr('tabIndex', '0').focus();
+    if (destTopMenuitem && destTopMenuitem.length !== 0) {
+      var elt = destTopMenuitem[0];
+      var eltId = elt.getAttribute('id');
+      if (eltId !== 'rundropdownli') {
+        //expandableEltsOpen[eltId] = true;
+        destTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
+        destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
       }
+    }
+    if (destElt) {
+      destElt.attr('tabIndex', '0').focus();
     }
     //console.log('dict after sw=', expandableEltsOpen);
   }
@@ -717,7 +752,7 @@ $(function() {
     //console.log('focusable elt keydown', e.keyCode);
     //$(this).blur(); // Delete?
     var withinSecondTierUl = true;
-    var firstTierUl = $(this).closest('ul[role=menubar]');
+    var topTierUl = $(this).closest('ul[role=menubar]');
     var secondTierUl = $(this).closest('ul[role=menu]');
     if (secondTierUl.length === 0) {
       withinSecondTierUl = false;
@@ -731,10 +766,10 @@ $(function() {
         bubbleUp = $(this);
       }
       //console.log('bubbleUp=', bubbleUp)
-      var srcTopMenuitem = bubbleUp.closest('li.toptier');
+      var srcTopMenuitem = bubbleUp.closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
       srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
-      var topTierMenuitems = getTopTierMenuitems();
+      var topTierMenuitems = gettopTierMenuitems();
       //console.log('ttmi* =', topTierMenuitems);
       var ttmiN = topTierMenuitems.length;
       var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
@@ -747,7 +782,7 @@ $(function() {
         if (possElts.length > 0) {
           //console.log('final i=', i);
           //console.log('landing on', possElts.first());
-          switchTopMenuitem(firstTierUl, destTopMenuitem, possElts.first());
+          switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
           e.stopPropagation();
           break;
         }
@@ -764,7 +799,7 @@ $(function() {
       var srcTopMenuitem = bubbleUp.closest('li');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
       srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
-      var topTierMenuitems = getTopTierMenuitems();
+      var topTierMenuitems = gettopTierMenuitems();
       //console.log('ttmi* =', topTierMenuitems);
       var ttmiN = topTierMenuitems.length;
       var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
@@ -778,7 +813,7 @@ $(function() {
         if (possElts.length > 0) {
           //console.log('final i=', i);
           //console.log('landing on', possElts.first());
-          switchTopMenuitem(firstTierUl, destTopMenuitem, possElts.first());
+          switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
           e.stopPropagation();
           break;
         }
@@ -834,16 +869,18 @@ $(function() {
       e.stopPropagation();
     } else if (e.keyCode === 9 || e.keyCode === 27) {
       //console.log('tab/esc pressed');
-      switchTopMenuitem(firstTierUl, undefined);
+      switchTopMenuitem(topTierUl, undefined);
+      //console.log('calling cycleFocus ii')
       CPO.cycleFocus();
       e.stopPropagation();
+      e.preventDefault();
       //$(this).closest('nav').closest('main').focus();
     } else if (e.keyCode === 32) {
       //console.log('clicked space on', $(this));
       $(this)[0].click();
       e.stopPropagation();
     } else if (e.keyCode === 13) {
-      //console.log('spc/enter pressed');
+      //console.log('enter pressed');
       //$(this).click();
       e.stopPropagation();
     }
