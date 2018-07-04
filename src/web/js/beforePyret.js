@@ -624,6 +624,7 @@ $(function() {
     return topTierMenuitems;
   }
 
+  /*
   focusableElts.filter('[role=menuitem]').click(function(e) {
     //console.log('clicking', $(this));
     switchTopMenuitem($(this).closest('ul[role=menubar]'),
@@ -632,11 +633,12 @@ $(function() {
     //console.log('docactelt=', document.activeElement);
     e.stopPropagation();
   });
+  */
 
   theToolbar.keydown(function (e) {
     //any key at all
     //console.log('toolbar keydown', e.keyCode);
-    if (e.obskeyCode === 9 || e.keyCode === 27) {
+    if (e.keyCode === 9 || e.keyCode === 27) {
       CPO.cycleFocus();
       e.stopPropagation();
     } else {
@@ -653,10 +655,54 @@ $(function() {
     }
   });
 
+  function clickTopMenuitem(e) {
+    var thisElt = $(this);
+    //console.log('doing clickTopMenuitem on', thisElt);
+    //console.log('dict before clk=', expandableEltsOpen);
+    var firstTierUl = thisElt.closest('ul[role=menubar]');
+    if (thisElt[0].hasAttribute('aria-hidden')) return;
+    //var hiddenP = (thisElt[0].getAttribute('aria-expanded') === 'false');
+    //hiddenP always false?
+    var thisTopMenuitem = thisElt.closest('li.toptier');
+    //console.log('thisTopMenuitem=', thisTopMenuitem);
+    var t1 = thisTopMenuitem[0];
+    var submenuOpen = expandableEltsOpen[t1.getAttribute('id')];
+    if (!submenuOpen) {
+      //console.log('hiddenp true branch');
+      firstTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
+      firstTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
+      hideAllTopMenuitems();
+      expandableEltsOpen[t1.getAttribute('id')] = true;
+      thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
+      thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
+    } else {
+      //console.log('hiddenp false branch');
+      expandableEltsOpen[t1.getAttribute('id')] = false;
+      thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'true').hide();
+      thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
+    }
+    //console.log('dict after clk=', expandableEltsOpen);
+    e.stopPropagation();
+  }
+
+  var expandableElts = $(document).find('nav[aria-label=Toolbar] [aria-expanded]');
+  var expandableEltsOpen = {};
+  expandableElts.click(clickTopMenuitem);
+
+  function hideAllTopMenuitems() {
+    var topTierMenuitems = getTopTierMenuitems();
+    for (var i = 0; i < topTierMenuitems.length; i++) {
+      expandableEltsOpen[topTierMenuitems[i].getAttribute('id')] = false;
+    }
+  }
+
   function switchTopMenuitem(firstTierUl, destTopMenuitem, destElt) {
+    //console.log('doing switchTopMenuitem', firstTierUl, destTopMenuitem, destElt);
     firstTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
     firstTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
+    hideAllTopMenuitems();
     if (destTopMenuitem) {
+      expandableEltsOpen[destTopMenuitem[0].getAttribute('id')] = true;
       destTopMenuitem.children('ul[role=menu][id!=run-dropdown-content]')
         .attr('aria-hidden', 'false').show();
       destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
@@ -664,6 +710,7 @@ $(function() {
         destElt.attr('tabIndex', '0').focus();
       }
     }
+    //console.log('dict after sw=', expandableEltsOpen);
   }
 
   focusableElts.keydown(function (e) {
