@@ -5,6 +5,7 @@ import base as B
 import image-structs as I
 import image as IM
 include lists
+include option
 import sets as S
 import plot-lib-list as P
 import either as E
