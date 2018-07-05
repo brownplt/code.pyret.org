@@ -154,13 +154,15 @@ $(function() {
       });
     }
 
-    // place a vertical line at character 80 in code editor, not repl
+    // place a vertical line at character 80 in code editor, and not repl
+    var CODE_LINE_WIDTH = 100;
+
     var rulers, rulersMinCol;
     if (options.simpleEditor) {
       rulers = [];
     } else{
-      rulers = [{color: "#317BCF", column: 80, lineStyle: "dashed", className: "hidden"}];
-      rulersMinCol = 80;
+      rulers = [{color: "#317BCF", column: CODE_LINE_WIDTH, lineStyle: "dashed", className: "hidden"}];
+      rulersMinCol = CODE_LINE_WIDTH;
     }
 
     var cmOptions = {
