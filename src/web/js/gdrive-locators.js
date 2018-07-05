@@ -475,7 +475,7 @@ define("cpo/gdrive-locators", [], function() {
                   restarter.resume(
                     runtime.ffi.makeSome(
                       gmf(compileLib, "pre-loaded").app(
-                        gmf(compileStructs, "minimal-builtins"),
+                        gmf(compileStructs, "no-builtins"),
 //                        mod.contents)));
                         runtime.makeOpaque(callback))));
                 };

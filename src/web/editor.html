@@ -65,7 +65,7 @@
     <div id="new" class="menuButton"><a href="javascript:void(0)">New</a></div>
     <div id="open" class="menuButton"><a href="javascript:void(0)">Open</a></div>
     <div id="save" class="menuButton disabled"><a href="javascript:void(0)">Save</a></div>
-    <div id="saveas" class="menuButton"><a href="javascript:void(0)">Save as</a></div>
+    <div id="saveas" class="menuButton"><a href="javascript:void(0)">Save a copy</a></div>
     <div id="download" class="menuButton"><a href="javascript:void(0)">Download</a></div>
     <div id="rename" class="menuButton disabled"><a href="javascript:void(0)">Rename</a></div>
 
@@ -113,6 +113,14 @@
     <li><b>Ctrl-s</b> - Save</li>
     <li><b>Ctrl-m</b> - Toggle sizing of the editor window between 50% and last resize</li>
     <li><b>Ctrl-Enter</b> - Run the definitions window</li>
+    <li><b>Ctrl-Left</b> - Move cursor left by one word</li>
+    <li><b>Ctrl-Right</b> - Move cursor right by one word</li>
+    <li><b>Alt-Left</b> - If cursor is just before a right-parenthesis or <code>end</code>
+    keyword, move cursor left to matching delimiter; otherwise move cursor left by one word</li>
+    <li><b>Alt-Right</b> - Like <b>Alt-Left</b>, but moving right.</li>
+    <li><b>Esc Left</b> - (two key sequence) synonym
+      for <b>Alt-Left</b>, in case Alt key is in use by browser</li>
+    <li><b>Esc Right</b> - (two key sequence) synonym for <b>Alt-Right</b>.</li>
   </ul>
 </div>
 <div id="doc-containment">
@@ -135,6 +143,7 @@
 <script src="/js/q.js"></script>
 <script src="/js/loader.js"></script>
 <script src="/js/codemirror.js"></script>
+<script src="/js/rulers.js"></script>
 <script src="/js/foldcode.js"></script>
 <script src="/js/foldgutter.js"></script>
 <script src="/js/mark-selection.js"></script>

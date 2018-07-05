@@ -12,6 +12,10 @@
       protocol: "js-file",
       args: ["./error-ui"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./text-handlers"]
+    },
     { "import-type": "builtin",
       name: "world-lib"
     },
@@ -25,7 +29,7 @@
   provides: {},
   theModule: function(runtime, _, uri,
                       checkUI, outputUI, errorUI,
-                      worldLib, loadLib,
+                      textHandlers, worldLib, loadLib,
                       util) {
     var ffi = runtime.ffi;
 
@@ -243,7 +247,7 @@
       container.append(mkWarningLower());
 
       var promptContainer = jQuery("<div class='prompt-container'>");
-      var prompt = jQuery("<span>").addClass("repl-prompt");
+      var prompt = jQuery("<span>").addClass("repl-prompt").attr("title", "Enter Pyret code here");
       function showPrompt() {
         promptContainer.hide();
         promptContainer.fadeIn(100);
@@ -701,7 +705,7 @@
         run: runner,
         initial: "",
         cmOptions: {
-          extraKeys: {
+          extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
             'Up': prevItem,
@@ -709,10 +713,18 @@
             'Ctrl-Up': "goLineUp",
             'Ctrl-Alt-Up': "goLineUp",
             'Ctrl-Down': "goLineDown",
-            'Ctrl-Alt-Down': "goLineDown"
-          }
+            'Ctrl-Alt-Down': "goLineDown",
+            'Esc Left': "goBackwardSexp",
+            'Alt-Left': "goBackwardSexp",
+            'Esc Right': "goForwardSexp",
+            'Alt-Right': "goForwardSexp",
+            'Ctrl-Left': "goBackwardToken",
+            'Ctrl-Right': "goForwardToken"
+          })
         }
       }).cm;
+
+      CM.on('beforeChange', function(instance, changeObj){textHandlers.autoCorrect(instance, changeObj, CM);});
 
       CPO.documents.set('definitions://', CM.getDoc());
 

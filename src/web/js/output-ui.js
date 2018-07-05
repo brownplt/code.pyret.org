@@ -664,7 +664,7 @@
         forEach(function(frame) {
           container.append(frame);
         });
-      return expandable(container, "program execution trace");
+      return expandable(container, "program evaluation trace");
     }
 
     var allHighlightAnchors   = new Map();
@@ -832,6 +832,24 @@
             return runtime.safeCall(function() {
               return runtime.eachLoop(runtime.makeFunction(function(i) {
                 if (i != 0 && separator !== "") result.append(separator);
+                return runtime.safeCall(function() {
+                  return help(contents[i], stack);
+                }, function(helpContents) {
+                  result.append(helpContents);
+                  return runtime.nothing;
+                }, "help(contents[i])");
+              }), 0, contents.length);
+            }, function(_) { return result.contents(); }, "h-sequence: each: contents");
+          },
+          "h-sequence-sep": function(seq, separator, lastSep) {
+            var result = $("<p>");
+            var contents = ffi.toArray(seq);
+            return runtime.safeCall(function() {
+              return runtime.eachLoop(runtime.makeFunction(function(i) {
+                if (i > 0) {
+                  if (i === contents.length - 1 && lastSep !== "") result.append(lastSep);
+                  else if (separator !== "") result.append(separator);
+                }
                 return runtime.safeCall(function() {
                   return help(contents[i], stack);
                 }, function(helpContents) {
