@@ -62,7 +62,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
   $(".menuButton a").click(hideAllHovers);
 
   function makeShareLink(originalFile) {
-    var link = $("<div>").append($('<button aria-label="Publish, F9" class=blueButton>').text("Publish"));
+    var link = $('<button aria-label="Publish, F9" class="focusable blueButton" role="button" tabindex="-1">').text("Publish");
     var shareDiv = $("<div>").addClass("share");
     link.click(function() { showShares(shareDiv, originalFile); });
     return link;

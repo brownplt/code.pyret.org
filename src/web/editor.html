@@ -114,7 +114,7 @@
               <div id="open" class="menuButton"><a tabindex="-1" href="javascript:void(0)" class="focusable" >Open</a></div>
             </li>
             <li>
-              <div id="open-original" class="menuButton"><a tabindex="-1" href="javascript:void(0)" class="focusable">Open Original</a></div>
+              <div id="open-original" class="menuButton disabled hidden"><a tabindex="-1" href="javascript:void(0)" class="focusable">Open Original</a></div>
             </li>
             <li>
               <div id="save" class="menuButton disabled"><a class="focusable disabled" tabindex="-1" href="javascript:void(0)">Save</a></div>
@@ -135,9 +135,11 @@
           <div id="insertPart" class="loginOnly menu menuitemtitle">
             <button role="button" aria-label="Insert, F11" id="insert" class="focusable blueButton loginOnly"  tabindex="-1">Insert</button>
           </div>
-          <div id="shareContainer"></div>
           <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
           <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
+        </li>
+        <li class="lhs topTier" id="publishli">
+          <div id="shareContainer" class="menu menuitemtitle"></div>
         </li>
 
         <li class="rhs topTier" id="stopli">
