@@ -305,6 +305,7 @@
             });
           },
           stop: function() {
+            console.log("HELLO FROM STOP");
             runtime.breakAll();
           },
           runtime: runtime
