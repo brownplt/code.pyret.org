@@ -290,6 +290,20 @@ $(function() {
           id: params["get"]["share"]
         });
       programLoad = api.getSharedFileById(params["get"]["share"]);
+      programLoad.then(function(file) {
+        // NOTE(joe): If the current user doesn't own or have access to this file
+        // (or isn't logged in) this will simply fail with a 401, so we don't do
+        // any further permission checking before showing the link.
+        file.getOriginal().then(function(response) {
+          console.log("Response for original: ", response);
+          var original = $("#open-original").show().off("click");
+          var id = response.result.value;
+          original.removeClass("disabled");
+          original.click(function() {
+            window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+          });
+        });
+      });
     }
     if(programLoad) {
       programLoad.fail(function(err) {

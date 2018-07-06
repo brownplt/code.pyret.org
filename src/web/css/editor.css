@@ -1925,3 +1925,6 @@ button.controller {
   margin: auto;
   display: block;
 }
+.hidden {
+  display: none
+}
