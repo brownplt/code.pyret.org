@@ -245,8 +245,13 @@
         }
         if (pointer < items.length - 1) {
           pointer++;
-          loadItem();
-          CM.refresh();
+          if (pointer === (items.length - 1) &&
+              items[pointer].code === 'def//') {
+            pointer--;
+          } else {
+            loadItem();
+            CM.refresh();
+          }
         }
       }
       function nextItem() {
