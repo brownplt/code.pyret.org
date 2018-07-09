@@ -118,6 +118,7 @@
         // b/c `callingRuntime.runThunk` must not be called on the pyret stack
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
+          console.log("HELLO FROM DONE RUNNING");
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
