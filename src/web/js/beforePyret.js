@@ -893,7 +893,7 @@ $(function() {
       //$(this).closest('nav').closest('main').focus();
     } else if (e.keyCode === 32) {
       //console.log('clicked space on', $(this));
-      $(this)[0].click();
+      //$(this)[0].click();
       e.stopPropagation();
     } else if (e.keyCode === 13) {
       //console.log('enter pressed');
