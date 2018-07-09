@@ -59,7 +59,7 @@
 
     var replContainer = $("<div>").addClass("repl");
     replContainer.attr("tabindex", "-1");
-    replContainer.attr("aria-hidden", "true");
+    //replContainer.attr("aria-hidden", "true");
     $("#REPL").append(replContainer);
 
     var logDetailedOption = $("#detailed-logging");
