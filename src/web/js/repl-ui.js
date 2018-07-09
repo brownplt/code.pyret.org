@@ -890,6 +890,7 @@
           extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
+            'Tab': 'indentAuto',
             'Up': prevItem,
             'Down': nextItem,
             'Ctrl-Up': "goLineUp",
