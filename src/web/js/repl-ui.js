@@ -118,7 +118,6 @@
         // b/c `callingRuntime.runThunk` must not be called on the pyret stack
         callingRuntime.runThunk(function() {
           console.log("Full time including compile/load:", JSON.stringify(result.stats));
-          console.log("HELLO FROM DONE RUNNING");
           if(callingRuntime.isFailureResult(result)) {
             didError = true;
             // Parse Errors
@@ -494,6 +493,8 @@
           }
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
+          // need to know if we are in trace mode or not
+          console.log("done with afterrun");
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
