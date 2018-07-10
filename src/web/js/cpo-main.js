@@ -335,7 +335,7 @@
 
       // CPO.editor is set in beforePyret.js
       var editor = CPO.editor;
-      var currentAction = "run";
+      var currentAction = "trace-and-run";
 
       $("#select-run").click(function() {
         runButton.text("Run");
