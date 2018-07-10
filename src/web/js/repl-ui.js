@@ -668,7 +668,12 @@
         var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
-        doneRendering.fin(afterRun(false));
+
+        doneRendering.then(function() {
+          if (options.trace) {
+            console.log("should show trace now");
+          }
+        }).fin(afterRun(false));
       };
 
       var runner = function(code) {
