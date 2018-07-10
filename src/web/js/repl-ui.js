@@ -85,6 +85,7 @@
 
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
+    // add plot icon to this?
     function displayResult(output, callingRuntime, resultRuntime, isMain) {
       var runtime = callingRuntime;
       var rr = resultRuntime;
@@ -161,6 +162,7 @@
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
                     if(rr.isSuccessResult(runResult)) {
+                      // want to add icon here since successful run
                       return rr.safeCall(function() {
                         return checkUI.drawCheckResults(output, CPO.documents, rr,
                                                         runtime.getField(runResult.result, "checks"), v);
@@ -170,6 +172,8 @@
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
+                      // can add icon to error message here, maybe.
+                      // then again, stack trace basically provides this information
                       didError = true;
                       // `renderAndDisplayError` must be called in the context of the pyret stack.
                       // this application runs in the context of the above `rr.runThunk`.
@@ -493,8 +497,10 @@
           }
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
-          // need to know if we are in trace mode or not
-          console.log("done with afterrun");
+          // need to know if we are in trace mode or not,
+          // which either means adding parameter or moving
+          // this back to runner and runMainCode
+          // console.log("done with afterrun");
           setTimeout(function(){
             $("#output > .compile-error .cm-future-snippet").each(function(){this.cmrefresh();});
           }, 200);
@@ -651,13 +657,14 @@
 
         interactionsCount = 0;
         replOutputCount = 0;
+        traceBoolean = !!uiOptions["trace"];
         logger.log('run', { name      : "definitions://",
             type_check: !!uiOptions["type-check"],
-            trace: !!uiOptions["trace"]
+            trace: traceBoolean
                           });
         var options = {
           typeCheck: !!uiOptions["type-check"],
-          trace: !!uiOptions["trace"],
+          trace: traceBoolean,
           checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
                           // if this becomes a check box somewhere in CPO
         };
