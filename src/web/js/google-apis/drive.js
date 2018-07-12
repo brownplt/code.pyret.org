@@ -15,6 +15,14 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
     function makeSharedFile(googFileObject, fetchFromGoogle) {
       return {
         shared: true,
+        getOriginal: function() {
+          var request = gapi.client.drive.properties.get({
+            'fileId': googFileObject.id,
+            'propertyKey': BACKREF_KEY,
+            'visibility': 'PRIVATE'
+          });
+          return request;
+        },
         getContents: function() {
           if(fetchFromGoogle) {
             // NOTE(joe): See https://developers.google.com/drive/v2/web/manage-downloads

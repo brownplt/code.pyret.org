@@ -6,5 +6,5 @@ foo = load-spreadsheet("1A2CDeh-iDdmiGRR1QNoQ93WsR0MGEKwOfwuK9-yZNnY")
 
 # This is just checking that this loads after the double-shared-import
 check "All sheets loaded":
-  foo.sheet-list is [list: "Sheet1", "Sheet2"]
+  foo.sheet-names() is [list: "Sheet1", "Sheet2"]
 end

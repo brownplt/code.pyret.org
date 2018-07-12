@@ -132,7 +132,7 @@ $(function() {
       initial = options.initial;
     }
 
-    var textarea = jQuery("<textarea>");
+    var textarea = jQuery("<textarea aria-hidden='true'>");
     textarea.val(initial);
     container.append(textarea);
 
@@ -154,13 +154,15 @@ $(function() {
       });
     }
 
-    // place a vertical line at character 80 in code editor, not repl
+    // place a vertical line at character 80 in code editor, and not repl
+    var CODE_LINE_WIDTH = 100;
+
     var rulers, rulersMinCol;
     if (options.simpleEditor) {
       rulers = [];
     } else{
-      rulers = [{color: "#317BCF", column: 80, lineStyle: "dashed", className: "hidden"}];
-      rulersMinCol = 80;
+      rulers = [{color: "#317BCF", column: CODE_LINE_WIDTH, lineStyle: "dashed", className: "hidden"}];
+      rulersMinCol = CODE_LINE_WIDTH;
     }
 
     var cmOptions = {
@@ -195,7 +197,6 @@ $(function() {
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
 
-
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
@@ -207,7 +208,8 @@ $(function() {
       run: function() {
         runFun(CM.getValue());
       },
-      focus: function() { CM.focus(); }
+      focus: function() { CM.focus(); },
+      focusCarousel: null //initFocusCarousel
     };
   };
   CPO.RUN_CODE = function() {
@@ -244,11 +246,15 @@ $(function() {
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");
     $("#connectButton").attr("disabled", "disabled");
+    $("#connectButton").attr("tabIndex", "-1");
+    $("#topTierUl").attr("tabIndex", "0");
     storageAPI = createProgramCollectionAPI("code.pyret.org", false);
     storageAPI.then(function(api) {
       api.collection.then(function() {
         $(".loginOnly").show();
         $(".logoutOnly").hide();
+        document.activeElement.blur();
+        $("#topTierUl").focus();
         setUsername($("#username"));
         if(params["get"] && params["get"]["program"]) {
           var toLoad = api.api.getFileById(params["get"]["program"]);
@@ -262,6 +268,10 @@ $(function() {
       api.collection.fail(function() {
         $("#connectButton").text("Connect to Google Drive");
         $("#connectButton").attr("disabled", false);
+        $("#connectButton").attr("tabIndex", "0");
+        document.activeElement.blur();
+        $("#connectButton").focus();
+        $("#topTierUl").attr("tabIndex", "-1");
       });
     });
     storageAPI = storageAPI.then(function(api) { return api.api; });
@@ -288,6 +298,20 @@ $(function() {
           id: params["get"]["share"]
         });
       programLoad = api.getSharedFileById(params["get"]["share"]);
+      programLoad.then(function(file) {
+        // NOTE(joe): If the current user doesn't own or have access to this file
+        // (or isn't logged in) this will simply fail with a 401, so we don't do
+        // any further permission checking before showing the link.
+        file.getOriginal().then(function(response) {
+          console.log("Response for original: ", response);
+          var original = $("#open-original").show().off("click");
+          var id = response.result.value;
+          original.removeClass("disabled");
+          original.click(function() {
+            window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+          });
+        });
+      });
     }
     if(programLoad) {
       programLoad.fail(function(err) {
@@ -346,6 +370,95 @@ $(function() {
     });
   }
 
+  function cycleAdvance(currIndex, maxIndex, reverseP) {
+    var nextIndex = currIndex + (reverseP? -1 : +1);
+    nextIndex = ((nextIndex % maxIndex) + maxIndex) % maxIndex;
+    return nextIndex;
+  }
+
+  function populateFocusCarousel(editor) {
+    if (!editor.focusCarousel) {
+      editor.focusCarousel = [];
+    }
+    var fc = editor.focusCarousel;
+    var docmain = document.getElementById("main");
+    if (!fc[0]) {
+      fc[0] = document.getElementById("Toolbar");
+      //fc[0] = document.getElementById("headeronelegend");
+    }
+    if (!fc[1]) {
+      var docreplMain = docmain.getElementsByClassName("replMain");
+      var docreplMain0;
+      if (docreplMain.length === 0) {
+        docreplMain0 = undefined;
+      } else if (docreplMain.length === 1) {
+        docreplMain0 = docreplMain[0];
+      } else {
+        for (var i = 0; i < docreplMain.length; i++) {
+          if (docreplMain[i].innerText !== "") {
+            docreplMain0 = docreplMain[i];
+          }
+        }
+      }
+      fc[1] = docreplMain0;
+    }
+    if (!fc[2]) {
+      var docrepl = docmain.getElementsByClassName("repl");
+      var docreplcode = docrepl[0].getElementsByClassName("prompt-container")[0].
+        getElementsByClassName("CodeMirror")[0];
+      fc[2] = docreplcode;
+    }
+    if (!fc[3]) {
+      fc[3] = document.getElementById("announcements");
+    }
+  }
+
+  function cycleFocus(reverseP) {
+    var editor = this.editor;
+    var fCarousel = editor.focusCarousel;
+    populateFocusCarousel(editor);
+    var fCarousel = editor.focusCarousel;
+    var maxIndex = fCarousel.length;
+    var currentFocusedElt = fCarousel.find(function(node) {
+      if (!node) {
+        return false;
+      } else {
+        return node.contains(document.activeElement);
+      }
+    });
+    var currentFocusIndex = fCarousel.indexOf(currentFocusedElt);
+    var nextFocusIndex = currentFocusIndex;
+    var focusElt;
+    do {
+      nextFocusIndex = cycleAdvance(nextFocusIndex, maxIndex, reverseP);
+      focusElt = fCarousel[nextFocusIndex];
+    } while (!focusElt);
+
+    var focusElt0;
+    if (focusElt.classList.contains("replMain") ||
+      focusElt.classList.contains("CodeMirror")) {
+      var textareas = focusElt.getElementsByTagName("textarea");
+      if (textareas.length === 0) {
+        focusElt0 = focusElt;
+      } else if (textareas.length === 1) {
+        focusElt0 = textareas[0];
+      } else {
+        for (var i = 0; i < textareas.length; i++) {
+          if (textareas[i].getAttribute('tabIndex')) {
+            focusElt0 = textareas[i];
+          }
+        }
+      }
+    } else {
+      focusElt0 = focusElt;
+    }
+
+    document.activeElement.blur();
+    focusElt0.click();
+    focusElt0.focus();
+    //console.log('(cf)docactelt=', document.activeElement);
+  }
+
   var programLoaded = loadProgram(initialProgram);
 
   var programToSave = initialProgram;
@@ -373,7 +486,6 @@ $(function() {
   function menuItemDisabled(id) {
     return $("#" + id).hasClass("disabled");
   }
-
 
   function newEvent(e) {
     window.open(window.APP_BASE_URL + "/editor");
@@ -523,10 +635,326 @@ $(function() {
   $("#rename").click(rename);
   $("#saveas").click(saveAs);
 
-  shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
-  shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
+  var focusableElts = $(document).find('nav[aria-label=Toolbar] .focusable');
+  //console.log('focusableElts=', focusableElts)
+  var theToolbar = $(document).find('#Toolbar');
+
+  function gettopTierMenuitems() {
+    var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
+    var ttmiA = topTierMenuitems.pop();
+    var ttmiB = topTierMenuitems.pop();
+    var ttmiC = topTierMenuitems.pop();
+    topTierMenuitems.push(ttmiA, ttmiB, ttmiC);
+    return topTierMenuitems;
+  }
+
+  /*
+  focusableElts.filter('[role=menuitem]').click(function(e) {
+    //console.log('clicking', $(this));
+    switchTopMenuitem($(this).closest('ul[role=menubar]'),
+      $(this).closest('li.topTier'),
+      $(this));
+    //console.log('docactelt=', document.activeElement);
+    e.stopPropagation();
+  });
+  */
+
+  document.addEventListener('click', function () {
+    hideAllTopMenuitems();
+  });
+
+  theToolbar.click(function (e) {
+    e.stopPropagation();
+  });
+
+  theToolbar.keydown(function (e) {
+    //most any key at all
+    var kc = e.keyCode;
+    //console.log('toolbar keydown', e.keyCode);
+    if (e.obskeyCode === 9 || kc === 27) {
+      //console.log('toolbar keydown: 1st br');
+      hideAllTopMenuitems();
+      //console.log('calling cycleFocus')
+      CPO.cycleFocus();
+      e.stopPropagation();
+    } else if (kc === 37 || kc === 38 || kc === 39 || kc === 40) {
+      //console.log('toolbar keydown: 2nd br');
+      var target = $(this).find('[tabIndex=0]');
+      //console.log('target=', target);
+      //console.log('target.len=', target.length);
+      var topTierLi = target.closest('li.topTier');
+      //console.log('topTierLi=', topTierLi.length);
+      if (topTierLi.length === 0) {
+        topTierLi = $('#bonniemenuli')
+        target = topTierLi.find('.focusable').first();
+      }
+      switchTopMenuitem(topTierLi.closest('ul[role=menubar]'), topTierLi, target);
+      //console.log('docactelt=', document.activeElement);
+      document.activeElement.blur(); //needed?
+      target.first().focus(); //needed?
+      //console.log('docactelt=', document.activeElement);
+      e.stopPropagation();
+    } else {
+      hideAllTopMenuitems();
+    }
+  });
+
+  function clickTopMenuitem(e) {
+    var thisElt = $(this);
+    //console.log('doing clickTopMenuitem on', thisElt);
+    //console.log('dict before clk=', expandableEltsOpen);
+    var topTierUl = thisElt.closest('ul[role=menubar]');
+    if (thisElt[0].hasAttribute('aria-hidden')) return;
+    //var hiddenP = (thisElt[0].getAttribute('aria-expanded') === 'false');
+    //hiddenP always false?
+    var thisTopMenuitem = thisElt.closest('li.topTier');
+    //console.log('thisTopMenuitem=', thisTopMenuitem);
+    var t1 = thisTopMenuitem[0];
+    //var submenuOpen = expandableEltsOpen[t1.getAttribute('id')];
+    var submenuOpen = (thisElt[0].getAttribute('aria-expanded') === 'true');
+    if (!submenuOpen) {
+      //console.log('hiddenp true branch');
+      hideAllTopMenuitems();
+      //expandableEltsOpen[t1.getAttribute('id')] = true;
+      thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
+      thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
+    } else {
+      //console.log('hiddenp false branch');
+      //expandableEltsOpen[t1.getAttribute('id')] = false;
+      thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'true').hide();
+      thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
+    }
+    //console.log('dict after clk=', expandableEltsOpen);
+    e.stopPropagation();
+  }
+
+  var expandableElts = $(document).find('nav[aria-label=Toolbar] [aria-expanded]');
+  //var expandableEltsOpen = {};
+  expandableElts.click(clickTopMenuitem);
+
+  function hideAllTopMenuitems() {
+    //console.log('doing hideAllTopMenuitems');
+    var topTierUl = $(document).find('nav[aria-label=Toolbar] ul[role=menubar]');
+    topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
+    topTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
+    var topTierMenuitems = gettopTierMenuitems();
+    /*
+    for (var i = 0; i < topTierMenuitems.length; i++) {
+      expandableEltsOpen[topTierMenuitems[i].getAttribute('id')] = false;
+    }
+    */
+  }
+
+  function switchTopMenuitem(topTierUl, destTopMenuitem, destElt) {
+    //console.log('doing switchTopMenuitem', topTierUl, destTopMenuitem, destElt);
+    //console.log('dtmil=', destTopMenuitem.length);
+    hideAllTopMenuitems();
+    if (destTopMenuitem && destTopMenuitem.length !== 0) {
+      var elt = destTopMenuitem[0];
+      var eltId = elt.getAttribute('id');
+      if (eltId !== 'rundropdownli') {
+        //expandableEltsOpen[eltId] = true;
+        destTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
+        destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
+      }
+    }
+    if (destElt) {
+      destElt.attr('tabIndex', '0').focus();
+    }
+    //console.log('dict after sw=', expandableEltsOpen);
+  }
+
+  focusableElts.keydown(function (e) {
+    //console.log('focusable elt keydown', e.keyCode);
+    //$(this).blur(); // Delete?
+    var withinSecondTierUl = true;
+    var topTierUl = $(this).closest('ul[role=menubar]');
+    var secondTierUl = $(this).closest('ul[role=menu]');
+    if (secondTierUl.length === 0) {
+      withinSecondTierUl = false;
+    }
+    if (e.keyCode === 39) { // rt aro
+      //console.log('rt aro pressed');
+      var bubbleUp;
+      if (withinSecondTierUl) {
+        bubbleUp = secondTierUl;
+      } else {
+        bubbleUp = $(this);
+      }
+      //console.log('bubbleUp=', bubbleUp)
+      var srcTopMenuitem = bubbleUp.closest('li.topTier');
+      //console.log('srcTopMenuitem=', srcTopMenuitem);
+      srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
+      var topTierMenuitems = gettopTierMenuitems();
+      //console.log('ttmi* =', topTierMenuitems);
+      var ttmiN = topTierMenuitems.length;
+      var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
+      //console.log('j initial=', j);
+      for (var i = (j + 1) % ttmiN; i != j; i = (i + 1) % ttmiN) {
+        var destTopMenuitem = $(topTierMenuitems[i]);
+        //console.log('destTopMenuitem(a)=', destTopMenuitem);
+        var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
+        //console.log('possElts=', possElts)
+        if (possElts.length > 0) {
+          //console.log('final i=', i);
+          //console.log('landing on', possElts.first());
+          switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
+          e.stopPropagation();
+          break;
+        }
+      }
+    } else if (e.keyCode === 37) { // lft aro
+      //console.log('lft aro pressed');
+      var bubbleUp;
+      if (withinSecondTierUl) {
+        bubbleUp = secondTierUl;
+      } else {
+        bubbleUp = $(this);
+      }
+      //console.log('bubbleUp=', bubbleUp)
+      var srcTopMenuitem = bubbleUp.closest('li');
+      //console.log('srcTopMenuitem=', srcTopMenuitem);
+      srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
+      var topTierMenuitems = gettopTierMenuitems();
+      //console.log('ttmi* =', topTierMenuitems);
+      var ttmiN = topTierMenuitems.length;
+      var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
+      //console.log('j initial=', j);
+      for (var i = (j + ttmiN - 1) % ttmiN; i != j; i = (i + ttmiN - 1) % ttmiN) {
+        var destTopMenuitem = $(topTierMenuitems[i]);
+        //console.log('destTopMenuitem(b)=', destTopMenuitem);
+        //console.log('i=', i)
+        var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
+        //console.log('possElts=', possElts)
+        if (possElts.length > 0) {
+          //console.log('final i=', i);
+          //console.log('landing on', possElts.first());
+          switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
+          e.stopPropagation();
+          break;
+        }
+      }
+    } else if (e.keyCode === 38) { // up aro
+      //console.log('up aro pressed');
+      var submenu;
+      if (withinSecondTierUl) {
+        submenu = $(this).closest('li').prevAll().find('div:not(.disabled)')
+          .find('.focusable').filter(':visible');
+        if (submenu.length === 0) {
+          submenu = $(this).closest('li').closest('ul').find('div:not(.disabled)')
+          .find('.focusable').filter(':visible').last();
+        }
+        if (submenu.length > 0) {
+          submenu.last().focus();
+        } else {
+          /*
+          //console.log('no actionable submenu found')
+          var topmenuItem = $(this).closest('ul[role=menu]').closest('li')
+          .children().first().find('.focusable:not([disabled])').filter(':visible');
+          if (topmenuItem.length > 0) {
+            topmenuItem.first().focus();
+          } else {
+            //console.log('no actionable topmenuitem found either')
+          }
+          */
+        }
+      }
+      e.stopPropagation();
+    } else if (e.keyCode === 40) { // dn aro
+      //console.log('dn aro pressed');
+      var submenu;
+      if (!withinSecondTierUl) {
+        //console.log('1st tier')
+        submenu = $(this).closest('li').children('ul').find('div:not(.disabled)')
+          .find('.focusable').filter(':visible');
+      } else {
+        //console.log('2nd tier')
+        submenu = $(this).closest('li').nextAll().find('div:not(.disabled)')
+          .find('.focusable').filter(':visible');
+        if (submenu.length === 0) {
+          submenu = $(this).closest('li').closest('ul').find('div:not(.disabled)')
+            .find('.focusable').filter(':visible');
+        }
+      }
+      //console.log('submenu=', submenu)
+      if (submenu.length > 0) {
+        submenu.first().focus();
+      } else {
+        //console.log('no actionable submenu found')
+      }
+      e.stopPropagation();
+    } else if (e.keyCode === 9 || e.keyCode === 27) {
+      //console.log('tab/esc pressed');
+      switchTopMenuitem(topTierUl, undefined);
+      //console.log('calling cycleFocus ii')
+      CPO.cycleFocus();
+      e.stopPropagation();
+      e.preventDefault();
+      //$(this).closest('nav').closest('main').focus();
+    } else if (e.keyCode === 32) {
+      //console.log('clicked space on', $(this));
+      $(this)[0].click();
+      e.stopPropagation();
+    } else if (e.keyCode === 13) {
+      //console.log('enter pressed');
+      //$(this).click();
+      e.stopPropagation();
+    }
+    //e.stopPropagation();
+  });
+
+  // shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
+  // shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
+
+  /*
+  function nextTabbableElt() {
+    var allTabbables = $(document).find(':tabbable').toArray();
+    var currIndex = allTabbables.indexOf(document.activeElement);
+    return allTabbables[currIndex+1];
+  }
+
+  function submenuFocus(menubarItemElt, submenuElt) {
+    $(menubarItemElt).focusin(function() {
+      var currElt = document.activeElement;
+      //console.log(menubarItemElt, 'focusin', $(this).has(currElt).length);
+      //console.log(menubarItemElt, 'focusin 1st elt?', $(submenuElt).has(currElt));
+      //console.log('docactelt=', currElt);
+      if (!$(menubarItemElt)[0].tabsEnabled &&
+        ($(this).has(currElt).length === 0 || $(submenuElt).has(currElt).length !== 0)) {
+        // entering the menubarItem for the first time
+        // activate the submenu (makes it visible and tabbable)
+        $(menubarItemElt)[0].tabsEnabled = true;
+        $(submenuElt).click();
+      }
+      var nextTab = nextTabbableElt();
+      //console.log('nextTab=', nextTab);
+      // remember next tabbable element
+      $(submenuElt)[0].nextTab = nextTab;
+    });
+    ;
+    $(menubarItemElt).focusout(function() {
+      var currElt = document.activeElement;
+      //console.log(menubarItemElt, 'focusout');
+      // if next tabbable element is outside this menubarItem,
+      // deactivate the submenu
+      var nextTab = $(submenuElt)[0].nextTab;
+      //console.log('nextTab=', nextTab);
+      //console.log('where is it?', $(this).has(nextTab).length);
+      if ($(menubarItemElt)[0].tabsEnabled && $(this).has(nextTab).length === 0) {
+        $(submenuElt).click();
+        $(menubarItemElt)[0].tabsEnabled = false;
+      }
+    });
+  }
+
+  //submenuFocus('#filemenuli', '#filemenu');
+  //submenuFocus('#bonniemenuli', '#bonniemenu');
+*/
 
   var codeContainer = $("<div>").addClass("replMain");
+  codeContainer.attr("role", "region").
+    attr("aria-label", "Definitions");
+    //attr("tabIndex", "-1");
   $("#main").prepend(codeContainer);
 
   CPO.editor = CPO.makeEditor(codeContainer, {
@@ -708,5 +1136,6 @@ $(function() {
   CPO.updateName = updateName;
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
+  CPO.cycleFocus = cycleFocus;
 
 });
