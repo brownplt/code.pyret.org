@@ -268,24 +268,6 @@
 
       // a11y stuff
 
-      function say(msg, forget) {
-        if (msg === "") return;
-        var announcements = document.getElementById("announcementlist");
-        var li = document.createElement("LI");
-        li.appendChild(document.createTextNode(msg));
-        announcements.insertBefore(li, announcements.firstChild);
-        if (forget) {
-          setTimeout(function() {
-            announcements.removeChild(li);
-          }, 1000);
-        }
-      }
-
-      function sayAndForget(msg) {
-        //console.log('doing sayAndForget', msg);
-        say(msg, true);
-      }
-
       function outputText(elt) {
         //console.log('outputText of', elt);
         var text;
@@ -364,7 +346,7 @@
             }
           }
         }
-        sayAndForget(recital);
+        CPO.sayAndForget(recital);
         return true;
       }
 
@@ -373,7 +355,7 @@
         var ln = pos.line; var ch = pos.ch;
         var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
         if (char === " ") char = "space";
-        sayAndForget(char);
+        CPO.sayAndForget(char);
       }
 
 

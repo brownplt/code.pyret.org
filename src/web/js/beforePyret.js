@@ -370,6 +370,24 @@ $(function() {
     });
   }
 
+  function say(msg, forget) {
+    if (msg === "") return;
+    var announcements = document.getElementById("announcementlist");
+    var li = document.createElement("LI");
+    li.appendChild(document.createTextNode(msg));
+    announcements.insertBefore(li, announcements.firstChild);
+    if (forget) {
+      setTimeout(function() {
+        announcements.removeChild(li);
+      }, 1000);
+    }
+  }
+
+  function sayAndForget(msg) {
+    //console.log('doing sayAndForget', msg);
+    say(msg, true);
+  }
+
   function cycleAdvance(currIndex, maxIndex, reverseP) {
     var nextIndex = currIndex + (reverseP? -1 : +1);
     nextIndex = ((nextIndex % maxIndex) + maxIndex) % maxIndex;
@@ -1137,5 +1155,7 @@ $(function() {
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
   CPO.cycleFocus = cycleFocus;
+  CPO.say = say;
+  CPO.sayAndForget = sayAndForget;
 
 });
