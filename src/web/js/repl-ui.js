@@ -585,6 +585,7 @@
       });
 
       var breakButton = options.breakButton;
+      var stopLi = $('#stopli');
       container.append(output).append(promptContainer);
 
       var img = $("<img>").attr({
@@ -645,6 +646,7 @@
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
           breakButton.attr("disabled", true);
+          stopLi.attr('disabled', true);
           canShowRunningIndicator = false;
           if(cm) {
             cm.setValue("");
@@ -665,6 +667,7 @@
          if(canShowRunningIndicator) {
             options.runButton.attr("disabled", true);
             breakButton.attr("disabled", false);
+            stopLi.attr('disabled', false);
             options.runButton.empty();
             var text = $("<span>").text("Running...");
             text.css({
@@ -914,6 +917,7 @@
 
       var onBreak = function() {
         breakButton.attr("disabled", true);
+        stopLi.attr('disabled', true);
         repl.stop();
         closeAnimationIfOpen();
         Jsworld.shutdown({ cleanShutdown: true });
@@ -921,6 +925,7 @@
       };
 
       breakButton.attr("disabled", true);
+      stopLi.attr('disabled', true);
       breakButton.click(onBreak);
 
       return {
