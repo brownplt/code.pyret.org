@@ -77,6 +77,7 @@
 
     localSettings.change("log-detailed", function(_, newValue) {
       logDetailedOption[0].checked = newValue == 'true';
+      logDetailedOption.attr('aria-pressed', '' + (newValue == 'true'));
     });
 
     runtime.setParam("imgUrlProxy", function(s) {
