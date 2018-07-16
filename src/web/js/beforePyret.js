@@ -25,6 +25,7 @@ window.clearFlash = function() {
   $(".notificationArea").empty();
 }
 window.stickError = function(message, more) {
+  CPO.sayAndForget(message);
   clearFlash();
   var err = $("<div>").addClass("error").text(message);
   if(more) {
@@ -34,18 +35,21 @@ window.stickError = function(message, more) {
   $(".notificationArea").prepend(err);
 };
 window.flashError = function(message) {
+  CPO.sayAndForget(message);
   clearFlash();
   var err = $("<div>").addClass("error").text(message);
   $(".notificationArea").prepend(err);
   err.fadeOut(7000);
 };
 window.flashMessage = function(message) {
+  CPO.sayAndForget(message);
   clearFlash();
   var msg = $("<div>").addClass("active").text(message);
   $(".notificationArea").prepend(msg);
   msg.fadeOut(7000);
 };
 window.stickMessage = function(message) {
+  CPO.sayAndForget(message);
   clearFlash();
   var err = $("<div>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
