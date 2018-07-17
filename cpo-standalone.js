@@ -64,6 +64,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/post-load-hooks", "pyret-base
     cpoBuiltinModules.setRealm(realm);
   };
   postLoadHooks[main] = function(answer) {
+    // maybe do something similar with wrapping checker thingy?
     var checkerLib = runtime.modules["builtin://checker"];
     var checker = runtime.getField(runtime.getField(checkerLib, "provide-plus-types"), "values");
     var getStack = function(err) {

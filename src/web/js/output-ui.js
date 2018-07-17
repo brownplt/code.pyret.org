@@ -1175,6 +1175,7 @@
       return this;
     }
 
+    // PRESTON: search for this
     function installRenderers(runtime) {
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
       function renderText(txt) {
@@ -1193,6 +1194,7 @@
         return $("<span>").text(", ").addClass("collapsed").css("white-space", "pre");
       }
       var renderers = runtime.ReprMethods["$cpo"];
+      // PRESTON: and this too maybe
       renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
@@ -1298,6 +1300,7 @@
           $('*', imageDom).trigger({type : 'afterAttach'});
           var originalImageDom = img.toDomNode();
           $(container).click(function(e) {
+            // PRESTON copy something like this for the window
             var dialog = $("<div>");
             // NOTE(Oak): some magic numbers that "display" nicely
             dialog.dialog({

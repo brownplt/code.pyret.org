@@ -489,6 +489,7 @@
           options.runButton.empty();
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
+          options.traceButton.attr("disabled", false);
           breakButton.attr("disabled", true);
           canShowRunningIndicator = false;
           if(cm) {

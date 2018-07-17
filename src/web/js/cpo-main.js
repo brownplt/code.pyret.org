@@ -314,6 +314,7 @@
 
     function withRepl(repl) {
       var runButton = $("#runButton");
+      var traceButton = $("#traceButton");
 
       var codeContainer = $("<div>").addClass("replMain");
       $("#main").prepend(codeContainer);
@@ -321,7 +322,8 @@
       var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
-            runButton: runButton
+            runButton: runButton,
+            traceButton: traceButton
           });
 
       // NOTE(joe): assigned on window for debuggability
@@ -394,6 +396,25 @@
       }
 
       runButton.on("click", function() { doRunAction(editor.cm.getValue()); });
+      traceButton.on("click", function(e) {
+        var dialog = $("<div>");
+        dialog.dialog({
+          title: 'Image',
+          modal: true,
+          height: $(document).height() * .95,
+          width: $(document).width() * .95,
+          resizable: true,
+          close: function() {
+            dialog.empty();
+            dialog.dialog("destroy");
+            dialog.remove();
+          }
+        });
+        dialog.css({"overflow": "auto"});
+        e.stopPropagation();
+
+        console.log("TODO: show trace window");
+      });
 
       $(window).on("keyup", function(e) {
         if(e.keyCode === 27) { // "ESC"
