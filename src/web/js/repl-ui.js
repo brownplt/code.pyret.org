@@ -535,10 +535,12 @@
             return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
           }, function(container) {
             if (repl.runtime.isSuccessResult(container)) {
+              var styles = { "right": "20px", "position": "absolute"};
               $(output)
                 .append($("<div>").addClass("trace")
-                        .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
-                        .append(container.result));
+                    .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
+                    .append(container.result)
+                    .append($("<span>").css(styles).text("click here for trace")));
               scroll(output);
             } else {
               $(output).append($("<div>").addClass("error trace")

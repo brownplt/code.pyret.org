@@ -1197,7 +1197,6 @@
       function addRenderer(name, fun) {
         renderers[name] = function(val) {
           var result = fun(val);
-          result/*.parent()*/.append($("<div>").text("click here for trace"));
           return result;
         };
       }
