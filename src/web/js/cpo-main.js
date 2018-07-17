@@ -49,7 +49,8 @@
     "cpo/http-imports",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
-    "pyret-base/js/runtime"
+    "pyret-base/js/runtime",
+    "d3"
   ],
   provides: {},
   theModule: function(runtime, namespace, uri,
@@ -583,7 +584,7 @@
             .text(function(d) {
               console.log("from inside text thingy");
               console.log(d);
-              var t = nodeToText(d);
+              var t = d.name;
               console.log(t);
               return t; }); // function name, args, vals
           //.style("fill-opacity", 1e-6);
@@ -592,7 +593,7 @@
             return d.id || (d.id = ++i);
           });
           texts.text(function(d) {
-            var t = nodeToText(d);
+            var t = d.name;
             console.log("normal text update");
             console.log(d);
             return t; }); // function name, args, vals
