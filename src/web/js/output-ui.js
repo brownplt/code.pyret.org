@@ -1202,17 +1202,17 @@
           return result;
         };
       }
-      renderers["opaque"] = function renderPOpaque(val) {
+      addRenderer("opaque", function renderPOpaque(val) {
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
         } else {
           return renderText(sooper(renderers, "opaque", val));
         }
-      };
-      renderers["cyclic"] = function renderCyclic(val) {
+      });
+      addRenderer("cyclic", function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
-      };
-      renderers["render-color"] = function renderColor(top) {
+      });
+      addRenderer("render-color", function renderColor(top) {
         var val = top.extra;
         var container = $("<span>").addClass("replToggle replOutput replCycle");
         var renderings = [];
@@ -1277,8 +1277,9 @@
 
         container.append(renderings);
         return container;
-      };
+      });
       function toggleCycle(e) {
+        // todo(PRESTON): something weird happening here with cycle and add trace
         var cur = $(this);
         var next = cur.next();
         if (next.length === 0) { next = cur.parent(".replCycle").find(".cycleTarget").first(); }
@@ -1286,7 +1287,7 @@
         next.removeClass("hidden");
         e.stopPropagation();
       }
-      renderers.renderImage = function renderImage(img) {
+      addRenderer("renderImage", function renderImage(img) {
         var container = $("<span>").addClass('replOutput');
         var imageDom;
         var maxWidth = $(document).width() * .375;
@@ -1336,8 +1337,8 @@
           $('*', imageDom).trigger({type : 'afterAttach'});
           return container;
         }
-      };
-      renderers["number"] = function renderPNumber(num) {
+      });
+      addRenderer("number", function renderPNumber(num) {
         // If we're looking at a rational number, arrange it so that a
         // click will toggle the decimal representation of that
         // number.  Note that this feature abandons the convenience of
@@ -1358,7 +1359,7 @@
           // decimal, and back again.
           // https://stackoverflow.com/a/10390111/7501301
           var isClick = false;
-          outText.click(function() {
+          outText.click(function(e) {
             if (isClick) {
               outText.toggleFrac(num.toString(), decimalString, decimal[2]);
             }
@@ -1373,10 +1374,10 @@
         } else {
           return renderText(sooper(renderers, "number", num));
         }
-      };
-      renderers["nothing"] = function(val) { return renderText("nothing"); }
-      renderers["boolean"] = function(val) { return renderText(sooper(renderers, "boolean", val)); };
-      renderers["string"] = function(val) {
+      });
+      addRenderer("nothing", function(val) { return renderText("nothing"); });
+      addRenderer("boolean", function(val) { return renderText(sooper(renderers, "boolean", val)); });
+      addRenderer("string", function(val) {
         var outText = $("<span>").addClass("replTextOutput escaped");
         var escapedUnicode = '"' + replaceUnprintableStringChars(val, true) + '"';
         var unescapedUnicode = '"' + replaceUnprintableStringChars(val, false) + '"';
@@ -1390,7 +1391,7 @@
           });
         }
         return outText;
-      };
+      });
       // Copied from runtime-anf, and tweaked.  Probably should be exported from runtime-anf instad
       var replaceUnprintableStringChars = function (s, toggleUnicode) {
         var ret = [], i;
@@ -1422,9 +1423,9 @@
         }
         return ret.join('');
       };
-      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
-      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
-      renderers["render-array"] = function(top) {
+      addRenderer("method", function(val) { return renderText("<method:" + val.name + ">"); });
+      addRenderer("function", function(val) { return renderText("<function:" + val.name + ">"); });
+      addRenderer("render-array", function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
         // this means we don't get grouping behavior yet, but since that's commented out right now anyway, it's ok
@@ -1445,11 +1446,11 @@
           e.stopPropagation();
         });
         return container;
-      };
-      renderers["ref"] = function(val, implicit, pushTodo) {
+      });
+      addRenderer("ref", function(val, implicit, pushTodo) {
         pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
-      };
-      renderers["render-ref"] = function(top) {
+      });
+      addRenderer("render-ref", function(top) {
         var container = $("<span>").addClass("replToggle replOutput has-icon");
         container.append(top.done[0]);
         var warning = $("<img>")
@@ -1478,11 +1479,11 @@
           e.stopPropagation();
         });
         return container;
-      };
-      renderers["tuple"] = function(t, pushTodo) {
+      });
+      addRenderer("tuple", function(t, pushTodo) {
         pushTodo(undefined, undefined, undefined, Array.prototype.slice.call(t.vals), "render-tuple");
-      };
-      renderers["render-tuple"] = function(top){
+      });
+      addRenderer("render-tuple", function(top){
         var container = $("<span>").addClass("replOutput");
         var openBrace = $("<span>").text("{");
         var closeBrace = $("<span>").text("}");
@@ -1497,8 +1498,8 @@
         container.append(values);
         container.append(closeBrace);
         return container;
-      };
-      renderers["object"] = function(val, pushTodo) {
+      });
+      addRenderer("object", function(val, pushTodo) {
         var keys = [];
         var vals = [];
         for (var field in val.dict) {
@@ -1506,8 +1507,8 @@
           vals.unshift(val.dict[field]); // because processing will reverse them back
         }
         pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
-      };
-      renderers["render-object"] = function(top) {
+      });
+      addRenderer("render-object", function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").addClass("expanded").text("Object");
         var openBrace = $("<span>").addClass("collapsed").text("{");
@@ -1528,15 +1529,15 @@
           e.stopPropagation();
         });
         return container;
-      };
-      renderers["data"] = function(val, pushTodo) {
+      });
+      addRenderer("data", function(val, pushTodo) {
         if (image.isColor(val)) {
           pushTodo(undefined, undefined, undefined, [], "render-color", val);
         } else {
           return renderers.__proto__["data"](val, pushTodo);
         }
-      };
-      renderers["render-data"] = function renderData(top) {
+      });
+      addRenderer("render-data", function renderData(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").text(top.extra.constructorName);
         var openParen = $("<span>").addClass("collapsed").text("(");
@@ -1557,7 +1558,7 @@
         }
         container.click(toggleExpanded);
         return container;
-      };
+      });
       function toggleExpanded(e) {
         $(this).toggleClass("expanded");
         e.stopPropagation();
@@ -1762,10 +1763,10 @@
         //   }
         // }
       }
-      renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
+      addRenderer("render-valueskeleton", function renderValueSkeleton(top) {
         var container = $("<span>").addClass("replOutput");
         return helper(container, top.extra.skeleton, top.done);
-      };
+      });
     }
     // Because some finicky functions (like images and CodeMirrors), require
     // extra events to happen for them to show up, we provide this as an
