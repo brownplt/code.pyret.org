@@ -23,7 +23,7 @@
     "cookie-session": "^1.0.1",
     "css-loader": "0.25.0",
     "csurf": "^1.1.0",
-    "d3": "~3",
+    "d3": "~4",
     "d3-tip": "git://github.com/sorawee/d3-tip.git",
     "dotenv": "^2.0.0",
     "es6-shim": "0.35.0",
