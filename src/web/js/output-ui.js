@@ -1317,7 +1317,7 @@
         return container;
       });
       function toggleCycle(e) {
-        // TODO(PRESTON): something weird happening here with cycle and add trace
+        // TODO(PRESTON): something weird happening here with cycle and added trace text
         var cur = $(this);
         var next = cur.next();
         if (next.length === 0) { next = cur.parent(".replCycle").find(".cycleTarget").first(); }
