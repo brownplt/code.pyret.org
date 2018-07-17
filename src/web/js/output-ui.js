@@ -1181,7 +1181,7 @@
       function renderText(txt) {
         var echo = $("<span>").addClass("replTextOutput");
         echo.text(txt);
-        echo.append($("<p>").text("click here for trace"));
+        // echo.append($("<p>").text("click here for trace"));
         // setTimeout(function() {
         //   CodeMirror.runMode(echo.text(), "pyret", echo[0]);
         //   echo.addClass("cm-s-default");
@@ -1195,7 +1195,13 @@
         return $("<span>").text(", ").addClass("collapsed").css("white-space", "pre");
       }
       var renderers = runtime.ReprMethods["$cpo"];
-      // PRESTON: and this too maybe
+      function addRenderer(name, fun) {
+        renderers[name] = function(val) {
+          var result = fun(val);
+          result.append($("<p>").text("click here for trace"));
+          return result;
+        };
+      }
       renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
