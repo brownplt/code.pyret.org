@@ -1181,6 +1181,7 @@
       function renderText(txt) {
         var echo = $("<span>").addClass("replTextOutput");
         echo.text(txt);
+        echo.append($("<p>").text("click here for trace"));
         // setTimeout(function() {
         //   CodeMirror.runMode(echo.text(), "pyret", echo[0]);
         //   echo.addClass("cm-s-default");
