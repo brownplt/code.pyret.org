@@ -38,6 +38,7 @@
     var outputPendingHidden = true;
     var canShowRunningIndicator = false;
     var running = false;
+    var tracingFunctions = false;
 
     var RUNNING_SPINWHEEL_DELAY_MS = 1000;
 
@@ -536,11 +537,12 @@
           }, function(container) {
             if (repl.runtime.isSuccessResult(container)) {
               var styles = { "right": "20px", "position": "absolute"};
-              $(output)
-                .append($("<div>").addClass("trace")
+              var trace = $("<div>").addClass("trace")
                     .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
-                    .append(container.result)
-                    .append($("<span>").css(styles).text("click here for trace")));
+                    .append(container.result);
+              if (tracingFunctions)
+                    trace.append($("<span>").css(styles).text("click here for trace"))
+              $(output).append(trace);
               scroll(output);
             } else {
               $(output).append($("<div>").addClass("error trace")
@@ -660,14 +662,14 @@
 
         interactionsCount = 0;
         replOutputCount = 0;
-        traceBoolean = !!uiOptions["trace"];
+        tracingFunctions = !!uiOptions["trace"];
         logger.log('run', { name      : "definitions://",
             type_check: !!uiOptions["type-check"],
-            trace: traceBoolean
+            trace: tracingFunctions
                           });
         var options = {
           typeCheck: !!uiOptions["type-check"],
-          trace: traceBoolean,
+          trace: tracingFunctions,
           checkAll: false // NOTE(joe): this is a good spot to fetch something from the ui options
                           // if this becomes a check box somewhere in CPO
         };
