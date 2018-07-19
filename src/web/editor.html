@@ -18,7 +18,40 @@
   <main>
   <div id="Toolbar" role="region" aria-label="Tool Controls" tabindex="-1">
     <nav aria-label="Toolbar" id="header">
-      <h2 class="screenreader-only">Navigation Controls</h2>
+      <h2 class="screenreader-only">Navigation Controls
+        <div class="screenreader-only">
+          <p class="screenreader-only" id="bonniemenubuttonInfo">Main submenu.
+          Use up and down arrows to navigate this submenu.
+          Click, enter, or space to choose a submenu item.
+          Use left and right arrows to go to adjacent menu items.
+          Press Control question mark for Help.</p>
+          <p class="screenreader-only" id="connectButtonInfo">Connect button.
+          Click, enter, or space to connect to Google Drive.
+          Use left and right arrows to go to adjacent menu items.</p>
+          <p class="screenreader-only" id="filemenuItemInfo">File submenu.
+          Use up and down arrows to navigate this submenu.
+          Click, enter, or space to choose a submenu item.
+          Use left and right arrows to go to adjacent menu items.</p>
+          <p class="screenreader-only" id="insertInfo">Insert button.
+          Click, enter, or space to open Insert dialog.
+          Keyboard shortcut: F11.
+          Use left and right arrows to go to adjacent menu items.</p>
+          <p class="screenreader-only" id="publishInfo">Share button.
+          Click, enter, or space to open publish dialog.
+          Use left and right arrows to go to adjacent menu items.</p>
+          <p class="screenreader-only" id="breakButtonInfo">Stop button.
+          Click, enter, or space to stop currently running program.
+          Use left and right arrows to go to adjacent menu items.</p>
+          <p class="screenreader-only" id="runDropdownInfo">Run options dropdown submenu.
+          Use up and down arrows to navigate this submenu.
+          Use left and right arrows to go to adjacent menu items.
+          Click, enter, or space to choose an option.</p>
+          <p class="screenreader-only" id="runButtonInfo">Run button.
+          Click, enter, or space to run current definitions window.
+          Keyboard shortcut: F7.
+          Use left and right arrows to go to adjacent menu items.</p>
+        </div>
+      </h2>
       <ul id="topTierUl" role="tree" aria-label="Toolbar" tabindex="-1">
         <li class="lhs topTier" id="bonniemenuli">
           <div id="bonniemenu" class="menu menuitemtitle" style="float:none" >
@@ -28,11 +61,20 @@
                     aria-haspopup="true"
                     aria-expanded="false"
                     aria-controls="bonniemenuContents"
-                    tabindex="0"
+                    aria-describedby="bonniemenubuttonInfo"
+                    tabindex="-1"
                     class="blueButton focusable">
               <span>▾</span>
               <img class="logo" src="/img/pyret-logo.png"></img>
             </button>
+          </div>
+          <div class="screenreader-only">
+            <p class="screenreader-only myProgramsInfo">My Programs</p>
+            <p class="screenreader-only documentationInfo">Documentation</p>
+            <p class="screenreader-only reportIssueInfo">Report an issue</p>
+            <p class="screenreader-only discussPyretInfo">Discuss Pyret</p>
+            <p class="screenreader-only detailedLoggingInfo">Contrinute detailed usage information</p>
+            <p class="screenreader-only logoutInfo">Log out</p>
           </div>
           <ul id="bonniemenuContents" class="menuContents" role="menu" aria-hidden="true"
             aria-label="Main Menu">
@@ -43,12 +85,16 @@
             </li>
             <li>
               <div id="drive-view" class="loginOnly menuButton">
-                <a class="focusable" role="treeitem" tabindex="-1" target="_blank" href="/">My Programs</a>
+                <a class="focusable"
+                  aria-describedby="myProgramsInfo" role="treeitem" tabindex="-1" target="_blank" href="/">
+                  My Programs</a>
               </div>
             </li>
             <li >
               <div id="docs" class="menuButton">
-                <a class="focusable" role="treeitem" tabindex="-1" target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
+                <a class="focusable"
+                  aria-describedby="documentationInfo"
+                  role="treeitem" tabindex="-1" target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
               </div>
             </li>
             <li>
@@ -57,20 +103,28 @@
             </li>
             <li >
               <div id="issues" class="menuButton">
-                <a class="focusable" role="treeitem" tabindex="-1" target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
+                <a class="focusable"
+                  aria-describedby="reportIssueInfo"
+                  role="treeitem" tabindex="-1" target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
               </div>
             </li>
             <li >
               <div id="discuss" class="menuButton">
-                <a class="focusable" role="treeitem" tabindex="-1" target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+                <a class="focusable"
+                  aria-describedby="discussPyretInfo"
+                  role="treeitem" tabindex="-1" target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
               </div>
             </li>
             <li >
               <div id="logging">
                 <span>
-                  <input class="focusable" role="treeitem" tabindex="-1" id="detailed-logging" type="checkbox" aria-pressed="false"
+                  <input class="focusable" role="treeitem" tabindex="-1" id="detailed-logging"
+                  aria-labelledby="detailed-logging-label"
+                  aria-describedby="detailedLoggingInfo"
+                  type="checkbox" aria-pressed="false"
                   aria-label="Contribute detailed usage information"/>
-                  <label for="detailed-logging">Contribute detailed usage information.</label>
+                  <label for="detailed-logging" id="detailed-logging-label>
+                    Contribute detailed usage information.</label>
                   <a href="https://www.pyret.org/cpo-faq#(part._logging)" target="_blank" rel="noopener noreferrer" class="focusable info-btn" role="treeitem" tabindex="-1"
                     id="detailed-logging-learn-more"
                     title="Learn More" aria-label="Learn More">?</a>
@@ -78,7 +132,9 @@
               </div>
             </li>
             <li >
-              <div id="logout" class="menuButton"><a  class="focusable" role="treeitem" tabindex="-1" href="/logout">Log out</a>
+              <div id="logout" class="menuButton">
+                <a class="focusable" aria-describedby="logoutInfo"
+                  role="treeitem" tabindex="-1" href="/logout">Log out</a>
               </div>
             </li>
           </ul>
@@ -86,7 +142,9 @@
 
         <li class="lhs topTier logoutOnly" id="connectButtonli">
           <div class="menu menuitemtitle">
-            <button role="treeitem" id="connectButton" class="logoutOnly focusable blueButton" tabindex="-1">Connect to Google Drive</button>
+            <button role="treeitem"
+              aria-describedby="connectButtonInfo"
+              id="connectButton" class="logoutOnly focusable blueButton" tabindex="-1">Connect to Google Drive</button>
           </div>
           <!--
             <div id="program-name-container" class="loginOnly">
@@ -102,6 +160,7 @@
               aria-haspopup="true"
               aria-expanded="false"
               aria-controls="filemenuContents"
+              aria-describedby="filemenuItemInfo"
               id="filemenuItem"
               tabindex="-1"
               class="focusable blueButton">
@@ -112,32 +171,52 @@
           <ul id="filemenuContents" class="menuContents" role="menu" aria-hidden="true"
             aria-label="File Menu">
             <li >
-              <div id="new" class="menuButton"><a class="focusable" role="treeitem" tabindex="-1" href="javascript:void(0)" >New</a></div>
+              <div id="new" class="menuButton">
+                <a class="focusable" role="treeitem" aria-label="New file"
+                  tabindex="-1" href="javascript:void(0)" >New</a></div>
             </li>
             <li>
-              <div id="open" class="menuButton"><a tabindex="-1" href="javascript:void(0)" class="focusable" role="treeitem" >Open</a></div>
+              <div id="open" class="menuButton">
+                <a tabindex="-1" href="javascript:void(0)" class="focusable"
+                  aria-label="Open file" role="treeitem" >Open</a></div>
             </li>
             <li >
-              <div id="open-original" class="menuButton disabled hidden"><a tabindex="-1" href="javascript:void(0)" class="focusable" role="treeitem">Open Original</a></div>
+              <div id="open-original" class="menuButton disabled hidden">
+                <a tabindex="-1" href="javascript:void(0)" class="focusable"
+                  aria-label="Open original file" role="treeitem">Open Original</a></div>
             </li>
             <li>
-              <div id="save" class="menuButton disabled"><a class="focusable disabled" role="treeitem" tabindex="-1" href="javascript:void(0)">Save</a></div>
-            </li>
-            <li >
-              <div id="saveas" class="menuButton"><a class="focusable" role="treeitem" tabindex="-1" href="javascript:void(0)">Save a copy</a></div>
-            </li>
-            <li>
-              <div id="download" class="menuButton"><a class="focusable" role="treeitem" tabindex="-1" href="javascript:void(0)">Download</a></div>
+              <div id="save" class="menuButton disabled">
+                <a class="focusable disabled" role="treeitem"
+                  aria-label="Save file"
+                  tabindex="-1" href="javascript:void(0)">Save</a></div>
             </li>
             <li>
-              <div id="rename" class="menuButton disabled"><a class="focusable disabled" role="treeitem" tabindex="-1" href="javascript:void(0)">Rename</a></div>
+              <div id="saveas" class="menuButton">
+                <a class="focusable" role="treeitem"
+                  aria-label="Save a copy"
+                  tabindex="-1" href="javascript:void(0)">Save a copy</a></div>
+            </li>
+            <li>
+              <div id="download" class="menuButton">
+                <a class="focusable" role="treeitem"
+                  aria-label="Download"
+                  tabindex="-1" href="javascript:void(0)">Download</a></div>
+            </li>
+            <li>
+              <div id="rename" class="menuButton disabled">
+                <a class="focusable disabled" role="treeitem"
+                  aria-label="Rename file"
+                  tabindex="-1" href="javascript:void(0)">Rename</a></div>
             </li>
           </ul>
         </li>
 
         <li class="loginOnly lhs topTier" id="insertli">
           <div id="insertPart" class="loginOnly menu menuitemtitle">
-            <button role="treeitem" aria-label="Insert, F11" id="insert" class="focusable blueButton loginOnly"  tabindex="-1">Insert</button>
+            <button role="treeitem"
+              aria-describedby="insertInfo"
+              aria-label="Insert, F11" id="insert" class="focusable blueButton loginOnly"  tabindex="-1">Insert</button>
           </div>
           <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
           <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
@@ -149,7 +228,9 @@
 
         <li class="rhs topTier" disabled id="stopli">
           <div class="menu menuitemtitle">
-            <button role="treeitem" aria-label="Stop, F8" disabled id="breakButton" class="focusable blueButton rhs"  tabindex="-1">Stop</button>
+            <button role="treeitem" aria-label="Stop, F8" disabled id="breakButton"
+              aria-describedby="breakButtonInfo"
+              class="focusable blueButton rhs"  tabindex="-1">Stop</button>
           </div>
         </li>
 
@@ -162,6 +243,7 @@
                     aria-haspopup="true"
                     aria-expanded="false"
                     aria-controls="run-dropdown-content"
+                    aria-describedby="runDropdownInfo"
                     disabled
                     tabindex="-1">↴
             </button>
@@ -170,12 +252,15 @@
             aria-label="Run Options">
             <li id="select-run-old" role="menuitem">
               <div id="select-run" >
-                <a class="focusable" tabindex="-1" href="javascript:void(0)">Run</a>
+                <a class="focusable"
+                  aria-label="Run" tabindex="-1" href="javascript:void(0)">Run</a>
               </div>
             </li>
             <li id="select-tc-run-old" role="menuitem">
               <div id="select-tc-run" >
-                <a class="focusable" tabindex="-1" href="javascript:void(0)">Type-check and run<sup>(beta)</sup></a>
+                <a class="focusable"
+                  aria-label="Type-check and run"
+                  tabindex="-1" href="javascript:void(0)">Type-check and run<sup>(beta)</sup></a>
               </div>
             </li>
           </ul>
@@ -183,7 +268,9 @@
 
         <li class="rhs topTier" id="runli">
           <div id="runPart" class="blueButton rhs menuitemtitle" >
-            <button role="treeitem" aria-label="Run, F7" disabled id="runButton" class="focusable blueButton rhs" tabindex="-1">Run</button>
+            <button role="treeitem" aria-label="Run, F7" disabled id="runButton"
+              aria-describedby="runButtonInfo"
+              class="focusable blueButton rhs" tabindex="-1">Run</button>
           </div>
         </li>
       </ul>
