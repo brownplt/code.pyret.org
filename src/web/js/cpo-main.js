@@ -534,9 +534,27 @@
         e.preventDefault();
       });
 
+      function reciteHelp() {
+        CPO.sayAndForget(
+          "Press Escape to exit help. " +
+          "Control question mark: recite help. " +
+          "Control s: save. " +
+          "Control enter: run the code in the definitions window. " +
+          "Control left: move cursor left by one word. " +
+          "Control right: move cursor right by one word. " +
+          "Alt left: if cursor is just before a right parenthesis or end keyword, " +
+          "move left to matching delimiter, " +
+          "otherwise move left by one word. " +
+          "Alt right: like alt left, but move right. " +
+          "Escape left: synonym for alt left, in case alt key is used by browser. " +
+          "Escape right: synonym for alt right."
+        );
+      }
+
       // pull up help menu
       Mousetrap.bindGlobal('ctrl+shift+/', function(e) {
         $("#help-keys").fadeIn(100);
+        reciteHelp();
         e.stopImmediatePropagation();
         e.preventDefault();
       });
