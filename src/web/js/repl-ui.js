@@ -245,8 +245,13 @@
         }
         if (pointer < items.length - 1) {
           pointer++;
-          loadItem();
-          CM.refresh();
+          if (pointer === (items.length - 1) &&
+              items[pointer].code === 'def//') {
+            pointer--;
+          } else {
+            loadItem();
+            CM.refresh();
+          }
         }
       }
       function nextItem() {
@@ -262,24 +267,6 @@
       }
 
       // a11y stuff
-
-      function say(msg, forget) {
-        if (msg === "") return;
-        var announcements = document.getElementById("announcementlist");
-        var li = document.createElement("LI");
-        li.appendChild(document.createTextNode(msg));
-        announcements.insertBefore(li, announcements.firstChild);
-        if (forget) {
-          setTimeout(function() {
-            announcements.removeChild(li);
-          }, 1000);
-        }
-      }
-
-      function sayAndForget(msg) {
-        //console.log('doing sayAndForget', msg);
-        say(msg, true);
-      }
 
       function outputText(elt) {
         //console.log('outputText of', elt);
@@ -359,7 +346,7 @@
             }
           }
         }
-        sayAndForget(recital);
+        CPO.sayAndForget(recital);
         return true;
       }
 
@@ -368,7 +355,7 @@
         var ln = pos.line; var ch = pos.ch;
         var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
         if (char === " ") char = "space";
-        sayAndForget(char);
+        CPO.sayAndForget(char);
       }
 
 
@@ -598,6 +585,7 @@
       });
 
       var breakButton = options.breakButton;
+      var stopLi = $('#stopli');
       container.append(output).append(promptContainer);
 
       var img = $("<img>").attr({
@@ -658,6 +646,7 @@
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
           breakButton.attr("disabled", true);
+          stopLi.attr('disabled', true);
           canShowRunningIndicator = false;
           if(cm) {
             cm.setValue("");
@@ -678,6 +667,7 @@
          if(canShowRunningIndicator) {
             options.runButton.attr("disabled", true);
             breakButton.attr("disabled", false);
+            stopLi.attr('disabled', false);
             options.runButton.empty();
             var text = $("<span>").text("Running...");
             text.css({
@@ -885,6 +875,7 @@
           extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
+            'Tab': 'indentAuto',
             'Up': prevItem,
             'Down': nextItem,
             'Ctrl-Up': "goLineUp",
@@ -926,6 +917,7 @@
 
       var onBreak = function() {
         breakButton.attr("disabled", true);
+        stopLi.attr('disabled', true);
         repl.stop();
         closeAnimationIfOpen();
         Jsworld.shutdown({ cleanShutdown: true });
@@ -933,6 +925,7 @@
       };
 
       breakButton.attr("disabled", true);
+      stopLi.attr('disabled', true);
       breakButton.click(onBreak);
 
       return {
