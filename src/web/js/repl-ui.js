@@ -16,6 +16,10 @@
       protocol: "js-file",
       args: ["./text-handlers"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./function-visualizer"]
+    },
     { "import-type": "builtin",
       name: "world-lib"
     },
@@ -29,7 +33,7 @@
   provides: {},
   theModule: function(runtime, _, uri,
                       checkUI, outputUI, errorUI,
-                      textHandlers, worldLib, loadLib,
+                      textHandlers, functionVisualizer, worldLib, loadLib,
                       util) {
     var ffi = runtime.ffi;
 
@@ -483,6 +487,8 @@
       var runContents;
       function afterRun(cm) {
         return function() {
+          console.log("functionTracer.doneExecuting()");
+          functionVisualizer.doneExecutingFun();
           running = false;
           outputPending.remove();
           outputPendingHidden = true;
