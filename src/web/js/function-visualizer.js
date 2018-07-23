@@ -332,7 +332,7 @@
     }
 
     var simpleShowTrace = function() {
-      // clean or clone on this?
+      root.children = [];
       dialog = $('<div>');
       svg = d3.select(dialog.get(0)).
         append("svg").
