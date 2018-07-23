@@ -487,7 +487,6 @@
       var runContents;
       function afterRun(cm) {
         return function() {
-          console.log("functionTracer.doneExecuting()");
           functionVisualizer.doneExecutingFun();
           running = false;
           outputPending.remove();

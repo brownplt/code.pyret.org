@@ -55,6 +55,7 @@
     update(root);
     var selected = root;
 
+    var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
     // packet: {action: String, funName: String, params: List<String>, args: List<Vals>}
@@ -64,9 +65,11 @@
         // and empty events
         events = [];
       }
-      console.log(Array(indentation).join(indentation_char) +
-        [packet.action, packet.funName, packet.params.toString(), packet.args.toString()].join(" "));
-      indentation++;
+      if (console_trace) {
+        console.log(Array(indentation).join(indentation_char) +
+          [packet.action, packet.funName, packet.params.toString(), packet.args.toString()].join(" "));
+        indentation++;
+      }
       events.push(packet);
     }
 
@@ -77,9 +80,11 @@
         // and empty events
         events = [];
       }
-      indentation--;
-      console.log(Array(indentation).join(indentation_char) +
-        [packet.action, packet.retVal].join(" "));
+      if (console_trace) {
+        indentation--;
+        console.log(Array(indentation).join(indentation_char) +
+          [packet.action, packet.retVal].join(" "));
+      }
       events.push(packet);
     }
 
@@ -327,6 +332,7 @@
     }
 
     var simpleShowTrace = function() {
+      // clean or clone on this?
       dialog = $('<div>');
       svg = d3.select(dialog.get(0)).
         append("svg").
@@ -338,12 +344,10 @@
       for (event in events) {
         simpleAction(events[event])
       }
-      console.log(dialog);
       return dialog;
     }
 
     var markDone = function() {
-      console.log("done with one trace");
       // this is where would make some
       // state change for when we can clear
       // when start receiving more push/pops
