@@ -41,7 +41,7 @@
       append("g").
       attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var i = 0, duration = 750, root;
+    var i = 0, duration = 0, root;
 
     // declares a tree layout and assigns the size
     var treemap = d3.tree().size([height, width]);
