@@ -401,6 +401,7 @@
       traceButton.on("click", function(e) {
         console.log("functiontracer.showTrace()");
         var dialog = functionVisualizer.showTrace();
+        console.log(dialog);
         dialog.dialog({
           title: 'Trace',
           modal: true,

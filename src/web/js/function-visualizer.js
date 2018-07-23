@@ -67,12 +67,15 @@
       // declares a tree layout and assigns the size
       var treemap = d3.tree().size([height, width]);
 
-      // Assigns parent, children, height, depth
       root = d3.hierarchy(data, function(d) {
         return d.children;
       });
       root.x0 = height / 2;
       root.y0 = 0;
+      root.funName = 'Run Pyret';
+      update(root);
+      var selected = root;
+
       function update(source) {
 
         // Assigns the x and y position for the nodes
@@ -193,22 +196,22 @@
 
         // base of this is adopted from https://bl.ocks.org/mbostock/4339083
         nodeEnter.append("text")
-              .attr("x", function(d) { return d.children ? -50 : 30; })
-              .attr("dy", ".35em")
-              .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
-              .text(function(d) {
-                  console.log("from inside text thingy");
-                  console.log(d);
-                  var t = nodeToText(d);
-                  console.log(t);
-                  return t; }); // function name, args, vals
-                //.style("fill-opacity", 1e-6);
+          .attr("x", function(d) { return d.children ? -50 : 30; })
+          .attr("dy", ".35em")
+          .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
+          .text(function(d) {
+            console.log("from inside text thingy");
+            console.log(d);
+            var t = nodeToText(d);
+            console.log(t);
+            return t; }); // function name, args, vals
+        //.style("fill-opacity", 1e-6);
 
         var texts = node.selectAll("text").data(nodes, function(d) {
           return d.id || (d.id = ++i);
         });
         texts.text(function(d) {
-          var t = d.name;
+          var t = nodeToText(d);
           console.log("normal text update");
           console.log(d);
           return t; }); // function name, args, vals
@@ -249,34 +252,34 @@
           d.y0 = d.y;
         });
       }
-      update(root);
       function nodeToText(n) {
-          return createText(n.funName, n.params, n.args, n.returnValue);
+        return createText(n.funName, n.params, n.args, n.returnValue);
       }
 
       // will need to update this for no params, multiple params, etc
       function createText(funName, funParams, funArgs, funRet) {
-          return funName + "(" + paramText(funParams, funArgs) + ") →" + (funRet || "☐");
+        return funName + "(" + paramText(funParams, funArgs) + ") →" + (funRet || "☐");
       }
 
       // look into zip for javascript for multi-params
       // taking invariant that funParams and funArgs are same length
       function paramText(funParams, funArgs) {
-          if (funParams) {
-              var zipped = funParams.map(function(element, index) {
-                  return element + "=" + funArgs[index];
-              });
-              if (zipped.length > 0) {
-                  return zipped.reduce((acc, curr) => acc + "," + curr);
-              }
-              else {
-                  return zipped.reduce((acc, curr) => acc + curr, "");
-              }
+        if (funParams) {
+          var zipped = funParams.map(function(element, index) {
+            return element + "=" + funArgs[index];
+          });
+          if (zipped.length > 0) {
+            return zipped.reduce((acc, curr) => acc + "," + curr);
           }
           else {
-              return "";
+            return zipped.reduce((acc, curr) => acc + curr, "");
           }
+        }
+        else {
+          return "";
+        }
       }
+      return dialog;
     }
 
     var markDone = function() {
