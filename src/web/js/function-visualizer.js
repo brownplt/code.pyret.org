@@ -12,19 +12,8 @@
   provides: {},
   theModule: function(runtime, n, u, d3) {
 
-    // need to save things on depth-first for going forward and back...
-    // could we just do that when things are removed?
-    var events = [
-      {action: "push", funName: "fib", params: ["i"], args: ["3"]},
-      {action: "push", funName: "fib", params: ["i"], args: ["2"]},
-      {action: "push", funName: "fib", params: [], args: []},
-      {action: "pop", retVal: 1},
-      {action: "push", funName: "fib", params: ["i", "j"], args: ["0", "1"]},
-      {action: "pop", retVal: 1},
-      {action: "pop", retVal: 2},
-      {action: "push", funName: "fib", params: ["i"], args: ["1"]},
-      {action: "pop", retVal: 1},
-      {action: "pop", retVal: 3}];
+    var events = [];
+
     var data = {
       name: 'pyret-root',
       children: [],
@@ -39,13 +28,14 @@
       width = 1874 - margin.left - margin.right,
       height = 875 - margin.top - margin.bottom;
 
+    // what happens to later dialogs? clicking button multiple times doesn't work
+    var dialog = $("<div>");
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
-    var dialog = $("<div>");
-    // make this match the size of the dialog window!
     var svg = d3.select(dialog.get(0)).
       append("svg").
+      // make this match the size of the dialog window!
       attr("width", width + margin.right + margin.left).
       attr("height", height + margin.top + margin.bottom).
       append("g").
@@ -69,18 +59,28 @@
     var indentation_char = "-";
     // packet: {action: String, funName: String, params: List<String>, args: List<Vals>}
     var simpleOnPush = function(packet) {
+      if (done) {
+        done = false;
+        // and empty events
+        events = [];
+      }
       console.log(Array(indentation).join(indentation_char) +
         [packet.action, packet.funName, packet.params.toString(), packet.args.toString()].join(" "));
       indentation++;
-      simpleAction(packet);
+      events.push(packet);
     }
 
     // packet: {action: String, retVal: Vals}
     var simpleOnPop = function(packet) {
+      if (done) {
+        done = false;
+        // and empty events
+        events = [];
+      }
       indentation--;
       console.log(Array(indentation).join(indentation_char) +
         [packet.action, packet.retVal].join(" "));
-      simpleAction(packet);
+      events.push(packet);
     }
 
     var simpleAction = function(eventList) {
@@ -125,6 +125,7 @@
         selected = selected.parent;
       }
       else {
+        console.log(eventList);
         console.log("what");
       }
     }
@@ -326,6 +327,18 @@
     }
 
     var simpleShowTrace = function() {
+      dialog = $('<div>');
+      svg = d3.select(dialog.get(0)).
+        append("svg").
+        // make this match the size of the dialog window!
+        attr("width", width + margin.right + margin.left).
+        attr("height", height + margin.top + margin.bottom).
+        append("g").
+        attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      for (event in events) {
+        simpleAction(events[event])
+      }
+      console.log(dialog);
       return dialog;
     }
 
@@ -334,6 +347,7 @@
       // this is where would make some
       // state change for when we can clear
       // when start receiving more push/pops
+      done = true;
     }
 
     return runtime.makeJSModuleReturn({
