@@ -30,18 +30,20 @@
       children: [],
       parent: null
     };
+    var done = false;
 
     // ### DATA MODEL END
 
     // Set the dimensions and margins of the diagram
     var margin = {top: 20, right: 90, bottom: 30, left: 90},
-      width = 960 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
+      width = 1874 - margin.left - margin.right,
+      height = 875 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
     var dialog = $("<div>");
+    // make this match the size of the dialog window!
     var svg = d3.select(dialog.get(0)).
       append("svg").
       attr("width", width + margin.right + margin.left).
@@ -128,7 +130,6 @@
     }
 
     function update(source) {
-
       // Assigns the x and y position for the nodes
       var treeData = treemap(root);
 
