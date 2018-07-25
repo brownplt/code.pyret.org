@@ -52,7 +52,6 @@
     root.x0 = height / 2;
     root.y0 = 0;
     root.funName = 'Run Pyret';
-    update(root);
     var selected = root;
 
     var console_trace = false;
@@ -333,6 +332,7 @@
 
     var simpleShowTrace = function() {
       root.children = [];
+      // maybe clone this? would only pay creating once
       dialog = $('<div>');
       svg = d3.select(dialog.get(0)).
         append("svg").
