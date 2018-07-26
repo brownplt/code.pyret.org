@@ -49,7 +49,7 @@
     root = d3.hierarchy(data, function(d) {
       return d.children;
     });
-    root.x0 = height / 2;
+    root.x0 = width / 2;
     root.y0 = 0;
     root.funName = 'Run Pyret';
     var selected = root;
@@ -162,16 +162,16 @@
         attr("stroke-width", 2).
         attr("stroke", 'black').
         attr('x1', function(d) {
-          return source.y0;
+          return source.x0;
         }).
         attr('y1', function(d) {
-          return source.x0;
-        }).
-        attr('x2', function(d) {
           return source.y0;
         }).
-        attr('y2', function(d) {
+        attr('x2', function(d) {
           return source.x0;
+        }).
+        attr('y2', function(d) {
+          return source.y0;
         });
 
       var linkUpdate = linkEnter.merge(link);
@@ -179,32 +179,32 @@
       linkUpdate.transition().
         duration(duration).
         attr('x1', function(d) {
-          return d.parent.y;
-        }).
-        attr('y1', function(d) {
           return d.parent.x;
         }).
+        attr('y1', function(d) {
+          return d.parent.y;
+        }).
         attr('x2', function(d) {
-          return d.y;
+          return d.x;
         }).
         attr('y2', function(d) {
-          return d.x;
+          return d.y;
         });
 
       // Transition back to the parent element position
       linkUpdate.transition().
         duration(duration).
         attr('x1', function(d) {
-          return d.parent.y;
-        }).
-        attr('y1', function(d) {
           return d.parent.x;
         }).
+        attr('y1', function(d) {
+          return d.parent.y;
+        }).
         attr('x2', function(d) {
-          return d.y;
+          return d.x;
         }).
         attr('y2', function(d) {
-          return d.x;
+          return d.y;
         });
 
       // Remove any exiting links
@@ -238,7 +238,7 @@
         append('g').
         attr('class', 'node').
         attr("transform", function(d) {
-          return "translate(" + source.y0 + "," + source.x0 + ")";
+          return "translate(" + source.x0 + "," + source.y0 + ")";
         });
 
       // Add Circle for the nodes
@@ -273,7 +273,7 @@
       nodeUpdate.transition().
         duration(duration).
         attr("transform", function(d) {
-          return "translate(" + d.y + "," + d.x + ")";
+          return "translate(" + d.x + "," + d.y + ")";
         });
 
       // Update the node attributes and style
@@ -289,7 +289,7 @@
         transition().
         duration(duration).
         attr("transform", function(d) {
-          return "translate(" + source.y + "," + source.x + ")";
+          return "translate(" + source.x + "," + source.y + ")";
         }).
         remove();
 
