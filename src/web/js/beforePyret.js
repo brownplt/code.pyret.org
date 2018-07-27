@@ -206,6 +206,8 @@ $(function() {
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
     }
 
+    getTopTierMenuitems();
+
     return {
       cm: CM,
       refresh: function() { CM.refresh(); },
@@ -408,10 +410,11 @@ $(function() {
     var fc = editor.focusCarousel;
     var docmain = document.getElementById("main");
     if (!fc[0]) {
-      //var toolbar = document.getElementById('Toolbar');
-      //fc[0] = toolbar;
+      var toolbar = document.getElementById('Toolbar');
+      fc[0] = toolbar;
       //fc[0] = document.getElementById("headeronelegend");
-      fc[0] = document.getElementById('bonniemenubutton');
+      //getTopTierMenuitems();
+      //fc[0] = document.getElementById('bonniemenubutton');
     }
     if (!fc[1]) {
       var docreplMain = docmain.getElementsByClassName("replMain");
@@ -441,6 +444,7 @@ $(function() {
   }
 
   function cycleFocus(reverseP) {
+    //console.log('doing cycleFocus', reverseP);
     var editor = this.editor;
     var fCarousel = editor.focusCarousel;
     populateFocusCarousel(editor);
@@ -462,7 +466,10 @@ $(function() {
     } while (!focusElt);
 
     var focusElt0;
-    if (focusElt.classList.contains("replMain") ||
+    if (focusElt.classList.contains('toolbarregion')) {
+      getTopTierMenuitems();
+      focusElt0 = document.getElementById('bonniemenubutton');
+    } else if (focusElt.classList.contains("replMain") ||
       focusElt.classList.contains("CodeMirror")) {
       var textareas = focusElt.getElementsByTagName("textarea");
       if (textareas.length === 0) {
@@ -670,6 +677,7 @@ $(function() {
   var theToolbar = $(document).find('#Toolbar');
 
   function getTopTierMenuitems() {
+    //console.log('doing getTopTierMenuitems')
     var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
     var lastElt = topTierMenuitems.pop();
     var iiLastElt = topTierMenuitems.pop();
@@ -691,7 +699,7 @@ $(function() {
   }
 
   function insertAriaPos(submenu) {
-    //console.log('submenu=', submenu);
+    //console.log('doing insertAriaPos', submenu)
     var arr = submenu.toArray();
     //console.log('arr=', arr);
     var len = arr.length;
@@ -716,15 +724,15 @@ $(function() {
     //most any key at all
     var kc = e.keyCode;
     //console.log('toolbar keydown', e.keyCode);
-    if (e.obskeyCode === 9 || kc === 27) {
-      //console.log('toolbar keydown: 1st br');
+    if (kc === 9 || kc === 27) {
+      // escape
       hideAllTopMenuitems();
       //console.log('calling cycleFocus')
       CPO.cycleFocus();
       e.stopPropagation();
     } else if (kc === 37 || kc === 38 || kc === 39 || kc === 40) {
-      //console.log('toolbar keydown: 2nd br');
-      var target = $(this).find('[tabIndex=0]');
+      // an arrow
+      var target = $(this).find('[tabIndex=-1]');
       getTopTierMenuitems();
       /*
       //console.log('target=', target);
@@ -733,6 +741,7 @@ $(function() {
       //console.log('topTierLi=', topTierLi.length);
       if (topTierLi.length === 0) {
         topTierLi = $('#bonniemenuli')
+        // go straight here?
         target = topTierLi.find('.focusable').first();
       }
       switchTopMenuitem(topTierLi.closest('ul[id=topTierUl]'), topTierLi, target);
@@ -761,11 +770,11 @@ $(function() {
     if (!submenuOpen) {
       //console.log('hiddenp true branch');
       hideAllTopMenuitems();
-      thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
+      thisTopMenuitem.children('ul.submenu').attr('aria-hidden', 'false').show();
       thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
     } else {
       //console.log('hiddenp false branch');
-      thisTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'true').hide();
+      thisTopMenuitem.children('ul.submenu').attr('aria-hidden', 'true').hide();
       thisTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'false');
     }
     e.stopPropagation();
@@ -778,7 +787,7 @@ $(function() {
     //console.log('doing hideAllTopMenuitems');
     var topTierUl = $(document).find('nav[aria-label=Toolbar] ul[id=topTierUl]');
     topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
-    topTierUl.find('ul[role=menu]').attr('aria-hidden', 'true').hide();
+    topTierUl.find('ul.submenu').attr('aria-hidden', 'true').hide();
   }
 
   function switchTopMenuitem(topTierUl, destTopMenuitem, destElt) {
@@ -789,7 +798,7 @@ $(function() {
       var elt = destTopMenuitem[0];
       var eltId = elt.getAttribute('id');
       if (eltId !== 'rundropdownli') {
-        destTopMenuitem.children('ul[role=menu]').attr('aria-hidden', 'false').show();
+        destTopMenuitem.children('ul.submenu').attr('aria-hidden', 'false').show();
         destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
       }
     }
@@ -804,7 +813,7 @@ $(function() {
     //$(this).blur(); // Delete?
     var withinSecondTierUl = true;
     var topTierUl = $(this).closest('ul[id=topTierUl]');
-    var secondTierUl = $(this).closest('ul[role=menu]');
+    var secondTierUl = $(this).closest('ul.submenu');
     if (secondTierUl.length === 0) {
       withinSecondTierUl = false;
     }
@@ -900,7 +909,7 @@ $(function() {
         } else {
           /*
           //console.log('no actionable submenu found')
-          var topmenuItem = $(this).closest('ul[role=menu]').closest('li')
+          var topmenuItem = $(this).closest('ul.submenu').closest('li')
           .children().first().find('.focusable:not([disabled])').filter(':visible');
           if (topmenuItem.length > 0) {
             topmenuItem.first().focus();
