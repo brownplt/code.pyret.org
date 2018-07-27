@@ -331,7 +331,16 @@
 
     data.addColumn('string', 'Label');
     data.addColumn('number', '');
-    data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
+    
+    var max, min;
+    data.addRows(table.map(row => {
+      var valfix = toFixnum(row[1]);
+      if(max === undefined) { max = valfix; }
+      if(min === undefined) { min = valfix; }
+      if(valfix > max) { max = valfix; }
+      if(valfix < min) { min = valfix; }
+      return [row[0], valfix];
+    }));
 
     // set legend to none because there's only one data set
     const options = {legend: {position: 'none'}, histogram: {}};
@@ -351,7 +360,9 @@
     });
 
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min-num-bins'), {
-      none: function () {},
+      none: function () {
+        options.histogram.minNumBuckets = Math.floor(max - min / table.length); 
+      },
       some: function (minNumBins) {
         options.histogram.minNumBuckets = toFixnum(minNumBins);
       }
