@@ -263,6 +263,7 @@
       root.children = null;
       root._children = null;
       // maybe clone this? would only pay creating once
+      console.log("eventList length: " + events.length);
       dialog = $('<div>');
       svg = d3.select(dialog.get(0)).
         append("svg").
