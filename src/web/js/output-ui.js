@@ -1186,6 +1186,7 @@
       return this;
     }
 
+    // PRESTON: search for this
     function installRenderers(runtime) {
       if (!runtime.ReprMethods.createNewRenderer("$cpo", runtime.ReprMethods._torepr)) return;
       function renderText(txt) {
@@ -1213,7 +1214,7 @@
       }
       addRenderer("opaque", function renderPOpaque(val) {
         if (image.isImage(val.val)) {
-          return renderImage(val.val);
+          return renderers.renderImage(val.val);
         } else {
           return renderText(sooper(renderers, "opaque", val));
         }
@@ -1221,45 +1222,6 @@
       addRenderer("cyclic", function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
       });
-      function renderPNumber(num) {
-        // If we're looking at a rational number, arrange it so that a
-        // click will toggle the decimal representation of that
-        // number.  Note that this feature abandons the convenience of
-        // publishing output via the CodeMirror textarea.
-        if (jsnums.isRational(num) && !jsnums.isInteger(num)) {
-          // This function returns three string values, numerals to
-          // appear before the decimal point, numerals to appear
-          // after, and numerals to be repeated.
-          var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), runtime.NumberErrbacks);
-          var decimalString = decimal[0].toString() + "." + decimal[1].toString();
-
-          var outText = $("<span>").addClass("replToggle replTextOutput rationalNumber fraction")
-            .text(num.toString());
-
-          outText.toggleFrac(num.toString(), decimalString, decimal[2]);
-
-          // On click, switch the representation from a fraction to
-          // decimal, and back again.
-          // https://stackoverflow.com/a/10390111/7501301
-          var isClick = false;
-          outText.click(function(e) {
-            if (isClick) {
-              outText.toggleFrac(num.toString(), decimalString, decimal[2]);
-            }
-            e.stopPropagation();
-          }).mousedown(function () {
-            isClick = true;
-          }).mousemove(function () {
-            isClick = false;
-          });
-
-          return outText;
-        } else {
-          return renderText(sooper(renderers, "number", num));
-        }
-      }
-      addRenderer("number", renderPNumber);
-
       addRenderer("render-color", function renderColor(top) {
         var val = top.extra;
         var container = $("<span>").addClass("replToggle replOutput replCycle");
@@ -1295,26 +1257,26 @@
 
         var colorDisplay = $("<span>")
             .append("color(")
-            .append(renderPNumber(raw_r))
+            .append(renderers.number(raw_r))
             .append(", ")
-            .append(renderPNumber(raw_g))
+            .append(renderers.number(raw_g))
             .append(", ")
-            .append(renderPNumber(raw_b))
+            .append(renderers.number(raw_b))
             .append(", ")
-            .append(renderPNumber(raw_a))
+            .append(renderers.number(raw_a))
             .append(")");
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput").append(colorDisplay));
 
 
         var dl = $("<dl>");
         dl.append($("<dt>").addClass("label").text("red"))
-          .append($("<dd>").append(renderPNumber(raw_r)))
+          .append($("<dd>").append(renderers.number(raw_r)))
           .append($("<dt>").addClass("label").text("green"))
-          .append($("<dd>").append(renderPNumber(raw_g)))
+          .append($("<dd>").append(renderers.number(raw_g)))
           .append($("<dt>").addClass("label").text("blue"))
-          .append($("<dd>").append(renderPNumber(raw_b)))
+          .append($("<dd>").append(renderers.number(raw_b)))
           .append($("<dt>").addClass("label").text("alpha"))
-          .append($("<dd>").append(renderPNumber(raw_a)));
+          .append($("<dd>").append(renderers.number(raw_a)));
         renderings.push($("<span>").addClass("cycleTarget replToggle replOutput expanded")
                         .append($("<span>").text("color"))
                         .append(dl));
