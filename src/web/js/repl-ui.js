@@ -646,6 +646,7 @@
       function afterRun(cm) {
         return function() {
           //speakHistory(1);
+          functionVisualizer.doneExecutingFun();
           running = false;
           outputPending.remove();
           outputPendingHidden = true;
