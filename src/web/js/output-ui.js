@@ -1206,23 +1206,17 @@
         return $("<span>").text(", ").addClass("collapsed").css("white-space", "pre");
       }
       var renderers = runtime.ReprMethods["$cpo"];
-      function addRenderer(name, fun) {
-        renderers[name] = function(val) {
-          var result = fun(val);
-          return result;
-        };
-      }
-      addRenderer("opaque", function renderPOpaque(val) {
+      renderers["opaque"] = function renderPOpaque(val) {
         if (image.isImage(val.val)) {
           return renderers.renderImage(val.val);
         } else {
           return renderText(sooper(renderers, "opaque", val));
         }
-      });
-      addRenderer("cyclic", function renderCyclic(val) {
+      };
+      renderers["cyclic"] = function renderCyclic(val) {
         return renderText(sooper(renderers, "cyclic", val));
-      });
-      addRenderer("render-color", function renderColor(top) {
+      };
+      renderers["render-color"] = function renderColor(top) {
         var val = top.extra;
         var container = $("<span>").addClass("replToggle replOutput replCycle");
         var renderings = [];
@@ -1287,7 +1281,7 @@
 
         container.append(renderings);
         return container;
-      });
+      };
       function toggleCycle(e) {
         var cur = $(this);
         var next = cur.next();
@@ -1297,7 +1291,6 @@
         e.stopPropagation();
       }
       renderers.renderImage = function renderImage(img) {
-        //console.log('doing renderImage');
         var container = $("<span>").addClass('replOutput');
         var imageDom;
         var maxWidth = $(document).width() * .375;
@@ -1381,7 +1374,7 @@
           // decimal, and back again.
           // https://stackoverflow.com/a/10390111/7501301
           var isClick = false;
-          outText.click(function(e) {
+          outText.click(function() {
             if (isClick) {
               var ariaText = outText.toggleFrac(numrString, denrString, prePointString, postPointString, decRpt);
               outText[0].ariaText = ariaText;
@@ -1433,7 +1426,7 @@
         outText[0].ariaText = ariaText;
         outText[0].setAttribute('aria-label', ariaText);
         return outText;
-      });
+      };
       // Copied from runtime-anf, and tweaked.  Probably should be exported from runtime-anf instad
       var replaceUnprintableStringChars = function (s, toggleUnicode) {
         var ret = [], i;
@@ -1465,9 +1458,9 @@
         }
         return ret.join('');
       };
-      addRenderer("method", function(val) { return renderText("<method:" + val.name + ">"); });
-      addRenderer("function", function(val) { return renderText("<function:" + val.name + ">"); });
-      addRenderer("render-array", function(top) {
+      renderers["method"] = function(val) { return renderText("<method:" + val.name + ">"); };
+      renderers["function"] = function(val) { return renderText("<function:" + val.name + ">"); };
+      renderers["render-array"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         // inlining the code for the VSCollection case of helper() below, without having to create the extra array
         // this means we don't get grouping behavior yet, but since that's commented out right now anyway, it's ok
@@ -1488,11 +1481,11 @@
           e.stopPropagation();
         });
         return container;
-      });
-      addRenderer("ref", function(val, implicit, pushTodo) {
+      };
+      renderers["ref"] = function(val, implicit, pushTodo) {
         pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
-      });
-      addRenderer("render-ref", function(top) {
+      };
+      renderers["render-ref"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput has-icon");
         container.append(top.done[0]);
         var warning = $("<img>")
@@ -1521,11 +1514,11 @@
           e.stopPropagation();
         });
         return container;
-      });
-      addRenderer("tuple", function(t, pushTodo) {
+      };
+      renderers["tuple"] = function(t, pushTodo) {
         pushTodo(undefined, undefined, undefined, Array.prototype.slice.call(t.vals), "render-tuple");
-      });
-      addRenderer("render-tuple", function(top){
+      };
+      renderers["render-tuple"] = function(top){
         var container = $("<span>").addClass("replOutput");
         var openBrace = $("<span>").text("{");
         var closeBrace = $("<span>").text("}");
@@ -1540,8 +1533,8 @@
         container.append(values);
         container.append(closeBrace);
         return container;
-      });
-      addRenderer("object", function(val, pushTodo) {
+      };
+      renderers["object"] = function(val, pushTodo) {
         var keys = [];
         var vals = [];
         for (var field in val.dict) {
@@ -1549,8 +1542,8 @@
           vals.unshift(val.dict[field]); // because processing will reverse them back
         }
         pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
-      });
-      addRenderer("render-object", function(top) {
+      };
+      renderers["render-object"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").addClass("expanded").text("Object");
         var openBrace = $("<span>").addClass("collapsed").text("{");
@@ -1571,15 +1564,15 @@
           e.stopPropagation();
         });
         return container;
-      });
-      addRenderer("data", function(val, pushTodo) {
+      };
+      renderers["data"] = function(val, pushTodo) {
         if (image.isColor(val)) {
           pushTodo(undefined, undefined, undefined, [], "render-color", val);
         } else {
           return renderers.__proto__["data"](val, pushTodo);
         }
-      });
-      addRenderer("render-data", function renderData(top) {
+      };
+      renderers["render-data"] = function renderData(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").text(top.extra.constructorName);
         var openParen = $("<span>").addClass("collapsed").text("(");
@@ -1600,7 +1593,7 @@
         }
         container.click(toggleExpanded);
         return container;
-      });
+      };
       function toggleExpanded(e) {
         $(this).toggleClass("expanded");
         e.stopPropagation();
@@ -1865,10 +1858,10 @@
         //   }
         // }
       }
-      addRenderer("render-valueskeleton", function renderValueSkeleton(top) {
+      renderers["render-valueskeleton"] = function renderValueSkeleton(top) {
         var container = $("<span>").addClass("replOutput");
         return helper(container, top.extra.skeleton, top.done);
-      });
+      };
     }
     // Because some finicky functions (like images and CodeMirrors), require
     // extra events to happen for them to show up, we provide this as an
