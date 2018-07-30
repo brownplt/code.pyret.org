@@ -1489,9 +1489,9 @@
         });
         return container;
       });
-      renderers["ref"] = function(val, implicit, pushTodo) {
+      addRenderer("ref", function(val, implicit, pushTodo) {
         pushTodo(undefined, undefined, val, [runtime.getRef(val)], "render-ref", { origVal: val, implicit: implicit });
-      };
+      });
       addRenderer("render-ref", function(top) {
         var container = $("<span>").addClass("replToggle replOutput has-icon");
         container.append(top.done[0]);
@@ -1522,9 +1522,9 @@
         });
         return container;
       });
-      renderers["tuple"] = function(t, pushTodo) {
+      addRenderer("tuple", function(t, pushTodo) {
         pushTodo(undefined, undefined, undefined, Array.prototype.slice.call(t.vals), "render-tuple");
-      };
+      });
       addRenderer("render-tuple", function(top){
         var container = $("<span>").addClass("replOutput");
         var openBrace = $("<span>").text("{");
@@ -1541,7 +1541,7 @@
         container.append(closeBrace);
         return container;
       });
-      renderers["object"] = function(val, pushTodo) {
+      addRenderer("object", function(val, pushTodo) {
         var keys = [];
         var vals = [];
         for (var field in val.dict) {
@@ -1549,7 +1549,7 @@
           vals.unshift(val.dict[field]); // because processing will reverse them back
         }
         pushTodo(undefined, val, undefined, vals, "render-object", { keys: keys, origVal: val });
-      };
+      });
       addRenderer("render-object", function(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").addClass("expanded").text("Object");
@@ -1572,13 +1572,13 @@
         });
         return container;
       });
-      renderers["data"] = function(val, pushTodo) {
+      addRenderer("data", function(val, pushTodo) {
         if (image.isColor(val)) {
           pushTodo(undefined, undefined, undefined, [], "render-color", val);
         } else {
           return renderers.__proto__["data"](val, pushTodo);
         }
-      };
+      });
       addRenderer("render-data", function renderData(top) {
         var container = $("<span>").addClass("replToggle replOutput");
         var name = $("<span>").text(top.extra.constructorName);
