@@ -1374,7 +1374,7 @@
           // decimal, and back again.
           // https://stackoverflow.com/a/10390111/7501301
           var isClick = false;
-          outText.click(function() {
+          outText.click(function(e) {
             if (isClick) {
               var ariaText = outText.toggleFrac(numrString, denrString, prePointString, postPointString, decRpt);
               outText[0].ariaText = ariaText;
