@@ -463,7 +463,7 @@ div.spy-block > table > th { display: none; }
 
 .repl-echo::before,
 .repl-prompt::before {
-  content: '>';
+  content: '\203a\203a\203a';
   display: inline;
   line-height: calc(1em + 10px);
   float: left;
@@ -1227,8 +1227,9 @@ code div {
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
-#runButton{
+#runButton, #runDropdown {
   background: #317BCF;
+  color: #eee;
 }
 
 #runButton:hover{
@@ -1266,35 +1267,68 @@ code div {
   margin: 0;
 }
 
-.dropdown {
-  background: #317BCF;
-  padding-top: 12px;
-  padding-left: 5px;
-  box-sizing: border-box;
-  float: right;
+#rundropdownli {
+  padding: 0;
+  margin: 0;
   height: 100%;
   width: 20px;
+  background: #317bcf;
+}
+
+#rundropdownli > div {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 12px;
+  padding-left: 5px;
+  border: 0;
   box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
 }
 
-#run-dropdown-content {
-  position: absolute;
-  right: 153px;
-  top: 40px;
-  margin: 0;
-  width: 172px;
-  display: none;
+#select-run a {
+  color: #eeeeee;
+  text-decoration: none;
 }
 
-#run-dropdown-content li {
+#select-tc-run a {
+  color: #eeeeee;
+  text-decoration: none;
+}
+
+
+#run-dropdown-content {
+  width: 163px;
+}
+
+#run-dropdown-content > li {
+  background: #317BCF;
   color: #eeeeee;
   font-family: sans-serif;
   font-size: 15px;
   height: 23px;
+  width: 100%;
   background: #317BCF;
   padding: 5px;
   box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
   text-align: center;
+}
+
+#run-dropdown-content > li > div {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+}
+
+#run-dropdown-content > li > div > a {
+  height: 100%;
+  width: 100%;
+  padding: 0;
 }
 
 #run-dropdown-content li:hover {
@@ -1944,4 +1978,12 @@ button.controller {
   fill: none;
   stroke: #ccc;
   stroke-width: 1.5px;
+}
+.screenreader-only {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px 1px 1px 1px);
+    clip: rect(1px, 1px, 1px, 1px);
 }

@@ -4,7 +4,7 @@ import gdrive-sheets as GS
 foo = GS.load-spreadsheet("1A2CDeh-iDdmiGRR1QNoQ93WsR0MGEKwOfwuK9-yZNnY")
 
 check "All sheets loaded":
-  foo.sheet-list is [list: "Sheet1", "Sheet2"]
+  foo.sheet-names() is [list: "Sheet1", "Sheet2"]
 end
 
 check "Table loading and Type Inference":

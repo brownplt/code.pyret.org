@@ -13,7 +13,6 @@ import global as G
 import base as B
 include lists
 include option
-include either
 import image-structs as I
 import image as IM
 import sets as S

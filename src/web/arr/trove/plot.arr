@@ -45,9 +45,8 @@ import image-structs as I
 import image as IM
 include lists
 include option
-include either
 import plot-lib as P
-import either as E
+include either
 import string-dict as SD
 
 MAX-SAMPLES = 100000
@@ -344,7 +343,7 @@ fun generate-xy(
     | function-plot-int(f, options) =>
       for filter-map(i from range(0, win-opt.num-samples)):
         x = win-opt.x-min + (fraction * i)
-        cases (E.Either) run-task({(): f(x)}):
+        cases (Either) run-task({(): f(x)}):
           | left(y) => some([raw-array: x, y])
           | right(v) => none
         end

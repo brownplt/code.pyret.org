@@ -37,7 +37,7 @@
                       util) {
     var ffi = runtime.ffi;
 
-    var output = jQuery("<div id='output' class='cm-s-default'>");
+    var output = jQuery("<div id='output' aria-hidden='true' class='cm-s-default'>");
     var outputPending = jQuery("<span>").text("Gathering results...");
     var outputPendingHidden = true;
     var canShowRunningIndicator = false;
@@ -90,13 +90,16 @@
 
     // the result of applying `displayResult` is a function that MUST
     // NOT BE CALLED ON THE PYRET STACK.
-    // add plot icon to this?
-    function displayResult(output, callingRuntime, resultRuntime, isMain) {
+    function displayResult(output, callingRuntime, resultRuntime, isMain, updateItems) {
+      // updateItems() is used to update the repl interaction history
+      //console.log('doing displayResult', isMain);
       var runtime = callingRuntime;
       var rr = resultRuntime;
 
       // MUST BE CALLED ON THE PYRET STACK
       function renderAndDisplayError(runtime, error, stack, click, result) {
+        //console.log('renderAndDisplayError');
+        //updateItems(isMain);
         var error_to_html = errorUI.error_to_html;
         // `renderAndDisplayError` must be called on the pyret stack
         // because of this call to `pauseStack`
@@ -109,9 +112,14 @@
                 html.trigger('toggleHighlight');
                 html.addClass("highlights-active");
               });
+              html[0].setAttribute('aria-hidden', 'true');
               html.addClass('compile-error').appendTo(output);
+              //updateItems?
               if (click) html.click();
-            }).done(function () {restarter.resume(runtime.nothing)});
+            }).done(function () {
+              //updateItems(isMain);
+              restarter.resume(runtime.nothing)
+            });
         });
       }
 
@@ -133,6 +141,7 @@
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
+            //updateItems?
             return ffi.cases(ffi.isEither, "is-Either", result, {
               left: function(compileResultErrors) {
                 closeAnimationIfOpen();
@@ -155,7 +164,10 @@
                       // pyret stack.
                       return renderAndDisplayError(callingRuntime, errors[i], [], true, result);
                     }), 0, errors.length);
-                  }, function (result) { return result; }, "renderMultipleErrors");
+                  }, function (result) {
+                    //updateItems(isMain);
+                    return result;
+                  }, "renderMultipleErrors");
               },
               right: function(v) {
                 // TODO(joe): This is a place to consider which runtime level
@@ -174,6 +186,7 @@
                       }, function(_) {
                         outputPending.remove();
                         outputPendingHidden = true;
+                        //updateItems(isMain);
                         return true;
                       }, "rr.drawCheckResults");
                     } else {
@@ -182,6 +195,7 @@
                       didError = true;
                       // `renderAndDisplayError` must be called in the context of the pyret stack.
                       // this application runs in the context of the above `rr.runThunk`.
+                      //updateItems?
                       return renderAndDisplayError(resultRuntime, runResult.exn.exn,
                                                    runResult.exn.pyretStack, true, runResult);
                     }
@@ -193,6 +207,7 @@
             });
           }
           else {
+            //updateItems?
             doneDisplay.reject("Error displaying output");
             console.error("Bad result: ", result);
             didError = true;
@@ -210,6 +225,8 @@
               snippets[i].CodeMirror.refresh();
             }
           }
+          updateItems(isMain);
+          //speakHistory(1);
           doneDisplay.resolve("Done displaying output");
           return callingRuntime.nothing;
         });
@@ -221,14 +238,14 @@
     function makeRepl(container, repl, runtime, options) {
 
       var Jsworld = worldLib;
-      var items = [];
+      var items = []; // repl interaction history
       var pointer = -1;
       var current = "";
       function loadItem() {
-        CM.setValue(items[pointer]);
+        CM.setValue(items[pointer].code);
       }
-      function saveItem() {
-        items.unshift(CM.getValue());
+      function saveItem() { //not used?
+        items.unshift({code: CM.getValue(), output: false});
       }
       function prevItem() {
         if (pointer === -1) {
@@ -236,8 +253,13 @@
         }
         if (pointer < items.length - 1) {
           pointer++;
-          loadItem();
-          CM.refresh();
+          if (pointer === (items.length - 1) &&
+              items[pointer].code === 'def//') {
+            pointer--;
+          } else {
+            loadItem();
+            CM.refresh();
+          }
         }
       }
       function nextItem() {
@@ -252,11 +274,106 @@
         }
       }
 
+      // a11y stuff
+
+      function outputText(elt) {
+        //console.log('outputText of', elt);
+        var text;
+        if (elt.classList.contains('test-results')) {
+          var eltChildren = elt.childNodes;
+          text = '';
+          for (var i = 0; i < eltChildren.length; i++) {
+            var eltI = eltChildren[i];
+            if (eltI.classList.contains('testing-summary')) {
+              var succ = eltI.getElementsByClassName('summary-bits');
+              if (succ.length > 0) {
+                text += eltI.getElementsByClassName('summary-passed')[0].innerText +
+                  ', ' + eltI.getElementsByClassName('summary-failed')[0].innerText + '. ';
+              } else {
+                text += eltI.innerText + '. ';
+              }
+            } else if (eltI.classList.contains('check-block-success') ||
+              eltI.classList.contains('check-block-failed')) {
+              var eltIChildren = eltI.childNodes;
+              for (j = 0; j < eltIChildren.length; j++) {
+                var eltIJ = eltIChildren[j];
+                if (!eltIJ.classList.contains('check-block-tests')) {
+                  text += eltIJ.innerText + '. ';
+                }
+              }
+            }
+            else {
+              text += eltI.innerText + '. ';
+            }
+          }
+        } else {
+          var ro = elt.getElementsByClassName('replOutput');
+          if (ro.length === 0) ro = elt.getElementsByClassName('replTextOutput');
+          if (ro.length > 0) text = ro[0].ariaText;
+          if (!text) text = elt.innerText;
+        }
+        return text;
+      }
+
+
+      function speakHistory(n) {
+        //console.log('doing speakHistory', n);
+        if (n === 0) { n = 10; }
+        var historySize = items.length;
+        //console.log('items =', items);
+        //console.log('historySize =', historySize);
+        if (n > historySize) { return false; }
+        var history = items[n-1];
+        //console.log('history=', history);
+        var isMain = (history.code === 'def//');
+        var recital;
+        if (isMain) {
+          recital = 'Loading definitions window';
+        } else {
+          recital = history.code;
+        }
+        if (history.erroroutput) {
+          recital += ' resulted in an error. ' + history.erroroutput;
+        } else {
+          if (isMain) {
+            if (!history.end && !history.start) {
+              recital += ' produced no output.';
+            } else {
+              recital += ' produced output: ';
+            }
+          } else {
+            recital += ' evaluates to ';
+          }
+          var docOutput = document.getElementById('output').childNodes;
+          if (!history.end && history.start) {
+            recital += outputText(docOutput[history.start]);
+          } else {
+            //console.log('speakhistory from', history.start, 'to', history.end);
+            for (var i = history.start; i < history.end; i++) {
+              recital += '. ' + outputText(docOutput[i]);
+            }
+          }
+        }
+        CPO.sayAndForget(recital);
+        return true;
+      }
+
+      function speakChar(cm) {
+        var pos = cm.getCursor();
+        var ln = pos.line; var ch = pos.ch;
+        var char = cm.getRange({line: ln, ch: ch}, {line: ln, ch: ch+1});
+        if (char === " ") char = "space";
+        CPO.sayAndForget(char);
+      }
+
+
+      // end a11y stuff
+
       container.append(mkWarningUpper());
       container.append(mkWarningLower());
 
       var promptContainer = jQuery("<div class='prompt-container'>");
-      var prompt = jQuery("<span>").addClass("repl-prompt");
+      var prompt = jQuery("<span>").addClass("repl-prompt").attr("title", "Enter Pyret code here");
       function showPrompt() {
         promptContainer.hide();
         promptContainer.fadeIn(100);
@@ -476,6 +593,7 @@
       });
 
       var breakButton = options.breakButton;
+      var stopLi = $('#stopli');
       container.append(output).append(promptContainer);
 
       var img = $("<img>").attr({
@@ -485,9 +603,49 @@
         "vertical-align": "middle"
       });
       var runContents;
+      function updateItems(isMain) {
+        //console.log('doing updateItems', isMain);
+        var thiscode = items[0];
+        var docOutput = document.getElementById("output");
+        var docOutputLen = docOutput.childNodes.length;
+        var lastOutput = docOutput.lastElementChild;
+        //console.log('lastOutput=', lastOutput);
+        var text;
+        if (lastOutput && lastOutput.classList.contains('compile-error')) {
+          //console.log('result is a compile-error');
+          thiscode.start = docOutputLen - 1;
+          var loChildren = lastOutput.childNodes;
+          //console.log('loChildren=', loChildren);
+          text = '';
+          for (var i = 0; i < loChildren.length; i++) {
+            var thisChild = loChildren[i];
+            //console.log('thisChild=', thisChild);
+            if (thisChild.tagName === 'DIV' && thisChild.classList.contains('cm-snippet')) {
+              if (!isMain) {
+                //console.log('adding in', thiscode.code);
+                text += ' in ' + thiscode.code + '.';
+              }
+            } else if (thisChild.tagName === 'P') {
+              //console.log('adding', thisChild.innerText);
+              text += ' ' + thisChild.innerText;
+            }
+          }
+          //console.log('final text=', text);
+          thiscode.erroroutput = text;
+        } else if (isMain) {
+          //console.log('result is a successful load, 0 to', docOutputLen);
+          thiscode.start = 0;
+          thiscode.end = docOutputLen;
+        } else {
+          //console.log('result is a successful single interaction');
+          thiscode.start = docOutputLen - 1;
+        }
+        speakHistory(1);
+        return true;
+      }
       function afterRun(cm) {
         return function() {
-          functionVisualizer.doneExecutingFun();
+          //speakHistory(1);
           running = false;
           outputPending.remove();
           outputPendingHidden = true;
@@ -497,11 +655,13 @@
           options.runButton.attr("disabled", false);
           options.traceButton.attr("disabled", false);
           breakButton.attr("disabled", true);
+          stopLi.attr('disabled', true);
           canShowRunningIndicator = false;
           if(cm) {
             cm.setValue("");
             cm.setOption("readonly", false);
           }
+          //speakHistory(1);
           //output.get(0).scrollTop = output.get(0).scrollHeight;
           showPrompt();
           // need to know if we are in trace mode or not,
@@ -520,6 +680,7 @@
          if(canShowRunningIndicator) {
             options.runButton.attr("disabled", true);
             breakButton.attr("disabled", false);
+            stopLi.attr('disabled', false);
             options.runButton.empty();
             var text = $("<span>").text("Running...");
             text.css({
@@ -653,6 +814,9 @@
       var runMainCode = function(src, uiOptions) {
         if(running) { return; }
         running = true;
+        items = [];
+        var thiscode = {code: 'def//', erroroutput: false, start: false, end: false};
+        items.unshift(thiscode);
         output.empty();
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
@@ -683,7 +847,7 @@
           maybeShowOutputPending();
           return r;
         });
-        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true)).fail(function(err) {
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(false));
@@ -692,7 +856,8 @@
       var runner = function(code) {
         if(running) { return; }
         running = true;
-        items.unshift(code);
+        var thiscode = {code: code, erroroutput: false, start: false, end: false};
+        items.unshift(thiscode);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
@@ -715,7 +880,7 @@
           maybeShowOutputPending();
           return r;
         });
-        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false)).fail(function(err) {
+        var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
         doneRendering.fin(afterRun(CM));
@@ -729,6 +894,7 @@
           extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
+            'Tab': 'indentAuto',
             'Up': prevItem,
             'Down': nextItem,
             'Ctrl-Up': "goLineUp",
@@ -740,7 +906,19 @@
             'Esc Right': "goForwardSexp",
             'Alt-Right': "goForwardSexp",
             'Ctrl-Left': "goBackwardToken",
-            'Ctrl-Right': "goForwardToken"
+            'Ctrl-Right': "goForwardToken",
+            'Left': function(cm) { cm.moveH(-1, 'char'); speakChar(cm); },
+            'Right': function(cm) { cm.moveH(1, 'char'); speakChar(cm); },
+            "Alt-1": function() { speakHistory(1); },
+            "Alt-2": function() { speakHistory(2); },
+            "Alt-3": function() { speakHistory(3); },
+            "Alt-4": function() { speakHistory(4); },
+            "Alt-5": function() { speakHistory(5); },
+            "Alt-6": function() { speakHistory(6); },
+            "Alt-7": function() { speakHistory(7); },
+            "Alt-8": function() { speakHistory(8); },
+            "Alt-9": function() { speakHistory(9); },
+            "Alt-0": function() { speakHistory(0); }
           })
         }
       }).cm;
@@ -758,6 +936,7 @@
 
       var onBreak = function() {
         breakButton.attr("disabled", true);
+        stopLi.attr('disabled', true);
         repl.stop();
         closeAnimationIfOpen();
         Jsworld.shutdown({ cleanShutdown: true });
@@ -765,6 +944,7 @@
       };
 
       breakButton.attr("disabled", true);
+      stopLi.attr('disabled', true);
       breakButton.click(onBreak);
 
       return {
