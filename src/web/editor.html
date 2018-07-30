@@ -234,7 +234,6 @@
           </div>
         </li>
 
-        <button disabled id="breakButton" class="blueButton rhs">Stop</button>
         <li class="rhs topTier" id="rundropdownli">
           <div class="menu rhs menuitemtitle" style="float:none">
             <button role="treeitem"
@@ -265,10 +264,11 @@
               </div>
             </li>
             <li id="select-trace-run-old" role="menuitem">
+              <div id="select-trace-run" >
                 <a class="focusable"
                   aria-label="Trace and run"
-                  tabindex="-1" href="javascript:void(0)">Trace and Run</a>
-              
+                  tabindex="-1" href="javascript:void(0)">Trace and run</a>
+              </div>
             </li>
           </ul>
         </li>
@@ -277,7 +277,14 @@
           <div id="runPart" class="blueButton rhs menuitemtitle" >
             <button role="treeitem" aria-label="Run, F7" disabled id="runButton"
               aria-describedby="runButtonInfo"
-              class="focusable blueButton rhs" tabindex="-1">Run</button>
+              class="focusable blueButton rhs" tabindex="-1">Trace and run</button>
+          </div>
+        </li>
+        <li class="rhs topTier" disabled id="traceli">
+          <div class="menu menuitemtitle">
+            <button role="treeitem" aria-label="Trace" disabled id="traceButton"
+              aria-describedby="traceButtonInfo"
+              class="focusable blueButton rhs"  tabindex="-1">Show trace</button>
           </div>
         </li>
       </ul>
