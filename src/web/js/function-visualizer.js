@@ -30,25 +30,27 @@
 
     // what happens to later dialogs? clicking button multiple times doesn't work
     var dialog = $("<div>");
+
+    var i = 0, duration = 750, root;
+
+    // declares a tree layout and assigns the size
+    var tree = d3.layout.tree()
+      .size([height, width]);
+    var diagonal = d3.svg.diagonal()
+      .projection(function(d) { return [d.x, d.y]; });
+
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
-    var svg = d3.select(dialog.get(0)).
-      append("svg").
-      // make this match the size of the dialog window!
-      attr("width", width + margin.right + margin.left).
-      attr("height", height + margin.top + margin.bottom).
-      append("g").
-      attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var svg = d3.select(dialog.get(0))
+      .append("svg")
+      .attr("width", width + margin.right + margin.left)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var i = 0, duration = 0, root;
 
-    // declares a tree layout and assigns the size
-    var treemap = d3.tree().size([height, width]);
-
-    root = d3.hierarchy(data, function(d) {
-      return d.children;
-    });
+    root = data;
     root.x0 = width / 2;
     root.y0 = 0;
     root.funName = 'Run Pyret';
@@ -100,18 +102,21 @@
           attributes: [],
           children: []
         };
-        newNode = d3.hierarchy(newNodeObj);
+        newNode = newNodeObj;
         newNode.depth = selected.depth + 1;
         newNode.parent = selected;
-        newNode.id = Date.now();
+        newNode.id = ++i;
         // add function name, params, and args
         newNode.funName = funName;
         newNode.params = paramList;
         newNode.args = argList;
 
+        if(!selected.data) {
+          selected.data = {};
+          selected.data.children = [];
+        }
         if(!selected.children){
           selected.children = [];
-          selected.data.children = [];
         }
 
         selected.children.push(newNode);
@@ -129,179 +134,102 @@
         selected = selected.parent;
       }
       else {
-        console.log(eventList);
         console.log("what");
+        console.log(eventList);
       }
     }
-
     function update(source) {
-      // Assigns the x and y position for the nodes
-      var treeData = treemap(root);
 
       // Compute the new tree layout.
-      var nodes = treeData.descendants(),
-        links = treeData.descendants().slice(1);
+      var nodes = tree.nodes(root).reverse(),
+        links = tree.links(nodes);
 
       // Normalize for fixed-depth.
-      nodes.forEach(function(d){
-        d.y = d.depth * 180
-      });
+      nodes.forEach(function(d) { d.y = d.depth * 90; });
 
-      // ### LINKS
+      // Update the nodes…
+      var node = svg.selectAll("g.node")
+        .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
-      // Update the links...
-      var link = svg.selectAll('line.link').
-        data(links, function(d) {
-          return d.id;
-        });
+      // Enter any new nodes at the parent's previous position.
+      var nodeEnter = node.enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
+        .on("click", click);
 
-      // Enter any new links at the parent's previous position.
-      var linkEnter = link.enter().
-        append('line').
-        attr("class", "link").
-        attr("stroke-width", 2).
-        attr("stroke", 'black').
-        attr('x1', function(d) {
-          return source.x0;
-        }).
-        attr('y1', function(d) {
-          return source.y0;
-        }).
-        attr('x2', function(d) {
-          return source.x0;
-        }).
-        attr('y2', function(d) {
-          return source.y0;
-        });
+      nodeEnter.append("circle")
+        .attr("r", 1e-6)
+        .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
-      var linkUpdate = linkEnter.merge(link);
-
-      linkUpdate.transition().
-        duration(duration).
-        attr('x1', function(d) {
-          return d.parent.x;
-        }).
-        attr('y1', function(d) {
-          return d.parent.y;
-        }).
-        attr('x2', function(d) {
-          return d.x;
-        }).
-        attr('y2', function(d) {
-          return d.y;
-        });
-
-      // Transition back to the parent element position
-      linkUpdate.transition().
-        duration(duration).
-        attr('x1', function(d) {
-          return d.parent.x;
-        }).
-        attr('y1', function(d) {
-          return d.parent.y;
-        }).
-        attr('x2', function(d) {
-          return d.x;
-        }).
-        attr('y2', function(d) {
-          return d.y;
-        });
-
-      // Remove any exiting links
-      var linkExit = link.exit().
-        transition().
-        duration(duration).
-        attr('x1', function(d) {
-          return source.x;
-        }).
-        attr('y1', function(d) {
-          return source.y;
-        }).
-        attr('x2', function(d) {
-          return source.x;
-        }).
-        attr('y2', function(d) {
-          return source.y;
-        }).
-        remove();
-
-      // ### CIRCLES
-
-      // Update the nodes...
-      var node = svg.selectAll('g.node')
-        .data(nodes, function(d) {
-          return d.id || (d.id = ++i);
-        });
-
-      // Enter any new modes at the parent's previous position.
-      var nodeEnter = node.enter().
-        append('g').
-        attr('class', 'node').
-        attr("transform", function(d) {
-          return "translate(" + source.x0 + "," + source.y0 + ")";
-        });
-
-      // Add Circle for the nodes
-      nodeEnter.append('circle').
-        attr('class', 'node').
-        attr('r', 25).
-        style("fill", function(d) {
-          return "#0e4677";
-        });
-
-      // base of this is adopted from https://bl.ocks.org/mbostock/4339083
       nodeEnter.append("text")
-        .attr("x", function(d) { return d.children ? -50 : 30; })
+        .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
         .attr("dy", ".35em")
-        .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
-        .text(function(d) {
-          var t = nodeToText(d);
-          return t; }); // function name, args, vals
-      //.style("fill-opacity", 1e-6);
+        .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+        .text(function(d) { return nodeToText(d); })
+        .style("fill-opacity", 1e-6);
 
       var texts = node.selectAll("text").data(nodes, function(d) {
         return d.id || (d.id = ++i);
       });
-      texts.text(function(d) {
-        var t = nodeToText(d);
-        return t; }); // function name, args, vals
+      texts.text(function(d) { return nodeToText(d);});
 
-      // Update
-      var nodeUpdate = nodeEnter.merge(node);
+      // Transition nodes to their new position.
+      var nodeUpdate = node.transition()
+        .duration(duration)
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
-      // Transition to the proper position for the node
-      nodeUpdate.transition().
-        duration(duration).
-        attr("transform", function(d) {
-          return "translate(" + d.x + "," + d.y + ")";
+      nodeUpdate.select("circle")
+        .attr("r", 4.5)
+        .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+      nodeUpdate.select("text")
+        .style("fill-opacity", 1);
+
+      // Transition exiting nodes to the parent's new position.
+      var nodeExit = node.exit().transition()
+        .duration(duration)
+        .attr("transform", function(d) { return "translate(" + source.x + "," + source.y + ")"; })
+        .remove();
+
+      nodeExit.select("circle")
+        .attr("r", 1e-6);
+
+      nodeExit.select("text")
+        .style("fill-opacity", 1e-6);
+
+      // Update the links…
+      var link = svg.selectAll("path.link")
+        .data(links, function(d) { return d.target.id; });
+
+      // Enter any new links at the parent's previous position.
+      link.enter().insert("path", "g")
+        .attr("class", "link")
+        .attr("d", function(d) {
+          var o = {x: source.x0, y: source.y0};
+          return diagonal({source: o, target: o});
         });
 
-      // Update the node attributes and style
-      nodeUpdate.select('circle.node').
-        attr('r', 25).
-        style("fill", function(d) {
-          return "#0e4677";
-        }).
-        attr('cursor', 'pointer');
+      // Transition links to their new position.
+      link.transition()
+        .duration(duration)
+        .attr("d", diagonal);
 
-      // Remove any exiting nodes
-      var nodeExit = node.exit().
-        transition().
-        duration(duration).
-        attr("transform", function(d) {
-          return "translate(" + source.x + "," + source.y + ")";
-        }).
-        remove();
+      // Transition exiting nodes to the parent's new position.
+      link.exit().transition()
+        .duration(duration)
+        .attr("d", function(d) {
+          var o = {x: source.x, y: source.y};
+          return diagonal({source: o, target: o});
+        })
+        .remove();
 
-      // On exit reduce the node circles size to 0
-      nodeExit.select('circle').attr('r', 0);
-
-      // Store the old positions for transition.
-      nodes.forEach(function(d){
+      // Stash the old positions for transition.
+      nodes.forEach(function(d) {
         d.x0 = d.x;
         d.y0 = d.y;
       });
     }
+
     function nodeToText(n) {
       return createText(n.funName, n.params, n.args, n.returnValue);
     }
@@ -331,8 +259,12 @@
     }
 
     var simpleShowTrace = function() {
-      root.children = [];
+      i = 1;
+      root.children = null;
+      root._children = null;
+      root.id = 0;
       // maybe clone this? would only pay creating once
+      console.log("eventList length: " + events.length);
       dialog = $('<div>');
       svg = d3.select(dialog.get(0)).
         append("svg").
@@ -352,6 +284,17 @@
       // state change for when we can clear
       // when start receiving more push/pops
       done = true;
+    }
+
+    function click(d) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      update(d);
     }
 
     return runtime.makeJSModuleReturn({
