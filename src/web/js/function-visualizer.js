@@ -12,7 +12,6 @@
   provides: {},
   theModule: function(runtime, n, u, d3) {
 
-    console.log(d3);
     var events = [];
 
     var data = {
@@ -106,7 +105,7 @@
         newNode = newNodeObj;
         newNode.depth = selected.depth + 1;
         newNode.parent = selected;
-        newNode.id = Date.now();
+        newNode.id = ++i;
         // add function name, params, and args
         newNode.funName = funName;
         newNode.params = paramList;
@@ -260,8 +259,10 @@
     }
 
     var simpleShowTrace = function() {
+      i = 1;
       root.children = null;
       root._children = null;
+      root.id = 0;
       // maybe clone this? would only pay creating once
       console.log("eventList length: " + events.length);
       dialog = $('<div>');
