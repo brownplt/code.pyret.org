@@ -361,7 +361,9 @@
 
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min-num-bins'), {
       none: function () {
-        options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize); 
+        if(options.histogram.bucketSize !== undefined) {
+          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize); 
+        }
       },
       some: function (minNumBins) {
         options.histogram.minNumBuckets = toFixnum(minNumBins);
