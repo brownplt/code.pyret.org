@@ -319,6 +319,12 @@ function testRunAndAllTestsPass(it, name, toEval, options) {
   });
 }
 
+function ensureRendered(text) {
+  if (text.indexOf("One or more internal errors") > -1) {
+    throw new Error("Internal error occurred while rendering output.  Text content of error \"" + text + "\"");
+  }
+}
+
 function testErrorRendersString(it, name, toEval, expectedString, options) {
   it("should render " + name + " errors", function() {
     this.timeout(15000);
@@ -329,6 +335,7 @@ function testErrorRendersString(it, name, toEval, expectedString, options) {
         return replOutput.isElementPresent(webdriver.By.className("compile-error"));
       }, 6000);
       return response.getText().then(function(text) {
+        ensureRendered(text);
         if(text.indexOf(expectedString) !== -1) {
           return true;
         }
@@ -381,6 +388,7 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs, options) {
           throw new Error("Expected to see output for " + expectedTests + " tests within check block at index " + i + ", but saw " + b.length);
         }
         b.forEach(function(text, j) {
+          ensureRendered(text);
           specs[i][j].forEach(function(testMustContain) {
             if(text.indexOf(testMustContain) === -1) {
               throw new Error("Text content of error \"" + text + "\" did not contain \"" + testMustContain + "\"");

@@ -757,8 +757,9 @@
             let name = $("<a>").text(names[i]).addClass("highlight");
             name.attr("title", "Click to scroll source location into view");
             if (locs[i].length === 7) {
-              var pos = outputUI.Position.fromSrcArray(locs[i], CPO.documents, {});
-              name.hover((function(pos) {
+              try {
+                var pos = outputUI.Position.fromSrcArray(locs[i], CPO.documents, {});
+                name.hover((function(pos) {
                   return function() {
                     pos.hint();
                     pos.blink(color(i));
@@ -770,9 +771,12 @@
                     pos.blink(undefined);
                   };
                 })(pos));
-              name.on("click", (function(pos) {
-                return function() { pos.goto(); };
-              })(pos));
+                name.on("click", (function(pos) {
+                  return function() { pos.goto(); };
+                })(pos));
+              } catch (e) {
+                name.attr("title", "From " + runtime.getField(runtime.makeSrcloc(locs[i]), "format").app(true));
+              }
               // TODO: this is ugly code, copied from output-ui because
               // getting the right srcloc library is hard
               let cmLoc = {
