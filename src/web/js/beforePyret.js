@@ -679,10 +679,6 @@ $(function() {
   function getTopTierMenuitems() {
     //console.log('doing getTopTierMenuitems')
     var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
-    var lastElt = topTierMenuitems.pop();
-    var iiLastElt = topTierMenuitems.pop();
-    var iiiLastElt = topTierMenuitems.pop();
-    topTierMenuitems.push(lastElt, iiLastElt, iiiLastElt);
     topTierMenuitems = topTierMenuitems.
                         filter(elt => !(elt.style.display === 'none' ||
                                         elt.getAttribute('disabled') === 'disabled'));

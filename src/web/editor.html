@@ -35,11 +35,11 @@
         aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
         aria-label="Toolbar" tabindex="-1">
         <li role="presentation"
-          class="lhs topTier" id="bonniemenuli">
+          class="topTier" id="bonniemenuli">
           <div id="bonniemenu" class="menu menuitemtitle" style="float:none" >
             <button role="menuitem"
                     id="bonniemenubutton"
-                    aria-label="Main Menu"
+                    aria-label="Main Menu, Press Ctrl-Question for list of keyboard shortcuts"
                     aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
                     aria-haspopup="true"
                     aria-expanded="false"
@@ -52,10 +52,11 @@
             </button>
           </div>
           <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
-            aria-label="Main Menu">
+            aria-label="Main Submenu">
             <li role="presentation">
               <div id="welcome" class="menuButton inert" style="text-align: center;">
                 <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
+                <span>Press Ctrl-? for list of keyboard shortcuts.</span>
               </div>
             </li>
             <li role="presentation">
@@ -116,7 +117,7 @@
           </ul>
         </li>
 
-        <li role="presentation" class="lhs topTier logoutOnly" id="connectButtonli">
+        <li role="presentation" class="topTier logoutOnly" id="connectButtonli">
           <div class="menu menuitemtitle">
             <button role="menuitem"
               aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
@@ -129,7 +130,7 @@
           -->
         </li>
 
-        <li role="presentation" class="loginOnly lhs topTier" id="filemenuli">
+        <li role="presentation" class="loginOnly topTier" id="filemenuli">
           <div id="filemenu" class="loginOnly menu menuitemtitle" style="float:none" >
             <button role="menuitem"
               aria-label="File"
@@ -191,7 +192,7 @@
           </ul>
         </li>
 
-        <li role="presentation" class="loginOnly lhs topTier" id="insertli">
+        <li role="presentation" class="loginOnly topTier" id="insertli">
           <div id="insertPart" class="loginOnly menu menuitemtitle">
             <button role="menuitem"
               aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
@@ -201,20 +202,20 @@
           <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
         </li>
 
-        <li role="presentation" class="lhs topTier" id="publishli" style="display: none;">
+        <li role="presentation" class="topTier" id="publishli" style="display: none;">
           <div id="shareContainer" class="menu menuitemtitle"></div>
         </li>
 
-        <li role="presentation" class="rhs topTier" disabled id="stopli">
-          <div class="menu menuitemtitle">
-            <button role="menuitem" aria-label="Stop, F8" disabled id="breakButton"
+        <li role="presentation" class="topTier flexpushright" id="runli">
+          <div id="runPart" class="blueButton menuitemtitle" >
+            <button role="menuitem" aria-label="Run, F7 or Control-Enter" disabled id="runButton"
               aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
-              class="focusable blueButton rhs"  tabindex="-1">Stop</button>
+              class="focusable blueButton" tabindex="-1">Run</button>
           </div>
         </li>
 
-        <li role="presentation" class="rhs topTier" id="rundropdownli">
-          <div class="menu rhs menuitemtitle" style="float:none">
+        <li role="presentation" class="topTier" id="rundropdownli">
+          <div class="menu menuitemtitle">
             <button role="menuitem"
                     id="runDropdown"
                     class="focusable blueButton dropdown rhs"
@@ -250,13 +251,14 @@
           </ul>
         </li>
 
-        <li role="presentation" class="rhs topTier" id="runli">
-          <div id="runPart" class="blueButton rhs menuitemtitle" >
-            <button role="menuitem" aria-label="Run, F7" disabled id="runButton"
+        <li role="presentation" class="topTier" disabled id="stopli">
+          <div class="menu menuitemtitle">
+            <button role="menuitem" aria-label="Stop, F8" disabled id="breakButton"
               aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
-              class="focusable blueButton rhs" tabindex="-1">Run</button>
+              class="focusable blueButton"  tabindex="-1">Stop</button>
           </div>
         </li>
+
       </ul>
     </nav>
   </div>
@@ -288,7 +290,9 @@
     <li><b>Ctrl-?</b> - Show this help</li>
     <li><b>Ctrl-s</b> - Save</li>
     <li><b>Ctrl-m</b> - Toggle sizing of the editor window between 50% and last resize</li>
-    <li><b>Ctrl-Enter</b> - Run the definitions window</li>
+    <li><b>F6, Shift-F6</b> - Cycle focus through regions</li>
+    <li><b>F7, Ctrl-Enter</b> - Run the definitions window</li>
+    <li><b>F11</b> - Insert image</li>
     <li><b>Ctrl-Left</b> - Move cursor left by one word</li>
     <li><b>Ctrl-Right</b> - Move cursor right by one word</li>
     <li><b>Alt-Left</b> - If cursor is just before a right-parenthesis or <code>end</code>
@@ -297,6 +301,12 @@
     <li><b>Esc Left</b> - (two key sequence) synonym
       for <b>Alt-Left</b>, in case Alt key is in use by browser</li>
     <li><b>Esc Right</b> - (two key sequence) synonym for <b>Alt-Right</b>.</li>
+  </ul>
+  <p><i>Toolbar region navigation</i></p>
+  <ul>
+    <li><b>Esc</b> - Exit toolbar region</li>
+    <li><b>Left, Right</b> - Traverse toolbar top-level menu</li>
+    <li><b>Up, Down</b> - Traverse toolbar submenus</li>
   </ul>
 </div>
 <div id="doc-containment">

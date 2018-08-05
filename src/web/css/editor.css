@@ -1264,7 +1264,15 @@ code div {
 #runPart {
   background: #317BCF;
   padding: 0;
-  margin: 0;
+  /* margin != 0 because we'll be pushing this flex item right */
+}
+
+#runli {
+  z-index: 2;
+}
+
+#rundropdownli {
+  z-index: 1; /* to push its left lap under the Run button */
 }
 
 #rundropdownli {
