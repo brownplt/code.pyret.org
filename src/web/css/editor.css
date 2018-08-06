@@ -117,6 +117,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 #REPL {
   font-family: sans-serif;
+  background: #f8f8f8;
 }
 
 .replTextOutput {
@@ -506,6 +507,7 @@ body {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;
+  background: #f8f8f8;
 }
 
 .replContainer {

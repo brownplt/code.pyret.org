@@ -694,6 +694,18 @@ $(function() {
     return topTierMenuitems;
   }
 
+  function updateEditorHeight() {
+    var toolbarHeight = document.getElementById('topTierUl').scrollHeight + 'px';
+    document.getElementById('REPL').style.paddingTop = toolbarHeight;
+    var docMain = document.getElementById('main');
+    var docReplMain = docMain.getElementsByClassName('replMain');
+    if (docReplMain.length !== 0) {
+      docReplMain[0].style.paddingTop = toolbarHeight;
+    }
+  }
+
+  $(window).on('resize', updateEditorHeight);
+
   function insertAriaPos(submenu) {
     //console.log('doing insertAriaPos', submenu)
     var arr = submenu.toArray();
