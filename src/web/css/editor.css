@@ -1261,6 +1261,14 @@ code div {
   box-shadow: none;
 }
 
+#breakButton:disabled {
+  background: #C8C8C8;
+}
+
+#breakButton:hover[disabled] {
+  background: #C8C8C8;
+}
+
 #runPart {
   background: #317BCF;
   padding: 0;
