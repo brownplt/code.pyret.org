@@ -233,11 +233,28 @@
       var items = []; // repl interaction history
       var pointer = -1;
       var current = "";
-      function loadItem() {
-        CM.setValue(items[pointer].code);
+      function loadItem(backward) {
+        var thisItem;
+        while (true) {
+          if (pointer < 0 || pointer >= items.length) return;
+          thisItem = items[pointer];
+          if (thisItem.dup) {
+            if (backward) pointer++;
+            else pointer--;
+          } else break;
+        }
+        var thisCode = items[pointer].code;
+        CPO.sayAndForget(thisCode);
+        CM.setValue(thisCode);
+        CM.refresh();
       }
-      function saveItem() { //not used?
-        items.unshift({code: CM.getValue(), output: false});
+      function addToHistory(newItem) {
+        var prev = items[0];
+        if (prev && prev.code !== 'def//'
+          && prev.code === newItem.code) {
+          newItem.dup = true;
+        }
+        items.unshift(newItem);
       }
       function prevItem() {
         if (pointer === -1) {
@@ -249,8 +266,7 @@
               items[pointer].code === 'def//') {
             pointer--;
           } else {
-            loadItem();
-            CM.refresh();
+            loadItem('backward');
           }
         }
       }
@@ -258,7 +274,6 @@
         if (pointer >= 1) {
           pointer--;
           loadItem();
-          CM.refresh();
         } else if (pointer === 0) {
           CM.setValue(current);
           CM.refresh();
@@ -803,8 +818,8 @@
         if(running) { return; }
         running = true;
         items = [];
-        var thiscode = {code: 'def//', erroroutput: false, start: false, end: false};
-        items.unshift(thiscode);
+        var thiscode = {code: 'def//', erroroutput: false, start: false, end: false, dup: false};
+        addToHistory(thiscode);
         output.empty();
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
@@ -841,8 +856,8 @@
       var runner = function(code) {
         if(running) { return; }
         running = true;
-        var thiscode = {code: code, erroroutput: false, start: false, end: false};
-        items.unshift(thiscode);
+        var thiscode = {code: code, erroroutput: false, start: false, end: false, dup: false};
+        addToHistory(thiscode);
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");

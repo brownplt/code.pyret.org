@@ -209,9 +209,12 @@ nav a, nav button {
 }
 
 nav > ul {
+  display: flex;
+  flex-flow: row wrap;
   height: 100%;
   margin: 0;
   padding: 0;
+  background: #C8C8C8;
   list-style-type: none;
 }
 
@@ -295,8 +298,7 @@ nav > ul ul a, nav > ul ul button {
   width: 60px;
 }
 
-li.lhs > div,
-li.rhs > div {
+li.topTier > div {
   float: none;
 }
 
@@ -378,6 +380,7 @@ li.rhs > div {
   float: right;
 }
 
+
 h3 {
   font-size: 16pt;
   font-weight: bold;
@@ -448,6 +451,10 @@ code {
 .copy-link {
   text-decoration: none;
   padding-left: 3px;
+}
+
+.flexpushright { /* used for the first flex item that's pushed right */
+  margin-left: auto;
 }
 
 #run-dropdown-content sup {

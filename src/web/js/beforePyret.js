@@ -679,10 +679,6 @@ $(function() {
   function getTopTierMenuitems() {
     //console.log('doing getTopTierMenuitems')
     var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
-    var lastElt = topTierMenuitems.pop();
-    var iiLastElt = topTierMenuitems.pop();
-    var iiiLastElt = topTierMenuitems.pop();
-    topTierMenuitems.push(lastElt, iiLastElt, iiiLastElt);
     topTierMenuitems = topTierMenuitems.
                         filter(elt => !(elt.style.display === 'none' ||
                                         elt.getAttribute('disabled') === 'disabled'));
@@ -697,6 +693,18 @@ $(function() {
     }
     return topTierMenuitems;
   }
+
+  function updateEditorHeight() {
+    var toolbarHeight = document.getElementById('topTierUl').scrollHeight + 'px';
+    document.getElementById('REPL').style.paddingTop = toolbarHeight;
+    var docMain = document.getElementById('main');
+    var docReplMain = docMain.getElementsByClassName('replMain');
+    if (docReplMain.length !== 0) {
+      docReplMain[0].style.paddingTop = toolbarHeight;
+    }
+  }
+
+  $(window).on('resize', updateEditorHeight);
 
   function insertAriaPos(submenu) {
     //console.log('doing insertAriaPos', submenu)
