@@ -1003,7 +1003,7 @@
       var mode = unwrapMode(maybeMode);
       var color = unwrapColor(maybeColor);
       return makeImage(
-        image.makePolygonImage(length, count, 1, mode, color));
+        image.makePolygonImage(length, count, 1, mode, color, true));
     });
 
     f("ellipse", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
@@ -1284,7 +1284,7 @@
       var mode = unwrapMode(maybeMode);
       var color = unwrapColor(maybeColor);
       return makeImage(
-        image.makePolygonImage(side, 5, 2, mode, color));
+        image.makePolygonImage(side, 5, 2, mode, color, false));
     });
     // TODO: This was split from the variable-arity case in the original whalesong "star" function
     f("star-sized", function(maybePointCount, maybeOuter, maybeInner, maybeMode, maybeColor) {
@@ -1320,7 +1320,7 @@
       var mode = unwrapMode(maybeMode);
       var color = unwrapColor(maybeColor);
       return makeImage(
-        image.makePolygonImage(length, count, step, mode, color));
+        image.makePolygonImage(length, count, step, mode, color, false));
     });
 
     f("rhombus", function(maybeLength, maybeAngle, maybeMode, maybeColor) {

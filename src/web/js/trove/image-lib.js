@@ -1218,27 +1218,43 @@
     // See http://www.algebra.com/algebra/homework/Polygons/Inscribed-and-circumscribed-polygons.lesson
     // the polygon is inscribed in a circle, whose radius is length/2sin(pi/count)
     // another circle is inscribed in the polygon, whose radius is length/2tan(pi/count)
-    // rotate a 3/4 quarter turn plus half the angle length to keep bottom base level
-    var PolygonImage = function(length, count, step, style, color) {
+    // Polygons are drawn to keep their bottoms flat.
+    // Stars are drawn to keep the points at top.
+    // (so an even-sided star would be rotated from an even-sided polygon)
+    var PolygonImage = function(length, count, step, style, color, flatBottom) {
       BaseImage.call(this);
       this.outerRadius = Math.round(length/(2*Math.sin(Math.PI/count)));
-      this.innerRadius = Math.round(length/(2*Math.tan(Math.PI/count)));
-      var adjust = (3*Math.PI/2)+Math.PI/count;
+      var adjust = (Math.PI/2); // rotate 1/4 turn, with y pointing down
+      if (flatBottom && ((count % 2) == 0)) adjust += Math.PI/count;
 
       // rotate around outer circle, storing x and y coordinates
       var radians = 0, vertices = [];
-      for(var i = 0; i < count; i++) {
-        radians = radians + (step*2*Math.PI/count);
-        vertices.push({ x: Math.round(this.outerRadius*Math.cos(radians-adjust)),
-                        y: Math.round(this.outerRadius*Math.sin(radians-adjust))});
+      var numComponents = jsnums.gcd(count, [step], RUNTIME.NumberErrbacks);
+      var pointsPerComponent = count / numComponents;
+      var angle = (2*Math.PI/count);
+      for (var curComp = 0; curComp < numComponents; curComp++) {
+        radians = curComp * angle;
+        for(var i = 0; i < pointsPerComponent; i++) {
+          radians = radians + (step * angle);
+          vertices.push({ x: Math.round(this.outerRadius*Math.cos(radians-adjust)),
+                          y: Math.round(this.outerRadius*Math.sin(radians-adjust))});
+        }
       }
-
       this.width      = findWidth(vertices);
       this.height     = findHeight(vertices);
       this.style      = style;
       this.color      = color;
       var translate = {}
       this.vertices = translateVertices(vertices, translate);
+      this._vertices = [];
+      for (var curComp = 0; curComp < numComponents; curComp++) {
+        var component = [];
+        for (var point = 0; point < pointsPerComponent; point++) {
+          // grab the translated point from the vertices array
+          component.push(this.vertices[(curComp * pointsPerComponent) + point]);
+        }
+        this._vertices.push(component);
+      }        
       this.pinholeX = translate.x;
       this.pinholeY = translate.y;
       this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
@@ -1246,6 +1262,14 @@
     };
 
     PolygonImage.prototype = heir(BaseImage.prototype);
+    PolygonImage.prototype.render = function(ctx) {
+      var actualVertices = this.vertices;
+      for (var i = 0; i < this._vertices.length; i++) {
+        this.vertices = this._vertices[i];
+        BaseImage.prototype.render.call(this, ctx);
+      }
+      this.vertices = actualVertices;
+    }
 
     // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
     // based off of https://stackoverflow.com/a/9847841/783424,
@@ -1652,8 +1676,8 @@
     var makeRhombusImage = function(side, angle, style, color) {
       return new RhombusImage(side, angle, style, color);
     };
-    var makePolygonImage = function(length, count, step, style, color) {
-      return new PolygonImage(length, count, step, style, color);
+    var makePolygonImage = function(length, count, step, style, color, flatBottom) {
+      return new PolygonImage(length, count, step, style, color, flatBottom);
     };
     var makeSquareImage = function(length, style, color) {
       return new RectangleImage(length, length, style, color);
