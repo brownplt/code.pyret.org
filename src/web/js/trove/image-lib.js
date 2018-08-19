@@ -1059,6 +1059,7 @@
       this.pinholeX   = img.pinholeX;
       this.pinholeY   = img.pinholeY;
       this.ariaText = " Framed image: "+img.ariaText;
+      this.alphaBaseline = img.alphaBaseline;
     };
 
     FrameImage.prototype = heir(BaseImage.prototype);
