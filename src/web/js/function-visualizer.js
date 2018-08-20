@@ -56,7 +56,7 @@
     root.funName = 'Run Pyret';
     var selected = root;
 
-    var console_trace = true;
+    var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
     // packet: {action: String, funName: String, params: List<String>, args: List<Vals>}
@@ -66,12 +66,17 @@
         // and empty events
         events = [];
       }
+      packet.funName = funNameToString(packet.funName);
       if (console_trace) {
         console.log(Array(indentation).join(indentation_char) +
           [packet.action, packet.funName, packet.args.toString()].join(" "));
         indentation++;
       }
       events.push(packet);
+    }
+
+    var funNameToString = function(funName) {
+      return funName.name;
     }
 
     // packet: {action: String, retVal: Vals}
