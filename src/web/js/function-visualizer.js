@@ -266,6 +266,57 @@
       // maybe clone this? would only pay creating once
       console.log("eventList length: " + events.length);
       dialog = $('<div>');
+      // copied from plot-lib
+      detached = d3.select(dialog.get(0)).append('div');
+        panel = detached.append('div').style({
+          top: '20px',
+          left: width + margin.left + margin.right + 10 + 'px',
+        }),
+        controller = panel.append('div').style({
+          top: '60px',
+        }),
+        controller.append('div').style({
+          top: '180px',
+          left: '50px',
+          'font-size': '18px',
+          width: '200px'
+        }).text('Number of Samples:');
+
+      controller = $(controller.node());
+
+      var xMinC = $('<input/>', {
+        type: 'text',
+        placeholder: 'x-min',
+        style: 'left: 0px; top: 70px',
+      }).attr('size', '8');
+      var xMaxC = $('<input/>', {
+        type: 'text',
+        placeholder: 'x-max',
+        style: 'left: 180px; top: 70px',
+      }).attr('size', '8');
+      var yMinC = $('<input/>', {
+        type: 'text',
+        placeholder: 'y-min',
+        style: 'left: 90px; top: 140px',
+      }).attr('size', '8');
+      var yMaxC = $('<input/>', {
+        type: 'text',
+        placeholder: 'y-max',
+        style: 'left: 90px; top: 0px',
+      }).attr('size', '8');
+      var numSamplesC = $('<input/>', {
+        type: 'text',
+        placeholder: 'num-samples',
+        style: 'left: 90px; top: 210px',
+      }).attr('size', '8');
+
+      controller
+        .append(xMinC)
+        .append(xMaxC)
+        .append(yMinC)
+        .append(yMaxC)
+      .append(numSamplesC);
+
       svg = d3.select(dialog.get(0)).
         append("svg").
         // make this match the size of the dialog window!
