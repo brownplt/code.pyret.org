@@ -259,9 +259,9 @@
     var annListColor = ann("List<Color>", function(val) {
       return runtime.ffi.isList(val);
     });
-    var unwrapListofColor = p(function(val) {
+    var unwrapListofColor = function(val) {
       return ffi.makeList(ffi.toArray(val).map(unwrapColor));
-    }, "List<Color>");
+    };
 
 
     var unwrapMode = function(val) {
@@ -1162,12 +1162,12 @@
 
     f("color-list-to-image", function(maybeList, maybeWidth, maybeHeight, maybePinholeX, maybePinholeY) {
       checkArity(5, arguments, "color-list-to-image", false);
-      c3("color-list-to-image",
-         maybeList, annListColor,
-         maybeWidth, annNatural,
-         maybeHeight, annNatural,
-         maybePinholeX, annNatural,
-         maybePinholeY, annNatural);
+      c("color-list-to-image",
+        maybeList, annListColor,
+        maybeWidth, annNatural,
+        maybeHeight, annNatural,
+        maybePinholeX, annNatural,
+        maybePinholeY, annNatural);
       var len = ffi.listLength(maybeList);
       var loc = unwrapListofColor(maybeList);
       var width = jsnums.toFixnum(maybeWidth);

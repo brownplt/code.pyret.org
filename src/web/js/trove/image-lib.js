@@ -1627,7 +1627,7 @@
         r = data[i];
         g = data[i+1];
         b = data[i+2];
-        a = data[i+3];
+        a = data[i+3] / 255;
         colors.push(makeColor(r, g, b, a));
       }
       return RUNTIME.ffi.makeList(colors);
