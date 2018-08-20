@@ -56,7 +56,7 @@
     root.funName = 'Run Pyret';
     var selected = root;
 
-    var console_trace = false;
+    var console_trace = true;
     var indentation = 1;
     var indentation_char = "-";
     // packet: {action: String, funName: String, params: List<String>, args: List<Vals>}
@@ -68,7 +68,7 @@
       }
       if (console_trace) {
         console.log(Array(indentation).join(indentation_char) +
-          [packet.action, packet.funName, packet.params.toString(), packet.args.toString()].join(" "));
+          [packet.action, packet.funName, packet.args.toString()].join(" "));
         indentation++;
       }
       events.push(packet);
@@ -93,7 +93,6 @@
       var action = eventList.action;
       if (action === "push") {
         var funName = eventList.funName;
-        var paramList = eventList.params;
         var argList = eventList.args;
         //creates New OBJECT
         var newNodeObj = {
@@ -108,7 +107,6 @@
         newNode.id = ++i;
         // add function name, params, and args
         newNode.funName = funName;
-        newNode.params = paramList;
         newNode.args = argList;
 
         if(!selected.data) {
@@ -231,27 +229,19 @@
     }
 
     function nodeToText(n) {
-      return createText(n.funName, n.params, n.args, n.returnValue);
+      return createText(n.funName, n.args, n.returnValue);
     }
 
     // will need to update this for no params, multiple params, etc
-    function createText(funName, funParams, funArgs, funRet) {
-      return funName + "(" + paramText(funParams, funArgs) + ") →" + (funRet || "☐");
+    function createText(funName, funArgs, funRet) {
+      return funName + "(" + paramText(funArgs) + ") →" + (funRet || "☐");
     }
 
     // look into zip for javascript for multi-params
     // taking invariant that funParams and funArgs are same length
-    function paramText(funParams, funArgs) {
-      if (funParams) {
-        var zipped = funParams.map(function(element, index) {
-          return element + "=" + funArgs[index];
-        });
-        if (zipped.length > 0) {
-          return zipped.reduce((acc, curr) => acc + "," + curr);
-        }
-        else {
-          return zipped.reduce((acc, curr) => acc + curr, "");
-        }
+    function paramText(funArgs) {
+      if (funArgs) {
+        return funArgs.join(", ");
       }
       else {
         return "";
