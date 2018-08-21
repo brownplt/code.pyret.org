@@ -82,7 +82,7 @@
       "_plus", "trace-value", "current-checker", "results",
       "_times", "_minus", "_divide",
       "_lessthan",
-      "getMaker1", "check-is", /* "run-checks" */
+      "getMaker1", "check-is", "run-checks",
       "raw-array-to-list",
       "p-map",
     ];
