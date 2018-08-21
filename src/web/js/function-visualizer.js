@@ -67,31 +67,46 @@
         events = [];
       }
       packet.funName = funNameToString(packet.funName);
-      if (console_trace) {
-        console.log(Array(indentation).join(indentation_char) +
-          [packet.action, packet.funName, packet.args.toString()].join(" "));
-        indentation++;
+      if (!blacklistedFunctions.includes(packet.funName)) {
+        console.log(packet);
+        if (console_trace) {
+          console.log(Array(indentation).join(indentation_char) +
+            [packet.action, packet.funName, packet.args.toString()].join(" "));
+          indentation++;
+        }
+        events.push(packet);
       }
-      events.push(packet);
     }
+
+    var blacklistedFunctions = [
+      "_plus", "trace-value", "current-checker", "results",
+      "_times", "_minus", "_divide",
+      "_lessthan",
+      "getMaker1", "check-is", /* "run-checks" */
+      "raw-array-to-list",
+      "p-map",
+    ];
 
     var funNameToString = function(funName) {
       return funName.name;
     }
 
     // packet: {action: String, retVal: Vals}
-    var simpleOnPop = function(packet) {
+    var simpleOnPop = function (packet) {
       if (done) {
         done = false;
         // and empty events
         events = [];
       }
-      if (console_trace) {
-        indentation--;
-        console.log(Array(indentation).join(indentation_char) +
-          [packet.action, packet.retVal].join(" "));
+      if (!blacklistedFunctions.includes(funNameToString(packet.funName))) {
+        console.log(packet);
+        if (console_trace) {
+          indentation--;
+          console.log(Array(indentation).join(indentation_char) +
+            [packet.action, packet.retVal].join(" "));
+        }
+        events.push(packet);
       }
-      events.push(packet);
     }
 
     var simpleAction = function(eventList) {
