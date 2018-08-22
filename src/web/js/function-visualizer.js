@@ -310,7 +310,7 @@
       if (!n.children) n.children = [];
       if (!n._children) n._children = [];
       n.children = n.children.concat(n._children);
-      n._children = null;
+      n._children = n.children.length > 0 ? [] : null;
       for (var i in n.children) {
         resetChildren(n.children[i]);
       }
