@@ -541,8 +541,18 @@
               break;
             case "show":
               // then need to add kids to toExpand and remove d
-              toExpand = toExpand.concat(d.children);
-              removeElement(toExpand, d);
+              var newLeaves = [];
+              var newToExpands = [];
+              d.children.forEach(function(c) {
+                if (hasChildren(c)) {
+                  newToExpands.push(c);
+                }
+                else {
+                  newLeaves.push(c);
+                }
+              })
+              toExpand = toExpand.concat(newToExpands);
+              leaves = leaves.concat(newLeaves);
               break;
             case "leaf":
               break;
