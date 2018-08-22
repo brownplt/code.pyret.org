@@ -707,8 +707,6 @@
               var trace = $("<div>").addClass("trace")
                     .append($("<span>").addClass("trace").text("Trace #" + (++replOutputCount)))
                     .append(container.result);
-              if (tracingFunctions)
-                    trace.append($("<span>").css(styles).text("click here for trace"))
               $(output).append(trace);
               scroll(output);
             } else {
