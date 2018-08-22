@@ -69,7 +69,6 @@
       }
       packet.funName = funNameToString(packet.funName);
       if (!blacklistedFunctions.includes(packet.funName)) {
-        console.log(packet);
         if (console_trace) {
           console.log(Array(indentation).join(indentation_char) +
             [packet.action, packet.funName, packet.args.toString()].join(" "));
@@ -101,11 +100,10 @@
         events = [];
       }
       if (!blacklistedFunctions.includes(funNameToString(packet.funName))) {
-        console.log(packet);
         if (console_trace) {
           indentation--;
           console.log(Array(indentation).join(indentation_char) +
-            [packet.action, packet.retVal].join(" "));
+            [packet.action, packet.funName, packet.retVal].join(" "));
         }
         events.push(packet);
       }
@@ -386,7 +384,10 @@
       });
       controller.append(sel);
       $(navOptions).each(function () {
-        sel.append($("<option>").attr('value', this.val).text(this.text));
+        var option = $("<option>").attr('value', this.val).text(this.text);
+        if (this.val === navMode)
+          option.prop('selected', true);
+        sel.append(option);
       });
       var backButton = $('<button/>', {
         text: '⇦',
@@ -489,15 +490,11 @@
           prepareDepth(nextButton, backButton);
           break;
       }
-      switch (navMode) {
-        case "breadth":
-        case "depth":
-          update(root);
-          break;
-      }
+      update(root);
       return dialog;
     }
     function prepareAll(nextButton, backButton) {
+      resetChildren(root);
       nextButton.attr("disabled", true);
       backButton.attr("disabled", true);
     }
