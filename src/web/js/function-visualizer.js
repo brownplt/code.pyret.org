@@ -256,17 +256,28 @@
 
     // will need to update this for no params, multiple params, etc
     function createText(funName, funArgs, funRet) {
-      return funName + "(" + paramText(funArgs) + ") →" + (funRet || "☐");
+      return funName + "(" + paramText(funArgs) + ") →" + valueToString(funRet);
     }
 
     // look into zip for javascript for multi-params
     // taking invariant that funParams and funArgs are same length
     function paramText(funArgs) {
       if (funArgs) {
-        return funArgs.join(", ");
+        return funArgs.map(valueToString).join(", ");
       }
       else {
         return "";
+      }
+    }
+    function valueToString(val) {
+      switch (typeof (val)) {
+        case "number":
+        case "boolean":
+          return val;
+        case "string":
+          return "\"" + val + "\"";
+        default:
+          return "☐";
       }
     }
     var navOptions = [
