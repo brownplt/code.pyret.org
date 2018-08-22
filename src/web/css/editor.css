@@ -1301,6 +1301,11 @@ code div {
   text-decoration: none;
 }
 
+#select-trace-run a {
+  color: #eeeeee;
+  text-decoration: none;
+}
+
 
 #run-dropdown-content {
   width: 163px;
