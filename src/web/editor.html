@@ -17,20 +17,18 @@
 <body>
   <main>
   <div id="Toolbar" class="toolbarregion" role="region" aria-label="Tool Controls" tabindex="-1">
-    <nav aria-label="Toolbar" role="menubar" id="header">
+    <nav id="header">
       <h2 id="menutitle" class="screenreader-only">Navigation Controls</h2>
       <p class="screenreader-only" id="mhelp">
-      <span id="mhelp-intro">The toolbar menu has at most two levels, with some top-level
-        menu items having a submenu.</span>
-      <span id="mhelp-menus">Use left and right arrows to navigate across the top-level menu items.
+      <span id="mhelp-menus">Use left and right arrows to move across menus.
       </span>
-      <span id="mhelp-submenu">Use up and down arrows to explore within a submenu.
+      <span id="mhelp-submenu">Use up and down arrows to move within submenus.
       </span>
-      <span id="mhelp-activate">Use Enter, Space, or Click to activate.</span>
-      <span id="mhelp-escape-submenu">Use left and right arrows to exit submenu and go to an
-        adjacent top-level menu item.</span>
-      <span id="mhelp-escape">Use Escape, Tab, F6 or Shift-F6 to exit these menus altogether.</span>
+      <span id="mhelp-activate">Use Enter to activate.</span>
+      <span id="mhelp-escape-submenu">Use Escape to move to parent menu.</span>
+      <span id="mhelp-escape">Use Escape to exit menus.</span>
       </p>
+      <div role="menubar">
       <ul id="topTierUl" role="menu" aria-labelledby="menutitle"
         aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
         aria-label="Toolbar" tabindex="-1">
@@ -40,7 +38,6 @@
             <button role="menuitem"
                     id="bonniemenubutton"
                     aria-label="Main Menu, Press Ctrl-Question for list of keyboard shortcuts"
-                    aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
                     aria-haspopup="true"
                     aria-expanded="false"
                     aria-controls="bonniemenuContents"
@@ -48,7 +45,7 @@
                     tabindex="-1"
                     class="blueButton focusable">
               <span>▾</span>
-              <img class="logo" src="/img/pyret-logo.png"></img>
+              <img class="logo" src="/img/pyret-logo.png">
             </button>
           </div>
           <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
@@ -62,7 +59,7 @@
             <li role="presentation">
               <div id="drive-view" class="loginOnly menuButton">
                 <a class="focusable" role="menuitem"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" target="_blank" href="/">
                   My Programs</a>
               </div>
@@ -70,7 +67,7 @@
             <li role="presentation">
               <div id="docs" class="menuButton">
                 <a class="focusable" role="menuitem"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
               </div>
             </li>
@@ -81,14 +78,14 @@
             <li role="presentation">
               <div id="issues" class="menuButton">
                 <a class="focusable" role="menuitem"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
               </div>
             </li>
             <li role="presentation">
               <div id="discuss" class="menuButton">
                 <a class="focusable" role="menuitem"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
               </div>
             </li>
@@ -97,7 +94,7 @@
                 <span>
                   <input class="focusable" role="menuitem" tabindex="-1" id="detailed-logging"
                   aria-labelledby="detailed-logging-label"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   type="checkbox" aria-pressed="false"
                   aria-label="Contribute detailed usage information"/>
                   <label for="detailed-logging" id="detailed-logging-label">
@@ -110,7 +107,7 @@
             </li>
             <li role="presentation">
               <div id="logout" class="menuButton">
-                <a class="focusable" aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                <a class="focusable" aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   role="menuitem" tabindex="-1" href="/logout">Log out</a>
               </div>
             </li>
@@ -150,43 +147,43 @@
             <li role="presentation">
               <div id="new" class="menuButton">
                 <a class="focusable" role="menuitem" aria-label="New file"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)" >New</a></div>
             </li>
             <li role="presentation">
               <div id="open" class="menuButton">
                 <a  class="focusable" role="menuitem" aria-label="Open file"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Open</a></div>
             </li>
             <li role="presentation">
               <div id="open-original" class="menuButton disabled hidden">
                 <a class="focusable" role="menuitem" aria-label="Open original file"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Open Original</a></div>
             </li>
             <li role="presentation">
               <div id="save" class="menuButton disabled">
                 <a class="focusable disabled" role="menuitem" aria-label="Save file"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Save</a></div>
             </li>
             <li role="presentation">
               <div id="saveas" class="menuButton">
                 <a class="focusable" role="menuitem" aria-label="Save a copy"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Save a copy</a></div>
             </li>
             <li role="presentation">
               <div id="download" class="menuButton">
                 <a class="focusable" role="menuitem" aria-label="Download"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Download</a></div>
             </li>
             <li role="presentation">
               <div id="rename" class="menuButton disabled">
                 <a class="focusable disabled" role="menuitem" aria-label="Rename file"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Rename</a></div>
             </li>
           </ul>
@@ -235,7 +232,7 @@
                 <a class="focusable"
                   role="menuitem"
                   aria-label="Run" aria-setsize="2" aria-posinset="1"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Run</a>
               </div>
             </li>
@@ -244,7 +241,7 @@
                 <a class="focusable"
                   role="menuitem"
                   aria-label="Type-check and run" aria-setsize="2" aria-posinset="2"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu mhelp-escape"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" href="javascript:void(0)">Type-check and run<sup>(beta)</sup></a>
               </div>
             </li>
@@ -258,8 +255,8 @@
               class="focusable blueButton"  tabindex="-1">Stop</button>
           </div>
         </li>
-
       </ul>
+      </div>
     </nav>
   </div>
 
@@ -322,7 +319,7 @@
 </div>
 </div>
 <div id="footer">
-  <div id="announcements" class="screenreader-only" role="region" aria-label="Announcements" tabIndex="-1">
+  <div id="announcements" class="screenreader-only" role="region" aria-label="Announcements" tabindex="-1">
     <h2>Announcements</h2>
     <ul id="announcementlist" aria-live="assertive"
                               aria-relevant="additions" style="list-style: none;">

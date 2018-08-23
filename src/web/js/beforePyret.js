@@ -444,9 +444,8 @@ $(function() {
   }
 
   function cycleFocus(reverseP) {
-    //console.log('doing cycleFocus', reverseP);
+    console.log('doing cycleFocus', reverseP);
     var editor = this.editor;
-    var fCarousel = editor.focusCarousel;
     populateFocusCarousel(editor);
     var fCarousel = editor.focusCarousel;
     var maxIndex = fCarousel.length;
@@ -545,17 +544,18 @@ $(function() {
 
   */
   function save(newFilename) {
+    var useName, create;
     if(newFilename !== undefined) {
-      var useName = newFilename;
-      var create = true;
+      useName = newFilename;
+      create = true;
     }
     else if(filename === false) {
       filename = "Untitled";
-      var create = true;
+      create = true;
     }
     else {
-      var useName = filename; // A closed-over variable
-      var create = false;
+      useName = filename; // A closed-over variable
+      create = false;
     }
     window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
@@ -672,13 +672,13 @@ $(function() {
   $("#rename").click(rename);
   $("#saveas").click(saveAs);
 
-  var focusableElts = $(document).find('nav[aria-label=Toolbar] .focusable');
+  var focusableElts = $(document).find('#header .focusable');
   //console.log('focusableElts=', focusableElts)
   var theToolbar = $(document).find('#Toolbar');
 
   function getTopTierMenuitems() {
     //console.log('doing getTopTierMenuitems')
-    var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
+    var topTierMenuitems = $(document).find('#header ul li.topTier').toArray();
     topTierMenuitems = topTierMenuitems.
                         filter(elt => !(elt.style.display === 'none' ||
                                         elt.getAttribute('disabled') === 'disabled'));
@@ -732,13 +732,13 @@ $(function() {
     //most any key at all
     var kc = e.keyCode;
     //console.log('toolbar keydown', e.keyCode);
-    if (kc === 9 || kc === 27) {
+    if (kc === 27) {
       // escape
       hideAllTopMenuitems();
       //console.log('calling cycleFocus')
       CPO.cycleFocus();
       e.stopPropagation();
-    } else if (kc === 37 || kc === 38 || kc === 39 || kc === 40) {
+    } else if (kc === 9 || kc === 37 || kc === 38 || kc === 39 || kc === 40) {
       // an arrow
       var target = $(this).find('[tabIndex=-1]');
       getTopTierMenuitems();
@@ -788,12 +788,12 @@ $(function() {
     e.stopPropagation();
   }
 
-  var expandableElts = $(document).find('nav[aria-label=Toolbar] [aria-expanded]');
+  var expandableElts = $(document).find('#header [aria-expanded]');
   expandableElts.click(clickTopMenuitem);
 
   function hideAllTopMenuitems() {
     //console.log('doing hideAllTopMenuitems');
-    var topTierUl = $(document).find('nav[aria-label=Toolbar] ul[id=topTierUl]');
+    var topTierUl = $(document).find('#header ul[id=topTierUl]');
     topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
     topTierUl.find('ul.submenu').attr('aria-hidden', 'true').hide();
   }
@@ -805,10 +805,8 @@ $(function() {
     if (destTopMenuitem && destTopMenuitem.length !== 0) {
       var elt = destTopMenuitem[0];
       var eltId = elt.getAttribute('id');
-      if (eltId !== 'rundropdownli') {
-        destTopMenuitem.children('ul.submenu').attr('aria-hidden', 'false').show();
-        destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
-      }
+      destTopMenuitem.children('ul.submenu').attr('aria-hidden', 'false').show();
+      destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
     }
     if (destElt) {
       //destElt.attr('tabIndex', '0').focus();
@@ -825,16 +823,14 @@ $(function() {
     if (secondTierUl.length === 0) {
       withinSecondTierUl = false;
     }
-    if (e.keyCode === 39) { // rightarrow
+    if (e.keyCode === 27 && withinSecondTierUl) { // escape
+      var destTopMenuitem = $(this).closest('li.topTier');
+      var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
+      switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
+      e.stopPropagation();
+    } else if (e.keyCode === 39) { // rightarrow
       //console.log('rightarrow pressed');
-      var bubbleUp;
-      if (withinSecondTierUl) {
-        bubbleUp = secondTierUl;
-      } else {
-        bubbleUp = $(this);
-      }
-      //console.log('bubbleUp=', bubbleUp)
-      var srcTopMenuitem = bubbleUp.closest('li.topTier');
+      var srcTopMenuitem = $(this).closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
       srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
       var topTierMenuitems = getTopTierMenuitems();
@@ -842,7 +838,7 @@ $(function() {
       var ttmiN = topTierMenuitems.length;
       var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
       //console.log('j initial=', j);
-      for (var i = (j + 1) % ttmiN; i != j; i = (i + 1) % ttmiN) {
+      for (var i = (j + 1) % ttmiN; i !== j; i = (i + 1) % ttmiN) {
         var destTopMenuitem = $(topTierMenuitems[i]);
         //console.log('destTopMenuitem(a)=', destTopMenuitem);
         var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
@@ -857,14 +853,7 @@ $(function() {
       }
     } else if (e.keyCode === 37) { // leftarrow
       //console.log('leftarrow pressed');
-      var bubbleUp;
-      if (withinSecondTierUl) {
-        bubbleUp = secondTierUl;
-      } else {
-        bubbleUp = $(this);
-      }
-      //console.log('bubbleUp=', bubbleUp)
-      var srcTopMenuitem = bubbleUp.closest('li');
+      var srcTopMenuitem = $(this).closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
       srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
       var topTierMenuitems = getTopTierMenuitems();
@@ -872,7 +861,7 @@ $(function() {
       var ttmiN = topTierMenuitems.length;
       var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
       //console.log('j initial=', j);
-      for (var i = (j + ttmiN - 1) % ttmiN; i != j; i = (i + ttmiN - 1) % ttmiN) {
+      for (var i = (j + ttmiN - 1) % ttmiN; i !== j; i = (i + ttmiN - 1) % ttmiN) {
         var destTopMenuitem = $(topTierMenuitems[i]);
         //console.log('destTopMenuitem(b)=', destTopMenuitem);
         //console.log('i=', i)
@@ -969,14 +958,18 @@ $(function() {
         //console.log('no actionable submenu found')
       }
       e.stopPropagation();
-    } else if (e.keyCode === 9 || e.keyCode === 27) {
-      //console.log('tab/esc pressed');
+    } else if (e.keyCode === 27) {
+      //console.log('esc pressed');
       switchTopMenuitem(topTierUl, undefined);
       //console.log('calling cycleFocus ii')
       CPO.cycleFocus();
       e.stopPropagation();
       e.preventDefault();
       //$(this).closest('nav').closest('main').focus();
+    } else if (e.keyCode === 9) {
+      console.log('tab pressed\n')
+      e.stopPropagation();
+      e.preventDefault();
     } else if (e.keyCode === 32) {
       //console.log('clicked space on', $(this));
       //$(this)[0].click();
@@ -1029,7 +1022,7 @@ $(function() {
     var rulers = CPO.editor.cm.getOption("rulers");
     var longLines = CPO.editor.cm.getOption("longLines");
     var minLength;
-    if (longLines.size == 0) {
+    if (longLines.size === 0) {
       minLength = 0; // if there are no long lines, then we don't care about showing any rulers
     } else {
       minLength = Number.MAX_VALUE;
