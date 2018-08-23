@@ -5,6 +5,8 @@
  * and display windows.
  * Looking at http://d3indepth.com/layouts/
  * and https://stackoverflow.com/questions/21727202/append-dom-element-to-the-d3
+ * http://www.d3noob.org/2013/01/how-to-rotate-text-labels-for-x-axis-of.html
+ * https://stackoverflow.com/questions/36639755/d3-tree-layout-to-display-text-on-mouse-hover-over-links
  */
 ({
   requires: [],
