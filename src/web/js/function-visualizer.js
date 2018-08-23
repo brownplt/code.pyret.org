@@ -7,6 +7,18 @@
  * and https://stackoverflow.com/questions/21727202/append-dom-element-to-the-d3
  * http://www.d3noob.org/2013/01/how-to-rotate-text-labels-for-x-axis-of.html
  * https://stackoverflow.com/questions/36639755/d3-tree-layout-to-display-text-on-mouse-hover-over-links
+ * TODO's
+- filter out equal-always and similar builtins (ask if unsure)
+- get text not to overlap
+  - possible issue with margin/svg width?
+  - or nodesize?
+  - display text on hover?
+  - angle this text?
+- keep controls floating on top so always visible
+- get margins/svg dimensions working so shows entire trace
+- breadth-first: have depth-based expansion rather than current exposed expansion
+- get rid of "Run pyret"
+  - just track the expansion from the last expression
  */
 ({
   requires: [],
