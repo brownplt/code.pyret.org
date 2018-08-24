@@ -426,7 +426,7 @@
         left: width + margin.left + margin.right + 10 + 'px',
       }),
         controller = panel.append('div').style({
-          top: '60px',
+          top: '70px',
           position: 'fixed',
         });
 
