@@ -19,6 +19,8 @@
 - breadth-first: have depth-based expansion rather than current exposed expansion
 - get rid of "Run pyret"
   - just track the expansion from the last expression
+  -> can't do this! if last expansion contains function expression as argument,
+     will need to execute this, and this is a sibling to the last expression
  */
 ({
   requires: [],
@@ -68,7 +70,7 @@
     root = data;
     root.x0 = width / 2;
     root.y0 = 0;
-    root.funName = 'Run Pyret';
+    root.funName = 'Trace and run';
     var selected = root;
 
     var console_trace = false;
@@ -287,6 +289,7 @@
         return "";
       }
     }
+    var unknown = "☐";
     function valueToString(val) {
       switch (typeof (val)) {
         case "number":
@@ -295,7 +298,9 @@
         case "string":
           return "\"" + val + "\"";
         default:
-          return "☐";
+          console.log(val);
+          // if PObject, print name, if C, I don't know what to do...
+          return (val && val["$name"]) ? val["$name"] : unknown;
       }
     }
     var navOptions = [
@@ -501,8 +506,8 @@
       svg = d3.select(dialog.get(0)).
         append("svg").
         // make this match the size of the dialog window!
-        attr("width", width + margin.right + margin.left).
-        attr("height", height + margin.top + margin.bottom).
+        attr("width", "auto").
+        attr("height", "auto").
         append("g").
         attr("transform", "translate(" + margin.left + "," + margin.top + ")");
       for (var event in events) {
