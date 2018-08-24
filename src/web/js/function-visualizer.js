@@ -427,6 +427,7 @@
       }),
         controller = panel.append('div').style({
           top: '60px',
+          position: 'fixed',
         });
 
       controller = $(controller.node());
