@@ -222,7 +222,7 @@
         .style("fill", function (d) { return d._children ? "lightsteelblue" : "#fff"; });
 
       nodeEnter.append("text")
-        .attr("x", function (d) { return d.children || d._children ? -10 : 10; })
+        .attr("x", 10)
         .attr("dy", ".35em")
         .attr("text-anchor", "start")
         .attr("transform", "rotate(-15)")
@@ -311,6 +311,21 @@
       }
     }
     var unknown = "☐";
+    function dataToString(d) {
+      var name = d["$name"];
+      if (name) {
+        // check to see if composite object by looking at constructor
+        var fieldNames = d.$constructor.$fieldNames;
+        return name + (fieldNames ? (
+          "(" + fieldNames.map(function (f) {
+            return f + ": " + valueToString(d.dict[f])
+          }).join(", ") + ")"
+        ) : "");
+      }
+      else {
+        return unknown;
+      }
+    }
     function valueToString(val) {
       switch (typeof (val)) {
         case "number":
@@ -321,7 +336,7 @@
         default:
           console.log(val);
           // if PObject, print name, if C, I don't know what to do...
-          return (val && val["$name"]) ? val["$name"] : unknown;
+          return (val) ? dataToString(val) : unknown;
       }
     }
     var navOptions = [

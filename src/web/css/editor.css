@@ -1976,7 +1976,7 @@ button.controller {
 }
 
 .node text {
-  font: 10px sans-serif;
+  font: 9px monospace;
 }
 
 .link {
