@@ -178,6 +178,35 @@
       return (n.children ? n.children.length : 0) +
         (n._children ? n._children.length : 0) > 0
     }
+
+    function tree_dimensions(events) {
+      function tree_to_widths(events) {
+        var ret = [1];
+        var index = 0;
+        events.forEach(function (e) {
+          switch (e.action) {
+            case "push":
+              index++;
+              if (index >= ret.length) {
+                ret.push(0);
+              }
+              ret[index]++;
+              break;
+            case "pop":
+              index--;
+              break;
+          }
+        });
+        return ret;
+      }
+      var widths = tree_to_widths(events);
+      return { width: Math.max.apply(null, widths), height: widths.length };
+    }
+    // should compare this with the size of the window?
+    // worth seeing what it does without min
+    function tree_size(width, height) {
+      return { width: (width + 1) * 100, height: (height + 1) * 80 };
+    }
     function update(source) {
 
       // Compute the new tree layout.
@@ -503,11 +532,12 @@
       });
       controller.append(nextButton);
 
+      var dimensions = tree_dimensions(events);
+      var svg_dimensions = tree_size(dimensions.width, dimensions.height);
       svg = d3.select(dialog.get(0)).
         append("svg").
-        // make thheight, widthis match the size of the dialog window!
-        attr("preserveAspectRatio", "xMinYMin meet").
-        attr("viewBox", "0 0 " + $(document).width() + " " + $(document).height()).
+        attr("width", Math.max(svg_dimensions.width, $(document).width())).
+        attr("height", Math.max(svg_dimensions.height, $(document).width())).
         append("g").
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
       for (var event in events) {
