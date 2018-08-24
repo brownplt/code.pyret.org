@@ -172,6 +172,10 @@
         console.log(eventList);
       }
     }
+    function hasChildren(n) {
+      return (n.children ? n.children.length : 0) +
+        (n._children ? n._children.length : 0) > 0
+    }
     function update(source) {
 
       // Compute the new tree layout.
@@ -568,7 +572,7 @@
               // then need to add kids to toExpand and remove d
               var newLeaves = [];
               var newToExpands = [];
-              d.children.forEach(function(c) {
+              d.children.forEach(function (c) {
                 if (hasChildren(c)) {
                   newToExpands.push(c);
                 }
