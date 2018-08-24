@@ -8,18 +8,10 @@
  * https://stackoverflow.com/questions/36639755/d3-tree-layout-to-display-text-on-mouse-hover-over-links
  * TODO's
 - filter out equal-always and similar builtins (ask if unsure)
-- get text not to overlap
-  - possible issue with margin/svg width?
-  - or nodesize?
-  - display text on hover?
-  - angle this text?
-- keep controls floating on top so always visible
-- get margins/svg dimensions working so shows entire trace
-- breadth-first: have depth-based expansion rather than current exposed expansion
-- get rid of "Run pyret"
-  - just track the expansion from the last expression
-  -> can't do this! if last expansion contains function expression as argument,
-     will need to execute this, and this is a sibling to the last expression
+- breadth-first: have interaction undo rather than current exposed undo
+- infinite functions
+- logging
+- data printing
  */
 ({
   requires: [],
