@@ -52,7 +52,7 @@
 
     // declares a tree layout and assigns the size
     var tree = d3.layout.tree()
-      .size([height, width]);
+      .size([$(document).width(), $(document).height()]);
     var diagonal = d3.svg.diagonal()
       .projection(function (d) { return [d.x, d.y]; });
 
@@ -304,9 +304,9 @@
       }
     }
     var navOptions = [
+      { text: 'All', val: 'all' },
       { text: 'Depth-first', val: 'depth' },
       { text: 'Breadth-first', val: 'breadth' },
-      { text: 'All', val: 'all' },
     ];
     var navMode = navOptions[0].val;
     // for breadth-first, keeps track of nodes to expand
@@ -505,11 +505,11 @@
 
       svg = d3.select(dialog.get(0)).
         append("svg").
-        // make this match the size of the dialog window!
-        attr("width", "auto").
-        attr("height", "auto").
+        // make thheight, widthis match the size of the dialog window!
+        attr("preserveAspectRatio", "xMinYMin meet").
+        attr("viewBox", "0 0 " + $(document).width() + " " + $(document).height()).
         append("g").
-        attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        attr("transform", "translate(" + 0 + "," + margin.top + ")");
       for (var event in events) {
         simpleAction(events[event])
       }
