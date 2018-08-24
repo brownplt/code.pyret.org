@@ -3,8 +3,7 @@
  * For now, just `console.log`'s function calls
  * and returns, but eventually will integrate d3
  * and display windows.
- * Looking at http://d3indepth.com/layouts/
- * and https://stackoverflow.com/questions/21727202/append-dom-element-to-the-d3
+ * Looking at https://stackoverflow.com/questions/21727202/append-dom-element-to-the-d3
  * http://www.d3noob.org/2013/01/how-to-rotate-text-labels-for-x-axis-of.html
  * https://stackoverflow.com/questions/36639755/d3-tree-layout-to-display-text-on-mouse-hover-over-links
  * TODO's
@@ -233,7 +232,8 @@
       nodeEnter.append("text")
         .attr("x", function (d) { return d.children || d._children ? -10 : 10; })
         .attr("dy", ".35em")
-        .attr("text-anchor", function (d) { return d.children || d._children ? "end" : "start"; })
+        .attr("text-anchor", "start")
+        .attr("transform", "rotate(-15)")
         .text(function (d) { return nodeToText(d); })
         .style("fill-opacity", 1e-6);
 
