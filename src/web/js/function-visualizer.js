@@ -697,6 +697,7 @@
         n.children = n._children;
         n._children = [];
       }
+      return [n];
     }
 
     function hideYaReturn(n) {
@@ -712,8 +713,8 @@
         }
         hideYaKids(n);
         return affected;
-
-      } else {
+      }
+      else {
         return [];
       }
     }
@@ -723,7 +724,6 @@
         hideReturns(n.children[childIndex]);
       }
       hideYaReturn(n);
-
     }
 
     function nextAction(n, e) {
@@ -749,13 +749,11 @@
           var previousN = n.parent;
           previousN._children.unshift(previousN.children.pop());
           return previousN;
-          break;
         case "pop":
           var previousN = n.children[n.children.length - 1];
           previousN._returnValue = previousN.returnValue;
           previousN.returnValue = null;
           return previousN;
-          break;
       }
     }
 
