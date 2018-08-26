@@ -336,18 +336,23 @@
         default:
           console.log(val);
           // if PObject, print name, if C, I don't know what to do...
-          return (val) ? dataToString(val) : unknown;
+          if (val) {
+            var ret = dataToString(val);
+            if (ret == unknown) console.log(val);
+            return ret;
+          }
+          else return unknown;
       }
     }
     var navOptions = [
-      { text: 'All', val: 'all' },
       { text: 'Depth-first', val: 'depth' },
+      { text: 'All', val: 'all' },
       { text: 'Breadth-first', val: 'breadth' },
     ];
     var navMode = navOptions[0].val;
     // for breadth-first, keeps track of nodes to expand
     var toExpand = [];
-    var leaves = [];
+    var interactions = [{ effect: "show", affectedParents: [root], toExpand: [root] }];
     var dfCurrent = null;
     // TODO: only do this if in breadth, since needless copying
     var dfPendingEvents = events.slice(0, events.length);
@@ -400,10 +405,9 @@
     }
     function resetBreadthFirst() {
       // go over all nodes, set children correctly
-      toExpand = [];
-      leaves = [];
       resetChildren(root);
       root._children = [];
+      interactions = [{ effect: "show", affectedParents: [root], toExpand: [root] }];
     }
     function resetDepthFirst() {
       // go over all nodes, set returnValue and children correctly
@@ -489,14 +493,26 @@
           case "breadth":
             nextButton.attr("disabled", false);
             // after dispaying previous, check to see if root is only one in toExpand
-            var previousExpand = leaves.concat(toExpand).map(function (n) { return n.parent });
-            previousExpand = uniquifyList(previousExpand);
-            previousExpand = raiseList(previousExpand);
-            // maybe this should actually be hideChildren due to leaves
-            previousExpand.forEach(function (cur) { hideChildren(cur); update(cur); });
-            leaves = [];
-            // maybe need to filter this to see if including children
-            toExpand = previousExpand;
+            /**
+             * Get the last interaction and undo it
+             * If it was a click, then switch the visibility of that node's children
+             * If it was an arrow (note can only be a forward arrow)
+             * then switch visibilities of the expanded nodes in that
+             */
+            var lastAction = interactions.pop();
+            toExpand = lastAction.toExpand;
+            var affected = lastAction.affectedParents;
+            switch (lastAction.effect) {
+              case "show":
+                // hide these affected nodes
+                affected.forEach(function (c) { hideYaKids(c); update(c); });
+                break;
+              case "hide":
+                // show these affected nodes
+                affected.forEach(function (c) { showYaKids(c); update(c); });
+                break;
+            }
+
             backButton.attr("disabled", toExpand.includes(root));
             break;
         }
@@ -523,6 +539,8 @@
           case "breadth":
             backButton.attr("disabled", false);
             // add children of toExpand to toExpand
+            var action = { effect: "show", affectedParents: toExpand, toExpand: toExpand };
+            interactions.push(action);
             var nextExpand = [];
             for (var i in toExpand) {
               var cur = toExpand[i];
@@ -531,8 +549,6 @@
               if (cur.children)
                 nextExpand = nextExpand.concat(cur.children);
             }
-            leaves = leaves.concat(nextExpand.filter(function (n) { return (!n.children || n.children.length === 0) && (!n._children || n._children.length === 0) }));
-            leaves.forEach(function (l) { removeElement(nextExpand, l); });
             toExpand = nextExpand;
             nextButton.attr("disabled", toExpand.length < 1);
             break;
@@ -572,7 +588,6 @@
     }
     function prepareBreadth(nextButton, backButton) {
       toExpand = root.children;
-      leaves = []; // possible that a root's child is a leaf though!
       // only have children of root expanded
       for (var childIndex in root.children) {
         var n = root.children[childIndex];
@@ -605,30 +620,29 @@
           update(d);
           break;
         case "breadth":
-          var action = switchKids(d);
+          var result = switchKids(d);
+          var action = result.effect;
+          var affected = result.affected;
+          var interAction = { effect: action, toExpand: toExpand.slice(0, toExpand.length), affectedParents: affected };
           update(d);
           switch (action) {
             case "hide":
-              unexpandKids(toExpand, d);
+              // should remove children of result of switchKids, no?
+              affected.forEach(function (a) { a._children.forEach(function (c) { removeElement(toExpand, c); }); });
+              toExpand.push(d);
               break;
             case "show":
               // then need to add kids to toExpand and remove d
-              var newLeaves = [];
               var newToExpands = [];
               d.children.forEach(function (c) {
-                if (hasChildren(c)) {
-                  newToExpands.push(c);
-                }
-                else {
-                  newLeaves.push(c);
-                }
-              })
+                newToExpands.push(c);
+              });
               toExpand = toExpand.concat(newToExpands);
-              leaves = leaves.concat(newLeaves);
               break;
             case "leaf":
               break;
           }
+          interactions.push(interAction);
           // todo: check to see if hid or showed kids, update toExpand appropriately
           break;
         case "depth":
@@ -656,15 +670,18 @@
       }
     }
 
+    /**
+     * Returns effect and kids affected.
+     */
     function switchKids(n) {
       if (n.children) {
-        hideChildren(n);
-        return "hide";
+        var affected = hideChildren(n);
+        return { effect: "hide", affected: affected };
       } else if (n._children) {
-        showYaKids(n);
-        return "show";
+        var affected = showYaKids(n);
+        return { effect: "show", affected: affected };
       } else {
-        return "leaf";
+        return { effect: "leaf", affected: [] };
       }
     }
     function hideYaKids(n, checked) {
@@ -673,6 +690,7 @@
         n._children = n.children;
         n.children = [];
       }
+      return [n];
     }
     function showYaKids(n) {
       if (n._children && n._children.length > 0) {
@@ -694,10 +712,17 @@
     }
 
     function hideReturns(n) {
-      for (var childIndex in n.children) {
-        hideReturns(n.children[childIndex]);
+      if (n.children && n.children.length > 0) {
+        var affected = [n];
+        for (var childIndex in n.children) {
+          affected = affected.concat(hideChildren(n.children[childIndex]));
+        }
+        hideYaKids(n);
+        return affected;
+
+      } else {
+        return [];
       }
-      hideYaReturn(n);
     }
 
     function nextAction(n, e) {
