@@ -334,7 +334,6 @@
         case "string":
           return "\"" + val + "\"";
         default:
-          console.log(val);
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
             var ret = dataToString(val);
@@ -345,9 +344,9 @@
       }
     }
     var navOptions = [
+      { text: 'Breadth-first', val: 'breadth' },
       { text: 'Depth-first', val: 'depth' },
       { text: 'All', val: 'all' },
-      { text: 'Breadth-first', val: 'breadth' },
     ];
     var navMode = navOptions[0].val;
     // for breadth-first, keeps track of nodes to expand
@@ -638,6 +637,7 @@
                 newToExpands.push(c);
               });
               toExpand = toExpand.concat(newToExpands);
+              removeElement(toExpand, d);
               break;
             case "leaf":
               break;
@@ -705,13 +705,6 @@
     }
 
     function hideChildren(n) {
-      for (var childIndex in n.children) {
-        hideChildren(n.children[childIndex]);
-      }
-      hideYaKids(n);
-    }
-
-    function hideReturns(n) {
       if (n.children && n.children.length > 0) {
         var affected = [n];
         for (var childIndex in n.children) {
@@ -723,6 +716,14 @@
       } else {
         return [];
       }
+    }
+
+    function hideReturns(n) {
+      for (var childIndex in n.children) {
+        hideReturns(n.children[childIndex]);
+      }
+      hideYaReturn(n);
+
     }
 
     function nextAction(n, e) {
