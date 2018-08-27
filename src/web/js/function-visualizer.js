@@ -516,8 +516,8 @@
       svg = d3.select(dialog.get(0)).
         append("svg").
         // make this match the size of the dialog window!
-        attr("width", svg_dimensions.width).
-        attr("height", svg_dimensions.height).
+        attr("width", Math.max($(document).width(), svg_dimensions.width)).
+        attr("height", Math.max($(document).height(), svg_dimensions.height)).
         append("g").
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
       for (var event in events) {
