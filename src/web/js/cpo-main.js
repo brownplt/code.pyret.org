@@ -576,6 +576,14 @@
         e.preventDefault();
       });
 
+      Mousetrap.bindGlobal('shift+tab', function(e) {
+        // cycle focus backward
+        //console.log('mouse shift+tab')
+        CPO.cycleFocus(true);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
       Mousetrap.bindGlobal('f7', function(e) {
         doRunAction(editor.cm.getValue());
         CPO.autoSave();
