@@ -126,7 +126,7 @@
           type: 'resource-delete',
           name: new Date().getTime(),
           attributes: [],
-          children: []
+          children: [],
         };
         var newNode = newNodeObj;
         newNode.depth = selected.depth + 1;
@@ -164,7 +164,8 @@
         console.log("what");
         console.log(eventList);
       }
-    }
+    };
+
     function hasChildren(n) {
       return (n.children ? n.children.length : 0) +
         (n._children ? n._children.length : 0) > 0
@@ -310,7 +311,7 @@
         return "";
       }
     }
-    var unknown = "☐";
+    var unknown = "?";
     function dataToString(d) {
       var name = d["$name"];
       if (name) {
@@ -334,6 +335,7 @@
         case "string":
           return "\"" + val + "\"";
         default:
+          // console.log(val);
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
             var ret = dataToString(val);
@@ -345,12 +347,14 @@
     }
     var navOptions = [
       { text: 'Breadth-first', val: 'breadth' },
-      { text: 'Depth-first', val: 'depth' },
       { text: 'All', val: 'all' },
+      { text: 'Depth-first', val: 'depth' },
     ];
     var navMode = navOptions[0].val;
     // for breadth-first, keeps track of nodes to expand
     var toExpand = [];
+    // keeps track of clicks and next arrows.
+    // should start with one -> and root as expanded since we expand root
     var interactions = [{ effect: "show", affectedParents: [root], toExpand: [root] }];
     var dfCurrent = null;
     // TODO: only do this if in breadth, since needless copying
@@ -425,8 +429,6 @@
       resetBreadthFirst();
       resetDepthFirst();
       // maybe clone this? would only pay creating once
-      console.log("eventList length: " + events.length);
-      console.log(root.children);
       dialog = $('<div>', {
         style: 'position: static', //'left: 0px; top: -500px',
       });
@@ -480,6 +482,63 @@
           case "all":
             break;
           case "depth":
+            backDF(backButton, nextButton);
+            break;
+          // TODO: here
+          case "breadth":
+            backBF(backButton, nextButton);
+            break;
+        }
+      });
+      controller.append(backButton);
+      var nextButton = $('<button/>', {
+        text: '⇨',
+        style: 'left: 140px; top: 70px',
+        id: 'nextStep',
+      }).addClass('xMaxGo d3btn').click(function () {
+        switch (navMode) {
+          case "all":
+            break;
+          case "depth":
+            // else, could make next button disabled?
+            nextDF(backButton, nextButton);
+            break;
+          // TODO: here
+          case "breadth":
+            nextBF(backButton, nextButton);
+            break;
+        }
+      });
+      controller.append(nextButton);
+
+      var dimensions = tree_dimensions(events);
+      var svg_dimensions = tree_size(dimensions.width, dimensions.height);
+      svg = d3.select(dialog.get(0)).
+        append("svg").
+        // make this match the size of the dialog window!
+        attr("width", svg_dimensions.width).
+        attr("height", svg_dimensions.height).
+        append("g").
+        attr("transform", "translate(" + 0 + "," + margin.top + ")");
+      for (var event in events) {
+        simpleAction(events[event])
+      }
+      switch (navMode) {
+        case "all":
+          prepareAll(nextButton, backButton);
+          break;
+        case "breadth":
+          prepareBreadth(nextButton, backButton);
+          break;
+        case "depth":
+          prepareDepth(nextButton, backButton);
+          break;
+      }
+      update(root);
+      return dialog;
+    }
+
+    function backDF(backButton, nextButton) {
             nextButton.attr("disabled", false);
             var previousEvent = dfDoneEvents.pop();
             var previousCurrent = undoAction(dfCurrent, previousEvent);
@@ -488,8 +547,19 @@
             dfPendingEvents.unshift(previousEvent);
             // after going back one, check to see if doneEvents is empty
             backButton.attr("disabled", dfDoneEvents.length < 1);
-            break;
-          case "breadth":
+    }
+
+    function nextDF(backButton, nextButton) {
+      backButton.attr("disabled", false);
+      var nextEvent = dfPendingEvents.shift();
+      var nextCurrent = nextAction(dfCurrent, nextEvent);
+      update(dfCurrent);
+      dfCurrent = nextCurrent;
+      dfDoneEvents.push(nextEvent);
+      nextButton.attr("disabled", dfPendingEvents.length < 1);
+    }
+
+    function backBF(backButton, nextButton) {
             nextButton.attr("disabled", false);
             // after dispaying previous, check to see if root is only one in toExpand
             /**
@@ -513,29 +583,9 @@
             }
 
             backButton.attr("disabled", toExpand.includes(root));
-            break;
         }
-      });
-      controller.append(backButton);
-      var nextButton = $('<button/>', {
-        text: '⇨',
-        style: 'left: 140px; top: 70px',
-        id: 'nextStep',
-      }).addClass('xMaxGo d3btn').click(function () {
-        switch (navMode) {
-          case "all":
-            break;
-          case "depth":
-            backButton.attr("disabled", false);
-            var nextEvent = dfPendingEvents.shift();
-            var nextCurrent = nextAction(dfCurrent, nextEvent);
-            update(dfCurrent);
-            dfCurrent = nextCurrent;
-            dfDoneEvents.push(nextEvent);
-            nextButton.attr("disabled", dfPendingEvents.length < 1);
-            // else, could make next button disabled?
-            break;
-          case "breadth":
+
+    function nextBF(backButton, nextButton) {
             backButton.attr("disabled", false);
             // add children of toExpand to toExpand
             var action = { effect: "show", affectedParents: toExpand, toExpand: toExpand };
@@ -550,50 +600,15 @@
             }
             toExpand = nextExpand;
             nextButton.attr("disabled", toExpand.length < 1);
-            break;
         }
-      });
-      controller.append(nextButton);
 
-      var dimensions = tree_dimensions(events);
-      var svg_dimensions = tree_size(dimensions.width, dimensions.height);
-      svg = d3.select(dialog.get(0)).
-        append("svg").
-        attr("width", Math.max(svg_dimensions.width, $(document).width())).
-        attr("height", Math.max(svg_dimensions.height, $(document).width())).
-        append("g").
-        attr("transform", "translate(" + 0 + "," + margin.top + ")");
-      console.log(root.children);
-      for (var event in events) {
-        console.log(root.children);
-        console.log(selected);
-        simpleAction(events[event]);
-      }
-      console.log(root.children);
-      switch (navMode) {
-        case "all":
-          prepareAll(nextButton, backButton);
-          break;
-        case "breadth":
-          console.log(root);
-          console.log(root.children);
-          prepareBreadth(nextButton, backButton);
-          break;
-        case "depth":
-          prepareDepth(nextButton, backButton);
-          break;
-      }
-      update(root);
-      console.log(root);
-      return dialog;
-    }
     function prepareAll(nextButton, backButton) {
       resetChildren(root);
       nextButton.attr("disabled", true);
       backButton.attr("disabled", true);
     }
     function prepareBreadth(nextButton, backButton) {
-      toExpand = root.children;
+      toExpand = root.children.filter(function (c) { return hasChildren(c); });
       // only have children of root expanded
       for (var childIndex in root.children) {
         var n = root.children[childIndex];
@@ -619,6 +634,10 @@
       done = true;
     }
 
+
+
+    // Toggle children on click, but only in all and breadth-first mode
+    // TODO: here
     function click(d) {
       switch (navMode) {
         case "all":
@@ -656,6 +675,7 @@
           return;
       }
     }
+
     /**
      * for some clicked node,
      * remove its children from the list (toExpand)
@@ -720,8 +740,8 @@
         }
         hideYaKids(n);
         return affected;
-      }
-      else {
+
+      } else {
         return [];
       }
     }
@@ -763,6 +783,7 @@
           return previousN;
       }
     }
+
 
     return runtime.makeJSModuleReturn({
       pushFun: simpleOnPush,
