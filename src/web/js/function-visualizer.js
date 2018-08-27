@@ -297,7 +297,7 @@
 
     // will need to update this for no params, multiple params, etc
     function createText(funName, funArgs, funRet) {
-      return funName + "(" + paramText(funArgs) + ") →" + valueToString(funRet);
+      return funName + "(" + paramText(funArgs) + ")→" + valueToString(funRet);
     }
 
     // look into zip for javascript for multi-params
@@ -401,11 +401,11 @@
       root.children = [];
       root._children = [];
       root.id = 0;
+      selected = root;
     }
     function resetBreadthFirst() {
       // go over all nodes, set children correctly
       resetChildren(root);
-      root._children = [];
       interactions = [{ effect: "show", affectedParents: [root], toExpand: [root] }];
     }
     function resetDepthFirst() {
@@ -417,7 +417,6 @@
         dfDoneEvents = [dfPendingEvents.shift()];
       }
       resetChildren(root);
-      root._children = [];
       resetReturnValues(root);
     }
 
@@ -427,6 +426,7 @@
       resetDepthFirst();
       // maybe clone this? would only pay creating once
       console.log("eventList length: " + events.length);
+      console.log(root.children);
       dialog = $('<div>', {
         style: 'position: static', //'left: 0px; top: -500px',
       });
@@ -563,14 +563,20 @@
         attr("height", Math.max(svg_dimensions.height, $(document).width())).
         append("g").
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
+      console.log(root.children);
       for (var event in events) {
-        simpleAction(events[event])
+        console.log(root.children);
+        console.log(selected);
+        simpleAction(events[event]);
       }
+      console.log(root.children);
       switch (navMode) {
         case "all":
           prepareAll(nextButton, backButton);
           break;
         case "breadth":
+          console.log(root);
+          console.log(root.children);
           prepareBreadth(nextButton, backButton);
           break;
         case "depth":
@@ -578,6 +584,7 @@
           break;
       }
       update(root);
+      console.log(root);
       return dialog;
     }
     function prepareAll(nextButton, backButton) {
