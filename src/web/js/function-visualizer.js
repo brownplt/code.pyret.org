@@ -127,6 +127,7 @@
           name: new Date().getTime(),
           attributes: [],
           children: [],
+          finished: false, // could use returnValue, but that is switched around
         };
         var newNode = newNodeObj;
         newNode.depth = selected.depth + 1;
@@ -156,6 +157,7 @@
         var returnValue = eventList.retVal;
         selected.returnValue = returnValue;
         selected._returnValue = null;
+        selected.finished = true;
         update(selected);
 
         selected = selected.parent;
@@ -166,11 +168,11 @@
       }
     };
 
+
     function hasChildren(n) {
       return (n.children ? n.children.length : 0) +
         (n._children ? n._children.length : 0) > 0
     }
-
     function tree_dimensions(events) {
       function tree_to_widths(events) {
         var ret = [1];
@@ -220,7 +222,7 @@
 
       nodeEnter.append("circle")
         .attr("r", 1e-6)
-        .style("fill", function (d) { return d._children ? "lightsteelblue" : "#fff"; });
+        .style("fill", getNodeColor);
 
       nodeEnter.append("text")
         .attr("x", 10)
@@ -242,7 +244,7 @@
 
       nodeUpdate.select("circle")
         .attr("r", 4.5)
-        .style("fill", function (d) { return d._children ? "lightsteelblue" : "#fff"; });
+        .style("fill", getNodeColor);
 
       nodeUpdate.select("text")
         .style("fill-opacity", 1);
@@ -261,7 +263,7 @@
 
       // Update the links…
       var link = svg.selectAll("path.link")
-        .data(links, function (d) { return d.target.id; });
+        .data(links, function (d) { /*console.log(d);*/ return d.target.id; });
 
       // Enter any new links at the parent's previous position.
       link.enter().insert("path", "g")
@@ -290,6 +292,12 @@
         d.x0 = d.x;
         d.y0 = d.y;
       });
+    }
+
+    function getNodeColor(n) {
+      return n.finished ?
+        (n._children ? "lightsteelblue" : "fff") :
+        "tomato";
     }
 
     function nodeToText(n) {
@@ -345,6 +353,7 @@
           else return unknown;
       }
     }
+
     var navOptions = [
       { text: 'Breadth-first', val: 'breadth' },
       { text: 'All', val: 'all' },
@@ -423,7 +432,6 @@
       resetChildren(root);
       resetReturnValues(root);
     }
-
     var simpleShowTrace = function () {
       resetRoot();
       resetBreadthFirst();
@@ -539,14 +547,14 @@
     }
 
     function backDF(backButton, nextButton) {
-            nextButton.attr("disabled", false);
-            var previousEvent = dfDoneEvents.pop();
-            var previousCurrent = undoAction(dfCurrent, previousEvent);
-            update(dfCurrent);
-            dfCurrent = previousCurrent;
-            dfPendingEvents.unshift(previousEvent);
-            // after going back one, check to see if doneEvents is empty
-            backButton.attr("disabled", dfDoneEvents.length < 1);
+      nextButton.attr("disabled", false);
+      var previousEvent = dfDoneEvents.pop();
+      var previousCurrent = undoAction(dfCurrent, previousEvent);
+      update(dfCurrent);
+      dfCurrent = previousCurrent;
+      dfPendingEvents.unshift(previousEvent);
+      // after going back one, check to see if doneEvents is empty
+      backButton.attr("disabled", dfDoneEvents.length < 1);
     }
 
     function nextDF(backButton, nextButton) {
@@ -560,47 +568,47 @@
     }
 
     function backBF(backButton, nextButton) {
-            nextButton.attr("disabled", false);
-            // after dispaying previous, check to see if root is only one in toExpand
-            /**
-             * Get the last interaction and undo it
-             * If it was a click, then switch the visibility of that node's children
-             * If it was an arrow (note can only be a forward arrow)
-             * then switch visibilities of the expanded nodes in that
-             */
-            var lastAction = interactions.pop();
-            toExpand = lastAction.toExpand;
-            var affected = lastAction.affectedParents;
-            switch (lastAction.effect) {
-              case "show":
-                // hide these affected nodes
-                affected.forEach(function (c) { hideYaKids(c); update(c); });
-                break;
-              case "hide":
-                // show these affected nodes
-                affected.forEach(function (c) { showYaKids(c); update(c); });
-                break;
-            }
+      nextButton.attr("disabled", false);
+      // after dispaying previous, check to see if root is only one in toExpand
+      /**
+       * Get the last interaction and undo it
+       * If it was a click, then switch the visibility of that node's children
+       * If it was an arrow (note can only be a forward arrow)
+       * then switch visibilities of the expanded nodes in that
+       */
+      var lastAction = interactions.pop();
+      toExpand = lastAction.toExpand;
+      var affected = lastAction.affectedParents;
+      switch (lastAction.effect) {
+        case "show":
+          // hide these affected nodes
+          affected.forEach(function (c) { hideYaKids(c); update(c); });
+          break;
+        case "hide":
+          // show these affected nodes
+          affected.forEach(function (c) { showYaKids(c); update(c); });
+          break;
+      }
 
-            backButton.attr("disabled", toExpand.includes(root));
-        }
+      backButton.attr("disabled", toExpand.includes(root));
+    }
 
     function nextBF(backButton, nextButton) {
-            backButton.attr("disabled", false);
-            // add children of toExpand to toExpand
-            var action = { effect: "show", affectedParents: toExpand, toExpand: toExpand };
-            interactions.push(action);
-            var nextExpand = [];
-            for (var i in toExpand) {
-              var cur = toExpand[i];
-              showYaKids(cur);
-              update(cur);
-              if (cur.children)
-                nextExpand = nextExpand.concat(cur.children);
-            }
-            toExpand = nextExpand;
-            nextButton.attr("disabled", toExpand.length < 1);
-        }
+      backButton.attr("disabled", false);
+      // add children of toExpand to toExpand
+      var action = { effect: "show", affectedParents: toExpand, toExpand: toExpand };
+      interactions.push(action);
+      var nextExpand = [];
+      for (var i in toExpand) {
+        var cur = toExpand[i];
+        showYaKids(cur);
+        update(cur);
+        if (cur.children)
+          nextExpand = nextExpand.concat(cur.children);
+      }
+      toExpand = nextExpand;
+      nextButton.attr("disabled", toExpand.length < 1);
+    }
 
     function prepareAll(nextButton, backButton) {
       resetChildren(root);
@@ -633,8 +641,6 @@
       // when start receiving more push/pops
       done = true;
     }
-
-
 
     // Toggle children on click, but only in all and breadth-first mode
     // TODO: here
@@ -680,7 +686,7 @@
      * for some clicked node,
      * remove its children from the list (toExpand)
      * and add this node to be expanded instead.
-     */
+    */
     function unexpandKids(l, n) {
       // happens after children switched, so ._children now
       var children = n._children;
@@ -784,7 +790,7 @@
       }
     }
 
-
+    
     return runtime.makeJSModuleReturn({
       pushFun: simpleOnPush,
       popFun: simpleOnPop,
