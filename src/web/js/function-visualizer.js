@@ -425,10 +425,8 @@
       // go over all nodes, set returnValue and children correctly
       dfCurrent = null;
       // only do this if in breadth, since needless copying
-      if (navMode === "depth") {
-        dfPendingEvents = events.slice(0, events.length);
-        dfDoneEvents = [dfPendingEvents.shift()];
-      }
+      dfPendingEvents = events.slice(0, events.length);
+      dfDoneEvents = [dfPendingEvents.shift()];
       resetChildren(root);
       resetReturnValues(root);
     }
@@ -790,7 +788,7 @@
       }
     }
 
-    
+
     return runtime.makeJSModuleReturn({
       pushFun: simpleOnPush,
       popFun: simpleOnPop,
