@@ -15,11 +15,10 @@
  */
 ({
   requires: [],
-  nativeRequires: ["d3", "d3-tip"],
+  nativeRequires: ["d3"],
   provides: {},
-  theModule: function (runtime, _n, _u, d3, d3_tip) {
+  theModule: function (runtime, _n, _u, d3) {
     "use strict";
-    var d3tip = d3_tip(d3);
     var events = [];
 
     var data = {
@@ -91,6 +90,7 @@
       "_plus", "trace-value", "current-checker", "results",
       "_times", "_minus", "_divide",
       "_lessthan", "_greaterthan", "_greaterequal", "_lessequal",
+      "equal-always", "num-max", "num-sqr", "num-sqrt",
       "getMaker1", "check-is", "run-checks",
       "raw-array-to-list",
       "p-map",
@@ -106,9 +106,6 @@
       if (name === "<anonymous function>") {
         if (isCheckBlock(packet)) {
           name = check_block_funname;
-        }
-        else {
-          console.log(JSON.stringify(packet));
         }
       }
       return name;
@@ -196,7 +193,7 @@
 
     function getTestName(arg) {
       if (arg.dict) {
-        return arg.dict.name? true : false;
+        return arg.dict.name ? true : false;
       }
       else {
         return false;
@@ -210,7 +207,9 @@
           return packet.args.every(isTest);
         case "pop":
           // check retVal
-          return isTest(packet.retVal.dict.first);
+          if (packet.retVal && packet.retVal.dict && packet.retVal.dict.first)
+            return isTest(packet.retVal.dict.first);
+          else return false;
       }
     }
 
@@ -255,19 +254,11 @@
       var node = svg.selectAll("g.node")
         .data(nodes, function (d) { return d.id || (d.id = ++i); });
 
-      var tooltip = d3tip(node).attr('class', 'd3-tip')
-        .html(function (d) {
-          return "<pre style=\"background-color: #bbb; z-index: 1000\"><code style=\"font-size: 10px\">" + nodeToFullText(d) + "</code></pre>"
-        });
       // Enter any new nodes at the parent's previous position.
       var nodeEnter = node.enter().append("g")
         .attr("class", "node")
         .attr("transform", function (d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
-        .on("click", click)
-        .on('mouseover', tooltip.show)
-        .on('mouseout', tooltip.hide);
-
-      svg.call(tooltip);
+        .on("click", click);
 
       nodeEnter.append("circle")
         .attr("r", 1e-6)
@@ -419,13 +410,13 @@
           // console.log(val);
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
-            var ret = val.$name ? val.$name : unknown;
+            var ret = val.$name ? val.$name : val.name? val.name : unknown;
             if (ret == unknown) {
               if (isTest(val)) {
                 return getTestName(val);
               }
               else {
-                console.log(JSON.stringify(val));
+                // console.log("constructor's val: " + JSON.stringify(val));
               }
             }
             return ret;
@@ -452,7 +443,8 @@
                 return getTestName(val);
               }
               else {
-                console.log(JSON.stringify(val));
+                /* console.log("string's val: ");
+                console.log(val);*/
               }
             }
             return ret;
@@ -635,8 +627,10 @@
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
       console.log(dimensions);
       for (var event in events) {
+        console.log(events[event].funName);
         simpleAction(events[event])
       }
+      console.log("done with events");
       root.finished = childrenFinished(root.children);
       switch (navMode) {
         case "all":
