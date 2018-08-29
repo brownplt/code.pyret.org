@@ -17,7 +17,7 @@
   requires: [],
   nativeRequires: ["d3", "d3-tip"],
   provides: {},
-  theModule: function (runtime, n, u, d3, d3_tip) {
+  theModule: function (runtime, _n, _u, d3, d3_tip) {
     "use strict";
     var d3tip = d3_tip(d3);
     var events = [];
@@ -96,14 +96,21 @@
       "p-map",
     ];
 
+    var check_block_funname = "run checks";
     var packetToFunName = function (packet) {
       /*
       maybe take in entire packet? that way can look at args,
       or return to see if name, dict contains name, etc.
        */
       var name = packet.funName.name;
-      if (name === "<anonymous function>")
-        console.log(JSON.stringify(packet));
+      if (name === "<anonymous function>") {
+        if (isCheckBlock(packet)) {
+          name = check_block_funname;
+        }
+        else {
+          console.log(JSON.stringify(packet));
+        }
+      }
       return name;
     }
 
@@ -182,6 +189,26 @@
       return (n.children ? n.children.length : 0) +
         (n._children ? n._children.length : 0) > 0
     }
+
+    function isTest(arg) {
+      return getTestName(arg) ? true : false
+    }
+
+    function getTestName(arg) {
+      return arg.dict.name;
+    }
+
+    function isCheckBlock(packet) {
+      // assumes that we are already
+      switch (packet.action) {
+        case "push":
+          return packet.args.every(isTest);
+        case "pop":
+          // check retVal
+          return isTest(packet.retVal.dict.first);
+      }
+    }
+
     function tree_dimensions(events) {
       function tree_to_widths(events) {
         var ret = [1];
@@ -388,7 +415,14 @@
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
             var ret = val.$name ? val.$name : unknown;
-            if (ret == unknown) console.log(JSON.stringify(val));
+            if (ret == unknown) {
+              if (isTest(val)) {
+                return getTestName(val);
+              }
+              else {
+                console.log(JSON.stringify(val));
+              }
+            }
             return ret;
           }
           else return unknown;
@@ -408,7 +442,14 @@
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
             var ret = dataToString(val, indentation + " ".repeat(increment), increment);
-            if (ret == unknown) console.log(val);
+            if (ret == unknown) {
+              if (isTest(val)) {
+                return getTestName(val);
+              }
+              else {
+                console.log(JSON.stringify(val));
+              }
+            }
             return ret;
           }
           else return unknown;
