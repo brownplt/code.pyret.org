@@ -91,7 +91,7 @@
       "_times", "_minus", "_divide",
       "_lessthan", "_greaterthan", "_greaterequal", "_lessequal",
       "equal-always", "num-max", "num-sqr", "num-sqrt",
-      "getMaker1", "check-is", "run-checks",
+      "getMaker1", /*"check-is",*/ "run-checks",
       "raw-array-to-list",
       "p-map",
     ];
