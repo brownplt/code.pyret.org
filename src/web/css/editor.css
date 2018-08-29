@@ -1979,6 +1979,10 @@ button.controller {
   font: 10px monospace;
 }
 
+.d3-tip {
+  z-index: 99;
+}
+
 .link {
   fill: none;
   stroke: #ccc;

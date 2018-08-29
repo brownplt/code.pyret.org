@@ -15,10 +15,11 @@
  */
 ({
   requires: [],
-  nativeRequires: ["d3"],
+  nativeRequires: ["d3", "d3-tip"],
   provides: {},
-  theModule: function (runtime, n, u, d3) {
+  theModule: function (runtime, n, u, d3, d3_tip) {
     "use strict";
+    var d3tip = d3_tip(d3);
     var events = [];
 
     var data = {
@@ -214,11 +215,19 @@
       var node = svg.selectAll("g.node")
         .data(nodes, function (d) { return d.id || (d.id = ++i); });
 
+      var tooltip = d3tip(node).attr('class', 'd3-tip')
+        .html(function (d) {
+          return "<pre style=\"background-color: #bbb; z-index: 1000\"><code style=\"font-size: 10px\">" + nodeToFullText(d) + "</code></pre>"
+        });
       // Enter any new nodes at the parent's previous position.
       var nodeEnter = node.enter().append("g")
         .attr("class", "node")
         .attr("transform", function (d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
-        .on("click", click);
+        .on("click", click)
+        .on('mouseover', tooltip.show)
+        .on('mouseout', tooltip.hide);
+
+      svg.call(tooltip);
 
       nodeEnter.append("circle")
         .attr("r", 1e-6)
@@ -296,7 +305,7 @@
 
     function getNodeColor(n) {
       return n.finished ?
-        (n._children ? "lightsteelblue" : "fff") :
+        (hasChildren(n) ? "lightsteelblue" : "fff") :
         "tomato";
     }
 
@@ -304,38 +313,55 @@
       return createText(n.funName, n.args, n.returnValue);
     }
 
+    function nodeToFullText(n) {
+      return createFullText(n.funName, n.args, n.returnValue);
+    }
+
     // will need to update this for no params, multiple params, etc
     function createText(funName, funArgs, funRet) {
-      return funName + "(" + paramText(funArgs) + ")→" + valueToString(funRet);
+      return funName + "(" + paramText(funArgs) + ")→" + valueToConstructor(funRet);
+    }
+
+    function createFullText(funName, funArgs, funRet) {
+      return funName + "(" + paramFullText(funArgs) + ")→" + valueToString(funRet);
     }
 
     // look into zip for javascript for multi-params
     // taking invariant that funParams and funArgs are same length
     function paramText(funArgs) {
       if (funArgs) {
-        return funArgs.map(valueToString).join(", ");
+        return funArgs.map(valueToConstructor).join(", ");
       }
       else {
         return "";
       }
     }
-    var unknown = "?";
-    function dataToString(d) {
+    function paramFullText(funArgs) {
+      if (funArgs) {
+        return funArgs.map(function (x) { return valueToString(x, "", 2); }).join(", ");
+      }
+      else {
+        return "";
+      }
+    }
+    var unknown = "_";
+    function dataToString(d, indentation, increment) {
       var name = d["$name"];
       if (name) {
         // check to see if composite object by looking at constructor
         var fieldNames = d.$constructor.$fieldNames;
         return name + (fieldNames ? (
-          "(" + fieldNames.map(function (f) {
-            return f + ": " + valueToString(d.dict[f])
-          }).join(", ") + ")"
+          "(\n" + fieldNames.map(function (f) {
+            return indentation +
+              f + ": " + valueToString(d.dict[f], indentation, increment)
+          }).join(",\n") + ")"
         ) : "");
       }
       else {
         return unknown;
       }
     }
-    function valueToString(val) {
+    function valueToConstructor(val) {
       switch (typeof (val)) {
         case "number":
         case "boolean":
@@ -346,7 +372,27 @@
           // console.log(val);
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
-            var ret = dataToString(val);
+            var ret = val.$name ? val.$name : unknown;
+            if (ret == unknown) console.log(val);
+            return ret;
+          }
+          else return unknown;
+      }
+    }
+    function valueToString(val, indentation, increment) {
+      indentation = indentation || "";
+      increment = increment || 2;
+      switch (typeof (val)) {
+        case "number":
+        case "boolean":
+          return val;
+        case "string":
+          return "\"" + val + "\"";
+        default:
+          // console.log(val);
+          // if PObject, print name, if C, I don't know what to do...
+          if (val) {
+            var ret = dataToString(val, indentation + " ".repeat(increment), increment);
             if (ret == unknown) console.log(val);
             return ret;
           }
@@ -529,6 +575,7 @@
       for (var event in events) {
         simpleAction(events[event])
       }
+      root.finished = childrenFinished(root.children);
       switch (navMode) {
         case "all":
           prepareAll(nextButton, backButton);
@@ -542,6 +589,10 @@
       }
       update(root);
       return dialog;
+    }
+
+    function childrenFinished(children) {
+      return children.every(function (c) { return c.finished; });
     }
 
     function backDF(backButton, nextButton) {
