@@ -195,7 +195,12 @@
     }
 
     function getTestName(arg) {
-      return arg.dict.name;
+      if (arg.dict) {
+        return arg.dict.name? true : false;
+      }
+      else {
+        return false;
+      }
     }
 
     function isCheckBlock(packet) {
@@ -230,7 +235,7 @@
         return ret;
       }
       var widths = tree_to_widths(events);
-      return { width: Math.max.apply(null, widths), height: widths.length };
+      return { width: widths.reduce((acc, cur) => Math.max(acc, cur), -1), height: widths.length };
     }
     // should compare this with the size of the window?
     // worth seeing what it does without min
@@ -361,7 +366,7 @@
 
     // will need to update this for no params, multiple params, etc
     function createText(funName, funArgs, funRet) {
-      return funName + "(" + (funName === check_block_funname? "..." : paramText(funArgs)) + ")→" + valueToConstructor(funRet);
+      return funName + "(" + (funName === check_block_funname ? "..." : paramText(funArgs)) + ")→" + valueToConstructor(funRet);
     }
 
     function createFullText(funName, funArgs, funRet) {
@@ -628,6 +633,7 @@
         attr("height", Math.max($(document).height(), svg_dimensions.height)).
         append("g").
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
+      console.log(dimensions);
       for (var event in events) {
         simpleAction(events[event])
       }
