@@ -1980,7 +1980,7 @@ button.controller {
 }
 
 .d3-tip {
-  z-index: 99;
+  z-index: 99999999999;
 }
 
 .link {
