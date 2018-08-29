@@ -75,7 +75,7 @@
         // and empty events
         events = [];
       }
-      packet.funName = funNameToString(packet.funName);
+      packet.funName = packetToFunName(packet);
       if (!blacklistedFunctions.includes(packet.funName)) {
         if (console_trace) {
           console.log(Array(indentation).join(indentation_char) +
@@ -96,8 +96,15 @@
       "p-map",
     ];
 
-    var funNameToString = function (funName) {
-      return funName.name;
+    var packetToFunName = function (packet) {
+      /*
+      maybe take in entire packet? that way can look at args,
+      or return to see if name, dict contains name, etc.
+       */
+      var name = packet.funName.name;
+      if (name === "<anonymous function>")
+        console.log(JSON.stringify(packet));
+      return name;
     }
 
     // packet: {action: String, retVal: Vals}
@@ -107,7 +114,8 @@
         // and empty events
         events = [];
       }
-      if (!blacklistedFunctions.includes(funNameToString(packet.funName))) {
+      packet.funName = packetToFunName(packet);
+      if (!blacklistedFunctions.includes(packet.funName)) {
         if (console_trace) {
           indentation--;
           console.log(Array(indentation).join(indentation_char) +
@@ -244,7 +252,7 @@
       nodeEnter.append("svg:title")
         .text(nodeToFullText);
 
-      var titles = node.selectAll("title").data(nodes, function(d) {
+      var titles = node.selectAll("title").data(nodes, function (d) {
         return d.id || (d.id = ++i);
       });
       titles.text(nodeToFullText);
@@ -330,7 +338,7 @@
     }
 
     function createFullText(funName, funArgs, funRet) {
-      return funName + "(" + paramFullText(funArgs) + ")→" + valueToString(funRet);
+      return funName + "(" + paramFullText(funArgs) + ")\n→" + valueToString(funRet);
     }
 
     // look into zip for javascript for multi-params
@@ -380,7 +388,7 @@
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
             var ret = val.$name ? val.$name : unknown;
-            if (ret == unknown) console.log(val);
+            if (ret == unknown) console.log(JSON.stringify(val));
             return ret;
           }
           else return unknown;
