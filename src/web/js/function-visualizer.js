@@ -361,7 +361,7 @@
 
     // will need to update this for no params, multiple params, etc
     function createText(funName, funArgs, funRet) {
-      return funName + "(" + paramText(funArgs) + ")→" + valueToConstructor(funRet);
+      return funName + "(" + (funName === check_block_funname? "..." : paramText(funArgs)) + ")→" + valueToConstructor(funRet);
     }
 
     function createFullText(funName, funArgs, funRet) {
