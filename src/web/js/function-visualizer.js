@@ -241,6 +241,13 @@
         .text(function (d) { return nodeToText(d); })
         .style("fill-opacity", 1e-6);
 
+      nodeEnter.append("svg:title")
+        .text(nodeToFullText);
+
+      var titles = node.selectAll("title").data(nodes, function(d) {
+        return d.id || (d.id = ++i);
+      });
+      titles.text(nodeToFullText);
       var texts = node.selectAll("text").data(nodes, function (d) {
         return d.id || (d.id = ++i);
       });
