@@ -182,6 +182,8 @@
     };
 
 
+    var check_block_funname = "run checks";
+
     function hasChildren(n) {
       return (n.children ? n.children.length : 0) +
         (n._children ? n._children.length : 0) > 0
