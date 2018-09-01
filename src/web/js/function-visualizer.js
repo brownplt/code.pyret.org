@@ -96,7 +96,6 @@
       "p-map",
     ];
 
-    var check_block_funname = "run checks";
     var packetToFunName = function (packet) {
       /*
       maybe take in entire packet? that way can look at args,
@@ -629,7 +628,6 @@
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
       console.log(dimensions);
       for (var event in events) {
-        console.log(events[event].funName);
         simpleAction(events[event])
       }
       console.log("done with events");
