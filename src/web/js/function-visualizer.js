@@ -103,7 +103,7 @@
       maybe take in entire packet? that way can look at args,
       or return to see if name, dict contains name, etc.
        */
-      var name = packet.funName;
+      var name = packet.funName.name;
       if (name === "<anonymous function>") {
         if (isCheckBlock(packet)) {
           name = check_block_funname;
