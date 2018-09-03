@@ -73,6 +73,7 @@
         done = false;
         // and empty events
         events = [];
+        root.masterChildren = [];
       }
       packet.funName = packetToFunName(packet);
       if (!blacklistedFunctions.includes(packet.funName)) {
@@ -82,6 +83,7 @@
           indentation++;
         }
         events.push(packet);
+        simpleAction(packet);
       }
     }
 
@@ -101,7 +103,7 @@
       maybe take in entire packet? that way can look at args,
       or return to see if name, dict contains name, etc.
        */
-      var name = packet.funName.name;
+      var name = packet.funName;
       if (name === "<anonymous function>") {
         if (isCheckBlock(packet)) {
           name = check_block_funname;
@@ -116,6 +118,7 @@
         done = false;
         // and empty events
         events = [];
+        root.masterChildren = [];
       }
       packet.funName = packetToFunName(packet);
       if (!blacklistedFunctions.includes(packet.funName)) {
@@ -125,6 +128,7 @@
             [packet.action, packet.funName, packet.retVal].join(" "));
         }
         events.push(packet);
+        simpleAction(packet);
       }
     }
 
@@ -135,10 +139,7 @@
         var argList = eventList.args;
         //creates New OBJECT
         var newNodeObj = {
-          type: 'resource-delete',
-          name: new Date().getTime(),
-          attributes: [],
-          children: [],
+          masterChildren: [],
           finished: false, // could use returnValue, but that is switched around
         };
         var newNode = newNodeObj;
@@ -150,16 +151,11 @@
         newNode.funName = funName;
         newNode.args = argList;
 
-        if (!selected.data) {
-          selected.data = {};
-          selected.data.children = [];
-        }
-        if (!selected.children) {
-          selected.children = [];
+        if (!selected.masterChildren) {
+          selected.masterChildren = [];
         }
 
-        selected.children.push(newNode);
-        selected.data.children.push(newNode.data);
+        selected.masterChildren.push(newNode);
         update(selected);
         selected = newNode;
       }
@@ -180,12 +176,10 @@
       }
     };
 
-
     var check_block_funname = "run checks";
 
     function hasChildren(n) {
-      return (n.children ? n.children.length : 0) +
-        (n._children ? n._children.length : 0) > 0
+      return n.masterChildren.length > 0
     }
 
     function isTest(arg) {
@@ -311,7 +305,7 @@
 
       // Update the links…
       var link = svg.selectAll("path.link")
-        .data(links, function (d) { /*console.log(d);*/ return d.target.id; });
+        .data(links, function (d) { return d.target.id; });
 
       // Enter any new links at the parent's previous position.
       link.enter().insert("path", "g")
@@ -408,10 +402,9 @@
         case "string":
           return "\"" + val + "\"";
         default:
-          // console.log(val);
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
-            var ret = val.$name ? val.$name : val.name? val.name : unknown;
+            var ret = val.$name ? val.$name : val.name ? val.name : unknown;
             if (ret == unknown) {
               if (isTest(val)) {
                 return getTestName(val);
@@ -491,46 +484,9 @@
       }
       return ret;
     }
-    function resetChildren(n) {
-      if (!n.children) n.children = [];
-      if (!n._children) n._children = [];
-      n.children = n.children.concat(n._children);
-      n._children = n.children.length > 0 ? [] : null;
-      for (var i in n.children) {
-        resetChildren(n.children[i]);
-      }
-    }
-    function resetReturnValues(n) {
-      if (!n.returnValue) {
-        n.returnValue = n._returnValue;
-        n._returnValue = null;
-      }
-      for (var i in n.children) {
-        resetReturnValues(n.children[i]);
-      }
-    }
-    function resetRoot() {
-      i = 1;
-      root.children = [];
-      root._children = [];
-      root.id = 0;
-      selected = root;
-    }
-    function resetBreadthFirst() {
-      // go over all nodes, set children correctly
-      resetChildren(root);
-      interactions = [{ effect: "show", affectedParents: [root], toExpand: [root] }];
-    }
-    function resetDepthFirst() {
-      // go over all nodes, set returnValue and children correctly
-      dfCurrent = null;
-      // only do this if in breadth, since needless copying
-      dfPendingEvents = events.slice(0, events.length);
-      dfDoneEvents = [dfPendingEvents.shift()];
-      resetChildren(root);
-      resetReturnValues(root);
-    }
+
     var simpleShowTrace = function () {
+      // what happens if we don't reset root?
       resetRoot();
       resetBreadthFirst();
       resetDepthFirst();
@@ -627,11 +583,7 @@
         append("g").
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
       console.log(dimensions);
-      for (var event in events) {
-        simpleAction(events[event])
-      }
-      console.log("done with events");
-      root.finished = childrenFinished(root.children);
+      root.finished = childrenFinished(root.masterChildren);
       switch (navMode) {
         case "all":
           prepareAll(nextButton, backButton);
@@ -715,6 +667,45 @@
       nextButton.attr("disabled", toExpand.length < 1);
     }
 
+    function resetChildren(n) {
+      if (!n.children) n.children = [];
+      if (!n._children) n._children = [];
+      n.children = n.masterChildren.slice(0, n.masterChildren.length);
+      n._children = n.children.length > 0 ? [] : null;
+      for (var i in n.children) {
+        resetChildren(n.children[i]);
+      }
+    }
+    function resetReturnValues(n) {
+      if (!n.returnValue) {
+        n.returnValue = n._returnValue;
+        n._returnValue = null;
+      }
+      for (var i in n.masterChildren) {
+        resetReturnValues(n.masterChildren[i]);
+      }
+    }
+    function resetRoot() {
+      i = 1;
+      root.children = [];
+      root._children = [];
+      root.id = 0;
+      selected = root;
+    }
+    function resetBreadthFirst() {
+      // go over all nodes, set children correctly
+      resetChildren(root);
+      interactions = [{ effect: "show", affectedParents: [root], toExpand: [root] }];
+    }
+    function resetDepthFirst() {
+      // go over all nodes, set returnValue and children correctly
+      dfCurrent = null;
+      // only do this if in breadth, since needless copying
+      dfPendingEvents = events.slice(0, events.length);
+      dfDoneEvents = [dfPendingEvents.shift()];
+      resetChildren(root);
+      resetReturnValues(root);
+    }
     function prepareAll(nextButton, backButton) {
       resetChildren(root);
       nextButton.attr("disabled", true);
@@ -823,16 +814,16 @@
       }
     }
     function hideYaKids(n, checked) {
-      var exchange = checked || (n.children && n.children.length > 0);
+      var exchange = checked || (n.masterChildren.length > 0);
       if (exchange) {
-        n._children = n.children;
+        n._children = n.masterChildren.slice(0, n.masterChildren.length);
         n.children = [];
       }
       return [n];
     }
     function showYaKids(n) {
       if (n._children && n._children.length > 0) {
-        n.children = n._children;
+        n.children = n.masterChildren;
         n._children = [];
       }
       return [n];
