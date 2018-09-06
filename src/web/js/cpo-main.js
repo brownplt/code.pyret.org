@@ -47,7 +47,9 @@
     "cpo/modal-prompt",
     "pyret-base/js/runtime"
   ],
-  provides: {},
+  provides: {
+    values: { repl: 'tany' }
+  },
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI, textHandlers,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
