@@ -61,13 +61,14 @@
     root = data;
     root.x0 = width / 2;
     root.y0 = 0;
-    root.funName = 'Trace and run';
+    root.funName = 'Trace';
     var selected = root;
 
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
     var simpleOnPush = function (packet) {
+      console.log(packet);
       if (done) {
         done = false;
         // and empty events
@@ -115,6 +116,7 @@
 
     // packet: {action: String, retVal: Vals}
     var simpleOnPop = function (packet) {
+      console.log(packet);
       if (done) {
         done = false;
         // and empty events
@@ -421,7 +423,15 @@
       "check-raises-violates", "check-raises-violates-cause"];
 
     function is_builtin(d) {
-      return true;
+      var args = d.args;
+      if (args && args.length > 0) {
+        var loc = args[d.args.length - 1].$loc;
+        if (loc) {
+          return loc[0].substring(0, 7) === "builtin";
+        }
+        else return false;
+      }
+      else return false;
     }
 
     function is_checkblock(d) {
