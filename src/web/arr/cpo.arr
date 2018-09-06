@@ -157,8 +157,8 @@ fun run(runtime, realm, js-source):
   L.run-program(runtime, realm, js-source, {check-all: false})
 end
 
-fun make-repl(builtin-mods, runtime, realm, finder):
+fun make-repl(builtin-mods, runtime, realm, context, finder):
   modules = get-builtin-modules(builtin-mods)
-  repl = R.make-repl(runtime, modules, realm, "cpo-context-currently-unused", finder)
+  repl = R.make-repl(runtime, modules, realm, context, finder)
   repl
 end

@@ -129,7 +129,7 @@
     // NOTE(joe): this function just allocates a closure, so it's stack-safe
     var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
 
-    function uriFromDependency(dependency) {
+    function uriFromDependency(context, dependency) {
       return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
         {
           builtin: function(name) {
@@ -159,33 +159,43 @@
       // The locatorCache memoizes locators for the duration of an
       // interactions run
       var locatorCache = {};
-      function findModule(contextIgnored, dependency) {
-        var uri = uriFromDependency(dependency);
-        if(locatorCache.hasOwnProperty(uri)) {
-          return gmf(compileLib, "located").app(locatorCache[uri], runtime.nothing);
-        }
+      function findModule(context, dependency) {
         return runtime.safeCall(function() {
           return runtime.ffi.cases(gmf(compileStructs, "is-Dependency"), "Dependency", dependency,
             {
               builtin: function(name) {
+                var uri = uriFromDependency(context, dependency);
+                if(locatorCache.hasOwnProperty(uri)) {
+                  return locatorCache[uri];
+                }
                 var raw = cpoModules.getBuiltinLoadableName(runtime, name);
                 if(!raw) {
                   throw runtime.throwMessageException("Unknown module: " + name);
                 }
                 else {
-                  return gmf(cpo, "make-builtin-js-locator").app(name, raw);
+                  return { context: runtime.makeObject({}), locator: gmf(cpo, "make-builtin-js-locator").app(name, raw) };
                 }
               },
               dependency: function(protocol, args) {
+                // NOTE(joe): We can't reliably get a URI for a path, since it may
+                // involve resolving relative paths, etc
+                if(protocol !== "path") {
+                  if(locatorCache.hasOwnProperty(uri)) {
+                    return locatorCache[uri];
+                  }
+                }
                 var arr = runtime.ffi.toArray(args);
                 if (protocol === "my-gdrive") {
-                  return constructors.makeMyGDriveLocator(arr[0]);
+                  return constructors.makeMyGDriveLocator(context.dict, arr[0]);
                 }
                 else if (protocol === "shared-gdrive") {
-                  return constructors.makeSharedGDriveLocator(arr[0], arr[1]);
+                  return constructors.makeSharedGDriveLocator(context.dict, arr[0], arr[1]);
                 }
                 else if (protocol === "gdrive-js") {
-                  return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                  return constructors.makeGDriveJSLocator(context.dict, arr[0], arr[1]);
+                }
+                else if (protocol === "path") {
+                  return constructors.makeGDrivePathLocator(context.dict, arr[0]);
                 }
                 /*
                 else if (protocol === "js-http") {
@@ -194,14 +204,15 @@
                 }
                 */
                 else {
-                  throw runtime.throwMessageException("Unknown import: " + uri);
+                  throw runtime.throwMessageException("Unknown import: " + protocol + String(args));
                 }
 
               }
             });
-         }, function(l) {
-            locatorCache[uri] = l;
-            return gmf(compileLib, "located").app(l, runtime.nothing);
+         }, function(locAndContext) {
+            var newContext = locAndContext.context;
+            locatorCache[uri] = gmf(compileLib, "located").app(locAndContext.locator, newContext);
+            return locatorCache[uri];
          }, "findModule");
       }
       return runtime.makeFunction(findModule, "cpo-find-module");
@@ -240,11 +251,21 @@
 
     var replP = Q.defer();
     return runtime.safeCall(function() {
-        return gmf(cpo, "make-repl").app(
-            builtinsForPyret,
-            pyRuntime,
-            pyRealm,
-            runtime.makeFunction(makeFindModule));
+        return runtime.pauseStack(function(restarter) {
+          return CPO.getCurrentProgram().then(function(p) {
+            runtime.runThunk(function() {
+              return gmf(cpo, "make-repl").app(
+                builtinsForPyret,
+                pyRuntime,
+                pyRealm,
+                runtime.makeObject({currentFile: p}),
+                runtime.makeFunction(makeFindModule))
+            }, function(result) {
+              console.log(result);
+              restarter.resume(result.result);
+            });
+          });
+        });
       }, function(repl) {
         var jsRepl = {
           runtime: runtime.getField(pyRuntime, "runtime").val,

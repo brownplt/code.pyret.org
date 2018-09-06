@@ -11,10 +11,28 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
   var BACKREF_KEY = "originalProgram";
   var PUBLIC_LINK = "pubLink";
 
+  function getParent(googFileObject) {
+    return drive.parents.list({
+      'fileId': googFileObject.id
+    }).then(function(parents) {
+      console.log("Parents of: ", googFileObject, " are ", parents); 
+      if(parents.items.length === 0) {
+        console.log("No parents found");
+      }
+      else if (parents.items.length > 1) {
+        console.log("Multiple parents found");
+      }
+      return parents.items[0];
+    });
+  }
+
   function createAPI(baseCollection) {
     function makeSharedFile(googFileObject, fetchFromGoogle) {
       return {
+        googFileObject: googFileObject,
         shared: true,
+        id: googFileObject.id,
+        getParent: function() { return getParent(googFileObject); },
         getOriginal: function() {
           var request = gapi.client.drive.properties.get({
             'fileId': googFileObject.id,
@@ -55,7 +73,10 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
 
     function makeFile(googFileObject, mimeType, fileExtension) {
       return {
+        googFileObject: googFileObject,
         shared: false,
+        id: googFileObject.id,
+        getParent: function() { return getParent(googFileObject); },
         getName: function() {
           return googFileObject.title;
         },
@@ -171,6 +192,17 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       getFileById: function(id) {
         return drive.files.get({fileId: id}).then(fileBuilder);
       },
+      getSubdirByNameIn: function(baseDir, name) {
+        return this.getFiles(baseDir).then(function(files) {
+          return files.filter(function(f) { return f.getName() === name; })
+                      .map(function(f) { return f.googFileObject; });
+        });
+      },
+      getFileByNameIn: function(baseDir, name) {
+        return this.getFiles(baseDir).then(function(files) {
+          return files.filter(function(f) { return f.getName() === name; });
+        });
+      },
       getFileByName: function(name) {
         return this.getAllFiles().then(function(files) {
           return files.filter(function(f) { return f.getName() === name; });
@@ -202,6 +234,7 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       },
       getFiles: function(c) {
         return c.then(function(bc) {
+          console.log("BC: ", bc);
           return drive.files.list({ q: "trashed=false and '" + bc.id + "' in parents" })
             .then(function(filesResult) {
               if(!filesResult.items) { return []; }
@@ -242,6 +275,12 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
       },
       checkLogin: function() {
         return collection.then(function() { return true; });
+      },
+      getBaseDirectory() {
+        return baseCollection;
+      },
+      getDirectoryParent(collection) {
+        return getParent(collection);
       }
     };
 

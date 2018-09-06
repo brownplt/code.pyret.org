@@ -40,10 +40,8 @@ define("fs", [], function () { return {}; });
 // NOTE(joe): this is slightly bogus, but due to the way pathlib can load, even
 // though it's not used, this needs to be defined (it represents the separator
 // for the system).
-define("path", [], function () { return {
-    sep: "/"
-  };
-});
+path = require("path");
+define("path", [], function () { return path });
 
 define("http", [], function () {return {};});
 

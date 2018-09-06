@@ -1,5 +1,5 @@
 
-define("cpo/gdrive-locators", [], function() {
+define("cpo/gdrive-locators", ["path"], function(pathlib) {
   function makeLocatorConstructors(
       storageAPI,
       runtime,
@@ -38,7 +38,7 @@ define("cpo/gdrive-locators", [], function() {
       }
       return message;
     }
-    function makeMyGDriveLocator(filename) {
+    function makeMyGDriveLocator(context, filename) {
       function checkFileResponse(files, restarter) {
         if(files.length === 0) {
           restarter.error(runtime.ffi.makeMessageException("Could not find module with name " + filename + " in your drive."));
@@ -133,37 +133,40 @@ define("cpo/gdrive-locators", [], function() {
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
 
-          restarter.resume(runtime.makeObject({
-            "get-modified-time": m0(getModifiedTime),
-            "get-options": m1(getOptions),
-            "get-native-modules": m0(getNativeModules),
-            "needs-compile": m1(needsCompile),
-            "get-module": m0(getModule),
-            "get-dependencies": m0(getDependencies),
-            "get-provides": m0(getProvides),
-            "get-extra-imports": m0(getExtraImports),
-            "get-globals": m0(getGlobals),
-            "get-compile-env": m0(getCompileEnv),
-            "uri": m0(getUri),
-            "name": m0(name),
-            "_equals": m2(function(self, other, rec) {
-              return runtime.safeCall(function() {
-                return runtime.getField(other, "uri").app();
-              }, function(otherstr) {
-                return runtime.safeTail(function() {
-                  return rec.app(otherstr, uri);
-                })
-              }, "mygdrive-locator:_equals");
-            }),
-            "set-compiled": m2(setCompiled),
-            "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
-          }));
+          restarter.resume({
+            context: runtime.makeObject({ currentFile: file }),
+            locator: runtime.makeObject({
+              "get-modified-time": m0(getModifiedTime),
+              "get-options": m1(getOptions),
+              "get-native-modules": m0(getNativeModules),
+              "needs-compile": m1(needsCompile),
+              "get-module": m0(getModule),
+              "get-dependencies": m0(getDependencies),
+              "get-provides": m0(getProvides),
+              "get-extra-imports": m0(getExtraImports),
+              "get-globals": m0(getGlobals),
+              "get-compile-env": m0(getCompileEnv),
+              "uri": m0(getUri),
+              "name": m0(name),
+              "_equals": m2(function(self, other, rec) {
+                return runtime.safeCall(function() {
+                  return runtime.getField(other, "uri").app();
+                }, function(otherstr) {
+                  return runtime.safeTail(function() {
+                    return rec.app(otherstr, uri);
+                  })
+                }, "mygdrive-locator:_equals");
+              }),
+              "set-compiled": m2(setCompiled),
+              "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
+            })
+          });
         });
       });
     }
     // Shared GDrive locators require a refresh to be re-fetched
     var sharedLocatorCache = {};
-    function makeSharedGDriveLocator(filename, id) {
+    function makeSharedGDriveLocator(context, filename, id) {
       function checkFileResponse(file, filename, restarter) {
         var actualName = file.getName();
         if(actualName !== filename) {
@@ -294,11 +297,14 @@ define("cpo/gdrive-locators", [], function() {
           });
 
           sharedLocatorCache[cacheKey] = locator;
-          restarter.resume(locator);
+          restarter.resume({
+            context: runtime.makeObject({ currentFile: file }),
+            locator: locator
+          });
         });
       });
     }
-    function makeGDriveJSLocator(filename, id) {
+    function makeGDriveJSLocator(context, filename, id) {
       function checkFileResponse(file, filename, restarter) {
         var actualName = file.getName();
         if(actualName !== filename) {
@@ -342,90 +348,109 @@ define("cpo/gdrive-locators", [], function() {
               uri,
               filename);
           }, function(locator) {
-            restarter.resume(locator);
+            restarter.resume({
+              context: runtime.makeObject({ currentFile: file }),
+              locator: locator
+            });
           }, "gdrivejs-locator:make-locator");
         });
       });
 
     }
-    function makeCompiledGDriveJSLocator(filename, id) {
-      function checkFileResponse(file, filename, restarter) {
-        var actualName = file.getName();
-        if(actualName !== filename) {
-          restarter.error(runtime.ffi.makeMessageException("Expected file with id " + id + " to have name " + filename + ", but its name was " + actualName));
+    function makeGDrivePathLocator(context, path) {
+      var baseDir = storageAPI.then(function(api) {
+        if(context.currentFile === null) { // Treat this as the base directory of the user's code.pyret.org
+          return api.getBaseDirectory();
+        }
+        else {
+          return context.currentFile.getParent();
+        }
+      });
+
+      var fullpath = pathlib.normalize(path);
+      if(pathlib.isAbsolute(fullpath)) { runtime.ffi.throwMessageException("Cannot get absolute paths in Drive"); }
+
+      var pathParts = pathlib.dirname(fullpath).split(pathlib.sep);
+      var fileName = pathlib.basename(fullpath);
+
+      console.log("Parts of path: ", pathParts, fileName);
+
+      function lookup(index, curBaseDir) {
+        if(pathParts[index] === "." || index >= pathParts.length) {
+          return storageAPI.then(function(api) {
+            console.log("Got API: ", api, curBaseDir, fileName);
+            return api.getFileByNameIn(curBaseDir, fileName);
+          }).then(function(files) {
+            console.log("Got files: ", files);
+            if(files.length === 1) { return files[0]; } 
+            throw new Error("File doesn't exist or ambiguous: ", files, fileName);
+          }).fail(function(err) {
+            console.error("Failed: ", err); 
+          });
+        }
+        else if (pathParts[index] === "..") {
+          return Q.spread([storageAPI, curBaseDir], function(api, curBaseDir) {
+            return lookup(index + 1, api.getDirectoryParent(curBaseDir));
+          });
+        }
+        else {
+          return storageAPI.then(function(api) {
+            var subdir = api.getSubdirByNameIn(curBaseDir, pathParts[index]);
+            subdir = subdir.then(function(sd) {
+              if(sd.length === 0) { console.error("Not found: ", pathParts[index]); }
+              return sd[0];
+            });
+            return lookup(index + 1, subdir);
+          });
         }
       }
-      function contentRequestFailure(failure) {
-        return "Could not load file with name " + filename;
-      }
+      var fileP = lookup(0, baseDir);
 
-      // Pause because we'll fetch the Google Drive file object and restart
-      // with it to create the actual locator
+
+
       return runtime.pauseStack(function(restarter) {
-        // We start by setting up the fetch of the file; lots of methods will
-        // close over this.
-        var filesP = storageAPI.then(function(storage) {
-          return storage.getSharedFileById(id);
-        });
-        filesP.fail(function(failure) {
-          restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
-        });
-        var fileP = filesP.then(function(file) {
-          checkFileResponse(file, filename, restarter);
-          // checkFileResponse throws if there's an error
-          return file;
-        });
+        fileP.fail(function(err) {
+          console.error("File failed to load: ", err);
+          restarter.error(err); });
+        fileP.then(function(file) {
 
-        var contentsP = fileP.then(function(file) { return file.getContents(); });
-        var loadedP = Q.spread([contentsP, fileP], function(contents, file) {
-          var uri = "compiled-gdrive-js://" + filename + ":" + file.getUniqueId();
-          return {uri: uri, contents: contents};
-        });
-        Q.spread([loadedP, fileP], function(mod, file) {
+          var uri = "gdrive-path://" + file.id;
 
-          var uri = "compiled-gdrive-js://" + filename + ":" + file.getUniqueId();
+          function needsCompile() { return true; }
 
-          function needsCompile() { return false; }
+          var contentsP = file.getContents();
 
           function getModule(self) {
-            runtime.ffi.throwMessageException("Cannot get-module of js import");
+            return runtime.pauseStack(function(getModRestart) {
+              contentsP.fail(function(failure) {
+                getModRestart.error(runtime.ffi.makeMessageException(contentRequestFailure(failure)));
+              });
+              contentsP.then(function(pyretString) {
+                CPO.documents.set(uri, new CodeMirror.Doc(pyretString, "pyret"));
+                var ret = gmf(compileLib, "pyret-string").app(pyretString);
+                getModRestart.resume(ret);
+              });
+            });
           }
 
           function getDependencies(self) {
-            return runtime.pauseStack(function(restarter) {
-              var define = function(deps, callback) {
-                var realDeps = deps.map(function(d) {
-                  if(d.indexOf("@my-gdrive") === 0) {
-                    return gmf(compileStructs, "dependency").app(
-                      "my-gdrive",
-                      runtime.ffi.makeList([d.slice(11)]));
-                  }
-                  else if(d.indexOf("@shared-gdrive") === 0) {
-                    var pieces = d.split("/");
-                    return gmf(compileStructs, "dependency").app(
-                      "shared-gdrive",
-                      runtime.ffi.makeList([pieces[1], pieces[2]]));
-                  }
-                  else if(d.indexOf("trove/") === 0) {
-                    return gmf(compileStructs, "builtin").app(
-                      d.slice(6)
-                    );
-                  }
-                });
-                restarter.resume(runtime.ffi.makeList(realDeps));
-              }
-              loader.safeEval(mod.contents, {define: define});
-            });
-            return runtime.ffi.makeList(depArray);
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-standard-dependencies").app(mod, uri);
+              });
+            }, "mygdrive-locator:get-dependencies");
           }
 
           function getProvides(self) {
-            return runtime.pauseStack(function(rs) {
-              runtime.loadBuiltinModules([util.modBuiltin("string-dict")], "gdrive-js-locator", function(stringDict) {
-                var sdo = gmf(stringDict, "make-string-dict");
-                restarter.resume(gmf(compileStructs, "provides").app(sdo.app(), sdo.app()));
+            return runtime.safeCall(function() {
+              return gf(self, "get-module").app();
+            }, function(mod) {
+              return runtime.safeTail(function() {
+                return gmf(compileLib, "get-provides").app(mod, uri);
               });
-            });
+            }, "mygdrive-locator:get-provides");
           }
 
           function getExtraImports(self) {
@@ -440,6 +465,10 @@ define("cpo/gdrive-locators", [], function() {
             return gmf(compileStructs, "standard-builtins");
           }
 
+          function getModifiedTime(_) { return 0; }
+          function getOptions(_, options) { return options; }
+          function getNativeModules(_) { return runtime.ffi.makeList([]); }
+
           function getUri(_) { return uri; }
           function name(_) { return filename; }
           function setCompiled(_) { return runtime.nothing; }
@@ -448,50 +477,44 @@ define("cpo/gdrive-locators", [], function() {
           var m1 = runtime.makeMethod1;
           var m2 = runtime.makeMethod2;
 
-          restarter.resume(runtime.makeObject({
-            "needs-compile": m1(needsCompile),
-            "get-module": m0(getModule),
-            "get-dependencies": m0(getDependencies),
-            "get-provides": m0(getProvides),
-            "get-extra-imports": m0(getExtraImports),
-            "get-globals": m0(getGlobals),
-            "get-compile-env": m0(getCompileEnv),
-            "uri": m0(getUri),
-            "name": m0(name),
-            "_equals": m2(function(self, other, rec) {
-              return runtime.safeCall(function() {
-                return runtime.getField(other, "uri").app();
-              }, function(otherstr) {
-                return runtime.safeTail(function() {
-                  return rec.app(otherstr, uri);
-                })
-              }, "gdrivejs-locator:_equals");
-            }),
-            "set-compiled": m2(setCompiled),
-            "get-compiled": m1(function() {
-
-              return runtime.pauseStack(function(restarter) {
-                var define = function(_, callback) {
-                  restarter.resume(
-                    runtime.ffi.makeSome(
-                      gmf(compileLib, "pre-loaded").app(
-                        gmf(compileStructs, "no-builtins"),
-//                        mod.contents)));
-                        runtime.makeOpaque(callback))));
-                };
-                loader.safeEval(mod.contents, {define: define});
-              });
+          restarter.resume({
+            context: runtime.makeObject({ currentFile: file }),
+            locator: runtime.makeObject({
+              "get-modified-time": m0(getModifiedTime),
+              "get-options": m1(getOptions),
+              "get-native-modules": m0(getNativeModules),
+              "needs-compile": m1(needsCompile),
+              "get-module": m0(getModule),
+              "get-dependencies": m0(getDependencies),
+              "get-provides": m0(getProvides),
+              "get-extra-imports": m0(getExtraImports),
+              "get-globals": m0(getGlobals),
+              "get-compile-env": m0(getCompileEnv),
+              "uri": m0(getUri),
+              "name": m0(name),
+              "_equals": m2(function(self, other, rec) {
+                return runtime.safeCall(function() {
+                  return runtime.getField(other, "uri").app();
+                }, function(otherstr) {
+                  return runtime.safeTail(function() {
+                    return rec.app(otherstr, uri);
+                  })
+                }, "mygdrive-locator:_equals");
+              }),
+              "set-compiled": m2(setCompiled),
+              "get-compiled": m1(function() { return runtime.ffi.makeNone(); })
             })
-          }));
+          });
         });
       });
+
 
     }
     return {
       makeMyGDriveLocator: makeMyGDriveLocator,
       makeSharedGDriveLocator: makeSharedGDriveLocator,
       makeGDriveJSLocator: makeGDriveJSLocator,
-      makeCompiledGDriveJSLocator: makeCompiledGDriveJSLocator
+      makeGDrivePathLocator: makeGDrivePathLocator
     };
   }
   return {

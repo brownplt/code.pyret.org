@@ -1173,6 +1173,7 @@ $(function() {
     CPO.editor.cm.setOption("readOnly", false);
   });
 
+  CPO.getCurrentProgram = function() { return programToSave; };
   CPO.autoSave = autoSave;
   CPO.save = save;
   CPO.updateName = updateName;
