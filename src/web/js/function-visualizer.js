@@ -67,7 +67,6 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    // packet: {action: String, funName: String, params: List<String>, args: List<Vals>}
     var simpleOnPush = function (packet) {
       if (done) {
         done = false;
@@ -87,13 +86,15 @@
       }
     }
 
+    var check_block_funname = "run checks";
+
     // look at made functions in runtimeNamespaceBindings (pyret-lang/src/js/base/runtime.js)
     var blacklistedFunctions = [
       "_plus", "trace-value", "current-checker", "results",
       "_times", "_minus", "_divide",
       "_lessthan", "_greaterthan", "_greaterequal", "_lessequal",
       "equal-always", "num-max", "num-sqr", "num-sqrt",
-      "getMaker1", /*"check-is",*/ "run-checks",
+      "getMaker1", /*"check-is",*/ "run-checks", check_block_funname,
       "raw-array-to-list",
       "p-map",
     ];
@@ -175,8 +176,6 @@
         console.log(eventList);
       }
     };
-
-    var check_block_funname = "run checks";
 
     function hasChildren(n) {
       return n.masterChildren.length > 0
@@ -343,11 +342,17 @@
     }
 
     function nodeToText(n) {
-      return createText(n.funName, n.args, n.returnValue);
+      if (is_checkblock(n))
+        return check_to_string(n);
+      else
+        return createText(n.funName, n.args, n.returnValue);
     }
 
     function nodeToFullText(n) {
-      return createFullText(n.funName, n.args, n.returnValue);
+      if (is_checkblock(n))
+        return check_to_string(n);
+      else
+        return createFullText(n.funName, n.args, n.returnValue);
     }
 
     // will need to update this for no params, multiple params, etc
@@ -356,7 +361,7 @@
     }
 
     function createFullText(funName, funArgs, funRet) {
-      return funName + "(" + paramFullText(funArgs) + ")\n→" + valueToString(funRet);
+      return funName + "(" + paramFullText(funArgs) + ")→\n" + valueToString(funRet);
     }
 
     // look into zip for javascript for multi-params
@@ -379,21 +384,62 @@
     }
     var unknown = "_";
     function dataToString(d, indentation, increment) {
-      var name = d["$name"];
+      var name = d["$name"] || d["name"];
       if (name) {
-        // check to see if composite object by looking at constructor
-        var fieldNames = d.$constructor.$fieldNames;
-        return name + (fieldNames ? (
-          "(\n" + fieldNames.map(function (f) {
-            return indentation +
-              f + ": " + valueToString(d.dict[f], indentation, increment)
-          }).join(",\n") + ")"
-        ) : "");
+        if (has_fieldnames(d)) {
+          // check to see if composite object by looking at constructor
+          var fieldNames = d.$constructor.$fieldNames;
+          return name + (fieldNames ? (
+            "(\n" + fieldNames.map(function (f) {
+              return indentation +
+                f + ": " + valueToString(d.dict[f], indentation, increment)
+            }).join(",\n") + ")"
+          ) : "");
+        }
+        else return name;
       }
       else {
         return unknown;
       }
     }
+    function has_fieldnames(d) {
+      return d && d.$constructor && d.$constructor.$fieldNames;
+    }
+
+    // found in pyret/src/arr/trove/checker.arr
+    var check_methods = ["check-is", "check-is-cause", "check-is-roughly",
+      "check-is-roughly-cause", "check-is-not", "check-is-not-cause",
+      "check-is-refinement", "check-is-refinement-cause",
+      "check-is-not-refinement", "check-is-not-refinement-cause",
+      "check-satisfies-delayed", "check-satisfies-delayed-cause",
+      "check-satisfies-not-delayed", "check-satisfies-not-delayed-cause",
+      "check-satisfies", "check-satisfies-not",
+      "check-raises-str", "check-raises-str-cause",
+      "check-raises-other-str", "check-raises-other-str-cause",
+      "check-raises-not", "check-raises-not-cause",
+      "check-raises-satisfies", "check-raises-satisfies-cause",
+      "check-raises-violates", "check-raises-violates-cause"];
+
+    function is_builtin(d) {
+      return true;
+    }
+
+    function is_checkblock(d) {
+      // check for name, then check arguments!; some way to see if builtin?
+      var name = d.funName;
+      var builtin = is_builtin(d);
+      return builtin && check_methods.includes(name);
+    }
+
+    function check_to_string(d) {
+      return "test at L" + getTestLineNumber(d);
+    }
+
+    // { "action": "push", "funName": { "name": "check-is" }, "args": [{ "name": "<anonymous function>" }, { "name": "<anonymous function>" }, { "dict": { "source": "definitions://", "start-line": 4, "start-column": 2, "start-char": 27, "end-line": 4, "end-column": 11, "end-char": 36 }, "brands": { "$brandSrcloc30": true, "$brandsrcloc32": true } }] },
+    function getTestLineNumber(d) {
+      return d.args[d.args.length - 1].dict["start-line"];
+    }
+    // TODO: want to check in here to see if it has any fields
     function valueToConstructor(val) {
       switch (typeof (val)) {
         case "number":
@@ -404,15 +450,24 @@
         default:
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
+            if (is_fraction(val)) {
+              return fraction_to_string(val);
+            }
+            if (is_checkblock(val)) {
+              return check_to_string(val);
+            }
             var ret = val.$name ? val.$name : val.name ? val.name : unknown;
             if (ret == unknown) {
               if (isTest(val)) {
                 return getTestName(val);
               }
               else {
-                // console.log("constructor's val: " + JSON.stringify(val));
               }
             }
+            if (ret === "<anonymous function>")
+              return "λ"
+            if (has_fieldnames(val))
+              ret += "(...)";
             return ret;
           }
           else return unknown;
@@ -431,25 +486,30 @@
           // console.log(val);
           // if PObject, print name, if C, I don't know what to do...
           if (val) {
-            var ret = dataToString(val, indentation + " ".repeat(increment), increment);
-            if (ret == unknown) {
-              if (isTest(val)) {
-                return getTestName(val);
-              }
-              else {
-                /* console.log("string's val: ");
-                console.log(val);*/
-              }
+            if (is_fraction(val)) {
+              return fraction_to_string(val);
             }
-            return ret;
+            else {
+              var ret = dataToString(val, indentation + " ".repeat(increment), increment);
+              if (ret == unknown) {
+                if (isTest(val)) {
+                  return getTestName(val);
+                }
+                else {
+                  /* console.log("string's val: ");
+                  console.log(val);*/
+                }
+              }
+              return ret;
+            }
           }
           else return unknown;
       }
     }
 
     var navOptions = [
-      { text: 'Breadth-first', val: 'breadth' },
       { text: 'All', val: 'all' },
+      { text: 'Breadth-first', val: 'breadth' },
       { text: 'Depth-first', val: 'depth' },
     ];
     var navMode = navOptions[0].val;
@@ -886,6 +946,16 @@
       }
     }
 
+    function is_fraction(p) {
+      if (p.n && p.d)
+        return typeof (p.n) === "number" && typeof (p.d) === "number";
+      else
+        return false;
+    }
+
+    function fraction_to_string(f) {
+      return f.n + "/" + f.d;
+    }
 
     return runtime.makeJSModuleReturn({
       pushFun: simpleOnPush,
