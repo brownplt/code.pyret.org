@@ -729,9 +729,9 @@ $(function() {
   });
 
   theToolbar.keydown(function (e) {
+    //console.log('toolbar keydown', e);
     //most any key at all
     var kc = e.keyCode;
-    //console.log('toolbar keydown', e.keyCode);
     if (kc === 27) {
       // escape
       hideAllTopMenuitems();
@@ -802,7 +802,8 @@ $(function() {
   }
 
   focusableElts.keydown(function (e) {
-    //console.log('focusable elt keydown', e.keyCode);
+    //console.log('focusable elt keydown', e);
+    var kc = e.keyCode;
     //$(this).blur(); // Delete?
     var withinSecondTierUl = true;
     var topTierUl = $(this).closest('ul[id=topTierUl]');
@@ -810,12 +811,12 @@ $(function() {
     if (secondTierUl.length === 0) {
       withinSecondTierUl = false;
     }
-    if (e.keyCode === 27 && withinSecondTierUl) { // escape
+    if (kc === 27 && withinSecondTierUl) { // escape
       var destTopMenuitem = $(this).closest('li.topTier');
       var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
       switchTopMenuitem(destTopMenuitem, possElts.first());
       e.stopPropagation();
-    } else if (e.keyCode === 39) { // rightarrow
+    } else if (kc === 39) { // rightarrow
       //console.log('rightarrow pressed');
       var srcTopMenuitem = $(this).closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
@@ -838,7 +839,7 @@ $(function() {
           break;
         }
       }
-    } else if (e.keyCode === 37) { // leftarrow
+    } else if (kc === 37) { // leftarrow
       //console.log('leftarrow pressed');
       var srcTopMenuitem = $(this).closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
@@ -862,7 +863,7 @@ $(function() {
           break;
         }
       }
-    } else if (e.keyCode === 38) { // uparrow
+    } else if (kc === 38) { // uparrow
       //console.log('uparrow pressed');
       var submenu;
       if (withinSecondTierUl) {
@@ -904,7 +905,7 @@ $(function() {
         }
       }
       e.stopPropagation();
-    } else if (e.keyCode === 40) { // downarrow
+    } else if (kc === 40) { // downarrow
       //console.log('downarrow pressed');
       var submenuDivs;
       var submenu;
@@ -945,7 +946,7 @@ $(function() {
         //console.log('no actionable submenu found')
       }
       e.stopPropagation();
-    } else if (e.keyCode === 27) {
+    } else if (kc === 27) {
       //console.log('esc pressed');
       hideAllTopMenuitems();
       //console.log('calling cycleFocus ii')
@@ -953,20 +954,17 @@ $(function() {
       e.stopPropagation();
       e.preventDefault();
       //$(this).closest('nav').closest('main').focus();
-    } else if (e.keyCode === 9 ) {
+    } else if (kc === 9 ) {
       if (e.shiftKey) {
         hideAllTopMenuitems();
         CPO.cycleFocus(true);
       }
       e.stopPropagation();
       e.preventDefault();
-    } else if (e.keyCode === 32) {
-      //console.log('clicked space on', $(this));
-      //$(this)[0].click();
+    } else if (kc === 13 || kc === 17 || kc === 20 || kc === 32) {
+      // 13=enter 17=ctrl 20=capslock 32=space
       e.stopPropagation();
-    } else if (e.keyCode === 13) {
-      //console.log('enter pressed');
-      //$(this).click();
+    } else {
       e.stopPropagation();
     }
     //e.stopPropagation();

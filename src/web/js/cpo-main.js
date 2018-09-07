@@ -561,6 +561,10 @@
         e.preventDefault();
       });
 
+      $('#ctrl-question').click(function() {
+        $('#help-keys').fadeIn(100);
+        reciteHelp();
+      });
 
       Mousetrap.bindGlobal('f6', function(e) {
         // cycle focus (forward)

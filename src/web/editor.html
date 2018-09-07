@@ -34,26 +34,36 @@
         aria-label="Toolbar" tabindex="-1">
         <li role="presentation"
           class="topTier" id="bonniemenuli">
-          <div id="bonniemenu" class="menu menuitemtitle" style="float:none" >
+          <div id="bonniemenu" class="tooltip menu menuitemtitle" style="float:none" >
             <button role="menuitem"
                     id="bonniemenubutton"
-                    aria-label="Main Menu, Press Ctrl-Question for list of keyboard shortcuts"
+                    aria-label="Pyret Menu"
                     aria-haspopup="true"
                     aria-expanded="false"
-                    aria-controls="bonniemenuContents"
                     aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
                     tabindex="-1"
                     class="blueButton focusable">
               <span>▾</span>
               <img class="logo" src="/img/pyret-logo.png">
             </button>
+            <span class="tooltiptext">
+              Pyret menu!
+            </span>
           </div>
           <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
-            aria-label="Main Submenu">
+            aria-label="Pyret Menu">
             <li role="presentation">
               <div id="welcome" class="menuButton inert" style="text-align: center;">
                 <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
-                <span>Press Ctrl-? for list of keyboard shortcuts.</span>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="ctrl-question" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-label="keyboard shortcuts"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)"
+                  >Keyboard shortcuts, Ctrl-?</a>
               </div>
             </li>
             <li role="presentation">
@@ -133,7 +143,6 @@
               aria-label="File"
               aria-haspopup="true"
               aria-expanded="false"
-              aria-controls="filemenuContents"
               aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
               id="filemenuItem"
               tabindex="-1"
@@ -219,7 +228,6 @@
                     aria-label="Run Options"
                     aria-haspopup="true"
                     aria-expanded="false"
-                    aria-controls="run-dropdown-content"
                     aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
                     disabled
                     tabindex="-1">↴
