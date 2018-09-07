@@ -67,8 +67,8 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
+
     var simpleOnPush = function (packet) {
-      console.log(packet);
       if (done) {
         done = false;
         // and empty events
@@ -116,7 +116,6 @@
 
     // packet: {action: String, retVal: Vals}
     var simpleOnPop = function (packet) {
-      console.log(packet);
       if (done) {
         done = false;
         // and empty events
@@ -346,6 +345,9 @@
     function nodeToText(n) {
       if (is_checkblock(n))
         return check_to_string(n);
+      else if (root === n) {
+        return "Trace"
+      }
       else
         return createText(n.funName, n.args, n.returnValue);
     }
@@ -353,13 +355,16 @@
     function nodeToFullText(n) {
       if (is_checkblock(n))
         return check_to_string(n);
+      else if (root === n) {
+        return "Trace"
+      }
       else
         return createFullText(n.funName, n.args, n.returnValue);
     }
 
     // will need to update this for no params, multiple params, etc
     function createText(funName, funArgs, funRet) {
-      return funName + "(" + (funName === check_block_funname ? "..." : paramText(funArgs)) + ")→" + valueToConstructor(funRet);
+      return funName + "(" + paramText(funArgs) + ")→" + valueToConstructor(funRet);
     }
 
     function createFullText(funName, funArgs, funRet) {
@@ -747,7 +752,7 @@
       }
     }
     function resetReturnValues(n) {
-      if (!n.returnValue) {
+      if (n.returnValue === null) {
         n.returnValue = n._returnValue;
         n._returnValue = null;
       }
