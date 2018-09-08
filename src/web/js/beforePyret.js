@@ -341,6 +341,9 @@ $(function() {
     return p.then(function(prog) {
       if(prog !== null) {
         updateName(prog);
+        if(prog.shared) {
+          window.stickMessage("You are viewing a shared program. Any changes you make will not be saved. You can use File -> Save a copy to save your own.");
+        }
         return prog.getContents();
       }
     });
