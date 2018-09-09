@@ -561,6 +561,10 @@
         e.preventDefault();
       });
 
+      $('#ctrl-question').click(function() {
+        $('#help-keys').fadeIn(100);
+        reciteHelp();
+      });
 
       Mousetrap.bindGlobal('f6', function(e) {
         // cycle focus (forward)
@@ -571,6 +575,14 @@
 
       Mousetrap.bindGlobal('shift+f6', function(e) {
         // cycle focus backward
+        CPO.cycleFocus(true);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('shift+tab', function(e) {
+        // cycle focus backward
+        //console.log('mouse shift+tab')
         CPO.cycleFocus(true);
         e.stopImmediatePropagation();
         e.preventDefault();

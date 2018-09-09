@@ -381,6 +381,9 @@
 
       var promptContainer = jQuery("<div class='prompt-container'>");
       var prompt = jQuery("<span>").addClass("repl-prompt").attr("title", "Enter Pyret code here");
+      var promptSign = $('<span aria-hidden="true" aria-label="REPL prompt">').
+        addClass('repl-prompt-sign');
+      prompt.append(promptSign);
       function showPrompt() {
         promptContainer.hide();
         promptContainer.fadeIn(100);
@@ -861,6 +864,9 @@
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
+        var echoPromptSign = $('<span aria-hidden="true" aria-label="REPL prompt">').
+          addClass('repl-prompt-sign');
+        echoSpan.append(echoPromptSign);
         var echo = $("<textarea>");
         echoSpan.append(echo);
         echoContainer.append(echoSpan);

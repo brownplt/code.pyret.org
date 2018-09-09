@@ -462,8 +462,7 @@ div.spy-block > table > th { display: none; }
   display: inline-block;
 }
 
-.repl-echo::before,
-.repl-prompt::before {
+.repl-prompt-sign::before {
   content: '\203a\203a\203a';
   display: inline;
   line-height: calc(1em + 10px);
