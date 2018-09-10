@@ -67,6 +67,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
+    var debug = true;
 
     var simpleOnPush = function (packet) {
       if (done) {
@@ -97,7 +98,7 @@
       "equal-always", "num-max", "num-sqr", "num-sqrt",
       "getMaker1", /*"check-is",*/ "run-checks", check_block_funname,
       "raw-array-to-list",
-      "p-map",
+      "p-map", "string-equal",
     ];
 
     var packetToFunName = function (packet) {
@@ -164,6 +165,16 @@
       else if (action === "pop") {
         // then we make selected our parent
         // and we update this one with a return
+        if (selected === root) {
+          console.log("HELP!");
+          console.log(eventList);
+        }
+        // check here to see if funnames are the same
+        if (selected.funName != eventList.funName) {
+          console.log("function names don't match");
+          console.log(selected.funName);
+          console.log(eventList.funName);
+        }
         var returnValue = eventList.retVal;
         selected.returnValue = returnValue;
         selected._returnValue = null;
@@ -180,6 +191,64 @@
 
     function hasChildren(n) {
       return n.masterChildren.length > 0
+    }
+
+    function isBalanced(events) {
+      var counter = 0;
+      for (var event in events) {
+        var event = events[event];
+        switch (event.action) {
+          case "push":
+            counter++;
+            break;
+          case "pop":
+            counter--;
+            break;
+          default:
+            console.log("what!");
+        }
+        // check to see if number is less than zero
+        if (counter < 0) {
+          console.log("more pop's than pushes!");
+          return false;
+        }
+      }
+      if (counter > 0) {
+        console.log("more pushes than pops!");
+        return false;
+      }
+      else
+        return true;
+    }
+
+    function getSequence(events) {
+      var ret = [];
+      var stack = [];
+      var firstIndex = -1;
+
+      for (var event in events) {
+        var event = events[event];
+        var name = event.funName;
+        switch (event.action) {
+          case "push":
+            stack.push({ push: name });
+            break;
+          case "pop":
+            var last = stack.pop();
+            last.pop = name;
+            if (last.pop != last.push && firstIndex == -1) {
+              firstIndex = ret.length;
+            }
+            ret.push(last);
+            break;
+          default:
+            console.log("what!");
+            console.log(event);
+            break;
+        }
+      }
+
+      return [ret, firstIndex];
     }
 
     function isTest(arg) {
@@ -669,6 +738,17 @@
         case "depth":
           prepareDepth(nextButton, backButton);
           break;
+      }
+      var balanced = isBalanced(events);
+      if (!balanced) {
+        // go and find where mismatch happens
+        if (debug)
+          console.log(events);
+        var result = getSequence(events);
+        var sequence = result[0];
+        var index = result[1];
+        console.log(index);
+        console.log(sequence);
       }
       update(root);
       return dialog;
