@@ -67,7 +67,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = true;
+    var debug = false;
 
     var rawEvents = [];
 
@@ -94,8 +94,10 @@
         simpleAction(newPacket);
       }
       else {
-        console.log("packet excluded");
-        console.log(newPacket);
+        if (debug) {
+          console.log("packet excluded");
+          console.log(newPacket);
+        }
       }
     }
 
@@ -118,11 +120,6 @@
       or return to see if name, dict contains name, etc.
        */
       var name = packet.funName.name;
-      if (name === "<anonymous function>") {
-        if (isCheckBlock(packet)) {
-          name = check_block_funname;
-        }
-      }
       return name;
     }
 
@@ -153,7 +150,8 @@
 
     var simpleAction = function (eventList) {
       var action = eventList.action;
-      console.log(action);
+      if (debug)
+        console.log(action);
       if (action === "push") {
         var funName = eventList.funName;
         var argList = eventList.args;
@@ -176,7 +174,7 @@
         }
 
         selected.masterChildren.push(newNode);
-        update(selected);
+        // update(selected);
         selected = newNode;
       }
       else if (action === "pop") {
@@ -185,8 +183,6 @@
         if (selected === root) {
           console.log("HELP!");
           console.log(eventList);
-          events.pop();
-          return;
         }
         // check here to see if funnames are the same
         if (selected.funName != eventList.funName) {
@@ -198,7 +194,7 @@
         selected.returnValue = returnValue;
         selected._returnValue = null;
         selected.finished = true;
-        update(selected);
+        // update(selected);
 
         selected = selected.parent;
       }
@@ -762,16 +758,17 @@
           prepareDepth(nextButton, backButton);
           break;
       }
-      var balanced = isBalanced(events);
-      if (debug)
+      if (debug) {
+        var balanced = isBalanced(events);
         console.log(rawEvents);
-      if (!balanced) {
-        // go and find where mismatch happens
-        var result = getSequence(events);
-        var sequence = result[0];
-        var index = result[1];
-        console.log(index);
-        console.log(sequence);
+        if (!balanced) {
+          // go and find where mismatch happens
+          var result = getSequence(events);
+          var sequence = result[0];
+          var index = result[1];
+          console.log(index);
+          console.log(sequence);
+        }
       }
       update(root);
       return dialog;
