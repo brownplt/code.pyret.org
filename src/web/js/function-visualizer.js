@@ -69,22 +69,33 @@
     var indentation_char = "-";
     var debug = true;
 
+    var rawEvents = [];
+
     var simpleOnPush = function (packet) {
+      if (debug) {
+        rawEvents.push(packet);
+        console.log(packet);
+      }
       if (done) {
         done = false;
         // and empty events
         events = [];
         root.masterChildren = [];
       }
-      packet.funName = packetToFunName(packet);
-      if (!blacklistedFunctions.includes(packet.funName)) {
+      var newPacket = Object.assign({}, packet);
+      newPacket.funName = packetToFunName(newPacket);
+      if (!blacklistedFunctions.includes(newPacket.funName)) {
         if (console_trace) {
           console.log(Array(indentation).join(indentation_char) +
-            [packet.action, packet.funName, packet.args.toString()].join(" "));
+            [newPacket.action, newPacket.funName, newPacket.args.toString()].join(" "));
           indentation++;
         }
-        events.push(packet);
-        simpleAction(packet);
+        events.push(newPacket);
+        simpleAction(newPacket);
+      }
+      else {
+        console.log("packet excluded");
+        console.log(newPacket);
       }
     }
 
@@ -117,26 +128,32 @@
 
     // packet: {action: String, retVal: Vals}
     var simpleOnPop = function (packet) {
+      if (debug) {
+        rawEvents.push(packet);
+        console.log(packet);
+      }
       if (done) {
         done = false;
         // and empty events
         events = [];
         root.masterChildren = [];
       }
-      packet.funName = packetToFunName(packet);
-      if (!blacklistedFunctions.includes(packet.funName)) {
+      var newPacket = Object.assign({}, packet);
+      newPacket.funName = packetToFunName(newPacket);
+      if (!blacklistedFunctions.includes(newPacket.funName)) {
         if (console_trace) {
           indentation--;
           console.log(Array(indentation).join(indentation_char) +
-            [packet.action, packet.funName, packet.retVal].join(" "));
+            [newPacket.action, newPacket.funName, newPacket.retVal].join(" "));
         }
-        events.push(packet);
-        simpleAction(packet);
+        events.push(newPacket);
+        simpleAction(newPacket);
       }
     }
 
     var simpleAction = function (eventList) {
       var action = eventList.action;
+      console.log(action);
       if (action === "push") {
         var funName = eventList.funName;
         var argList = eventList.args;
@@ -168,6 +185,8 @@
         if (selected === root) {
           console.log("HELP!");
           console.log(eventList);
+          events.pop();
+          return;
         }
         // check here to see if funnames are the same
         if (selected.funName != eventList.funName) {
@@ -744,10 +763,10 @@
           break;
       }
       var balanced = isBalanced(events);
+      if (debug)
+        console.log(rawEvents);
       if (!balanced) {
         // go and find where mismatch happens
-        if (debug)
-          console.log(events);
         var result = getSequence(events);
         var sequence = result[0];
         var index = result[1];
