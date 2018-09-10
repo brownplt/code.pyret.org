@@ -235,6 +235,10 @@
             break;
           case "pop":
             var last = stack.pop();
+            if (last == undefined) {
+              console.log("trying to pop with " + name);
+              break;
+            }
             last.pop = name;
             if (last.pop != last.push && firstIndex == -1) {
               firstIndex = ret.length;
