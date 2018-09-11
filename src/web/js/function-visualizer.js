@@ -611,8 +611,8 @@
     }
 
     var navOptions = [
-      { text: 'All', val: 'all' },
       { text: 'Breadth-first', val: 'breadth' },
+      { text: 'All', val: 'all' },
       { text: 'Depth-first', val: 'depth' },
     ];
     var navMode = navOptions[0].val;
