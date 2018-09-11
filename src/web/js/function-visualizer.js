@@ -118,13 +118,18 @@
       "make0", "make1", "make2", "make3", "make4", "make5",
     ];
 
+    var anonymousFunction = "<anonymous function>";
+
     var packetToFunName = function (packet) {
       /*
       maybe take in entire packet? that way can look at args,
       or return to see if name, dict contains name, etc.
        */
       var name = packet.funName.name;
-      return name;
+      if (name === anonymousFunction)
+        return lambda;
+      else
+        return name;
     }
 
     // packet: {action: String, retVal: Vals}
@@ -463,7 +468,7 @@
     }
 
     function createFullText(funName, funArgs, funRet) {
-      return funName + "(" + paramFullText(funArgs) + ")→\n" + valueToString(funRet);
+      return funName + "(\n" + paramFullText(funArgs) + ")→\n" + valueToString(funRet);
     }
 
     // look into zip for javascript for multi-params
@@ -478,7 +483,7 @@
     }
     function paramFullText(funArgs) {
       if (funArgs) {
-        return funArgs.map(function (x) { return valueToString(x, "", 2); }).join(", ");
+        return funArgs.map(function (x) { return "  " + valueToString(x, "  ", 4); }).join(",\n");
       }
       else {
         return "";
@@ -574,8 +579,8 @@
               else {
               }
             }
-            if (ret === "<anonymous function>")
-              return "λ"
+            if (ret === anonymousFunction)
+              return lambda;
             if (has_fieldnames(val))
               ret += "(...)";
             return ret;
@@ -583,6 +588,7 @@
           else return unknown;
       }
     }
+    var lambda = "λ";
     function valueToString(val, indentation, increment) {
       indentation = indentation || "";
       increment = increment || 2;
@@ -610,6 +616,8 @@
                   console.log(val);*/
                 }
               }
+              if (ret === anonymousFunction)
+                return lambda;
               return ret;
             }
           }
