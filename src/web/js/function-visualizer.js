@@ -26,6 +26,7 @@
       children: [],
       parent: null,
       lineage: [],
+      id: -1,
     };
     var done = false;
 
@@ -39,7 +40,8 @@
     // what happens to later dialogs? clicking button multiple times doesn't work
     var dialog = $("<div>");
 
-    var i = 0, duration = 750, root;
+    var defaultID = 3;
+    var i = defaultID, duration = 750, root;
 
     // declares a tree layout and assigns the size
     var tree = d3.layout.tree()
@@ -863,10 +865,10 @@
       }
     }
     function resetRoot() {
-      i = 1;
+      i = defaultID;
       root.children = [];
       root._children = [];
-      root.id = 0;
+      root.id = -1;
       selected = root;
     }
     function resetBreadthFirst() {
