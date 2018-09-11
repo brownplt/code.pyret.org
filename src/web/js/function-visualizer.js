@@ -67,7 +67,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = false;
+    var debug = true;
 
     var rawEvents = [];
 
@@ -96,7 +96,6 @@
       else {
         if (debug) {
           console.log("packet excluded");
-          console.log(newPacket);
         }
       }
     }
@@ -146,12 +145,15 @@
         events.push(newPacket);
         simpleAction(newPacket);
       }
+      else {
+        if (debug) {
+          console.log("packet excluded");
+        }
+      }
     }
 
     var simpleAction = function (eventList) {
       var action = eventList.action;
-      if (debug)
-        console.log(action);
       if (action === "push") {
         var funName = eventList.funName;
         var argList = eventList.args;
