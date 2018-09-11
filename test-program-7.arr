@@ -1,6 +1,6 @@
 fun f(l):
   cases (List) l:
-    | empty => 0
+    | empty => 1
     | link(h, r) => h * f(r)
   end
 end
