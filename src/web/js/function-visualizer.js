@@ -483,7 +483,7 @@
     }
     function paramFullText(funArgs) {
       if (funArgs) {
-        return funArgs.map(function (x) { return "  " + valueToString(x, "  ", 4); }).join(",\n");
+        return funArgs.map(function (x) { return "  " + valueToString(x, "  ", 2); }).join(",\n");
       }
       else {
         return "";
