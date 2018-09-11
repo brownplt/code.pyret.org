@@ -24,6 +24,7 @@
     var data = {
       name: 'pyret-root',
       children: [],
+      masterChildren: [],
       parent: null,
       lineage: [],
       id: -1,
@@ -113,6 +114,7 @@
       "getMaker1", /*"check-is",*/ "run-checks", check_block_funname,
       "raw-array-to-list",
       "p-map", "string-equal",
+      "make0", "make1", "make2", "make3", "make4", "make5",
     ];
 
     var packetToFunName = function (packet) {
