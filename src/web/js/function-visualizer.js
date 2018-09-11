@@ -83,6 +83,7 @@
         done = false;
         // and empty events
         events = [];
+        rawEvents = [];
         root.masterChildren = [];
       }
       var newPacket = Object.assign({}, packet);
