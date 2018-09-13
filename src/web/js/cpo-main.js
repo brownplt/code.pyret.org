@@ -58,7 +58,7 @@
 
 
     var replContainer = $("<div>").addClass("repl");
-    replContainer.attr("tabindex", "-1");
+    replContainer.attr("tabindex", "-1").attr('role', 'application');
     //replContainer.attr("aria-hidden", "true");
     $("#REPL").append(replContainer);
 
@@ -324,7 +324,8 @@
       var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
-            runButton: runButton
+            runButton: runButton,
+            runDropdown: $('#runDropdown')
           });
 
       // NOTE(joe): assigned on window for debuggability

@@ -349,11 +349,17 @@
               recital += ' produced output: ';
             }
           } else {
-            recital += ' evaluates to ';
+            if (!history.start) {
+              recital += ' produced no output.';
+            } else {
+              recital += ' evaluates to ';
+            }
           }
           var docOutput = document.getElementById('output').childNodes;
-          if (!history.end && history.start) {
-            recital += outputText(docOutput[history.start]);
+          if (!history.end) {
+            if (history.start) {
+              recital += outputText(docOutput[history.start]);
+            }
           } else {
             //console.log('speakhistory from', history.start, 'to', history.end);
             for (var i = history.start; i < history.end; i++) {
@@ -646,6 +652,8 @@
           //console.log('result is a successful load, 0 to', docOutputLen);
           thiscode.start = 0;
           thiscode.end = docOutputLen;
+        } else if (lastOutput && lastOutput.classList.contains('echo-container')) {
+          thiscode.start = false;
         } else {
           //console.log('result is a successful single interaction');
           thiscode.start = docOutputLen - 1;
@@ -663,6 +671,7 @@
           options.runButton.empty();
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
+          options.runDropdown.attr('disabled', false);
           breakButton.attr("disabled", true);
           stopLi.attr('disabled', true);
           canShowRunningIndicator = false;
@@ -684,6 +693,7 @@
         setTimeout(function() {
          if(canShowRunningIndicator) {
             options.runButton.attr("disabled", true);
+            options.runDropdown.attr('disabled', true);
             breakButton.attr("disabled", false);
             stopLi.attr('disabled', false);
             options.runButton.empty();
