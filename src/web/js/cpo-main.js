@@ -424,6 +424,7 @@
           width: $(document).width() * .95,
           resizable: true,
           close: function() {
+            logger.log("traceClosed");
             dialog.empty();
             dialog.dialog("destroy");
             dialog.remove();

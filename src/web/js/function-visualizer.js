@@ -6,6 +6,7 @@
  * Looking at https://stackoverflow.com/questions/21727202/append-dom-element-to-the-d3
  * http://www.d3noob.org/2013/01/how-to-rotate-text-labels-for-x-axis-of.html
  * https://stackoverflow.com/questions/36639755/d3-tree-layout-to-display-text-on-mouse-hover-over-links
+ * or this one? (2018-09-13): http://bl.ocks.org/WilliamQLiu/76ae20060e19bf42d774
  * TODO's
 - filter out equal-always and similar builtins (ask if unsure)
 - breadth-first: have interaction undo rather than current exposed undo
@@ -70,7 +71,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = true;
+    var debug = false;
 
     var rawEvents = [];
 
@@ -336,6 +337,21 @@
     function tree_size(width, height) {
       return { width: (width + 1) * 100, height: (height + 1) * 80 };
     }
+
+    function serializeNode(n) {
+      var children = n.children;
+      return {
+        funName: n.funName,
+        args: n.args,
+        depth: n.depth,
+        finished: n.finished,
+        returnValue: n.returnValue,
+        _returnValue: n._returnValue,
+        numVisibleChildren: children? children.length : 0,
+        numTotalChildren: n.masterChildren.length,
+      }
+    }
+
     function update(source) {
 
       // Compute the new tree layout.
@@ -353,7 +369,9 @@
       var nodeEnter = node.enter().append("g")
         .attr("class", "node")
         .attr("transform", function (d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
-        .on("click", click);
+        .on("click", click)
+        .on("mouseover", function (d) { logger.log("mouseOver", { navigationMode: navMode, node: serializeNode(d) }) })
+        .on("mouseout", function (d) { logger.log("mouseOut", { navigationMode: navMode, node: serializeNode(d) }) });
 
       nodeEnter.append("circle")
         .attr("r", 1e-6)
@@ -665,6 +683,7 @@
 
     var simpleShowTrace = function () {
       // what happens if we don't reset root?
+      logger.log("showTrace", { navigationMode: navMode });
       resetRoot();
       resetBreadthFirst();
       resetDepthFirst();
@@ -689,6 +708,7 @@
           case "depth": resetDepthFirst(); break;
           case "breadth": resetBreadthFirst(); break;
         }
+        var oldNavMode = navMode;
         navMode = this.value; /* and reset data at this point */
 
         switch (navMode) {
@@ -696,6 +716,7 @@
           case "depth": prepareDepth(nextButton, backButton); break;
           case "breadth": prepareBreadth(nextButton, backButton); break;
         }
+        logger.log("changedNavigationMode", { old: oldNavMode, new: navMode });
         update(root);
       });
       controller.append(sel);
@@ -705,19 +726,14 @@
           option.prop('selected', true);
         sel.append(option);
       });
+
       var backButton = $('<button/>', {
         text: '⇦',
         style: 'left: 100px; top: 70px',
         disabled: false,
         id: 'previousStep',
-      }).addClass('xMinGo d3btn').click(function () { // TODO: change the class of these buttons?
-        /*
-         * breadth previous:
-         * map toExpand to parents, then remove duplicate elements
-         * 
-         * depth previous:
-         * cycle back done to pending and remove action too for that node and update current
-        */
+      }).addClass('xMinGo d3btn').click(function () {
+        logger.log("tracerBackArrow", { navigationMode: navMode });
         switch (navMode) {
           case "all":
             break;
@@ -736,6 +752,7 @@
         style: 'left: 140px; top: 70px',
         id: 'nextStep',
       }).addClass('xMaxGo d3btn').click(function () {
+        logger.log("tracerForwardArrow", { navigationMode: navMode });
         switch (navMode) {
           case "all":
             break;
@@ -760,8 +777,12 @@
         attr("height", Math.max($(document).height(), svg_dimensions.height)).
         append("g").
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
+
       console.log(dimensions);
+      logger.log("callgraphMaxDimensions", { dimensions: dimensions });
+
       root.finished = childrenFinished(root.masterChildren);
+
       switch (navMode) {
         case "all":
           prepareAll(nextButton, backButton);
@@ -931,6 +952,7 @@
     // Toggle children on click, but only in all and breadth-first mode
     // TODO: here
     function click(d) {
+      logger.log("clickedNode", { navigationMode: navMode, node: serializeNode(d) });
       switch (navMode) {
         case "all":
           switchKids(d);
