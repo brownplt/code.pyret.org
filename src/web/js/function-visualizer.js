@@ -509,8 +509,6 @@
     }
     var unknown = "_";
     function dataToString(d, indentation, increment) {
-      if (isList(d))
-        return formatListLikePyret(dataToList(d));
       var name = d["$name"] || d["name"];
       if (name) {
         if (has_fieldnames(d)) {
@@ -576,7 +574,7 @@
     }
 
     function isEmptyList(d) {
-      return is_builtin(d) && d.$name === "empty";
+      return d && is_builtin(d) && d.$name === "empty";
     }
 
     function isList(d) {
@@ -598,23 +596,27 @@
 
     function check_to_string(d) {
       // TODO: add (done) when test is done
-      return "test at L" + getTestLineNumber(d);
+      return "test at L" + getTestLineNumber(d) + getDepthFirstDone(d);
     }
 
     // { "action": "push", "funName": { "name": "check-is" }, "args": [{ "name": "<anonymous function>" }, { "name": "<anonymous function>" }, { "dict": { "source": "definitions://", "start-line": 4, "start-column": 2, "start-char": 27, "end-line": 4, "end-column": 11, "end-char": 36 }, "brands": { "$brandSrcloc30": true, "$brandsrcloc32": true } }] },
     function getTestLineNumber(d) {
       return d.args[d.args.length - 1].dict["start-line"];
     }
+
+    function getDepthFirstDone(d) {
+      if (navMode === "depth") {
+        if (d.returnValue) {
+          return " (done)";
+        }
+        else return "";
+      }
+      else
+        return "";
+    }
+
     // TODO: want to check in here to see if it has any fields
     function valueToConstructor(val) {
-      if (isList(val)) {
-        if (isEmptyList(val)) {
-          return "[list: ]";
-        }
-        else {
-          return "[list:..]";
-        }
-      }
       switch (typeof (val)) {
         case "number":
         case "boolean":
@@ -629,6 +631,14 @@
             }
             if (is_checkblock(val)) {
               return check_to_string(val);
+            }
+            if (isList(val)) {
+              if (isEmptyList(val)) {
+                return "[list: ]";
+              }
+              else {
+                return "[list:..]";
+              }
             }
             var ret = val.$name ? val.$name : val.name ? val.name : unknown;
             if (ret == unknown) {
@@ -664,6 +674,8 @@
             if (is_fraction(val)) {
               return fraction_to_string(val);
             }
+            else if (isList(val))
+              return formatListLikePyret(dataToList(val));
             else {
               var ret = dataToString(val, indentation + " ".repeat(increment), increment);
               if (ret == unknown) {
