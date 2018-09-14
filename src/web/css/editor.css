@@ -1256,6 +1256,10 @@ code div {
   box-shadow: none;
 }
 
+#runButton:disabled, #runDropdown:disabled {
+  color: #111;
+}
+
 #runButton:hover[disabled],
 #breakButton:hover[disabled]{
   background: none;
@@ -1324,7 +1328,6 @@ code div {
 }
 
 #run-dropdown-content > li {
-  background: #317BCF;
   color: #eeeeee;
   font-family: sans-serif;
   font-size: 15px;

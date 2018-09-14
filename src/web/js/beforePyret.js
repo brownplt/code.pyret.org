@@ -698,7 +698,10 @@ $(function() {
   }
 
   function updateEditorHeight() {
-    var toolbarHeight = document.getElementById('topTierUl').scrollHeight + 'px';
+    var toolbarHeight = document.getElementById('topTierUl').scrollHeight;
+    // gets bumped to 67 on initial resize perturbation, but actual value is indeed 40
+    if (toolbarHeight < 80) toolbarHeight = 40;
+    toolbarHeight += 'px';
     document.getElementById('REPL').style.paddingTop = toolbarHeight;
     var docMain = document.getElementById('main');
     var docReplMain = docMain.getElementsByClassName('replMain');
@@ -755,10 +758,16 @@ $(function() {
   });
 
   function clickTopMenuitem(e) {
+    hideAllTopMenuitems();
     var thisElt = $(this);
     //console.log('doing clickTopMenuitem on', thisElt);
     var topTierUl = thisElt.closest('ul[id=topTierUl]');
-    if (thisElt[0].hasAttribute('aria-hidden')) return;
+    if (thisElt[0].hasAttribute('aria-hidden')) {
+      return;
+    }
+    if (thisElt[0].getAttribute('disabled') === 'disabled') {
+      return;
+    }
     //var hiddenP = (thisElt[0].getAttribute('aria-expanded') === 'false');
     //hiddenP always false?
     var thisTopMenuitem = thisElt.closest('li.topTier');
@@ -787,6 +796,9 @@ $(function() {
     topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
     topTierUl.find('ul.submenu').attr('aria-hidden', 'true').hide();
   }
+
+  var nonexpandableElts = $(document).find('#header .topTier > div > button:not([aria-expanded])');
+  nonexpandableElts.click(hideAllTopMenuitems);
 
   function switchTopMenuitem(destTopMenuitem, destElt) {
     //console.log('doing switchTopMenuitem', destTopMenuitem, destElt);
