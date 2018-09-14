@@ -71,7 +71,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = false;
+    var debug = true;
 
     var rawEvents = [];
 
@@ -347,7 +347,7 @@
         finished: n.finished,
         returnValue: n.returnValue,
         _returnValue: n._returnValue,
-        numVisibleChildren: children? children.length : 0,
+        numVisibleChildren: children ? children.length : 0,
         numTotalChildren: n.masterChildren.length,
       }
     }
@@ -368,7 +368,7 @@
       // Enter any new nodes at the parent's previous position.
       var nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .attr("transform", function (d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
+        .attr("transform", function (_d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
         .on("click", click)
         .on("mouseover", function (d) { logger.log("mouseOver", { navigationMode: navMode, node: serializeNode(d) }) })
         .on("mouseout", function (d) { logger.log("mouseOut", { navigationMode: navMode, node: serializeNode(d) }) });
@@ -412,7 +412,7 @@
       // Transition exiting nodes to the parent's new position.
       var nodeExit = node.exit().transition()
         .duration(duration)
-        .attr("transform", function (d) { return "translate(" + source.x + "," + source.y + ")"; })
+        .attr("transform", function (_d) { return "translate(" + source.x + "," + source.y + ")"; })
         .remove();
 
       nodeExit.select("circle")
@@ -428,7 +428,7 @@
       // Enter any new links at the parent's previous position.
       link.enter().insert("path", "g")
         .attr("class", "link")
-        .attr("d", function (d) {
+        .attr("d", function (_d) {
           var o = { x: source.x0, y: source.y0 };
           return diagonal({ source: o, target: o });
         });
@@ -441,7 +441,7 @@
       // Transition exiting nodes to the parent's new position.
       link.exit().transition()
         .duration(duration)
-        .attr("d", function (d) {
+        .attr("d", function (_d) {
           var o = { x: source.x, y: source.y };
           return diagonal({ source: o, target: o });
         })
@@ -509,6 +509,8 @@
     }
     var unknown = "_";
     function dataToString(d, indentation, increment) {
+      if (isList(d))
+        return formatListLikePyret(dataToList(d));
       var name = d["$name"] || d["name"];
       if (name) {
         if (has_fieldnames(d)) {
@@ -546,25 +548,56 @@
       "check-raises-violates", "check-raises-violates-cause"];
 
     function is_builtin(d) {
-      var args = d.args;
-      if (args && args.length > 0) {
-        var loc = args[d.args.length - 1].$loc;
-        if (loc) {
-          return loc[0].substring(0, 7) === "builtin";
-        }
-        else return false;
+      var loc = d.$loc;
+      if (loc) {
+        return loc[0].substring(0, 7) === "builtin";
       }
       else return false;
     }
 
+    function dataToList(d) {
+      var ret = [];
+      function aux(d, acc) {
+        if (isEmptyList(d))
+          return acc;
+        else {
+          // add first to acc
+          acc.push(valueToString(d.dict.first, 0, 0));
+          // and recur on rest
+          aux(d.dict.rest, acc);
+        }
+      }
+      aux(d, ret);
+      return ret;
+    }
+
+    function formatListLikePyret(l) {
+      return "[list: " + l.join(", ") + "]";
+    }
+
+    function isEmptyList(d) {
+      return is_builtin(d) && d.$name === "empty";
+    }
+
+    function isList(d) {
+      // TODO: also check to see if this is an empty node!
+      return /* empty or */ isEmptyList(d) ||
+  /* link */ d.dict && d.dict.first && d.dict.rest;
+    }
+
     function is_checkblock(d) {
       // check for name, then check arguments!; some way to see if builtin?
-      var name = d.funName;
-      var builtin = is_builtin(d);
-      return builtin && check_methods.includes(name);
+      if (d.args && d.args.length > 0) {
+        var name = d.funName;
+        var args = d.args;
+        var builtin = is_builtin(args[args.length - 1]);
+        return builtin && check_methods.includes(name);
+      }
+      else return false;
     }
 
     function check_to_string(d) {
+      // TODO: add (done) when test is done
       return "test at L" + getTestLineNumber(d);
     }
 
@@ -574,6 +607,14 @@
     }
     // TODO: want to check in here to see if it has any fields
     function valueToConstructor(val) {
+      if (isList(val)) {
+        if (isEmptyList(val)) {
+          return "[list: ]";
+        }
+        else {
+          return "[list:..]";
+        }
+      }
       switch (typeof (val)) {
         case "number":
         case "boolean":
@@ -808,6 +849,20 @@
       }
       update(root);
       return dialog;
+    }
+
+    function toDetailedObject(e) {
+      return {
+        action: e.action,
+        funName: e.funName,
+        retVal: e.retVal,
+        args: e.args,
+        name: e.name,
+        $name: e.$name,
+        dict: e.dict,
+        brands: e.brands,
+        $loc: e.$loc,
+      };
     }
 
     function childrenFinished(children) {
