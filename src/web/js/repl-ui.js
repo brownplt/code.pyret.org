@@ -178,6 +178,7 @@
                   rr.runThunk(function() {
                     var runResult = rr.getField(loadLib, "internal").getModuleResultResult(v);
                     console.log("Time to run compiled program:", JSON.stringify(runResult.stats));
+                    console.log(runResult);
                     if(rr.isSuccessResult(runResult)) {
                       // want to add icon here since successful run
                       return rr.safeCall(function() {

@@ -71,7 +71,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = true;
+    var debug = false;
 
     var rawEvents = [];
 
@@ -570,7 +570,10 @@
     }
 
     function formatListLikePyret(l) {
-      return "[list: " + l.join(", ") + "]";
+      if (l.length > 0)
+        return "[list: " + l.join(", ") + "]";
+      else
+        return "empty";
     }
 
     function isEmptyList(d) {
@@ -634,7 +637,7 @@
             }
             if (isList(val)) {
               if (isEmptyList(val)) {
-                return "[list: ]";
+                return "empty";
               }
               else {
                 return "[list:..]";
