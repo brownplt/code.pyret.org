@@ -432,6 +432,7 @@
         });
         dialog.css({"overflow": "auto"});
         e.stopPropagation();
+        logger.log("traceDialogVisible");
       });
 
       $(window).on("keyup", function(e) {

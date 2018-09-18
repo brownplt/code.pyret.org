@@ -701,8 +701,8 @@
 
     var navOptions = [
       { text: 'Breadth-first', val: 'breadth' },
-      { text: 'All', val: 'all' },
       { text: 'Depth-first', val: 'depth' },
+      { text: 'All', val: 'all' },
     ];
     var navMode = navOptions[0].val;
     // for breadth-first, keeps track of nodes to expand
