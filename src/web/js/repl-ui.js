@@ -832,10 +832,14 @@
         interactionsCount = 0;
         replOutputCount = 0;
         tracingFunctions = !!uiOptions["trace"];
-        logger.log('run', { name      : "definitions://",
+        var runObject = { name      : "definitions://",
             type_check: !!uiOptions["type-check"],
             trace: tracingFunctions
-                          });
+                          };
+        var logDetailedOption = localSettings.getItem('log-detailed');
+        if (logDetailedOption !== null && logDetailedOption)
+          runObject.definitions = uiOptions.cm.getDoc().getValue();
+        logger.log('run', runObject);
         var options = {
           typeCheck: !!uiOptions["type-check"],
           trace: tracingFunctions,
