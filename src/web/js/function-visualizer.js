@@ -507,7 +507,8 @@
         return "";
       }
     }
-    var unknown = "_";
+    var unknown = "☐";
+    var pending = "_";
     function dataToString(d, indentation, increment) {
       var name = d["$name"] || d["name"];
       if (name) {
@@ -657,7 +658,7 @@
               ret += "(...)";
             return ret;
           }
-          else return unknown;
+          else return pending;
       }
     }
     var lambda = "λ";
@@ -695,7 +696,7 @@
               return ret;
             }
           }
-          else return unknown;
+          else return pending;
       }
     }
 
