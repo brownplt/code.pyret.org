@@ -984,7 +984,7 @@
       dfCurrent = null;
       // only do this if in breadth, since needless copying
       dfPendingEvents = events.slice(0, events.length);
-      dfDoneEvents = [dfPendingEvents.shift()];
+      dfDoneEvents = (dfPendingEvents? [dfPendingEvents.shift()] : []);
       resetChildren(root);
       resetReturnValues(root);
     }
@@ -1007,9 +1007,14 @@
       // have only first child of root visible and retval hidden
       hideReturns(root);
       hideChildren(root);
-      var first = root._children.shift();
-      root.children.push(first);
-      dfCurrent = first;
+      if (root._children && root._children.length > 0) {
+        var first = root._children.shift();
+        root.children.push(first);
+        dfCurrent = first;
+      }
+      else {
+        dfCurrent = null;
+      }
       backButton.attr("disabled", dfDoneEvents.length < 1);
       nextButton.attr("disabled", dfPendingEvents.length < 1);
     }
