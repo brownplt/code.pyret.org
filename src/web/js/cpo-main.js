@@ -74,7 +74,7 @@
       logDetailedOption.prop("checked",
         localSettings.getItem('log-detailed') == 'true');
     } else {
-      localSettings.setItem('log-detailed', false);
+      localSettings.setItem('log-detailed', true);
     }
 
     logDetailedOption.on('change', function () {
