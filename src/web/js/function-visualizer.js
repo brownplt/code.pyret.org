@@ -984,7 +984,7 @@
       dfCurrent = null;
       // only do this if in breadth, since needless copying
       dfPendingEvents = events.slice(0, events.length);
-      dfDoneEvents = (dfPendingEvents? [dfPendingEvents.shift()] : []);
+      dfDoneEvents = (dfPendingEvents.length > 0 ? [dfPendingEvents.shift()] : []);
       resetChildren(root);
       resetReturnValues(root);
     }
