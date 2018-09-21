@@ -71,20 +71,20 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = false;
+    // var debug = false;
 
-    var rawEvents = [];
+    // var rawEvents = [];
 
     var simpleOnPush = function (packet) {
-      if (debug) {
+      /*if (debug) {
         rawEvents.push(packet);
         console.log(packet);
-      }
+      }*/
       if (done) {
         done = false;
         // and empty events
         events = [];
-        rawEvents = [];
+        // rawEvents = [];
         root.masterChildren = [];
       }
       var newPacket = Object.assign({}, packet);
@@ -99,9 +99,9 @@
         simpleAction(newPacket);
       }
       else {
-        if (debug) {
+        /*if (debug) {
           console.log("packet excluded");
-        }
+        }*/
       }
     }
 
@@ -135,10 +135,10 @@
 
     // packet: {action: String, retVal: Vals}
     var simpleOnPop = function (packet) {
-      if (debug) {
+      /* if (debug) {
         rawEvents.push(packet);
         console.log(packet);
-      }
+      }*/
       if (done) {
         done = false;
         // and empty events
@@ -157,9 +157,9 @@
         simpleAction(newPacket);
       }
       else {
-        if (debug) {
+        /*if (debug) {
           console.log("packet excluded");
-        }
+        }*/
       }
     }
 
@@ -851,7 +851,7 @@
           prepareDepth(nextButton, backButton);
           break;
       }
-      if (debug) {
+      /*if (debug) {
         var balanced = isBalanced(events);
         console.log(rawEvents);
         if (!balanced) {
@@ -862,7 +862,7 @@
           console.log(index);
           console.log(sequence);
         }
-      }
+      }*/
       update(root);
       return dialog;
     }

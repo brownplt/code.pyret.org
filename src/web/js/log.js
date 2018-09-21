@@ -135,6 +135,6 @@ window.addEventListener('unload', function(event) {
 });
 
 // Log tab/window visibility change (kinda unreliable)
-document.addEventListener("visibilitychange", function() {
-  logger.log('pagevis', {visibility: document.visibilityState});
-});
+// document.addEventListener("visibilitychange", function() {
+// logger.log('pagevis', {visibility: document.visibilityState});
+// });
