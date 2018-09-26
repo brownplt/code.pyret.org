@@ -75,15 +75,58 @@
 
     // var rawEvents = [];
 
+    var tableEvents = [];
+    var hiddenTableEvents = [];
+
+    var tableFunctionNames = [
+      "get-row", "filter-by", "sort-by", "build-column", "add-row",
+      "add-col", "select-columns", "transform-column",
+    ];
+
+    var hiddenTableFunctionNames = [
+      "row-n",
+      "filter",
+      "order-by",
+      "build-column",
+      "add-row",
+      "add-column",
+      "select-columns",
+      "transform-column",
+    ];
+
+    function spawningTableFunction(x) {
+      switch (x) {
+        case "row-n":
+          return "get-row";
+        case "filter":
+          return "filter-by";
+        case "order-by":
+          return "sort-by";
+        case "build-column":
+        case "add-row":
+        case "select-columns":
+        case "transform-column":
+          return x;
+        case "add-column":
+          return "add-col";
+        default:
+          return "unknown";
+      }
+    }
+
     var simpleOnPush = function (packet) {
-      /*if (debug) {
+      /*
+      if (debug) {
         rawEvents.push(packet);
         console.log(packet);
-      }*/
+      }
+      */
       if (done) {
         done = false;
         // and empty events
         events = [];
+        tableEvents = [];
+        hiddenTableEvents = [];
         // rawEvents = [];
         root.masterChildren = [];
       }
@@ -95,13 +138,35 @@
             [newPacket.action, newPacket.funName, newPacket.args.toString()].join(" "));
           indentation++;
         }
+        if (tableFunctionNames.includes(newPacket.funName)) {
+          if (tableEvents.length > 0) {
+            var lastEvent = tableEvents[tableEvents.length - 1];
+            console.log(lastEvent + " vs " + spawningTableFunction(newPacket.funName));
+            if (lastEvent === spawningTableFunction(newPacket.funName)) {
+              hiddenTableEvents.push(newPacket.funName);
+              return;
+            }
+            else {
+              tableEvents.push(newPacket.funName);
+            }
+          }
+          else {
+            tableEvents.push(newPacket.funName);
+          }
+        }
+        else if (hiddenTableFunctionNames.includes(newPacket.funName)) {
+          hiddenTableEvents.push(newPacket.funName);
+          return;
+        }
         events.push(newPacket);
         simpleAction(newPacket);
       }
       else {
-        /*if (debug) {
+        /*
+        if (debug) {
           console.log("packet excluded");
-        }*/
+        }
+        */
       }
     }
 
@@ -117,6 +182,7 @@
       "raw-array-to-list",
       "p-map", "string-equal",
       "make0", "make1", "make2", "make3", "make4", "make5",
+      "link",
     ];
 
     var anonymousFunction = "<anonymous function>";
@@ -135,16 +201,12 @@
 
     // packet: {action: String, retVal: Vals}
     var simpleOnPop = function (packet) {
-      /* if (debug) {
+      /*
+      if (debug) {
         rawEvents.push(packet);
         console.log(packet);
-      }*/
-      if (done) {
-        done = false;
-        // and empty events
-        events = [];
-        root.masterChildren = [];
       }
+      */
       var newPacket = Object.assign({}, packet);
       newPacket.funName = packetToFunName(newPacket);
       if (!blacklistedFunctions.includes(newPacket.funName)) {
@@ -153,13 +215,24 @@
           console.log(Array(indentation).join(indentation_char) +
             [newPacket.action, newPacket.funName, newPacket.retVal].join(" "));
         }
+        if (hiddenTableEvents.length > 0) {
+          if (newPacket.funName === hiddenTableEvents[hiddenTableEvents.length - 1]) {
+            hiddenTableEvents.pop();
+            return;
+          }
+          else if (tableEvents[tableEvents.length - 1] === newPacket.funName) {
+            tableEvents.pop();
+          }
+        }
         events.push(newPacket);
         simpleAction(newPacket);
       }
       else {
-        /*if (debug) {
+        /*
+        if (debug) {
           console.log("packet excluded");
-        }*/
+        }
+        */
       }
     }
 
@@ -587,6 +660,58 @@
   /* link */ d.dict && d.dict.first && d.dict.rest;
     }
 
+    function isRow(d) {
+      return d.$rowData ? true : false;
+    }
+
+    var rowSeparator = " | ";
+    function rowToConstructor(d) {
+      return "[row:..]";
+    }
+
+    function rowToString(d) {
+      return "[row: " + rowToStringInTable(d.$rowData) + "]";
+    }
+
+    // have a row option for inside of tables? one that maps indices?
+    function rowToStringInTable(d) {
+      return d.map(valueToString).join(rowSeparator);
+    }
+
+    /*
+    
+              "_header-raw-array": [
+                "name",
+                "SNC",
+                "exam1",
+                "exam2"
+              ],
+              "_rows-raw-array": [
+     */
+    function isTable(d) {
+      let dict = d.dict;
+      if (dict && dict["_header-raw-array"] && dict["_rows-raw-array"])
+        return true;
+      else
+        return false;
+    }
+
+    function tableToConstructor(d) {
+      return "[table:..]";
+    }
+
+    function tableToString(d, indentation) {
+      indentation = indentation || "";
+      var prefix = indentation;
+      // header column
+      var dict = d.dict;
+      var header = dict["_header-raw-array"];
+      // row results
+      var rows = dict["_rows-raw-array"];
+      return "[table: " + header.map(x => "\"" + x + "\"").join(rowSeparator) + "\n" +
+        rows.map(x => prefix + rowToStringInTable(x)).join("\n") + "]";
+    }
+
     function is_checkblock(d) {
       // check for name, then check arguments!; some way to see if builtin?
       if (d.args && d.args.length > 0) {
@@ -644,6 +769,12 @@
                 return "[list:..]";
               }
             }
+            if (isRow(val)) {
+              return rowToConstructor(val);
+            }
+            if (isTable(val)) {
+              return tableToConstructor(val);
+            }
             var ret = val.$name ? val.$name : val.name ? val.name : unknown;
             if (ret == unknown) {
               if (isTest(val)) {
@@ -680,6 +811,12 @@
             }
             else if (isList(val))
               return formatListLikePyret(dataToList(val));
+            else if (isRow(val)) {
+              return rowToString(val);
+            }
+            else if (isTable(val)) {
+              return tableToString(val, indentation + " ".repeat(increment));
+            }
             else {
               var ret = dataToString(val, indentation + " ".repeat(increment), increment);
               if (ret == unknown) {
@@ -851,7 +988,8 @@
           prepareDepth(nextButton, backButton);
           break;
       }
-      /*if (debug) {
+      /*
+      if (debug) {
         var balanced = isBalanced(events);
         console.log(rawEvents);
         if (!balanced) {
@@ -862,7 +1000,8 @@
           console.log(index);
           console.log(sequence);
         }
-      }*/
+      }
+      */
       update(root);
       return dialog;
     }

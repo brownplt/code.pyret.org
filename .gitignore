@@ -1,5 +1,6 @@
 node_modules
 .node_modules
+.vscode
 .env
 src/web/teachpacks
 build/
