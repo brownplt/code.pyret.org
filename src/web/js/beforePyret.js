@@ -462,27 +462,40 @@ $(function() {
     do {
       nextFocusIndex = cycleAdvance(nextFocusIndex, maxIndex, reverseP);
       focusElt = fCarousel[nextFocusIndex];
+      //console.log('trying focusElt', focusElt);
     } while (!focusElt);
 
     var focusElt0;
     if (focusElt.classList.contains('toolbarregion')) {
+      //console.log('settling on toolbar region')
       getTopTierMenuitems();
       focusElt0 = document.getElementById('bonniemenubutton');
     } else if (focusElt.classList.contains("replMain") ||
       focusElt.classList.contains("CodeMirror")) {
+      //console.log('settling on defn window')
       var textareas = focusElt.getElementsByTagName("textarea");
+      //console.log('txtareas=', textareas)
+      //console.log('txtarea len=', textareas.length)
       if (textareas.length === 0) {
+        //console.log('I')
         focusElt0 = focusElt;
       } else if (textareas.length === 1) {
+        //console.log('settling on inter window')
         focusElt0 = textareas[0];
       } else {
+        //console.log('settling on defn window')
+        /*
         for (var i = 0; i < textareas.length; i++) {
           if (textareas[i].getAttribute('tabIndex')) {
             focusElt0 = textareas[i];
           }
         }
+        */
+        focusElt0 = textareas[textareas.length-1];
+        focusElt0.removeAttribute('tabIndex');
       }
     } else {
+      //console.log('settling on announcement region', focusElt)
       focusElt0 = focusElt;
     }
 
@@ -738,7 +751,7 @@ $(function() {
     if (kc === 27) {
       // escape
       hideAllTopMenuitems();
-      //console.log('calling cycleFocus')
+      //console.log('calling cycleFocus from toolbar')
       CPO.cycleFocus();
       e.stopPropagation();
     } else if (kc === 9 || kc === 37 || kc === 38 || kc === 39 || kc === 40) {
@@ -813,6 +826,14 @@ $(function() {
     }
   }
 
+  var showingHelpKeys = false;
+
+  function showHelpKeys() {
+    showingHelpKeys = true;
+    $('#help-keys').fadeIn(100);
+    reciteHelp();
+  }
+
   focusableElts.keydown(function (e) {
     //console.log('focusable elt keydown', e);
     var kc = e.keyCode;
@@ -822,6 +843,10 @@ $(function() {
     var secondTierUl = $(this).closest('ul.submenu');
     if (secondTierUl.length === 0) {
       withinSecondTierUl = false;
+    }
+    if (kc === 27) {
+      //console.log('escape pressed i')
+      $('#help-keys').fadeOut(500);
     }
     if (kc === 27 && withinSecondTierUl) { // escape
       var destTopMenuitem = $(this).closest('li.topTier');
@@ -961,8 +986,12 @@ $(function() {
     } else if (kc === 27) {
       //console.log('esc pressed');
       hideAllTopMenuitems();
-      //console.log('calling cycleFocus ii')
-      CPO.cycleFocus();
+      if (showingHelpKeys) {
+        showingHelpKeys = false;
+      } else {
+        //console.log('calling cycleFocus ii')
+        CPO.cycleFocus();
+      }
       e.stopPropagation();
       e.preventDefault();
       //$(this).closest('nav').closest('main').focus();
@@ -975,8 +1004,18 @@ $(function() {
       e.preventDefault();
     } else if (kc === 13 || kc === 17 || kc === 20 || kc === 32) {
       // 13=enter 17=ctrl 20=capslock 32=space
+      //console.log('stopprop 1')
+      e.stopPropagation();
+    } else if (kc >= 112 && kc <= 123) {
+      //console.log('doprop 1')
+      // fn keys
+      // go ahead, propagate
+    } else if (e.ctrlKey && kc === 191) {
+      //console.log('C-? pressed')
+      showHelpKeys();
       e.stopPropagation();
     } else {
+      //console.log('stopprop 2')
       e.stopPropagation();
     }
     //e.stopPropagation();
