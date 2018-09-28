@@ -22,6 +22,7 @@
       <p class="screenreader-only" id="mhelp">
       <span id="mhelp-menus">Use left and right arrows to move across menus.
       </span>
+      <span id="mhelp-open-submenu">Use down arrow to open submenu.</span>
       <span id="mhelp-submenu">Use up and down arrows to move within submenus.
       </span>
       <span id="mhelp-activate">Use Enter to activate.</span>
@@ -31,7 +32,7 @@
       <div role="menubar">
       <ul id="topTierUl" role="menu" aria-labelledby="menutitle"
         aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
-        aria-label="Toolbar" tabindex="-1">
+        aria-label="Toolbar" >
         <li role="presentation"
           class="topTier" id="bonniemenuli">
           <div id="bonniemenu" class="tooltip menu menuitemtitle" style="float:none" >
@@ -40,7 +41,7 @@
                     aria-label="Pyret Menu"
                     aria-haspopup="true"
                     aria-expanded="false"
-                    aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+                    aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
                     tabindex="-1"
                     class="blueButton focusable">
               <span>▾</span>
@@ -143,7 +144,7 @@
               aria-label="File"
               aria-haspopup="true"
               aria-expanded="false"
-              aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+              aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
               id="filemenuItem"
               tabindex="-1"
               class="focusable blueButton">
@@ -228,7 +229,7 @@
                     aria-label="Run Options"
                     aria-haspopup="true"
                     aria-expanded="false"
-                    aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+                    aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
                     disabled
                     tabindex="-1">↴
             </button>
@@ -309,7 +310,7 @@
   </ul>
   <p><i>Toolbar region navigation</i></p>
   <ul>
-    <li><b>Esc</b> - Exit toolbar region</li>
+    <li><b>Esc</b> - Exit toolbar submenu (if open) or region</li>
     <li><b>Left, Right</b> - Traverse toolbar top-level menu</li>
     <li><b>Up, Down</b> - Traverse toolbar submenus</li>
   </ul>
