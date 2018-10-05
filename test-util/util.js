@@ -182,16 +182,20 @@ function runAndCheckAllTestsPassed(code, driver, test, timeout) {
   checkAllTestsPassed(driver, test.title, timeout);
 }
 
+function isElementPresent(base, toFind) {
+  return base.findElements(toFind).then(function(found) { return found.length > 0; });
+}
+
 function checkAllTestsPassed(driver, name, timeout) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   driver.wait(function() {
-    return replOutput.isElementPresent(webdriver.By.className("testing-summary"));
+    return isElementPresent(replOutput, webdriver.By.className("testing-summary"));
   }, timeout);
   var checkBlocks = replOutput.then(function(response) {
     driver.wait(function () {
-      return driver.isElementPresent(webdriver.By.className("check-results-done-rendering"));
+      return isElementPresent(driver, webdriver.By.className("check-results-done-rendering"));
     }, 20000);
-    return response.findElements(webdriver.By.className("check-block-result"));
+    return findElements(response, webdriver.By.className("check-block-result"));
   });
   return checkBlocks.then(function(cbs) {
     return replOutput.findElements(contains("Looks shipshape")).then(function(shipshapes) {
@@ -326,7 +330,7 @@ function testErrorRendersString(it, name, toEval, expectedString, options) {
     var replOutput = self.browser.findElement(webdriver.By.id("output"));
     return evalPyretDefinitionsAndWait(this.browser, toEval, options).then(function(response) {
       self.browser.wait(function () {
-        return replOutput.isElementPresent(webdriver.By.className("compile-error"));
+        return isElementPresent(replOutput, webdriver.By.className("compile-error"));
       }, 6000);
       return response.getText().then(function(text) {
         if(text.indexOf(expectedString) !== -1) {
@@ -354,7 +358,7 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs, options) {
     var replOutput = evalPyretDefinitionsAndWait(this.browser, toEval, options);
     var checkBlocks = replOutput.then(function(response) {
       self.browser.wait(function () {
-        return self.browser.isElementPresent(webdriver.By.className("check-results-done-rendering"));
+        return isElementPresent(self.browser, webdriver.By.className("check-results-done-rendering"));
       }, 20000);
       return response.findElements(webdriver.By.className("check-block"));
     });
