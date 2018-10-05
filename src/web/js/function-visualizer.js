@@ -657,7 +657,7 @@
     function isList(d) {
       // TODO: also check to see if this is an empty node!
       return /* empty or */ isEmptyList(d) ||
-  /* link */ d.dict && d.dict.first && d.dict.rest;
+  /* link */ d.dict != null && d.dict.first != null && d.dict.rest != null;
     }
 
     function isRow(d) {
