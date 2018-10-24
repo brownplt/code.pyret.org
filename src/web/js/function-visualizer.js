@@ -660,6 +660,23 @@
   /* link */ d.dict != null && d.dict.first != null && d.dict.rest != null;
     }
 
+    function isMap(d) {
+      return d.$underlyingMap != null;
+    }
+
+    function mapToString(d) {
+      // also need to be able to handle these types of nodes:
+      /*
+nodes: Array(10)
+0: ValueNode
+entry: (2) ["0", 0]
+      */
+      var m = d.$underlyingMap;
+      var root = m._root;
+      console.log(root);
+      return root.entries.map(function(n) { return n.map(function(p) { return dataToString(p)}).join("->") }).join(",");
+    }
+
     function isRow(d) {
       return d.$rowData ? true : false;
     }
@@ -775,12 +792,16 @@
             if (isTable(val)) {
               return tableToConstructor(val);
             }
+            if (isMap(val)) {
+              return "[string-dict:..]";
+            }
             var ret = val.$name ? val.$name : val.name ? val.name : unknown;
             if (ret == unknown) {
               if (isTest(val)) {
                 return getTestName(val);
               }
               else {
+                console.log(val);
               }
             }
             if (ret === anonymousFunction)
@@ -817,6 +838,9 @@
             else if (isTable(val)) {
               return tableToString(val, indentation + " ".repeat(increment));
             }
+            if (isMap(val)) {
+              return mapToString(val);
+            }
             else {
               var ret = dataToString(val, indentation + " ".repeat(increment), increment);
               if (ret == unknown) {
@@ -824,8 +848,8 @@
                   return getTestName(val);
                 }
                 else {
-                  /* console.log("string's val: ");
-                  console.log(val);*/
+                  console.log("string's val: ");
+                  console.log(val);
                 }
               }
               if (ret === anonymousFunction)
