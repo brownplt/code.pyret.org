@@ -71,7 +71,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    // var debug = false;
+    var debug = true;
 
     // var rawEvents = [];
 
@@ -182,7 +182,7 @@
       "raw-array-to-list",
       "p-map", "string-equal",
       "make0", "make1", "make2", "make3", "make4", "make5",
-      "link",
+      "link", "some", "num-to-string", "color",
     ];
 
     var anonymousFunction = "<anonymous function>";
@@ -629,17 +629,18 @@
 
     function dataToList(d) {
       var ret = [];
-      function aux(d, acc) {
-        if (isEmptyList(d))
+      // make this stack safe!
+      function aux(d, acc, n) {
+        if (isEmptyList(d) || n > 100)
           return acc;
         else {
           // add first to acc
           acc.push(valueToString(d.dict.first, 0, 0));
           // and recur on rest
-          aux(d.dict.rest, acc);
+          aux(d.dict.rest, acc, n + 1);
         }
       }
-      aux(d, ret);
+      aux(d, ret, 0);
       return ret;
     }
 
@@ -740,6 +741,11 @@ entry: (2) ["0", 0]
       else return false;
     }
 
+    function is_image(d) {
+      // or d.val.img
+      return (d.dict != null && d.dict.img != null);
+    }
+
     function check_to_string(d) {
       // TODO: add (done) when test is done
       return "test at L" + getTestLineNumber(d) + getDepthFirstDone(d);
@@ -792,6 +798,9 @@ entry: (2) ["0", 0]
             if (isTable(val)) {
               return tableToConstructor(val);
             }
+            else if (is_image(val)) {
+              return image;
+            }
             if (isMap(val)) {
               return "[string-dict:..]";
             }
@@ -814,6 +823,7 @@ entry: (2) ["0", 0]
       }
     }
     var lambda = "λ";
+    var image = "...";
     function valueToString(val, indentation, increment) {
       indentation = indentation || "";
       increment = increment || 2;
@@ -837,6 +847,9 @@ entry: (2) ["0", 0]
             }
             else if (isTable(val)) {
               return tableToString(val, indentation + " ".repeat(increment));
+            }
+            else if (is_image(val)) {
+              return image;
             }
             if (isMap(val)) {
               return mapToString(val);
@@ -1011,6 +1024,9 @@ entry: (2) ["0", 0]
         case "depth":
           prepareDepth(nextButton, backButton);
           break;
+      }
+      if (debug) {
+        console.log(events);
       }
       /*
       if (debug) {
