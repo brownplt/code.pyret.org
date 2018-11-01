@@ -411,27 +411,24 @@
       return { width: (width + 1) * 100, height: (height + 1) * 80 };
     }
 
-    // trim the front part too?
     function trimLinkedList(l) {
+      function innerTrim(l, count) {
+        if (isEmptyList(l)) {
+          return l;
+        }
+        else if (count > listLengthConst) {
+          return "(ellided)";
+        }
+        else {
+          return {dict: { first: formatIfList(l.dict.first),
+            rest: innerTrim(l.dict.rest, count + 1)}};
+        }
+      }
       if (isEmptyList(l)) {
         return l;
       }
       else {
-        var len = 0;
-        // should copy this, right? so don't overwrite data...
-        var head = Object.assign({}, l)
-        var cur = head;
-        while (!isEmptyList(cur)) {
-          // check to see how many times ran
-          cur.dict.first = formatIfList(cur.dict.first);
-          if (len > listLengthConst) {
-            cur.dict.rest = "(ellided)";
-            break;
-          }
-          len += 1;
-          cur = cur.dict.rest;
-        }
-        return head;
+        return innerTrim(l, 0);
       }
     }
 
@@ -439,8 +436,6 @@
       if (d != null) {
         if (isList(d)) {
           // return formatted d
-          // should probably not do data to list here, keep first, rest structure
-          console.log(d);
           return trimLinkedList(d);
         } else {
           return d;
@@ -682,6 +677,7 @@
       var ret = [];
       // make this stack safe!
       function aux(d, acc, n) {
+        console.log(d);
         if (isEmptyList(d) || n > listLengthConst) {
           acc.push("...");
           return acc;
