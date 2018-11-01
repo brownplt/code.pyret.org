@@ -411,11 +411,33 @@
       return { width: (width + 1) * 100, height: (height + 1) * 80 };
     }
 
+    function trimLinkedList(l) {
+      if (isEmptyList(l)) {
+        return l;
+      }
+      else {
+        var len = 0;
+        // should copy this, right? so don't overwrite data...
+        var head = Object.assign({}, l)
+        var cur = head;
+        while (!isEmptyList(cur)) {
+          // check to see how many times ran
+          if (len > listLengthConst) {
+            cur.rest = "(ellided)";
+            break;
+          }
+          len += 1;
+          cur = cur.rest;
+        }
+        return head;
+      }
+    }
     function formatIfList(d) {
       if (d != null) {
         if (isList(d)) {
           // return formatted d
-          return dataToList(d);
+          // should probably not do data to list here, keep first, rest structure
+          return trimLinkedList(d);
         } else {
           return d;
         }
@@ -651,11 +673,12 @@
       else return false;
     }
 
+    var listLengthConst = 10;
     function dataToList(d) {
       var ret = [];
       // make this stack safe!
       function aux(d, acc, n) {
-        if (isEmptyList(d) || n > 10) {
+        if (isEmptyList(d) || n > listLengthConst) {
           acc.push("...");
           return acc;
         }
