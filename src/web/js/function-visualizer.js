@@ -411,6 +411,7 @@
       return { width: (width + 1) * 100, height: (height + 1) * 80 };
     }
 
+    // trim the front part too?
     function trimLinkedList(l) {
       if (isEmptyList(l)) {
         return l;
@@ -422,21 +423,24 @@
         var cur = head;
         while (!isEmptyList(cur)) {
           // check to see how many times ran
+          cur.dict.first = formatIfList(cur.dict.first);
           if (len > listLengthConst) {
-            cur.rest = "(ellided)";
+            cur.dict.rest = "(ellided)";
             break;
           }
           len += 1;
-          cur = cur.rest;
+          cur = cur.dict.rest;
         }
         return head;
       }
     }
+
     function formatIfList(d) {
       if (d != null) {
         if (isList(d)) {
           // return formatted d
           // should probably not do data to list here, keep first, rest structure
+          console.log(d);
           return trimLinkedList(d);
         } else {
           return d;
