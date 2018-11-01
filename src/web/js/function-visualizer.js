@@ -411,18 +411,42 @@
       return { width: (width + 1) * 100, height: (height + 1) * 80 };
     }
 
+    function formatIfList(d) {
+      if (d != null) {
+        if (isList(d)) {
+          // return formatted d
+          return dataToList(d);
+        } else {
+          return d;
+        }
+      } else {
+        return d;
+      }
+    }
+    // need to get first 10 elements of elements in arg and return value if too large
+    // should we do all of this serialization ahead of time once? Or memoize?
+    // what about 2d list? should we continually serialize elements?
     function serializeNode(n) {
       var children = n.children;
-      return {
+      // serialize these
+      var args = n.args.map(formatIfList);
+      var returnValue = formatIfList(n.returnValue);
+      var _returnValue = formatIfList(n._returnValue);
+
+      var ret = {
         funName: n.funName,
-        args: n.args,
+        // also serialize these
+        args: args,
         depth: n.depth,
         finished: n.finished,
-        returnValue: n.returnValue,
-        _returnValue: n._returnValue,
+        // and serialize this too
+        returnValue: returnValue,
+        _returnValue: _returnValue,
         numVisibleChildren: children ? children.length : 0,
         numTotalChildren: n.masterChildren.length,
-      }
+      };
+      console.log(ret);
+      return ret;
     }
 
     function update(source) {
@@ -631,8 +655,10 @@
       var ret = [];
       // make this stack safe!
       function aux(d, acc, n) {
-        if (isEmptyList(d) || n > 100)
+        if (isEmptyList(d) || n > 10) {
+          acc.push("...");
           return acc;
+        }
         else {
           // add first to acc
           acc.push(valueToString(d.dict.first, 0, 0));
@@ -655,6 +681,7 @@
       return d && is_builtin(d) && d.$name === "empty";
     }
 
+    // assumes d isn't null
     function isList(d) {
       // TODO: also check to see if this is an empty node!
       return /* empty or */ isEmptyList(d) ||
@@ -675,7 +702,7 @@ entry: (2) ["0", 0]
       var m = d.$underlyingMap;
       var root = m._root;
       console.log(root);
-      return root.entries.map(function(n) { return n.map(function(p) { return dataToString(p)}).join("->") }).join(",");
+      return root.entries.map(function (n) { return n.map(function (p) { return dataToString(p) }).join("->") }).join(",");
     }
 
     function isRow(d) {
@@ -743,7 +770,7 @@ entry: (2) ["0", 0]
 
     function is_image(d) {
       // or d.val.img
-      return (d.dict != null && d.dict.img != null);
+      return (d.dict != null && d.dict.img != null) || (d.val != null && (d.val.img != null || d.val.imageData != null));
     }
 
     function check_to_string(d) {
@@ -781,10 +808,10 @@ entry: (2) ["0", 0]
             if (is_fraction(val)) {
               return fraction_to_string(val);
             }
-            if (is_checkblock(val)) {
+            else if (is_checkblock(val)) {
               return check_to_string(val);
             }
-            if (isList(val)) {
+            else if (isList(val)) {
               if (isEmptyList(val)) {
                 return "empty";
               }
@@ -792,32 +819,33 @@ entry: (2) ["0", 0]
                 return "[list:..]";
               }
             }
-            if (isRow(val)) {
+            else if (isRow(val)) {
               return rowToConstructor(val);
             }
-            if (isTable(val)) {
+            else if (isTable(val)) {
               return tableToConstructor(val);
             }
             else if (is_image(val)) {
               return image;
             }
-            if (isMap(val)) {
+            else if (isMap(val)) {
               return "[string-dict:..]";
-            }
-            var ret = val.$name ? val.$name : val.name ? val.name : unknown;
-            if (ret == unknown) {
-              if (isTest(val)) {
-                return getTestName(val);
+            } else {
+              var ret = val.$name ? val.$name : val.name ? val.name : unknown;
+              if (ret == unknown) {
+                if (isTest(val)) {
+                  return getTestName(val);
+                }
+                else {
+                  console.log(val);
+                }
               }
-              else {
-                console.log(val);
-              }
+              if (ret === anonymousFunction)
+                return lambda;
+              if (has_fieldnames(val))
+                ret += "(...)";
+              return ret;
             }
-            if (ret === anonymousFunction)
-              return lambda;
-            if (has_fieldnames(val))
-              ret += "(...)";
-            return ret;
           }
           else return pending;
       }
