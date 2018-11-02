@@ -874,7 +874,7 @@ entry: (2) ["0", 0]
       }
     }
     var lambda = "λ";
-    var image = "...";
+    var image = "🖼";
     function valueToString(val, indentation, increment) {
       indentation = indentation || "";
       increment = increment || 2;
