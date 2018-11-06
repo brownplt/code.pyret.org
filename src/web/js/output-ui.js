@@ -1485,7 +1485,8 @@
       };
       renderers["render-ref"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput has-icon");
-        container.append(top.done[0]);
+        var valueContainer = $("<span>").addClass("replRef")
+        container.append(valueContainer.append(top.done[0]));
         var warning = $("<img>")
           .attr("src", "/img/warning.gif")
           .attr("title", "May be stale! Click to refresh")
@@ -1497,16 +1498,12 @@
             return runtime.toReprJS(runtime.getRef(top.extra.origVal), renderers);
           }, function(newTop) {
             if(runtime.isSuccessResult(newTop)) {
-              warning.detach()
-              container.empty();
-              container.append(newTop.result);
-              container.append(warning);
+              valueContainer.empty();
+              valueContainer.append(newTop.result);
             }
             else {
-              warning.detach();
-              container.empty();
-              container.text("<error displaying value>");
-              container.append(warning);
+              valueContainer.empty();
+              valueContainer.text("<error displaying value>");
             }
           });
           e.stopPropagation();

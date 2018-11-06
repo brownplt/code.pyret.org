@@ -852,6 +852,15 @@ span.rationalRepeat {
   text-decoration: overline;
 }
 
+.replRef {
+  outline: 2px dashed #ffcc00;
+  box-shadow: 0 0 0 2px black;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+  padding: 2px;
+}
+
 .has-icon { position: relative; }
 
 .replImageThumbnail canvas {
