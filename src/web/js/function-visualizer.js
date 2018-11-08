@@ -20,6 +20,10 @@
   provides: {},
   theModule: function (runtime, _n, _u, d3) {
     "use strict";
+
+    function log(s, o) {
+      logger.log(s, o);
+    }
     var events = [];
 
     var data = {
@@ -488,8 +492,8 @@
         .attr("class", "node")
         .attr("transform", function (_d) { return "translate(" + source.x0 + "," + source.y0 + ")"; })
         .on("click", click)
-        .on("mouseover", function (d) { logger.log("mouseOver", { navigationMode: navMode, node: serializeNode(d) }) })
-        .on("mouseout", function (d) { logger.log("mouseOut", { navigationMode: navMode, node: serializeNode(d) }) });
+        .on("mouseover", function (d) { log("mouseOver", { navigationMode: navMode, node: serializeNode(d) }) })
+        .on("mouseout", function (d) { log("mouseOut", { navigationMode: navMode, node: serializeNode(d) }) });
 
       nodeEnter.append("circle")
         .attr("r", 1e-6)
@@ -965,7 +969,7 @@ entry: (2) ["0", 0]
 
     var simpleShowTrace = function () {
       // what happens if we don't reset root?
-      logger.log("showTrace", { navigationMode: navMode });
+      log("showTrace", { navigationMode: navMode });
       resetRoot();
       resetBreadthFirst();
       resetDepthFirst();
@@ -998,7 +1002,7 @@ entry: (2) ["0", 0]
           case "depth": prepareDepth(nextButton, backButton); break;
           case "breadth": prepareBreadth(nextButton, backButton); break;
         }
-        logger.log("changedNavigationMode", { old: oldNavMode, new: navMode });
+        log("changedNavigationMode", { old: oldNavMode, new: navMode });
         update(root);
       });
       controller.append(sel);
@@ -1015,7 +1019,7 @@ entry: (2) ["0", 0]
         disabled: false,
         id: 'previousStep',
       }).addClass('xMinGo d3btn').click(function () {
-        logger.log("tracerBackArrow", { navigationMode: navMode });
+        log("tracerBackArrow", { navigationMode: navMode });
         switch (navMode) {
           case "all":
             break;
@@ -1034,7 +1038,7 @@ entry: (2) ["0", 0]
         style: 'left: 140px; top: 70px',
         id: 'nextStep',
       }).addClass('xMaxGo d3btn').click(function () {
-        logger.log("tracerForwardArrow", { navigationMode: navMode });
+        log("tracerForwardArrow", { navigationMode: navMode });
         switch (navMode) {
           case "all":
             break;
@@ -1061,7 +1065,7 @@ entry: (2) ["0", 0]
         attr("transform", "translate(" + 0 + "," + margin.top + ")");
 
       console.log(dimensions);
-      logger.log("callgraphMaxDimensions", { dimensions: dimensions });
+      log("callgraphMaxDimensions", { dimensions: dimensions });
 
       root.finished = childrenFinished(root.masterChildren);
 
@@ -1258,7 +1262,7 @@ entry: (2) ["0", 0]
     // Toggle children on click, but only in all and breadth-first mode
     // TODO: here
     function click(d) {
-      logger.log("clickedNode", { navigationMode: navMode, node: serializeNode(d) });
+      log("clickedNode", { navigationMode: navMode, node: serializeNode(d) });
       switch (navMode) {
         case "all":
           switchKids(d);
