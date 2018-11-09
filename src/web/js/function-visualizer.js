@@ -75,7 +75,7 @@
     var console_trace = false;
     var indentation = 1;
     var indentation_char = "-";
-    var debug = true;
+    // var debug = true;
 
     // var rawEvents = [];
 
@@ -1084,9 +1084,9 @@ entry: (2) ["0", 0]
           prepareDepth(nextButton, backButton);
           break;
       }
-      if (debug) {
+      /* if (debug) {
         console.log(events);
-      }
+      }*/
       /*
       if (debug) {
         var balanced = isBalanced(events);
