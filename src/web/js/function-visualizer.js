@@ -678,7 +678,7 @@
 
     var listLengthConst = 10;
     function dataToList(d) {
-      console.log(d);
+      // console.log(d);
       var ret = [];
       // make this stack safe!
       function aux(d, acc, n) {
@@ -732,7 +732,7 @@ entry: (2) ["0", 0]
       */
       var m = d.$underlyingMap;
       var root = m._root;
-      console.log(root);
+      // console.log(root);
       return root.entries.map(function (n) { return n.map(function (p) { return dataToString(p) }).join("->") }).join(",");
     }
 
