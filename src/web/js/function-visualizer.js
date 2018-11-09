@@ -470,7 +470,7 @@
         numVisibleChildren: children ? children.length : 0,
         numTotalChildren: n.masterChildren.length,
       };
-      console.log(ret);
+      // console.log(ret);
       return ret;
     }
 
@@ -678,11 +678,15 @@
 
     var listLengthConst = 10;
     function dataToList(d) {
+      console.log(d);
       var ret = [];
       // make this stack safe!
       function aux(d, acc, n) {
-        console.log(d);
-        if (isEmptyList(d) || n > listLengthConst) {
+        // console.log(d);
+        if (isEmptyList(d)) {
+          return acc;
+        }
+        else if (n > listLengthConst) {
           acc.push("...");
           return acc;
         }
@@ -690,7 +694,7 @@
           // add first to acc
           acc.push(valueToString(d.dict.first, 0, 0));
           // and recur on rest
-          aux(d.dict.rest, acc, n + 1);
+          return aux(d.dict.rest, acc, n + 1);
         }
       }
       aux(d, ret, 0);
@@ -831,7 +835,7 @@ entry: (2) ["0", 0]
           return "\"" + val + "\"";
         default:
           // if PObject, print name, if C, I don't know what to do...
-          if (val) {
+          if (val != null) {
             if (is_fraction(val)) {
               return fraction_to_string(val);
             }
