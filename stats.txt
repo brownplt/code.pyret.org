@@ -1,0 +1,5 @@
+gets id's and definitions
+cat scratch.txt| jq --slurp "map( { id: .meta[4], definitions: .definitions | values} )| .[]" | jq -c "." | sort | uniq -c
+
+gets number of programs ran for id
+cat scratch.txt| jq --slurp "map( { id: .meta[4], definitions: .definitions | values} )| .[]| .id" | sort | uniq -c
