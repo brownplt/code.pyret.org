@@ -125,6 +125,7 @@
         console.log(packet);
       }
       */
+     console.log(packet);
       if (done) {
         done = false;
         // and empty events
@@ -196,7 +197,7 @@
       maybe take in entire packet? that way can look at args,
       or return to see if name, dict contains name, etc.
        */
-      var name = packet.funName.name;
+      var name = packet.funName;
       if (name === anonymousFunction)
         return lambda;
       else
@@ -211,6 +212,7 @@
         console.log(packet);
       }
       */
+     console.log(packet);
       var newPacket = Object.assign({}, packet);
       newPacket.funName = packetToFunName(newPacket);
       if (!blacklistedFunctions.includes(newPacket.funName)) {
