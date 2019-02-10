@@ -1,0 +1,63 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <link rel="stylesheet" href="/css/reset.css" />
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="/css/shared.css" />
+  <link rel="stylesheet" href="/css/share.css" />
+</head>
+<body>
+<div id="loader" style="top: 80px;"><p></p></div>
+<div id="header">
+</div>
+<div id="toolbar">
+</div>
+<div id="main">
+  <h2 id="title"></h2>
+  <a id="run"><button class="blueButton" id="run">Run it!</button></a>
+  <a id="edit"><button class="blueButton" id="edit">Edit it!</button></a>
+</div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="/js/q.js"></script>
+<script src="/js/programs.js"></script>
+<script src="/js/authenticate-storage.js"></script>
+<script>
+var clientId = "";
+var apiKey = "";
+function handleGoogLoad() {
+  handleClientLoad(clientId, apiKey);
+}
+</script>
+<script src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script src="/js/loader.js"></script>
+<script src="/js/url.js"></script>
+<script>
+
+function display(storageAPI) {
+  $("#loader").hide();
+  var api = storageAPI.api;
+  var initialParams = url.parse(document.location.href);
+  var params = url.parse("/?" + initialParams["hash"]);
+  function hasParam(str) {
+    return params["get"] && params["get"][str];
+  }
+  function getParam(str) {
+    return decodeURIComponent(params["get"][str]);
+  }
+  if(hasParam("share")) {
+    var program = api.getSharedFileById(getParam("share"));
+    program.then(function(p) {
+      $("#title").text("Sharing " + p.getName());
+      $("#run").attr("href", "/");
+      $("#edit").attr("href", "/repl.html#share=" + encodeURIComponent(p.getUniqueId()));
+    });
+  }
+}
+storageAPI.then(display);
+</script>
+</html>
