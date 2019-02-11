@@ -613,7 +613,7 @@
       container.append(output).append(promptContainer);
 
       var img = $("<img>").attr({
-        "src": "./img/pyret-spin.gif",
+        "src": "/img/pyret-spin.gif",
         "width": "25px",
       }).css({
         "vertical-align": "middle"

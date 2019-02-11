@@ -1474,7 +1474,7 @@ code div {
   display: block;
   min-height: 3em;
   min-width: 3em;
-  background-image: url(./img/pyret-spin.gif);
+  background-image: url(img/pyret-spin.gif);
   background-size: contain;
   background-repeat: no-repeat;
   flex: 1;
