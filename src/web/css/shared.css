@@ -217,11 +217,12 @@ em {
 }
 
 #footer {
-  height: 5px;
+  height: 2.5em;
   background-color: #111;
   position: fixed;
   bottom: 0;
   width: 100%;
+  z-index: 10000;
 }
 
 
