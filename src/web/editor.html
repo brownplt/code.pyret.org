@@ -54,11 +54,6 @@
           <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
             aria-label="Pyret Menu">
             <li role="presentation">
-              <div id="welcome" class="menuButton inert" style="text-align: center;">
-                <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
-              </div>
-            </li>
-            <li role="presentation">
               <div id="ctrl-question" class="menuButton">
                 <a class="focusable" role="menuitem"
                   aria-label="keyboard shortcuts"
@@ -286,7 +281,6 @@
     </div>
   </div>
 </div>
-<div id="notification" class="notificationArea"></div>
 <div id="REPL" class="replContainer" role="region" aria-label="Interactions">
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
@@ -328,6 +322,10 @@
 </div>
 </div>
 <div id="footer">
+  <div id="welcome" style="color: white">
+    <span>Programming as <span id="username" style="display: inline; padding: 0px;">a guest</span>.</span>
+  </div>
+  <div id="notification" class="notificationArea"></div>
   <div id="announcements" class="screenreader-only" role="region" aria-label="Announcements" tabindex="-1">
     <h2>Announcements</h2>
     <ul id="announcementlist" aria-live="assertive"
