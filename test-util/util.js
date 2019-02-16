@@ -50,7 +50,7 @@ function setupWithName(name) {
   .forBrowser("chrome")
   .withCapabilities(chromeCapabilities).build();
 
-  this.browser.manage().window().maximize();
+//  this.browser.manage().window().maximize();
 
   return;
 }
@@ -116,7 +116,8 @@ function checkTableRendersCorrectly(code, driver, test, timeout) {
   var maybeTest = replOutput.findElements(webdriver.By.xpath('pre'));
   return maybeTest.then(function(elements) {
     if (elements.length > 0) {
-      elements[0].getInnerHtml()
+      console.log(Object.keys(elements[0]));
+      elements[0].getAttribute("innerHTML")
         .then(function(testsStr) {
           try {
             return JSON.parse(testsStr);
@@ -143,7 +144,7 @@ function checkTableRendersCorrectly(code, driver, test, timeout) {
                 .findElement(webdriver.By.xpath("//tbody/tr[" + row + "]"
                                                 + "/td[" + col + "]/span"))
                 .then(function(tableRender) {
-                  return P.all([tableRender.getOuterHtml(), resps[1][0].getOuterHtml()]);
+                  return P.all([tableRender.getAttribute("outerHTML"), resps[1][0].getAttribute("outerHTML")]);
                 });
               })
               .then(function(rendered) {
