@@ -214,6 +214,13 @@ input.form {
     padding-left: 1em;
 }
 
+.file .modified {
+    float: right;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #333;
+}
+
 .person-text {
   color: #666666;
 }

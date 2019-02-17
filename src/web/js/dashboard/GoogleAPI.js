@@ -77,7 +77,7 @@ class GoogleAPI {
         if(savedFiles.length === 0) { return this.getRecentFilesByExt(ext); }
         else {
           return window.gapi.client.drive.files.list({
-            fields: "files(id, name)",
+            fields: "files(id, name, modifiedTime)",
             q: 'not trashed and not (' + isSharedFile + ') and (fileExtension="' + ext + '" or "' + savedFiles[0].id + '" in parents)',
           });
         }
