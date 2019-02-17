@@ -50,7 +50,6 @@ class StudentDashboard extends Component {
   handleSignInClick = (event) => {
     this.setState({signedIn: WAITING_FOR_SIGNIN});
     this.api.signIn().then((resp) => {
-      console.log("The response is: ", resp);
       this.setState({signedIn: SIGNED_IN});
       this.api.getUsername().then((userInfo) => {
         this.setState({ userName: userInfo.emails[0].value });
@@ -72,20 +71,6 @@ class StudentDashboard extends Component {
     if (event.target.id === 'recent-files') {
       this.updateRecentFiles();
     }
-    else if (event.target.id === 'template-files') {
-      this.updateTemplateFiles();
-    }
-  }
-
-  updateTemplateFiles = () => {
-    this.setState({
-      files: [
-        {name: 'Sort a List.arr', id: '0B32bNEogmncOTEJjQ1VicHdlYmc'},
-        {name: 'Compute a Derivative.arr', id: '0B32bNEogmncOWU9OWW5MSFlHSDQ'},
-        {name: 'Land a plane.arr', id: '0B32bNEogmncONnZNU2JsUnRVRG8'},
-        {name: 'Play 2048.arr', id: '0B32bNEogmncOMTg5T2plV19LX0k'}
-      ]
-    });
   }
 
   updateRecentFiles = () => {
@@ -154,7 +139,6 @@ class StudentDashboard extends Component {
 
   // A simple callback implementation.
   pickerCallback = (data) => {
-    console.log(data);
     if (data.action === window.google.picker.Action.PICKED) {
       var fileId = data.docs[0].id;
       window.open(EDITOR_REDIRECT_URL + fileId, "_blank");
@@ -227,7 +211,7 @@ class StudentDashboard extends Component {
               :
                 this.state.files.length > 0 ?
                     (<div className='file-list cf'>
-                      {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} />;})}
+                      {this.state.files.map((f) => {return <File key={f.id} id={f.id} name={f.name} modifiedTime={f.modifiedTime} />;})}
                     </div>)
                   :
                     <p><em>No Pyret files yet, use New File above to create one.</em></p>
