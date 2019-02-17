@@ -586,7 +586,10 @@
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 	
 	/* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
-	
+
+	var connected = false; // Are you connected to google drive
+
+
 	var shareAPI = makeShareAPI((""));
 	
 	var url = __webpack_require__(2);
@@ -832,6 +835,11 @@
 	      });
 	    });
 	  }
+	  
+	  // THIS IS FOR DISPLAYING FILE-SAVE ELEMENTS OFFLINE
+	  enableFileOptions();
+	  $(".loginOnly").show();
+	  $(".logoutOnly").hide();
 	
 	  storageAPI.then(function (api) {
 	    api.collection.then(function () {
@@ -839,10 +847,10 @@
 	      $(".logoutOnly").hide();
 	      setUsername($("#username"));
 	    });
-	    api.collection.fail(function () {
-	      $(".loginOnly").hide();
-	      $(".logoutOnly").show();
-	    });
+	    // api.collection.fail(function () {
+	    //   $(".loginOnly").hide();
+	    //   $(".logoutOnly").show();
+	    // });
 	  });
 	
 	  storageAPI = storageAPI.then(function (api) {
@@ -857,12 +865,14 @@
 	    getTopTierMenuitems();
 	    storageAPI = createProgramCollectionAPI("code.pyret.org", false);
 	    storageAPI.then(function (api) {
+	      
 	      api.collection.then(function () {
 	        $(".loginOnly").show();
 	        $(".logoutOnly").hide();
 	        document.activeElement.blur();
 	        $("#bonniemenubutton").focus();
 	        setUsername($("#username"));
+	        
 	        if (params["get"] && params["get"]["program"]) {
 	          var toLoad = api.api.getFileById(params["get"]["program"]);
 	          console.log("Logged in and has program to load: ", toLoad);
@@ -874,6 +884,7 @@
 	          });
 	        }
 	      });
+	      
 	      api.collection.fail(function () {
 	        $("#connectButton").text("Connect to Google Drive");
 	        $("#connectButton").attr("disabled", false);
@@ -1166,6 +1177,7 @@
 	   */
 	  function save(newFilename) {
 	    var useName, create;
+
 	    if (newFilename !== undefined) {
 	      useName = newFilename;
 	      create = true;
@@ -1177,43 +1189,56 @@
 	      create = false;
 	    }
 	    window.stickMessage("Saving...");
-	    var savedProgram = programToSave.then(function (p) {
-	      if (p !== null && p.shared && !create) {
-	        return p; // Don't try to save shared files
-	      }
-	      if (create) {
-	        programToSave = storageAPI.then(function (api) {
-	          return api.createFile(useName);
-	        }).then(function (p) {
-	          // showShareContainer(p); TODO(joe): figure out where to put this
-	          history.pushState(null, null, "#program=" + p.getUniqueId());
-	          updateName(p); // sets filename
-	          enableFileOptions();
-	          return p;
-	        });
-	        return programToSave.then(function (p) {
-	          return save();
-	        });
-	      } else {
-	        return programToSave.then(function (p) {
-	          if (p === null) {
-	            return null;
-	          } else {
-	            return p.save(CPO.editor.cm.getValue(), false);
-	          }
-	        }).then(function (p) {
-	          if (p !== null) {
-	            window.flashMessage("Program saved as " + p.getName());
-	          }
-	          return p;
-	        });
-	      }
-	    });
-	    savedProgram.fail(function (err) {
-	      window.stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
-	      console.error(err);
-	    });
-	    return savedProgram;
+	    
+	    let contents = CPO.editor.cm.getValue();
+		let loc = window.location.pathname;
+
+	    storageAPI = localFileSaveAPI(loc);
+
+	    var api = storageAPI.api;
+
+	    api.createFile(contents);
+
+
+		// NOTE: Need condition to see if we are connected or not
+
+	 //    var savedProgram = programToSave.then(function (p) {
+	 //      if (p !== null && p.shared && !create) {
+	 //        return p; // Don't try to save shared files
+	 //      }
+	 //      if (create) {
+	 //        programToSave = storageAPI.then(function (api) {
+	 //          return api.createFile(useName);
+	 //        }).then(function (p) {
+	 //          // showShareContainer(p); TODO(joe): figure out where to put this
+	 //          history.pushState(null, null, "#program=" + p.getUniqueId());
+	 //          updateName(p); // sets filename
+	 //          enableFileOptions();
+	 //          return p;
+	 //        });
+	 //        return programToSave.then(function (p) {
+	 //          return save();
+	 //        });
+	 //      } else {
+	 //        return programToSave.then(function (p) {
+	 //          if (p === null) {
+	 //            return null;
+	 //          } else {
+	 //            return p.save(CPO.editor.cm.getValue(), false);
+	 //          }
+	 //        }).then(function (p) {
+	 //          if (p !== null) {
+	 //            window.flashMessage("Program saved as " + p.getName());
+	 //          }
+	 //          return p;
+	 //        });
+	 //      }
+	 //    });
+	 //    savedProgram.fail(function (err) {
+	 //      window.stickError("Unable to save", "Your internet connection may be down, or something else might be wrong with this site or saving to Google.  You should back up any changes to this program somewhere else.  You can try saving again to see if the problem was temporary, as well.");
+	 //      console.error(err);
+	 //    });
+	 //    return savedProgram;
 	  }
 	
 	  function saveAs() {
