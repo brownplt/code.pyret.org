@@ -77,7 +77,33 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
         return this.getFiles(baseCollection);
       },
 
-      /* Gives the user a dialog window to save a file with the given contents*/ 
+      /* Read contents of an existing file into the editor */
+      getFileContents: function(cm) {
+        var fs = require('fs'); // Load the File System to execute our common tasks (CRUD)
+
+        var app = require('electron').remote;
+        var dialog = app.dialog;   
+      
+        dialog.showOpenDialog((fileNames) => {
+          if(fileNames === undefined){
+              console.log("No file selected");
+              return;
+          }
+
+          fs.readFile(fileNames[0], 'utf-8', (err, data) => {
+              if(err){
+                  alert("An error ocurred reading the file :" + err.message);
+                  return;
+              }
+
+              cm.setValue(data);
+
+          });
+        });
+
+      },
+
+      /* Gives the user a dialog window to save a file with the given contents */ 
       createFile: function(contents) {
         // THIS IS ALL TEMPORARY -- NEED TO MOVE THIS INTO A FUNCTION
         var fs = require('fs'); // Load the File System to execute our common tasks (CRUD)
@@ -95,7 +121,7 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
           }
 
           // fileName is a string that contains the path and filename created in the save file dialog.  
-          fs.writeFile(fileName, content, (err) => {
+          fs.writeFile(fileName, contents, (err) => {
               if(err){
                   alert("An error ocurred creating the file "+ err.message)
               }

@@ -1193,6 +1193,7 @@
 	    let contents = CPO.editor.cm.getValue();
 		let loc = window.location.pathname;
 
+		// SHOULD DO THIS ONCE GLOBALLY 
 	    storageAPI = localFileSaveAPI(loc);
 
 	    var api = storageAPI.api;
@@ -1269,28 +1270,14 @@
 	  }
 
 		function openEvent() {
-			var fs = require('fs'); // Load the File System to execute our common tasks (CRUD)
 
-			var app = require('electron').remote;
-			var dialog = app.dialog;	 
-			dialog.showOpenDialog((fileNames) => {
-	// fileNames is an array that contains all the selected
-					if(fileNames === undefined){
-							console.log("No file selected");
-							return;
-					}
+			let loc = window.location.pathname;
 
-					fs.readFile(filepath, 'utf-8', (err, data) => {
-							if(err){
-									alert("An error ocurred reading the file :" + err.message);
-									return;
-							}
-
-							// Change how to handle the file content
-							console.log("The file content is : " + data);
-					});
-				});
-		  }
+			// SHOULD DO THIS ONCE GLOBALLY 
+	    	storageAPI = localFileSaveAPI(loc);
+	    	var api = storageAPI.api;
+	    	api.getFileContents(CPO.editor.cm);
+		}
 
 
 	  function rename() {
