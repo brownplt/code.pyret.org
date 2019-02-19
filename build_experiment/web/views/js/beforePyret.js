@@ -1,11 +1,11 @@
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	var parentHotUpdateCallback = this["webpackHotUpdate"];
-/******/ 	this["webpackHotUpdate"] = 
+/******/ 	this["webpackHotUpdate"] =
 /******/ 	function webpackHotUpdateCallback(chunkId, moreModules) { // eslint-disable-line no-unused-vars
 /******/ 		hotAddUpdateChunk(chunkId, moreModules);
 /******/ 		if(parentHotUpdateCallback) parentHotUpdateCallback(chunkId, moreModules);
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotDownloadUpdateChunk(chunkId) { // eslint-disable-line no-unused-vars
 /******/ 		var head = document.getElementsByTagName("head")[0];
 /******/ 		var script = document.createElement("script");
@@ -14,7 +14,7 @@
 /******/ 		script.src = __webpack_require__.p + "" + chunkId + "." + hotCurrentHash + ".hot-update.js";
 /******/ 		head.appendChild(script);
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotDownloadManifest(callback) { // eslint-disable-line no-unused-vars
 /******/ 		if(typeof XMLHttpRequest === "undefined")
 /******/ 			return callback(new Error("No browser support"));
@@ -51,8 +51,8 @@
 /******/ 		};
 /******/ 	}
 /******/
-/******/ 	
-/******/ 	
+/******/
+/******/
 /******/ 	// Copied from https://github.com/facebook/react/blob/bef45b0/src/shared/utils/canDefineProperty.js
 /******/ 	var canDefineProperty = false;
 /******/ 	try {
@@ -63,12 +63,12 @@
 /******/ 	} catch(x) {
 /******/ 		// IE will fail on defineProperty
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	var hotCurrentHash = "a7e1259b4b4be0914c15"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
-/******/ 	
+/******/
 /******/ 	function hotCreateRequire(moduleId) { // eslint-disable-line no-unused-vars
 /******/ 		var me = installedModules[moduleId];
 /******/ 		if(!me) return __webpack_require__;
@@ -106,7 +106,7 @@
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		function ensure(chunkId, callback) {
 /******/ 			if(hotStatus === "ready")
 /******/ 				hotSetStatus("prepare");
@@ -117,7 +117,7 @@
 /******/ 				} finally {
 /******/ 					finishChunkLoading();
 /******/ 				}
-/******/ 	
+/******/
 /******/ 				function finishChunkLoading() {
 /******/ 					hotChunksLoading--;
 /******/ 					if(hotStatus === "prepare") {
@@ -141,7 +141,7 @@
 /******/ 		}
 /******/ 		return fn;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotCreateModule(moduleId) { // eslint-disable-line no-unused-vars
 /******/ 		var hot = {
 /******/ 			// private stuff
@@ -150,7 +150,7 @@
 /******/ 			_selfAccepted: false,
 /******/ 			_selfDeclined: false,
 /******/ 			_disposeHandlers: [],
-/******/ 	
+/******/
 /******/ 			// Module API
 /******/ 			active: true,
 /******/ 			accept: function(dep, callback) {
@@ -183,7 +183,7 @@
 /******/ 				var idx = hot._disposeHandlers.indexOf(callback);
 /******/ 				if(idx >= 0) hot._disposeHandlers.splice(idx, 1);
 /******/ 			},
-/******/ 	
+/******/
 /******/ 			// Management API
 /******/ 			check: hotCheck,
 /******/ 			apply: hotApply,
@@ -198,22 +198,22 @@
 /******/ 				var idx = hotStatusHandlers.indexOf(l);
 /******/ 				if(idx >= 0) hotStatusHandlers.splice(idx, 1);
 /******/ 			},
-/******/ 	
+/******/
 /******/ 			//inherit from previous dispose call
 /******/ 			data: hotCurrentModuleData[moduleId]
 /******/ 		};
 /******/ 		return hot;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	var hotStatusHandlers = [];
 /******/ 	var hotStatus = "idle";
-/******/ 	
+/******/
 /******/ 	function hotSetStatus(newStatus) {
 /******/ 		hotStatus = newStatus;
 /******/ 		for(var i = 0; i < hotStatusHandlers.length; i++)
 /******/ 			hotStatusHandlers[i].call(null, newStatus);
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	// while downloading
 /******/ 	var hotWaitingFiles = 0;
 /******/ 	var hotChunksLoading = 0;
@@ -221,15 +221,15 @@
 /******/ 	var hotRequestedFilesMap = {};
 /******/ 	var hotAvailibleFilesMap = {};
 /******/ 	var hotCallback;
-/******/ 	
+/******/
 /******/ 	// The update info
 /******/ 	var hotUpdate, hotUpdateNewHash;
-/******/ 	
+/******/
 /******/ 	function toModuleId(id) {
 /******/ 		var isNumber = (+id) + "" === id;
 /******/ 		return isNumber ? +id : id;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotCheck(apply, callback) {
 /******/ 		if(hotStatus !== "idle") throw new Error("check() is only allowed in idle status");
 /******/ 		if(typeof apply === "function") {
@@ -249,14 +249,14 @@
 /******/ 				callback(null, null);
 /******/ 				return;
 /******/ 			}
-/******/ 	
+/******/
 /******/ 			hotRequestedFilesMap = {};
 /******/ 			hotAvailibleFilesMap = {};
 /******/ 			hotWaitingFilesMap = {};
 /******/ 			for(var i = 0; i < update.c.length; i++)
 /******/ 				hotAvailibleFilesMap[update.c[i]] = true;
 /******/ 			hotUpdateNewHash = update.h;
-/******/ 	
+/******/
 /******/ 			hotSetStatus("prepare");
 /******/ 			hotCallback = callback;
 /******/ 			hotUpdate = {};
@@ -270,7 +270,7 @@
 /******/ 			}
 /******/ 		});
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotAddUpdateChunk(chunkId, moreModules) { // eslint-disable-line no-unused-vars
 /******/ 		if(!hotAvailibleFilesMap[chunkId] || !hotRequestedFilesMap[chunkId])
 /******/ 			return;
@@ -284,7 +284,7 @@
 /******/ 			hotUpdateDownloaded();
 /******/ 		}
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotEnsureUpdateChunk(chunkId) {
 /******/ 		if(!hotAvailibleFilesMap[chunkId]) {
 /******/ 			hotWaitingFilesMap[chunkId] = true;
@@ -294,7 +294,7 @@
 /******/ 			hotDownloadUpdateChunk(chunkId);
 /******/ 		}
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotUpdateDownloaded() {
 /******/ 		hotSetStatus("ready");
 /******/ 		var callback = hotCallback;
@@ -312,7 +312,7 @@
 /******/ 			callback(null, outdatedModules);
 /******/ 		}
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotApply(options, callback) {
 /******/ 		if(hotStatus !== "ready") throw new Error("apply() is only allowed in ready status");
 /******/ 		if(typeof options === "function") {
@@ -328,11 +328,11 @@
 /******/ 				if(err) throw err;
 /******/ 			};
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		function getAffectedStuff(module) {
 /******/ 			var outdatedModules = [module];
 /******/ 			var outdatedDependencies = {};
-/******/ 	
+/******/
 /******/ 			var queue = outdatedModules.slice();
 /******/ 			while(queue.length > 0) {
 /******/ 				var moduleId = queue.pop();
@@ -363,10 +363,10 @@
 /******/ 					queue.push(parentId);
 /******/ 				}
 /******/ 			}
-/******/ 	
+/******/
 /******/ 			return [outdatedModules, outdatedDependencies];
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		function addAllToSet(a, b) {
 /******/ 			for(var i = 0; i < b.length; i++) {
 /******/ 				var item = b[i];
@@ -374,7 +374,7 @@
 /******/ 					a.push(item);
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// at begin all updates modules are outdated
 /******/ 		// the "outdated" status can propagate to parents if they don't accept the children
 /******/ 		var outdatedDependencies = {};
@@ -405,7 +405,7 @@
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Store self accepted outdated modules to require them later by the module system
 /******/ 		var outdatedSelfAcceptedModules = [];
 /******/ 		for(var i = 0; i < outdatedModules.length; i++) {
@@ -416,7 +416,7 @@
 /******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
 /******/ 				});
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Now in "dispose" phase
 /******/ 		hotSetStatus("dispose");
 /******/ 		var queue = outdatedModules.slice();
@@ -424,9 +424,9 @@
 /******/ 			var moduleId = queue.pop();
 /******/ 			var module = installedModules[moduleId];
 /******/ 			if(!module) continue;
-/******/ 	
+/******/
 /******/ 			var data = {};
-/******/ 	
+/******/
 /******/ 			// Call dispose handlers
 /******/ 			var disposeHandlers = module.hot._disposeHandlers;
 /******/ 			for(var j = 0; j < disposeHandlers.length; j++) {
@@ -434,13 +434,13 @@
 /******/ 				cb(data);
 /******/ 			}
 /******/ 			hotCurrentModuleData[moduleId] = data;
-/******/ 	
+/******/
 /******/ 			// disable module (this disables requires from this module)
 /******/ 			module.hot.active = false;
-/******/ 	
+/******/
 /******/ 			// remove module from cache
 /******/ 			delete installedModules[moduleId];
-/******/ 	
+/******/
 /******/ 			// remove "parents" references from all children
 /******/ 			for(var j = 0; j < module.children.length; j++) {
 /******/ 				var child = installedModules[module.children[j]];
@@ -451,7 +451,7 @@
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// remove outdated dependency from module children
 /******/ 		for(var moduleId in outdatedDependencies) {
 /******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
@@ -464,19 +464,19 @@
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Not in "apply" phase
 /******/ 		hotSetStatus("apply");
-/******/ 	
+/******/
 /******/ 		hotCurrentHash = hotUpdateNewHash;
-/******/ 	
+/******/
 /******/ 		// insert new code
 /******/ 		for(var moduleId in appliedUpdate) {
 /******/ 			if(Object.prototype.hasOwnProperty.call(appliedUpdate, moduleId)) {
 /******/ 				modules[moduleId] = appliedUpdate[moduleId];
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// call accept handlers
 /******/ 		var error = null;
 /******/ 		for(var moduleId in outdatedDependencies) {
@@ -501,7 +501,7 @@
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Load self accepted modules
 /******/ 		for(var i = 0; i < outdatedSelfAcceptedModules.length; i++) {
 /******/ 			var item = outdatedSelfAcceptedModules[i];
@@ -521,13 +521,13 @@
 /******/ 					error = err;
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// handle errors in accept handlers and self accepted module load
 /******/ 		if(error) {
 /******/ 			hotSetStatus("fail");
 /******/ 			return callback(error);
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		hotSetStatus("idle");
 /******/ 		callback(null, outdatedModules);
 /******/ 	}
@@ -584,25 +584,25 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
-	
+
 	/* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
 
 	var connected = false; // Are you connected to google drive
 
 
 	var shareAPI = makeShareAPI((""));
-	
+
 	var url = __webpack_require__(2);
 	var modalPrompt = __webpack_require__(5);
 	window.modalPrompt = modalPrompt;
-	
+
 	var LOG = true;
 	window.ct_log = function () /* varargs */{
 	  if (window.console && LOG) {
 	    console.log.apply(console, arguments);
 	  }
 	};
-	
+
 	window.ct_error = function () /* varargs */{
 	  if (window.console && LOG) {
 	    console.error.apply(console, arguments);
@@ -650,44 +650,44 @@
 	window.mkWarningLower = function () {
 	  return $("<div class='warning-lower'>");
 	};
-	
+
 	$(window).bind("beforeunload", function () {
 	  return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
 	});
-	
+
 	var Documents = function () {
-	
+
 	  function Documents() {
 	    this.documents = new Map();
 	  }
-	
+
 	  Documents.prototype.has = function (name) {
 	    return this.documents.has(name);
 	  };
-	
+
 	  Documents.prototype.get = function (name) {
 	    return this.documents.get(name);
 	  };
-	
+
 	  Documents.prototype.set = function (name, doc) {
 	    if (logger.isDetailed) logger.log("doc.set", { name: name, value: doc.getValue() });
 	    return this.documents.set(name, doc);
 	  };
-	
+
 	  Documents.prototype.delete = function (name) {
 	    if (logger.isDetailed) logger.log("doc.del", { name: name });
 	    return this.documents.delete(name);
 	  };
-	
+
 	  Documents.prototype.forEach = function (f) {
 	    return this.documents.forEach(f);
 	  };
-	
+
 	  return Documents;
 	}();
-	
+
 	var VERSION_CHECK_INTERVAL = 120000 + 30000 * Math.random();
-	
+
 	function checkVersion() {
 	  $.get("/current-version").then(function (resp) {
 	    resp = JSON.parse(resp);
@@ -697,7 +697,7 @@
 	  });
 	}
 	window.setInterval(checkVersion, VERSION_CHECK_INTERVAL);
-	
+
 	window.CPO = {
 	  save: function save() {},
 	  autoSave: function autoSave() {},
@@ -727,20 +727,20 @@
 	    if (options.hasOwnProperty("initial")) {
 	      initial = options.initial;
 	    }
-	
+
 	    var textarea = jQuery("<textarea aria-hidden='true'>");
 	    textarea.val(initial);
 	    container.append(textarea);
-	
+
 	    var runFun = function runFun(code, replOptions) {
 	      options.run(code, { cm: CM }, replOptions);
 	    };
-	
+
 	    var useLineNumbers = !options.simpleEditor;
 	    var useFolding = !options.simpleEditor;
-	
+
 	    var gutters = !options.simpleEditor ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"] : [];
-	
+
 	    function reindentAllLines(cm) {
 	      var last = cm.lineCount();
 	      cm.operation(function () {
@@ -749,10 +749,10 @@
 	        }
 	      });
 	    }
-	
+
 	    // place a vertical line at character 80 in code editor, and not repl
 	    var CODE_LINE_WIDTH = 100;
-	
+
 	    var rulers, rulersMinCol;
 	    if (options.simpleEditor) {
 	      rulers = [];
@@ -760,7 +760,7 @@
 	      rulers = [{ color: "#317BCF", column: CODE_LINE_WIDTH, lineStyle: "dashed", className: "hidden" }];
 	      rulersMinCol = CODE_LINE_WIDTH;
 	    }
-	
+
 	    var cmOptions = {
 	      extraKeys: CodeMirror.normalizeKeyMap({
 	        "Shift-Enter": function ShiftEnter(cm) {
@@ -792,18 +792,18 @@
 	      rulers: rulers,
 	      rulersMinCol: rulersMinCol
 	    };
-	
+
 	    cmOptions = merge(cmOptions, options.cmOptions || {});
-	
+
 	    var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
-	
+
 	    if (useLineNumbers) {
 	      CM.display.wrapper.appendChild(mkWarningUpper()[0]);
 	      CM.display.wrapper.appendChild(mkWarningLower()[0]);
 	    }
-	
+
 	    getTopTierMenuitems();
-	
+
 	    return {
 	      cm: CM,
 	      refresh: function refresh() {
@@ -821,7 +821,7 @@
 	  CPO.RUN_CODE = function () {
 	    console.log("Running before ready", arguments);
 	  };
-	
+
 	  function setUsername(target) {
 	    return gwrap.load({ name: 'plus',
 	      version: 'v1'
@@ -835,12 +835,12 @@
 	      });
 	    });
 	  }
-	  
+
 	  // THIS IS FOR DISPLAYING FILE-SAVE ELEMENTS OFFLINE
 	  enableFileOptions();
 	  $(".loginOnly").show();
 	  $(".logoutOnly").hide();
-	
+
 	  storageAPI.then(function (api) {
 	    api.collection.then(function () {
 	      $(".loginOnly").show();
@@ -852,7 +852,7 @@
 	    //   $(".logoutOnly").show();
 	    // });
 	  });
-	
+
 	  storageAPI = storageAPI.then(function (api) {
 	    return api.api;
 	  });
@@ -865,14 +865,14 @@
 	    getTopTierMenuitems();
 	    storageAPI = createProgramCollectionAPI("code.pyret.org", false);
 	    storageAPI.then(function (api) {
-	      
+
 	      api.collection.then(function () {
 	        $(".loginOnly").show();
 	        $(".logoutOnly").hide();
 	        document.activeElement.blur();
 	        $("#bonniemenubutton").focus();
 	        setUsername($("#username"));
-	        
+
 	        if (params["get"] && params["get"]["program"]) {
 	          var toLoad = api.api.getFileById(params["get"]["program"]);
 	          console.log("Logged in and has program to load: ", toLoad);
@@ -884,7 +884,7 @@
 	          });
 	        }
 	      });
-	      
+
 	      api.collection.fail(function () {
 	        $("#connectButton").text("Connect to Google Drive");
 	        $("#connectButton").attr("disabled", false);
@@ -899,7 +899,7 @@
 	      return api.api;
 	    });
 	  });
-	
+
 	  /*
 	    initialProgram holds a promise for a Drive File object or null
 	     It's null if the page doesn't have a #share or #program url
@@ -945,14 +945,14 @@
 	      return null;
 	    }
 	  });
-	
+
 	  function setTitle(progName) {
 	    document.title = progName + " - code.pyret.org";
 	  }
 	  CPO.setTitle = setTitle;
-	
+
 	  var filename = false;
-	
+
 	  $("#download a").click(function () {
 	    var downloadElt = $("#download a");
 	    var contents = CPO.editor.cm.getValue();
@@ -969,23 +969,23 @@
 	    });
 	    $("#download").append(downloadElt);
 	  });
-	
+
 	  var TRUNCATE_LENGTH = 20;
-	
+
 	  function truncateName(name) {
 	    if (name.length <= TRUNCATE_LENGTH + 1) {
 	      return name;
 	    }
 	    return name.slice(0, TRUNCATE_LENGTH / 2) + "…" + name.slice(name.length - TRUNCATE_LENGTH / 2, name.length);
 	  }
-	
+
 	  function updateName(p) {
 	    filename = p.getName();
 	    $("#filename").text(" (" + truncateName(filename) + ")");
 	    setTitle(filename);
 	    showShareContainer(p);
 	  }
-	
+
 	  function loadProgram(p) {
 	    programToSave = p;
 	    return p.then(function (prog) {
@@ -998,7 +998,7 @@
 	      }
 	    });
 	  }
-	
+
 	  function say(msg, forget) {
 	    if (msg === "") return;
 	    var announcements = document.getElementById("announcementlist");
@@ -1011,18 +1011,18 @@
 	      }, 1000);
 	    }
 	  }
-	
+
 	  function sayAndForget(msg) {
 	    //console.log('doing sayAndForget', msg);
 	    say(msg, true);
 	  }
-	
+
 	  function cycleAdvance(currIndex, maxIndex, reverseP) {
 	    var nextIndex = currIndex + (reverseP ? -1 : +1);
 	    nextIndex = (nextIndex % maxIndex + maxIndex) % maxIndex;
 	    return nextIndex;
 	  }
-	
+
 	  function populateFocusCarousel(editor) {
 	    if (!editor.focusCarousel) {
 	      editor.focusCarousel = [];
@@ -1061,7 +1061,7 @@
 	      fc[3] = document.getElementById("announcements");
 	    }
 	  }
-	
+
 	  function cycleFocus(reverseP) {
 	    //console.log('doing cycleFocus', reverseP);
 	    var editor = this.editor;
@@ -1083,7 +1083,7 @@
 	      focusElt = fCarousel[nextFocusIndex];
 	      //console.log('trying focusElt', focusElt);
 	    } while (!focusElt);
-	
+
 	    var focusElt0;
 	    if (focusElt.classList.contains('toolbarregion')) {
 	      //console.log('settling on toolbar region')
@@ -1116,17 +1116,17 @@
 	      //console.log('settling on announcement region', focusElt)
 	      focusElt0 = focusElt;
 	    }
-	
+
 	    document.activeElement.blur();
 	    focusElt0.click();
 	    focusElt0.focus();
 	    //console.log('(cf)docactelt=', document.activeElement);
 	  }
-	
+
 	  var programLoaded = loadProgram(initialProgram);
-	
+
 	  var programToSave = initialProgram;
-	
+
 	  function showShareContainer(p) {
 	    //console.log('called showShareContainer');
 	    if (!p.shared) {
@@ -1136,7 +1136,7 @@
 	      getTopTierMenuitems();
 	    }
 	  }
-	
+
 	  function nameOrUntitled() {
 	    return filename || "Untitled";
 	  }
@@ -1147,26 +1147,26 @@
 	      }
 	    });
 	  }
-	
+
 	  function enableFileOptions() {
 	    $("#filemenuContents *").removeClass("disabled");
 	  }
-	
+
 	  function menuItemDisabled(id) {
 	    return $("#" + id).hasClass("disabled");
 	  }
-	
+
 	  function newEvent(e) {
 	    window.open(window.APP_BASE_URL + "/editor");
 	  }
-	
+
 	  function saveEvent(e) {
 	    if (menuItemDisabled("save")) {
 	      return;
 	    }
 	    return save();
 	  }
-	
+
 	  /*
 	    save : string (optional) -> undef
 	     If a string argument is provided, create a new file with that name and save
@@ -1189,7 +1189,7 @@
 	      create = false;
 	    }
 	    window.stickMessage("Saving...");
-	    
+
 	    let contents = CPO.editor.cm.getValue();
 		let loc = window.location.pathname;
 
@@ -1240,7 +1240,7 @@
 	 //    });
 	 //    return savedProgram;
 	  }
-	
+
 	  function saveAs() {
 	    if (menuItemDisabled("saveas")) {
 	      return;
@@ -1267,7 +1267,32 @@
 	      });
 	    });
 	  }
-	
+
+		function openEvent() {
+			var fs = require('fs'); // Load the File System to execute our common tasks (CRUD)
+
+			var app = require('electron').remote;
+			var dialog = app.dialog;	 
+			dialog.showOpenDialog((fileNames) => {
+	// fileNames is an array that contains all the selected
+					if(fileNames === undefined){
+							console.log("No file selected");
+							return;
+					}
+
+					fs.readFile(filepath, 'utf-8', (err, data) => {
+							if(err){
+									alert("An error ocurred reading the file :" + err.message);
+									return;
+							}
+
+							// Change how to handle the file content
+							console.log("The file content is : " + data);
+					});
+				});
+		  }
+
+
 	  function rename() {
 	    programToSave.then(function (p) {
 	      var renamePrompt = new modalPrompt({
@@ -1300,20 +1325,21 @@
 	      console.error("Unable to rename: ", err);
 	    });
 	  }
-	
+
 	  $("#runButton").click(function () {
 	    CPO.autoSave();
 	  });
-	
+
 	  $("#new").click(newEvent);
 	  $("#save").click(saveEvent);
 	  $("#rename").click(rename);
 	  $("#saveas").click(saveAs);
-	
+	  $("#open").click(openEvent);
+
 	  var focusableElts = $(document).find('#header .focusable');
 	  //console.log('focusableElts=', focusableElts)
 	  var theToolbar = $(document).find('#Toolbar');
-	
+
 	  function getTopTierMenuitems() {
 	    //console.log('doing getTopTierMenuitems')
 	    var topTierMenuitems = $(document).find('#header ul li.topTier').toArray();
@@ -1329,7 +1355,7 @@
 	    }
 	    return topTierMenuitems;
 	  }
-	
+
 	  function updateEditorHeight() {
 	    var toolbarHeight = document.getElementById('topTierUl').scrollHeight;
 	    // gets bumped to 67 on initial resize perturbation, but actual value is indeed 40
@@ -1342,9 +1368,9 @@
 	      docReplMain[0].style.paddingTop = toolbarHeight;
 	    }
 	  }
-	
+
 	  $(window).on('resize', updateEditorHeight);
-	
+
 	  function insertAriaPos(submenu) {
 	    //console.log('doing insertAriaPos', submenu)
 	    var arr = submenu.toArray();
@@ -1357,15 +1383,15 @@
 	      elt.setAttribute('aria-posinset', (i + 1).toString());
 	    }
 	  }
-	
+
 	  document.addEventListener('click', function () {
 	    hideAllTopMenuitems();
 	  });
-	
+
 	  theToolbar.click(function (e) {
 	    e.stopPropagation();
 	  });
-	
+
 	  theToolbar.keydown(function (e) {
 	    //console.log('toolbar keydown', e);
 	    //most any key at all
@@ -1388,7 +1414,7 @@
 	      hideAllTopMenuitems();
 	    }
 	  });
-	
+
 	  function clickTopMenuitem(e) {
 	    hideAllTopMenuitems();
 	    var thisElt = $(this);
@@ -1418,20 +1444,20 @@
 	    }
 	    e.stopPropagation();
 	  }
-	
+
 	  var expandableElts = $(document).find('#header [aria-expanded]');
 	  expandableElts.click(clickTopMenuitem);
-	
+
 	  function hideAllTopMenuitems() {
 	    //console.log('doing hideAllTopMenuitems');
 	    var topTierUl = $(document).find('#header ul[id=topTierUl]');
 	    topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
 	    topTierUl.find('ul.submenu').attr('aria-hidden', 'true').hide();
 	  }
-	
+
 	  var nonexpandableElts = $(document).find('#header .topTier > div > button:not([aria-expanded])');
 	  nonexpandableElts.click(hideAllTopMenuitems);
-	
+
 	  function switchTopMenuitem(destTopMenuitem, destElt) {
 	    //console.log('doing switchTopMenuitem', destTopMenuitem, destElt);
 	    //console.log('dtmil=', destTopMenuitem.length);
@@ -1447,15 +1473,15 @@
 	      destElt.focus();
 	    }
 	  }
-	
+
 	  var showingHelpKeys = false;
-	
+
 	  function showHelpKeys() {
 	    showingHelpKeys = true;
 	    $('#help-keys').fadeIn(100);
 	    reciteHelp();
 	  }
-	
+
 	  focusableElts.keydown(function (e) {
 	    //console.log('focusable elt keydown', e);
 	    var kc = e.keyCode;
@@ -1643,16 +1669,16 @@
 	    }
 	    //e.stopPropagation();
 	  });
-	
+
 	  // shareAPI.makeHoverMenu($("#filemenu"), $("#filemenuContents"), false, function(){});
 	  // shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
-	
-	
+
+
 	  var codeContainer = $("<div>").addClass("replMain");
 	  codeContainer.attr("role", "region").attr("aria-label", "Definitions");
 	  //attr("tabIndex", "-1");
 	  $("#main").prepend(codeContainer);
-	
+
 	  CPO.editor = CPO.makeEditor(codeContainer, {
 	    runButton: $("#runButton"),
 	    simpleEditor: false,
@@ -1748,51 +1774,51 @@
 	      refreshRulers();
 	    }
 	  });
-	
+
 	  programLoaded.then(function (c) {
 	    CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-	
+
 	    // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
 	    // in which undo can revert the program back to empty
 	    CPO.editor.cm.clearHistory();
 	    CPO.editor.cm.setValue(c);
 	  });
-	
+
 	  programLoaded.fail(function () {
 	    CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
 	  });
-	
+
 	  var pyretLoad = document.createElement('script');
 	  console.log(("./js/cpo-main.jarr"));
 	  pyretLoad.src = ("./js/cpo-main.jarr");
 	  pyretLoad.type = "text/javascript";
 	  document.body.appendChild(pyretLoad);
-	
+
 	  var pyretLoad2 = document.createElement('script');
-	
+
 	  function logFailureAndManualFetch(url, e) {
-	
+
 	    // NOTE(joe): The error reported by the "error" event has essentially no
 	    // information on it; it's just a notification that _something_ went wrong.
 	    // So, we log that something happened, then immediately do an AJAX request
 	    // call for the same URL, to see if we can get more information. This
 	    // doesn't perfectly tell us about the original failure, but it's
 	    // something.
-	
+
 	    // In addition, if someone is seeing the Pyret failed to load error, but we
 	    // don't get these logging events, we have a strong hint that something is
 	    // up with their network.
 	    logger.log('pyret-load-failure', {
 	      event: 'initial-failure',
 	      url: url,
-	
+
 	      // The timestamp appears to count from the beginning of page load,
 	      // which may approximate download time if, say, requests are timing out
 	      // or getting cut off.
-	
+
 	      timeStamp: e.timeStamp
 	    });
-	
+
 	    var manualFetch = $.ajax(url);
 	    manualFetch.then(function (res) {
 	      // Here, we log the first 100 characters of the response to make sure
@@ -1814,7 +1840,7 @@
 	      });
 	    });
 	  }
-	
+
 	  $(pyretLoad).on("error", function (e) {
 	    logFailureAndManualFetch(("./js/cpo-main.jarr"), e);
 	    console.log(process.env);
@@ -1822,7 +1848,7 @@
 	    pyretLoad2.type = "text/javascript";
 	    document.body.appendChild(pyretLoad2);
 	  });
-	
+
 	  $(pyretLoad2).on("error", function (e) {
 	    $("#loader").hide();
 	    $("#runPart").hide();
@@ -1830,12 +1856,12 @@
 	    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
 	    logFailureAndManualFetch((undefined), e);
 	  });
-	
+
 	  programLoaded.fin(function () {
 	    CPO.editor.focus();
 	    CPO.editor.cm.setOption("readOnly", false);
 	  });
-	
+
 	  CPO.autoSave = autoSave;
 	  CPO.save = save;
 	  CPO.updateName = updateName;
@@ -1853,15 +1879,15 @@
 
 	// shim for using process in browser
 	var process = module.exports = {};
-	
+
 	// cached from whatever global is present so that test runners that stub it
 	// don't break things.  But we need to wrap it in a try catch in case it is
 	// wrapped in strict mode code which doesn't define any globals.  It's inside a
 	// function because try/catches deoptimize in certain engines.
-	
+
 	var cachedSetTimeout;
 	var cachedClearTimeout;
-	
+
 	function defaultSetTimout() {
 	    throw new Error('setTimeout has not been defined');
 	}
@@ -1910,8 +1936,8 @@
 	            return cachedSetTimeout.call(this, fun, 0);
 	        }
 	    }
-	
-	
+
+
 	}
 	function runClearTimeout(marker) {
 	    if (cachedClearTimeout === clearTimeout) {
@@ -1936,15 +1962,15 @@
 	            return cachedClearTimeout.call(this, marker);
 	        }
 	    }
-	
-	
-	
+
+
+
 	}
 	var queue = [];
 	var draining = false;
 	var currentQueue;
 	var queueIndex = -1;
-	
+
 	function cleanUpNextTick() {
 	    if (!draining || !currentQueue) {
 	        return;
@@ -1959,14 +1985,14 @@
 	        drainQueue();
 	    }
 	}
-	
+
 	function drainQueue() {
 	    if (draining) {
 	        return;
 	    }
 	    var timeout = runTimeout(cleanUpNextTick);
 	    draining = true;
-	
+
 	    var len = queue.length;
 	    while(len) {
 	        currentQueue = queue;
@@ -1983,7 +2009,7 @@
 	    draining = false;
 	    runClearTimeout(timeout);
 	}
-	
+
 	process.nextTick = function (fun) {
 	    var args = new Array(arguments.length - 1);
 	    if (arguments.length > 1) {
@@ -1996,7 +2022,7 @@
 	        runTimeout(drainQueue);
 	    }
 	};
-	
+
 	// v8 likes predictible objects
 	function Item(fun, array) {
 	    this.fun = fun;
@@ -2011,9 +2037,9 @@
 	process.argv = [];
 	process.version = ''; // empty string to avoid regexp issues
 	process.versions = {};
-	
+
 	function noop() {}
-	
+
 	process.on = noop;
 	process.addListener = noop;
 	process.once = noop;
@@ -2023,13 +2049,13 @@
 	process.emit = noop;
 	process.prependListener = noop;
 	process.prependOnceListener = noop;
-	
+
 	process.listeners = function (name) { return [] }
-	
+
 	process.binding = function (name) {
 	    throw new Error('process.binding is not supported');
 	};
-	
+
 	process.cwd = function () { return '/' };
 	process.chdir = function (dir) {
 	    throw new Error('process.chdir is not supported');
@@ -2042,7 +2068,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {// Copyright 2013-2014 Kevin Cox
-	
+
 	/*******************************************************************************
 	*                                                                              *
 	*  This software is provided 'as-is', without any express or implied           *
@@ -2064,25 +2090,25 @@
 	*  3. This notice may not be removed or altered from any source distribution.  *
 	*                                                                              *
 	*******************************************************************************/
-	
+
 	+function(){
 	"use strict";
-	
+
 	var array = /\[([^\[]*)\]$/;
-	
+
 	/// URL Regex.
 	/**
 	 * This regex splits the URL into parts.  The capture groups catch the important
 	 * bits.
-	 * 
+	 *
 	 * Each section is optional, so to work on any part find the correct top level
 	 * `(...)?` and mess around with it.
 	 */
 	var regex = /^(?:([a-z]*):)?(?:\/\/)?(?:([^:@]*)(?::([^@]*))?@)?([a-z-._]+)?(?::([0-9]*))?(\/[^?#]*)?(?:\?([^#]*))?(?:#(.*))?$/i;
 	//               1 - scheme                2 - user    3 = pass 4 - host        5 - port  6 - path        7 - query    8 - hash
-	
+
 	var noslash = ["mailto","bitcoin"];
-	
+
 	var self = {
 		/** Parse a query string.
 		 *
@@ -2136,29 +2162,29 @@
 			if ( typeof opt          == "undefined" ) opt = {};
 			if ( typeof opt["full"]  == "undefined" ) opt["full"] = false;
 			if ( typeof opt["array"] == "undefined" ) opt["array"] = false;
-			
+
 			if ( opt["full"] === true )
 			{
 				q = self["parse"](q, {"get":false})["query"] || "";
 			}
-			
+
 			var o = {};
-			
+
 			var c = q.split("&");
 			for (var i = 0; i < c.length; i++)
 			{
 				if (!c[i].length) continue;
-				
+
 				var d = c[i].indexOf("=");
 				var k = c[i], v = true;
 				if ( d >= 0 )
 				{
 					k = c[i].substr(0, d);
 					v = c[i].substr(d+1);
-					
+
 					v = decodeURIComponent(v);
 				}
-				
+
 				if (opt["array"])
 				{
 					var inds = [];
@@ -2179,26 +2205,26 @@
 							//console.log("url.get: Array property "+curk+" already exists as string!");
 							return true;
 						}
-						
+
 						curo = curo[curk];
-						
+
 						if ( i === "" ) i = curo.length;
-						
+
 						curk = i;
 					})) continue;
 					curo[curk] = v;
 					continue;
 				}
-				
+
 				k = decodeURIComponent(k);
-				
+
 				//typeof o[k] == "undefined" || console.log("Property "+k+" already exists!");
 				o[k] = v;
 			}
-			
+
 			return o;
 		},
-		
+
 		/** Build a get query from an object.
 		 *
 		 * This constructs a query string from the kv pairs in `data`.  Calling
@@ -2226,9 +2252,9 @@
 				var ek = encodeURIComponent(k);
 				if ( typeof prefix != "undefined" )
 					ek = prefix+"["+ek+"]";
-				
+
 				var v = data[k];
-				
+
 				switch (typeof v)
 				{
 					case 'boolean':
@@ -2246,9 +2272,9 @@
 			}
 			return itms.join("&");
 		},
-		
+
 		/** Parse a URL
-		 * 
+		 *
 		 * This breaks up a URL into components.  It attempts to be very liberal
 		 * and returns the best result in most cases.  This means that you can
 		 * often pass in part of a URL and get correct categories back.  Notably,
@@ -2258,9 +2284,9 @@
 		 * empty string will be returned if the surrounding syntax but the actual
 		 * value is empty (example: "://example.com" will give a empty string for
 		 * scheme.)  Notably the host name will always be set to something.
-		 * 
+		 *
 		 * Returned properties.
-		 * 
+		 *
 		 * - **scheme:** The url scheme. (ex: "mailto" or "https")
 		 * - **user:** The username.
 		 * - **pass:** The password.
@@ -2282,14 +2308,14 @@
 		 * @return{!Object} An object with the parsed values.
 		 */
 		"parse": function(url, opt) {
-			
+
 			if ( typeof opt == "undefined" ) opt = {};
-			
+
 			var md = url.match(regex) || [];
-			
+
 			var r = {
 				"url":    url,
-				
+
 				"scheme": md[1],
 				"user":   md[2],
 				"pass":   md[3],
@@ -2299,23 +2325,23 @@
 				"query":  md[7],
 				"hash":   md[8],
 			};
-			
+
 			if ( opt.get !== false )
 				r["get"] = r["query"] && self["get"](r["query"], opt.get);
-			
+
 			return r;
 		},
-		
+
 		/** Build a URL from components.
-		 * 
+		 *
 		 * This pieces together a url from the properties of the passed in object.
 		 * In general passing the result of `parse()` should return the URL.  There
 		 * may differences in the get string as the keys and values might be more
 		 * encoded then they were originally were.  However, calling `get()` on the
 		 * two values should yield the same result.
-		 * 
+		 *
 		 * Here is how the parameters are used.
-		 * 
+		 *
 		 *  - url: Used only if no other values are provided.  If that is the case
 		 *     `url` will be returned verbatim.
 		 *  - scheme: Used if defined.
@@ -2327,9 +2353,9 @@
 		 *  - get: Used if non-empty.  Passed to #buildget and the result is used
 		 *    as the query string.
 		 *  - hash: Used if defined.
-		 * 
+		 *
 		 * These are the options that are valid on the options object.
-		 * 
+		 *
 		 *  - useemptyget: If truthy, a question mark will be appended for empty get
 		 *    strings.  This notably makes `build()` and `parse()` fully symmetric.
 		 *
@@ -2339,9 +2365,9 @@
 		 */
 		"build": function(data, opt){
 			opt = opt || {};
-			
+
 			var r = "";
-			
+
 			if ( typeof data["scheme"] != "undefined" )
 			{
 				r += data["scheme"];
@@ -2359,7 +2385,7 @@
 			if ( typeof data["host"] != "undefined" ) r += data["host"];
 			if ( typeof data["port"] != "undefined" ) r += ":" + data["port"];
 			if ( typeof data["path"] != "undefined" ) r += data["path"];
-			
+
 			if (opt["useemptyget"])
 			{
 				if      ( typeof data["get"]   != "undefined" ) r += "?" + self["buildget"](data["get"]);
@@ -2371,19 +2397,19 @@
 				var q = data["get"] && self["buildget"](data["get"]) || data["query"];
 				if (q) r += "?" + q;
 			}
-			
+
 			if ( typeof data["hash"] != "undefined" ) r += "#" + data["hash"];
-			
+
 			return r || data["url"] || "";
 		},
 	};
-	
+
 	if ( "function" != "undefined" && __webpack_require__(4)["amd"] ) !(__WEBPACK_AMD_DEFINE_FACTORY__ = (self), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	else if ( true ) module['exports'] = self;
 	else window["url"] = self;
-	
+
 	}();
-	
+
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)(module)))
 
 /***/ }),
@@ -2414,7 +2440,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
-	
+
 	/**
 	 * Module for managing modal prompt instances.
 	 * NOTE: This module is currently limited in a number
@@ -2428,7 +2454,7 @@
 	 *       be aware of these limitations.
 	 */
 	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (Q) {
-	
+
 	  function autoHighlightBox(text) {
 	    var textBox = $("<input type='text'>").addClass("auto-highlight");
 	    textBox.attr("size", text.length);
@@ -2442,13 +2468,13 @@
 	    textBox.val(text);
 	    return textBox;
 	  }
-	
+
 	  // Allows asynchronous requesting of prompts
 	  var promptQueue = Q();
 	  var styles = ["radio", "tiles", "text", "copyText", "confirm"];
-	
+
 	  window.modals = [];
-	
+
 	  /**
 	   * Represents an option to present the user
 	   * @typedef {Object} ModalOption
@@ -2457,7 +2483,7 @@
 	   * @property {string} value - The value to return if this option is chosen
 	   * @property {string} [example] - A code snippet to show with this option
 	   */
-	
+
 	  /**
 	   * Constructor for modal prompts.
 	   * @param {ModalOption[]} options - The options to present the user
@@ -2492,13 +2518,13 @@
 	    this.deferred = Q.defer();
 	    this.promise = this.deferred.promise;
 	  }
-	
+
 	  /**
 	   * Type for handlers of responses from modal prompts
 	   * @callback promptCallback
 	   * @param {string} resp - The response from the user
 	   */
-	
+
 	  /**
 	   * Shows this prompt to the user (will wait until any active
 	   * prompts have finished)
@@ -2536,14 +2562,14 @@
 	    this.title.text(this.options.title);
 	    this.populateModal();
 	    this.modal.css('display', 'block');
-	
+
 	    if (callback) {
 	      return this.promise.then(callback);
 	    } else {
 	      return this.promise;
 	    }
 	  };
-	
+
 	  /**
 	   * Clears the contents of the modal prompt.
 	   */
@@ -2552,7 +2578,7 @@
 	    this.closeButton.off();
 	    this.elts.empty();
 	  };
-	
+
 	  /**
 	   * Populates the contents of the modal prompt with the
 	   * options in this prompt.
@@ -2587,7 +2613,7 @@
 	        exampleContainer.append(example);
 	        container.append(exampleContainer);
 	      }
-	
+
 	      return container;
 	    }
 	    function createTileElt(option, idx) {
@@ -2598,7 +2624,7 @@
 	        elt.on(evt, option.on[evt]);
 	      }return elt;
 	    }
-	
+
 	    function createTextElt(option) {
 	      var elt = $("<div>");
 	      elt.append($("<span>").addClass("textLabel").text(option.message));
@@ -2606,7 +2632,7 @@
 	      elt.append($("<input type='text'>").val(option.defaultValue));
 	      return elt;
 	    }
-	
+
 	    function createCopyTextElt(option) {
 	      var elt = $("<div>");
 	      elt.append($("<p>").addClass("textLabel").text(option.message));
@@ -2618,13 +2644,13 @@
 	      }
 	      return elt;
 	    }
-	
+
 	    function createConfirmElt(option) {
 	      return $("<p>").text(option.message);
 	    }
-	
+
 	    var that = this;
-	
+
 	    function createElt(option, i) {
 	      if (that.options.style === "radio") {
 	        return createRadioElt(option, i);
@@ -2638,7 +2664,7 @@
 	        return createConfirmElt(option);
 	      }
 	    }
-	
+
 	    var optionElts;
 	    // Cache results
 	    //    if (true) {
@@ -2653,7 +2679,7 @@
 	    $(".modal-body", this.modal).empty().append(this.elts);
 	    optionElts[0].focus();
 	  };
-	
+
 	  /**
 	   * Handler which is called when the user does not select anything
 	   */
@@ -2664,7 +2690,7 @@
 	    delete this.deferred;
 	    delete this.promise;
 	  };
-	
+
 	  /**
 	   * Handler which is called when the user presses "submit"
 	   */
@@ -2686,7 +2712,7 @@
 	    delete this.deferred;
 	    delete this.promise;
 	  };
-	
+
 	  return Prompt;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -2721,27 +2747,27 @@
 	 * limitations under the License.
 	 *
 	 */
-	
+
 	(function (definition) {
 	    "use strict";
-	
+
 	    // This file will function properly as a <script> tag, or a module
 	    // using CommonJS and NodeJS or RequireJS module formats.  In
 	    // Common/Node/RequireJS, the module exports the Q API and when
 	    // executed as a simple <script>, it creates a Q global instead.
-	
+
 	    // Montage Require
 	    if (typeof bootstrap === "function") {
 	        bootstrap("promise", definition);
-	
+
 	    // CommonJS
 	    } else if (true) {
 	        module.exports = definition();
-	
+
 	    // RequireJS
 	    } else if (typeof define === "function" && define.amd) {
 	        define(definition);
-	
+
 	    // SES (Secure EcmaScript)
 	    } else if (typeof ses !== "undefined") {
 	        if (!ses.ok()) {
@@ -2749,49 +2775,49 @@
 	        } else {
 	            ses.makeQ = definition;
 	        }
-	
+
 	    // <script>
 	    } else if (typeof window !== "undefined" || typeof self !== "undefined") {
 	        // Prefer window over self for add-on scripts. Use self for
 	        // non-windowed contexts.
 	        var global = typeof window !== "undefined" ? window : self;
-	
+
 	        // Get the `window` object, save the previous Q global
 	        // and initialize Q as a global.
 	        var previousQ = global.Q;
 	        global.Q = definition();
-	
+
 	        // Add a noConflict function so Q can be removed from the
 	        // global namespace.
 	        global.Q.noConflict = function () {
 	            global.Q = previousQ;
 	            return this;
 	        };
-	
+
 	    } else {
 	        throw new Error("This environment was not anticipated by Q. Please file a bug.");
 	    }
-	
+
 	})(function () {
 	"use strict";
-	
+
 	var hasStacks = false;
 	try {
 	    throw new Error();
 	} catch (e) {
 	    hasStacks = !!e.stack;
 	}
-	
+
 	// All code after this point will be filtered from stack traces reported
 	// by Q.
 	var qStartingLine = captureLine();
 	var qFileName;
-	
+
 	// shims
-	
+
 	// used for fallback in "allResolved"
 	var noop = function () {};
-	
+
 	// Use the fastest possible means to execute a task in a future turn
 	// of the event loop.
 	var nextTick =(function () {
@@ -2803,23 +2829,23 @@
 	    var isNodeJS = false;
 	    // queue for late tasks, used by unhandled rejection tracking
 	    var laterQueue = [];
-	
+
 	    function flush() {
 	        /* jshint loopfunc: true */
 	        var task, domain;
-	
+
 	        while (head.next) {
 	            head = head.next;
 	            task = head.task;
 	            head.task = void 0;
 	            domain = head.domain;
-	
+
 	            if (domain) {
 	                head.domain = void 0;
 	                domain.enter();
 	            }
 	            runSingle(task, domain);
-	
+
 	        }
 	        while (laterQueue.length) {
 	            task = laterQueue.pop();
@@ -2831,12 +2857,12 @@
 	    function runSingle(task, domain) {
 	        try {
 	            task();
-	
+
 	        } catch (e) {
 	            if (isNodeJS) {
 	                // In node, uncaught exceptions are considered fatal errors.
 	                // Re-throw them synchronously to interrupt flushing!
-	
+
 	                // Ensure continuation if the uncaught exception is suppressed
 	                // listening "uncaughtException" events (as domains does).
 	                // Continue in next event to avoid tick recursion.
@@ -2847,9 +2873,9 @@
 	                if (domain) {
 	                    domain.enter();
 	                }
-	
+
 	                throw e;
-	
+
 	            } else {
 	                // In browsers, uncaught exceptions are not fatal.
 	                // Re-throw them asynchronously to avoid slow-downs.
@@ -2858,25 +2884,25 @@
 	                }, 0);
 	            }
 	        }
-	
+
 	        if (domain) {
 	            domain.exit();
 	        }
 	    }
-	
+
 	    nextTick = function (task) {
 	        tail = tail.next = {
 	            task: task,
 	            domain: isNodeJS && process.domain,
 	            next: null
 	        };
-	
+
 	        if (!flushing) {
 	            flushing = true;
 	            requestTick();
 	        }
 	    };
-	
+
 	    if (typeof process === "object" &&
 	        process.toString() === "[object process]" && process.nextTick) {
 	        // Ensure Q is in a real Node environment, with a `process.nextTick`.
@@ -2888,11 +2914,11 @@
 	        //   "[object Object]", while in a real Node environment
 	        //   `process.nextTick()` yields "[object process]".
 	        isNodeJS = true;
-	
+
 	        requestTick = function () {
 	            process.nextTick(flush);
 	        };
-	
+
 	    } else if (typeof setImmediate === "function") {
 	        // In IE10, Node.js 0.9+, or https://github.com/NobleJS/setImmediate
 	        if (typeof window !== "undefined") {
@@ -2902,7 +2928,7 @@
 	                setImmediate(flush);
 	            };
 	        }
-	
+
 	    } else if (typeof MessageChannel !== "undefined") {
 	        // modern browsers
 	        // http://www.nonblocking.io/2011/06/windownexttick.html
@@ -2923,7 +2949,7 @@
 	            setTimeout(flush, 0);
 	            requestPortTick();
 	        };
-	
+
 	    } else {
 	        // old browsers
 	        requestTick = function () {
@@ -2942,7 +2968,7 @@
 	    };
 	    return nextTick;
 	})();
-	
+
 	// Attempt to make generics safe in the face of downstream
 	// modifications.
 	// There is no situation where this is necessary.
@@ -2962,9 +2988,9 @@
 	// This is equivalent, but slower:
 	// uncurryThis = Function_bind.bind(Function_bind.call);
 	// http://jsperf.com/uncurrythis
-	
+
 	var array_slice = uncurryThis(Array.prototype.slice);
-	
+
 	var array_reduce = uncurryThis(
 	    Array.prototype.reduce || function (callback, basis) {
 	        var index = 0,
@@ -2993,7 +3019,7 @@
 	        return basis;
 	    }
 	);
-	
+
 	var array_indexOf = uncurryThis(
 	    Array.prototype.indexOf || function (value) {
 	        // not a very good shim, but good enough for our one use of it
@@ -3005,7 +3031,7 @@
 	        return -1;
 	    }
 	);
-	
+
 	var array_map = uncurryThis(
 	    Array.prototype.map || function (callback, thisp) {
 	        var self = this;
@@ -3016,15 +3042,15 @@
 	        return collect;
 	    }
 	);
-	
+
 	var object_create = Object.create || function (prototype) {
 	    function Type() { }
 	    Type.prototype = prototype;
 	    return new Type();
 	};
-	
+
 	var object_hasOwnProperty = uncurryThis(Object.prototype.hasOwnProperty);
-	
+
 	var object_keys = Object.keys || function (object) {
 	    var keys = [];
 	    for (var key in object) {
@@ -3034,15 +3060,15 @@
 	    }
 	    return keys;
 	};
-	
+
 	var object_toString = uncurryThis(Object.prototype.toString);
-	
+
 	function isObject(value) {
 	    return value === Object(value);
 	}
-	
+
 	// generator related shims
-	
+
 	// FIXME: Remove this function once ES6 generators are in SpiderMonkey.
 	function isStopIteration(exception) {
 	    return (
@@ -3050,7 +3076,7 @@
 	        exception instanceof QReturnValue
 	    );
 	}
-	
+
 	// FIXME: Remove this helper and Q.return once ES6 generators are in
 	// SpiderMonkey.
 	var QReturnValue;
@@ -3061,11 +3087,11 @@
 	        this.value = value;
 	    };
 	}
-	
+
 	// long stack traces
-	
+
 	var STACK_JUMP_SEPARATOR = "From previous event:";
-	
+
 	function makeStackTraceLong(error, promise) {
 	    // If possible, transform the error stack trace by removing Node and Q
 	    // cruft, then concatenating with the stack trace of `promise`. See #57.
@@ -3083,30 +3109,30 @@
 	            }
 	        }
 	        stacks.unshift(error.stack);
-	
+
 	        var concatedStacks = stacks.join("\n" + STACK_JUMP_SEPARATOR + "\n");
 	        error.stack = filterStackString(concatedStacks);
 	    }
 	}
-	
+
 	function filterStackString(stackString) {
 	    var lines = stackString.split("\n");
 	    var desiredLines = [];
 	    for (var i = 0; i < lines.length; ++i) {
 	        var line = lines[i];
-	
+
 	        if (!isInternalFrame(line) && !isNodeFrame(line) && line) {
 	            desiredLines.push(line);
 	        }
 	    }
 	    return desiredLines.join("\n");
 	}
-	
+
 	function isNodeFrame(stackLine) {
 	    return stackLine.indexOf("(module.js:") !== -1 ||
 	           stackLine.indexOf("(node.js:") !== -1;
 	}
-	
+
 	function getFileNameAndLineNumber(stackLine) {
 	    // Named functions: "at functionName (filename:lineNumber:columnNumber)"
 	    // In IE10 function name can have spaces ("Anonymous function") O_o
@@ -3114,42 +3140,42 @@
 	    if (attempt1) {
 	        return [attempt1[1], Number(attempt1[2])];
 	    }
-	
+
 	    // Anonymous functions: "at filename:lineNumber:columnNumber"
 	    var attempt2 = /at ([^ ]+):(\d+):(?:\d+)$/.exec(stackLine);
 	    if (attempt2) {
 	        return [attempt2[1], Number(attempt2[2])];
 	    }
-	
+
 	    // Firefox style: "function@filename:lineNumber or @filename:lineNumber"
 	    var attempt3 = /.*@(.+):(\d+)$/.exec(stackLine);
 	    if (attempt3) {
 	        return [attempt3[1], Number(attempt3[2])];
 	    }
 	}
-	
+
 	function isInternalFrame(stackLine) {
 	    var fileNameAndLineNumber = getFileNameAndLineNumber(stackLine);
-	
+
 	    if (!fileNameAndLineNumber) {
 	        return false;
 	    }
-	
+
 	    var fileName = fileNameAndLineNumber[0];
 	    var lineNumber = fileNameAndLineNumber[1];
-	
+
 	    return fileName === qFileName &&
 	        lineNumber >= qStartingLine &&
 	        lineNumber <= qEndingLine;
 	}
-	
+
 	// discover own file name and line number range for filtering stack
 	// traces
 	function captureLine() {
 	    if (!hasStacks) {
 	        return;
 	    }
-	
+
 	    try {
 	        throw new Error();
 	    } catch (e) {
@@ -3159,12 +3185,12 @@
 	        if (!fileNameAndLineNumber) {
 	            return;
 	        }
-	
+
 	        qFileName = fileNameAndLineNumber[0];
 	        return fileNameAndLineNumber[1];
 	    }
 	}
-	
+
 	function deprecate(callback, name, alternative) {
 	    return function () {
 	        if (typeof console !== "undefined" &&
@@ -3175,10 +3201,10 @@
 	        return callback.apply(callback, arguments);
 	    };
 	}
-	
+
 	// end of shims
 	// beginning of real work
-	
+
 	/**
 	 * Constructs a promise for an immediate reference, passes promises through, or
 	 * coerces promises from different systems.
@@ -3191,7 +3217,7 @@
 	    if (value instanceof Promise) {
 	        return value;
 	    }
-	
+
 	    // assimilate thenables
 	    if (isPromiseAlike(value)) {
 	        return coerce(value);
@@ -3200,23 +3226,23 @@
 	    }
 	}
 	Q.resolve = Q;
-	
+
 	/**
 	 * Performs a task in a future turn of the event loop.
 	 * @param {Function} task
 	 */
 	Q.nextTick = nextTick;
-	
+
 	/**
 	 * Controls whether or not long stack traces will be on
 	 */
 	Q.longStackSupport = false;
-	
+
 	// enable long stacks if Q_DEBUG is set
 	if (typeof process === "object" && process && process.env && process.env.Q_DEBUG) {
 	    Q.longStackSupport = true;
 	}
-	
+
 	/**
 	 * Constructs a {promise, resolve, reject} object.
 	 *
@@ -3236,10 +3262,10 @@
 	    // promise using the `resolve` function because it handles both fully
 	    // non-thenable values and other thenables gracefully.
 	    var messages = [], progressListeners = [], resolvedPromise;
-	
+
 	    var deferred = object_create(defer.prototype);
 	    var promise = object_create(Promise.prototype);
-	
+
 	    promise.promiseDispatch = function (resolve, op, operands) {
 	        var args = array_slice(arguments);
 	        if (messages) {
@@ -3253,7 +3279,7 @@
 	            });
 	        }
 	    };
-	
+
 	    // XXX deprecated
 	    promise.valueOf = function () {
 	        if (messages) {
@@ -3265,14 +3291,14 @@
 	        }
 	        return nearerValue;
 	    };
-	
+
 	    promise.inspect = function () {
 	        if (!resolvedPromise) {
 	            return { state: "pending" };
 	        }
 	        return resolvedPromise.inspect();
 	    };
-	
+
 	    if (Q.longStackSupport && hasStacks) {
 	        try {
 	            throw new Error();
@@ -3286,63 +3312,63 @@
 	            promise.stack = e.stack.substring(e.stack.indexOf("\n") + 1);
 	        }
 	    }
-	
+
 	    // NOTE: we do the checks for `resolvedPromise` in each method, instead of
 	    // consolidating them into `become`, since otherwise we'd create new
 	    // promises with the lines `become(whatever(value))`. See e.g. GH-252.
-	
+
 	    function become(newPromise) {
 	        resolvedPromise = newPromise;
 	        promise.source = newPromise;
-	
+
 	        array_reduce(messages, function (undefined, message) {
 	            Q.nextTick(function () {
 	                newPromise.promiseDispatch.apply(newPromise, message);
 	            });
 	        }, void 0);
-	
+
 	        messages = void 0;
 	        progressListeners = void 0;
 	    }
-	
+
 	    deferred.promise = promise;
 	    deferred.resolve = function (value) {
 	        if (resolvedPromise) {
 	            return;
 	        }
-	
+
 	        become(Q(value));
 	    };
-	
+
 	    deferred.fulfill = function (value) {
 	        if (resolvedPromise) {
 	            return;
 	        }
-	
+
 	        become(fulfill(value));
 	    };
 	    deferred.reject = function (reason) {
 	        if (resolvedPromise) {
 	            return;
 	        }
-	
+
 	        become(reject(reason));
 	    };
 	    deferred.notify = function (progress) {
 	        if (resolvedPromise) {
 	            return;
 	        }
-	
+
 	        array_reduce(progressListeners, function (undefined, progressListener) {
 	            Q.nextTick(function () {
 	                progressListener(progress);
 	            });
 	        }, void 0);
 	    };
-	
+
 	    return deferred;
 	}
-	
+
 	/**
 	 * Creates a Node-style callback that will resolve or reject the deferred
 	 * promise.
@@ -3360,7 +3386,7 @@
 	        }
 	    };
 	};
-	
+
 	/**
 	 * @param resolver {Function} a function that returns nothing and accepts
 	 * the resolve, reject, and notify functions for a deferred.
@@ -3381,12 +3407,12 @@
 	    }
 	    return deferred.promise;
 	}
-	
+
 	promise.race = race; // ES6
 	promise.all = all; // ES6
 	promise.reject = reject; // ES6
 	promise.resolve = Q; // ES6
-	
+
 	// XXX experimental.  This method is a way to denote that a local value is
 	// serializable and should be immediately dispatched to a remote upon request,
 	// instead of passing a reference.
@@ -3395,13 +3421,13 @@
 	    //passByCopies.set(object, true);
 	    return object;
 	};
-	
+
 	Promise.prototype.passByCopy = function () {
 	    //freeze(object);
 	    //passByCopies.set(object, true);
 	    return this;
 	};
-	
+
 	/**
 	 * If two promises eventually fulfill to the same value, promises that value,
 	 * but otherwise rejects.
@@ -3414,7 +3440,7 @@
 	Q.join = function (x, y) {
 	    return Q(x).join(y);
 	};
-	
+
 	Promise.prototype.join = function (that) {
 	    return Q([this, that]).spread(function (x, y) {
 	        if (x === y) {
@@ -3425,7 +3451,7 @@
 	        }
 	    });
 	};
-	
+
 	/**
 	 * Returns a promise for the first of an array of promises to become settled.
 	 * @param answers {Array[Any*]} promises to race
@@ -3444,11 +3470,11 @@
 	        }
 	    });
 	}
-	
+
 	Promise.prototype.race = function () {
 	    return this.then(Q.race);
 	};
-	
+
 	/**
 	 * Constructs a Promise with a promise descriptor object and optional fallback
 	 * function.  The descriptor contains methods like when(rejected), get(name),
@@ -3474,9 +3500,9 @@
 	            return {state: "unknown"};
 	        };
 	    }
-	
+
 	    var promise = object_create(Promise.prototype);
-	
+
 	    promise.promiseDispatch = function (resolve, op, args) {
 	        var result;
 	        try {
@@ -3492,16 +3518,16 @@
 	            resolve(result);
 	        }
 	    };
-	
+
 	    promise.inspect = inspect;
-	
+
 	    // XXX deprecated `valueOf` and `exception` support
 	    if (inspect) {
 	        var inspected = inspect();
 	        if (inspected.state === "rejected") {
 	            promise.exception = inspected.reason;
 	        }
-	
+
 	        promise.valueOf = function () {
 	            var inspected = inspect();
 	            if (inspected.state === "pending" ||
@@ -3511,20 +3537,20 @@
 	            return inspected.value;
 	        };
 	    }
-	
+
 	    return promise;
 	}
-	
+
 	Promise.prototype.toString = function () {
 	    return "[object Promise]";
 	};
-	
+
 	Promise.prototype.then = function (fulfilled, rejected, progressed) {
 	    var self = this;
 	    var deferred = defer();
 	    var done = false;   // ensure the untrusted promise makes at most a
 	                        // single call to one of the callbacks
-	
+
 	    function _fulfilled(value) {
 	        try {
 	            return typeof fulfilled === "function" ? fulfilled(value) : value;
@@ -3532,7 +3558,7 @@
 	            return reject(exception);
 	        }
 	    }
-	
+
 	    function _rejected(exception) {
 	        if (typeof rejected === "function") {
 	            makeStackTraceLong(exception, self);
@@ -3544,29 +3570,29 @@
 	        }
 	        return reject(exception);
 	    }
-	
+
 	    function _progressed(value) {
 	        return typeof progressed === "function" ? progressed(value) : value;
 	    }
-	
+
 	    Q.nextTick(function () {
 	        self.promiseDispatch(function (value) {
 	            if (done) {
 	                return;
 	            }
 	            done = true;
-	
+
 	            deferred.resolve(_fulfilled(value));
 	        }, "when", [function (exception) {
 	            if (done) {
 	                return;
 	            }
 	            done = true;
-	
+
 	            deferred.resolve(_rejected(exception));
 	        }]);
 	    });
-	
+
 	    // Progress propagator need to be attached in the current tick.
 	    self.promiseDispatch(void 0, "when", [void 0, function (value) {
 	        var newValue;
@@ -3581,19 +3607,19 @@
 	                throw e;
 	            }
 	        }
-	
+
 	        if (!threw) {
 	            deferred.notify(newValue);
 	        }
 	    }]);
-	
+
 	    return deferred.promise;
 	};
-	
+
 	Q.tap = function (promise, callback) {
 	    return Q(promise).tap(callback);
 	};
-	
+
 	/**
 	 * Works almost like "finally", but not called for rejections.
 	 * Original resolution value is passed through callback unaffected.
@@ -3608,12 +3634,12 @@
 	 */
 	Promise.prototype.tap = function (callback) {
 	    callback = Q(callback);
-	
+
 	    return this.then(function (value) {
 	        return callback.fcall(value).thenResolve(value);
 	    });
 	};
-	
+
 	/**
 	 * Registers an observer on a promise.
 	 *
@@ -3634,23 +3660,23 @@
 	function when(value, fulfilled, rejected, progressed) {
 	    return Q(value).then(fulfilled, rejected, progressed);
 	}
-	
+
 	Promise.prototype.thenResolve = function (value) {
 	    return this.then(function () { return value; });
 	};
-	
+
 	Q.thenResolve = function (promise, value) {
 	    return Q(promise).thenResolve(value);
 	};
-	
+
 	Promise.prototype.thenReject = function (reason) {
 	    return this.then(function () { throw reason; });
 	};
-	
+
 	Q.thenReject = function (promise, reason) {
 	    return Q(promise).thenReject(reason);
 	};
-	
+
 	/**
 	 * If an object is not a promise, it is as "near" as possible.
 	 * If a promise is rejected, it is as "near" as possible too.
@@ -3660,7 +3686,7 @@
 	 * @param object
 	 * @returns most resolved (nearest) form of the object
 	 */
-	
+
 	// XXX should we re-do this?
 	Q.nearer = nearer;
 	function nearer(value) {
@@ -3672,7 +3698,7 @@
 	    }
 	    return value;
 	}
-	
+
 	/**
 	 * @returns whether the given object is a promise.
 	 * Otherwise it is a fulfilled value.
@@ -3681,12 +3707,12 @@
 	function isPromise(object) {
 	    return object instanceof Promise;
 	}
-	
+
 	Q.isPromiseAlike = isPromiseAlike;
 	function isPromiseAlike(object) {
 	    return isObject(object) && typeof object.then === "function";
 	}
-	
+
 	/**
 	 * @returns whether the given object is a pending promise, meaning not
 	 * fulfilled or rejected.
@@ -3695,11 +3721,11 @@
 	function isPending(object) {
 	    return isPromise(object) && object.inspect().state === "pending";
 	}
-	
+
 	Promise.prototype.isPending = function () {
 	    return this.inspect().state === "pending";
 	};
-	
+
 	/**
 	 * @returns whether the given object is a value or fulfilled
 	 * promise.
@@ -3708,11 +3734,11 @@
 	function isFulfilled(object) {
 	    return !isPromise(object) || object.inspect().state === "fulfilled";
 	}
-	
+
 	Promise.prototype.isFulfilled = function () {
 	    return this.inspect().state === "fulfilled";
 	};
-	
+
 	/**
 	 * @returns whether the given object is a rejected promise.
 	 */
@@ -3720,13 +3746,13 @@
 	function isRejected(object) {
 	    return isPromise(object) && object.inspect().state === "rejected";
 	}
-	
+
 	Promise.prototype.isRejected = function () {
 	    return this.inspect().state === "rejected";
 	};
-	
+
 	//// BEGIN UNHANDLED REJECTION TRACKING
-	
+
 	// This promise library consumes exceptions thrown in handlers so they can be
 	// handled by a subsequent promise.  The exceptions get added to this array when
 	// they are created, and removed when they are handled.  Note that in ES6 or
@@ -3735,16 +3761,16 @@
 	var unhandledRejections = [];
 	var reportedUnhandledRejections = [];
 	var trackUnhandledRejections = true;
-	
+
 	function resetUnhandledRejections() {
 	    unhandledReasons.length = 0;
 	    unhandledRejections.length = 0;
-	
+
 	    if (!trackUnhandledRejections) {
 	        trackUnhandledRejections = true;
 	    }
 	}
-	
+
 	function trackRejection(promise, reason) {
 	    if (!trackUnhandledRejections) {
 	        return;
@@ -3757,7 +3783,7 @@
 	            }
 	        });
 	    }
-	
+
 	    unhandledRejections.push(promise);
 	    if (reason && typeof reason.stack !== "undefined") {
 	        unhandledReasons.push(reason.stack);
@@ -3765,12 +3791,12 @@
 	        unhandledReasons.push("(no stack) " + reason);
 	    }
 	}
-	
+
 	function untrackRejection(promise) {
 	    if (!trackUnhandledRejections) {
 	        return;
 	    }
-	
+
 	    var at = array_indexOf(unhandledRejections, promise);
 	    if (at !== -1) {
 	        if (typeof process === "object" && typeof process.emit === "function") {
@@ -3786,23 +3812,23 @@
 	        unhandledReasons.splice(at, 1);
 	    }
 	}
-	
+
 	Q.resetUnhandledRejections = resetUnhandledRejections;
-	
+
 	Q.getUnhandledReasons = function () {
 	    // Make a copy so that consumers can't interfere with our internal state.
 	    return unhandledReasons.slice();
 	};
-	
+
 	Q.stopUnhandledRejectionTracking = function () {
 	    resetUnhandledRejections();
 	    trackUnhandledRejections = false;
 	};
-	
+
 	resetUnhandledRejections();
-	
+
 	//// END UNHANDLED REJECTION TRACKING
-	
+
 	/**
 	 * Constructs a rejected promise.
 	 * @param reason value describing the failure
@@ -3822,13 +3848,13 @@
 	    }, function inspect() {
 	        return { state: "rejected", reason: reason };
 	    });
-	
+
 	    // Note that the reason has not been handled.
 	    trackRejection(rejection, reason);
-	
+
 	    return rejection;
 	}
-	
+
 	/**
 	 * Constructs a fulfilled promise for an immediate reference.
 	 * @param value immediate reference
@@ -3867,7 +3893,7 @@
 	        return { state: "fulfilled", value: value };
 	    });
 	}
-	
+
 	/**
 	 * Converts thenables to Q promises.
 	 * @param promise thenable promise
@@ -3884,7 +3910,7 @@
 	    });
 	    return deferred.promise;
 	}
-	
+
 	/**
 	 * Annotates an object such that it will never be
 	 * transferred away from this process over any promise
@@ -3904,7 +3930,7 @@
 	        return Q(object).inspect();
 	    });
 	}
-	
+
 	/**
 	 * Spreads the values of a promised array of arguments into the
 	 * fulfillment callback.
@@ -3919,13 +3945,13 @@
 	function spread(value, fulfilled, rejected) {
 	    return Q(value).spread(fulfilled, rejected);
 	}
-	
+
 	Promise.prototype.spread = function (fulfilled, rejected) {
 	    return this.all().then(function (array) {
 	        return fulfilled.apply(void 0, array);
 	    }, rejected);
 	};
-	
+
 	/**
 	 * The async function is a decorator for generator functions, turning
 	 * them into asynchronous generators.  Although generators are only part
@@ -3959,7 +3985,7 @@
 	        // when verb is "throw", arg is an exception
 	        function continuer(verb, arg) {
 	            var result;
-	
+
 	            // Until V8 3.19 / Chromium 29 is released, SpiderMonkey is the only
 	            // engine that has a deployed base of browsers that support generators.
 	            // However, SM's generators use the Python-inspired semantics of
@@ -3967,7 +3993,7 @@
 	            // like to make it possible to use generators in deployed browsers, so
 	            // we also support Python-style generators.  At some point we can remove
 	            // this block.
-	
+
 	            if (typeof StopIteration === "undefined") {
 	                // ES6 Generators
 	                try {
@@ -4001,7 +4027,7 @@
 	        return callback();
 	    };
 	}
-	
+
 	/**
 	 * The spawn function is a small wrapper around async that immediately
 	 * calls the generator and also ends the promise chain, so that any
@@ -4013,7 +4039,7 @@
 	function spawn(makeGenerator) {
 	    Q.done(Q.async(makeGenerator)());
 	}
-	
+
 	// FIXME: Remove this interface once ES6 generators are in SpiderMonkey.
 	/**
 	 * Throws a ReturnValue exception to stop an asynchronous generator.
@@ -4043,7 +4069,7 @@
 	function _return(value) {
 	    throw new QReturnValue(value);
 	}
-	
+
 	/**
 	 * The promised function decorator ensures that any promise arguments
 	 * are settled and passed as values (`this` is also settled and passed
@@ -4067,7 +4093,7 @@
 	        });
 	    };
 	}
-	
+
 	/**
 	 * sends a message to a value in a future turn
 	 * @param object* the recipient
@@ -4079,7 +4105,7 @@
 	function dispatch(object, op, args) {
 	    return Q(object).dispatch(op, args);
 	}
-	
+
 	Promise.prototype.dispatch = function (op, args) {
 	    var self = this;
 	    var deferred = defer();
@@ -4088,7 +4114,7 @@
 	    });
 	    return deferred.promise;
 	};
-	
+
 	/**
 	 * Gets the value of a property in a future turn.
 	 * @param object    promise or immediate reference for target object
@@ -4098,11 +4124,11 @@
 	Q.get = function (object, key) {
 	    return Q(object).dispatch("get", [key]);
 	};
-	
+
 	Promise.prototype.get = function (key) {
 	    return this.dispatch("get", [key]);
 	};
-	
+
 	/**
 	 * Sets the value of a property in a future turn.
 	 * @param object    promise or immediate reference for object object
@@ -4113,11 +4139,11 @@
 	Q.set = function (object, key, value) {
 	    return Q(object).dispatch("set", [key, value]);
 	};
-	
+
 	Promise.prototype.set = function (key, value) {
 	    return this.dispatch("set", [key, value]);
 	};
-	
+
 	/**
 	 * Deletes a property in a future turn.
 	 * @param object    promise or immediate reference for target object
@@ -4128,12 +4154,12 @@
 	Q["delete"] = function (object, key) {
 	    return Q(object).dispatch("delete", [key]);
 	};
-	
+
 	Promise.prototype.del = // XXX legacy
 	Promise.prototype["delete"] = function (key) {
 	    return this.dispatch("delete", [key]);
 	};
-	
+
 	/**
 	 * Invokes a method in a future turn.
 	 * @param object    promise or immediate reference for target object
@@ -4151,12 +4177,12 @@
 	Q.post = function (object, name, args) {
 	    return Q(object).dispatch("post", [name, args]);
 	};
-	
+
 	Promise.prototype.mapply = // XXX As proposed by "Redsandro"
 	Promise.prototype.post = function (name, args) {
 	    return this.dispatch("post", [name, args]);
 	};
-	
+
 	/**
 	 * Invokes a method in a future turn.
 	 * @param object    promise or immediate reference for target object
@@ -4169,13 +4195,13 @@
 	Q.invoke = function (object, name /*...args*/) {
 	    return Q(object).dispatch("post", [name, array_slice(arguments, 2)]);
 	};
-	
+
 	Promise.prototype.send = // XXX Mark Miller's proposed parlance
 	Promise.prototype.mcall = // XXX As proposed by "Redsandro"
 	Promise.prototype.invoke = function (name /*...args*/) {
 	    return this.dispatch("post", [name, array_slice(arguments, 1)]);
 	};
-	
+
 	/**
 	 * Applies the promised function in a future turn.
 	 * @param object    promise or immediate reference for target function
@@ -4184,11 +4210,11 @@
 	Q.fapply = function (object, args) {
 	    return Q(object).dispatch("apply", [void 0, args]);
 	};
-	
+
 	Promise.prototype.fapply = function (args) {
 	    return this.dispatch("apply", [void 0, args]);
 	};
-	
+
 	/**
 	 * Calls the promised function in a future turn.
 	 * @param object    promise or immediate reference for target function
@@ -4198,11 +4224,11 @@
 	Q.fcall = function (object /* ...args*/) {
 	    return Q(object).dispatch("apply", [void 0, array_slice(arguments, 1)]);
 	};
-	
+
 	Promise.prototype.fcall = function (/*...args*/) {
 	    return this.dispatch("apply", [void 0, array_slice(arguments)]);
 	};
-	
+
 	/**
 	 * Binds the promised function, transforming return values into a fulfilled
 	 * promise and thrown errors into a rejected one.
@@ -4229,7 +4255,7 @@
 	        ]);
 	    };
 	};
-	
+
 	/**
 	 * Requests the names of the owned properties of a promised
 	 * object in a future turn.
@@ -4239,11 +4265,11 @@
 	Q.keys = function (object) {
 	    return Q(object).dispatch("keys", []);
 	};
-	
+
 	Promise.prototype.keys = function () {
 	    return this.dispatch("keys", []);
 	};
-	
+
 	/**
 	 * Turns an array of promises into a promise for an array.  If any of
 	 * the promises gets rejected, the whole array is rejected immediately.
@@ -4288,11 +4314,11 @@
 	        return deferred.promise;
 	    });
 	}
-	
+
 	Promise.prototype.all = function () {
 	    return all(this);
 	};
-	
+
 	/**
 	 * Returns the first resolved promise of an array. Prior rejected promises are
 	 * ignored.  Rejects only if all promises are rejected.
@@ -4301,19 +4327,19 @@
 	 * or a rejected promise if all promises are rejected.
 	 */
 	Q.any = any;
-	
+
 	function any(promises) {
 	    if (promises.length === 0) {
 	        return Q.resolve();
 	    }
-	
+
 	    var deferred = Q.defer();
 	    var pendingCount = 0;
 	    array_reduce(promises, function (prev, current, index) {
 	        var promise = promises[index];
-	
+
 	        pendingCount++;
-	
+
 	        when(promise, onFulfilled, onRejected, onProgress);
 	        function onFulfilled(result) {
 	            deferred.resolve(result);
@@ -4334,14 +4360,14 @@
 	            });
 	        }
 	    }, undefined);
-	
+
 	    return deferred.promise;
 	}
-	
+
 	Promise.prototype.any = function () {
 	    return any(this);
 	};
-	
+
 	/**
 	 * Waits for all promises to be settled, either fulfilled or
 	 * rejected.  This is distinct from `all` since that would stop
@@ -4362,11 +4388,11 @@
 	        });
 	    });
 	}
-	
+
 	Promise.prototype.allResolved = function () {
 	    return allResolved(this);
 	};
-	
+
 	/**
 	 * @see Promise#allSettled
 	 */
@@ -4374,7 +4400,7 @@
 	function allSettled(promises) {
 	    return Q(promises).allSettled();
 	}
-	
+
 	/**
 	 * Turns an array of promises into a promise for an array of their states (as
 	 * returned by `inspect`) when they have all settled.
@@ -4393,7 +4419,7 @@
 	        }));
 	    });
 	};
-	
+
 	/**
 	 * Captures the failure of a promise, giving an oportunity to recover
 	 * with a callback.  If the given promise is fulfilled, the returned
@@ -4407,12 +4433,12 @@
 	Q["catch"] = function (object, rejected) {
 	    return Q(object).then(void 0, rejected);
 	};
-	
+
 	Promise.prototype.fail = // XXX legacy
 	Promise.prototype["catch"] = function (rejected) {
 	    return this.then(void 0, rejected);
 	};
-	
+
 	/**
 	 * Attaches a listener that can respond to progress notifications from a
 	 * promise's originating deferred. This listener receives the exact arguments
@@ -4425,11 +4451,11 @@
 	function progress(object, progressed) {
 	    return Q(object).then(void 0, void 0, progressed);
 	}
-	
+
 	Promise.prototype.progress = function (progressed) {
 	    return this.then(void 0, void 0, progressed);
 	};
-	
+
 	/**
 	 * Provides an opportunity to observe the settling of a promise,
 	 * regardless of whether the promise is fulfilled or rejected.  Forwards
@@ -4445,7 +4471,7 @@
 	Q["finally"] = function (object, callback) {
 	    return Q(object)["finally"](callback);
 	};
-	
+
 	Promise.prototype.fin = // XXX legacy
 	Promise.prototype["finally"] = function (callback) {
 	    callback = Q(callback);
@@ -4460,7 +4486,7 @@
 	        });
 	    });
 	};
-	
+
 	/**
 	 * Terminates a chain of promises, forcing rejections to be
 	 * thrown as exceptions.
@@ -4470,7 +4496,7 @@
 	Q.done = function (object, fulfilled, rejected, progress) {
 	    return Q(object).done(fulfilled, rejected, progress);
 	};
-	
+
 	Promise.prototype.done = function (fulfilled, rejected, progress) {
 	    var onUnhandledError = function (error) {
 	        // forward to a future turn so that ``when``
@@ -4484,19 +4510,19 @@
 	            }
 	        });
 	    };
-	
+
 	    // Avoid unnecessary `nextTick`ing via an unnecessary `when`.
 	    var promise = fulfilled || rejected || progress ?
 	        this.then(fulfilled, rejected, progress) :
 	        this;
-	
+
 	    if (typeof process === "object" && process && process.domain) {
 	        onUnhandledError = process.domain.bind(onUnhandledError);
 	    }
-	
+
 	    promise.then(void 0, onUnhandledError);
 	};
-	
+
 	/**
 	 * Causes a promise to be rejected if it does not get fulfilled before
 	 * some milliseconds time out.
@@ -4509,7 +4535,7 @@
 	Q.timeout = function (object, ms, error) {
 	    return Q(object).timeout(ms, error);
 	};
-	
+
 	Promise.prototype.timeout = function (ms, error) {
 	    var deferred = defer();
 	    var timeoutId = setTimeout(function () {
@@ -4519,7 +4545,7 @@
 	        }
 	        deferred.reject(error);
 	    }, ms);
-	
+
 	    this.then(function (value) {
 	        clearTimeout(timeoutId);
 	        deferred.resolve(value);
@@ -4527,10 +4553,10 @@
 	        clearTimeout(timeoutId);
 	        deferred.reject(exception);
 	    }, deferred.notify);
-	
+
 	    return deferred.promise;
 	};
-	
+
 	/**
 	 * Returns a promise for the given value (or promised value), some
 	 * milliseconds after it resolved. Passes rejections immediately.
@@ -4547,7 +4573,7 @@
 	    }
 	    return Q(object).delay(timeout);
 	};
-	
+
 	Promise.prototype.delay = function (timeout) {
 	    return this.then(function (value) {
 	        var deferred = defer();
@@ -4557,7 +4583,7 @@
 	        return deferred.promise;
 	    });
 	};
-	
+
 	/**
 	 * Passes a continuation to a Node function, which is called with the given
 	 * arguments provided as an array, and returns a promise.
@@ -4570,7 +4596,7 @@
 	Q.nfapply = function (callback, args) {
 	    return Q(callback).nfapply(args);
 	};
-	
+
 	Promise.prototype.nfapply = function (args) {
 	    var deferred = defer();
 	    var nodeArgs = array_slice(args);
@@ -4578,7 +4604,7 @@
 	    this.fapply(nodeArgs).fail(deferred.reject);
 	    return deferred.promise;
 	};
-	
+
 	/**
 	 * Passes a continuation to a Node function, which is called with the given
 	 * arguments provided individually, and returns a promise.
@@ -4592,7 +4618,7 @@
 	    var args = array_slice(arguments, 1);
 	    return Q(callback).nfapply(args);
 	};
-	
+
 	Promise.prototype.nfcall = function (/*...args*/) {
 	    var nodeArgs = array_slice(arguments);
 	    var deferred = defer();
@@ -4600,7 +4626,7 @@
 	    this.fapply(nodeArgs).fail(deferred.reject);
 	    return deferred.promise;
 	};
-	
+
 	/**
 	 * Wraps a NodeJS continuation passing function and returns an equivalent
 	 * version that returns a promise.
@@ -4620,14 +4646,14 @@
 	        return deferred.promise;
 	    };
 	};
-	
+
 	Promise.prototype.nfbind =
 	Promise.prototype.denodeify = function (/*...args*/) {
 	    var args = array_slice(arguments);
 	    args.unshift(this);
 	    return Q.denodeify.apply(void 0, args);
 	};
-	
+
 	Q.nbind = function (callback, thisp /*...args*/) {
 	    var baseArgs = array_slice(arguments, 2);
 	    return function () {
@@ -4641,13 +4667,13 @@
 	        return deferred.promise;
 	    };
 	};
-	
+
 	Promise.prototype.nbind = function (/*thisp, ...args*/) {
 	    var args = array_slice(arguments, 0);
 	    args.unshift(this);
 	    return Q.nbind.apply(void 0, args);
 	};
-	
+
 	/**
 	 * Calls a method of a Node-style object that accepts a Node-style
 	 * callback with a given array of arguments, plus a provided callback.
@@ -4661,7 +4687,7 @@
 	Q.npost = function (object, name, args) {
 	    return Q(object).npost(name, args);
 	};
-	
+
 	Promise.prototype.nmapply = // XXX As proposed by "Redsandro"
 	Promise.prototype.npost = function (name, args) {
 	    var nodeArgs = array_slice(args || []);
@@ -4670,7 +4696,7 @@
 	    this.dispatch("post", [name, nodeArgs]).fail(deferred.reject);
 	    return deferred.promise;
 	};
-	
+
 	/**
 	 * Calls a method of a Node-style object that accepts a Node-style
 	 * callback, forwarding the given variadic arguments, plus a provided
@@ -4690,7 +4716,7 @@
 	    Q(object).dispatch("post", [name, nodeArgs]).fail(deferred.reject);
 	    return deferred.promise;
 	};
-	
+
 	Promise.prototype.nsend = // XXX Based on Mark Miller's proposed "send"
 	Promise.prototype.nmcall = // XXX Based on "Redsandro's" proposal
 	Promise.prototype.ninvoke = function (name /*...args*/) {
@@ -4700,7 +4726,7 @@
 	    this.dispatch("post", [name, nodeArgs]).fail(deferred.reject);
 	    return deferred.promise;
 	};
-	
+
 	/**
 	 * If a function would like to support both Node continuation-passing-style and
 	 * promise-returning-style, it can end its internal promise chain with
@@ -4715,7 +4741,7 @@
 	function nodeify(object, nodeback) {
 	    return Q(object).nodeify(nodeback);
 	}
-	
+
 	Promise.prototype.nodeify = function (nodeback) {
 	    if (nodeback) {
 	        this.then(function (value) {
@@ -4731,18 +4757,18 @@
 	        return this;
 	    }
 	};
-	
+
 	Q.noConflict = function() {
 	    throw new Error("Q.noConflict only works when Q is used as a global");
 	};
-	
+
 	// All code before this point will be filtered from stack traces.
 	var qEndingLine = captureLine();
-	
+
 	return Q;
-	
+
 	});
-	
+
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(7).setImmediate))
 
 /***/ }),
@@ -4753,9 +4779,9 @@
 	            (typeof self !== "undefined" && self) ||
 	            window;
 	var apply = Function.prototype.apply;
-	
+
 	// DOM APIs, for completeness
-	
+
 	exports.setTimeout = function() {
 	  return new Timeout(apply.call(setTimeout, scope, arguments), clearTimeout);
 	};
@@ -4768,7 +4794,7 @@
 	    timeout.close();
 	  }
 	};
-	
+
 	function Timeout(id, clearFn) {
 	  this._id = id;
 	  this._clearFn = clearFn;
@@ -4777,21 +4803,21 @@
 	Timeout.prototype.close = function() {
 	  this._clearFn.call(scope, this._id);
 	};
-	
+
 	// Does not start the time, just sets up the members needed.
 	exports.enroll = function(item, msecs) {
 	  clearTimeout(item._idleTimeoutId);
 	  item._idleTimeout = msecs;
 	};
-	
+
 	exports.unenroll = function(item) {
 	  clearTimeout(item._idleTimeoutId);
 	  item._idleTimeout = -1;
 	};
-	
+
 	exports._unrefActive = exports.active = function(item) {
 	  clearTimeout(item._idleTimeoutId);
-	
+
 	  var msecs = item._idleTimeout;
 	  if (msecs >= 0) {
 	    item._idleTimeoutId = setTimeout(function onTimeout() {
@@ -4800,7 +4826,7 @@
 	    }, msecs);
 	  }
 	};
-	
+
 	// setimmediate attaches itself to the global object
 	__webpack_require__(8);
 	// On some exotic environments, it's not clear which object `setimmediate` was
@@ -4812,7 +4838,7 @@
 	exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 	                         (typeof global !== "undefined" && global.clearImmediate) ||
 	                         (this && this.clearImmediate);
-	
+
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
@@ -4821,17 +4847,17 @@
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
 	    "use strict";
-	
+
 	    if (global.setImmediate) {
 	        return;
 	    }
-	
+
 	    var nextHandle = 1; // Spec says greater than zero
 	    var tasksByHandle = {};
 	    var currentlyRunningATask = false;
 	    var doc = global.document;
 	    var registerImmediate;
-	
+
 	    function setImmediate(callback) {
 	      // Callback can either be a function or a string
 	      if (typeof callback !== "function") {
@@ -4848,11 +4874,11 @@
 	      registerImmediate(nextHandle);
 	      return nextHandle++;
 	    }
-	
+
 	    function clearImmediate(handle) {
 	        delete tasksByHandle[handle];
 	    }
-	
+
 	    function run(task) {
 	        var callback = task.callback;
 	        var args = task.args;
@@ -4874,7 +4900,7 @@
 	            break;
 	        }
 	    }
-	
+
 	    function runIfPresent(handle) {
 	        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
 	        // So if we're currently running a task, we'll need to delay this invocation.
@@ -4895,13 +4921,13 @@
 	            }
 	        }
 	    }
-	
+
 	    function installNextTickImplementation() {
 	        registerImmediate = function(handle) {
 	            process.nextTick(function () { runIfPresent(handle); });
 	        };
 	    }
-	
+
 	    function canUsePostMessage() {
 	        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
 	        // where `global.postMessage` means something completely different and can't be used for this purpose.
@@ -4916,12 +4942,12 @@
 	            return postMessageIsAsynchronous;
 	        }
 	    }
-	
+
 	    function installPostMessageImplementation() {
 	        // Installs an event handler on `global` for the `message` event: see
 	        // * https://developer.mozilla.org/en/DOM/window.postMessage
 	        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
-	
+
 	        var messagePrefix = "setImmediate$" + Math.random() + "$";
 	        var onGlobalMessage = function(event) {
 	            if (event.source === global &&
@@ -4930,30 +4956,30 @@
 	                runIfPresent(+event.data.slice(messagePrefix.length));
 	            }
 	        };
-	
+
 	        if (global.addEventListener) {
 	            global.addEventListener("message", onGlobalMessage, false);
 	        } else {
 	            global.attachEvent("onmessage", onGlobalMessage);
 	        }
-	
+
 	        registerImmediate = function(handle) {
 	            global.postMessage(messagePrefix + handle, "*");
 	        };
 	    }
-	
+
 	    function installMessageChannelImplementation() {
 	        var channel = new MessageChannel();
 	        channel.port1.onmessage = function(event) {
 	            var handle = event.data;
 	            runIfPresent(handle);
 	        };
-	
+
 	        registerImmediate = function(handle) {
 	            channel.port2.postMessage(handle);
 	        };
 	    }
-	
+
 	    function installReadyStateChangeImplementation() {
 	        var html = doc.documentElement;
 	        registerImmediate = function(handle) {
@@ -4969,43 +4995,43 @@
 	            html.appendChild(script);
 	        };
 	    }
-	
+
 	    function installSetTimeoutImplementation() {
 	        registerImmediate = function(handle) {
 	            setTimeout(runIfPresent, 0, handle);
 	        };
 	    }
-	
+
 	    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
 	    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
 	    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
-	
+
 	    // Don't get fooled by e.g. browserify environments.
 	    if ({}.toString.call(global.process) === "[object process]") {
 	        // For Node.js before 0.9
 	        installNextTickImplementation();
-	
+
 	    } else if (canUsePostMessage()) {
 	        // For non-IE10 modern browsers
 	        installPostMessageImplementation();
-	
+
 	    } else if (global.MessageChannel) {
 	        // For web workers, where supported
 	        installMessageChannelImplementation();
-	
+
 	    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
 	        // For IE 6–8
 	        installReadyStateChangeImplementation();
-	
+
 	    } else {
 	        // For older browsers
 	        installSetTimeoutImplementation();
 	    }
-	
+
 	    attachTo.setImmediate = setImmediate;
 	    attachTo.clearImmediate = clearImmediate;
 	}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
-	
+
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(1)))
 
 /***/ })
