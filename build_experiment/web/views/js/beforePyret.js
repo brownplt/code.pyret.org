@@ -1190,15 +1190,37 @@
 	    }
 	    window.stickMessage("Saving...");
 
-	    let contents = CPO.editor.cm.getValue();
+	    var contents = CPO.editor.cm.getValue();
 		let loc = window.location.pathname;
 
-		// SHOULD DO THIS ONCE GLOBALLY 
+		// SHOULD DO THIS ONCE GLOBALLY
 	    storageAPI = localFileSaveAPI(loc);
 
 	    var api = storageAPI.api;
 
-	    api.createFile(contents);
+			if (create){
+				// programToSave.then(function(p){
+        //
+				// })
+				// Q.nfcall(api.createFile, contents).then(function(f){
+				// 	programToSave = f;
+				// 	console.log("in big promise thing");
+				// });
+				api.createFile(contents).then(function(f){
+					programToSave = f;
+					console.log("inside promise")
+					console.log(programToSave);
+				});
+
+				console.log("after create file");
+
+			} else {
+				// programToSave.then(function(p){
+				// 	api.autoSave(p)
+				// });
+				console.log(programToSave);
+				api.autoSave(programToSave, contents);
+			}
 
 
 		// NOTE: Need condition to see if we are connected or not
@@ -1273,7 +1295,7 @@
 
 			let loc = window.location.pathname;
 
-			// SHOULD DO THIS ONCE GLOBALLY 
+			// SHOULD DO THIS ONCE GLOBALLY
 	    	storageAPI = localFileSaveAPI(loc);
 	    	var api = storageAPI.api;
 	    	api.getFileContents(CPO.editor.cm);
