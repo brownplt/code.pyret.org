@@ -1157,7 +1157,10 @@
 	  }
 
 	  function newEvent(e) {
-	    window.open(window.APP_BASE_URL + "/editor");
+			const path = require('path');
+			console.log(path.join(__dirname, '/editor.html'));
+			window.open(path.join(__dirname, '/editor.html'));
+	    // window.open(window.APP_BASE_URL + "/editor");
 	  }
 
 	  function saveEvent(e, filename) {
