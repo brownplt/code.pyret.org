@@ -85,6 +85,8 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
         var dialog = app.dialog;
 
         var name = Q.defer();
+        var d = Q.defer();
+        const a = [];
 
         dialog.showOpenDialog((fileNames) => {
           if(fileNames === undefined){
@@ -98,13 +100,15 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
                   return;
               }
               console.log(fileNames[0]);
+              console.log(data);
+              d.resolve(data);
               name.resolve(fileNames[0]);
-              cm.setValue(data);
 
           });
         });
-
-        return name.promise;
+        a.push(name.promise);
+        a.push(d.promise);
+        return Promise.all(a);
       },
 
       autoSave: function(fileName, contents){
@@ -163,7 +167,7 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
     return {
       api: api,
       collection: baseCollection,
-      programToSave : undefined 
+      programToSave : undefined
     };
   }
 

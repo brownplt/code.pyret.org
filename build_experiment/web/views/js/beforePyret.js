@@ -1275,23 +1275,23 @@
 	 //    return savedProgram;
 	  }
 
-	  /* Open file picker to save file with new name */ 
+	  /* Open file picker to save file with new name */
 	  function saveAs() {
 	  	// (Josh) 2/28/19: Might want to have this call save somehow
 	  	let loc = window.location.pathname;
 	  	var contents = CPO.editor.cm.getValue();
 	  	storageAPI = localFileSaveAPI(loc);
 	    var api = storageAPI.api;
-		
+
 
 		api.createFile(contents).then(function(f){
 					programToSave = f;
 					hasOpenedFile = true;
 					console.log("inside promise");
 					console.log("programToSave: " , programToSave);
-				});	  	
+				});
 
-	  	// (Josh) 2/28/19: All the logic below this is for googleDrive 
+	  	// (Josh) 2/28/19: All the logic below this is for googleDrive
 	  	//                 We can add it back once we put in the "isConnected" functionality
 	    // if (menuItemDisabled("saveas")) {
 	    //   return;
@@ -1320,8 +1320,8 @@
 	  }
 
 
-	  // (Josh) 2/28/19 -- Using this as indicator if the file in the editor constitutes new or 
-	  // 				   existing file  
+	  // (Josh) 2/28/19 -- Using this as indicator if the file in the editor constitutes new or
+	  // 				   existing file
 	  var hasOpenedFile = false;
 
 		function openEvent() {
@@ -1330,9 +1330,11 @@
 			// SHOULD DO THIS ONCE GLOBALLY
 	    	storageAPI = localFileSaveAPI(loc);
 	    	var api = storageAPI.api;
-	    	api.getFileContents(CPO.editor.cm).then(function(f){
-				programToSave = f;
+	    	api.getFileContents().then(function(arr){
+				programToSave = arr[0];
 				hasOpenedFile = true;
+				console.log(arr);
+				CPO.editor.cm.setValue(arr[1]);
 				console.log("inside open promise");
 				console.log("programToSave: " , programToSave);
 			});
