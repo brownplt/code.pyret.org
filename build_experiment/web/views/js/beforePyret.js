@@ -1160,7 +1160,7 @@
 	    window.open(window.APP_BASE_URL + "/editor");
 	  }
 
-	  function saveEvent(e) {
+	  function saveEvent(e, filename) {
 	    if (menuItemDisabled("save")) {
 	      return;
 	    }
@@ -1188,6 +1188,9 @@
 	      useName = filename; // A closed-over variable
 	      create = false;
 	    }
+
+	    console.log("hasOpenedFile: ", hasOpenedFile);
+	    console.log("Create: ", create);
 	    window.stickMessage("Saving...");
 
 	    var contents = CPO.editor.cm.getValue();
@@ -1197,8 +1200,13 @@
 	    storageAPI = localFileSaveAPI(loc);
 
 	    var api = storageAPI.api;
+	    if (hasOpenedFile){
+	    	create = false;
+	    }
+
 
 			if (create){
+				console.log("File has not been opened");
 				// programToSave.then(function(p){
         //
 				// })
@@ -1208,13 +1216,16 @@
 				// });
 				api.createFile(contents).then(function(f){
 					programToSave = f;
-					console.log("inside promise")
-					console.log(programToSave);
+					hasOpenedFile = true;
+					console.log("inside promise");
+					console.log("hasOpenedFile inside: ", hasOpenedFile);
+					console.log("programToSave: " , programToSave);
 				});
 
 				console.log("after create file");
 
 			} else {
+				console.log("File has been opened");
 				// programToSave.then(function(p){
 				// 	api.autoSave(p)
 				// });
@@ -1264,41 +1275,67 @@
 	 //    return savedProgram;
 	  }
 
+	  /* Open file picker to save file with new name */ 
 	  function saveAs() {
-	    if (menuItemDisabled("saveas")) {
-	      return;
-	    }
-	    programToSave.then(function (p) {
-	      var name = p === null ? "Untitled" : p.getName();
-	      var saveAsPrompt = new modalPrompt({
-	        title: "Save a copy",
-	        style: "text",
-	        options: [{
-	          message: "The name for the copy:",
-	          defaultValue: name
-	        }]
-	      });
-	      return saveAsPrompt.show().then(function (newName) {
-	        if (newName === null) {
-	          return null;
-	        }
-	        window.stickMessage("Saving...");
-	        return save(newName);
-	      }).fail(function (err) {
-	        console.error("Failed to rename: ", err);
-	        window.flashError("Failed to rename file");
-	      });
-	    });
+	  	// (Josh) 2/28/19: Might want to have this call save somehow
+	  	let loc = window.location.pathname;
+	  	var contents = CPO.editor.cm.getValue();
+	  	storageAPI = localFileSaveAPI(loc);
+	    var api = storageAPI.api;
+		
+
+		api.createFile(contents).then(function(f){
+					programToSave = f;
+					hasOpenedFile = true;
+					console.log("inside promise");
+					console.log("programToSave: " , programToSave);
+				});	  	
+
+	  	// (Josh) 2/28/19: All the logic below this is for googleDrive 
+	  	//                 We can add it back once we put in the "isConnected" functionality
+	    // if (menuItemDisabled("saveas")) {
+	    //   return;
+	    // }
+	    // programToSave.then(function (p) {
+	    //   var name = p === null ? "Untitled" : p.getName();
+	    //   var saveAsPrompt = new modalPrompt({
+	    //     title: "Save a copy",
+	    //     style: "text",
+	    //     options: [{
+	    //       message: "The name for the copy:",
+	    //       defaultValue: name
+	    //     }]
+	    //   });
+	    //   return saveAsPrompt.show().then(function (newName) {
+	    //     if (newName === null) {
+	    //       return null;
+	    //     }
+	    //     window.stickMessage("Saving...");
+	    //     return save(newName);
+	    //   }).fail(function (err) {
+	    //     console.error("Failed to rename: ", err);
+	    //     window.flashError("Failed to rename file");
+	    //   });
+	    // });
 	  }
 
-		function openEvent() {
 
+	  // (Josh) 2/28/19 -- Using this as indicator if the file in the editor constitutes new or 
+	  // 				   existing file  
+	  var hasOpenedFile = false;
+
+		function openEvent() {
 			let loc = window.location.pathname;
 
 			// SHOULD DO THIS ONCE GLOBALLY
 	    	storageAPI = localFileSaveAPI(loc);
 	    	var api = storageAPI.api;
-	    	api.getFileContents(CPO.editor.cm);
+	    	api.getFileContents(CPO.editor.cm).then(function(f){
+				programToSave = f;
+				hasOpenedFile = true;
+				console.log("inside open promise");
+				console.log("programToSave: " , programToSave);
+			});
 		}
 
 
