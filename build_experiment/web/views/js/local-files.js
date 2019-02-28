@@ -77,12 +77,14 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
         return this.getFiles(baseCollection);
       },
 
-      /* Read contents of an existing file into the editor */
+      /* Read contents of an existing file into the editor - used in open event*/
       getFileContents: function(cm) {
         var fs = require('fs'); // Load the File System to execute our common tasks (CRUD)
 
         var app = require('electron').remote;
         var dialog = app.dialog;
+
+        var name = Q.defer();
 
         dialog.showOpenDialog((fileNames) => {
           if(fileNames === undefined){
@@ -95,12 +97,14 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
                   alert("An error ocurred reading the file :" + err.message);
                   return;
               }
-
+              console.log(fileNames[0]);
+              name.resolve(fileNames[0]);
               cm.setValue(data);
 
           });
         });
 
+        return name.promise;
       },
 
       autoSave: function(fileName, contents){
@@ -158,7 +162,8 @@ window.localFileSaveAPI = function createProgramCollectionAPI(baseCollection) {
 
     return {
       api: api,
-      collection: baseCollection
+      collection: baseCollection,
+      programToSave : undefined 
     };
   }
 
