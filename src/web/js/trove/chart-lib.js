@@ -6,7 +6,15 @@
     'pyret-base/js/js-numbers',
     'google-charts',
   ],
-  provides: {},
+  provides: {
+    values: {
+      'pie-chart': "tany",
+      'bar-chart': "tany",
+      'histogram': "tany",
+      'box-plot': "tany",
+      'plot': "tany"
+    }
+  },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums , google) {
   'use strict';
 

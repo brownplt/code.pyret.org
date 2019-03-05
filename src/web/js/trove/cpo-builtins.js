@@ -1,8 +1,8 @@
 {
   requires: [
     { "import-type": "builtin", "name": "base" },
-    { "import-type": "builtin", "name": "image" },
-    { "import-type": "builtin", "name": "image-untyped" },
+    { "import-type": "builtin", "name": "image-new" },
+    { "import-type": "builtin", "name": "image-untyped-new" },
     { "import-type": "builtin", "name": "world" },
     { "import-type": "builtin", "name": "gdrive-sheets" },
     { "import-type": "builtin", "name": "plot" },
