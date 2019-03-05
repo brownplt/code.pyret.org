@@ -2,11 +2,13 @@ import React, { Component } from 'react';
 
 class File extends Component {
   render = () => {
+    let modtime = new Date(this.props.modifiedTime).toDateString();
     return (
         <div className='file-wrapper'>
           <div className="file" onClick={this.handleFileClick}>
             <img src='/img/pyret-logo.png'/>
-            <p className='truncate'>{this.props.name}</p>
+            <span className='truncate'>{this.props.name}</span>
+            <span className='modified'>{modtime}</span>
           </div>
         </div>
     );

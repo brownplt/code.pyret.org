@@ -58,6 +58,8 @@
 
 
     var replContainer = $("<div>").addClass("repl");
+    replContainer.attr("tabindex", "-1").attr('role', 'application');
+    //replContainer.attr("aria-hidden", "true");
     $("#REPL").append(replContainer);
 
     var logDetailedOption = $("#detailed-logging");
@@ -75,6 +77,7 @@
 
     localSettings.change("log-detailed", function(_, newValue) {
       logDetailedOption[0].checked = newValue == 'true';
+      logDetailedOption.attr('aria-pressed', '' + (newValue == 'true'));
     });
 
     runtime.setParam("imgUrlProxy", function(s) {
@@ -306,13 +309,23 @@
     function withRepl(repl) {
       var runButton = $("#runButton");
 
+      var docmain = document.getElementById('main');
+      var docreplMain = docmain.getElementsByClassName('replMain');
+      if (docreplMain.length === 0) {
+
       var codeContainer = $("<div>").addClass("replMain");
+      codeContainer.attr("role", "region").
+        attr("aria-label", "Definitions").
+        attr("tabindex", "-1");
       $("#main").prepend(codeContainer);
+
+      }
 
       var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
-            runButton: runButton
+            runButton: runButton,
+            runDropdown: $('#runDropdown')
           });
 
       // NOTE(joe): assigned on window for debuggability
@@ -320,9 +333,11 @@
         doRunAction(src);
       };
 
+      /*
       $("#runDropdown").click(function() {
         $("#run-dropdown-content").toggle();
       });
+      */
 
       // CPO.editor is set in beforePyret.js
       var editor = CPO.editor;
@@ -332,14 +347,16 @@
         runButton.text("Run");
         currentAction = "run";
         doRunAction(editor.cm.getValue());
-        $("#run-dropdown-content").hide();
+        $('#runDropdown').attr('aria-expanded', 'false');
+        $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
 
       $("#select-tc-run").click(function() {
         runButton.text("Type-check and Run");
         currentAction = "tc-and-run";
         doRunAction(editor.cm.getValue());
-        $("#run-dropdown-content").hide();
+        $('#runDropdown').attr('aria-expanded', 'false');
+        $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
       /*
       $("#select-scsh").click(function() {
@@ -518,9 +535,85 @@
         e.preventDefault();
       });
 
+      function reciteHelp() {
+        CPO.sayAndForget(
+          "Press Escape to exit help. " +
+          "Control question mark: recite help. " +
+          "Control s: save. " +
+          "F6 and shift-F6: cycle focus through regions. " +
+          "F7 or Control enter: run the code in the definitions window. " +
+          "F11: insert image. " +
+          "Control left: move cursor left by one word. " +
+          "Control right: move cursor right by one word. " +
+          "Alt left: if cursor is just before a right parenthesis or end keyword, " +
+          "move left to matching delimiter, " +
+          "otherwise move left by one word. " +
+          "Alt right: like alt left, but move right. " +
+          "Escape left: synonym for alt left, in case alt key is used by browser. " +
+          "Escape right: synonym for alt right."
+        );
+      }
+
       // pull up help menu
       Mousetrap.bindGlobal('ctrl+shift+/', function(e) {
         $("#help-keys").fadeIn(100);
+        reciteHelp();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      $('#ctrl-question').click(function() {
+        $('#help-keys').fadeIn(100);
+        reciteHelp();
+      });
+
+      Mousetrap.bindGlobal('f6', function(e) {
+        // cycle focus (forward)
+        CPO.cycleFocus();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('shift+f6', function(e) {
+        // cycle focus backward
+        CPO.cycleFocus(true);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('shift+tab', function(e) {
+        // cycle focus backward
+        //console.log('mouse shift+tab')
+        CPO.cycleFocus(true);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f7', function(e) {
+        doRunAction(editor.cm.getValue());
+        CPO.autoSave();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f8', function(e) {
+        $('#breakButton').click();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f9', function(e) {
+        var sc = $('#shareContainer');
+        if (sc) {
+          var sl = sc[0].childNodes[0];
+          sl.click();
+        }
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('f11', function(e) {
+        $('#insert').click();
         e.stopImmediatePropagation();
         e.preventDefault();
       });
