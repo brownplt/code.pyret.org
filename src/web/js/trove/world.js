@@ -9,7 +9,7 @@
     shorthands: {
       "WCOofA": ["tyapp", ["local", "WorldConfigOption"], [["tid", "a"]]],
       "Image": { tag: "name",
-                 origin: { "import-type": "uri", uri: "builtin://image" },
+                 origin: { "import-type": "uri", uri: "builtin://image-untyped" },
                  name: "Image" }
     },
     values: {

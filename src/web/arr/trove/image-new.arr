@@ -12,7 +12,7 @@ provide:
   curcle,
   I.circle
 end
-import image as I
+import image-typed as I
 import image-structs as IS
 
 curcle = I.circle

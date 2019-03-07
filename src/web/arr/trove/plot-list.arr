@@ -3,7 +3,7 @@ provide *
 import global as G
 import base as B
 import image-structs as I
-import image as IM
+import image-untyped as IM
 include lists
 include option
 import sets as S
