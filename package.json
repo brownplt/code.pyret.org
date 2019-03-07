@@ -52,7 +52,7 @@
     "node-uuid": "^1.4.1",
     "pyret-codemirror-mode": "git://github.com/brownplt/pyret-codemirror-mode.git#horizon",
     "pyret-ide": "git://github.com/pcardune/pyret-ide.git#master",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#module-syntax",
     "q": "~1.4.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
