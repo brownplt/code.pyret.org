@@ -622,8 +622,8 @@ $(function() {
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
-    CPO.editor.cm.clearHistory();
     CPO.editor.cm.setValue(c);
+    CPO.editor.cm.clearHistory();
   });
 
   programLoaded.fail(function() {
