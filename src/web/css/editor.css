@@ -1970,7 +1970,7 @@ table.pyret-row {
    margin-right: -2.5em;
    width: 2.5em;
    height: 1.5em;
-   position: absolute;
+   position: relative;
    background-image: url(/img/checkers.svg);
    background-size: 2.5em 1.5em;
    display: inline-block;
