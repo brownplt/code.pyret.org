@@ -81,6 +81,7 @@
     "test-watch": "karma start",
     "lint": "eslint src",
     "build": "heroku local:run make web-local",
+    "heroku-postbuild": "echo Skip build on Heroku per https://help.heroku.com/P5IMU3MP/heroku-node-js-build-script-change-faq",
     "mocha": "heroku local:run mocha",
     "start": "heroku local:run supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & heroku local:run webpack-dev-server --port 5001 --watch"
   },
