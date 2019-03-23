@@ -67,6 +67,7 @@
       "rhombus": "tany",
       "image-to-color-list": "tany",
       "color-list-to-image": "tany",
+      "color-at-position": "tany",
       "color-list-to-bitmap": "tany",
       "image-width": "tany",
       "image-height": "tany",
@@ -1054,6 +1055,22 @@
       var color = checkColor(maybeColor);
       return makeImage(
         image.makeRhombusImage(length, angle, mode, color));
+    });
+
+    f("color-at-position", function(maybeImage, maybeX, maybeY) {
+      checkArity(3, arguments, "color-at-position", false);
+      c("image-width", [maybeImage, maybeX, maybeY], [annImage, annNatural, annNatural]);
+      var img = checkImage(maybeImage);
+      var width = img.getWidth();
+      var height = img.getHeight();
+      if(maybeX >= width) {
+        throwMessage("color-at-position: The given x coordinate, " + maybeX + ", must be between 0 (inclusive) and the image width (exclusive), which is " + img.getWidth());
+      }
+      if(maybeY >= height) {
+        throwMessage("color-at-position: The given y coordinate, " + maybeY + ", must be between 0 (inclusive) and the image height (exclusive), which is " + img.getHeight());
+
+      }
+      return image.colorAtPosition(img, maybeX, maybeY);
     });
 
     f("image-to-color-list", function(maybeImage) {
