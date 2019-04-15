@@ -179,7 +179,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-min'), {
       none: function () {},
       some: function (minValue) {
-        const v = toFixnum(minValue)
+        const v = toFixnum(minValue);
         vAxis.minValue = v;
         viewWindow.min = v;
       }
@@ -187,7 +187,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-max'), {
       none: function () {},
       some: function (maxValue) {
-        const v = toFixnum(maxValue)
+        const v = toFixnum(maxValue);
         vAxis.maxValue = v;
         viewWindow.max = v;
       }
@@ -522,7 +522,10 @@ ${labelRow}`;
           'class': 'controller',
           type: 'text',
           placeholder: '#samples',
-        }).attr('size', inputSize);
+        }).attr('size', inputSize).val('2');
+        // dummy value so that a new window can be constructed correctly
+        // when numSamplesC is not used. The value must be at least 2
+
         const redrawC = $('<button/>', {
           'class': 'controller',
           text: 'Redraw',
@@ -607,7 +610,7 @@ ${labelRow}`;
       restarter.error(
         RUNTIME.ffi.makeMessageException(
           'unable to load the image: ' + e.message));
-    }
+    };
     rawImage.src = url;
   }
 
