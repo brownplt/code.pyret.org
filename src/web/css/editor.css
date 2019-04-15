@@ -628,6 +628,7 @@ body {
 #filemenuContents {
   min-width: 200px;
 }
+#filemenuContents .hidden { display: none; }
 
 .menuContents {
   background-color: #EFEFEF;
