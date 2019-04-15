@@ -813,17 +813,6 @@
         views: ["imageView"],
         title: "Select an image to use"
       });
-      var pyretPicker = new FilePicker({
-        onLoaded: function() {
-          $("#open").attr("disabled", false);
-          pyretPicker.openOn($("#open")[0], "click");
-        },
-        onSelect: handlePickerData,
-        onError: flashError,
-        onInternalError: stickError,
-        views: ["pyretView"],
-        title: "Select a Pyret file to use"
-      });
 
       return runtime.makeModuleReturn({
         repl: runtime.makeOpaque(repl)

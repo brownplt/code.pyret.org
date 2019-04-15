@@ -323,7 +323,7 @@ $(function() {
           console.log("Response for original: ", response);
           var original = $("#open-original").show().off("click");
           var id = response.result.value;
-          original.removeClass("disabled");
+          original.removeClass("hidden");
           original.click(function() {
             window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
           });
