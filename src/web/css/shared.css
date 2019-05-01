@@ -317,6 +317,7 @@ code {
 }
 
 .auto-highlight {
+  width: 90%;
   border: none;
   /* TODO(joe): Best way to override JQuery modal UI settings? */
   font-family: monospace !important;
