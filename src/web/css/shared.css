@@ -445,6 +445,7 @@ code {
 }
 
 .auto-highlight {
+  width: 90%;
   border: none;
   /* TODO(joe): Best way to override JQuery modal UI settings? */
   font-family: monospace !important;
@@ -475,8 +476,13 @@ code {
 }
 
 .focusable {
+/* NOTE(joe): removing these seems natural, though discussion at
+ * https://github.com/brownplt/code.pyret.org/commit/5bbfcefcd25cad92e969b3f1d2c6df6a85b55639#r33381324
+ * may change this
+
   margin: 0;
   padding: 0;
+*/
 }
 
 .focusable:focus {
