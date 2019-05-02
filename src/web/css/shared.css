@@ -352,7 +352,6 @@ li.topTier > div {
 /*  darker blue option #2a348b */
     background-color: rgba(0,0,0,0.3);
     border: none;
-    border-right: thin solid black;
     border-radius: 0px;
     color: #fff;
     text-align: center;
