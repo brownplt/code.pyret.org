@@ -25,12 +25,14 @@ window.clearFlash = function() {
   $(".notificationArea").empty();
 }
 window.whiteToBlackNotification = function() {
+  /*
   $(".notificationArea .active").css("background-color", "white");
   $(".notificationArea .active").animate({backgroundColor: "#111111" }, 1000);
+  */
 };
 window.stickError = function(message, more) {
   clearFlash();
-  var err = $("<div>").addClass("error").text(message);
+  var err = $("<span>").addClass("error").text(message);
   if(more) {
     err.attr("title", more);
   }
@@ -40,21 +42,21 @@ window.stickError = function(message, more) {
 };
 window.flashError = function(message) {
   clearFlash();
-  var err = $("<div>").addClass("error").text(message);
+  var err = $("<span>").addClass("error").text(message);
   $(".notificationArea").prepend(err);
   whiteToBlackNotification();
   err.fadeOut(7000);
 };
 window.flashMessage = function(message) {
   clearFlash();
-  var msg = $("<div>").addClass("active").text(message);
+  var msg = $("<span>").addClass("active").text(message);
   $(".notificationArea").prepend(msg);
   whiteToBlackNotification();
   msg.fadeOut(7000);
 };
 window.stickMessage = function(message) {
   clearFlash();
-  var err = $("<div>").addClass("active").text(message);
+  var err = $("<span>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
   whiteToBlackNotification();
 };
