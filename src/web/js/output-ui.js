@@ -1667,8 +1667,8 @@
           table.className = "pyret-row";
           var thead = document.createElement("thead");
           var trow = document.createElement("tr");
-          thead.append(trow);
-          table.append(thead);
+          thead.appendChild(trow);
+          table.appendChild(thead);
 
           var colElts = [];
           for(var i = 0; i < cols.length; i++) {
