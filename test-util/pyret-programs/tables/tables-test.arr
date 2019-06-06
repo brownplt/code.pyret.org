@@ -1,4 +1,4 @@
-include tables as T
+import tables as T
 
 pixels-1 = [list: [list: 1, 0, 1, 0],
   [list: 1, 0, 0, 1],
