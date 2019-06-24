@@ -502,7 +502,7 @@ body {
   height: 100%;
   max-height: 100%;
   padding-top: 40px;
-  padding-bottom: 2.5em;
+  padding-bottom: 2.5rem;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;
@@ -518,7 +518,7 @@ body {
   height: 100%;
   max-height: 100%;
   padding-top: 40px;
-  padding-bottom: 2.5em;
+  padding-bottom: 2.5rem;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;
@@ -586,8 +586,8 @@ body {
 
 #welcome {
   color: #eeeeee;
-  height: 2.5em;
-  line-height: 2.5em;
+  height: 2.5rem;
+  line-height: 2.5rem;
   width: 50%;
   float: left;
 }
@@ -605,8 +605,8 @@ body {
   max-width: 50%;
   float: right;
   font-family: sans-serif;
-  height: 2.5em;
-  line-height: 2.5em;
+  height: 2.5rem;
+  line-height: 2.5rem;
 }
 
 .notificationArea span {
@@ -1244,7 +1244,7 @@ code div {
   left: 0px;
   bottom: 0px;
   margin-top: 40px;
-  margin-bottom: 2.5em;
+  margin-bottom: 2.5rem;
   height:auto;
 }
 
