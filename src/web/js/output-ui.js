@@ -178,11 +178,11 @@
       Position.fromPyretSrcloc = function (runtime, srcloc, loc, documents, options) {
         return runtime.ffi.cases(isSrcloc, "Srcloc", loc, {
           "builtin": function(_) {
-             throw new Error("Cannot get Position from builtin location", loc);
+             return new Error("Cannot get Position from builtin location", loc);
           },
           "srcloc": function(source, startL, startC, startCh, endL, endC, endCh) {
             if (!documents.has(source))
-              throw new Error("No document for this location: ", loc);
+              return new Error("No document for this location: ", loc);
             else {
               var extraCharForZeroWidthLocs = endCh === startCh ? 1 : 0;
               return new Position(
@@ -1029,11 +1029,23 @@
               var hue = palette(id);
               var color = hue;
               var anchor = $("<a>").append(helpContents).addClass("highlight");
-              var positions = ffi.toArray(locs).
-                filter(isSrcloc).
-                map(function(loc){
-                  return Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
-                });
+              var locsArray = ffi.toArray(locs);
+              var positions = locsArray
+                  .map(function(loc){
+                    return Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
+                  })
+                  .filter((p) => p instanceof Position);
+              if (positions.length == 0) {
+                // NOTE(Ben): Not 100% this is correct
+                // I had to tweak fromPyretSrcloc to not throw an Error when it received
+                // a srcloc that isn't in its known-set of documents, but instead to return
+                // a non-Position result.
+                // If locsArray isn't empty but positions is, then this should only occur
+                // when the sole srcloc comes from a document for which we don't have source
+                // (i.e. a builtin).  So, render it as a URL-looking srcloc.
+                return $("<span>").append(helpContents)
+                  .append(" (defined at ").append(drawSrcloc(documents, runtime, locsArray[0])).append(")");
+              }
               if (id < 0) {
                 messageHintedColors.add(color);
               }
