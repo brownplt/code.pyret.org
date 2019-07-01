@@ -55,6 +55,7 @@
       "square": "tany",
       "rectangle": "tany",
       "regular-polygon": "tany",
+      "point-polygon": "tany",
       "ellipse": "tany",
       "wedge": "tany",
       "triangle": "tany",
@@ -78,6 +79,8 @@
       "image-width": "tany",
       "image-height": "tany",
       "image-baseline": "tany",
+      "image-pinhole-x": "tany",
+      "image-pinhole-y": "tany",
       "name-to-color": "tany",
       "empty-image": "tany"
     },
@@ -123,6 +126,10 @@
       return runtime.isOpaque(val) && image.isScene(val.val);
     };
 
+    var unwrapPoint2D = function(val) {
+      var gf = runtime.getField;
+      return { x: gf(val, "x"), y: gf(val, "y") };
+    };
 
     const ANNOTS = {
       annString: runtime.String,
@@ -153,6 +160,7 @@
         return aColor;
       },
       annColor: ann("Color", image.isColorOrColorString),
+      annPoint2D: image.annPoint,
       annMode: ann("Mode (\"outline\" or \"solid\")", function(x) {
         return (isString(x) &&
                 (x.toString().toLowerCase() == "solid" ||
@@ -222,6 +230,12 @@
       }),
       unwrapListofColor: function(val) {
         return ffi.makeList(ffi.toArray(val).map(unwrapColor));
+      },
+      annListPoint2D: ann("List<Point>", function(val) {
+        return runtime.ffi.isList(val);
+      }),
+      unwrapListofPoint2D: function(val) {
+        return ffi.toArray(val).map(unwrapPoint2D);
       },
       annSideCount: ann("Side Count", image.isSideCount),
       annStepCount: ann("Step Count", image.isStepCount),

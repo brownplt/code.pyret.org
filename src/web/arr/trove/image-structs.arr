@@ -6,6 +6,16 @@ provide-types *
 import global as _
 import base as _
 
+data Point:
+  | xy-point(x :: Number, y :: Number)
+  | polar-point(r :: Number, theta :: Number)
+end
+
+# alias xy-point to point
+point = xy-point
+# alias Point2D to Point
+type Point2D = Point
+
 data Color:
   | color(
       red :: Number,

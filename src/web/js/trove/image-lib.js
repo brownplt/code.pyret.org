@@ -13,6 +13,10 @@
     var annColor = imageTypes["Color"]; // can't use getField here
     var rawIsColor = gf(image, "is-Color");
     var isNum = function(n) { return typeof n === "number"; }
+    var xyPoint = gf(image, "xy-point");
+    var annPoint = imageTypes["Point"];
+    var rawIsPoint = gf(image, "is-Point");
+    var isPoint = function(p) { return unwrap(rawIsPoint.app(p)); };
     var unwrap = RUNTIME.unwrap;
 
     var hasOwnProperty = {}.hasOwnProperty;
@@ -314,6 +318,14 @@
     BaseImage.prototype.getBaseline = function(){
       return this.alphaBaseline !== undefined ? this.alphaBaseline : Math.round(this.height);
     };
+
+    BaseImage.prototype.getPinholeX = function() {
+      return this.pinholeX !== undefined ? this.pinholeX : 0;
+    }
+
+    BaseImage.prototype.getPinholeY = function() {
+      return this.pinholeY !== undefined ? this.pinholeY : 0;
+    }
 
     // return the vertex array if it exists, otherwise make one using height and width
     BaseImage.prototype.getVertices = function(){
@@ -1213,15 +1225,15 @@
     RhombusImage.prototype = heir(BaseImage.prototype);
 
     //////////////////////////////////////////////////////////////////////
-    // PolygonImage: Number Count Step Mode Color -> Image
+    // RegularPolygonImage: Number Count Step Mode Color -> Image
     //
     // See http://www.algebra.com/algebra/homework/Polygons/Inscribed-and-circumscribed-polygons.lesson
     // the polygon is inscribed in a circle, whose radius is length/2sin(pi/count)
     // another circle is inscribed in the polygon, whose radius is length/2tan(pi/count)
-    // Polygons are drawn to keep their bottoms flat.
+    // RegularPolygons are drawn to keep their bottoms flat.
     // Stars are drawn to keep the points at top.
     // (so an even-sided star would be rotated from an even-sided polygon)
-    var PolygonImage = function(length, count, step, style, color, flatBottom) {
+    var RegularPolygonImage = function(length, count, step, style, color, flatBottom) {
       BaseImage.call(this);
       this.outerRadius = Math.round(length/(2*Math.sin(Math.PI/count)));
       var adjust = (Math.PI/2); // rotate 1/4 turn, with y pointing down
@@ -1254,15 +1266,23 @@
           component.push(this.vertices[(curComp * pointsPerComponent) + point]);
         }
         this._vertices.push(component);
-      }        
-      this.pinholeX = translate.x;
-      this.pinholeY = translate.y;
+      }
+      this.pinholeX = 0;
+      this.pinholeY = 0;
+      for (var v = 0; v < this.vertices.length; v++) {
+        this.pinholeX += this.vertices[v].x;
+        this.pinholeY += this.vertices[v].y;
+      }
+      this.pinholeX /= this.vertices.length;
+      this.pinholeY /= this.vertices.length;
+      this.pinholeX += translate.x;
+      this.pinholeY += translate.y;
       this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
                       +" sided polygon with each side of length "+length;
     };
 
-    PolygonImage.prototype = heir(BaseImage.prototype);
-    PolygonImage.prototype.render = function(ctx) {
+    RegularPolygonImage.prototype = heir(BaseImage.prototype);
+    RegularPolygonImage.prototype.render = function(ctx) {
       var actualVertices = this.vertices;
       for (var i = 0; i < this._vertices.length; i++) {
         this.vertices = this._vertices[i];
@@ -1270,6 +1290,29 @@
       }
       this.vertices = actualVertices;
     }
+
+    var PointPolygonImage = function(vertices, style, color) {
+      BaseImage.call(this);
+      this.width      = findWidth(vertices);
+      this.height     = findHeight(vertices);
+      this.style      = style;
+      this.color      = color;
+      var translate = {}
+      this.vertices = translateVertices(vertices, translate);
+      this.pinholeX = 0;
+      this.pinholeY = 0;
+      for (var v = 0; v < this.vertices.length; v++) {
+        this.pinholeX += this.vertices[v].x;
+        this.pinholeY += this.vertices[v].y;
+      }
+      this.pinholeX /= this.vertices.length;
+      this.pinholeY /= this.vertices.length;
+      this.pinholeX += translate.x;
+      this.pinholeY += translate.y;
+      this.ariaText = " a"+colorToSpokenString(color,style) + ", polygon with "+vertices.length+" points";
+    };
+    PointPolygonImage.prototype = heir(BaseImage.prototype);
+    
 
     // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
     // based off of https://stackoverflow.com/a/9847841/783424,
@@ -1414,8 +1457,14 @@
       this.color      = color;
       var translate = {};
       this.vertices   = translateVertices(vertices, translate);
-      this.pinholeX   = translate.x;
-      this.pinholeY   = translate.y;
+      this.pinholeX = 0;
+      this.pinholeY = 0;
+      for (var v = 0; v < this.vertices.length; v++) {
+        this.pinholeX += this.vertices[v].x;
+        this.pinholeY += this.vertices[v].y;
+      }
+      this.pinholeX /= this.vertices.length;
+      this.pinholeY /= this.vertices.length;
       this.ariaText   = " a" + colorToSpokenString(color,style) + ", " + points +
                         "pointed star with inner radius "+inner+" and outer radius "+outer;
     };
@@ -1676,8 +1725,11 @@
     var makeRhombusImage = function(side, angle, style, color) {
       return new RhombusImage(side, angle, style, color);
     };
-    var makePolygonImage = function(length, count, step, style, color, flatBottom) {
-      return new PolygonImage(length, count, step, style, color, flatBottom);
+    var makeRegularPolygonImage = function(length, count, step, style, color, flatBottom) {
+      return new RegularPolygonImage(length, count, step, style, color, flatBottom);
+    };
+    var makePointPolygonImage = function(length, count, step, style, color, flatBottom) {
+      return new PointPolygonImage(length, count, step, style, color, flatBottom);
     };
     var makeSquareImage = function(length, style, color) {
       return new RectangleImage(length, length, style, color);
@@ -1733,7 +1785,8 @@
                                       x.width === x.height; };
     var isStarImage	= function(x) { return x instanceof StarImage; };
     var isRectangleImage=function(x) { return x instanceof RectangleImage; };
-    var isPolygonImage = function(x) { return x instanceof PolygonImage; };
+    var isRegularPolygonImage = function(x) { return x instanceof RegularPolygonImage; };
+    var isPointPolygonImage = function(x) { return x instanceof PointPolygonImage; };
     var isRhombusImage = function(x) { return x instanceof RhombusImage; };
     var isSquareImage	= function(x) { return x instanceof SquareImage; };
     var isTriangleImage= function(x) { return x instanceof TriangleImage; };
@@ -1773,7 +1826,7 @@
       RectangleImage: RectangleImage,
       RhombusImage: RhombusImage,
       ImageDataImage: ImageDataImage,
-      PolygonImage: PolygonImage,
+      RegularPolygonImage: RegularPolygonImage,
       TextImage: TextImage,
       StarImage: StarImage,
       TriangleImage: TriangleImage,
@@ -1792,7 +1845,8 @@
       makeStarImage: makeStarImage,
       makeRectangleImage: makeRectangleImage,
       makeRhombusImage: makeRhombusImage,
-      makePolygonImage: makePolygonImage,
+      makeRegularPolygonImage: makeRegularPolygonImage,
+      makePointPolygonImage: makePointPolygonImage,
       makeSquareImage: makeSquareImage,
       makeTriangleImage: makeTriangleImage,
       makeEllipseImage: makeEllipseImage,
@@ -1816,6 +1870,7 @@
 
       isImage: isImage,
       isScene: isScene,
+      annPoint: annPoint,
       annFillMode: annFillMode,
       annXPlace: annXPlace,
       annYPlace: annYPlace,
@@ -1827,12 +1882,13 @@
       isSideCount: isSideCount,
       isStepCount: isStepCount,
       isPointsCount: isPointsCount,
+      isPoint: isPoint,
 
       isSceneImage: isSceneImage,
       isCircleImage: isCircleImage,
       isStarImage: isStarImage,
       isRectangleImage: isRectangleImage,
-      isPolygonImage: isPolygonImage,
+      isRegularPolygonImage: isRegularPolygonImage,
       isRhombusImage: isRhombusImage,
       isSquareImage: isSquareImage,
       isTriangleImage: isTriangleImage,

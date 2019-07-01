@@ -19,7 +19,10 @@
                     name: "FontStyle" },
       "FontWeight": { tag: "name",
                     origin: { "import-type": "uri", uri: "builtin://image-structs" },
-                    name: "FontWeight" },
+                      name: "FontWeight" },
+      "Point": { tag: "name",
+                 origin: { "import-type": "uri", uri: "builtin://image-structs" },
+                 name: "Point" },
       "XPlace": { tag: "name",
                   origin: { "import-type": "uri", uri: "builtin://image-structs" },
                   name: "XPlace" },
@@ -48,6 +51,12 @@
                          origin: { "import-type": "uri", uri: "builtin://lists" },
                          name: "List" },
               [["local", "Image" ]]],
+      "LoP": ["tyapp", { tag: "name",
+                         origin: { "import-type": "uri", uri: "builtin://lists" },
+                         name: "List" },
+              [{ tag: "name",
+                 origin: { "import-type": "uri", uri: "builtin://image-structs" },
+                 name: "Point" }]],
       "Image": ["local", "Image"]
     },
     values: {
@@ -113,6 +122,7 @@
       "square": ["arrow", ["Number", "FillMode", "Color"], "Image"],
       "rectangle": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "regular-polygon": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
+      "point-polygon": ["arrow", ["LoP", "FillMode", "Color"], "Image"],
       "ellipse": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "wedge": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "triangle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
@@ -135,6 +145,8 @@
       "image-width": ["arrow", ["Image"], "Number"],
       "image-height": ["arrow", ["Image"], "Number"],
       "image-baseline": ["arrow", ["Image"], "Number"],
+      "image-pinhole-x": ["arrow", ["Image"], "Number"],
+      "image-pinhole-y": ["arrow", ["Image"], "Number"],
       "name-to-color": ["arrow", ["String"], "OptColor"],
       "color-named": ["arrow", ["String"], "Color"],
       "empty-image": "Image"
@@ -176,6 +188,11 @@
     });
     var unwrapListofImage = identity;
 
+    var unwrapPoint2D = function(val) {
+      var gf = runtime.getField;
+      return { x: gf(val, "x"), y: gf(val, "y") };
+    };
+    
     // [Image int Image -> Image] [Listof PyretImage] Image -> Image
     var imageListFoldIndex = function(func, lst, base) {
       var cur = lst;
@@ -213,6 +230,7 @@
       }),
       unwrapColor: identity,
       annColor: image.annColor,
+      annPoint: image.annPoint,
       annMode: image.annFillMode,
       unwrapMode: function(m) {
         return runtime.ffi.cases(pyAlwaysTrue, "FillMode", m, {
@@ -292,6 +310,22 @@
         return true;
       }),
       unwrapListofColor: identity,
+      annListPoint2D: ann("List<Point>", function(val) {
+        if (!runtime.ffi.isList(val)) return false;
+        var cur = val;
+        var gf = runtime.getField;
+        var count = 0;
+        while (runtime.unwrap(ffi.isLink(cur))) {
+          var f = gf(cur, "first");
+          if (!image.isPoint(f)) return false;
+          cur = gf(cur, "rest");
+          count++;
+        }
+        return true;
+      }),
+      unwrapListofPoint2D: function(val) {
+        return ffi.toArray(val).map(unwrapPoint2D);
+      },
       annSideCount: ann("Side Count", image.isSideCount),
       annStepCount: ann("Step Count", image.isStepCount),
       annPointCount: ann("Points Count", image.isPointsCount)
@@ -415,14 +449,6 @@
       }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
     });
     
-    f("below", function(maybeImg1, maybeImg2) {
-      checkArity(2, arguments, "below", false);
-      c2("below", maybeImg1, annImage, maybeImg2, annImage);
-      var img1 = unwrapImage(maybeImg1);
-      var img2 = unwrapImage(maybeImg2);
-      return makeImage(image.makeOverlayImage(img2, "middle", "bottom", 0, 0, img1, "middle", "top"));
-    });
-
     f("below-list", function(maybeImgs) {
       checkArity(1, arguments, "below-list", false);
       c1("below-list", maybeImgs, annListImage);
@@ -431,15 +457,6 @@
         if (idx == 0) { return img; }
         else { return image.makeOverlayImage(img, "middle", "bottom", 0, 0, acc, "middle", "top"); }
       }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("below-align", function(maybePlaceX, maybeImg1, maybeImg2) {
-      checkArity(3, arguments, "below-align", false);
-      c3("below-align", maybePlaceX, annPlaceX, maybeImg1, annImage, maybeImg2, annImage);
-      var placeX = unwrapPlaceX(maybePlaceX);
-      var img1 = unwrapImage(maybeImg1);
-      var img2 = unwrapImage(maybeImg2);
-      return makeImage(image.makeOverlayImage(img2, placeX, "bottom", 0, 0, img1, placeX, "top"));
     });
 
     f("below-align-list", function(maybePlaceX, maybeImgs) {

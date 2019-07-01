@@ -43,6 +43,8 @@
       const annSideCount = annots.annSideCount;
       const annStepCount = annots.annStepCount;
       const annPointCount = annots.annPointCount;
+      const annListPoint2D = annots.annListPoint2D;
+      const unwrapListofPoint2D = annots.unwrapListofPoint2D;
 
       const checkArity = ffi.checkArity;
 
@@ -290,6 +292,23 @@
       f("above-align", function(maybePlaceX, maybeImg1, maybeImg2) {
         checkArity(3, arguments, "above-align", false);
         c3("above-align", maybePlaceX, annPlaceX, maybeImg1, annImage, maybeImg2, annImage);
+        var placeX = unwrapPlaceX(maybePlaceX);
+        var img1 = unwrapImage(maybeImg1);
+        var img2 = unwrapImage(maybeImg2);
+        return makeImage(image.makeOverlayImage(img1, placeX, "bottom", 0, 0, img2, placeX, "top"));
+      });
+
+      f("below", function(maybeImg1, maybeImg2) {
+        checkArity(2, arguments, "below", false);
+        c2("below", maybeImg1, annImage, maybeImg2, annImage);
+        var img1 = unwrapImage(maybeImg1);
+        var img2 = unwrapImage(maybeImg2);
+        return makeImage(image.makeOverlayImage(img2, "middle", "bottom", 0, 0, img1, "middle", "top"));
+      });
+
+      f("below-align", function(maybePlaceX, maybeImg1, maybeImg2) {
+        checkArity(3, arguments, "below-align", false);
+        c3("below-align", maybePlaceX, annPlaceX, maybeImg1, annImage, maybeImg2, annImage);
         var placeX = unwrapPlaceX(maybePlaceX);
         var img1 = unwrapImage(maybeImg1);
         var img2 = unwrapImage(maybeImg2);
@@ -574,7 +593,24 @@
         var mode = unwrapMode(maybeMode);
         var color = unwrapColor(maybeColor);
         return makeImage(
-          image.makePolygonImage(length, count, 1, mode, color, true));
+          image.makeRegularPolygonImage(length, count, 1, mode, color, true));
+      });
+
+      f("point-polygon", function(maybePoints, maybeMode, maybeColor) {
+        checkArity(3, arguments, "point-polygon", false);
+        c("point-polygon",
+          maybePoints, annListPoint2D,
+          maybeMode, annMode,
+          maybeColor, annColor);
+        var points = unwrapListofPoint2D(maybePoints);
+        if (points.length < 3) {
+          throwMessage("There must be at least three points to make a polygon.");
+        } else {
+          var mode = unwrapMode(maybeMode);
+          var color = unwrapColor(maybeColor);
+          return makeImage(
+            image.makePointPolygonImage(points, mode, color));
+        }
       });
 
       f("ellipse", function(maybeWidth, maybeHeight, maybeMode, maybeColor) {
@@ -855,7 +891,7 @@
         var mode = unwrapMode(maybeMode);
         var color = unwrapColor(maybeColor);
         return makeImage(
-          image.makePolygonImage(side, 5, 2, mode, color, false));
+          image.makeRegularPolygonImage(side, 5, 2, mode, color, false));
       });
       // TODO: This was split from the variable-arity case in the original whalesong "star" function
       f("star-sized", function(maybePointCount, maybeOuter, maybeInner, maybeMode, maybeColor) {
@@ -891,7 +927,7 @@
         var mode = unwrapMode(maybeMode);
         var color = unwrapColor(maybeColor);
         return makeImage(
-          image.makePolygonImage(length, count, step, mode, color, false));
+          image.makeRegularPolygonImage(length, count, step, mode, color, false));
       });
 
       f("rhombus", function(maybeLength, maybeAngle, maybeMode, maybeColor) {
@@ -935,6 +971,22 @@
         c1("image-baseline", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
         return runtime.wrap(img.getBaseline());
+      });
+
+      f("image-pinhole-x", function(maybeImg) {
+        checkArity(1, arguments, "image-pinhole-x", false);
+        c1("image-pinhole-x", maybeImg, annImage);
+        var img = unwrapImage(maybeImg);
+        debugger
+        return runtime.wrap(img.getPinholeX());
+      });
+
+      f("image-pinhole-y", function(maybeImg) {
+        checkArity(1, arguments, "image-pinhole-y", false);
+        c1("image-pinhole-y", maybeImg, annImage);
+        var img = unwrapImage(maybeImg);
+        debugger
+        return runtime.wrap(img.getPinholeY());
       });
 
       values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true, colorDb.get("transparent")));
