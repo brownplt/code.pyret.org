@@ -1291,8 +1291,12 @@
       this.vertices = actualVertices;
     }
 
+    // For point-polygon images, positive-y points *upward*, by request
     var PointPolygonImage = function(vertices, style, color) {
       BaseImage.call(this);
+      for (var v = 0; v < vertices.length; v++)
+        vertices[v].y *= -1;
+      
       this.width      = findWidth(vertices);
       this.height     = findHeight(vertices);
       this.style      = style;
