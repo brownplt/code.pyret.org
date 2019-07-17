@@ -34,7 +34,7 @@
     "isparta-loader": "2.0.0",
     "js-md5": "^0.4.1",
     "js-sha256": "^0.5.0",
-    "jwt-simple": "^0.5.1",
+    "jwt-simple": "^0.5.3",
     "karma": "^3.0.0",
     "karma-babel-preprocessor": "6.0.1",
     "karma-chrome-launcher": "2.0.0",
@@ -79,6 +79,7 @@
     "test-watch": "karma start",
     "lint": "eslint src",
     "build": "heroku local:run make web-local",
+    "heroku-postbuild": "echo Skip build on Heroku per https://help.heroku.com/P5IMU3MP/heroku-node-js-build-script-change-faq",
     "mocha": "heroku local:run mocha",
     "start": "heroku local:run supervisor --poll-interval 700 --watch src/run.js,src/server.js src/run.js & heroku local:run webpack-dev-server --port 5001 --watch"
   },

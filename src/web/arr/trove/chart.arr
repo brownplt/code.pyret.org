@@ -178,9 +178,12 @@ end
 type BoxChartSeries = {
   tab :: TableIntern,
   height :: Number,
+  horizontal :: Boolean
 }
 
-default-box-plot-series = {}
+default-box-plot-series = {
+  horizontal: false
+}
 
 type PieChartSeries = {
   tab :: TableIntern,
@@ -378,6 +381,9 @@ data DataSeries:
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
+    method horizontal(self, h):
+      self.constr()(self.obj.{horizontal: h})
+    end
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},

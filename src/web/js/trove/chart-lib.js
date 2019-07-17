@@ -187,7 +187,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-min'), {
       none: function () {},
       some: function (minValue) {
-        const v = toFixnum(minValue)
+        const v = toFixnum(minValue);
         vAxis.minValue = v;
         viewWindow.min = v;
       }
@@ -195,7 +195,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-max'), {
       none: function () {},
       some: function (maxValue) {
-        const v = toFixnum(maxValue)
+        const v = toFixnum(maxValue);
         vAxis.maxValue = v;
         viewWindow.max = v;
       }
@@ -273,7 +273,10 @@
 
   function boxPlot(globalOptions, rawData) {
     const table = get(rawData, 'tab');
-    const height = toFixnum(get(rawData, 'height'));
+    const dimension = toFixnum(get(rawData, 'height'));
+    const horizontal = get(rawData, 'horizontal');
+    const axisName = horizontal ? 'hAxis' : 'vAxis';
+    const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Total');
@@ -285,7 +288,7 @@
     data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
     data.addRows(table.map(row => {
       const numRow = row.slice(1).map(n => toFixnum(n));
-      return [row[0], toFixnum(height)]
+      return [row[0], toFixnum(dimension)]
         .concat(numRow)
         .concat([
            `<p><b>${row[0]}</b></p>
@@ -295,39 +298,40 @@
             <p>median: <b>${numRow[3]}</b></p>
             <p>third quartile: <b>${numRow[4]}</b></p>`]);
     }));
+    const options = {
+      tooltip: {isHtml: true},
+      legend: {position: 'none'},
+      lineWidth: 0,
+      intervals: {
+        barWidth: 0.25,
+        boxWidth: 0.8,
+        lineWidth: 2,
+        style: 'boxes'
+      },
+      interval: {
+        max: {
+          style: 'bars',
+          fillOpacity: 1,
+          color: '#777'
+        },
+        min: {
+          style: 'bars',
+          fillOpacity: 1,
+          color: '#777'
+        }
+      },
+      dataOpacity: 0
+    };
+    options[axisName] = {
+      maxValue: dimension,
+      viewWindow: {
+        max: dimension
+      },
+    };
     return {
       data: data,
-      options: {
-        tooltip: {isHtml: true},
-        legend: {position: 'none'},
-        lineWidth: 0,
-        intervals: {
-          barWidth: 0.25,
-          boxWidth: 0.8,
-          lineWidth: 2,
-          style: 'boxes'
-        },
-        interval: {
-          max: {
-            style: 'bars',
-            fillOpacity: 1,
-            color: '#777'
-          },
-          min: {
-            style: 'bars',
-            fillOpacity: 1,
-            color: '#777'
-          }
-        },
-        dataOpacity: 0,
-        vAxis: {
-          maxValue: height,
-          viewWindow: {
-            max: height,
-          },
-        },
-      },
-      chartType: google.visualization.ColumnChart,
+      options: options,
+      chartType: chartType,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator],
     };
@@ -530,7 +534,10 @@ ${labelRow}`;
           'class': 'controller',
           type: 'text',
           placeholder: '#samples',
-        }).attr('size', inputSize);
+        }).attr('size', inputSize).val('2');
+        // dummy value so that a new window can be constructed correctly
+        // when numSamplesC is not used. The value must be at least 2
+
         const redrawC = $('<button/>', {
           'class': 'controller',
           text: 'Redraw',
@@ -615,7 +622,7 @@ ${labelRow}`;
       restarter.error(
         RUNTIME.ffi.makeMessageException(
           'unable to load the image: ' + e.message));
-    }
+    };
     rawImage.src = url;
   }
 

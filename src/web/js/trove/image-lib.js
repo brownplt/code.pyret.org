@@ -1669,7 +1669,7 @@
       canvas = makeCanvas(width, height),
       ctx = canvas.getContext("2d"),
       r, g, b, a;
-      img.render(ctx, 0, 0);
+      img.render(ctx);
       imageData = ctx.getImageData(0, 0, width, height);
       data = imageData.data,
       index = (y * width + x) * 4;
@@ -1677,7 +1677,7 @@
       r = data[index]
       g = data[index + 1];
       b = data[index + 2];
-      a = data[index + 3];
+      a = data[index + 3] / 255;
 
       return makeColor(r, g, b, a);
     }

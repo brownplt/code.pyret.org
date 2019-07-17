@@ -585,13 +585,36 @@ body {
 }
 */
 
-.notificationArea div{
-  background: #111111;
+#welcome {
+  color: #eeeeee;
+  height: 2.5em;
+  line-height: 2.5em;
   width: 50%;
-  position: relative;
-  float: right;
-  text-align: left;
+  float: left;
+}
+
+#welcome .username-message {
+  vertical-align: middle;
+  line-height: normal;
+  padding-left: 2em;
   font-family: sans-serif;
+}
+
+
+.notificationArea {
+  background: #111111;
+  max-width: 50%;
+  float: right;
+  font-family: sans-serif;
+  height: 2.5em;
+  line-height: 2.5em;
+}
+
+.notificationArea span {
+  vertical-align: middle;
+  padding-right: 2em;
+  line-height: normal;
+  display: inline-block;
 }
 
 .notificationArea .active {
@@ -631,6 +654,7 @@ body {
 #filemenuContents {
   min-width: 200px;
 }
+#filemenuContents .hidden { display: none; }
 
 .menuContents {
   background-color: #EFEFEF;
@@ -1971,7 +1995,7 @@ table.pyret-row {
    margin-right: -2.5em;
    width: 2.5em;
    height: 1.5em;
-   position: absolute;
+   position: relative;
    background-image: url(/img/checkers.svg);
    background-size: 2.5em 1.5em;
    display: inline-block;

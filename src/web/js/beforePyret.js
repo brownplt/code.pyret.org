@@ -25,13 +25,15 @@ window.clearFlash = function() {
   $(".notificationArea").empty();
 }
 window.whiteToBlackNotification = function() {
+  /*
   $(".notificationArea .active").css("background-color", "white");
   $(".notificationArea .active").animate({backgroundColor: "#111111" }, 1000);
+  */
 };
 window.stickError = function(message, more) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<div>").addClass("error").text(message);
+  var err = $("<span>").addClass("error").text(message);
   if(more) {
     err.attr("title", more);
   }
@@ -42,7 +44,7 @@ window.stickError = function(message, more) {
 window.flashError = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<div>").addClass("error").text(message);
+  var err = $("<span>").addClass("error").text(message);
   $(".notificationArea").prepend(err);
   whiteToBlackNotification();
   err.fadeOut(7000);
@@ -50,7 +52,7 @@ window.flashError = function(message) {
 window.flashMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var msg = $("<div>").addClass("active").text(message);
+  var msg = $("<span>").addClass("active").text(message);
   $(".notificationArea").prepend(msg);
   whiteToBlackNotification();
   msg.fadeOut(7000);
@@ -58,7 +60,7 @@ window.flashMessage = function(message) {
 window.stickMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<div>").addClass("active").text(message);
+  var err = $("<span>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
   whiteToBlackNotification();
 };
@@ -323,7 +325,7 @@ $(function() {
           console.log("Response for original: ", response);
           var original = $("#open-original").show().off("click");
           var id = response.result.value;
-          original.removeClass("disabled");
+          original.removeClass("hidden");
           original.click(function() {
             window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
           });
@@ -1132,8 +1134,8 @@ $(function() {
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
-    CPO.editor.cm.clearHistory();
     CPO.editor.cm.setValue(c);
+    CPO.editor.cm.clearHistory();
   });
 
   programLoaded.fail(function() {

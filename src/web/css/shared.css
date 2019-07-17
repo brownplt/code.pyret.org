@@ -352,7 +352,6 @@ li.topTier > div {
 /*  darker blue option #2a348b */
     background-color: rgba(0,0,0,0.3);
     border: none;
-    border-right: thin solid black;
     border-radius: 0px;
     color: #fff;
     text-align: center;
@@ -445,6 +444,7 @@ code {
 }
 
 .auto-highlight {
+  width: 90%;
   border: none;
   /* TODO(joe): Best way to override JQuery modal UI settings? */
   font-family: monospace !important;
@@ -475,8 +475,13 @@ code {
 }
 
 .focusable {
+/* NOTE(joe): removing these seems natural, though discussion at
+ * https://github.com/brownplt/code.pyret.org/commit/5bbfcefcd25cad92e969b3f1d2c6df6a85b55639#r33381324
+ * may change this
+
   margin: 0;
   padding: 0;
+*/
 }
 
 .focusable:focus {
