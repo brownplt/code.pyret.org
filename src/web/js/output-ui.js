@@ -1035,7 +1035,7 @@
                     return Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
                   })
                   .filter((p) => p instanceof Position);
-              if (positions.length == 0) {
+              if (positions.length == 0 && locsArray.length > 0) {
                 // NOTE(Ben): Not 100% this is correct
                 // I had to tweak fromPyretSrcloc to not throw an Error when it received
                 // a srcloc that isn't in its known-set of documents, but instead to return
