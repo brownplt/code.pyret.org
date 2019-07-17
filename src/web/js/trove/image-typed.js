@@ -161,6 +161,7 @@
     var colorDb = image.colorDb;
     var ffi = runtime.ffi;
 
+    const checkArity = ffi.checkArity;
     const c = function(name, ...argsAndAnns) {
       runtime.checkArgsInternalInline(moduleName, name, ...argsAndAnns);
     };
