@@ -98,16 +98,16 @@
 
     const checkArity = ffi.checkArity;
     const c = function(name, ...argsAndAnns) {
-      runtime.checkArgsInternalInline(moduleName, name, ...argsAndAnns);
+      runtime.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
     };
     const c1 = function(name, arg, ann) {
-      runtime.checkArgsInternal1(moduleName, name, arg, ann);
+      runtime.checkArgsInternal1("image-untyped", name, arg, ann);
     };
     const c2 = function(name, arg1, ann1, arg2, ann2) {
-      runtime.checkArgsInternal2(moduleName, name, arg1, ann1, arg2, ann2);
+      runtime.checkArgsInternal2("image-untyped", name, arg1, ann1, arg2, ann2);
     };
     const c3 = function(name, arg1, ann1, arg2, ann2, arg3, ann3) {
-      runtime.checkArgsInternal3(moduleName, name, arg1, ann1, arg2, ann2, arg3, ann3);
+      runtime.checkArgsInternal3("image-untyped", name, arg1, ann1, arg2, ann2, arg3, ann3);
     };
 
     var ann = function(name, pred) {
