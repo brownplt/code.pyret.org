@@ -123,7 +123,7 @@
             // Parse Errors
             // `renderAndDisplayError` must be called on the pyret stack
             // this application runs in the context of the above `callingRuntime.runThunk`
-            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
+            return renderAndDisplayError(callingRuntime, result.exn.exn, [], true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
