@@ -142,6 +142,7 @@
       "rhombus": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "image-to-color-list": ["arrow", ["Image"], "LoC"],
       "color-list-to-image": ["arrow", ["LoC", "Number", "Number"], "Image"],
+      "color-at-position": ["arrow", ["Image", "Number", "Number"], "Color"],
       "image-width": ["arrow", ["Image"], "Number"],
       "image-height": ["arrow", ["Image"], "Number"],
       "image-baseline": ["arrow", ["Image"], "Number"],

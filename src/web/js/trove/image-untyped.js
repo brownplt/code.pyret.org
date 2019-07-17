@@ -75,6 +75,7 @@
       "rhombus": "tany",
       "image-to-color-list": "tany",
       "color-list-to-image": "tany",
+      "color-at-position": "tany",
       "color-list-to-bitmap": "tany",
       "image-width": "tany",
       "image-height": "tany",

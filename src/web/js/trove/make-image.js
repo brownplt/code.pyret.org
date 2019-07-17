@@ -989,6 +989,22 @@
         return runtime.wrap(img.getPinholeY());
       });
 
+      f("color-at-position", function(maybeImage, maybeX, maybeY) {
+        checkArity(3, arguments, "color-at-position", false);
+        c3("color-at-position", maybeImage, annImage, maybeX, annNatural, maybeY, annNatural);
+        var img = unwrapImage(maybeImage);
+        var width = img.getWidth();
+        var height = img.getHeight();
+        if(maybeX >= width) {
+          throwMessage("color-at-position: The given x coordinate, " + maybeX + ", must be between 0 (inclusive) and the image width (exclusive), which is " + img.getWidth());
+        }
+        if(maybeY >= height) {
+          throwMessage("color-at-position: The given y coordinate, " + maybeY + ", must be between 0 (inclusive) and the image height (exclusive), which is " + img.getHeight());
+
+        }
+        return image.colorAtPosition(img, maybeX, maybeY);
+      });
+      
       values["empty-image"] = runtime.makeOpaque(image.makeSceneImage(0, 0, [], true, colorDb.get("transparent")));
 
       return values;
