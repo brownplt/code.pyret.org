@@ -18,7 +18,6 @@
       const annByte = annots.annByte;
       const annReal = annots.annReal;
       const annNatural = annots.annNatural;
-      const annPositiveInteger = annots.annPositiveInteger;
       const annColor = annots.annColor;
       const unwrapColor = annots.unwrapColor;
       const annMode = annots.annMode;

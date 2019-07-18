@@ -163,10 +163,6 @@
         return runtime.isNumber(val) && jsnums.isInteger(val)
           && jsnums.greaterThanOrEqual(val, 0, runtime.NumberErrbacks);
       }),
-      annPositiveInteger: ann("Positive Integer", function(val) {
-        return runtime.isNumber(val) && jsnums.isInteger(val)
-          && jsnums.greaterThanOrEqual(val, 0, runtime.NumberErrbacks);
-      }),
       unwrapColor: function(val) {
         var aColor = val;
         if (colorDb.get(aColor)) {

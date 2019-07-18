@@ -238,10 +238,6 @@
         return runtime.isNumber(val) && jsnums.isInteger(val)
           && jsnums.greaterThanOrEqual(val, 0, runtime.NumberErrbacks);
       }),
-      annPositiveInteger: ann("Positive Integer", function(val) {
-        return runtime.isNumber(val) && jsnums.isInteger(val)
-          && jsnums.greaterThanOrEqual(val, 0, runtime.NumberErrbacks);
-      }),
       unwrapColor: identity,
       annColor: image.annColor,
       annPoint: image.annPoint,
