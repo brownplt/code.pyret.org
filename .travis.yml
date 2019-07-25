@@ -9,6 +9,8 @@ script:
 #- mocha --harmony
 addons:
   chrome: stable
+services:
+  - xvfb
 before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable
