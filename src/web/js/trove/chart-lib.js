@@ -314,6 +314,10 @@
       },
       dataOpacity: 0
     };
+    /* NOTE(Oak): manually set the max value to coincide with bar charts' height
+     * so that the bar charts are concealed (the automatic value from Google
+     * is likely to screw this up)
+     */
     options[axisName] = {
       maxValue: dimension,
       viewWindow: {

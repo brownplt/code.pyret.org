@@ -638,14 +638,24 @@ fun labeled-box-plot-from-list(
   when label-length <> value-length:
     raise('labeled-box-plot: labels and values should have the same length')
   end
-  values.each(_.each(check-num))
-  values.each({(lst): when lst.length() <= 1:
-    raise('labeled-box-plot: the list length should be at least 2')
-  end})
-  max-height = for fold(cur from 0, lst from values):
-    num-max(lst.foldl(num-max, 0), cur)
+  when label-length == 0:
+    raise('labeled-box-plot: expect at least one box')
   end
+  values.each(_.each(check-num))
+  values.each(
+    lam(lst):
+      when lst.length() <= 1:
+        raise('labeled-box-plot: the list length should be at least 2')
+      end
+    end)
   labels.each(check-string)
+
+  max-height = for fold(cur from values.first.first, lst from values):
+    num-max(lst.rest.foldl(num-max, lst.first), cur)
+  end
+  min-height = for fold(cur from values.first.first, lst from values):
+    num-max(lst.rest.foldl(num-min, lst.first), cur)
+  end
 
   fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
     n = lst.length()
@@ -665,7 +675,7 @@ fun labeled-box-plot-from-list(
   end
   default-box-plot-series.{
     tab: map2(get-box-data, labels, values) ^ builtins.raw-array-from-list,
-    height: num-ceiling(max-height * (6 / 5)),
+    height: num-ceiling(max-height + ((max-height - min-height) / 5)),
   } ^ box-plot-series
 end
 
