@@ -635,6 +635,7 @@ $(function() {
         options: [
           {
             message: "The name for the copy:",
+            submitText: "Save",
             defaultValue: name
           }
         ]
