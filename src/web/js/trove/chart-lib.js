@@ -264,32 +264,83 @@
   }
 
   function boxPlot(globalOptions, rawData) {
-    const table = get(rawData, 'tab');
+    var table = get(rawData, 'tab');
     const dimension = toFixnum(get(rawData, 'height'));
     const horizontal = get(rawData, 'horizontal');
     const axisName = horizontal ? 'hAxis' : 'vAxis';
     const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
+
+    const intervalOptions = {
+      lowerFence: {
+        style: 'bars',
+        fillOpacity: 1,
+        color: '#777'
+      },
+      upperFence: {
+        style: 'bars',
+        fillOpacity: 1,
+        color: '#777'
+      }
+    };
+
+
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Total');
-    data.addColumn({id: 'max', type: 'number', role: 'interval'});
-    data.addColumn({id: 'min', type: 'number', role: 'interval'});
     data.addColumn({id: 'firstQuartile', type: 'number', role: 'interval'});
     data.addColumn({id: 'median', type: 'number', role: 'interval'});
     data.addColumn({id: 'thirdQuartile', type: 'number', role: 'interval'});
+    data.addColumn({id: 'upperFence', type: 'number', role: 'interval'});
+    data.addColumn({id: 'lowerFence', type: 'number', role: 'interval'});
     data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
-    data.addRows(table.map(row => {
-      const numRow = row.slice(1).map(n => toFixnum(n));
+
+    // NOTE(joe & emmanuel, Aug 2019): With the current chart library, it seems
+    // like we can only get outliers to work as a variable-length row if we
+    // have a single row of data. It's an explicit error to mix row lengths.
+    // Since the main use case where outliers matter is for single-column
+    // box-plots, this maintains existing behavior (if anyone was relying on
+    // multiple series), while adding the ability to render outliers for BS:DS.
+    if(table.length === 1) {
+      var extraCols = table[0][8].length + table[0][9].length;
+      for(var i = 0; i < extraCols; i += 1) {
+        data.addColumn({id: 'outlier', type: 'number', role: 'interval'});
+      }
+      intervalOptions['outlier'] = { 'style':'points', 'color':'grey', 'pointSize': 10, 'lineWidth': 0, 'fillOpacity': 0.3 };
+    }
+    else {
+      // NOTE(joe & emmanuel, Aug 2019 cont.): This forces the low fence/high
+      // fence to be equal to the min/max when there are multiple rows since we
+      // won't be able to render the outliers and need to cover the whole span
+      // of data with fences.
+      table = table.map(function(row) {
+        row = row.slice(0, row.length);
+        // force fence to be max/min
+        row[7] = row[2];
+        row[6] = row[1];
+        // empty outliers
+        row[9] = [];
+        row[8] = [];
+        return row;
+      });
+    }
+
+    const rowsToAdd = table.map(row => {
+      const summaryValues = row.slice(3, 8).map(n => toFixnum(n));
       return [row[0], toFixnum(dimension)]
-        .concat(numRow)
+        .concat(summaryValues)
         .concat([
            `<p><b>${row[0]}</b></p>
-            <p>minimum: <b>${numRow[1]}</b></p>
-            <p>maximum: <b>${numRow[0]}</b></p>
-            <p>first quartile: <b>${numRow[2]}</b></p>
-            <p>median: <b>${numRow[3]}</b></p>
-            <p>third quartile: <b>${numRow[4]}</b></p>`]);
-    }));
+            <p>minimum: <b>${row[2]}</b></p>
+            <p>maximum: <b>${row[1]}</b></p>
+            <p>lowerFence: <b>${summaryValues[4]}</b></p>
+            <p>upperFence: <b>${summaryValues[3]}</b></p>
+            <p>first quartile: <b>${summaryValues[0]}</b></p>
+            <p>median: <b>${summaryValues[1]}</b></p>
+            <p>third quartile: <b>${summaryValues[2]}</b></p>`])
+        .concat(row[9]).concat(row[8]);
+    });
+
+    data.addRows(rowsToAdd);
     const options = {
       tooltip: {isHtml: true},
       legend: {position: 'none'},
@@ -300,18 +351,7 @@
         lineWidth: 2,
         style: 'boxes'
       },
-      interval: {
-        max: {
-          style: 'bars',
-          fillOpacity: 1,
-          color: '#777'
-        },
-        min: {
-          style: 'bars',
-          fillOpacity: 1,
-          color: '#777'
-        }
-      },
+      interval: intervalOptions,
       dataOpacity: 0
     };
     /* NOTE(Oak): manually set the max value to coincide with bar charts' height
