@@ -668,9 +668,18 @@ fun labeled-box-plot-from-list(
       splitted = lst.split-at((n - 1) / 2)
       {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
     end
-    min = lst.get(0)
-    max = lst.get(n - 1)
-    [list: label, max, min, first-quartile, median, third-quartile]
+    iqr = third-quartile - first-quartile
+    high-outliers = for filter(shadow n from lst):
+      n > (third-quartile + (1.5 * iqr))
+    end ^ builtins.raw-array-from-list
+    low-outliers = for filter(shadow n from lst):
+      n < (third-quartile - (1.5 * iqr))
+    end ^ builtins.raw-array-from-list
+    min-val = lst.first
+    max-val = lst.last()
+    low-whisker = lst.drop(raw-array-length(low-outliers)).get(0)
+    high-whisker = lst.get(n - raw-array-length(high-outliers) - 1)
+    [list: label, max-val, min-val, first-quartile, median, third-quartile, high-whisker, low-whisker, high-outliers, low-outliers]
       ^ builtins.raw-array-from-list
   end
   default-box-plot-series.{
