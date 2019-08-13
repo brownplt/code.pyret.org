@@ -332,8 +332,8 @@
            `<p><b>${row[0]}</b></p>
             <p>minimum: <b>${row[2]}</b></p>
             <p>maximum: <b>${row[1]}</b></p>
-            <p>lowerFence: <b>${summaryValues[4]}</b></p>
-            <p>upperFence: <b>${summaryValues[3]}</b></p>
+            <p>lower fence: <b>${summaryValues[4]}</b></p>
+            <p>upper fence: <b>${summaryValues[3]}</b></p>
             <p>first quartile: <b>${summaryValues[0]}</b></p>
             <p>median: <b>${summaryValues[1]}</b></p>
             <p>third quartile: <b>${summaryValues[2]}</b></p>`])
