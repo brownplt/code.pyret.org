@@ -272,12 +272,12 @@
     const data = new google.visualization.DataTable();
 
     const intervalOptions = {
-      lowerFence: {
+      lowNonOutlier: {
         style: 'bars',
         fillOpacity: 1,
         color: '#777'
       },
-      upperFence: {
+      highNonOutlier: {
         style: 'bars',
         fillOpacity: 1,
         color: '#777'
@@ -290,8 +290,8 @@
     data.addColumn({id: 'firstQuartile', type: 'number', role: 'interval'});
     data.addColumn({id: 'median', type: 'number', role: 'interval'});
     data.addColumn({id: 'thirdQuartile', type: 'number', role: 'interval'});
-    data.addColumn({id: 'upperFence', type: 'number', role: 'interval'});
-    data.addColumn({id: 'lowerFence', type: 'number', role: 'interval'});
+    data.addColumn({id: 'highNonOutlier', type: 'number', role: 'interval'});
+    data.addColumn({id: 'lowNonOutlier', type: 'number', role: 'interval'});
     data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
 
     // NOTE(joe & emmanuel, Aug 2019): With the current chart library, it seems
@@ -308,13 +308,13 @@
       intervalOptions['outlier'] = { 'style':'points', 'color':'grey', 'pointSize': 10, 'lineWidth': 0, 'fillOpacity': 0.3 };
     }
     else {
-      // NOTE(joe & emmanuel, Aug 2019 cont.): This forces the low fence/high
-      // fence to be equal to the min/max when there are multiple rows since we
-      // won't be able to render the outliers and need to cover the whole span
-      // of data with fences.
+      // NOTE(joe & emmanuel, Aug 2019 cont.): This forces the low and high
+      // whiskers to be equal to the min/max when there are multiple rows since we
+      // won't be able to render the outliers, and the whiskers need to cover
+      //  the whole span of data.
       table = table.map(function(row) {
         row = row.slice(0, row.length);
-        // force fence to be max/min
+        // force whisker to be max/min
         row[7] = row[2];
         row[6] = row[1];
         // empty outliers
@@ -332,8 +332,8 @@
            `<p><b>${row[0]}</b></p>
             <p>minimum: <b>${row[2]}</b></p>
             <p>maximum: <b>${row[1]}</b></p>
-            <p>lower fence: <b>${summaryValues[4]}</b></p>
-            <p>upper fence: <b>${summaryValues[3]}</b></p>
+            <p>bottom whisker: <b>${summaryValues[4]}</b></p>
+            <p>top whisker: <b>${summaryValues[3]}</b></p>
             <p>first quartile: <b>${summaryValues[0]}</b></p>
             <p>median: <b>${summaryValues[1]}</b></p>
             <p>third quartile: <b>${summaryValues[2]}</b></p>`])
