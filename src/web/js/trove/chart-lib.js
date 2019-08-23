@@ -341,8 +341,12 @@
     data.addColumn('number', '');
     
     var max, min;
+    var val = null;
+    var hasAtLeastTwoValues = false;
     data.addRows(table.map(row => {
       var valfix = toFixnum(row[1]);
+      if(val !== null && val !== valfix) { hasAtLeastTwoValues = true; }
+      if(val === null) { val = valfix; }
       if(max === undefined) { max = valfix; }
       if(min === undefined) { min = valfix; }
       if(valfix > max) { max = valfix; }
@@ -356,7 +360,12 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'bin-width'), {
       none: function () {},
       some: function (binWidth) {
-        options.histogram.bucketSize = toFixnum(binWidth);
+        // NOTE(joe, aug 2019): The chart library has a bug for histograms with
+        // a single unique value (https://jsfiddle.net/L0y64fbo/2/), so thisi
+        // hackaround makes it so this case can't come up.
+        if(hasAtLeastTwoValues) {
+          options.histogram.bucketSize = toFixnum(binWidth);
+        }
       }
     });
 
@@ -370,7 +379,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min-num-bins'), {
       none: function () {
         if(options.histogram.bucketSize !== undefined) {
-          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize); 
+          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize) + 1; 
         }
       },
       some: function (minNumBins) {
