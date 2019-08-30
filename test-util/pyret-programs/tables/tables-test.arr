@@ -1,3 +1,5 @@
+import tables as T
+
 pixels-1 = [list: [list: 1, 0, 1, 0],
   [list: 1, 0, 0, 1],
   [list: 1, 1, 0, 0]]
@@ -40,3 +42,8 @@ end
 print-tests([list:
     tc('t-complex', 1, 2, 'pixels-1'),
     tc('t-complex', 2, 2, 'pixels-2')])
+
+# make sure that raw-rows render and don't crash
+[T.raw-row: {1; "a"}, {2; "b"}]
+
+

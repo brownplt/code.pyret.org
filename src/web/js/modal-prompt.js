@@ -14,8 +14,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
 
   function autoHighlightBox(text) {
     var textBox = $("<input type='text'>").addClass("auto-highlight");
-    textBox.attr("size", text.length);
-    textBox.attr("editable", false);
+    textBox.attr("readonly", "readonly");
     textBox.on("focus", function() { $(this).select(); });
     textBox.on("mouseup", function() { $(this).select(); });
     textBox.val(text);

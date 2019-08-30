@@ -178,9 +178,12 @@ end
 type BoxChartSeries = {
   tab :: TableIntern,
   height :: Number,
+  horizontal :: Boolean
 }
 
-default-box-plot-series = {}
+default-box-plot-series = {
+  horizontal: false
+}
 
 type PieChartSeries = {
   tab :: TableIntern,
@@ -378,6 +381,9 @@ data DataSeries:
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
+    method horizontal(self, h):
+      self.constr()(self.obj.{horizontal: h})
+    end
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
@@ -632,14 +638,24 @@ fun labeled-box-plot-from-list(
   when label-length <> value-length:
     raise('labeled-box-plot: labels and values should have the same length')
   end
-  values.each(_.each(check-num))
-  values.each({(lst): when lst.length() <= 1:
-    raise('labeled-box-plot: the list length should be at least 2')
-  end})
-  max-height = for fold(cur from 0, lst from values):
-    num-max(lst.foldl(num-max, 0), cur)
+  when label-length == 0:
+    raise('labeled-box-plot: expect at least one box')
   end
+  values.each(_.each(check-num))
+  values.each(
+    lam(lst):
+      when lst.length() <= 1:
+        raise('labeled-box-plot: the list length should be at least 2')
+      end
+    end)
   labels.each(check-string)
+
+  max-height = for fold(cur from values.first.first, lst from values):
+    num-max(lst.rest.foldl(num-max, lst.first), cur)
+  end
+  min-height = for fold(cur from values.first.first, lst from values):
+    num-max(lst.rest.foldl(num-min, lst.first), cur)
+  end
 
   fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
     n = lst.length()
@@ -652,14 +668,23 @@ fun labeled-box-plot-from-list(
       splitted = lst.split-at((n - 1) / 2)
       {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
     end
-    min = lst.get(0)
-    max = lst.get(n - 1)
-    [list: label, max, min, first-quartile, median, third-quartile]
+    iqr = third-quartile - first-quartile
+    high-outliers = for filter(shadow n from lst):
+      n > (third-quartile + (1.5 * iqr))
+    end ^ builtins.raw-array-from-list
+    low-outliers = for filter(shadow n from lst):
+      n < (third-quartile - (1.5 * iqr))
+    end ^ builtins.raw-array-from-list
+    min-val = lst.first
+    max-val = lst.last()
+    low-whisker = lst.drop(raw-array-length(low-outliers)).get(0)
+    high-whisker = lst.get(n - raw-array-length(high-outliers) - 1)
+    [list: label, max-val, min-val, first-quartile, median, third-quartile, high-whisker, low-whisker, high-outliers, low-outliers]
       ^ builtins.raw-array-from-list
   end
   default-box-plot-series.{
     tab: map2(get-box-data, labels, values) ^ builtins.raw-array-from-list,
-    height: num-ceiling(max-height * (6 / 5)),
+    height: num-ceiling(max-height + ((max-height - min-height) / 5)),
   } ^ box-plot-series
 end
 

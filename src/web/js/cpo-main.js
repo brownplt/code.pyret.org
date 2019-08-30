@@ -60,7 +60,7 @@
 
 
     var replContainer = $("<div>").addClass("repl");
-    replContainer.attr("tabindex", "-1");
+    replContainer.attr("tabindex", "-1").attr('role', 'application');
     //replContainer.attr("aria-hidden", "true");
     $("#REPL").append(replContainer);
 
@@ -326,7 +326,8 @@
       var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
-            runButton: runButton
+            runButton: runButton,
+            runDropdown: $('#runDropdown')
           });
 
       // NOTE(joe): assigned on window for debuggability
@@ -563,6 +564,10 @@
         e.preventDefault();
       });
 
+      $('#ctrl-question').click(function() {
+        $('#help-keys').fadeIn(100);
+        reciteHelp();
+      });
 
       Mousetrap.bindGlobal('f6', function(e) {
         // cycle focus (forward)
@@ -573,6 +578,14 @@
 
       Mousetrap.bindGlobal('shift+f6', function(e) {
         // cycle focus backward
+        CPO.cycleFocus(true);
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      });
+
+      Mousetrap.bindGlobal('shift+tab', function(e) {
+        // cycle focus backward
+        //console.log('mouse shift+tab')
         CPO.cycleFocus(true);
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -801,17 +814,6 @@
         onInternalError: stickError,
         views: ["imageView"],
         title: "Select an image to use"
-      });
-      var pyretPicker = new FilePicker({
-        onLoaded: function() {
-          $("#open").attr("disabled", false);
-          pyretPicker.openOn($("#open")[0], "click");
-        },
-        onSelect: handlePickerData,
-        onError: flashError,
-        onInternalError: stickError,
-        views: ["pyretView"],
-        title: "Select a Pyret file to use"
       });
 
       return runtime.makeModuleReturn({

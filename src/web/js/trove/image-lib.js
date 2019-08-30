@@ -1607,6 +1607,25 @@
 
     LineImage.prototype = heir(BaseImage.prototype);
 
+    var colorAtPosition = function(img, x, y) {
+      var width = img.getWidth(),
+      height = img.getHeight(),
+      canvas = makeCanvas(width, height),
+      ctx = canvas.getContext("2d"),
+      r, g, b, a;
+      img.render(ctx, 0, 0);
+      imageData = ctx.getImageData(0, 0, width, height);
+      data = imageData.data,
+      index = (y * width + x) * 4;
+
+      r = data[index]
+      g = data[index + 1];
+      b = data[index + 2];
+      a = data[index + 3] / 255;
+
+      return makeColor(r, g, b, a);
+    }
+
     var imageToColorList = function(img) {
       var width = img.getWidth(),
       height = img.getHeight(),
@@ -1624,7 +1643,7 @@
         r = data[i];
         g = data[i+1];
         b = data[i+2];
-        a = data[i+3];
+        a = data[i+3] / 255;
         colors.push(makeColor(r, g, b, a));
       }
       return RUNTIME.ffi.makeList(colors);
@@ -1792,6 +1811,7 @@
       makeFileImage: makeFileImage,
       makeVideoImage: makeFileVideo,
 
+      colorAtPosition: colorAtPosition,
       imageToColorList: imageToColorList,
       colorListToImage: colorListToImage,
 

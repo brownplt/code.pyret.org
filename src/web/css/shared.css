@@ -170,6 +170,11 @@ em {
   box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
 }
 
+nav > div {
+  width: 100%;
+  height: 100%;
+}
+
 /*
 #header div a {
   width: 100px;
@@ -208,7 +213,7 @@ nav a, nav button {
   font-family: sans-serif;
 }
 
-nav > ul {
+nav > div > ul {
   display: flex;
   flex-flow: row wrap;
   height: 100%;
@@ -218,7 +223,7 @@ nav > ul {
   list-style-type: none;
 }
 
-nav > ul > li {
+nav > div > ul > li {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -227,30 +232,30 @@ nav > ul > li {
   list-style-type: none;
 }
 
-nav > ul > li  ul {
+nav > div > ul > li  ul {
   position: absolute;
   top: 2.5em;
   margin: 0;
   padding: 0;
-  aria-hidden: true;
+  /* aria-hidden: true; */
   display: none;
   list-style-type: none;
 }
 
-nav > ul > li > ul:not([id="run-dropdown-content"]) {
+nav > div > ul > li > ul:not([id="run-dropdown-content"]) {
   left: 0;
 }
 
-nav > ul > li > ul[id="run-dropdown-content"] {
+nav > div > ul > li > ul[id="run-dropdown-content"] {
   left: -150px;
 }
 
-nav > ul > li:focus ul {
-  aria-hidden: false;
+nav > div > ul > li:focus ul {
+  /* aria-hidden: false; */
   display: block;
 }
 
-nav > ul ul > li {
+nav > div > ul ul > li {
   /* height: 20px; */
   float: none;
   position: static;
@@ -265,7 +270,7 @@ ul[role="menu"] > li {
   padding: 0;
 }
 
-nav > ul ul > li > div {
+nav > div > ul ul > li > div {
   margin: 0;
   padding: 0;
   /* border: thin solid cyan; */
@@ -283,7 +288,7 @@ nav > ul ul > li > div {
   padding: 0;
 }
 
-nav > ul ul a, nav > ul ul button {
+nav > div > ul ul a, nav > div > ul ul button {
   float: none;
   display: block;
   overflow: hidden;
@@ -311,7 +316,8 @@ li.topTier > div {
 }
 
 .menu {
-  display: inline-block;
+  display: block;
+  /* display: inline-block; */
   height: 100%;
   vertical-align: top;
   float:left;  /*latest*/
@@ -333,11 +339,12 @@ li.topTier > div {
 }
 
 #footer {
-  height: 5px;
+  height: 2.5em;
   background-color: #111;
   position: fixed;
   bottom: 0;
   width: 100%;
+  z-index: 10000;
 }
 
 .blueButton {
@@ -345,7 +352,6 @@ li.topTier > div {
 /*  darker blue option #2a348b */
     background-color: rgba(0,0,0,0.3);
     border: none;
-    border-right: thin solid black;
     border-radius: 0px;
     color: #fff;
     text-align: center;
@@ -365,7 +371,7 @@ li.topTier > div {
 }
 
 .blueButton:disabled {
-    background-color: none;
+    background-color: #C8C8C8;
     border: none;
     color: rgba(0, 0, 0, 0.26);
     cursor: default;
@@ -438,6 +444,7 @@ code {
 }
 
 .auto-highlight {
+  width: 90%;
   border: none;
   /* TODO(joe): Best way to override JQuery modal UI settings? */
   font-family: monospace !important;
@@ -468,10 +475,40 @@ code {
 }
 
 .focusable {
+/* NOTE(joe): removing these seems natural, though discussion at
+ * https://github.com/brownplt/code.pyret.org/commit/5bbfcefcd25cad92e969b3f1d2c6df6a85b55639#r33381324
+ * may change this
+
   margin: 0;
   padding: 0;
+*/
 }
 
 .focusable:focus {
   background: rgba(0,0,0,0.3);
+}
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  top: 5ex;
+  left: 5ex;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }

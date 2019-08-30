@@ -132,7 +132,7 @@
             // Parse Errors
             // `renderAndDisplayError` must be called on the pyret stack
             // this application runs in the context of the above `callingRuntime.runThunk`
-            return renderAndDisplayError(callingRuntime, result.exn.exn, undefined, true, result);
+            return renderAndDisplayError(callingRuntime, result.exn.exn, [], true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -349,11 +349,17 @@
               recital += ' produced output: ';
             }
           } else {
-            recital += ' evaluates to ';
+            if (!history.start) {
+              recital += ' produced no output.';
+            } else {
+              recital += ' evaluates to ';
+            }
           }
           var docOutput = document.getElementById('output').childNodes;
-          if (!history.end && history.start) {
-            recital += outputText(docOutput[history.start]);
+          if (!history.end) {
+            if (history.start) {
+              recital += outputText(docOutput[history.start]);
+            }
           } else {
             //console.log('speakhistory from', history.start, 'to', history.end);
             for (var i = history.start; i < history.end; i++) {
@@ -381,6 +387,9 @@
 
       var promptContainer = jQuery("<div class='prompt-container'>");
       var prompt = jQuery("<span>").addClass("repl-prompt").attr("title", "Enter Pyret code here");
+      var promptSign = $('<span aria-hidden="true" aria-label="REPL prompt">').
+        addClass('repl-prompt-sign');
+      prompt.append(promptSign);
       function showPrompt() {
         promptContainer.hide();
         promptContainer.fadeIn(100);
@@ -643,6 +652,8 @@
           //console.log('result is a successful load, 0 to', docOutputLen);
           thiscode.start = 0;
           thiscode.end = docOutputLen;
+        } else if (lastOutput && lastOutput.classList.contains('echo-container')) {
+          thiscode.start = false;
         } else {
           //console.log('result is a successful single interaction');
           thiscode.start = docOutputLen - 1;
@@ -660,6 +671,7 @@
           options.runButton.empty();
           options.runButton.append(runContents);
           options.runButton.attr("disabled", false);
+          options.runDropdown.attr('disabled', false);
           breakButton.attr("disabled", true);
           stopLi.attr('disabled', true);
           canShowRunningIndicator = false;
@@ -681,6 +693,7 @@
         setTimeout(function() {
          if(canShowRunningIndicator) {
             options.runButton.attr("disabled", true);
+            options.runDropdown.attr('disabled', true);
             breakButton.attr("disabled", false);
             stopLi.attr('disabled', false);
             options.runButton.empty();
@@ -861,6 +874,9 @@
         pointer = -1;
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
+        var echoPromptSign = $('<span aria-hidden="true" aria-label="REPL prompt">').
+          addClass('repl-prompt-sign');
+        echoSpan.append(echoPromptSign);
         var echo = $("<textarea>");
         echoSpan.append(echo);
         echoContainer.append(echoSpan);

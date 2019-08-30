@@ -187,7 +187,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-min'), {
       none: function () {},
       some: function (minValue) {
-        const v = toFixnum(minValue)
+        const v = toFixnum(minValue);
         vAxis.minValue = v;
         viewWindow.min = v;
       }
@@ -195,7 +195,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'y-max'), {
       none: function () {},
       some: function (maxValue) {
-        const v = toFixnum(maxValue)
+        const v = toFixnum(maxValue);
         vAxis.maxValue = v;
         viewWindow.max = v;
       }
@@ -272,62 +272,110 @@
   }
 
   function boxPlot(globalOptions, rawData) {
-    const table = get(rawData, 'tab');
-    const height = toFixnum(get(rawData, 'height'));
+    var table = get(rawData, 'tab');
+    const dimension = toFixnum(get(rawData, 'height'));
+    const horizontal = get(rawData, 'horizontal');
+    const axisName = horizontal ? 'hAxis' : 'vAxis';
+    const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
+
+    const intervalOptions = {
+      lowNonOutlier: {
+        style: 'bars',
+        fillOpacity: 1,
+        color: '#777'
+      },
+      highNonOutlier: {
+        style: 'bars',
+        fillOpacity: 1,
+        color: '#777'
+      }
+    };
+
+
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Total');
-    data.addColumn({id: 'max', type: 'number', role: 'interval'});
-    data.addColumn({id: 'min', type: 'number', role: 'interval'});
     data.addColumn({id: 'firstQuartile', type: 'number', role: 'interval'});
     data.addColumn({id: 'median', type: 'number', role: 'interval'});
     data.addColumn({id: 'thirdQuartile', type: 'number', role: 'interval'});
+    data.addColumn({id: 'highNonOutlier', type: 'number', role: 'interval'});
+    data.addColumn({id: 'lowNonOutlier', type: 'number', role: 'interval'});
     data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
-    data.addRows(table.map(row => {
-      const numRow = row.slice(1).map(n => toFixnum(n));
-      return [row[0], toFixnum(height)]
-        .concat(numRow)
+
+    // NOTE(joe & emmanuel, Aug 2019): With the current chart library, it seems
+    // like we can only get outliers to work as a variable-length row if we
+    // have a single row of data. It's an explicit error to mix row lengths.
+    // Since the main use case where outliers matter is for single-column
+    // box-plots, this maintains existing behavior (if anyone was relying on
+    // multiple series), while adding the ability to render outliers for BS:DS.
+    if(table.length === 1) {
+      var extraCols = table[0][8].length + table[0][9].length;
+      for(var i = 0; i < extraCols; i += 1) {
+        data.addColumn({id: 'outlier', type: 'number', role: 'interval'});
+      }
+      intervalOptions['outlier'] = { 'style':'points', 'color':'grey', 'pointSize': 10, 'lineWidth': 0, 'fillOpacity': 0.3 };
+    }
+    else {
+      // NOTE(joe & emmanuel, Aug 2019 cont.): This forces the low and high
+      // whiskers to be equal to the min/max when there are multiple rows since we
+      // won't be able to render the outliers, and the whiskers need to cover
+      //  the whole span of data.
+      table = table.map(function(row) {
+        row = row.slice(0, row.length);
+        // force whisker to be max/min
+        row[7] = row[2];
+        row[6] = row[1];
+        // empty outliers
+        row[9] = [];
+        row[8] = [];
+        return row;
+      });
+    }
+
+    const rowsToAdd = table.map(row => {
+      const summaryValues = row.slice(3, 8).map(n => toFixnum(n));
+      return [row[0], toFixnum(dimension)]
+        .concat(summaryValues)
         .concat([
            `<p><b>${row[0]}</b></p>
-            <p>minimum: <b>${numRow[1]}</b></p>
-            <p>maximum: <b>${numRow[0]}</b></p>
-            <p>first quartile: <b>${numRow[2]}</b></p>
-            <p>median: <b>${numRow[3]}</b></p>
-            <p>third quartile: <b>${numRow[4]}</b></p>`]);
-    }));
+            <p>minimum: <b>${row[2]}</b></p>
+            <p>maximum: <b>${row[1]}</b></p>
+            <p>bottom whisker: <b>${summaryValues[4]}</b></p>
+            <p>top whisker: <b>${summaryValues[3]}</b></p>
+            <p>first quartile: <b>${summaryValues[0]}</b></p>
+            <p>median: <b>${summaryValues[1]}</b></p>
+            <p>third quartile: <b>${summaryValues[2]}</b></p>`])
+        .concat(row[9]).concat(row[8]);
+    });
+
+    data.addRows(rowsToAdd);
+    const options = {
+      tooltip: {isHtml: true},
+      legend: {position: 'none'},
+      lineWidth: 0,
+      intervals: {
+        barWidth: 0.25,
+        boxWidth: 0.8,
+        lineWidth: 2,
+        style: 'boxes'
+      },
+      interval: intervalOptions,
+      dataOpacity: 0
+    };
+    /* NOTE(Oak): manually set the max value to coincide with bar charts' height
+     * so that the bar charts are concealed (the automatic value from Google
+     * is likely to screw this up)
+     */
+    options[axisName] = {
+      maxValue: dimension,
+      viewWindow: {
+        max: dimension
+      },
+    };
     return {
       data: data,
-      options: {
-        tooltip: {isHtml: true},
-        legend: {position: 'none'},
-        lineWidth: 0,
-        intervals: {
-          barWidth: 0.25,
-          boxWidth: 0.8,
-          lineWidth: 2,
-          style: 'boxes'
-        },
-        interval: {
-          max: {
-            style: 'bars',
-            fillOpacity: 1,
-            color: '#777'
-          },
-          min: {
-            style: 'bars',
-            fillOpacity: 1,
-            color: '#777'
-          }
-        },
-        dataOpacity: 0,
-        vAxis: {
-          maxValue: height,
-          viewWindow: {
-            max: height,
-          },
-        },
-      },
-      chartType: google.visualization.ColumnChart,
+      options: options,
+      chartType: chartType,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator],
     };
@@ -341,8 +389,12 @@
     data.addColumn('number', '');
     
     var max, min;
+    var val = null;
+    var hasAtLeastTwoValues = false;
     data.addRows(table.map(row => {
       var valfix = toFixnum(row[1]);
+      if(val !== null && val !== valfix) { hasAtLeastTwoValues = true; }
+      if(val === null) { val = valfix; }
       if(max === undefined) { max = valfix; }
       if(min === undefined) { min = valfix; }
       if(valfix > max) { max = valfix; }
@@ -356,7 +408,12 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'bin-width'), {
       none: function () {},
       some: function (binWidth) {
-        options.histogram.bucketSize = toFixnum(binWidth);
+        // NOTE(joe, aug 2019): The chart library has a bug for histograms with
+        // a single unique value (https://jsfiddle.net/L0y64fbo/2/), so thisi
+        // hackaround makes it so this case can't come up.
+        if(hasAtLeastTwoValues) {
+          options.histogram.bucketSize = toFixnum(binWidth);
+        }
       }
     });
 
@@ -370,7 +427,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min-num-bins'), {
       none: function () {
         if(options.histogram.bucketSize !== undefined) {
-          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize); 
+          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize) + 1; 
         }
       },
       some: function (minNumBins) {
@@ -530,7 +587,10 @@ ${labelRow}`;
           'class': 'controller',
           type: 'text',
           placeholder: '#samples',
-        }).attr('size', inputSize);
+        }).attr('size', inputSize).val('2');
+        // dummy value so that a new window can be constructed correctly
+        // when numSamplesC is not used. The value must be at least 2
+
         const redrawC = $('<button/>', {
           'class': 'controller',
           text: 'Redraw',
@@ -615,7 +675,7 @@ ${labelRow}`;
       restarter.error(
         RUNTIME.ffi.makeMessageException(
           'unable to load the image: ' + e.message));
-    }
+    };
     rawImage.src = url;
   }
 

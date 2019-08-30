@@ -179,15 +179,15 @@ input.form {
 }
 
 .file-wrapper {
-    display: inline-block;
-    padding: 16pt;
+    display: block;
     width: 100%;
+    margin: 4pt;
     box-sizing: border-box;
 }
 
 .file {
-    text-align: center;
-    padding: 16pt;
+    text-align: left;
+    padding: 4pt;
     background: rgba(0,0,0,.06);
     border-radius: 5px;
     box-sizing: border-box;
@@ -199,15 +199,26 @@ input.form {
 }
 
 .file img {
-    width: 35%;
-    padding-bottom: 8pt;
+    width: 1.5em;
+    padding-top: 4pt;
+    padding-bottom: 4pt;
+    padding-left: 8pt;
     filter: grayscale(70%);
     -webkit-filter: grayscale(70%);
     opacity: .4;
+    vertical-align: middle;
 }
 
-.file p {
-    font-size: .85rem;
+.file span {
+    vertical-align: middle;
+    padding-left: 1em;
+}
+
+.file .modified {
+    float: right;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #333;
 }
 
 .person-text {
@@ -231,8 +242,8 @@ input.form {
   height: 1.5rem;
   bottom: 0;
   left: 0;
-  border-top: 1px solid #eee;
-  margin-left: 1em;
+  border-top: 1px solid #111;
+  background: #eee;
 }
 
 .footer p {
@@ -249,18 +260,12 @@ input.form {
         margin: 0px auto;
     }
 
-    .file-wrapper {
-        width: 50%;
-    }
     .tab {
         padding: 0pt 16pt;
     }
 }
 
 @media only screen and (min-width: 768px) {
-    .file-wrapper {
-        width: 33.3333%;
-    }
     input.form {
         width: 150px;
     }
@@ -273,7 +278,4 @@ input.form {
 }
 
 @media only screen and (min-width: 1024px) {
-    .file-wrapper {
-        width: 25%;
-    }
 }

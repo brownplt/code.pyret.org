@@ -24,35 +24,45 @@ window.highlightMode = "mcmh"; // what is this for?
 window.clearFlash = function() {
   $(".notificationArea").empty();
 }
+window.whiteToBlackNotification = function() {
+  /*
+  $(".notificationArea .active").css("background-color", "white");
+  $(".notificationArea .active").animate({backgroundColor: "#111111" }, 1000);
+  */
+};
 window.stickError = function(message, more) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<div>").addClass("error").text(message);
+  var err = $("<span>").addClass("error").text(message);
   if(more) {
     err.attr("title", more);
   }
   err.tooltip();
   $(".notificationArea").prepend(err);
+  whiteToBlackNotification();
 };
 window.flashError = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<div>").addClass("error").text(message);
+  var err = $("<span>").addClass("error").text(message);
   $(".notificationArea").prepend(err);
+  whiteToBlackNotification();
   err.fadeOut(7000);
 };
 window.flashMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var msg = $("<div>").addClass("active").text(message);
+  var msg = $("<span>").addClass("active").text(message);
   $(".notificationArea").prepend(msg);
+  whiteToBlackNotification();
   msg.fadeOut(7000);
 };
 window.stickMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<div>").addClass("active").text(message);
+  var err = $("<span>").addClass("active").text(message);
   $(".notificationArea").prepend(err);
+  whiteToBlackNotification();
 };
 window.mkWarningUpper = function(){return $("<div class='warning-upper'>");}
 window.mkWarningLower = function(){return $("<div class='warning-lower'>");}
@@ -315,7 +325,7 @@ $(function() {
           console.log("Response for original: ", response);
           var original = $("#open-original").show().off("click");
           var id = response.result.value;
-          original.removeClass("disabled");
+          original.removeClass("hidden");
           original.click(function() {
             window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
           });
@@ -374,6 +384,9 @@ $(function() {
     return p.then(function(prog) {
       if(prog !== null) {
         updateName(prog);
+        if(prog.shared) {
+          window.stickMessage("You are viewing a shared program. Any changes you make will not be saved. You can use File -> Save a copy to save your own version with any edits you make.");
+        }
         return prog.getContents();
       }
     });
@@ -446,7 +459,6 @@ $(function() {
   function cycleFocus(reverseP) {
     //console.log('doing cycleFocus', reverseP);
     var editor = this.editor;
-    var fCarousel = editor.focusCarousel;
     populateFocusCarousel(editor);
     var fCarousel = editor.focusCarousel;
     var maxIndex = fCarousel.length;
@@ -463,27 +475,40 @@ $(function() {
     do {
       nextFocusIndex = cycleAdvance(nextFocusIndex, maxIndex, reverseP);
       focusElt = fCarousel[nextFocusIndex];
+      //console.log('trying focusElt', focusElt);
     } while (!focusElt);
 
     var focusElt0;
     if (focusElt.classList.contains('toolbarregion')) {
+      //console.log('settling on toolbar region')
       getTopTierMenuitems();
       focusElt0 = document.getElementById('bonniemenubutton');
     } else if (focusElt.classList.contains("replMain") ||
       focusElt.classList.contains("CodeMirror")) {
+      //console.log('settling on defn window')
       var textareas = focusElt.getElementsByTagName("textarea");
+      //console.log('txtareas=', textareas)
+      //console.log('txtarea len=', textareas.length)
       if (textareas.length === 0) {
+        //console.log('I')
         focusElt0 = focusElt;
       } else if (textareas.length === 1) {
+        //console.log('settling on inter window')
         focusElt0 = textareas[0];
       } else {
+        //console.log('settling on defn window')
+        /*
         for (var i = 0; i < textareas.length; i++) {
           if (textareas[i].getAttribute('tabIndex')) {
             focusElt0 = textareas[i];
           }
         }
+        */
+        focusElt0 = textareas[textareas.length-1];
+        focusElt0.removeAttribute('tabIndex');
       }
     } else {
+      //console.log('settling on announcement region', focusElt)
       focusElt0 = focusElt;
     }
 
@@ -545,17 +570,18 @@ $(function() {
 
   */
   function save(newFilename) {
+    var useName, create;
     if(newFilename !== undefined) {
-      var useName = newFilename;
-      var create = true;
+      useName = newFilename;
+      create = true;
     }
     else if(filename === false) {
       filename = "Untitled";
-      var create = true;
+      create = true;
     }
     else {
-      var useName = filename; // A closed-over variable
-      var create = false;
+      useName = filename; // A closed-over variable
+      create = false;
     }
     window.stickMessage("Saving...");
     var savedProgram = programToSave.then(function(p) {
@@ -609,6 +635,7 @@ $(function() {
         options: [
           {
             message: "The name for the copy:",
+            submitText: "Save",
             defaultValue: name
           }
         ]
@@ -672,13 +699,13 @@ $(function() {
   $("#rename").click(rename);
   $("#saveas").click(saveAs);
 
-  var focusableElts = $(document).find('nav[aria-label=Toolbar] .focusable');
+  var focusableElts = $(document).find('#header .focusable');
   //console.log('focusableElts=', focusableElts)
   var theToolbar = $(document).find('#Toolbar');
 
   function getTopTierMenuitems() {
     //console.log('doing getTopTierMenuitems')
-    var topTierMenuitems = $(document).find('nav[aria-label=Toolbar] ul li.topTier').toArray();
+    var topTierMenuitems = $(document).find('#header ul li.topTier').toArray();
     topTierMenuitems = topTierMenuitems.
                         filter(elt => !(elt.style.display === 'none' ||
                                         elt.getAttribute('disabled') === 'disabled'));
@@ -695,7 +722,10 @@ $(function() {
   }
 
   function updateEditorHeight() {
-    var toolbarHeight = document.getElementById('topTierUl').scrollHeight + 'px';
+    var toolbarHeight = document.getElementById('topTierUl').scrollHeight;
+    // gets bumped to 67 on initial resize perturbation, but actual value is indeed 40
+    if (toolbarHeight < 80) toolbarHeight = 40;
+    toolbarHeight += 'px';
     document.getElementById('REPL').style.paddingTop = toolbarHeight;
     var docMain = document.getElementById('main');
     var docReplMain = docMain.getElementsByClassName('replMain');
@@ -729,32 +759,19 @@ $(function() {
   });
 
   theToolbar.keydown(function (e) {
+    //console.log('toolbar keydown', e);
     //most any key at all
     var kc = e.keyCode;
-    //console.log('toolbar keydown', e.keyCode);
-    if (kc === 9 || kc === 27) {
+    if (kc === 27) {
       // escape
       hideAllTopMenuitems();
-      //console.log('calling cycleFocus')
+      //console.log('calling cycleFocus from toolbar')
       CPO.cycleFocus();
       e.stopPropagation();
-    } else if (kc === 37 || kc === 38 || kc === 39 || kc === 40) {
+    } else if (kc === 9 || kc === 37 || kc === 38 || kc === 39 || kc === 40) {
       // an arrow
       var target = $(this).find('[tabIndex=-1]');
       getTopTierMenuitems();
-      /*
-      //console.log('target=', target);
-      //console.log('target.len=', target.length);
-      var topTierLi = target.closest('li.topTier');
-      //console.log('topTierLi=', topTierLi.length);
-      if (topTierLi.length === 0) {
-        topTierLi = $('#bonniemenuli')
-        // go straight here?
-        target = topTierLi.find('.focusable').first();
-      }
-      switchTopMenuitem(topTierLi.closest('ul[id=topTierUl]'), topTierLi, target);
-      //console.log('docactelt=', document.activeElement);
-      */
       document.activeElement.blur(); //needed?
       target.first().focus(); //needed?
       //console.log('docactelt=', document.activeElement);
@@ -765,10 +782,16 @@ $(function() {
   });
 
   function clickTopMenuitem(e) {
+    hideAllTopMenuitems();
     var thisElt = $(this);
     //console.log('doing clickTopMenuitem on', thisElt);
     var topTierUl = thisElt.closest('ul[id=topTierUl]');
-    if (thisElt[0].hasAttribute('aria-hidden')) return;
+    if (thisElt[0].hasAttribute('aria-hidden')) {
+      return;
+    }
+    if (thisElt[0].getAttribute('disabled') === 'disabled') {
+      return;
+    }
     //var hiddenP = (thisElt[0].getAttribute('aria-expanded') === 'false');
     //hiddenP always false?
     var thisTopMenuitem = thisElt.closest('li.topTier');
@@ -788,27 +811,28 @@ $(function() {
     e.stopPropagation();
   }
 
-  var expandableElts = $(document).find('nav[aria-label=Toolbar] [aria-expanded]');
+  var expandableElts = $(document).find('#header [aria-expanded]');
   expandableElts.click(clickTopMenuitem);
 
   function hideAllTopMenuitems() {
     //console.log('doing hideAllTopMenuitems');
-    var topTierUl = $(document).find('nav[aria-label=Toolbar] ul[id=topTierUl]');
+    var topTierUl = $(document).find('#header ul[id=topTierUl]');
     topTierUl.find('[aria-expanded]').attr('aria-expanded', 'false');
     topTierUl.find('ul.submenu').attr('aria-hidden', 'true').hide();
   }
 
-  function switchTopMenuitem(topTierUl, destTopMenuitem, destElt) {
-    //console.log('doing switchTopMenuitem', topTierUl, destTopMenuitem, destElt);
+  var nonexpandableElts = $(document).find('#header .topTier > div > button:not([aria-expanded])');
+  nonexpandableElts.click(hideAllTopMenuitems);
+
+  function switchTopMenuitem(destTopMenuitem, destElt) {
+    //console.log('doing switchTopMenuitem', destTopMenuitem, destElt);
     //console.log('dtmil=', destTopMenuitem.length);
     hideAllTopMenuitems();
     if (destTopMenuitem && destTopMenuitem.length !== 0) {
       var elt = destTopMenuitem[0];
       var eltId = elt.getAttribute('id');
-      if (eltId !== 'rundropdownli') {
-        destTopMenuitem.children('ul.submenu').attr('aria-hidden', 'false').show();
-        destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
-      }
+      destTopMenuitem.children('ul.submenu').attr('aria-hidden', 'false').show();
+      destTopMenuitem.children().first().find('[aria-expanded]').attr('aria-expanded', 'true');
     }
     if (destElt) {
       //destElt.attr('tabIndex', '0').focus();
@@ -816,8 +840,17 @@ $(function() {
     }
   }
 
+  var showingHelpKeys = false;
+
+  function showHelpKeys() {
+    showingHelpKeys = true;
+    $('#help-keys').fadeIn(100);
+    reciteHelp();
+  }
+
   focusableElts.keydown(function (e) {
-    //console.log('focusable elt keydown', e.keyCode);
+    //console.log('focusable elt keydown', e);
+    var kc = e.keyCode;
     //$(this).blur(); // Delete?
     var withinSecondTierUl = true;
     var topTierUl = $(this).closest('ul[id=topTierUl]');
@@ -825,16 +858,18 @@ $(function() {
     if (secondTierUl.length === 0) {
       withinSecondTierUl = false;
     }
-    if (e.keyCode === 39) { // rightarrow
+    if (kc === 27) {
+      //console.log('escape pressed i')
+      $('#help-keys').fadeOut(500);
+    }
+    if (kc === 27 && withinSecondTierUl) { // escape
+      var destTopMenuitem = $(this).closest('li.topTier');
+      var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
+      switchTopMenuitem(destTopMenuitem, possElts.first());
+      e.stopPropagation();
+    } else if (kc === 39) { // rightarrow
       //console.log('rightarrow pressed');
-      var bubbleUp;
-      if (withinSecondTierUl) {
-        bubbleUp = secondTierUl;
-      } else {
-        bubbleUp = $(this);
-      }
-      //console.log('bubbleUp=', bubbleUp)
-      var srcTopMenuitem = bubbleUp.closest('li.topTier');
+      var srcTopMenuitem = $(this).closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
       srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
       var topTierMenuitems = getTopTierMenuitems();
@@ -842,7 +877,7 @@ $(function() {
       var ttmiN = topTierMenuitems.length;
       var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
       //console.log('j initial=', j);
-      for (var i = (j + 1) % ttmiN; i != j; i = (i + 1) % ttmiN) {
+      for (var i = (j + 1) % ttmiN; i !== j; i = (i + 1) % ttmiN) {
         var destTopMenuitem = $(topTierMenuitems[i]);
         //console.log('destTopMenuitem(a)=', destTopMenuitem);
         var possElts = destTopMenuitem.find('.focusable:not([disabled])').filter(':visible');
@@ -850,21 +885,14 @@ $(function() {
         if (possElts.length > 0) {
           //console.log('final i=', i);
           //console.log('landing on', possElts.first());
-          switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
+          switchTopMenuitem(destTopMenuitem, possElts.first());
           e.stopPropagation();
           break;
         }
       }
-    } else if (e.keyCode === 37) { // leftarrow
+    } else if (kc === 37) { // leftarrow
       //console.log('leftarrow pressed');
-      var bubbleUp;
-      if (withinSecondTierUl) {
-        bubbleUp = secondTierUl;
-      } else {
-        bubbleUp = $(this);
-      }
-      //console.log('bubbleUp=', bubbleUp)
-      var srcTopMenuitem = bubbleUp.closest('li');
+      var srcTopMenuitem = $(this).closest('li.topTier');
       //console.log('srcTopMenuitem=', srcTopMenuitem);
       srcTopMenuitem.children().first().find('.focusable').attr('tabIndex', '-1');
       var topTierMenuitems = getTopTierMenuitems();
@@ -872,7 +900,7 @@ $(function() {
       var ttmiN = topTierMenuitems.length;
       var j = topTierMenuitems.indexOf(srcTopMenuitem[0]);
       //console.log('j initial=', j);
-      for (var i = (j + ttmiN - 1) % ttmiN; i != j; i = (i + ttmiN - 1) % ttmiN) {
+      for (var i = (j + ttmiN - 1) % ttmiN; i !== j; i = (i + ttmiN - 1) % ttmiN) {
         var destTopMenuitem = $(topTierMenuitems[i]);
         //console.log('destTopMenuitem(b)=', destTopMenuitem);
         //console.log('i=', i)
@@ -881,12 +909,12 @@ $(function() {
         if (possElts.length > 0) {
           //console.log('final i=', i);
           //console.log('landing on', possElts.first());
-          switchTopMenuitem(topTierUl, destTopMenuitem, possElts.first());
+          switchTopMenuitem(destTopMenuitem, possElts.first());
           e.stopPropagation();
           break;
         }
       }
-    } else if (e.keyCode === 38) { // uparrow
+    } else if (kc === 38) { // uparrow
       //console.log('uparrow pressed');
       var submenu;
       if (withinSecondTierUl) {
@@ -928,7 +956,7 @@ $(function() {
         }
       }
       e.stopPropagation();
-    } else if (e.keyCode === 40) { // downarrow
+    } else if (kc === 40) { // downarrow
       //console.log('downarrow pressed');
       var submenuDivs;
       var submenu;
@@ -969,21 +997,39 @@ $(function() {
         //console.log('no actionable submenu found')
       }
       e.stopPropagation();
-    } else if (e.keyCode === 9 || e.keyCode === 27) {
-      //console.log('tab/esc pressed');
-      switchTopMenuitem(topTierUl, undefined);
-      //console.log('calling cycleFocus ii')
-      CPO.cycleFocus();
+    } else if (kc === 27) {
+      //console.log('esc pressed');
+      hideAllTopMenuitems();
+      if (showingHelpKeys) {
+        showingHelpKeys = false;
+      } else {
+        //console.log('calling cycleFocus ii')
+        CPO.cycleFocus();
+      }
       e.stopPropagation();
       e.preventDefault();
       //$(this).closest('nav').closest('main').focus();
-    } else if (e.keyCode === 32) {
-      //console.log('clicked space on', $(this));
-      //$(this)[0].click();
+    } else if (kc === 9 ) {
+      if (e.shiftKey) {
+        hideAllTopMenuitems();
+        CPO.cycleFocus(true);
+      }
       e.stopPropagation();
-    } else if (e.keyCode === 13) {
-      //console.log('enter pressed');
-      //$(this).click();
+      e.preventDefault();
+    } else if (kc === 13 || kc === 17 || kc === 20 || kc === 32) {
+      // 13=enter 17=ctrl 20=capslock 32=space
+      //console.log('stopprop 1')
+      e.stopPropagation();
+    } else if (kc >= 112 && kc <= 123) {
+      //console.log('doprop 1')
+      // fn keys
+      // go ahead, propagate
+    } else if (e.ctrlKey && kc === 191) {
+      //console.log('C-? pressed')
+      showHelpKeys();
+      e.stopPropagation();
+    } else {
+      //console.log('stopprop 2')
       e.stopPropagation();
     }
     //e.stopPropagation();
@@ -1029,7 +1075,7 @@ $(function() {
     var rulers = CPO.editor.cm.getOption("rulers");
     var longLines = CPO.editor.cm.getOption("longLines");
     var minLength;
-    if (longLines.size == 0) {
+    if (longLines.size === 0) {
       minLength = 0; // if there are no long lines, then we don't care about showing any rulers
     } else {
       minLength = Number.MAX_VALUE;
@@ -1089,8 +1135,8 @@ $(function() {
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
-    CPO.editor.cm.clearHistory();
     CPO.editor.cm.setValue(c);
+    CPO.editor.cm.clearHistory();
   });
 
   programLoaded.fail(function() {

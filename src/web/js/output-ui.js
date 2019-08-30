@@ -901,15 +901,15 @@
                       }, "highlightSrcloc, then help");
                     }, function(containerResult) {
                       if (runtime.isSuccessResult(containerResult)) {
-                        var container = containerResult.result;
-                        if (container.length > 0) {
-                          container = $("<div>").append(container);
+                        var resContainer = containerResult.result;
+                        if (resContainer.length > 0) {
+                          resContainer = $("<div>").append(resContainer);
                         }
-                        container.addClass("compile-error");
-                        container.append(renderStackTrace(runtime,documents, srcloc, richStack));
-                        restarter.resume(container);
+                        resContainer.addClass("compile-error");
+                        resContainer.append(renderStackTrace(runtime,documents, srcloc, richStack));
+                        restarter.resume(resContainer);
                       } else {
-                        container.add($("<span>").addClass("output-failed")
+                        container.append($("<span>").addClass("output-failed")
                                       .text("<error rendering reason for exception; details logged to console>"));
                         console.error("help: embed: highlightSrcloc or help failed:", errorDisp);
                         console.log(errorDisp.exn);
@@ -917,7 +917,7 @@
                       }
                     });
                   } else {
-                    container.add($("<span>").addClass("output-failed")
+                    container.append($("<span>").addClass("output-failed")
                                   .text("<error rendering fancy-reason of exception; details logged to console>"));
                     console.error("help: embed: render-fancy-reason failed:", errorDisp);
                     console.log(errorDisp.exn);
@@ -1485,7 +1485,8 @@
       };
       renderers["render-ref"] = function(top) {
         var container = $("<span>").addClass("replToggle replOutput has-icon");
-        container.append(top.done[0]);
+        var valueContainer = $("<span>").addClass("replRef")
+        container.append(valueContainer.append(top.done[0]));
         var warning = $("<img>")
           .attr("src", "/img/warning.gif")
           .attr("title", "May be stale! Click to refresh")
@@ -1497,16 +1498,12 @@
             return runtime.toReprJS(runtime.getRef(top.extra.origVal), renderers);
           }, function(newTop) {
             if(runtime.isSuccessResult(newTop)) {
-              warning.detach()
-              container.empty();
-              container.append(newTop.result);
-              container.append(warning);
+              valueContainer.empty();
+              valueContainer.append(newTop.result);
             }
             else {
-              warning.detach();
-              container.empty();
-              container.text("<error displaying value>");
-              container.append(warning);
+              valueContainer.empty();
+              valueContainer.text("<error displaying value>");
             }
           });
           e.stopPropagation();
@@ -1670,8 +1667,8 @@
           table.className = "pyret-row";
           var thead = document.createElement("thead");
           var trow = document.createElement("tr");
-          thead.append(trow);
-          table.append(thead);
+          thead.appendChild(trow);
+          table.appendChild(thead);
 
           var colElts = [];
           for(var i = 0; i < cols.length; i++) {
