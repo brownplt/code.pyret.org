@@ -563,7 +563,7 @@ function start(config, onServerReady) {
         else {
           var drive = getDriveClient(newToken, 'v2');
           drive.files.get({fileId: sharedProgramId}, function(err, response) {
-            if(err) { res.status(400).send("Couldn't access shared file " + id); }
+            if(err) { res.status(400).send("Couldn't access shared file " + sharedProgramId); }
             else {
               res.send({
                 id: response.id,
