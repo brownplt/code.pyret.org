@@ -1,0 +1,396 @@
+<!doctype HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>code.pyret.org</title>
+  <!--<base href="../">-->
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" href="css/codemirror.css" />
+  <link rel="stylesheet" href="css/foldgutter.css" />
+  <link rel="stylesheet" href="css/shared.css" />
+  <link rel="stylesheet" href="css/editor.css" />
+  <link rel="stylesheet" href="css/font-awesome.min.path-fixed.css" />
+  <link rel="icon" type="image/png" href="img/pyret-icon.png" />
+  <style id="highlight-styles"></style>
+  <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
+</head>
+<body>
+  <main>
+  <div id="Toolbar" class="toolbarregion" role="region" aria-label="Tool Controls" tabindex="-1">
+    <nav id="header">
+      <h2 id="menutitle" class="screenreader-only">Navigation Controls</h2>
+      <p class="screenreader-only" id="mhelp">
+      <span id="mhelp-menus">Use left and right arrows to move across menus.
+      </span>
+      <span id="mhelp-open-submenu">Use down arrow to open submenu.</span>
+      <span id="mhelp-submenu">Use up and down arrows to move within submenus.
+      </span>
+      <span id="mhelp-activate">Use Enter to activate.</span>
+      <span id="mhelp-escape-submenu">Use Escape to move to parent menu.</span>
+      <span id="mhelp-escape">Use Escape to exit menus.</span>
+      </p>
+      <div role="menubar">
+      <ul id="topTierUl" role="menu" aria-labelledby="menutitle"
+        aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+        aria-label="Toolbar" >
+        <li role="presentation"
+          class="topTier" id="bonniemenuli">
+          <div id="bonniemenu" class="tooltip menu menuitemtitle" style="float:none" >
+            <button role="menuitem"
+                    id="bonniemenubutton"
+                    aria-label="Pyret Menu"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
+                    tabindex="-1"
+                    class="blueButton focusable">
+              <span>▾</span>
+              <img class="logo" src="img/pyret-logo.png">
+            </button>
+            <span class="tooltiptext">
+              Pyret menu
+            </span>
+          </div>
+          <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
+            aria-label="Pyret Menu">
+            <li role="presentation">
+              <div id="welcome" class="menuButton inert" style="text-align: center;">
+                <span>Welcome, <span id="username" style="display: inline; padding: 0px;">guest</span>!</span>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="ctrl-question" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-label="keyboard shortcuts"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)"
+                  >Keyboard shortcuts, Ctrl-?</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="drive-view" class="loginOnly menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" target="_blank" href="/">
+                  My Programs</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="docs" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="issues" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="discuss" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="logging" class="menuButton">
+                <span>
+                  <input class="focusable" role="menuitem" tabindex="-1" id="detailed-logging"
+                  aria-labelledby="detailed-logging-label"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  type="checkbox" aria-pressed="false"
+                  aria-label="Contribute detailed usage information"/>
+                  <label for="detailed-logging" id="detailed-logging-label">
+                    Contribute detailed usage information.</label>
+                  <a href="https://www.pyret.org/cpo-faq#(part._logging)" target="_blank" rel="noopener noreferrer" class="focusable info-btn" role="menuitem" tabindex="-1"
+                    id="detailed-logging-learn-more"
+                    title="Learn More" aria-label="Learn More">?</a>
+                </span>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="logout" class="menuButton">
+                <a class="focusable" aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  role="menuitem" tabindex="-1" href="/logout">Log out</a>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <li role="presentation" class="topTier logoutOnly" id="connectButtonli">
+          <div class="menu menuitemtitle">
+            <button role="menuitem"
+              aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+              id="connectButton" class="logoutOnly focusable blueButton" tabindex="-1">Connect to Google Drive</button>
+          </div>
+          <!--
+            <div id="program-name-container" class="loginOnly">
+            <input id="program-name" type="text" placeholder="Program Name"></input>
+            </div>
+          -->
+        </li>
+
+        <li role="presentation" class="loginOnly topTier" id="filemenuli">
+          <div id="filemenu" class="loginOnly menu menuitemtitle" style="float:none" >
+            <button role="menuitem"
+              aria-label="File"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
+              id="filemenuItem"
+              tabindex="-1"
+              class="focusable blueButton">
+              <span>▾ File</span><span id="filename"></span>
+            </button>
+          </div>
+          <!-- div id="filemenuContents" class="menuContents" style="display: none; z-index: 8990;" -->
+          <ul id="filemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
+            aria-label="File Menu">
+            <li role="presentation">
+              <div id="new" class="menuButton">
+                <a class="focusable" role="menuitem" aria-label="New file"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)" >New</a></div>
+            </li>
+            <li role="presentation">
+              <div id="open" class="menuButton">
+                <a  class="focusable" role="menuitem" aria-label="Open file"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Open</a></div>
+            </li>
+            <li role="presentation">
+              <div id="open-original" class="menuButton disabled hidden">
+                <a class="focusable" role="menuitem" aria-label="Open original file"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Open Original</a></div>
+            </li>
+            <li role="presentation">
+              <div id="save" class="menuButton disabled">
+                <a class="focusable disabled" role="menuitem" aria-label="Save file"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Save</a></div>
+            </li>
+            <li role="presentation">
+              <div id="saveas" class="menuButton">
+                <a class="focusable" role="menuitem" aria-label="Save a copy"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Save a copy</a></div>
+            </li>
+            <li role="presentation">
+              <div id="download" class="menuButton">
+                <a class="focusable" role="menuitem" aria-label="Download"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Download</a></div>
+            </li>
+            <li role="presentation">
+              <div id="rename" class="menuButton disabled">
+                <a class="focusable disabled" role="menuitem" aria-label="Rename file"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Rename</a></div>
+            </li>
+          </ul>
+        </li>
+
+        <li role="presentation" class="loginOnly topTier" id="insertli">
+          <div id="insertPart" class="loginOnly menu menuitemtitle">
+            <button role="menuitem"
+              aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+              aria-label="Insert, F11" id="insert" class="focusable blueButton loginOnly"  tabindex="-1">Insert</button>
+          </div>
+          <!-- <button id="saveButton" class="blueButton loginOnly">Save</button> -->
+          <!-- <button id="openFile" class="blueButton loginOnly">Open</button> -->
+        </li>
+
+        <li role="presentation" class="topTier" id="publishli" style="display: none;">
+          <div id="shareContainer" class="menu menuitemtitle"></div>
+        </li>
+
+        <li role="presentation" class="topTier flexpushright" id="runli">
+          <div id="runPart" class="blueButton menuitemtitle" >
+            <button role="menuitem" aria-label="Run, F7 or Control-Enter" disabled id="runButton"
+              aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+              class="focusable blueButton" tabindex="-1">Run</button>
+          </div>
+        </li>
+
+        <li role="presentation" class="topTier" id="rundropdownli">
+          <div class="menu menuitemtitle">
+            <button role="menuitem"
+                    id="runDropdown"
+                    class="focusable blueButton dropdown rhs"
+                    aria-label="Run Options"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
+                    disabled
+                    tabindex="-1">↴
+            </button>
+          </div>
+          <ul id="run-dropdown-content" class="submenu" role="menu" aria-hidden="true"
+            aria-label="Run Options">
+            <li id="select-run-old" >
+              <div id="select-run" >
+                <a class="focusable"
+                  role="menuitem"
+                  aria-label="Run" aria-setsize="2" aria-posinset="1"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Run</a>
+              </div>
+            </li>
+            <li id="select-tc-run-old">
+              <div id="select-tc-run" >
+                <a class="focusable"
+                  role="menuitem"
+                  aria-label="Type-check and run" aria-setsize="2" aria-posinset="2"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Type-check and run<sup>(beta)</sup></a>
+              </div>
+            </li>
+          </ul>
+        </li>
+
+        <li role="presentation" class="topTier" disabled id="stopli">
+          <div class="menu menuitemtitle">
+            <button role="menuitem" aria-label="Stop, F8" disabled id="breakButton"
+              aria-describedby="mhelp-menus mhelp-activate mhelp-escape"
+              class="focusable blueButton"  tabindex="-1">Stop</button>
+          </div>
+        </li>
+      </ul>
+      </div>
+    </nav>
+  </div>
+
+<div id="toolbar"></div>
+<div id="loader"><p>Raising the masts...</p></div>
+<div id="main">
+<!-- MODAL PROMPT (Adapted from W3Schools' example) -->
+<div id="promptModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3></h3>
+    </div>
+    <div class="modal-body">
+    </div>
+    <div class="modal-footer">
+      <button class="submit blueButton">Submit</button>
+      <button class="close blueButton">Close</button>
+    </div>
+  </div>
+</div>
+<div id="notification" class="notificationArea"></div>
+<div id="REPL" class="replContainer" role="region" aria-label="Interactions">
+<div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
+</div>
+<div id="help-keys">
+  <p>Press ESC to close this help window</p>
+  <ul>
+    <li><b>Ctrl-?</b> - Show this help</li>
+    <li><b>Ctrl-s</b> - Save</li>
+    <li><b>Ctrl-m</b> - Toggle sizing of the editor window between 50% and last resize</li>
+    <li><b>F6, Shift-F6</b> - Cycle focus through regions</li>
+    <li><b>F7, Ctrl-Enter</b> - Run the definitions window</li>
+    <li><b>F11</b> - Insert image</li>
+    <li><b>Ctrl-Left</b> - Move cursor left by one word</li>
+    <li><b>Ctrl-Right</b> - Move cursor right by one word</li>
+    <li><b>Alt-Left</b> - If cursor is just before a right-parenthesis or <code>end</code>
+    keyword, move cursor left to matching delimiter; otherwise move cursor left by one word</li>
+    <li><b>Alt-Right</b> - Like <b>Alt-Left</b>, but moving right.</li>
+    <li><b>Esc Left</b> - (two key sequence) synonym
+      for <b>Alt-Left</b>, in case Alt key is in use by browser</li>
+    <li><b>Esc Right</b> - (two key sequence) synonym for <b>Alt-Right</b>.</li>
+  </ul>
+  <p><i>Toolbar region navigation</i></p>
+  <ul>
+    <li><b>Esc</b> - Exit toolbar submenu (if open) or region</li>
+    <li><b>Left, Right</b> - Traverse toolbar top-level menu</li>
+    <li><b>Up, Down</b> - Traverse toolbar submenus</li>
+  </ul>
+</div>
+<div id="doc-containment">
+<div id="doc-overlay">
+  <div id="doc-bar"><div id="doc-close">&#x2715;</div></div>
+  <div id="doc-cover"></div>
+  <div id="doc-left" class="doc-handle ui-resizable-handle ui-resizable-w"></div>
+  <div id="doc-right" class="doc-handle ui-resizable-handle ui-resizable-e"></div>
+  <div id="doc-bottom" class="doc-handle ui-resizable-handle ui-resizable-s"></div>
+  <div id="doc-se-corner" class="doc-handle ui-resizable-handle ui-resizable-se"></div>
+  <div id="doc-sw-corner" class="doc-handle ui-resizable-handle ui-resizable-sw"></div>
+</div>
+</div>
+</div>
+<div id="footer">
+  <div id="announcements" class="screenreader-only" role="region" aria-label="Announcements" tabindex="-1">
+    <h2>Announcements</h2>
+    <ul id="announcementlist" aria-live="assertive"
+                              aria-relevant="additions" style="list-style: none;">
+    </ul>
+  </div>
+</div>
+<script src="js/es6-shim.js"></script>
+<script>delete window.module;</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="https://npmcdn.com/dexie@1.4.1/dist/dexie.min.js"></script>
+<script src="js/q.js"></script>
+<script src="js/loader.js"></script>
+<script src="js/codemirror.js"></script>
+<script src="js/rulers.js"></script>
+<script src="js/foldcode.js"></script>
+<script src="js/foldgutter.js"></script>
+<script src="js/mark-selection.js"></script>
+<script src="js/runmode.js"></script>
+<script src="js/pyret-mode.js"></script>
+<script src="js/pyret-fold.js"></script>
+<script src="js/matchkw.js"></script>
+<script src="js/mousetrap.min.js"></script>
+<script src="js/mousetrap-global-bind.min.js"></script>
+
+<script src="js/localSettings.js"></script>
+<script src="js/log.js"></script>
+<script src="js/share.js"></script>
+<script src="js/local-files.js"></script>
+<script src="js/google-apis/api-wrapper.js"></script>
+<script src="js/google-apis/drive.js"></script>
+<script src="js/google-apis/picker.js"></script>
+<script src="js/google-apis/sheets.js"></script>
+<script src="js/authenticate-storage.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+var apiKey = "";
+function handleGoogLoad() {
+  handleClientLoad(apiKey);
+}
+</script>
+<!-- Google API Loader (For picker) -->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<!-- GAPI Client -->
+<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
+<script>console.log(window.performance.now())</script>
+<script src="js/beforePyret.js"></script>
+<script>
+var APP_BASE_URL = "{{{ BASE_URL }}}";
+var CSRF_TOKEN = "{{{ CSRF_TOKEN }}}";
+$.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+  var a = document.createElement("a");
+  a.href = options.url;
+  if(a.origin === APP_BASE_URL) {
+    jqXHR.setRequestHeader('X-CSRF-Token', CSRF_TOKEN);
+  }
+});
+</script>
+
+<!-- <script type="text/javascript"
+        src="https://caja.appspot.com/caja.js"></script> -->
+  </main>
+</body>
+</html>

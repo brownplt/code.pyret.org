@@ -1,0 +1,37 @@
+table {
+  table-layout: fixed;
+}
+
+.fileRow {
+  padding: 5px;
+  overflow: hidden;
+}
+
+.fileRow td {
+  padding-right: 1em;
+  max-height: 2em;
+  max-width: 20em;
+}
+
+#main {
+  padding-top: 70px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.rightLink a {
+  text-decoration: none;
+}
+
+.fileRow div {
+  max-width: 20em;
+  height: 2em;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#newLink {
+  /* !important overrides shared.css */
+  width: 200px !important;
+}

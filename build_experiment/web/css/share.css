@@ -1,0 +1,10 @@
+#main {
+  padding-top: 80px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.copy-link {
+  text-decoration: none;
+  padding-left: 3px;
+}
