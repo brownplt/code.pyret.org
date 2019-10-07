@@ -16,6 +16,10 @@
       protocol: "js-file",
       args: ["./text-handlers"]
     },
+    { "import-type": "dependency",
+      protocol: "js-file",
+      args: ["./repl-history"]
+    },
     { "import-type": "builtin",
       name: "world-lib"
     },
@@ -29,7 +33,8 @@
   provides: {},
   theModule: function(runtime, _, uri,
                       checkUI, outputUI, errorUI,
-                      textHandlers, worldLib, loadLib,
+                      textHandlers, replHistory,
+                      worldLib, loadLib,
                       util) {
     var ffi = runtime.ffi;
 
@@ -230,56 +235,6 @@
     function makeRepl(container, repl, runtime, options) {
 
       var Jsworld = worldLib;
-      var items = []; // repl interaction history
-      var pointer = -1;
-      var current = "";
-      function loadItem(backward) {
-        var thisItem;
-        while (true) {
-          if (pointer < 0 || pointer >= items.length) return;
-          thisItem = items[pointer];
-          if (thisItem.dup) {
-            if (backward) pointer++;
-            else pointer--;
-          } else break;
-        }
-        var thisCode = items[pointer].code;
-        CPO.sayAndForget(thisCode);
-        CM.setValue(thisCode);
-        CM.refresh();
-      }
-      function addToHistory(newItem) {
-        var prev = items[0];
-        if (prev && prev.code !== 'def//'
-          && prev.code === newItem.code) {
-          newItem.dup = true;
-        }
-        items.unshift(newItem);
-      }
-      function prevItem() {
-        if (pointer === -1) {
-          current = CM.getValue();
-        }
-        if (pointer < items.length - 1) {
-          pointer++;
-          if (pointer === (items.length - 1) &&
-              items[pointer].code === 'def//') {
-            pointer--;
-          } else {
-            loadItem('backward');
-          }
-        }
-      }
-      function nextItem() {
-        if (pointer >= 1) {
-          pointer--;
-          loadItem();
-        } else if (pointer === 0) {
-          CM.setValue(current);
-          CM.refresh();
-          pointer--;
-        }
-      }
 
       // a11y stuff
 
@@ -323,53 +278,6 @@
       }
 
 
-      function speakHistory(n) {
-        //console.log('doing speakHistory', n);
-        if (n === 0) { n = 10; }
-        var historySize = items.length;
-        //console.log('items =', items);
-        //console.log('historySize =', historySize);
-        if (n > historySize) { return false; }
-        var history = items[n-1];
-        //console.log('history=', history);
-        var isMain = (history.code === 'def//');
-        var recital;
-        if (isMain) {
-          recital = 'Loading definitions window';
-        } else {
-          recital = history.code;
-        }
-        if (history.erroroutput) {
-          recital += ' resulted in an error. ' + history.erroroutput;
-        } else {
-          if (isMain) {
-            if (!history.end && !history.start) {
-              recital += ' produced no output.';
-            } else {
-              recital += ' produced output: ';
-            }
-          } else {
-            if (!history.start) {
-              recital += ' produced no output.';
-            } else {
-              recital += ' evaluates to ';
-            }
-          }
-          var docOutput = document.getElementById('output').childNodes;
-          if (!history.end) {
-            if (history.start) {
-              recital += outputText(docOutput[history.start]);
-            }
-          } else {
-            //console.log('speakhistory from', history.start, 'to', history.end);
-            for (var i = history.start; i < history.end; i++) {
-              recital += '. ' + outputText(docOutput[i]);
-            }
-          }
-        }
-        CPO.sayAndForget(recital);
-        return true;
-      }
 
       function speakChar(cm) {
         var pos = cm.getCursor();
@@ -612,6 +520,47 @@
       var stopLi = $('#stopli');
       container.append(output).append(promptContainer);
 
+      function speakHistory(n) {
+        if(history.size() < n) { return; }
+        return speakItem(history.getHistory(n), false);
+      }
+
+      function speakItem(item, isMain) {
+        //console.log('item=', item);
+        var recital = item.code;
+        if (item.erroroutput) {
+          recital += ' resulted in an error. ' + item.erroroutput;
+        } else {
+          if (isMain) {
+            if (!item.end && !item.start) {
+              recital += ' produced no output.';
+            } else {
+              recital += ' produced output: ';
+            }
+          } else {
+            if (!item.start) {
+              recital += ' produced no output.';
+            } else {
+              recital += ' evaluates to ';
+            }
+          }
+          var docOutput = document.getElementById('output').childNodes;
+          if (!item.end) {
+            if (item.start) {
+              recital += outputText(docOutput[item.start]);
+            }
+          } else {
+            //console.log('speakHistory from', item.start, 'to', item.end);
+            for (var i = item.start; i < item.end; i++) {
+              recital += '. ' + outputText(docOutput[i]);
+            }
+          }
+        }
+        CPO.sayAndForget(recital);
+        return true;
+
+      }
+
       var img = $("<img>").attr({
         "src": "/img/pyret-spin.gif",
         "width": "25px",
@@ -621,7 +570,12 @@
       var runContents;
       function updateItems(isMain) {
         //console.log('doing updateItems', isMain);
-        var thiscode = items[0];
+        if(!isMain) {
+          var thiscode = history.getHistory(1);
+        }
+        else {
+          var thiscode = {code: "definitions", erroroutput: false, start: false, end: false, dup: false};
+        }
         var docOutput = document.getElementById("output");
         var docOutputLen = docOutput.childNodes.length;
         var lastOutput = docOutput.lastElementChild;
@@ -658,7 +612,7 @@
           //console.log('result is a successful single interaction');
           thiscode.start = docOutputLen - 1;
         }
-        speakHistory(1);
+        speakItem(thiscode, isMain);
         return true;
       }
       function afterRun(cm) {
@@ -829,10 +783,8 @@
 
       var runMainCode = function(src, uiOptions) {
         if(running) { return; }
+        history.setToEnd();
         running = true;
-        items = [];
-        var thiscode = {code: 'def//', erroroutput: false, start: false, end: false, dup: false};
-        addToHistory(thiscode);
         output.empty();
         promptContainer.hide();
         lastEditorRun = uiOptions.cm || null;
@@ -870,8 +822,8 @@
         if(running) { return; }
         running = true;
         var thiscode = {code: code, erroroutput: false, start: false, end: false, dup: false};
-        addToHistory(thiscode);
-        pointer = -1;
+        history.addToHistory(thiscode);
+        history.setToEnd();
         var echoContainer = $("<div class='echo-container'>");
         var echoSpan = $("<span>").addClass("repl-echo");
         var echoPromptSign = $('<span aria-hidden="true" aria-label="REPL prompt">').
@@ -911,8 +863,8 @@
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
             'Tab': 'indentAuto',
-            'Up': prevItem,
-            'Down': nextItem,
+            'Up': function(){ return history.prevItem(); },
+            'Down': function(){ return history.nextItem(); },
             'Ctrl-Up': "goLineUp",
             'Ctrl-Alt-Up': "goLineUp",
             'Ctrl-Down': "goLineDown",
@@ -925,19 +877,21 @@
             'Ctrl-Right': "goForwardToken",
             'Left': function(cm) { cm.moveH(-1, 'char'); speakChar(cm); },
             'Right': function(cm) { cm.moveH(1, 'char'); speakChar(cm); },
-            "Alt-1": function() { speakHistory(1); },
-            "Alt-2": function() { speakHistory(2); },
-            "Alt-3": function() { speakHistory(3); },
-            "Alt-4": function() { speakHistory(4); },
-            "Alt-5": function() { speakHistory(5); },
-            "Alt-6": function() { speakHistory(6); },
-            "Alt-7": function() { speakHistory(7); },
-            "Alt-8": function() { speakHistory(8); },
-            "Alt-9": function() { speakHistory(9); },
-            "Alt-0": function() { speakHistory(0); }
+            "Alt-1": function() { speakHistory(1, false); },
+            "Alt-2": function() { speakHistory(2, false); },
+            "Alt-3": function() { speakHistory(3, false); },
+            "Alt-4": function() { speakHistory(4, false); },
+            "Alt-5": function() { speakHistory(5, false); },
+            "Alt-6": function() { speakHistory(6, false); },
+            "Alt-7": function() { speakHistory(7, false); },
+            "Alt-8": function() { speakHistory(8, false); },
+            "Alt-9": function() { speakHistory(9, false); },
+            "Alt-0": function() { speakHistory(10, false); }
           })
         }
       }).cm;
+
+      var history = replHistory.makeReplHistory(CM, CPO);
 
       CM.on('beforeChange', function(instance, changeObj){textHandlers.autoCorrect(instance, changeObj, CM);});
 
@@ -968,6 +922,8 @@
         focus: function() { CM.focus(); }
       };
     }
+
+    // Declared here to use CM, used and closed over many times above
 
     return runtime.makeJSModuleReturn({
       makeRepl: makeRepl,
