@@ -5,6 +5,12 @@
   ],
   provides: {},
   theModule: function(runtime, _, uri) {
+    function storeDefinitions(item) {
+      this.lastDefinitions = item;
+    }
+    function getDefinitions() {
+      return this.lastDefinitions;
+    }
     function advanceDups(backward) {
       var thisItem;
       while (this.pointer >= 0 && this.pointer < this.items.length) {
@@ -75,9 +81,10 @@
     function ReplHistory(CM, CPO) {
       this.CM = CM;
       this.CPO = CPO;
-      this.items = []; // repl interaction history
+      this.items = [];
       this.pointer = -1;
       this.current = "";
+      this.lastDefinitions = null;
     }
     ReplHistory.prototype = {
       saveCurrentInteractionIfNecessary: saveCurrentInteractionIfNecessary,
@@ -88,7 +95,9 @@
       prevItem: prevItem,
       getHistory: getHistory,
       size: size,
-      setToEnd: setToEnd
+      setToEnd: setToEnd,
+      storeDefinitions: storeDefinitions,
+      getDefinitions: getDefinitions
     };
 
     function makeReplHistory(CM, CPO) {

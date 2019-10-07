@@ -526,6 +526,7 @@
       }
 
       function speakItem(item, isMain) {
+        if(item === null) { return; }
         //console.log('item=', item);
         var recital = item.code;
         if (item.erroroutput) {
@@ -611,6 +612,9 @@
         } else {
           //console.log('result is a successful single interaction');
           thiscode.start = docOutputLen - 1;
+        }
+        if(isMain) {
+          history.storeDefinitions(thiscode);
         }
         speakItem(thiscode, isMain);
         return true;
@@ -886,7 +890,7 @@
             "Alt-7": function() { speakHistory(7, false); },
             "Alt-8": function() { speakHistory(8, false); },
             "Alt-9": function() { speakHistory(9, false); },
-            "Alt-0": function() { speakHistory(10, false); }
+            "Alt-0": function() { speakItem(history.getDefinitions(), true); },
           })
         }
       }).cm;
