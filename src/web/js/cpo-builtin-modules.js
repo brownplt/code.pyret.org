@@ -108,7 +108,7 @@ define("cpo/cpo-builtin-modules", ["pyret-base/js/type-util"], function(t) {
 
                     return RUNTIME.makeObject({
                       name: k,
-                      value: t.bindToPyret(RUNTIME, expanded)
+                      value: t.bindToPyret(RUNTIME, expanded, shorthands)
                     });
                   });
                 }
