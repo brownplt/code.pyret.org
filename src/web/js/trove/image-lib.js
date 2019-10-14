@@ -3,7 +3,9 @@
     { "import-type": "builtin", "name": "image-structs" }
   ],
   nativeRequires: ["pyret-base/js/js-numbers", "js-md5"],
-  provides: {},
+  provides: {
+    datatypes: { "Image": ["data", "Image", [], [], {}] }
+  },
   theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums, md5) {
     var gf = RUNTIME.getField;
 

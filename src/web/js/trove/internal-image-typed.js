@@ -8,6 +8,9 @@
   ],
   provides: {
     shorthands: {
+      "Image": { tag: "name",
+                 origin: { "import-type": "uri", uri: "builtin://image-lib" },
+                 name: "Image" },
       "FillMode": { tag: "name",
                     origin: { "import-type": "uri", uri: "builtin://image-structs" },
                     name: "FillMode" },
@@ -57,7 +60,6 @@
               [{ tag: "name",
                  origin: { "import-type": "uri", uri: "builtin://image-structs" },
                  name: "Point" }]],
-      "Image": ["local", "Image"]
     },
     values: {
       "circle": ["arrow", ["Number", "FillMode", "Color"], "Image"],
@@ -141,8 +143,9 @@
       "star-polygon": ["arrow", ["Number", "Number", "Number", "FillMode", "Color"], "Image"],
       "rhombus": ["arrow", ["Number", "Number", "FillMode", "Color"], "Image"],
       "image-to-color-list": ["arrow", ["Image"], "LoC"],
-      "color-list-to-image": ["arrow", ["LoC", "Number", "Number"], "Image"],
+      "color-list-to-image": ["arrow", ["LoC", "Number", "Number", "Number", "Number"], "Image"],
       "color-at-position": ["arrow", ["Image", "Number", "Number"], "Color"],
+      "color-list-to-bitmap": ["arrow", ["LoC", "Number", "Number"], "Image"],
       "image-width": ["arrow", ["Image"], "Number"],
       "image-height": ["arrow", ["Image"], "Number"],
       "image-baseline": ["arrow", ["Image"], "Number"],
@@ -153,9 +156,10 @@
       "empty-image": "Image"
     },
     aliases: {
-      "Image": ["local", "Image"]
-    },
-    datatypes: { "Image": ["data", "Image", [], [], {}] }
+      "Image": { tag: "name",
+                 origin: { "import-type": "uri", uri: "builtin://image-lib" },
+                 name: "Image" }
+    }
   },
   theModule: function(runtime, namespace, uri, image, makeImage, jsnums) {
     var colorDb = image.colorDb;
@@ -347,186 +351,6 @@
       values[name] = runtime.makeFunction(fun, name);
     }
 
-
-    f("overlay-list", function(maybeImgs) {
-      checkArity(1, arguments, "overlay-list", false);
-      c1("overlay-list", maybeImgs, annListImage);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(acc, "pinhole", "pinhole", 0, 0, img, "pinhole", "pinhole"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-
-    f("overlay-align-list", function(maybePlaceX, maybePlaceY, maybeImgs) {
-      checkArity(3, arguments, "overlay-align-list", false);
-      c3("overlay-align-list", maybePlaceX, annPlaceX, maybePlaceY, annPlaceY, maybeImgs, annListImage);
-      var placeX = unwrapPlaceX(maybePlaceX);
-      var placeY = unwrapPlaceY(maybePlaceY);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(acc, placeX, placeY, 0, 0, img, placeX, placeY); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("overlay-onto-offset", function(maybeImg1, maybePlaceX1, maybePlaceY1,
-                                      maybeOffsetX, maybeOffsetY,
-                                      maybeImg2, maybePlaceX2, maybePlaceY2) {
-      checkArity(8, arguments, "overlay-onto-offset", false);
-      c("overlay-onto-offset",
-        maybeImg1, annImage,
-        maybePlaceX1, annPlaceX,
-        maybePlaceY1, annPlaceY,
-        maybeOffsetX, annReal,
-        maybeOffsetY, annReal,
-        maybeImg2, annImage,
-        maybePlaceX2, annPlaceX,
-        maybePlaceY2, annPlaceY);
-      var placeX1 = unwrapPlaceX(maybePlaceX1);
-      var placeY1 = unwrapPlaceY(maybePlaceY1);
-      var placeX2 = unwrapPlaceX(maybePlaceX2);
-      var placeY2 = unwrapPlaceY(maybePlaceY2);
-      var img1 = unwrapImage(maybeImg1);
-      var img2 = unwrapImage(maybeImg2);
-      var offsetX = jsnums.toFixnum(maybeOffsetX);
-      var offsetY = jsnums.toFixnum(maybeOffsetY);
-      return makeImage(image.makeOverlayImage(img1, placeX1, placeY1, offsetX, offsetY, img2, placeX2, placeY2));
-    });
-
-    f("underlay-list", function(maybeImgs) {
-      checkArity(1, arguments, "underlay-list", false);
-      c1("underlay-list", maybeImgs, annListImage);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(img, "pinhole", "pinhole", 0, 0, acc, "pinhole", "pinhole"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("underlay-align-list", function(maybePlaceX, maybePlaceY, maybeImgs) {
-      checkArity(3, arguments, "underlay-align-list", false);
-      c3("underlay-align-list", maybePlaceX, annPlaceX, maybePlaceY, annPlaceY, maybeImgs, annListImage);
-      var placeX = unwrapPlaceX(maybePlaceX);
-      var placeY = unwrapPlaceY(maybePlaceY);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(img, placeX, placeY, 0, 0, acc, placeX, placeY); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("beside-list", function(maybeImgs) {
-      checkArity(1, arguments, "beside-list", false);
-      c1("beside-list", maybeImgs, annListImage);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(acc, "right", "center", 0, 0, img, "left", "center"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("beside-align-list", function(maybePlaceY, maybeImgs) {
-      checkArity(2, arguments, "beside-align-list", false);
-      c2("beside-align-list", maybePlaceY, annPlaceY, maybeImgs, annListImage);
-      var placeY = unwrapPlaceY(maybePlaceY);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(acc, "right", placeY, 0, 0, img, "left", placeY); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("above-list", function(maybeImgs) {
-      checkArity(1, arguments, "above-list", false);
-      c1("above-list", maybeImgs, annListImage);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(acc, "middle", "bottom", 0, 0, img, "middle", "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("above-align-list", function(maybePlaceX, maybeImgs) {
-      checkArity(2, arguments, "above-align-list", false);
-      c2("above-list", maybePlaceX, annPlaceX, maybeImgs, annListImage);
-      var placeX = unwrapPlaceX(maybePlaceX);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(acc, placeX, "bottom", 0, 0, img, placeX, "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-    
-    f("below-list", function(maybeImgs) {
-      checkArity(1, arguments, "below-list", false);
-      c1("below-list", maybeImgs, annListImage);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(img, "middle", "bottom", 0, 0, acc, "middle", "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("below-align-list", function(maybePlaceX, maybeImgs) {
-      checkArity(2, arguments, "below-align-list", false);
-      c2("below-list", maybePlaceX, annPlaceX, maybeImgs, annListImage);
-      var placeX = unwrapPlaceX(maybePlaceX);
-      var imgs = unwrapListofImage(maybeImgs);
-      return makeImage(imageListFoldIndex(function(acc, idx, img) {
-        if (idx == 0) { return img; }
-        else { return image.makeOverlayImage(img, placeX, "bottom", 0, 0, acc, placeX, "top"); }
-      }, imgs, image.makeSceneImage(0, 0, [], false, colorDb.get("transparent"))));
-    });
-
-    f("move-pinhole", function(maybeDx, maybeDy, maybeImg) {
-      checkArity(3, arguments, "move-pinhole", false);
-      c3("move-pinhole",
-         maybeDx, annReal,
-         maybeDy, annReal,
-         maybeImg, annImage);
-      var img = unwrapImage(maybeImg);
-      var dx = jsnums.toFixnum(maybeDx);
-      var dy = jsnums.toFixnum(maybeDy);
-      return makeImage(img.offsetPinhole(dx, dy));
-    });
-
-    f("color-list-to-image", function(maybeList, maybeWidth, maybeHeight) {
-      checkArity(3, arguments, "color-list-to-image", false);
-      c3("color-list-to-image", maybeList, annListColor, maybeWidth, annNatural, maybeHeight, annNatural);
-      var len = ffi.listLength(maybeList);
-      var loc = unwrapListofColor(maybeList);
-      var width = jsnums.toFixnum(maybeWidth);
-      var height = jsnums.toFixnum(maybeHeight);
-      if (len != width * height) {
-        throwMessage("The color list does not have the right number of elements: " +
-                     "expected " + (width * height) + " but got " + len);
-      }
-      return makeImage(image.colorListToImage(loc, width, height, width / 2, height / 2));
-    });
-
-    f("name-to-color", function(maybeName) {
-      checkArity(1, arguments, "name-to-color", false);
-      c1("name-to-color", maybeName, runtime.String);
-      var name = maybeName;
-      var val = colorDb.get(String(name));
-      if (val) {
-        return runtime.ffi.makeSome(val);
-      } else {
-        return runtime.ffi.makeNone();
-      }
-    });
-    f("color-named", function(maybeName) {
-      checkArity(1, arguments, "name-to-color", false);
-      c1("color-named", maybeName, runtime.String);
-      var name = maybeName;
-      var val = colorDb.get(String(name));
-      if (val) {
-        return runtime.wrap(val);
-      }
-      throwMessage("Unknown color name '" + String(name) + "'");
-    });
 
     return runtime.makeModuleReturn(values, {
         "Image": runtime.makePrimitiveAnn("Image", checkImagePred),

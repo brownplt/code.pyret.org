@@ -40,6 +40,8 @@ script:
 #- mocha --harmony
 addons:
   chrome: stable
+services:
+  - xvfb
 before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable
@@ -49,8 +51,6 @@ before_install:
 - npm install -g chromedriver
 - export CHROME_BIN=chromium-browser
 - export PATH=$PATH:node_modules/.bin/
-services:
-  - xvfb
 before_deploy:
 - export GIT_REV=`echo $TRAVIS_COMMIT`
 - export GIT_BRANCH=`echo $TRAVIS_BRANCH`

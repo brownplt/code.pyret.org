@@ -406,7 +406,7 @@ $(function() {
   }
 
   function sayAndForget(msg) {
-    //console.log('doing sayAndForget', msg);
+    console.log('doing sayAndForget', msg);
     say(msg, true);
   }
 
@@ -635,6 +635,7 @@ $(function() {
         options: [
           {
             message: "The name for the copy:",
+            submitText: "Save",
             defaultValue: name
           }
         ]

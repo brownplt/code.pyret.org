@@ -8,11 +8,5 @@ provide from IS:
   type *,
   data *
 end
-provide:
-  curcle,
-  I.circle
-end
-import image-typed as I
+import internal-image-typed as I
 import image-structs as IS
-
-curcle = I.circle
