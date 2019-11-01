@@ -44,6 +44,7 @@ type TableIntern = RawArray<RawArray<Any>>
 
 fun check-num(v :: Number) -> Nothing: nothing end
 fun check-string(v :: String) -> Nothing: nothing end
+fun check-image(v :: IM.Image) -> Nothing: nothing end
 
 fst = raw-array-get(_, 0)
 snd = raw-array-get(_, 1)
@@ -501,7 +502,7 @@ fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries
   xs.each(check-num)
   ys.each(check-num)
   default-scatter-plot-series.{
-    ps: map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, xs.map({(_): ''}))
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), xs.map({(_): false}))
   } ^ scatter-plot-series
 end
 
@@ -519,7 +520,25 @@ fun labeled-scatter-plot-from-list(
   ys.each(check-num)
   labels.each(check-string)
   default-scatter-plot-series.{
-    ps: map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, labels)
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), xs.map({(_): false}))
+  } ^ scatter-plot-series
+end
+
+fun image-scatter-plot-from-list(
+  images :: List<IM.Image>,
+  xs :: List<Number>,
+  ys :: List<Number>) -> DataSeries block:
+  when xs.length() <> ys.length():
+    raise('labeled-scatter-plot: xs and ys should have the same length')
+  end
+  when xs.length() <> images.length():
+    raise('labeled-scatter-plot: xs and images should have the same length')
+  end
+  xs.each(check-num)
+  ys.each(check-num)
+  images.each(check-image)
+  default-scatter-plot-series.{
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), images)
   } ^ scatter-plot-series
 end
 
@@ -1163,6 +1182,7 @@ end
 from-list = {
   line-plot: line-plot-from-list,
   labeled-scatter-plot: labeled-scatter-plot-from-list,
+  image-scatter-plot: image-scatter-plot-from-list,
   scatter-plot: scatter-plot-from-list,
   function-plot: function-plot-from-list,
 
