@@ -520,7 +520,7 @@ fun labeled-scatter-plot-from-list(
   ys.each(check-num)
   labels.each(check-string)
   default-scatter-plot-series.{
-    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), xs.map({(_): false}))
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, labels, xs.map({(_): false}))
   } ^ scatter-plot-series
 end
 
