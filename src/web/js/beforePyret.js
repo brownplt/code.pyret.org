@@ -406,7 +406,7 @@ $(function() {
   }
 
   function sayAndForget(msg) {
-    //console.log('doing sayAndForget', msg);
+    console.log('doing sayAndForget', msg);
     say(msg, true);
   }
 
