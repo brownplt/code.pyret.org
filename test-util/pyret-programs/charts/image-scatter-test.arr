@@ -21,7 +21,7 @@ test = table: x, y, name
   row: 20, 20, "emmanuel"
 end
 
-img = image-scatter-plot(test, lam(r): circle(string-length(r["name"]), "solid", "blue") end, "x", "y" )
+img = image-scatter-plot(test, lam(r): circle(string-length(r["name"]), "solid", "pink") end, "x", "y" )
 
 check:
   img satisfies is-image

@@ -497,13 +497,13 @@
           currentRow[2*i + 1] = toFixnum(row[1]);
           let labelRow = null;
           //const pyretImage = IMAGE.makeOverlayImage(IMAGE.makeStarImage(10, "solid", "red"), IMAGE.makeCircleImage(10,"solid","red"))
-          const pyretImage = IMAGE.makeCircleImage(5,"solid",IMAGE.makeColor(0,0,255,1));
-          const domNode = pyretImage.toDomNode();
-          const ctx = domNode.getContext("2d");
-          pyretImage.render(ctx, 0, 0);
-          document.body.appendChild(domNode);
-          const dataURL = domNode.toDataURL();
-          if (row.length == 3 && row[2] !== '') {
+          //const pyretImage = IMAGE.makeCircleImage(5,"solid",IMAGE.makeColor(0,0,255,1));
+          //const domNode = pyretImage.toDomNode();
+          //const ctx = domNode.getContext("2d");
+          //pyretImage.render(ctx, 0, 0);
+          //document.body.appendChild(domNode);
+          //const dataURL = domNode.toDataURL();
+          if (row.length >= 3 && row[2] !== '') {
             labelRow = `<p>label: <b>${row[2]}</b></p>`;
           } else {
             labelRow = '';
@@ -672,11 +672,19 @@ ${labelRow}`;
               const yPos = layout.getYLocation(data.getValue(i, 1));
               const imgDOM = p[3].val.toDomNode();
               p[3].val.render(imgDOM.getContext('2d'), 0, 0);
-              imgDOM.style.position = 'absolute';
-              imgDOM.style.top  = yPos + 'px';
-              imgDOM.style.left = xPos + 'px';
-              imgDOM.classList.add('__img_labels'); // tag for later garbage collection
-              container.append(imgDOM);
+              //imgDOM.style.position = 'absolute';
+              //imgDOM.style.top  = yPos + 'px';
+              //imgDOM.style.left = xPos + 'px';
+              // make an image element from thre SVG namespace
+              let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+              imageElt.classList.add('__img_labels'); // tag for later garbage collection
+              imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+              imageElt.setAttribute('x', xPos);
+              imageElt.setAttribute('y', yPos);
+              $(container).find('svg')[0].appendChild(imageElt);
+              console.log(1);
+              //container.append(imgDOM);
+              //chartURI = container.toDataURL();
             });
           });
         });
