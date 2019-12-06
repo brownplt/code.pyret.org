@@ -6,7 +6,7 @@ describe("Running chart programs", function() {
 
   var chartTestsBase = "./test-util/pyret-programs/charts/";
   tester.doForEachPyretFile(it, "chart", chartTestsBase, function(programText, testObj) {
-    tester.checkWorldProgramRunsCleanly(programText, testObj.browser, testObj.test, 900000);
+    tester.runAndCheckAllTestsPassed(programText, testObj.browser, testObj.test, 900000);
   }, 900000);
 
 });
