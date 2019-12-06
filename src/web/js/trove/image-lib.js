@@ -26,7 +26,8 @@
         RUNTIME.wrap(r),
         RUNTIME.wrap(g),
         RUNTIME.wrap(b),
-        RUNTIME.wrap(a)
+        // alpha may be passed in as a fixnum, so we coerce to rational
+        RUNTIME.wrap(jsnums.fromFixnum(a)) 
       );
     };
 

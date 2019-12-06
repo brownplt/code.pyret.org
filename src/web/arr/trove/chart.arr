@@ -183,7 +183,8 @@ type BoxChartSeries = {
 }
 
 default-box-plot-series = {
-  horizontal: false
+  horizontal: false,
+  show-outliers : true
 }
 
 type PieChartSeries = {
@@ -384,6 +385,9 @@ data DataSeries:
     constr: {(): box-plot-series},
     method horizontal(self, h):
       self.constr()(self.obj.{horizontal: h})
+    end,
+    method show-outliers(self, show):
+      self.constr()(self.obj.{show-outliers: show})
     end
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,

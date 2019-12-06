@@ -275,6 +275,7 @@
     var table = get(rawData, 'tab');
     const dimension = toFixnum(get(rawData, 'height'));
     const horizontal = get(rawData, 'horizontal');
+    const showOutliers = get(rawData, 'show-outliers');
     const axisName = horizontal ? 'hAxis' : 'vAxis';
     const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
@@ -308,7 +309,7 @@
     // Since the main use case where outliers matter is for single-column
     // box-plots, this maintains existing behavior (if anyone was relying on
     // multiple series), while adding the ability to render outliers for BS:DS.
-    if(table.length === 1) {
+    if(table.length === 1 && showOutliers) {
       var extraCols = table[0][8].length + table[0][9].length;
       for(var i = 0; i < extraCols; i += 1) {
         data.addColumn({id: 'outlier', type: 'number', role: 'interval'});
@@ -334,17 +335,22 @@
 
     const rowsToAdd = table.map(row => {
       const summaryValues = row.slice(3, 8).map(n => toFixnum(n));
-      return [row[0], toFixnum(dimension)]
-        .concat(summaryValues)
-        .concat([
-           `<p><b>${row[0]}</b></p>
+      let tooltip = `<p><b>${row[0]}</b></p>
             <p>minimum: <b>${row[2]}</b></p>
             <p>maximum: <b>${row[1]}</b></p>
-            <p>bottom whisker: <b>${summaryValues[4]}</b></p>
-            <p>top whisker: <b>${summaryValues[3]}</b></p>
             <p>first quartile: <b>${summaryValues[0]}</b></p>
             <p>median: <b>${summaryValues[1]}</b></p>
-            <p>third quartile: <b>${summaryValues[2]}</b></p>`])
+            <p>third quartile: <b>${summaryValues[2]}</b></p>`;
+      // ONLY if we're showing outliers, add whiskers to the tooltip
+      // (otherwise, the min/max ARE the bottom/top whiskers)
+      if(table.length == 1 && showOutliers) {
+        tooltip += 
+          ` <p>bottom whisker: <b>${summaryValues[4]}</b></p>
+            <p>top whisker: <b>${summaryValues[3]}</b></p>`;
+      }
+      return [row[0], toFixnum(dimension)]
+        .concat(summaryValues)
+        .concat([tooltip])
         .concat(row[9]).concat(row[8]);
     });
 
