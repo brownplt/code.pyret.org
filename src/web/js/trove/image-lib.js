@@ -1277,8 +1277,6 @@
       }
       this.pinholeX /= this.vertices.length;
       this.pinholeY /= this.vertices.length;
-      this.pinholeX += translate.x;
-      this.pinholeY += translate.y;
       this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
                       +" sided polygon with each side of length "+length;
     };
@@ -1313,8 +1311,6 @@
       }
       this.pinholeX /= this.vertices.length;
       this.pinholeY /= this.vertices.length;
-      this.pinholeX += translate.x;
-      this.pinholeY += translate.y;
       this.ariaText = " a"+colorToSpokenString(color,style) + ", polygon with "+vertices.length+" points";
     };
     PointPolygonImage.prototype = heir(BaseImage.prototype);
