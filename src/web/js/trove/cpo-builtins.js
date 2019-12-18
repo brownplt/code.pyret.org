@@ -10,7 +10,8 @@
     { "import-type": "builtin", "name": "str-dict" },
     { "import-type": "builtin", "name": "reactors" },
     { "import-type": "builtin", "name": "math" },
-    { "import-type": "builtin", "name": "statistics" }
+    { "import-type": "builtin", "name": "statistics" },
+    { "import-type": "builtin", "name": "tensorflow" }
   ],
   provides: {},
   nativeRequires: [],

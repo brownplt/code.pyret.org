@@ -50,3 +50,6 @@ define("http", [], function () {return {};});
 define("lockfile", [], function () { return {}; });
 
 define("websocket", [], function () { return {}; });
+
+tensorflow = require("@tensorflow/tfjs");
+define("@tensorflow/tfjs", [], function () { return tensorflow; });
