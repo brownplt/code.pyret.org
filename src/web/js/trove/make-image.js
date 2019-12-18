@@ -11,6 +11,8 @@
       const colorDb = image.colorDb;
       const ffi = runtime.ffi;
 
+      const annListImage = annots.annListImage;
+      const unwrapListofImage = annots.unwrapListofImage;
       const annString = annots.annString;
       const annNumber = annots.annNumber;
       const annPositive = annots.annPositive;
@@ -48,6 +50,25 @@
       const checkArity = ffi.checkArity;
 
       const throwMessage = ffi.throwMessageException;
+
+      // [Image int Image -> Image] [Listof PyretImage] Image -> Image
+      var imageListFoldIndex = function(func, lst, base) {
+        var cur = lst;
+        var ans = base;
+        var gf = runtime.getField;
+        var index = 0;
+        while (runtime.unwrap(ffi.isLink(cur))) {
+          var f = gf(cur, "first");
+          ans = func(ans, index++, unwrapImage(f));
+          cur = gf(cur, "rest");
+        }
+        return ans;
+      };
+
+
+      function less(n, m) {
+        return jsnums.lessThan(n, m, runtime.NumberErrbacks);
+      }
 
 
       function canonicalizeAngle(angle) {

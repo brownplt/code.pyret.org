@@ -1,4 +1,4 @@
-include image
+include image-typed
 include image-structs
 
 check "regression":

@@ -1,4 +1,4 @@
-include image
+include image-typed
 include image-structs
 
 # The height the horizon should reach

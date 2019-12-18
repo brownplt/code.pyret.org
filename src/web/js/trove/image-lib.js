@@ -4,6 +4,7 @@
   ],
   nativeRequires: ["pyret-base/js/js-numbers", "js-md5"],
   provides: {
+    aliases: { "Image": ["local", "Image"] },
     datatypes: { "Image": ["data", "Image", [], [], {}] }
   },
   theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums, md5) {

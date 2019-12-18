@@ -211,20 +211,6 @@
       return { x: gf(val, "x"), y: gf(val, "y") };
     };
     
-    // [Image int Image -> Image] [Listof PyretImage] Image -> Image
-    var imageListFoldIndex = function(func, lst, base) {
-      var cur = lst;
-      var ans = base;
-      var gf = runtime.getField;
-      var index = 0;
-      while (runtime.unwrap(ffi.isLink(cur))) {
-        var f = gf(cur, "first");
-        ans = func(ans, index++, unwrapImage(f));
-        cur = gf(cur, "rest");
-      }
-      return ans;
-    };
-
     const ANNOTS = {
       annString: runtime.String,
       annNumber: runtime.Number,
@@ -337,6 +323,8 @@
         }
         return true;
       }),
+      annListImage: annListImage,
+      unwrapListofImage: unwrapListofImage,
       unwrapListofPoint2D: function(val) {
         return ffi.toArray(val).map(unwrapPoint2D);
       },

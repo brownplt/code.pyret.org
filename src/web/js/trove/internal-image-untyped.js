@@ -207,6 +207,18 @@
       return { x: gf(val, "x"), y: gf(val, "y") };
     };
 
+    var annListImage = ann("List<Image>", function(val) {
+      if (!runtime.ffi.isList(val)) return false;
+      var cur = val;
+      var gf = runtime.getField;
+      while (runtime.unwrap(ffi.isLink(cur))) {
+        var f = gf(cur, "first");
+        if (!checkImagePred(f)) return false;
+        cur = gf(cur, "rest");
+      }
+      return true;
+    });
+
     const ANNOTS = {
       annString: runtime.String,
       annNumber: runtime.Number,
@@ -297,6 +309,7 @@
         return val.val;
       },
       annAngle: ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle),
+      annListImage: annListImage,
       annListColor: ann("List<Color>", function(val) {
         return runtime.ffi.isList(val);
       }),

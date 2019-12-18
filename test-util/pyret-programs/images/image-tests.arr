@@ -1,4 +1,4 @@
-include image
+include image-typed
 include image-structs
 
 check "Overlay equality":
@@ -117,8 +117,11 @@ check "Polygons":
 end
 
 check "color-lists":
-  color-list-to-image([list: red, green, blue], 2, 2) raises ""
-  color-list-to-image([list: red, green, blue, black], 2, 2) satisfies is-image
+  color-list-to-image([list: red, green, blue], 2, 2, 1, 1) raises ""
+  color-list-to-image([list: red, green, blue, black], 2, 2, 1, 1) satisfies is-image
+
+  color-list-to-bitmap([list: red, green, blue], 2, 2) raises ""
+  color-list-to-bitmap([list: red, green, blue, black], 2, 2) satisfies is-image
 end
 
 check "properties":
