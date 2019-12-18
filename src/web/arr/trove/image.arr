@@ -9,5 +9,5 @@ provide from IS:
   data *
 end
 import internal-image-untyped as I
-import image-structs as IS
+import internal-image-shared as IS
 

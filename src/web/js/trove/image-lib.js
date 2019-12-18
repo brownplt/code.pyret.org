@@ -1,6 +1,6 @@
 ({
   requires: [
-    { "import-type": "builtin", "name": "image-structs" }
+    { "import-type": "builtin", "name": "internal-image-shared" }
   ],
   nativeRequires: ["pyret-base/js/js-numbers", "js-md5"],
   provides: {
@@ -15,7 +15,7 @@
     var annColor = imageTypes["Color"]; // can't use getField here
     var rawIsColor = gf(image, "is-Color");
     var isNum = function(n) { return typeof n === "number"; }
-    var xyPoint = gf(image, "xy-point");
+    var xyPoint = gf(image, "point-xy");
     var annPoint = imageTypes["Point"];
     var rawIsPoint = gf(image, "is-Point");
     var isPoint = function(p) { return unwrap(rawIsPoint.app(p)); };

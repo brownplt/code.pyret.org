@@ -384,7 +384,7 @@ describe("Image equality - typed", function() {
 
   makeTests(TYPED).forEach(function(t) {
     tester.testRunAndAllTestsPass(it, "image-equality-" + t[0],
-                                  makeTest(t[0], "image", t[1], process.env["BASE_URL"]) );
+                                  makeTest(t[0], "image-typed", t[1], process.env["BASE_URL"]) );
   });
 });
 
@@ -394,7 +394,7 @@ describe("Image equality - untyped", function() {
 
   makeTests(UNTYPED).forEach(function(t) {
     tester.testRunAndAllTestsPass(it, "image-equality-" + t[0],
-                                  makeTest(t[0], "image-untyped", t[1], process.env["BASE_URL"]) );
+                                  makeTest(t[0], "image", t[1], process.env["BASE_URL"]) );
   });
 });
 /*

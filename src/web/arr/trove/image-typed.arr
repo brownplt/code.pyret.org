@@ -8,5 +8,11 @@ provide from IS:
   type *,
   data *
 end
+provide from C:
+  *,
+  type *,
+  data *
+end
 import internal-image-typed as I
-import image-structs as IS
+import internal-image-shared as IS
+import color as C

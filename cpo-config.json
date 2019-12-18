@@ -1,7 +1,11 @@
 {
   "use-raw-files": true,
   "typable-builtins": [
-    "builtin://image-structs"
+    "builtin://image-structs",
+    "builtin://color",
+    "builtin://internal-image-shared",
+    "builtin://image-typed",
+    "builtin://image"
   ],
   "raw-js": {
     "pyret-base/js/codePoint": "pyret/build/phaseA/js/codePoint.js",
