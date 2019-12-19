@@ -118,6 +118,10 @@ replaceArgs`
     circle(30, ${"solid"}, ${"red"}),
     above-align(${"xMiddle"}, circle(50, ${"solid"}, ${"green"}), circle(20, ${"solid"}, ${"blue"})))`],
 
+["above-list",
+replaceArgs`
+  above-list([list: circle(50, ${"solid"}, ${"red"}), square(70, ${"solid"}, ${"blue"})])`],
+
 ["beside-align-top",
 replaceArgs`
   beside-align(${"yTop"},

@@ -113,6 +113,10 @@ check "Polygons":
   regular-polygon(45, 10, mode-solid, blue, 4) raises ""
   regular-polygon(45, 2, mode-solid, blue) raises ""
 
+  point-polygon([list: point(~0, ~0), point(~0, 15/6), point(15/6, ~15/6), point(~15/6, 0)], "solid", "red") is square(15/6, "solid", "red")
+  point-polygon([list: point(~0, ~0), point(~0, -15/6), point(-15/6, ~-15/6), point(~-15/6, 0)], "solid", "red") is square(15/6, "solid", "red")
+
+
   empty-scene(20, 50) satisfies is-image
 end
 

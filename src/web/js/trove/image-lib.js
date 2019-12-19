@@ -1,20 +1,21 @@
 ({
   requires: [
-    { "import-type": "builtin", "name": "internal-image-shared" }
+    { "import-type": "builtin", "name": "internal-image-shared" },
+    { "import-type": "builtin", "name": "color" }
   ],
   nativeRequires: ["pyret-base/js/js-numbers", "js-md5"],
   provides: {
     aliases: { "Image": ["local", "Image"] },
     datatypes: { "Image": ["data", "Image", [], [], {}] }
   },
-  theModule: function(RUNTIME, NAMESPACE, uri, imageImp, jsnums, md5) {
+  theModule: function(RUNTIME, NAMESPACE, uri, imageImp, colorLib, jsnums, md5) {
     var gf = RUNTIME.getField;
 
     var image = gf(imageImp, "values");
     var imageTypes = gf(imageImp, "types");
-    var color = gf(image, "color");
-    var annColor = imageTypes["Color"]; // can't use getField here
-    var rawIsColor = gf(image, "is-Color");
+    var color = gf(gf(colorLib, "values"), "color");
+    var annColor = gf(colorLib, "types")["Color"]; // can't use getField here
+    var rawIsColor = gf(gf(colorLib, "values"), "is-Color");
     var isNum = function(n) { return typeof n === "number"; }
     var xyPoint = gf(image, "point-xy");
     var annPoint = imageTypes["Point"];
@@ -88,10 +89,10 @@
     // FIXME: update toString to handle the primitive field values.
 
     var colorDb = new ColorDb();
-    var allImageFields = RUNTIME.getFields(image);
+    var allImageFields = RUNTIME.getFields(gf(colorLib, "values"));
     for (var i = 0; i < allImageFields.length; i++) {
       var name = allImageFields[i];
-      var val = gf(image, name);
+      var val = gf(gf(colorLib, "values"), name);
       name = name.toUpperCase();
       if (isColor(val)) {
         colorDb.put(name, val);
@@ -1295,8 +1296,11 @@
     // For point-polygon images, positive-y points *upward*, by request
     var PointPolygonImage = function(vertices, style, color) {
       BaseImage.call(this);
-      for (var v = 0; v < vertices.length; v++)
+      for (var v = 0; v < vertices.length; v++) {
+        vertices[v].x = jsnums.toFixnum(vertices[v].x);
+        vertices[v].y = jsnums.toFixnum(vertices[v].y);
         vertices[v].y *= -1;
+      }
       
       this.width      = findWidth(vertices);
       this.height     = findHeight(vertices);

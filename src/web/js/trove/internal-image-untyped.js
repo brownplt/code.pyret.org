@@ -310,6 +310,7 @@
       },
       annAngle: ann("Angle (a number 'x' where 0 <= x < 360)", image.isAngle),
       annListImage: annListImage,
+      unwrapListofImage: identity,
       annListColor: ann("List<Color>", function(val) {
         return runtime.ffi.isList(val);
       }),

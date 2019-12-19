@@ -2,13 +2,9 @@
 
 provide *
 provide-types *
-provide from C:
-  *, type *, data *
-end
 
 import global as _
 import base as _
-import color as C
 
 data Point:
   | point-xy(x :: Number, y :: Number)
