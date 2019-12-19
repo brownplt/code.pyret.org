@@ -490,6 +490,13 @@
           currentRow[0] = toFixnum(row[0]);
           currentRow[2*i + 1] = toFixnum(row[1]);
           let labelRow = null;
+          //const pyretImage = IMAGE.makeOverlayImage(IMAGE.makeStarImage(10, "solid", "red"), IMAGE.makeCircleImage(10,"solid","red"))
+          const pyretImage = IMAGE.makeCircleImage(5,"solid",IMAGE.makeColor(0,0,255,1));
+          const domNode = pyretImage.toDomNode();
+          const ctx = domNode.getContext("2d");
+          pyretImage.render(ctx, 0, 0);
+          document.body.appendChild(domNode);
+          const dataURL = domNode.toDataURL();
           if (row.length == 3 && row[2] !== '') {
             labelRow = `<p>label: <b>${row[2]}</b></p>`;
           } else {
@@ -507,8 +514,10 @@ ${labelRow}`;
     const options = {
       tooltip: {isHtml: true},
       series: combined.map((p, i) => {
+        // are we using custom images instead of dots?
+        const hasImage = get(p, 'ps').filter(p => p[3]).length > 0;
+    
         // scatters and then lines
-
         const seriesOptions = {};
 
         cases(RUNTIME.ffi.isOption, 'Option', get(p, 'color'), {
@@ -517,9 +526,10 @@ ${labelRow}`;
             seriesOptions.color = convertColor(color);
           }
         });
+        // If we have our own images, set point size to zero
         if (i < scatters.length) {
           $.extend(seriesOptions, {
-            pointSize: toFixnum(get(p, 'point-size')),
+            pointSize: hasImage? 0 : toFixnum(get(p, 'point-size')),
             lineWidth: 0,
           });
         }
@@ -548,7 +558,7 @@ ${labelRow}`;
           restarter,
           RUNTIME.ffi.makeRight),
       mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
-      overlay: (overlay, restarter) => {
+      overlay: (overlay, restarter, chart, container) => {
         overlay.css({
           width: '30%',
           position: 'absolute',
@@ -642,6 +652,28 @@ ${labelRow}`;
             .append(yMaxG)
             .append(redrawG);
         }
+
+        // if custom images is defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', function () {
+          const layout = chart.getChartLayoutInterface();
+          // remove any labels that have previously been drawn
+          $('.__img_labels').each((idx, n) => $(n).remove());
+          combined.forEach((p, i) => {
+            // for each point, find the x,y location and add it to the DOM
+            get(p, 'ps').filter(p => p[3]).forEach((p, i) => {
+              const xPos = layout.getXLocation(data.getValue(i, 0));
+              const yPos = layout.getYLocation(data.getValue(i, 1));
+              const imgDOM = p[3].val.toDomNode();
+              p[3].val.render(imgDOM.getContext('2d'), 0, 0);
+              imgDOM.style.position = 'absolute';
+              imgDOM.style.top  = yPos + 'px';
+              imgDOM.style.left = xPos + 'px';
+              imgDOM.classList.add('__img_labels'); // tag for later garbage collection
+              container.append(imgDOM);
+            });
+          });
+        });
       },
     };
   }
@@ -722,7 +754,7 @@ ${labelRow}`;
 
         tmp.options = $.extend({}, options, 'options' in tmp ? tmp.options : {});
 
-        if ('overlay' in tmp) tmp.overlay(overlay, restarter);
+        if ('overlay' in tmp) tmp.overlay(overlay, restarter, tmp.chart, root);
 
         // only mutate result when everything is setup
         result = tmp;
