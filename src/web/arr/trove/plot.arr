@@ -42,7 +42,7 @@ provide-types {
 import global as G
 import base as B
 import image-structs as I
-import image as IM
+import internal-image-untyped as IM
 include lists
 include option
 import plot-lib as P

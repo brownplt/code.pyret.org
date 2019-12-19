@@ -9,12 +9,12 @@
   ],
   provides: {
     values: {
-      histogram: 'tany',
-      'pie-chart': 'tany',
-      'plot-multi': 'tany',
-      'bar-chart': 'tany',
-      'dot-chart': 'tany',
-      'box-chart': 'tany'
+      histogram: "tany",
+      'pie-chart': "tany",
+      'plot-multi': "tany",
+      'bar-chart': "tany",
+      'dot-chart': "tany",
+      'box-chart': "tany"
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {

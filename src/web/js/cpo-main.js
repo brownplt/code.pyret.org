@@ -48,7 +48,9 @@
     "pyret-base/js/runtime"
   ],
   provides: {
-    values: { repl: 'tany' }
+    values: {
+      "repl": "tany"
+    }
   },
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI, textHandlers,

@@ -43,6 +43,7 @@
     "karma-sourcemap-loader": "0.3.7",
     "karma-webpack": "^3.0.5",
     "load-script": "^1.0.0",
+    "lodash": "~2.4.1",
     "mocha": "^5.2.0",
     "mousetrap": "^1.6.1",
     "mustache": "^2.2.1",
@@ -51,7 +52,7 @@
     "node-uuid": "^1.4.1",
     "pyret-codemirror-mode": "git://github.com/brownplt/pyret-codemirror-mode.git#horizon",
     "pyret-ide": "git://github.com/pcardune/pyret-ide.git#master",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#module-syntax",
     "q": "~1.4.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
@@ -89,7 +90,7 @@
   "author": "Joe Politz",
   "license": "Apache-2.0",
   "devDependencies": {
-    "chromedriver": "^78.0.1",
+    "chromedriver": "^79.0.0",
     "selenium-webdriver": "^3.6.0",
     "webpack-cli": "^3.1.2"
   }
