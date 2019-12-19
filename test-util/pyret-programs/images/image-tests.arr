@@ -1,5 +1,17 @@
 include image-typed
 include image-structs
+include either
+
+fun within-n-badness(n):
+  lam(img1, img2):
+    diff = images-difference(img1, img2)
+    cases(Either) diff:
+      | left(err) => false
+      | right(shadow diff) => diff < n
+    end
+  end
+end
+
 
 check "Overlay equality":
   fun mk-image():
@@ -26,8 +38,10 @@ check "Composing lists of images":
     is above(red-circ, above(yellow-circ, green-circ))
   above-align-list(x-left, [list: red-circ, yellow-circ, green-circ])
     is above-align(x-left, red-circ, above-align(x-left, yellow-circ, green-circ))
+  # NOTE(joe): @blerner and I both tested this, and it's fine on Firefox but on
+  # Chrome has a badness of about 0.008, which is totally acceptable
   below-list([list: red-circ, yellow-circ, green-circ])
-    is flip-vertical(above-list([list: red-circ, yellow-circ, green-circ]))
+    is%(within-n-badness(1)) flip-vertical(above-list([list: red-circ, yellow-circ, green-circ]))
   below-align-list(x-left, [list: red-circ, yellow-circ, green-circ])
     is flip-vertical(above-align(x-left, red-circ, above-align(x-left, yellow-circ, green-circ)))
   beside-list([list: red-circ, yellow-circ, green-circ])
@@ -113,8 +127,9 @@ check "Polygons":
   regular-polygon(45, 10, mode-solid, blue, 4) raises ""
   regular-polygon(45, 2, mode-solid, blue) raises ""
 
-  point-polygon([list: point(~0, ~0), point(~0, 15/6), point(15/6, ~15/6), point(~15/6, 0)], "solid", "red") is square(15/6, "solid", "red")
-  point-polygon([list: point(~0, ~0), point(~0, -15/6), point(-15/6, ~-15/6), point(~-15/6, 0)], "solid", "red") is square(15/6, "solid", "red")
+  point-polygon([list: point(~0, ~0), point(~0, 15/6), point(15/6, ~15/6), point(~15/6, 0)], mode-solid, red) is square(15/6, mode-solid, red)
+  point-polygon([list: point(~0, ~0), point(~0, -15/6), point(-15/6, ~-15/6), point(~-15/6, 0)], mode-solid, red) is square(15/6, mode-solid, red)
+
 
 
   empty-scene(20, 50) satisfies is-image
