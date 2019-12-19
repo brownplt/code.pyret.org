@@ -18,39 +18,35 @@ module.exports = {
     "js/beforePyret": './src/web/js/beforePyret.js',
   },
   module: {
-    loaders: [
-      {test: /\.css$/, loaders: ["style", "css"]},
+    rules: [
+      {test: /\.css$/, loaders: ["style-loader", "css-loader"]},
       {test:/.png|.jpg|.jpeg|.gif|.svg/, loader: "url-loader?limit=10000"},
-      {test:/.woff|.woff2/, loader: "url-loader?limit=10000"},
-      {test:/.woff|.woff2/, loader: "url-loader?limit=10000"},
-      {test:/.ttf|.eot/, loader: "file-loader"},
-      {test: /\.less$/, loader:'style!css!less'},
-    ],
-    preLoaders: [{
-      test: /\.js$/,
-      include: [
-        SRC_DIRECTORY,
-        // for some reason, webpack doesn't know how to deal with symlinks
-        // when deciding which loaders to use
-        fs.realpathSync(IDE_SRC_DIRECTORY),
-      ],
-      loader: "babel",
-      query: {
-        cacheDirectory: true
-      }
-    }].concat(
-      (process.env.COVERAGE || process.env.CONTINUOUS_INTEGRATION) ?
-      [{
-        test: /\.js/,
-        loader: 'isparta',
-        include: SRC_DIRECTORY,
-        exclude: /node_modules/
-      }] :
+      {
+        test: /\.js$/,
+        enforce: "pre",
+        include: [
+          SRC_DIRECTORY,
+          // for some reason, webpack doesn't know how to deal with symlinks
+          // when deciding which loaders to use
+          fs.realpathSync(IDE_SRC_DIRECTORY),
+        ],
+        loader: "babel-loader",
+        query: {
+          cacheDirectory: true
+        }
+      }].concat(
+        (process.env.COVERAGE || process.env.CONTINUOUS_INTEGRATION) ?
+        [{
+          test: /\.js/,
+          loader: 'isparta',
+          include: SRC_DIRECTORY,
+          exclude: /node_modules/
+        }] :
       []
     ),
   },
   resolve: {
-    root: [path.resolve("./node_modules")],
+    modules: [__dirname, 'node_modules'],
     alias: {
       'pyret-ide': path.resolve(IDE_SRC_DIRECTORY, 'pyret-ide'),
     },
@@ -80,7 +76,6 @@ module.exports = {
   devServer: IS_PRODUCTION ? false : {
     inline: true,
     hot: true,
-    progress: true,
     port: 5001,
     proxy: {
       "/**": {
@@ -88,5 +83,4 @@ module.exports = {
       }
     }
   },
-  progress: true
 };
