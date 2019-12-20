@@ -34,16 +34,7 @@ module.exports = {
         query: {
           cacheDirectory: true
         }
-      }].concat(
-        (process.env.COVERAGE || process.env.CONTINUOUS_INTEGRATION) ?
-        [{
-          test: /\.js/,
-          loader: 'isparta',
-          include: SRC_DIRECTORY,
-          exclude: /node_modules/
-        }] :
-      []
-    ),
+      }]
   },
   resolve: {
     modules: [__dirname, 'node_modules'],
@@ -75,7 +66,6 @@ module.exports = {
   ]),
   devServer: IS_PRODUCTION ? false : {
     inline: true,
-    hot: true,
     port: 5001,
     proxy: {
       "/**": {
