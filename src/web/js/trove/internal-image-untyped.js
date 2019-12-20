@@ -219,6 +219,14 @@
       return true;
     });
 
+    var unwrapColor = function(val) {
+      var aColor = val;
+      if (colorDb.get(aColor)) {
+        aColor = colorDb.get(aColor);
+      }
+      return aColor;
+    };
+
     const ANNOTS = {
       annString: runtime.String,
       annNumber: runtime.Number,
@@ -236,13 +244,7 @@
         return runtime.isNumber(val) && jsnums.isInteger(val)
           && jsnums.greaterThanOrEqual(val, 0, runtime.NumberErrbacks);
       }),
-      unwrapColor: function(val) {
-        var aColor = val;
-        if (colorDb.get(aColor)) {
-          aColor = colorDb.get(aColor);
-        }
-        return aColor;
-      },
+      unwrapColor: unwrapColor,
       annColor: ann("Color", image.isColorOrColorString),
       annPoint2D: image.annPoint,
       annMode: ann("Mode (\"outline\" or \"solid\")", function(x) {
