@@ -208,7 +208,13 @@
 
     var unwrapPoint2D = function(val) {
       var gf = runtime.getField;
-      return { x: gf(val, "x"), y: gf(val, "y") };
+      var hf = runtime.hasField;
+      if (hf(val, "r") && hf(val, "theta")) {
+        var r = jsnums.toFixnum(gf(val, "r"));
+        var theta = jsnums.toFixnum(gf(val, "theta"));
+        return { x: r * Math.cos(theta), y: r * Math.sin(theta) };
+      }
+      return { x: jsnums.toFixnum(gf(val, "x")), y: jsnums.toFixnum(gf(val, "y")) };
     };
     
     const ANNOTS = {
