@@ -196,7 +196,7 @@ function checkAllTestsPassed(driver, name, timeout) {
     driver.wait(function () {
       return isElementPresent(driver, webdriver.By.className("check-results-done-rendering"));
     }, 20000);
-    return response.findElements(webdriver.By.className("check-block-result"));
+    return response.findElements(webdriver.By.className("check-block-failed"));
   });
   return checkBlocks.then(function(cbs) {
     return replOutput.findElements(contains("Looks shipshape")).then(function(shipshapes) {
