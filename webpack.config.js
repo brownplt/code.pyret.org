@@ -55,16 +55,9 @@ module.exports = {
       'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL),
       'process.env.CURRENT_PYRET_RELEASE': JSON.stringify(process.env.CURRENT_PYRET_RELEASE),
     }),
-  ].concat(IS_PRODUCTION ? [
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
-      }
-    }),
-  ] : [
-    new webpack.HotModuleReplacementPlugin(),
-  ]),
-  devServer: IS_PRODUCTION ? false : {
+  ],
+  optimization: { minimize: IS_PRODUCTION },
+  devServer: IS_PRODUCTION ? {} : {
     inline: true,
     port: 5001,
     proxy: {
