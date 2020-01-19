@@ -160,6 +160,11 @@ check "properties":
   image-baseline(rectangle(100, 100, mode-solid, black)) is 100
 
   image-height(rectangle(100, 100, mode-solid, black)) is 100
+
+  # Regression: changed to allow truly-empty images
+  image-width(rectangle(0, 100, mode-solid, black)) is 0
+
+  image-height(rectangle(100, 0, mode-solid, black)) is 0
 end
 
 check "predicates":

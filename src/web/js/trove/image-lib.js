@@ -1197,8 +1197,8 @@
     // RectangleImage: Number Number Mode Color -> Image
     var RectangleImage = function(width, height, style, color) {
       BaseImage.call(this);
-      this.width  = Math.max(1, width);   // an outline rectangle with no delta X or delta Y
-      this.height = Math.max(1, height);  // should still take up one visible pixel
+      this.width  = width;
+      this.height = height;
       this.style  = style;
       this.color  = color;
       this.vertices = [{x:0,y:height},{x:0,y:0},{x:width,y:0},{x:width,y:height}];
@@ -1593,8 +1593,8 @@
         vertices.push({x: radius * Math.cos(i * Math.PI / 180), y: -1 * radius * Math.sin(i * Math.PI / 180)});
       }
       vertices.push({x: endPointX, y: -endPointY});
-      this.width = Math.max(1, findWidth(vertices));
-      this.height = Math.max(1, findHeight(vertices));
+      this.width = findWidth(vertices);
+      this.height = findHeight(vertices);
       this.vertices = translateVertices(vertices);
       this.pinholeX = this.vertices[0].x;
       this.pinholeY = this.vertices[0].y;
@@ -1654,8 +1654,8 @@
         else        { vertices = [{x: -x, y: -y}, {x: 0, y: 0}]; }
       }
 
-      this.width  = Math.max(1, Math.abs(x)); // a line with no delta X should still take up one visible pixel
-      this.height = Math.max(1, Math.abs(y)); // a line with no delta Y should still take up one visible pixel
+      this.width  = Math.abs(x);
+      this.height = Math.abs(y);
       this.style  = "outline"; // all vertex-based images must have a style
       this.color  = color;
       this.vertices = vertices;
