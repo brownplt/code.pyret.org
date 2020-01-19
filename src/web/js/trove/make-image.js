@@ -151,8 +151,7 @@
       });
       f("is-image", function(maybeImage) {
         checkArity(1, arguments, "is-image", false);
-        runtime.confirm(maybeImage, runtime.isOpaque);
-        return runtime.wrap(image.isImage(maybeImage.val));
+        return runtime.wrap(runtime.isOpaque(maybeImage) && image.isImage(maybeImage.val));
       });
       f("bitmap-url", function(maybeURL) {
         checkArity(1, arguments, "bitmap-url", false);
