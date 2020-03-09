@@ -2,7 +2,7 @@
 var tester = require("../test-util/util.js");
 var fs = require("fs");
 
-function makeTest(name, imageLib, expr, baseurl) {
+function makeTest(name, imageLib, expr, baseurl, badness) {
   return `
 include ${imageLib}
 include image-structs
@@ -30,7 +30,7 @@ check:
       end
     end
   end
-  i1 is%(within-n-badness(26)) i2
+  i1 is%(within-n-badness(${badness})) i2
 end`
 }
 
@@ -194,7 +194,8 @@ replaceArgs`
         overlay-align(${"xMiddle"}, ${"yBaseline"}, line(100, 0, ${"red"}), text("Ĥowdy", 50, ${"black"})),
         overlay-align(${"xMiddle"}, ${"yBaseline"}, line(100, 0, ${"green"}), text(" y'all", 10, ${"blue"})))):
     place-image(line(200, 0, ${"purple"}), 0, image-baseline(aligned-text), frame(aligned-text))
-  end`],
+  end`,
+  31],
 
 ["framed-overlay-triangle",
 replaceArgs`
@@ -381,14 +382,22 @@ end`],
 ];
 }
 
+const DEFAULT_BADNESS = 26;
 
 describe("Image equality - typed", function() {
   before(tester.setupMulti("Rendering errors"));
   after(tester.teardownMulti);
 
+  if(t.length >= 3) {
+    var badness = t[2];
+  }
+  else {
+    var badness = DEFAULT_BADNESS;
+  }
+
   makeTests(TYPED).forEach(function(t) {
     tester.testRunAndAllTestsPass(it, "image-equality-" + t[0],
-                                  makeTest(t[0], "image-typed", t[1], process.env["BASE_URL"]) );
+                                  makeTest(t[0], "image-typed", t[1], process.env["BASE_URL"], badness) );
   });
 });
 
@@ -396,9 +405,16 @@ describe("Image equality - untyped", function() {
   before(tester.setupMulti("Rendering errors"));
   after(tester.teardownMulti);
 
+  if(t.length >= 3) {
+    var badness = t[2];
+  }
+  else {
+    var badness = DEFAULT_BADNESS;
+  }
+
   makeTests(UNTYPED).forEach(function(t) {
     tester.testRunAndAllTestsPass(it, "image-equality-" + t[0],
-                                  makeTest(t[0], "image", t[1], process.env["BASE_URL"]) );
+                                  makeTest(t[0], "image", t[1], process.env["BASE_URL"], badness) );
   });
 });
 /*
