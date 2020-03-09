@@ -388,14 +388,8 @@ describe("Image equality - typed", function() {
   before(tester.setupMulti("Rendering errors"));
   after(tester.teardownMulti);
 
-  if(t.length >= 3) {
-    var badness = t[2];
-  }
-  else {
-    var badness = DEFAULT_BADNESS;
-  }
-
   makeTests(TYPED).forEach(function(t) {
+    var badness = t.length >= 3 ? t[2]: DEFAULT_BADNESS;
     tester.testRunAndAllTestsPass(it, "image-equality-" + t[0],
                                   makeTest(t[0], "image-typed", t[1], process.env["BASE_URL"], badness) );
   });
@@ -405,14 +399,8 @@ describe("Image equality - untyped", function() {
   before(tester.setupMulti("Rendering errors"));
   after(tester.teardownMulti);
 
-  if(t.length >= 3) {
-    var badness = t[2];
-  }
-  else {
-    var badness = DEFAULT_BADNESS;
-  }
-
   makeTests(UNTYPED).forEach(function(t) {
+    var badness = t.length >= 3 ? t[2]: DEFAULT_BADNESS;
     tester.testRunAndAllTestsPass(it, "image-equality-" + t[0],
                                   makeTest(t[0], "image", t[1], process.env["BASE_URL"], badness) );
   });
