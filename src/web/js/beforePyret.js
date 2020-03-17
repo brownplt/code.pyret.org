@@ -168,10 +168,11 @@ $(function() {
       });
     }
 
-    // place a vertical line at character 80 in code editor, and not repl
     var CODE_LINE_WIDTH = 100;
 
     var rulers, rulersMinCol;
+
+    // place a vertical line in code editor, and not repl
     if (options.simpleEditor) {
       rulers = [];
     } else{

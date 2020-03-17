@@ -78,7 +78,8 @@ window.createProgramCollectionAPI = function createProgramCollectionAPI(collecti
             });
         },
         getContents: function() {
-          return Q($.ajax(googFileObject.downloadUrl, {
+          var baseUrl = "https://www.googleapis.com/drive/v3/files/" + googFileObject.id + "?alt=media&source=download";
+          return Q($.ajax(baseUrl, {
             method: "get",
             dataType: 'text',
             headers: {'Authorization': 'Bearer ' + gapi.auth.getToken().access_token }

@@ -184,7 +184,7 @@ type BoxChartSeries = {
 
 default-box-plot-series = {
   horizontal: false,
-  show-outliers : true
+  show-outliers: true
 }
 
 type PieChartSeries = {
