@@ -12,7 +12,7 @@ fun image-scatter-plot(t, f, xs, ys):
     render-chart(from-list.image-scatter-plot(images, t.column(xs), t.column(ys)))
       .x-axis(xs)
       .y-axis(ys)
-      .get-image()
+      .display()
   end
 end
 
@@ -21,8 +21,9 @@ test = table: x, y, name
   row: 20, 20, "emmanuel"
 end
 
-img = image-scatter-plot(test, lam(r): circle(string-length(r["name"]), "solid", "pink") end, "x", "y" )
+img = image-scatter-plot(test, lam(r): circle(string-length(r["name"]), "solid", "red") end, "x", "y" )
 
 check:
   img satisfies is-image
+  color-at-position(img, 615, 118) is red
 end

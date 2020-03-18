@@ -558,11 +558,16 @@ ${labelRow}`;
       data: data,
       options: options,
       chartType: google.visualization.LineChart,
-      onExit: (restarter, result) =>
+      onExit: (restarter, result) => {
+        debugger;
+        let svg = result.chart.container.querySelector('svg');
+        let svg_xml = (new XMLSerializer()).serializeToString(svg);
+        let dataURI = "data:image/svg+xml;base64," + btoa(svg_xml);
         imageReturn(
-          result.chart.getImageURI(),
+          dataURI,
           restarter,
-          RUNTIME.ffi.makeRight),
+          RUNTIME.ffi.makeRight)
+      },
       mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
       overlay: (overlay, restarter, chart, container) => {
         overlay.css({
