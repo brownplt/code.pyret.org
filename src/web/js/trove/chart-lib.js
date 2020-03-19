@@ -496,13 +496,6 @@
           currentRow[0] = toFixnum(row[0]);
           currentRow[2*i + 1] = toFixnum(row[1]);
           let labelRow = null;
-          //const pyretImage = IMAGE.makeOverlayImage(IMAGE.makeStarImage(10, "solid", "red"), IMAGE.makeCircleImage(10,"solid","red"))
-          //const pyretImage = IMAGE.makeCircleImage(5,"solid",IMAGE.makeColor(0,0,255,1));
-          //const domNode = pyretImage.toDomNode();
-          //const ctx = domNode.getContext("2d");
-          //pyretImage.render(ctx, 0, 0);
-          //document.body.appendChild(domNode);
-          //const dataURL = domNode.toDataURL();
           if (row.length >= 3 && row[2] !== '') {
             labelRow = `<p>label: <b>${row[2]}</b></p>`;
           } else {
@@ -532,11 +525,12 @@ ${labelRow}`;
             seriesOptions.color = convertColor(color);
           }
         });
-        // If we have our own images, set point size to zero
+        // If we have our own image, make the point small and transparent
         if (i < scatters.length) {
           $.extend(seriesOptions, {
-            pointSize: hasImage? 0 : toFixnum(get(p, 'point-size')),
+            pointSize: hasImage? 1 :toFixnum(get(p, 'point-size')),
             lineWidth: 0,
+            dataOpacity: hasImage? 0 : 1,
           });
         }
         return seriesOptions;
@@ -559,7 +553,6 @@ ${labelRow}`;
       options: options,
       chartType: google.visualization.LineChart,
       onExit: (restarter, result) => {
-        debugger;
         let svg = result.chart.container.querySelector('svg');
         let svg_xml = (new XMLSerializer()).serializeToString(svg);
         let dataURI = "data:image/svg+xml;base64," + btoa(svg_xml);
@@ -667,29 +660,33 @@ ${labelRow}`;
         // if custom images is defined, use the image at that location
         // and overlay it atop each dot
         google.visualization.events.addListener(chart, 'ready', function () {
+          // HACK(Emmanuel): 
+          // The only way to hijack marker events is to walk the DOM here
+          // If Google changes the DOM, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const markers = svgRoot.children[2].children[2].children;          
+
           const layout = chart.getChartLayoutInterface();
           // remove any labels that have previously been drawn
           $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // for each point, (1) find the x,y location, (2) render the SVGImage,
+          // (3) center it on the datapoint, (4) steal all the events
+          // and (5) add it to the chart
           combined.forEach((p, i) => {
-            // for each point, find the x,y location and add it to the DOM
             get(p, 'ps').filter(p => p[3]).forEach((p, i) => {
               const xPos = layout.getXLocation(data.getValue(i, 0));
               const yPos = layout.getYLocation(data.getValue(i, 1));
               const imgDOM = p[3].val.toDomNode();
               p[3].val.render(imgDOM.getContext('2d'), 0, 0);
-              //imgDOM.style.position = 'absolute';
-              //imgDOM.style.top  = yPos + 'px';
-              //imgDOM.style.left = xPos + 'px';
-              // make an image element from thre SVG namespace
+              // make an image element from the SVG namespace
               let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
               imageElt.classList.add('__img_labels'); // tag for later garbage collection
               imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
-              imageElt.setAttribute('x', xPos);
-              imageElt.setAttribute('y', yPos);
-              $(container).find('svg')[0].appendChild(imageElt);
-              console.log(1);
-              //container.append(imgDOM);
-              //chartURI = container.toDataURL();
+              imageElt.setAttribute('x', xPos - imgDOM.width/2);  // center the image
+              imageElt.setAttribute('y', yPos - imgDOM.height/2); // center the image
+              Object.assign(imageElt, markers[i]); // we should probably not steal *everything*...
+              svgRoot.appendChild(imageElt);
             });
           });
         });
