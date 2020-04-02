@@ -26,7 +26,7 @@
         RUNTIME.wrap(r),
         RUNTIME.wrap(g),
         RUNTIME.wrap(b),
-        RUNTIME.wrap(a)
+        RUNTIME.wrap(jsnums.fromFixnum(a))
       );
     };
 
@@ -1621,7 +1621,7 @@
       r = data[index]
       g = data[index + 1];
       b = data[index + 2];
-      a = data[index + 3];
+      a = data[index + 3] / 255;
 
       return makeColor(r, g, b, a);
     }
