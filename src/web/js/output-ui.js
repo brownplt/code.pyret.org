@@ -1411,6 +1411,7 @@
         var res = renderText("nothing");
         res[0].ariaText = 'nothing';
         res[0].setAttribute('aria-label', 'nothing');
+        return res;
       }
       renderers["boolean"] = function(val) {
         var res = renderText(sooper(renderers, "boolean", val));
