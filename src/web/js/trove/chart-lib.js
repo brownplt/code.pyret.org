@@ -6,7 +6,15 @@
     'pyret-base/js/js-numbers',
     'google-charts',
   ],
-  provides: {},
+  provides: {
+    values: {
+      'pie-chart': "tany",
+      'bar-chart': "tany",
+      'histogram': "tany",
+      'box-plot': "tany",
+      'plot': "tany"
+    }
+  },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums , google) {
   'use strict';
 
@@ -267,6 +275,7 @@
     var table = get(rawData, 'tab');
     const dimension = toFixnum(get(rawData, 'height'));
     const horizontal = get(rawData, 'horizontal');
+    const showOutliers = get(rawData, 'show-outliers');
     const axisName = horizontal ? 'hAxis' : 'vAxis';
     const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
@@ -300,7 +309,7 @@
     // Since the main use case where outliers matter is for single-column
     // box-plots, this maintains existing behavior (if anyone was relying on
     // multiple series), while adding the ability to render outliers for BS:DS.
-    if(table.length === 1) {
+    if(table.length === 1 && showOutliers) {
       var extraCols = table[0][8].length + table[0][9].length;
       for(var i = 0; i < extraCols; i += 1) {
         data.addColumn({id: 'outlier', type: 'number', role: 'interval'});
@@ -326,17 +335,22 @@
 
     const rowsToAdd = table.map(row => {
       const summaryValues = row.slice(3, 8).map(n => toFixnum(n));
-      return [row[0], toFixnum(dimension)]
-        .concat(summaryValues)
-        .concat([
-           `<p><b>${row[0]}</b></p>
+      let tooltip = `<p><b>${row[0]}</b></p>
             <p>minimum: <b>${row[2]}</b></p>
             <p>maximum: <b>${row[1]}</b></p>
-            <p>bottom whisker: <b>${summaryValues[4]}</b></p>
-            <p>top whisker: <b>${summaryValues[3]}</b></p>
             <p>first quartile: <b>${summaryValues[0]}</b></p>
             <p>median: <b>${summaryValues[1]}</b></p>
-            <p>third quartile: <b>${summaryValues[2]}</b></p>`])
+            <p>third quartile: <b>${summaryValues[2]}</b></p>`;
+      // ONLY if we're showing outliers, add whiskers to the tooltip
+      // (otherwise, the min/max ARE the bottom/top whiskers)
+      if(table.length == 1 && showOutliers) {
+        tooltip += 
+          ` <p>bottom whisker: <b>${summaryValues[4]}</b></p>
+            <p>top whisker: <b>${summaryValues[3]}</b></p>`;
+      }
+      return [row[0], toFixnum(dimension)]
+        .concat(summaryValues)
+        .concat([tooltip])
         .concat(row[9]).concat(row[8]);
     });
 
@@ -482,7 +496,7 @@
           currentRow[0] = toFixnum(row[0]);
           currentRow[2*i + 1] = toFixnum(row[1]);
           let labelRow = null;
-          if (row.length == 3 && row[2] !== '') {
+          if (row.length >= 3 && row[2] !== '') {
             labelRow = `<p>label: <b>${row[2]}</b></p>`;
           } else {
             labelRow = '';
@@ -499,8 +513,10 @@ ${labelRow}`;
     const options = {
       tooltip: {isHtml: true},
       series: combined.map((p, i) => {
+        // are we using custom images instead of dots?
+        const hasImage = get(p, 'ps').filter(p => p[3]).length > 0;
+    
         // scatters and then lines
-
         const seriesOptions = {};
 
         cases(RUNTIME.ffi.isOption, 'Option', get(p, 'color'), {
@@ -509,10 +525,12 @@ ${labelRow}`;
             seriesOptions.color = convertColor(color);
           }
         });
+        // If we have our own image, make the point small and transparent
         if (i < scatters.length) {
           $.extend(seriesOptions, {
-            pointSize: toFixnum(get(p, 'point-size')),
+            pointSize: hasImage? 1 :toFixnum(get(p, 'point-size')),
             lineWidth: 0,
+            dataOpacity: hasImage? 0 : 1,
           });
         }
         return seriesOptions;
@@ -534,13 +552,17 @@ ${labelRow}`;
       data: data,
       options: options,
       chartType: google.visualization.LineChart,
-      onExit: (restarter, result) =>
+      onExit: (restarter, result) => {
+        let svg = result.chart.container.querySelector('svg');
+        let svg_xml = (new XMLSerializer()).serializeToString(svg);
+        let dataURI = "data:image/svg+xml;base64," + btoa(svg_xml);
         imageReturn(
-          result.chart.getImageURI(),
+          dataURI,
           restarter,
-          RUNTIME.ffi.makeRight),
+          RUNTIME.ffi.makeRight)
+      },
       mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
-      overlay: (overlay, restarter) => {
+      overlay: (overlay, restarter, chart, container) => {
         overlay.css({
           width: '30%',
           position: 'absolute',
@@ -634,6 +656,40 @@ ${labelRow}`;
             .append(yMaxG)
             .append(redrawG);
         }
+
+        // if custom images is defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', function () {
+          // HACK(Emmanuel): 
+          // The only way to hijack marker events is to walk the DOM here
+          // If Google changes the DOM, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const markers = svgRoot.children[2].children[2].children;          
+
+          const layout = chart.getChartLayoutInterface();
+          // remove any labels that have previously been drawn
+          $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // for each point, (1) find the x,y location, (2) render the SVGImage,
+          // (3) center it on the datapoint, (4) steal all the events
+          // and (5) add it to the chart
+          combined.forEach((p, i) => {
+            get(p, 'ps').filter(p => p[3]).forEach((p, i) => {
+              const xPos = layout.getXLocation(data.getValue(i, 0));
+              const yPos = layout.getYLocation(data.getValue(i, 1));
+              const imgDOM = p[3].val.toDomNode();
+              p[3].val.render(imgDOM.getContext('2d'), 0, 0);
+              // make an image element from the SVG namespace
+              let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+              imageElt.classList.add('__img_labels'); // tag for later garbage collection
+              imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+              imageElt.setAttribute('x', xPos - imgDOM.width/2);  // center the image
+              imageElt.setAttribute('y', yPos - imgDOM.height/2); // center the image
+              Object.assign(imageElt, markers[i]); // we should probably not steal *everything*...
+              svgRoot.appendChild(imageElt);
+            });
+          });
+        });
       },
     };
   }
@@ -714,7 +770,7 @@ ${labelRow}`;
 
         tmp.options = $.extend({}, options, 'options' in tmp ? tmp.options : {});
 
-        if ('overlay' in tmp) tmp.overlay(overlay, restarter);
+        if ('overlay' in tmp) tmp.overlay(overlay, restarter, tmp.chart, root);
 
         // only mutate result when everything is setup
         result = tmp;

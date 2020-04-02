@@ -26,7 +26,7 @@
         RUNTIME.wrap(r),
         RUNTIME.wrap(g),
         RUNTIME.wrap(b),
-        RUNTIME.wrap(a)
+        RUNTIME.wrap(jsnums.fromFixnum(a))
       );
     };
 
