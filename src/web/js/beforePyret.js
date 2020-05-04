@@ -63,10 +63,6 @@ window.stickMessage = function(message) {
 window.mkWarningUpper = function(){return $("<div class='warning-upper'>");}
 window.mkWarningLower = function(){return $("<div class='warning-lower'>");}
 
-$(window).bind("beforeunload", function() {
-  return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
-});
-
 var Documents = function() {
 
   function Documents() {
@@ -541,6 +537,19 @@ $(function() {
 
   var codeContainer = $("<div>").addClass("replMain");
   $("#main").prepend(codeContainer);
+
+
+  if(params["get"]["hideDefinitions"]) {
+    $(".replMain").attr("aria-hidden", true).attr("tabindex", '-1').css("display", "none");
+    $("#handle").css("display", "none");
+    $(".replContainer").css("left", "-5px").css("width", "100%");
+  }
+
+  if(!("warnOnExit" in params["get"]) || (params["get"]["warnOnExit"] !== "false")) {
+    $(window).bind("beforeunload", function() {
+      return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
+    });
+  }
 
   CPO.editor = CPO.makeEditor(codeContainer, {
     runButton: $("#runButton"),
