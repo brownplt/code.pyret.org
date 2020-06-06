@@ -20,11 +20,28 @@ window.localSettings = function() {
     });
   }
 
+  function get(key) {
+    if(typeof window.localStorage === "object") {
+      return localStorage.getItem(key);
+    }
+    else {
+      return undefined;
+    }
+  }
+
+  function set(key, value) {
+    if(typeof window.localStorage === "object") {
+      return localStorage.setItem(key, value);
+    }
+    else {
+      return undefined;
+    }
+  }
   return {
     change: change,
     getItem: function (key) {
       if (!cache.has(key)) {
-        var value = localStorage.getItem(key);
+        var value = get(key);
         if (value) { cache.set(key, value.toString()); }
         return value;
       } else {
@@ -33,7 +50,7 @@ window.localSettings = function() {
     },
     setItem: function (key, value) {
       var oldValue = cache.get(key);
-      localStorage.setItem(key, value);
+      set(key, value);
       if(listeners.has(key)) {listeners.get(key)(oldValue, value.toString());}
     }
   };
