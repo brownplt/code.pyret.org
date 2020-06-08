@@ -2,6 +2,14 @@
 // localStorage is made consistent with sessionStorage on page unload.
 window.localSettings = function() {
 
+  var hasLocalStorage = true;
+  try {
+    window.localStorage;
+  }
+  catch(_) {
+    hasLocalStorage = false;
+  }
+
   window.addEventListener("beforeunload", function (event) {
     Object.keys(sessionStorage).forEach(function (key) {
       localStorage.setItem(key, sessionStorage.getItem(key));
@@ -21,7 +29,7 @@ window.localSettings = function() {
   }
 
   function get(key) {
-    if(typeof window.localStorage === "object") {
+    if(hasLocalStorage) {
       return localStorage.getItem(key);
     }
     else {
@@ -30,7 +38,7 @@ window.localSettings = function() {
   }
 
   function set(key, value) {
-    if(typeof window.localStorage === "object") {
+    if(hasLocalStorage) {
       return localStorage.setItem(key, value);
     }
     else {
