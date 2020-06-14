@@ -1,5 +1,9 @@
-
-.CodeMirror, .inlineExample { border: 1px solid black; background: #f8f8f8; color: #eee; }
+.CodeMirror, .inlineExample {
+  border: 1px solid black;
+  background: #f8f8f8;
+  color: #eee;
+  font-family: var(--font-stack);
+}
 .CodeMirror {
   font-size: 1em;
   line-height: calc(1em + 2px);
@@ -120,7 +124,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 .replTextOutput {
-  font-family: monospace;
+  font-family: var(--font-stack);
   border: none;
   background-color: transparent;
   white-space: pre;
@@ -257,7 +261,7 @@ div.spy-block > table > th { display: none; }
 }
 
 .inlineExample {
-  font-family: monospace;
+  font-family: var(--font-stack);
   padding: 0 2px;
 }
 
@@ -295,7 +299,7 @@ div.spy-block > table > th { display: none; }
   cursor: text;
 }
 .check {
-  font-family: monospace;
+  font-family: var(--font-stack);
   border: 1px solid black;
   border-radius: 3px;
   padding: 10px;
@@ -470,7 +474,7 @@ div.spy-block > table > th { display: none; }
 }
 
 .repl-prompt-arrow {
-  font-family: monospace;
+  font-family: var(--font-stack);
   vertical-align: top;
   display: inline-block;
 }
@@ -560,7 +564,7 @@ body.smallHeader .replContainer {
   padding-bottom: 0px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 #program-name-container {
@@ -723,7 +727,7 @@ body.smallHeader .replContainer {
   height: 1em;
   width: 1em;
   border-radius: 100%;
-  font-family: monospace;
+  font-family: var(--font-stack);
   font-size: 1em;
   line-height: 1em;
   text-align: center;
@@ -789,7 +793,7 @@ div#font-label:hover{
 }
 
 .replPrint {
-  font-family: monospace;
+  font-family: var(--font-stack);
   padding-top: 0;
   padding-bottom: 0.5em;
   padding-left: 0.5em;
@@ -801,7 +805,7 @@ div#font-label:hover{
   padding-bottom: 0.4em;
   color: #1f1180;
   display: inline-block;
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .replOutput .replOutput {
@@ -1091,11 +1095,11 @@ code div {
 }
 
 .compile-error .code {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .compile-error .srcloc {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .compile-error a {
@@ -1121,11 +1125,11 @@ code div {
 }
 
 .parse-error .code {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .parse-error .srcloc {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .parse-error a {

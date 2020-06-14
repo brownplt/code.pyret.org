@@ -429,11 +429,18 @@
 
       function changeFont(e){
         fontSize = parseInt($('#main').css("font-size"));
-        if ($(e.target).is("#font-plus") && (fontSize < 55)){
-          $('#main').css('font-size', '+=4');
-        }
-        else if ($(e.target).is("#font-minus") && (fontSize > 10)){
-          $('#main').css('font-size', '-=4');
+        if ($(e.target).is("#font-plus")) {
+          if (fontSize < 32) {
+            $('#main').css('font-size', '+=2');
+          } else if (fontSize < 55) {
+            $('#main').css('font-size', '+=4');
+          }
+        } else if ($(e.target).is("#font-minus")) {
+          if (fontSize > 32) {
+            $('#main').css('font-size', '-=4');
+          } else if (fontSize > 10) {
+            $('#main').css('font-size', '-=2');
+          }
         }
         editor.refresh();
         $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
