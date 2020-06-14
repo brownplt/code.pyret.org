@@ -308,6 +308,7 @@ $(function() {
 
   function setTitle(progName) {
     document.title = progName + " - code.pyret.org";
+    $("#showFilename").text("File: " + progName);
   }
   CPO.setTitle = setTitle;
 
@@ -549,6 +550,26 @@ $(function() {
     $(window).bind("beforeunload", function() {
       return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
     });
+  }
+
+  var footerStyle = params["get"]["footerStyle"] || "normal";
+  switch (footerStyle) {
+  case 'hide':
+    $("body").addClass("hideFooter");
+    break;
+  default:
+    // nothing to do
+  }
+  var headerStyle = params["get"]["headerStyle"] || "normal";
+  switch (headerStyle) {
+  case 'hide':
+    $("body").addClass("hideHeader");
+    break;
+  case 'small':
+    $("body").addClass("smallHeader");
+    break;
+  default:
+    // nothing to do
   }
 
   CPO.editor = CPO.makeEditor(codeContainer, {

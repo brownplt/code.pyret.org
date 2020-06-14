@@ -508,6 +508,22 @@ body {
   margin:0;
 }
 
+body.hideFooter .replMain {
+  padding-bottom: 0rem;
+}
+
+body.hideHeader #main {
+  padding-top: 0px;
+}
+
+body.hideHeader .replMain {
+  padding-top: 0px;
+}
+
+body.smallHeader .replMain {
+  padding-top: 25px;
+}
+
 .replContainer {
   position: absolute;
   z-index: 8500;
@@ -522,6 +538,18 @@ body {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;
+}
+
+body.hideFooter .replContainer {
+  padding-bottom: 0rem;
+}
+
+body.hideHeader .replContainer {
+  padding-top: 0px;
+}
+
+body.smallHeader .replContainer {
+  padding-top: 25px;
 }
 
 #main {
@@ -1248,9 +1276,29 @@ code div {
   height:auto;
 }
 
+body.hideFooter #handle {
+  margin-bottom: 0rem;
+}
+
+body.hideHeader #handle {
+  margin-top: 0px;
+}
+
+body.smallHeader #handle {
+  margin-top: 25px;
+}
+
 #runButton, #breakButton {
   width: 150px;
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
+}
+
+body.smallHeader #runButton, body.smallHeader #breakButton {
+  width: 60px;
+}
+
+body.smallHeader #runButton > span {
+  display: none;
 }
 
 #runButton{
@@ -1280,6 +1328,11 @@ code div {
   box-shadow: none;
 }
 
+body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
+  width: 60px;
+}
+
+
 #runButton:hover[disabled],
 #breakButton:hover[disabled]{
   background: none;
@@ -1294,7 +1347,6 @@ code div {
 
 .dropdown {
   background: #317BCF;
-  padding-top: 12px;
   padding-left: 5px;
   box-sizing: border-box;
   float: right;
@@ -1310,6 +1362,11 @@ code div {
   margin: 0;
   width: 172px;
   display: none;
+}
+
+body.smallHeader #run-dropdown-content {
+  top: 25px;
+  right: 63px;
 }
 
 #run-dropdown-content li {
