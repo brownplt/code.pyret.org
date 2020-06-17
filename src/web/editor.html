@@ -11,11 +11,18 @@
   <link rel="stylesheet" href="/css/shared.css"></link>
   <link rel="stylesheet" href="/css/editor.css"></link>
   <link rel="stylesheet" href="/css/font-awesome.min.path-fixed.css"></link>
+  <link rel="stylesheet" href="/css/themes/editor-override.css"></link>
+  <link rel="stylesheet" href="/css/themes/fried.css"></link>
+  <link rel="stylesheet" href="/css/themes/icecoder.css"></link>
+  <link rel="stylesheet" href="/css/themes/material-darker.css"></link>
+  <link rel="stylesheet" href="/css/themes/monokai.css"></link>
+  <link rel="stylesheet" href="/css/themes/nord.css"></link>
+  <link rel="stylesheet" href="/css/themes/panda-syntax.css"></link>
   <link rel="icon" type="image/png" href="/img/pyret-icon.png">
   <style id="highlight-styles"></style>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
 </head>
-<body>
+<body class="default">
 <div id="header">
   <div id="bonniemenu" class="menu">
     <button class="blueButton">
@@ -28,6 +35,18 @@
       <a target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
     </div>
     <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div></div>
+    <div id="theme" style="white-space: nowrap;">
+      <label for="theme-select">Theme:</label>
+      <select id="theme-select">
+        <option value="default">Default</option>
+        <option value="fried">Fried</option>
+        <option value="icecoder">ICEcoder</option>
+        <option value="material-darker">Material-darker</option>
+        <option value="monokai">Monokai</option>
+        <option value="nord">Nord</option>
+        <option value="panda">Panda</option>
+      </select>
+    </div>
     <div id="issues" class="menuButton">
       <a target="_blank" href="https://github.com/brownplt/pyret-lang/issues/new">Report an Issue</a>
     </div>

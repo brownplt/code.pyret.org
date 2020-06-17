@@ -447,6 +447,13 @@
       }
       $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
+      var curTheme = document.getElementById("theme").value;
+      $("#theme").change(function(e) {
+        var value = e.target.value;
+        $("body").removeClass(curTheme).addClass(value);
+        curTheme = value;
+      });
+      
       $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
 
       editor.cm.on('beforeChange', function(instance, changeObj){textHandlers.autoCorrect(instance, changeObj, editor.cm);});

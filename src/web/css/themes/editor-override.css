@@ -1,0 +1,213 @@
+/*
+  This file contains overrides for the editor on CPO/related sites.
+  (not syntax highlighting--that is supplied by themes/)
+*/
+
+body:not(.default) .repl {
+  background: #272822 !important;
+  color: #f8f8f2 !important;
+}
+
+/* text that is printed in the REPL, it seems */
+body:not(.default) .replPrint {
+  color: #F8F8F2 !important;
+}
+
+body:not(.default) .replOutput,
+body:not(.default) .replTextOutput {
+  color: #F8F8F2 !important;
+}
+
+/* scrollbar */
+body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar {
+  width: 11px;
+  background-color: #43453b !important;;
+}
+
+body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+  background-color: #5e6052 !important;
+  border-radius: 5px !important;
+}
+
+body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #797c6a !important;
+}
+
+/* middle resize handle */
+body:not(.default) #handle {
+  background: none !important;
+  background-color: #43453b !important;
+}
+
+/* CODE SNIPPETS */
+body:not(.default) .cm-snippet > header {
+  background-color: #505346 !important;
+}
+
+body:not(.default) .cm-snippet > header .srcloc {
+  color: #F8F8F2 !important;
+}
+
+/* rational numbers and repeating decimals */
+body:not(.default) .rationalNumber,
+body:not(.default) .rationalRepeat {
+  color: #f8f8f2 !important;
+}
+
+/* ------------------- ERROR MESSAGES ------------------- */
+
+/* compile error with no highlighting */
+#output > .compile-error:not(.highlights-active):hover:after,
+body:not(.default) .check-block-error > .compile-error:not(.highlights-active):hover::after,
+body:not(.default) .check-block-test.failing-test:not(.highlights-active):hover {
+    box-shadow: 0 0 2em red !important;
+}
+
+/* background of basic error messages */
+body:not(.default) .compile-error {
+  background: #272822 !important;
+}
+
+/* shipshape, mate */
+body:not(.default) .testing-summary{
+  color: #66D9EF !important;
+  background: #42453b !important;
+}
+
+
+/* ------------------- CHECK BLOCKS ------------------- */
+
+/* failed check block */
+body:not(.default) .check-block-failed {
+  background-color: #ff6666 !important;
+  color: white !important;
+}
+
+/* check block with an error */
+body:not(.default) .check-block-errored {
+  background-color: #ff6666 !important;
+  color: #F8F8F2 !important;
+}
+
+/* passed check block */
+body:not(.default) .check-block-success {
+  background-color: #42453b !important;
+  color: #80ff80 !important;
+}
+
+/* error in a check block, when highlighted */
+body:not(.default) .check-block-error .highlights-active.compile-error,
+body:not(.default) .check-block-test.highlights-active {
+  background: #42453b !important;
+}
+
+/* number of tests failed display at top */
+body:not(.default) .summary-failed {
+  background-color: #36372f !important;
+  color: #ff6666 !important;
+}
+
+/* number of tests passed display at top */
+body:not(.default) .summary-passed {
+  background-color: #36372f !important;
+  color: #80ff80 !important;
+}
+
+/* background of test failed / succeeded messages */
+body:not(.default) .check-block-test.failing-test,
+body:not(.default) .check-block-test.passing-test, 
+body:not(.default) .check-block-test header,
+body:not(.default) .test-reason {
+  background-color: #35372f !important;
+  color: #F8F8F2 !important;
+}
+
+/* bold and make the "Test: Failed" text red in a failed test */
+body:not(.default) .check-block-test.failing-test > header {
+  color: #ff6666 !important;
+  font-weight: bold !important;
+}
+
+/* bold and make the "Test: Passed" text green in a passed test */
+body:not(.default) .check-block-test.passing-test > header {
+  color: #80ff80 !important;
+  font-weight: bold !important;
+}
+
+
+/* ----------------- Tables in the interactions window ----------------- */
+
+body:not(.default) .pyret-table tbody * {
+  color: #F8F8F2 !important;
+}
+
+/* table headers */
+body:not(.default) th {
+  background: #36372f !important;
+  color: #66D9EF !important;
+}
+
+body:not(.default) .pyret-table tr:nth-child(even){
+  background-color: #515346 !important;
+}
+
+body:not(.default) .pyret-table tbody {
+  background-color: #5e6052 !important;
+}
+
+/* borders */
+body:not(.default) .pyret-table {
+  border: 1px #abaf9d solid !important;
+}
+
+body:not(.default) .pyret-table th,
+body:not(.default) td {
+  border-right: 1px #abaf9d solid !important;
+}
+
+
+/* ---------------------- SPINNY PYRET LOADING SCREEN ---------------------- */
+
+body:not(.default) #loader {
+  background-color: #272822 !important;
+}
+
+/* the pirate text on the loader screen */
+body:not(.default) #loader > p {
+  color: #F8F8F2 !important;
+}
+
+
+/* --------------------- 80 character limit ruler --------------------- */
+body:not(.default) .CodeMirror div.CodeMirror-ruler {
+  border: 1.5px !important;
+  border-color: #F92672 !important;
+  border-style: solid !important;
+}
+
+
+/* ----------------- pyret.cs.brown.edu specific overrides ----------------- */
+body:not(.default) .test-file-blocks,
+body:not(.default) .file-test-results {
+  background-color: #272822 !important;
+}
+
+/* bar at top of testing block indicating "VALIDITY UNKNOWN" */
+body:not(.default) .maybe-valid {
+  background-color: #5e6052 !important;
+}
+
+/* bar at top of testing block, indicating "VALID" */
+body:not(.default) .valid {
+  background-color: #5e6052 !important;
+  /* color: #3c9ee5 !important; */
+}
+
+/* 
+body:not(.default) .file-test-results {
+  border: .3em #66D9EF solid !important;
+}
+
+body:not(.default) .file-test-results > header {
+  background-color: #66D9EF !important;
+} */

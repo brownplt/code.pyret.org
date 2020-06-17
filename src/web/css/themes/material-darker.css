@@ -1,0 +1,179 @@
+/*
+  Name:       material
+  Author:     Mattia Astorino (http://github.com/equinusocio)
+  Website:    https://material-theme.site/
+*/
+
+body.material-darker .cm-s-default.CodeMirror {
+  background-color: #212121 !important;
+  color: #EEFFFF !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-gutters {
+  background: #212121 !important;
+  color: #545454 !important;
+  border: none !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-guttermarker,
+body.material-darker .cm-s-default .CodeMirror-guttermarker-subtle,
+body.material-darker .cm-s-default .CodeMirror-linenumber {
+  color: #545454 !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-cursor {
+  border-left: 1px solid #FFCC00 !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-line::selection,
+body.material-darker .cm-s-default .CodeMirror-line>span::selection,
+body.material-darker .cm-s-default .CodeMirror-line>span>span::selection {
+  background: rgba(128, 203, 196, 0.2) !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-line::-moz-selection,
+body.material-darker .cm-s-default .CodeMirror-line>span::-moz-selection,
+body.material-darker .cm-s-default .CodeMirror-line>span>span::-moz-selection {
+  background: rgba(128, 203, 196, 0.2) !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-activeline-background {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+body.material-darker .cm-s-default .cm-keyword {
+  color: #C792EA !important;
+}
+
+body.material-darker .cm-s-default .cm-operator {
+  color: #89DDFF !important;
+}
+
+body.material-darker .cm-s-default .cm-variable-2 {
+  color: #EEFFFF !important;
+}
+
+body.material-darker .cm-s-default .cm-builtin {
+  color: #FFCB6B !important;
+}
+
+body.material-darker .cm-s-default .cm-atom {
+  color: #F78C6C !important;
+}
+
+body.material-darker .cm-s-default .cm-number {
+  color: #FF5370 !important;
+}
+
+body.material-darker .cm-s-default .cm-def {
+  color: #82AAFF !important;
+}
+
+body.material-darker .cm-s-default .cm-string {
+  color: #C3E88D !important;
+}
+
+body.material-darker .cm-s-default .cm-string-2 {
+  color: #f07178 !important;
+}
+
+body.material-darker .cm-s-default .cm-comment {
+  color: #545454 !important;
+}
+
+body.material-darker .cm-s-default .cm-variable {
+  color: #d9d9d9 !important;
+}
+
+body.material-darker .cm-s-default .cm-tag {
+  color: #FF5370 !important;
+}
+
+body.material-darker .cm-s-default .cm-meta {
+  color: #FFCB6B !important;
+}
+
+body.material-darker .cm-s-default .cm-attribute {
+  color: #C792EA !important;
+}
+
+body.material-darker .cm-s-default .cm-property {
+  color: #C792EA !important;
+}
+
+body.material-darker .cm-s-default .cm-qualifier {
+  color: #DECB6B !important;
+}
+
+body.material-darker .cm-s-default .cm-variable-3,
+body.material-darker .cm-s-default .cm-type {
+  color: #89DDFF !important;
+}
+
+
+body.material-darker .cm-s-default .cm-error {
+  color: rgba(255, 255, 255, 1.0) !important;
+  background-color: #FF5370 !important;
+}
+
+body.material-darker .cm-s-default .cm-function-name {
+  color: #f8f8f2 !important;
+}
+
+body.material-darker .cm-s-default .cm-roughnum {
+  color: #82AAFF !important;
+  font-weight: bold !important;
+}
+
+body.material-darker .cm-s-default .cm-boolean {
+  color: #FF5370 !important;
+  font-weight: bold !important;
+}
+
+body.material-darker .cm-s-default .CodeMirror-matchingbracket {
+  text-decoration: underline !important;
+}
+
+
+/* Interactions Window */
+body.material-darker .repl,
+body.material-darker #loader {
+  background-color: #212121 !important;
+}
+
+
+/* this handles selected regions (by mouse dragging) */
+body.material-darker .cm-s-default div.CodeMirror-selected,
+body.material-darker span.CodeMirror-selectedtext { background: #333333 !important; }
+
+
+/*  Below handles regions automatically highlighted by Pyret
+    (e.g. "fun ... end") */
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket-region {
+  position: relative;
+  background-color: #333333 !important;
+  border-top: 0.1em solid #333333 !important;
+  border-bottom: 0.1em solid #333333 !important;
+}
+
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+  box-shadow: 0.5em 0 0.25em #333333 !important;
+}
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+  box-shadow: -0.5em 0 0.25em #333333 !important;
+}
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+  box-shadow: -0.5em 0 0.25em #333333, 0.5em 0 0.25em #333333 !important;
+}
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket.open {
+box-shadow: -0.3ex 0 0.3ex #333333 !important;
+}
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+box-shadow: 0.5em 0 0.25em #333333, -0.3ex 0 0.3ex #333333 !important;
+}
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket.close {
+box-shadow: 0.3ex 0 0.3ex #333333 !important;
+}
+body.material-darker div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+box-shadow: -0.5em 0 0.25em #333333, 0.3ex 0 0.3ex #333333 !important;
+}

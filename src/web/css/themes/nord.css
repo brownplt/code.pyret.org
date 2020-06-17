@@ -1,0 +1,95 @@
+/* Based on arcticicestudio's Nord theme */
+/* https://github.com/arcticicestudio/nord */
+
+body.nord .cm-s-default.CodeMirror { background: #2e3440 !important; color: #d8dee9 !important; }
+body.nord .cm-s-default div.CodeMirror-selected { background: #434c5e !important; }
+body.nord .cm-s-default .CodeMirror-line::selection,
+body.nord .cm-s-default .CodeMirror-line > span::selection,
+body.nord .cm-s-default .CodeMirror-line > span > span::selection { background: #3b4252 !important; }
+body.nord .cm-s-default .CodeMirror-line::-moz-selection,
+body.nord .cm-s-default .CodeMirror-line > span::-moz-selection,
+body.nord .cm-s-default .CodeMirror-line > span > span::-moz-selection { background: #3b4252 !important; }
+body.nord .cm-s-default .CodeMirror-gutters { background: #2e3440 !important; border-right: 0px !important; }
+body.nord .cm-s-default .CodeMirror-guttermarker { color: #4c566a !important; }
+body.nord .cm-s-default .CodeMirror-guttermarker-subtle { color: #4c566a !important; }
+body.nord .cm-s-default .CodeMirror-linenumber { color: #4c566a !important; }
+body.nord .cm-s-default .CodeMirror-cursor { border-left: 1px solid #f8f8f0 !important; }
+
+body.nord .cm-s-default span.cm-comment { color: #6b7994 !important; }
+body.nord .cm-s-default span.cm-atom { color: #b48ead !important; }
+body.nord .cm-s-default span.cm-number { color: #b48ead !important; }
+
+body.nord .cm-s-default span.cm-comment.cm-attribute { color: #97b757 !important; }
+body.nord .cm-s-default span.cm-comment.cm-def { color: #bc9262 !important; }
+body.nord .cm-s-default span.cm-comment.cm-tag { color: #bc6283 !important; }
+body.nord .cm-s-default span.cm-comment.cm-type { color: #5998a6 !important; }
+
+body.nord .cm-s-default span.cm-property,
+body.nord .cm-s-default span.cm-attribute { color: #8FBCBB !important; }
+body.nord .cm-s-default span.cm-keyword { color: #81A1C1 !important; }
+body.nord .cm-s-default span.cm-builtin { color: #81A1C1 !important; }
+body.nord .cm-s-default span.cm-string { color: #A3BE8C !important; }
+
+body.nord .cm-s-default span.cm-variable { color: #d8dee9 !important; }
+body.nord .cm-s-default span.cm-variable-2 { color: #d8dee9 !important; }
+body.nord .cm-s-default span.cm-variable-3,
+body.nord .cm-s-default span.cm-type { color: #d8dee9 !important; }
+body.nord .cm-s-default span.cm-def { color: #8FBCBB !important; }
+body.nord .cm-s-default span.cm-bracket { color: #81A1C1 !important; }
+body.nord .cm-s-default span.cm-tag { color: #bf616a !important; }
+body.nord .cm-s-default span.cm-header { color: #b48ead !important; }
+body.nord .cm-s-default span.cm-link { color: #b48ead !important; }
+body.nord .cm-s-default span.cm-error { background: #bf616a !important; color: #f8f8f0 !important; }
+
+body.nord .cm-s-default span.cm-roughnum { color: #E69F66 !important; font-weight: bold !important;}
+body.nord .cm-s-default span.cm-function-name { color: #d8dee9 !important; }
+body.nord .cm-s-default span.cm-boolean { color: #ff0066 !important; }
+
+body.nord .cm-s-default .CodeMirror-activeline-background { background: #3b4252 !important; }
+body.nord .cm-s-default .CodeMirror-matchingbracket {
+  text-decoration: underline !important;
+  color: white !important;
+}
+
+/* this handles selected regions (by mouse dragging) */
+body.nord .cm-s-default div.CodeMirror-selected,
+body.nord span.CodeMirror-selectedtext { background: #1f242d !important; }
+
+
+/*  Below handles regions automatically highlighted by Pyret
+    (e.g. "fun ... end") */
+body.nord div.CodeMirror span.CodeMirror-matchingbracket-region {
+  position: relative;
+  background-color: #20242c !important;
+  border-top: 0.1em solid #20242c !important;
+  border-bottom: 0.1em solid #20242c !important;
+}
+
+body.nord div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+  box-shadow: 0.5em 0 0.25em #20242c !important;
+}
+body.nord div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+  box-shadow: -0.5em 0 0.25em #20242c !important;
+}
+body.nord div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+  box-shadow: -0.5em 0 0.25em #20242c, 0.5em 0 0.25em #20242c !important;
+}
+body.nord div.CodeMirror span.CodeMirror-matchingbracket.open {
+box-shadow: -0.3ex 0 0.3ex #20242c !important;
+}
+body.nord div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+box-shadow: 0.5em 0 0.25em #20242c, -0.3ex 0 0.3ex #20242c !important;
+}
+body.nord div.CodeMirror span.CodeMirror-matchingbracket.close {
+box-shadow: 0.3ex 0 0.3ex #20242c !important;
+}
+body.nord div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+box-shadow: -0.5em 0 0.25em #20242c, 0.3ex 0 0.3ex #20242c !important;
+}
+
+
+/* Interactions Window */
+body.nord .repl,
+body.nord #loader {
+  background-color: #2e3440 !important;
+}

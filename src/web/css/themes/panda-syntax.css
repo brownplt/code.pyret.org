@@ -1,0 +1,146 @@
+/*
+	Name:       Panda Syntax
+	Author:     Siamak Mokhtari (http://github.com/siamak/)
+	CodeMirror template by Siamak Mokhtari (https://github.com/siamak/atom-panda-syntax)
+*/
+body.panda .cm-s-default {
+	background: #292A2B !important;
+	color: #E6E6E6 !important;
+	/* line-height: 1.5 !important; */
+	/* font-family: 'Operator Mono', 'Source Code Pro', Menlo, Monaco, Consolas, Courier New, monospace !important; */
+}
+body.panda .cm-s-default .CodeMirror-cursor { border-color: #ff2c6d !important; }
+body.panda .cm-s-default .CodeMirror-activeline-background {
+	background: rgba(99, 123, 156, 0.1) !important;
+}
+body.panda .cm-s-default .CodeMirror-selected {
+	background: #FFF !important;
+}
+body.panda .cm-s-default .cm-comment {
+	font-style: italic !important;
+	color: #676B79 !important;
+}
+body.panda .cm-s-default .cm-operator {
+	color: #f3f3f3 !important;
+}
+body.panda .cm-s-default .cm-string {
+	color: #19F9D8 !important;
+}
+body.panda .cm-s-default .cm-string-2 {
+    color: #FFB86C !important;
+}
+
+body.panda .cm-s-default .cm-tag {
+	color: #ff2c6d !important;
+}
+body.panda .cm-s-default .cm-meta {
+	color: #b084eb !important;
+}
+
+body.panda .cm-s-default .cm-number {
+	color: #FFB86C !important;
+}
+body.panda .cm-s-default .cm-atom {
+	color: #ff2c6d !important;
+}
+body.panda .cm-s-default .cm-keyword {
+	color: #FF75B5 !important;
+}
+body.panda .cm-s-default .cm-variable {
+	color: #ffb86c !important;
+}
+body.panda .cm-s-default .cm-variable-2 {
+	color: #ff9ac1 !important;
+}
+body.panda .cm-s-default .cm-variable-3,
+body.panda .cm-s-default .cm-type {
+	color: #4dc6ff !important;
+}
+
+body.panda .cm-s-default .cm-def {
+	color: #e6e6e6 !important;
+}
+body.panda .cm-s-default .cm-property {
+	color: #f3f3f3 !important;
+}
+body.panda .cm-s-default .cm-unit {
+    color: #ffb86c !important;
+}
+
+body.panda .cm-s-default .cm-attribute {
+    color: #ffb86c !important;
+}
+
+body.panda .cm-s-default .CodeMirror-matchingbracket {
+    border-bottom: 1px dotted #19F9D8 !important;
+    padding-bottom: 2px !important;
+}
+
+body.panda .cm-s-default .CodeMirror-gutters {
+    background: #292a2b !important;
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+}
+body.panda .cm-s-default .CodeMirror-linenumber {
+    color: #e6e6e6 !important;
+    opacity: 0.6 !important;
+}
+
+body.panda .cm-s-default .cm-builtin {
+	color: #cccccc !important;
+}
+
+body.panda .cm-s-default .cm-function-name {
+	color: #a8b3bd !important;
+}
+
+body.panda .cm-s-default .cm-boolean {
+	color: #b084eb !important;
+	font-weight: bold !important;
+}
+
+body.panda .cm-s-default .cm-roughnum {
+	color: #b084eb !important;
+	font-weight: bold !important;
+}
+
+/* this handles selected regions (by mouse dragging) */
+body.panda .cm-s-default div.CodeMirror-selected,
+body.panda span.CodeMirror-selectedtext { background: #3e4041 !important; }
+
+/*  Below handles regions automatically highlighted by Pyret
+    (e.g. "fun ... end") */
+body.panda div.CodeMirror span.CodeMirror-matchingbracket-region {
+  position: relative;
+  background-color: #3e4041 !important;
+  border-top: 0.1em solid #3e4041 !important;
+  border-bottom: 0.1em solid #3e4041 !important;
+}
+
+body.panda div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+  box-shadow: 0.5em 0 0.25em #3e4041 !important;
+}
+body.panda div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+  box-shadow: -0.5em 0 0.25em #3e4041 !important;
+}
+body.panda div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+  box-shadow: -0.5em 0 0.25em #3e4041, 0.5em 0 0.25em #3e4041 !important;
+}
+body.panda div.CodeMirror span.CodeMirror-matchingbracket.open {
+box-shadow: -0.3ex 0 0.3ex #3e4041 !important;
+}
+body.panda div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+box-shadow: 0.5em 0 0.25em #3e4041, -0.3ex 0 0.3ex #3e4041 !important;
+}
+body.panda div.CodeMirror span.CodeMirror-matchingbracket.close {
+box-shadow: 0.3ex 0 0.3ex #3e4041 !important;
+}
+body.panda div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+box-shadow: -0.5em 0 0.25em #3e4041, 0.3ex 0 0.3ex #3e4041 !important;
+}
+
+
+/* Interactions Window */
+body.panda .repl,
+body.panda #loader {
+  background-color: #292A2B !important;
+}
