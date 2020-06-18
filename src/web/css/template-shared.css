@@ -1,0 +1,84 @@
+#loader {
+  background: url('/img/pyret-spin.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
+}
+
+#help-keys {
+  background-color: #ddd;
+  border-radius: 5px;
+  border: 50px solid rgba(0, 0, 0, 0.7);
+}
+
+#doc-overlay{
+  box-shadow: 0px 0px 5px black;
+}
+
+#doc-overlay iframe{
+  background-color: #ddd;
+}
+
+#doc-bar{
+  color: #fff;
+  background: #C8C8C8;
+}
+
+#doc-close{
+  background: rgba(0,0,0,0.3);
+}
+
+#doc-close:hover{
+  background: rgba(0,0,0,0.6);
+}
+
+#header {
+  background:#C8C8C8;
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
+}
+
+#showFilename {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+#header a {
+  color: #111;
+}
+
+#toolbar {
+  background-color: #111;
+}
+
+#footer {
+  background-color: #111;
+}
+
+.blueButton {
+    background-color: rgba(0,0,0,0.3);
+    border: none;
+    border-radius: 0px;
+    color: #fff;
+}
+
+.blueButton:hover {
+    box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
+    background: rgba(0,0,0,0.6);
+}
+
+.blueButton:disabled {
+    color: rgba(0, 0, 0, 0.26);
+}
+
+.share {
+  background-color: #fefefe;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.ui-tooltip {
+  background: #fff;
+}
+
+.ui-tooltip.ui-widget-content {
+  background: #fff;
+}
+
+.sharebox {
+  border: 1px solid #111;
+}
