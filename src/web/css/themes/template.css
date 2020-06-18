@@ -1,18 +1,29 @@
 
 /* variables that determine the theme's color scheme */
 body.TEMPLATE {
-
-  /* add all the syntax-highlighting variables here */
+  /* syntax-highlighting */
+  --default-text: /* default program text */
+  --cursor: /* CodeMirror cursor */
+  --comment: /* CodeMirror code comments */
+  --boolean: /* CodeMirror boolean */
+  --builtin: /* CodeMirror builtin */
+  --function-name: /* CodeMirror function name */
+  --variable: /* CodeMirror variable */
+  --keyword: /* CodeMirror keyword */
+  --number: /* CodeMirror number */
+  --roughnum: /* CodeMirror rough num */
+  --bad-number: /* CodeMirror bad number */
+  --string: /* CodeMirror string*/
+  --unterm-string: /* CodeMirror unterminated string */
+  --type: /* CodeMirror type */
+  --cptteach-fixed: /**/
+  --region-highlight: /* region highlighted by (check: ... end) or mouse drag, etc. */
 
   --background: /* main background */
-  --background- /* darker background */
-  --background-- /* even darker background */
+  --background-: /* darker background */
+  --background--: /* even darker background */
   --background+: /* lighter background */
   --background++: /* even lighter background */
-
-  --default-text: /* default program text */
-
-  --region-highlight: /* region highlighted by (check: ... end) or mouse drag, etc. */
 
   --check-pass: /* check block bg color */
   --check-pass+: /* lighter than check bg */
@@ -27,125 +38,125 @@ body.TEMPLATE {
   --err-halo-unselected: /* border around errors NOT in focus */
 }
 
-.CodeMirror, 
-.inlineExample {
+body.TEMPLATE .CodeMirror, 
+body.TEMPLATE .inlineExample {
   border: 1px solid black;
   background: #f8f8f8;
   color: #eee;
 }
 
-.repl .CodeMirror {
+body.TEMPLATE .repl .CodeMirror {
   background-color: hsl(0,0%,95%);
 }
 
-.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
-.cm-s-default.CodeMirror { color: black; }
-.cm-s-default .cm-comment { color: #cd7054; }
-.cm-s-default .cm-boolean { color: darkred; }
-.cm-s-default .cm-builtin { color: #555; }
-.cm-s-default .cm-function-name { color: #374049; }
-.cm-s-default .cm-variable { color: #4d5966; }
-.cm-s-default .cm-keyword { color: black; font-weight: bold; }
-.cm-s-default .cm-number { color: navy; }
-.cm-s-default .cm-roughnum { color: blue; }
-.cm-s-default .cm-bad-number { color: red; font-weight: bold; }
-.cm-s-default .cm-string { color: forestgreen; }
-.cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
-.cm-s-default .cm-type { color: #374049; }
-.cptteach-fixed { background: #ddd; }
+body.TEMPLATE .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+body.TEMPLATE .cm-s-default.CodeMirror { color: black; }
+body.TEMPLATE .cm-s-default .cm-comment { color: #cd7054; }
+body.TEMPLATE .cm-s-default .cm-boolean { color: darkred; }
+body.TEMPLATE .cm-s-default .cm-builtin { color: #555; }
+body.TEMPLATE .cm-s-default .cm-function-name { color: #374049; }
+body.TEMPLATE .cm-s-default .cm-variable { color: #4d5966; }
+body.TEMPLATE .cm-s-default .cm-keyword { color: black; font-weight: bold; }
+body.TEMPLATE .cm-s-default .cm-number { color: navy; }
+body.TEMPLATE .cm-s-default .cm-roughnum { color: blue; }
+body.TEMPLATE .cm-s-default .cm-bad-number { color: red; font-weight: bold; }
+body.TEMPLATE .cm-s-default .cm-string { color: forestgreen; }
+body.TEMPLATE .cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
+body.TEMPLATE .cm-s-default .cm-type { color: #374049; }
+body.TEMPLATE .cptteach-fixed { background: #ddd; }
 
-div.CodeMirror-selected,
-span.CodeMirror-selectedtext {
+body.TEMPLATE div.CodeMirror-selected,
+body.TEMPLATE span.CodeMirror-selectedtext {
   background-color: #ccc!important;
 }
 
-.CodeMirror-matchingbracket::before {
+body.TEMPLATE .CodeMirror-matchingbracket::before {
   border: 0px solid rgb(90, 149, 217);
 }
 
-div.CodeMirror span.CodeMirror-matchingbracket-region {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region {
   background-color: hsl(220, 100%, 95%);
   border-top: 0.1em solid hsl(220, 100%, 95%);
   border-bottom: 0.1em solid hsl(220, 100%, 95%);
 }
 
-div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
     box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%);
 }
-div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
     box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%);
 }
-div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
     box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.5em 0 0.25em hsl(220, 100%, 95%);
 }
-div.CodeMirror span.CodeMirror-matchingbracket.open {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.open {
   box-shadow: -0.3ex 0 0.3ex hsl(220, 100%, 95%);
 }
-div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
   box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%), -0.3ex 0 0.3ex hsl(220, 100%, 95%);
 }
-div.CodeMirror span.CodeMirror-matchingbracket.close {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.close {
   box-shadow: 0.3ex 0 0.3ex hsl(220, 100%, 95%);
 }
-div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
   box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.3ex 0 0.3ex hsl(220, 100%, 95%);
 }
 
-div.CodeMirror span.CodeMirror-matchingbracket {
+body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket {
   color: initial;
 }
 
-div.CodeMirror span.CodeMirror-nonmatchingbracket {
+body.TEMPLATE div.CodeMirror span.CodeMirror-nonmatchingbracket {
   background-color: #fdd;
   color: #e11;
 }
 
-div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
+body.TEMPLATE div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background-color: #fdc;
   border-top: 0.1em solid #fdd;
   border-bottom: 0.1em solid #fdd;
 }
 
-div.trace.error {
+body.TEMPLATE div.trace.error {
    background-color: #fff6f2;
 }
 
-div.spy-block {
+body.TEMPLATE div.spy-block {
   border: 1px solid #9DC5ED;
   box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
   background: #CBDFF2;
 }
 
-div.spy-block > .spy-title {
+body.TEMPLATE div.spy-block > .spy-title {
    border-bottom: 1px solid #9DC5ED;
 }
 
-div.spy-block > table > tbody > tr {
+body.TEMPLATE div.spy-block > table > tbody > tr {
     background: rgba(255, 255, 255, 0.3);
     border: 1px solid #9DC5ED;
 }
 
-div.spy-block > table > tbody > tr:nth-child(even) {
+body.TEMPLATE div.spy-block > table > tbody > tr:nth-child(even) {
     background: rgba(255, 255, 255, 0.2);
 }
 
-div.spy-block > table > tbody > tr > td {
+body.TEMPLATE div.spy-block > table > tbody > tr > td {
     border-right:  1px solid #9DC5ED;
 }
 
-.test-reason:not(.highlights-active) .highlight {
+body.TEMPLATE .test-reason:not(.highlights-active) .highlight {
   background: initial!important;
 }
 
-#output > .compile-error:not(.highlights-active):hover:after,
-.check-block-error > .compile-error:not(.highlights-active):hover::after,
-.check-block-test.failing-test:not(.highlights-active):hover {
+body.TEMPLATE #output > .compile-error:not(.highlights-active):hover:after,
+body.TEMPLATE .check-block-error > .compile-error:not(.highlights-active):hover::after,
+body.TEMPLATE .check-block-test.failing-test:not(.highlights-active):hover {
     box-shadow: 0 0 2em hsl(204, 100%, 80%);
 }
 
-#output > .compile-error:not(.highlights-active):hover:after,
-.check-block-error > .compile-error:not(.highlights-active):hover::after,
-.check-block-test.failing-test:not(.highlights-active):hover::after{
+body.TEMPLATE #output > .compile-error:not(.highlights-active):hover:after,
+body.TEMPLATE .check-block-error > .compile-error:not(.highlights-active):hover::after,
+body.TEMPLATE .check-block-test.failing-test:not(.highlights-active):hover::after{
     background: linear-gradient(
         45deg,
         rgba(255, 255, 255, 0.0) 0%,
@@ -154,278 +165,278 @@ div.spy-block > table > tbody > tr > td {
         rgba(255, 255, 255, 0.0) 50%);
 }
 
-.repl {
+body.TEMPLATE .repl {
   background-color: #f8f8f8;
 }
 
-.check {
+body.TEMPLATE .check {
   border: 1px solid black;
 }
 
-.check-success {
+body.TEMPLATE .check-success {
   background-color: #cfc;
 }
 
-.check-failure {
+body.TEMPLATE .check-failure {
   background-color: #d66;
 }
 
-.check-block {
+body.TEMPLATE .check-block {
   box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
   background: #E1F5FE;
 }
 
-.check-block-failed {
+body.TEMPLATE .check-block-failed {
   background-color: #FFECB3;
 }
 
-.check-block-errored {
+body.TEMPLATE .check-block-errored {
   background-color: hsl(0, 100%, 90%);
 }
 
-.check-block-success {
+body.TEMPLATE .check-block-success {
   background-color: #c5e1a5;
 }
 
-.testing-summary{
+body.TEMPLATE .testing-summary{
   color: white;
   background: hsl(212, 62%, 50%);
 }
 
-.check-block-test {
+body.TEMPLATE .check-block-test {
   background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
 }
 
-.progressStep {
+body.TEMPLATE .progressStep {
   border: 1px solid black;
 }
 
-.progressStep.done {
+body.TEMPLATE .progressStep.done {
   background-color: green;
 }
 
-.progressDone {
+body.TEMPLATE .progressDone {
   color: green;
 }
 
-.instructionsWidget {
+body.TEMPLATE .instructionsWidget {
   background-color: #fcf;
   border: 1px dotted #c0c;
   color: #111;
 }
 
-.instructionsWidget .toggleInstructions {
+body.TEMPLATE .instructionsWidget .toggleInstructions {
   color: #666;
 }
 
-#program-name-container input {
+body.TEMPLATE #program-name-container input {
   background: #FEFEFE;
 }
 
-#welcome {
+body.TEMPLATE #welcome {
   color: #eeeeee;
 }
 
-.notificationArea {
+body.TEMPLATE .notificationArea {
   background: #111111;
 }
 
-.notificationArea .active {
+body.TEMPLATE .notificationArea .active {
   color: #eee;
 }
 
-.notificationArea .error {
+body.TEMPLATE .notificationArea .error {
   color: #F44336;
 }
 
-.notificationArea .autoCorrect-msg{
+body.TEMPLATE .notificationArea .autoCorrect-msg{
   color: #eee;
 }
 
-.notificationArea .autoCorrect-button{
+body.TEMPLATE .notificationArea .autoCorrect-button{
   color: #F44336;
 }
 
-.menuContents {
+body.TEMPLATE .menuContents {
   background-color: #EFEFEF;
   box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
 }
 
-.menuContents div:not(.disabled):not(.inert):hover{
+body.TEMPLATE .menuContents div:not(.disabled):not(.inert):hover{
   background-color: rgba(0,0,0,0.2);
 }
 
-.menuContents div.disabled * {
+body.TEMPLATE .menuContents div.disabled * {
    color: gray;
 }
 
-.menuButton *,
-.menuContents * {
+body.TEMPLATE .menuButton *,
+body.TEMPLATE .menuContents * {
   color: #000;
 }
 
-.info-btn {
+body.TEMPLATE .info-btn {
   color: white;
   background-color: #317bcf;
 }
 
-.info-btn:hover {
+body.TEMPLATE .info-btn:hover {
   background-color: #0060ce;
 }
 
-div#font{
+body.TEMPLATE div#font{
   border: 1px solid rgba(0,0,0,0.1);
   background:rgba(0,0,0,0.05);
 }
 
-div#font:hover{
+body.TEMPLATE div#font:hover{
   background:rgba(0,0,0,0.05);
 }
 
-#font-label{
+body.TEMPLATE #font-label{
   border: 1px solid rgba(0,0,0,0.1);
 }
 
-.replPrint {
+body.TEMPLATE .replPrint {
   color: #111;
 }
 
-.replOutput {
+body.TEMPLATE .replOutput {
   color: #1f1180;
 }
 
-.replOutput.expanded > dl {
+body.TEMPLATE .replOutput.expanded > dl {
    border: 1px solid gray;
 }
 
-.replOutputPassed {
+body.TEMPLATE .replOutputPassed {
   color: #1f9180;
 }
 
-.replOutputFailed {
+body.TEMPLATE .replOutputFailed {
   color: #af1180;
 }
 
-.test-reason, 
-.nestedReason {
+body.TEMPLATE .test-reason, 
+body.TEMPLATE .nestedReason {
  color: #af1180;
 }
 
-.rationalNumber {
+body.TEMPLATE .rationalNumber {
  color: #af1180;
 }
 
-.replImageThumbnail canvas {
+body.TEMPLATE .replImageThumbnail canvas {
   box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
 }
 
-.replImageThumbnail:hover canvas {
+body.TEMPLATE .replImageThumbnail:hover canvas {
   box-shadow: 0px 2px 4px rgba(128,0,0,0.75);
 }
 
-.error-highlight {
+body.TEMPLATE .error-highlight {
   background-color: #fcc !important;
   border-bottom: 2px solid #F33 !important;
 }
 
-.loc-anchor {
+body.TEMPLATE .loc-anchor {
   border-bottom: 2px solid currentColor;
 }
 
-.test-reason {
+body.TEMPLATE .test-reason {
   color: black;
 }
 
-a.highlight {
+body.TEMPLATE a.highlight {
   color: #000 !important;
 }
 
-.hinted-highlight {
+body.TEMPLATE .hinted-highlight {
   border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
 }
 
-.highlight {
+body.TEMPLATE .highlight {
   border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
 }
 
-.highlight.emphasize:not(:hover)::before {
+body.TEMPLATE .highlight.emphasize:not(:hover)::before {
   box-shadow:0 0 200px 1em black;
 }
 
-.emphasize-line {
+body.TEMPLATE .emphasize-line {
   background-color:#BBB;
 }
 
-.underline:not(:hover) {
+body.TEMPLATE .underline:not(:hover) {
   background-color: initial;
 }
 
-.check-highlight {
+body.TEMPLATE .check-highlight {
  background-color: #CCF;
  border-bottom: 2px solid #33F;
 }
 
-.compile-error {
+body.TEMPLATE .compile-error {
   border: 1px dashed #FF3131;
   box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
   background: #FFF2F2;
 }
 
-.compile-error a {
+body.TEMPLATE .compile-error a {
   color: #469ad4;
 }
 
-.parse-error {
+body.TEMPLATE .parse-error {
   border: 1px dashed #FF3131;
   box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
   background: #FFF2F2;
 }
 
-.error-icon {
+body.TEMPLATE .error-icon {
   color: #f33;
 }
 
-.parse-error a {
+body.TEMPLATE .parse-error a {
   color: #469ad4;
 }
 
-.warning-upper {
+body.TEMPLATE .warning-upper {
   background-image:
       url('/img/up-arrow.png'),
       linear-gradient(to bottom,  hsla(0,100%,89%,1) 0%,rgba(145,78,78,0) 50%);
 }
 
-.warning-lower {
+body.TEMPLATE .warning-lower {
   background-image:
       url('/img/down-arrow.png'),
       linear-gradient(to top,  hsla(0,100%,89%,1) 0%,rgba(145,78,78,0) 50%);
 }
 
-.topbar {
+body.TEMPLATE .topbar {
   background-color: #eee;
 }
 
 /* From internet: http://stackoverflow.com/questions/5663137/jquery-modal-dialog-is-hidden-by-overlay-div-if-dialogs-parent-has-fixed-positi */
-.ui-widget-overlay{
+body.TEMPLATE .ui-widget-overlay{
   background: #111;
 }
 /* end from internet */
 
-.ui-dialog {
+body.TEMPLATE .ui-dialog {
   border: 2px solid #111;
   background-color: #eee;
 }
 
-.ui-dialog-titlebar {
+body.TEMPLATE .ui-dialog-titlebar {
   background-color: #2a348b;
 }
 
-.ui-dialog-title {
+body.TEMPLATE .ui-dialog-title {
   color: #eee;
 }
 
 /* Resizable REPL */
-#handle{
+body.TEMPLATE #handle{
   background:-webkit-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
   background:-o-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
   background:-moz-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
@@ -433,73 +444,73 @@ a.highlight {
   border: 1px solid #A6A6A6;
 }
 
-#runButton, 
-#breakButton {
+body.TEMPLATE #runButton, 
+body.TEMPLATE #breakButton {
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
-#runButton{
+body.TEMPLATE #runButton{
   background: #317BCF;
 }
 
-#runButton:hover{
+body.TEMPLATE #runButton:hover{
   background:#0060CE;
 }
 
-#breakButton{
+body.TEMPLATE #breakButton{
   background:#CF3B31;
 }
 
-#breakButton:hover{
+body.TEMPLATE #breakButton:hover{
   background:#B30C00;
 }
 
-#runButton:hover,
-#breakButton:hover{
+body.TEMPLATE #runButton:hover,
+body.TEMPLATE #breakButton:hover{
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
 }
 
-#runPart {
+body.TEMPLATE #runPart {
   background: #317BCF;
 }
 
-.dropdown {
+body.TEMPLATE .dropdown {
   background: #317BCF;
   box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
 }
 
-#run-dropdown-content li {
+body.TEMPLATE #run-dropdown-content li {
   color: #eeeeee;
   background: #317BCF;
   box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
 }
 
-#run-dropdown-content li:hover {
+body.TEMPLATE #run-dropdown-content li:hover {
   background:#0060CE;
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
 }
 
-.dropdown:hover {
+body.TEMPLATE .dropdown:hover {
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.3);
   background:#0060CE;
 }
 
-.module-info-hover {
+body.TEMPLATE .module-info-hover {
   border: 1px solid #111;
   background-color: #eeeeee;
 }
 
-.editor-check-block-success {
+body.TEMPLATE .editor-check-block-success {
   background: hsl(88, 50%, 76%);
   box-shadow: 0 1em 11px 2px hsl(88, 50%, 76%);
 }
 
-.editor-check-block-failed {
+body.TEMPLATE .editor-check-block-failed {
   background: hsl(45, 100%, 85%);
   box-shadow: 0 0.5em 11px 3px hsl(45, 100%, 85%);
 }
 
-.editor-check-block-error {
+body.TEMPLATE .editor-check-block-error {
   background: hsl(0, 100%, 90%);
   box-shadow: 0 1em 11px 2px hsl(0, 100%, 90%);
 }
@@ -509,323 +520,323 @@ a.highlight {
   to {}
 }
 
-.check-block-test.failing-test:not(.highlights-active) {
+body.TEMPLATE .check-block-test.failing-test:not(.highlights-active) {
   background-color: hsl(45, 100%, 94%);
 }
-.check-block-test.passing-test {
+body.TEMPLATE .check-block-test.passing-test {
   background-color: hsl(90,  50%, 91%);}
 
-#output > .compile-error.highlights-active,
-.check-block-error .highlights-active.compile-error,
-.check-block-test.highlights-active {
+body.TEMPLATE #output > .compile-error.highlights-active,
+body.TEMPLATE .check-block-error .highlights-active.compile-error,
+body.TEMPLATE .check-block-test.highlights-active {
   border: 0.3em hsl(204, 100%, 74%) solid;
 }
 
-.check-block-error .highlights-active.compile-error,
-.check-block-test.highlights-active {
+body.TEMPLATE .check-block-error .highlights-active.compile-error,
+body.TEMPLATE .check-block-test.highlights-active {
   background: hsla(0,0%,100%,.9);
 }
 
-.test-reason:empty,
-.check-block-error:empty {
+body.TEMPLATE .test-reason:empty,
+body.TEMPLATE .check-block-error:empty {
   color: #555;
 }
 
-.check-block-error:empty {
+body.TEMPLATE .check-block-error:empty {
   background-color: rgba(255,255,255,0.4);
 }
 
-.check-block-test.failing-test.highlights-active > header {
+body.TEMPLATE .check-block-test.failing-test.highlights-active > header {
   background-color: hsl(45, 100%, 85%);
 }
 
-.check-block-test .CodeMirror {
+body.TEMPLATE .check-block-test .CodeMirror {
   background:rgba(255,255,255,0.5);
 }
 
-.errored-test-marker {
+body.TEMPLATE .errored-test-marker {
   background-color: hsla(0, 100%, 50%, 0.5);
 }
 
-.failed-test-marker {
+body.TEMPLATE .failed-test-marker {
   background-color: hsla(45, 90%, 50%, 0.5);
 }
 
-.summary-bits {
+body.TEMPLATE .summary-bits {
   color: black;
 }
 
-.summary-bit.summary-passed {
+body.TEMPLATE .summary-bit.summary-passed {
   background: hsl(88, 51%, 76%);
 }
 
-.summary-bit.summary-failed {
+body.TEMPLATE .summary-bit.summary-failed {
   background: hsl(45, 100%, 85%);
 }
 
-.summary-errored {
+body.TEMPLATE .summary-errored {
   background: hsla(0,100%,73%,1);
   color: white;
 }
 
-.summary-text {
+body.TEMPLATE .summary-text {
   border-left: 1px hsl(0, 100%, 100%) solid;
 }
 
-.cm-snippet {
+body.TEMPLATE .cm-snippet {
   border: 1px hsl(0, 0%, 50%) dashed;
 }
 
-.cm-snippet header {
+body.TEMPLATE .cm-snippet header {
   background: hsl(0, 0%, 97%);
   box-shadow: 0 0 3px hsla(0,0%,0%,0.5);
   border-bottom: 1px hsl(0, 0%, 60%) solid;
 }
 
-#main.spotlight div.CodeMirror span:not(.spotlight) {
+body.TEMPLATE #main.spotlight div.CodeMirror span:not(.spotlight) {
   background-color: initial!important;
 }
 
-#main.spotlight div.CodeMirror span.spotlight {
+body.TEMPLATE #main.spotlight div.CodeMirror span.spotlight {
   background-color: white!important;
 }
 
-#main.spotlight .CodeMirror-matchingbracket,
-#main.spotlight .CodeMirror-matchingbracket.open,
-#main.spotlight .CodeMirror-matchingbracket.close,
-#main.spotlight .CodeMirror-matchingbracket-region,
-#main.spotlight .repl-echo > div.CodeMirror,
-#main.spotlight .repl,
-#main.spotlight .repl-prompt > div.CodeMirror,
-#main.spotlight > div.replMain > div.CodeMirror {
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket,
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket.open,
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket.close,
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket-region,
+body.TEMPLATE #main.spotlight .repl-echo > div.CodeMirror,
+body.TEMPLATE #main.spotlight .repl,
+body.TEMPLATE #main.spotlight .repl-prompt > div.CodeMirror,
+body.TEMPLATE #main.spotlight > div.replMain > div.CodeMirror {
   background-color: rgb(150,150,150);
 }
 
-#main.spotlight .check-block {
+body.TEMPLATE #main.spotlight .check-block {
   background-color: hsl(45, 9%, 66%);
 }
 
-.stacktrace > div:hover {
+body.TEMPLATE .stacktrace > div:hover {
   box-shadow:0 0 1em rgba(0,0,0,0.4);
 }
 
-table {
+body.TEMPLATE table {
     border:1px black solid;
     background:#eee;;
 }
 
-div.choiceContainer > button {
+body.TEMPLATE div.choiceContainer > button {
   background-color: #317BCF;
   color: #fff;
   transition: box-shadow 0.2s;
 }
 
-th {
+body.TEMPLATE th {
     background: #ddd;
 }
 
-th, td {
+body.TEMPLATE th, td {
     border-right:1px white solid;
 }
 
-tr:nth-child(even){background-color: #f2f2f2}
+body.TEMPLATE tr:nth-child(even){background-color: #f2f2f2}
 
-table.pyret-table thead {
+body.TEMPLATE table.pyret-table thead {
   box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
 }
-table.pyret-row th {
+body.TEMPLATE table.pyret-row th {
   box-shadow: 2px 0px 2px rgba(0, 0, 0, 0.2), -2px 0px 2px rgba(0, 0, 0, 0.2);
 }
 /* NOTE(joe): this helps distinguish a row that appears in a table cell */
-table.pyret-row {
+body.TEMPLATE table.pyret-row {
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* MODAL */
 /* The Modal (background) */
-.modal {
+body.TEMPLATE .modal {
   background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
 /* Modal Content */
-.modal-content {
+body.TEMPLATE .modal-content {
   background-color: #C8C8C8;
   border: 1px solid #888;
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 }
 
-.modal .submit,
-.modal .close  {
+body.TEMPLATE .modal .submit,
+body.TEMPLATE .modal .close  {
   box-shadow: 0px -2px 5px 1px rgba(0,0,0,0.2);
 }
 
-.modal .submit{
+body.TEMPLATE .modal .submit{
   background: #317BCF;
 }
 
-.modal .submit:hover{
+body.TEMPLATE .modal .submit:hover{
   background:#0060CE;
 }
 
-.modal .close{
+body.TEMPLATE .modal .close{
   background:#CF3B31;
 }
 
-.modal .close:hover{
+body.TEMPLATE .modal .close:hover{
   background:#B30C00;
 }
 
-.modal .submit:hover,
-.modal .close:hover{
+body.TEMPLATE .modal .submit:hover,
+body.TEMPLATE .modal .close:hover{
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
 }
 
-.modal-header {
+body.TEMPLATE .modal-header {
   background-color: rgba(0, 0, 0, 0.3);
   color: white;
 }
 
-.modal-footer {
+body.TEMPLATE .modal-footer {
   background-color: rgba(0, 0, 0, 0.3);
   color: white;
 }
 
-.stale.test-results .stale-warning {
+body.TEMPLATE .stale.test-results .stale-warning {
   color: white;
   background-color: hsl(212, 30%, 50%)
 }
 
-.stale.test-results .check-block-failed {
+body.TEMPLATE .stale.test-results .check-block-failed {
   background-color: hsl(45,30%,85%);
 }
 
-.stale.test-results .check-block-success {
+body.TEMPLATE .stale.test-results .check-block-success {
   background-color: hsl(88, 30%, 76%);
 }
 
-.stale.test-results .check-block-errored {
+body.TEMPLATE .stale.test-results .check-block-errored {
   background-color: hsl(0, 30%, 85%);
 }
 
-.stale.test-results .check-block-test.failing-test:not(.highlights-active) {
+body.TEMPLATE .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
   background-color: hsl(45, 30%, 93%);
 }
 
-.stale.test-results .check-block-test.highlights-active {
+body.TEMPLATE .stale.test-results .check-block-test.highlights-active {
   background-color: hsl(45,0%,95%);
 }
 
-.stale.test-results .check-block-test.highlights-active > header {
+body.TEMPLATE .stale.test-results .check-block-test.highlights-active > header {
   background-color: hsl(45, 50%, 85%);
 }
 
-.stale.test-results .check-block-test.passing-test {
+body.TEMPLATE .stale.test-results .check-block-test.passing-test {
   background-color: hsl(90, 10%, 91%);
 }
 
-.stale.test-results .testing-summary .summary-passed {
+body.TEMPLATE .stale.test-results .testing-summary .summary-passed {
   background-color: hsl(88, 30%, 76%);
 }
 
-.stale.test-results .testing-summary .summary-failed {
+body.TEMPLATE .stale.test-results .testing-summary .summary-failed {
   background-color: hsl(45,30%,85%);
 }
 
-.stale.test-results .testing-summary .summary-errored {
+body.TEMPLATE .stale.test-results .testing-summary .summary-errored {
   background-color: hsl(0, 30%, 70%);
 }
 
-.stale .compile-error.highlights-active,
-.stale .compile-error.highlights-active,
-.stale .check-block-test.highlights-active {
+body.TEMPLATE .stale .compile-error.highlights-active,
+body.TEMPLATE .stale .compile-error.highlights-active,
+body.TEMPLATE .stale .check-block-test.highlights-active {
   border-color: hsl(204, 40%, 74%);
 }
-.error-bg {
+body.TEMPLATE .error-bg {
   background-color: #FF9494;
 }
-.ok-bg {
+body.TEMPLATE .ok-bg {
   background-color: #FFFFFF;
 }
 
-#loader {
+body.TEMPLATE #loader {
   background: url('/img/pyret-spin.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
 }
 
-#help-keys {
+body.TEMPLATE #help-keys {
   background-color: #ddd;
   border: 50px solid rgba(0, 0, 0, 0.7);
 }
 
-#doc-overlay{
+body.TEMPLATE #doc-overlay{
   box-shadow: 0px 0px 5px black;
 }
 
-#doc-overlay iframe{
+body.TEMPLATE #doc-overlay iframe{
   background-color: #ddd;
 }
 
-#doc-bar{
+body.TEMPLATE #doc-bar{
   color: #fff;
   background: #C8C8C8;
 }
 
-#doc-close{
+body.TEMPLATE #doc-close{
   background: rgba(0,0,0,0.3);
 }
 
-#doc-close:hover{
+body.TEMPLATE #doc-close:hover{
   background: rgba(0,0,0,0.6);
 }
 
-#header {
+body.TEMPLATE #header {
   background:#C8C8C8;
   box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
 }
 
-#showFilename {
+body.TEMPLATE #showFilename {
   color: rgba(0, 0, 0, 0.5);
 }
 
-#header a {
+body.TEMPLATE #header a {
   color: #111;
 }
 
-#toolbar {
+body.TEMPLATE #toolbar {
   background-color: #111;
 }
 
-#footer {
+body.TEMPLATE #footer {
   background-color: #111;
 }
 
-.blueButton {
+body.TEMPLATE .blueButton {
     background-color: rgba(0,0,0,0.3);
     color: #fff;
 }
 
-.blueButton:hover {
+body.TEMPLATE .blueButton:hover {
     box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
     background: rgba(0,0,0,0.6);
 }
 
-.blueButton:disabled {
+body.TEMPLATE .blueButton:disabled {
     color: rgba(0, 0, 0, 0.26);
 }
 
-.share {
+body.TEMPLATE .share {
   background-color: #fefefe;
   box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
 }
 
-.ui-tooltip {
+body.TEMPLATE .ui-tooltip {
   background: #fff;
 }
 
-.ui-tooltip.ui-widget-content {
+body.TEMPLATE .ui-tooltip.ui-widget-content {
   background: #fff;
 }
 
-.sharebox {
+body.TEMPLATE .sharebox {
   border: 1px solid #111;
 }
