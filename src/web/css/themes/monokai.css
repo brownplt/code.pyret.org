@@ -1,17 +1,29 @@
 /*  Taken from https://codemirror.net/theme/monokai.css 
     Modified slightly. */
 
+/* color variables for the Monokai theme */
+body.monokai {
+  --background: #272822;      /* main (editor) background */
+  --default-text: #f8f8f2;     /* default program text */
+  --text-highlight: #43453b;  /* text highlighted by mouse drag, or check:...end, etc. */
+}
+
 body.monokai .CodeMirror {
-  background: #272822 !important;
-  color: #f8f8f2 !important;
+  background: var(--background) !important;
+  color: var(--default-text) !important;
 }
 
 body.monokai .cm-s-default .CodeMirror-line::selection,
 body.monokai .cm-s-default .CodeMirror-line > span::selection, 
-body.monokai .cm-s-default .CodeMirror-line > span > span::selection { background: rgba(73, 72, 62, .99) !important; }
+body.monokai .cm-s-default .CodeMirror-line > span > span::selection { 
+  background: rgba(73, 72, 62, .99) !important; 
+}
 body.monokai .cm-s-default .CodeMirror-line::-moz-selection,
 body.monokai .cm-s-default .CodeMirror-line > span::-moz-selection, 
-body.monokai .cm-s-default .CodeMirror-line > span > span::-moz-selection { background: rgba(73, 72, 62, .99) !important; }
+body.monokai .cm-s-default .CodeMirror-line > span > span::-moz-selection { 
+  background: rgba(73, 72, 62, .99) !important; 
+}
+
 body.monokai .cm-s-default .CodeMirror-gutters { background: #272822 !important; border-right: 0px !important; }
 body.monokai .cm-s-default .CodeMirror-guttermarker { color: white !important; }
 body.monokai .cm-s-default .CodeMirror-guttermarker-subtle { color: #d0d0d0 !important; }
@@ -34,7 +46,7 @@ body.monokai .cm-s-default span.cm-attribute { color: #a6e22e !important; }
 body.monokai .cm-s-default span.cm-keyword { color: #f92672 !important; }
 body.monokai .cm-s-default span.cm-builtin { color: #66d9ef !important; }
 body.monokai .cm-s-default span.cm-string { color: #A6E22E !important; }
-body.monokai .cm-s-default span.cm-variable { color: #f8f8f2 !important; }
+body.monokai .cm-s-default span.cm-variable { color: var(--normal-text) !important; }
 body.monokai .cm-s-default span.cm-variable-2 { color: #9effff !important; }
 body.monokai .cm-s-default span.cm-variable-3,
 body.monokai .cm-s-default span.cm-type { color: #66d9ef !important; }
@@ -49,41 +61,40 @@ body.monokai .cm-s-default .cm-boolean { color: #AE81FF !important; }
 
 body.monokai .cm-s-default .CodeMirror-activeline-background { background: #373831 !important; }
 body.monokai .cm-s-default .CodeMirror-matchingbracket {
-  text-decoration: underline !important;
   color: white !important;
 }
 
 /* this handles selected regions (by mouse dragging) */
 body.monokai .cm-s-default div.CodeMirror-selected,
-body.monokai span.CodeMirror-selectedtext { background: #49483E !important; }
+body.monokai span.CodeMirror-selectedtext { background: var(--text-highlight) !important; }
 
 /*  Below handles regions automatically highlighted by Pyret
     (e.g. "fun ... end") */
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
-  background-color: #43453b !important;
-  border-top: 0.1em solid #43453b !important;
-  border-bottom: 0.1em solid #43453b !important;
+  background-color: var(--text-highlight) !important;
+  border-top: 0.1em solid var(--text-highlight) !important;
+  border-bottom: 0.1em solid var(--text-highlight) !important;
 }
 
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
-  box-shadow: 0.5em 0 0.25em #43453b !important;
+  box-shadow: 0.5em 0 0.25em var(--text-highlight) !important;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
-  box-shadow: -0.5em 0 0.25em #43453b !important;
+  box-shadow: -0.5em 0 0.25em var(--text-highlight) !important;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
-  box-shadow: -0.5em 0 0.25em #43453b, 0.5em 0 0.25em #43453b !important;
+  box-shadow: -0.5em 0 0.25em var(--text-highlight), 0.5em 0 0.25em var(--text-highlight) !important;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.open {
-box-shadow: -0.3ex 0 0.3ex #43453b !important;
+box-shadow: -0.3ex 0 0.3ex var(--text-highlight) !important;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
-box-shadow: 0.5em 0 0.25em #43453b, -0.3ex 0 0.3ex #43453b !important;
+box-shadow: 0.5em 0 0.25em var(--text-highlight), -0.3ex 0 0.3ex var(--text-highlight) !important;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.close {
-box-shadow: 0.3ex 0 0.3ex #43453b !important;
+box-shadow: 0.3ex 0 0.3ex var(--text-highlight) !important;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
-box-shadow: -0.5em 0 0.25em #43453b, 0.3ex 0 0.3ex #43453b !important;
+box-shadow: -0.5em 0 0.25em var(--text-highlight), 0.3ex 0 0.3ex var(--text-highlight) !important;
 }
