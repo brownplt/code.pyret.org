@@ -4,6 +4,7 @@ body.TEMPLATE {
   --yellow: #FEFF9D;
   --light-gray: #b3b3b3;
   --dark-gray: #1a1a1a;
+  --red: red;
 }
 
 /* variables that determine the theme's color scheme */
@@ -51,6 +52,8 @@ body.TEMPLATE {
   --run-button:   var(--yellow); /* top-right Run button */
   --stop-button:  var(--yellow); /* top-right Stop button */
   --footer:       var(--yellow); /* footer with login info / save info */
+
+  --unknown: var(--red);  /* unknown elements */
 }
 
 /* wrapper on entire editor */
