@@ -9,92 +9,92 @@ body.monokai {
 }
 
 body.monokai .CodeMirror {
-  background: var(--background) !important;
-  color: var(--default-text) !important;
+  background: var(--background) ;
+  color: var(--default-text) ;
 }
 
 body.monokai .cm-s-default .CodeMirror-line::selection,
 body.monokai .cm-s-default .CodeMirror-line > span::selection, 
 body.monokai .cm-s-default .CodeMirror-line > span > span::selection { 
-  background: rgba(73, 72, 62, .99) !important; 
+  background: rgba(73, 72, 62, .99) ; 
 }
 body.monokai .cm-s-default .CodeMirror-line::-moz-selection,
 body.monokai .cm-s-default .CodeMirror-line > span::-moz-selection, 
 body.monokai .cm-s-default .CodeMirror-line > span > span::-moz-selection { 
-  background: rgba(73, 72, 62, .99) !important; 
+  background: rgba(73, 72, 62, .99) ; 
 }
 
-body.monokai .cm-s-default .CodeMirror-gutters { background: #272822 !important; border-right: 0px !important; }
-body.monokai .cm-s-default .CodeMirror-guttermarker { color: white !important; }
-body.monokai .cm-s-default .CodeMirror-guttermarker-subtle { color: #d0d0d0 !important; }
-body.monokai .cm-s-default .CodeMirror-linenumber { color: #d0d0d0 !important; }
-body.monokai .cm-s-default .CodeMirror-cursor { border-left: 1px solid #f8f8f0 !important; }
+body.monokai .cm-s-default .CodeMirror-gutters { background: #272822 ; border-right: 0px ; }
+body.monokai .cm-s-default .CodeMirror-guttermarker { color: white ; }
+body.monokai .cm-s-default .CodeMirror-guttermarker-subtle { color: #d0d0d0 ; }
+body.monokai .cm-s-default .CodeMirror-linenumber { color: #d0d0d0 ; }
+body.monokai .cm-s-default .CodeMirror-cursor { border-left: 1px solid #f8f8f0 ; }
 
-body.monokai .cm-s-default span.cm-comment { color: #75715e !important; }
-body.monokai .cm-s-default span.cm-atom { color: #ae81ff !important; }
-body.monokai .cm-s-default span.cm-number { color: #ae81ff !important; }
-body.monokai .cm-s-default span.cm-roughnum { color: #E69F66 !important; font-weight: bold
-  !important;}
+body.monokai .cm-s-default span.cm-comment { color: #75715e ; }
+body.monokai .cm-s-default span.cm-atom { color: #ae81ff ; }
+body.monokai .cm-s-default span.cm-number { color: #ae81ff ; }
+body.monokai .cm-s-default span.cm-roughnum { color: #E69F66 ; font-weight: bold
+  ;}
 
-body.monokai .cm-s-default span.cm-comment.cm-attribute { color: #97b757 !important; }
-body.monokai .cm-s-default span.cm-comment.cm-def { color: #bc9262 !important; }
-body.monokai .cm-s-default span.cm-comment.cm-tag { color: #bc6283 !important; }
-body.monokai .cm-s-default span.cm-comment.cm-type { color: #5998a6 !important; }
+body.monokai .cm-s-default span.cm-comment.cm-attribute { color: #97b757 ; }
+body.monokai .cm-s-default span.cm-comment.cm-def { color: #bc9262 ; }
+body.monokai .cm-s-default span.cm-comment.cm-tag { color: #bc6283 ; }
+body.monokai .cm-s-default span.cm-comment.cm-type { color: #5998a6 ; }
 
 body.monokai .cm-s-default span.cm-property,
-body.monokai .cm-s-default span.cm-attribute { color: #a6e22e !important; }
-body.monokai .cm-s-default span.cm-keyword { color: #f92672 !important; }
-body.monokai .cm-s-default span.cm-builtin { color: #66d9ef !important; }
-body.monokai .cm-s-default span.cm-string { color: #A6E22E !important; }
-body.monokai .cm-s-default span.cm-variable { color: var(--normal-text) !important; }
-body.monokai .cm-s-default span.cm-variable-2 { color: #9effff !important; }
+body.monokai .cm-s-default span.cm-attribute { color: #a6e22e ; }
+body.monokai .cm-s-default span.cm-keyword { color: #f92672 ; }
+body.monokai .cm-s-default span.cm-builtin { color: #66d9ef ; }
+body.monokai .cm-s-default span.cm-string { color: #A6E22E ; }
+body.monokai .cm-s-default span.cm-variable { color: var(--normal-text) ; }
+body.monokai .cm-s-default span.cm-variable-2 { color: #9effff ; }
 body.monokai .cm-s-default span.cm-variable-3,
-body.monokai .cm-s-default span.cm-type { color: #66d9ef !important; }
-body.monokai .cm-s-default span.cm-def { color: #fd971f !important; }
-body.monokai .cm-s-default span.cm-bracket { color: #f8f8f2 !important; }
-body.monokai .cm-s-default span.cm-tag { color: #f92672 !important; }
-body.monokai .cm-s-default span.cm-header { color: #ae81ff !important; }
-body.monokai .cm-s-default span.cm-link { color: #ae81ff !important; }
-body.monokai .cm-s-default span.cm-error { background: #f92672 !important; color: #f8f8f0 !important; }
-body.monokai .cm-s-default .cm-function-name {  color: #f8f8f2 !important; }
-body.monokai .cm-s-default .cm-boolean { color: #AE81FF !important; }
+body.monokai .cm-s-default span.cm-type { color: #66d9ef ; }
+body.monokai .cm-s-default span.cm-def { color: #fd971f ; }
+body.monokai .cm-s-default span.cm-bracket { color: #f8f8f2 ; }
+body.monokai .cm-s-default span.cm-tag { color: #f92672 ; }
+body.monokai .cm-s-default span.cm-header { color: #ae81ff ; }
+body.monokai .cm-s-default span.cm-link { color: #ae81ff ; }
+body.monokai .cm-s-default span.cm-error { background: #f92672 ; color: #f8f8f0 ; }
+body.monokai .cm-s-default .cm-function-name {  color: #f8f8f2 ; }
+body.monokai .cm-s-default .cm-boolean { color: #AE81FF ; }
 
-body.monokai .cm-s-default .CodeMirror-activeline-background { background: #373831 !important; }
+body.monokai .cm-s-default .CodeMirror-activeline-background { background: #373831 ; }
 body.monokai .cm-s-default .CodeMirror-matchingbracket {
-  color: white !important;
+  color: white ;
 }
 
 /* this handles selected regions (by mouse dragging) */
 body.monokai .cm-s-default div.CodeMirror-selected,
-body.monokai span.CodeMirror-selectedtext { background: var(--text-highlight) !important; }
+body.monokai span.CodeMirror-selectedtext { background: var(--text-highlight) ; }
 
 /*  Below handles regions automatically highlighted by Pyret
     (e.g. "fun ... end") */
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
-  background-color: var(--text-highlight) !important;
-  border-top: 0.1em solid var(--text-highlight) !important;
-  border-bottom: 0.1em solid var(--text-highlight) !important;
+  background-color: var(--text-highlight) ;
+  border-top: 0.1em solid var(--text-highlight) ;
+  border-bottom: 0.1em solid var(--text-highlight) ;
 }
 
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
-  box-shadow: 0.5em 0 0.25em var(--text-highlight) !important;
+  box-shadow: 0.5em 0 0.25em var(--text-highlight) ;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
-  box-shadow: -0.5em 0 0.25em var(--text-highlight) !important;
+  box-shadow: -0.5em 0 0.25em var(--text-highlight) ;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
-  box-shadow: -0.5em 0 0.25em var(--text-highlight), 0.5em 0 0.25em var(--text-highlight) !important;
+  box-shadow: -0.5em 0 0.25em var(--text-highlight), 0.5em 0 0.25em var(--text-highlight) ;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.open {
-box-shadow: -0.3ex 0 0.3ex var(--text-highlight) !important;
+box-shadow: -0.3ex 0 0.3ex var(--text-highlight) ;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
-box-shadow: 0.5em 0 0.25em var(--text-highlight), -0.3ex 0 0.3ex var(--text-highlight) !important;
+box-shadow: 0.5em 0 0.25em var(--text-highlight), -0.3ex 0 0.3ex var(--text-highlight) ;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.close {
-box-shadow: 0.3ex 0 0.3ex var(--text-highlight) !important;
+box-shadow: 0.3ex 0 0.3ex var(--text-highlight) ;
 }
 body.monokai div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
-box-shadow: -0.5em 0 0.25em var(--text-highlight), 0.3ex 0 0.3ex var(--text-highlight) !important;
+box-shadow: -0.5em 0 0.25em var(--text-highlight), 0.3ex 0 0.3ex var(--text-highlight) ;
 }
