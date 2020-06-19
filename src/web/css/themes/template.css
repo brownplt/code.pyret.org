@@ -57,7 +57,7 @@ body.TEMPLATE {
 }
 
 /* wrapper on entire editor */
-body.TEMPLATE .CodeMirror, 
+body.TEMPLATE .CodeMirror,
 body.TEMPLATE .inlineExample {
   background: var(--background);
   color: var(--background);
@@ -357,7 +357,7 @@ body.TEMPLATE .replOutputFailed {
   color: #af1180;
 }
 
-body.TEMPLATE .test-reason, 
+body.TEMPLATE .test-reason,
 body.TEMPLATE .nestedReason {
  color: #af1180;
 }
@@ -484,12 +484,12 @@ body.TEMPLATE #handle{
   border: 1px solid #A6A6A6;
 }
 
-body.TEMPLATE #runButton, 
+body.TEMPLATE #runButton,
 body.TEMPLATE #breakButton {
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
-body.TEMPLATE #runButton:disabled, 
+body.TEMPLATE #runButton:disabled,
 body.TEMPLATE #breakButton:disabled {
   background: none;
   box-shadow: none;
@@ -516,7 +516,7 @@ body.TEMPLATE #breakButton:hover{
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
 }
 
-body.TEMPLATE #runButton:hover[disabled], 
+body.TEMPLATE #runButton:hover[disabled],
 body.TEMPLATE #breakButton:hover[disabled] {
   background: none;
   box-shadow: none;
@@ -645,244 +645,138 @@ body.TEMPLATE .cm-snippet header {
   border-bottom: 1px hsl(0, 0%, 60%) solid;
 }
 
-body.TEMPLATE #main.spotlight div.CodeMirror span:not(.spotlight) {
-  background-color: initial!important;
-}
-
-body.TEMPLATE #main.spotlight div.CodeMirror span.spotlight {
-  background-color: white!important;
-}
-
-body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket,
-body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket.open,
-body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket.close,
-body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket-region,
-body.TEMPLATE #main.spotlight .repl-echo > div.CodeMirror,
-body.TEMPLATE #main.spotlight .repl,
-body.TEMPLATE #main.spotlight .repl-prompt > div.CodeMirror,
-body.TEMPLATE #main.spotlight > div.replMain > div.CodeMirror {
-  background-color: rgb(150,150,150);
-}
-
-body.TEMPLATE #main.spotlight .check-block {
-  background-color: hsl(45, 9%, 66%);
-}
-
-body.TEMPLATE .stacktrace > div:hover {
-  box-shadow:0 0 1em rgba(0,0,0,0.4);
-}
-
 body.TEMPLATE table {
-    border:1px black solid;
-    background:#eee;;
+    border:1px var(--default-text) solid;
+    background: var(background-lighter);
 }
 
 body.TEMPLATE div.choiceContainer > button {
-  background-color: #317BCF;
-  color: #fff;
+  background-color: var(--unknown);
+  color: var(--unknown);
   transition: box-shadow 0.2s;
 }
 
 body.TEMPLATE th {
-    background: #ddd;
+    background: var(--background-darker);
 }
 
 body.TEMPLATE th, td {
-    border-right:1px white solid;
+    border-right:1px var(--default-text) solid;
 }
 
-body.TEMPLATE tr:nth-child(even){background-color: #f2f2f2}
+body.TEMPLATE tr:nth-child(even){background-color: var(--background-lighter-2)}
 
 body.TEMPLATE table.pyret-table thead {
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 2px 2px var(--background-lighter);
 }
 body.TEMPLATE table.pyret-row th {
-  box-shadow: 2px 0px 2px rgba(0, 0, 0, 0.2), -2px 0px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 0px 2px var(--background-lighter), -2px 0px 2px var(--background-lighter);
 }
 /* NOTE(joe): this helps distinguish a row that appears in a table cell */
 body.TEMPLATE table.pyret-row {
-  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* MODAL */
-/* The Modal (background) */
-body.TEMPLATE .modal {
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
-
-/* Modal Content */
-body.TEMPLATE .modal-content {
-  background-color: #C8C8C8;
-  border: 1px solid #888;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-}
-
-body.TEMPLATE .modal .submit,
-body.TEMPLATE .modal .close  {
-  box-shadow: 0px -2px 5px 1px rgba(0,0,0,0.2);
-}
-
-body.TEMPLATE .modal .submit{
-  background: #317BCF;
-}
-
-body.TEMPLATE .modal .submit:hover{
-  background:#0060CE;
-}
-
-body.TEMPLATE .modal .close{
-  background:#CF3B31;
-}
-
-body.TEMPLATE .modal .close:hover{
-  background:#B30C00;
-}
-
-body.TEMPLATE .modal .submit:hover,
-body.TEMPLATE .modal .close:hover{
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
-}
-
-body.TEMPLATE .modal-header {
-  background-color: rgba(0, 0, 0, 0.3);
-  color: white;
-}
-
-body.TEMPLATE .modal-footer {
-  background-color: rgba(0, 0, 0, 0.3);
-  color: white;
+  box-shadow: 2px 2px 2px var(--background-lighter);
 }
 
 body.TEMPLATE .stale.test-results .stale-warning {
   color: white;
-  background-color: hsl(212, 30%, 50%)
+  background-color: var(--check-fail);
 }
 
 body.TEMPLATE .stale.test-results .check-block-failed {
-  background-color: hsl(45,30%,85%);
+  background-color: var(--check-fail);
 }
 
 body.TEMPLATE .stale.test-results .check-block-success {
-  background-color: hsl(88, 30%, 76%);
+  background-color: var(--check-pass);
 }
 
 body.TEMPLATE .stale.test-results .check-block-errored {
-  background-color: hsl(0, 30%, 85%);
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
-  background-color: hsl(45, 30%, 93%);
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.highlights-active {
-  background-color: hsl(45,0%,95%);
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.highlights-active > header {
-  background-color: hsl(45, 50%, 85%);
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.passing-test {
-  background-color: hsl(90, 10%, 91%);
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .stale.test-results .testing-summary .summary-passed {
-  background-color: hsl(88, 30%, 76%);
+  background-color: var(--check-pass);
 }
 
 body.TEMPLATE .stale.test-results .testing-summary .summary-failed {
-  background-color: hsl(45,30%,85%);
+  background-color: var(--check-fail);
 }
 
 body.TEMPLATE .stale.test-results .testing-summary .summary-errored {
-  background-color: hsl(0, 30%, 70%);
+  background-color: var(--check-error);
 }
 
 body.TEMPLATE .stale .compile-error.highlights-active,
 body.TEMPLATE .stale .compile-error.highlights-active,
 body.TEMPLATE .stale .check-block-test.highlights-active {
-  border-color: hsl(204, 40%, 74%);
+  border-color: var(--unknown);
 }
 body.TEMPLATE .error-bg {
-  background-color: #FF9494;
+  background-color: var(--check-error);
 }
 body.TEMPLATE .ok-bg {
-  background-color: #FFFFFF;
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE #help-keys {
-  background-color: #ddd;
-  border: 50px solid rgba(0, 0, 0, 0.7);
+  background-color: var(--unknown);
+  border: 50px solid var(--unknown);
 }
 
 body.TEMPLATE #doc-overlay{
-  box-shadow: 0px 0px 5px black;
+  box-shadow: 0px 0px 5px var(--unknown);
 }
 
 body.TEMPLATE #doc-overlay iframe{
-  background-color: #ddd;
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE #doc-bar{
-  color: #fff;
-  background: #C8C8C8;
+  color: var(--unknown);
+  background: var(--unknown);
 }
 
 body.TEMPLATE #doc-close{
-  background: rgba(0,0,0,0.3);
+  background: var(--unknown);
 }
 
 body.TEMPLATE #doc-close:hover{
-  background: rgba(0,0,0,0.6);
-}
-
-body.TEMPLATE #header {
-  background:#C8C8C8;
-  box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
-}
-
-body.TEMPLATE #showFilename {
-  color: rgba(0, 0, 0, 0.5);
+  background: var(--unknown);
 }
 
 body.TEMPLATE #header a {
-  color: #111;
-}
-
-body.TEMPLATE #toolbar {
-  background-color: #111;
-}
-
-body.TEMPLATE #footer {
-  background-color: #111;
-}
-
-body.TEMPLATE .blueButton {
-  color: #fff;
-}
-
-body.TEMPLATE .blueButton:hover {
-  box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
-}
-
-body.TEMPLATE .blueButton:disabled {
-    color: rgba(0, 0, 0, 0.26);
+  color: var(--default-text);
 }
 
 body.TEMPLATE .share {
-  background-color: #fefefe;
-  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
+  background-color: var(--unknown);
+  box-shadow: 0px 3px 5px var(--unknown);
 }
 
 body.TEMPLATE .ui-tooltip {
-  background: #fff;
+  background: var(--unknown);
 }
 
 body.TEMPLATE .ui-tooltip.ui-widget-content {
-  background: #fff;
+  background: var(--unknown);
 }
 
 body.TEMPLATE .sharebox {
-  border: 1px solid #111;
+  border: 1px solid var(--unknown);
 }
