@@ -20,6 +20,7 @@ body.TEMPLATE {
   --keyword:          var(--dark-gray); /* keywords */
   --number:           var(--dark-gray); /* regular numbers */
   --roughnum:         var(--dark-gray); /* rough nums */
+  --rational:         var(--dark-gray); /* rational numbers */
   --bad-number:       var(--dark-gray); /* bad numbers */
   --string:           var(--dark-gray); /* strings */
   --unterm-string:    var(--dark-gray); /* unterminated strings */
@@ -37,6 +38,8 @@ body.TEMPLATE {
   --background-lighter:   var(--yellow); /* lighter background */
   --background-lighter-2: var(--yellow); /* even lighter background */
 
+  --repl-out:           var(--light-gray);  /* REPL output (non-printed) */
+  --err-highlight:      var(--light-gray);  /* links to problematic areas from check blocks */
   --check-pass:         var(--yellow); /* check block bg color */
   --check-pass-lighter: var(--yellow); /* lighter than check bg */
   --check-fail:         var(--yellow); /* check fail bg color */
@@ -163,7 +166,6 @@ body.TEMPLATE div.trace.error {
 
 body.TEMPLATE div.spy-block {
   border: 1px solid var(--background-darker-2);
-  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
   background: var(--background-darker);
 }
 
@@ -172,285 +174,158 @@ body.TEMPLATE div.spy-block > .spy-title {
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr {
-    background: rgba(255, 255, 255, 0.3);
     border: 1px solid var(--background-darker-2);
-}
-
-body.TEMPLATE div.spy-block > table > tbody > tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.2);
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr > td {
     border-right:  1px solid var(--background-darker-2);
 }
 
-body.TEMPLATE .test-reason:not(.highlights-active) .highlight {
-  background: initial!important;
-}
-
 body.TEMPLATE #output > .compile-error:not(.highlights-active):hover:after,
 body.TEMPLATE .check-block-error > .compile-error:not(.highlights-active):hover::after,
 body.TEMPLATE .check-block-test.failing-test:not(.highlights-active):hover {
-    box-shadow: 0 0 2em hsl(204, 100%, 80%);
-}
-
-body.TEMPLATE #output > .compile-error:not(.highlights-active):hover:after,
-body.TEMPLATE .check-block-error > .compile-error:not(.highlights-active):hover::after,
-body.TEMPLATE .check-block-test.failing-test:not(.highlights-active):hover::after{
-    background: linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.0) 0%,
-        rgba(255, 255, 255, 0.2) 37%,
-        rgba(255, 255, 255, 0.8) 45%,
-        rgba(255, 255, 255, 0.0) 50%);
+    box-shadow: 0 0 2em var(--err-halo-selected);
 }
 
 body.TEMPLATE .repl {
-  background-color: #f8f8f8;
+  background-color: var(--background);
 }
 
 body.TEMPLATE .check {
-  border: 1px solid black;
+  border: 1px solid var(--unknown);
 }
 
 body.TEMPLATE .check-success {
-  background-color: #cfc;
+  background-color: var(--check-pass);
 }
 
 body.TEMPLATE .check-failure {
-  background-color: #d66;
+  background-color: var(--check-fail);
 }
 
 body.TEMPLATE .check-block {
-  box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
-  background: #E1F5FE;
+  background: var(--background-lighter);
 }
 
 body.TEMPLATE .check-block-failed {
-  background-color: #FFECB3;
+  background-color: var(--check-fail);
 }
 
 body.TEMPLATE .check-block-errored {
-  background-color: hsl(0, 100%, 90%);
+  background-color: var(--check-error);
 }
 
 body.TEMPLATE .check-block-success {
-  background-color: #c5e1a5;
+  background-color: var(--check-pass);
 }
 
 body.TEMPLATE .testing-summary{
-  color: white;
-  background: hsl(212, 62%, 50%);
-}
-
-body.TEMPLATE .check-block-test {
-  background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
+  color: var(--default-text);
+  background: var(--background-lighter-2);
 }
 
 body.TEMPLATE .progressStep {
-  border: 1px solid black;
+  border: 1px solid var(--unknown);
 }
 
 body.TEMPLATE .progressStep.done {
-  background-color: green;
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .progressDone {
-  color: green;
+  color: var(--unknown);
 }
 
 body.TEMPLATE .instructionsWidget {
-  background-color: #fcf;
-  border: 1px dotted #c0c;
-  color: #111;
+  background-color: var(--unknown);
+  border: 1px dotted var(--unknown);
+  color: var(--unknown);
 }
 
 body.TEMPLATE .instructionsWidget .toggleInstructions {
-  color: #666;
+  color: var(--unknown);
 }
 
 body.TEMPLATE #program-name-container input {
-  background: #FEFEFE;
-}
-
-body.TEMPLATE #welcome {
-  color: #eeeeee;
-}
-
-body.TEMPLATE .notificationArea {
-  background: #111111;
-}
-
-body.TEMPLATE .notificationArea .active {
-  color: #eee;
-}
-
-body.TEMPLATE .notificationArea .error {
-  color: #F44336;
-}
-
-body.TEMPLATE .notificationArea .autoCorrect-msg{
-  color: #eee;
-}
-
-body.TEMPLATE .notificationArea .autoCorrect-button{
-  color: #F44336;
-}
-
-body.TEMPLATE .menuContents {
-  background-color: #EFEFEF;
-  box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
-}
-
-body.TEMPLATE .menuContents div:not(.disabled):not(.inert):hover{
-  background-color: rgba(0,0,0,0.2);
-}
-
-body.TEMPLATE .menuContents div.disabled * {
-   color: gray;
-}
-
-body.TEMPLATE .menuButton *,
-body.TEMPLATE .menuContents * {
-  color: #000;
-}
-
-body.TEMPLATE .info-btn {
-  color: white;
-  background-color: #317bcf;
-}
-
-body.TEMPLATE .info-btn:hover {
-  background-color: #0060ce;
-}
-
-body.TEMPLATE div#font{
-  border: 1px solid rgba(0,0,0,0.1);
-  background:rgba(0,0,0,0.05);
-}
-
-body.TEMPLATE div#font:hover{
-  background:rgba(0,0,0,0.05);
-}
-
-body.TEMPLATE #font-label{
-  border: 1px solid rgba(0,0,0,0.1);
+  background: var(--background);
 }
 
 body.TEMPLATE .replPrint {
-  color: #111;
+  color: var(--default-text);
 }
 
 body.TEMPLATE .replOutput {
-  color: #1f1180;
+  color: var(--repl-out);
 }
 
 body.TEMPLATE .replOutput.expanded > dl {
-   border: 1px solid gray;
+   border: 1px solid var(--unknown);
 }
 
 body.TEMPLATE .replOutputPassed {
-  color: #1f9180;
+  color: var(--unknown);
 }
 
 body.TEMPLATE .replOutputFailed {
-  color: #af1180;
-}
-
-body.TEMPLATE .test-reason, 
-body.TEMPLATE .nestedReason {
- color: #af1180;
+  color: var(--unknown);
 }
 
 body.TEMPLATE .rationalNumber {
- color: #af1180;
-}
-
-body.TEMPLATE .replImageThumbnail canvas {
-  box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
+ color: var(--rational);
 }
 
 body.TEMPLATE .replImageThumbnail:hover canvas {
-  box-shadow: 0px 2px 4px rgba(128,0,0,0.75);
-}
-
-body.TEMPLATE .error-highlight {
-  background-color: #fcc !important;
-  border-bottom: 2px solid #F33 !important;
-}
-
-body.TEMPLATE .loc-anchor {
-  border-bottom: 2px solid currentColor;
+  box-shadow: 0px 2px 4px var(--background-lighter-2);
 }
 
 body.TEMPLATE .test-reason {
-  color: black;
+  color: var(--default-text);
 }
 
 body.TEMPLATE a.highlight {
-  color: #000 !important;
-}
-
-body.TEMPLATE .hinted-highlight {
-  border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
-}
-
-body.TEMPLATE .highlight {
-  border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
-}
-
-body.TEMPLATE .highlight.emphasize:not(:hover)::before {
-  box-shadow:0 0 200px 1em black;
+  color: var(--err-highlight) !important;
 }
 
 body.TEMPLATE .emphasize-line {
-  background-color:#BBB;
-}
-
-body.TEMPLATE .underline:not(:hover) {
-  background-color: initial;
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .check-highlight {
- background-color: #CCF;
- border-bottom: 2px solid #33F;
+ background-color: var(--unknown);
+ border-bottom: 2px solid var(--unknown);
 }
 
 body.TEMPLATE .compile-error {
-  border: 1px dashed #FF3131;
-  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
-  background: #FFF2F2;
+  border: 1px dashed var(--err-halo-unselected);
+  background: var(--check-error-lighter);
 }
 
 body.TEMPLATE .compile-error a {
-  color: #469ad4;
+  color: var(--err-halo-selected);
 }
 
 body.TEMPLATE .parse-error {
-  border: 1px dashed #FF3131;
-  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
-  background: #FFF2F2;
+  border: 1px dashed var(--err-halo-unselected);
+  background: var(--background);
 }
 
 body.TEMPLATE .error-icon {
-  color: #f33;
+  color: var(--err-halo-selected);
 }
 
 body.TEMPLATE .parse-error a {
-  color: #469ad4;
+  color: var(--err-halo-unselected);
 }
 
-body.TEMPLATE .warning-upper {
-  background-image:
-      url('/img/up-arrow.png'),
-      linear-gradient(to bottom,  hsla(0,100%,89%,1) 0%,rgba(145,78,78,0) 50%);
-}
 
-body.TEMPLATE .warning-lower {
-  background-image:
-      url('/img/down-arrow.png'),
-      linear-gradient(to top,  hsla(0,100%,89%,1) 0%,rgba(145,78,78,0) 50%);
-}
+
+
+
+
+/*--------------------------------------------------------------------------*/
+/* Left off */
+/* ------------------------------------------------------------------------ */
+
 
 body.TEMPLATE .topbar {
   background-color: #eee;
