@@ -1,105 +1,142 @@
 
+/* color palette for this theme */
+body.TEMPLATE {
+  --yellow: #FEFF9D;
+  --light-gray: #b3b3b3;
+  --dark-gray: #1a1a1a;
+}
+
 /* variables that determine the theme's color scheme */
 body.TEMPLATE {
   /* syntax-highlighting */
-  --default-text: /* default program text */
-  --cursor: /* CodeMirror cursor */
-  --comment: /* CodeMirror code comments */
-  --boolean: /* CodeMirror boolean */
-  --builtin: /* CodeMirror builtin */
-  --function-name: /* CodeMirror function name */
-  --variable: /* CodeMirror variable */
-  --keyword: /* CodeMirror keyword */
-  --number: /* CodeMirror number */
-  --roughnum: /* CodeMirror rough num */
-  --bad-number: /* CodeMirror bad number */
-  --string: /* CodeMirror string*/
-  --unterm-string: /* CodeMirror unterminated string */
-  --type: /* CodeMirror type */
-  --cptteach-fixed: /**/
-  --region-highlight: /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --default-text:     var(--dark-gray); /* default program text */
+  --cursor:           var(--dark-gray); /* cursor */
+  --comment:          var(--dark-gray); /* code comments */
+  --boolean:          var(--dark-gray); /* booleans */
+  --builtin:          var(--dark-gray); /* builtins */
+  --function-name:    var(--dark-gray); /* function names */
+  --variable:         var(--dark-gray); /* variables */
+  --keyword:          var(--dark-gray); /* keywords */
+  --number:           var(--dark-gray); /* regular numbers */
+  --roughnum:         var(--dark-gray); /* rough nums */
+  --bad-number:       var(--dark-gray); /* bad numbers */
+  --string:           var(--dark-gray); /* strings */
+  --unterm-string:    var(--dark-gray); /* unterminated strings */
+  --type:             var(--dark-gray); /* types */
+  --cptteach-fixed:   var(--dark-gray);
 
-  --background: /* main background */
-  --background-: /* darker background */
-  --background--: /* even darker background */
-  --background+: /* lighter background */
-  --background++: /* even lighter background */
+  --failed-test-marker:     var(--dark-gray); /* bg of line number indicating failed test */
+  --region-highlight:       var(--light-gray); /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --matching-bracket:       var(--dark-gray); /* right angle brackets surrounding highlighted text */
+  --nonmatching-highlight:  var(--yellow);  /* bg of nonmatching regions (e.g. (} )*/
 
-  --check-pass: /* check block bg color */
-  --check-pass+: /* lighter than check bg */
-  --check-fail: /* check fail bg color */
-  --check-fail+: /* lighter than check fail */
+  --background:           var(--yellow); /* main background */
+  --background-darker:    var(--yellow); /* darker background */
+  --background-darker-2:  var(--yellow); /* even darker background */
+  --background-lighter:   var(--yellow); /* lighter background */
+  --background-lighter-2: var(--yellow); /* even lighter background */
 
-  --check-error: /* check blocks with unexpected errors */
-  --check-error+: /* lighter than check-error */
-  --summary-error: /* announcement that blocks errored (top) */
+  --check-pass:         var(--yellow); /* check block bg color */
+  --check-pass-lighter: var(--yellow); /* lighter than check bg */
+  --check-fail:         var(--yellow); /* check fail bg color */
+  --check-fail-lighter: var(--yellow);/* lighter than check fail */
 
-  --err-halo-selected: /* border around errors currently *in focus* */
-  --err-halo-unselected: /* border around errors NOT in focus */
+  --check-error:          var(--yellow); /* check blocks with unexpected errors */
+  --check-error-lighter:  var(--yellow); /* lighter than check-error */
+  --summary-error:        var(--yellow); /* announcement that blocks errored (top) */
+
+  --err-halo-selected:    var(--yellow); /* border around errors currently *in focus* */
+  --err-halo-unselected:  var(--yellow); /* border around errors NOT in focus */
+
+  --run-button:   var(--yellow); /* top-right Run button */
+  --stop-button:  var(--yellow); /* top-right Stop button */
+  --footer:       var(--yellow); /* footer with login info / save info */
 }
 
+/* wrapper on entire editor */
 body.TEMPLATE .CodeMirror, 
 body.TEMPLATE .inlineExample {
-  border: 1px solid black;
-  background: #f8f8f8;
-  color: #eee;
+  background: var(--background);
+  color: var(--background);
 }
 
+/* REPL and editor */
 body.TEMPLATE .repl .CodeMirror {
-  background-color: hsl(0,0%,95%);
+  background-color: var(--background);
 }
 
+/* syntax highlighting */
 body.TEMPLATE .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
-body.TEMPLATE .cm-s-default.CodeMirror { color: black; }
-body.TEMPLATE .cm-s-default .cm-comment { color: #cd7054; }
-body.TEMPLATE .cm-s-default .cm-boolean { color: darkred; }
-body.TEMPLATE .cm-s-default .cm-builtin { color: #555; }
-body.TEMPLATE .cm-s-default .cm-function-name { color: #374049; }
-body.TEMPLATE .cm-s-default .cm-variable { color: #4d5966; }
-body.TEMPLATE .cm-s-default .cm-keyword { color: black; font-weight: bold; }
-body.TEMPLATE .cm-s-default .cm-number { color: navy; }
-body.TEMPLATE .cm-s-default .cm-roughnum { color: blue; }
-body.TEMPLATE .cm-s-default .cm-bad-number { color: red; font-weight: bold; }
-body.TEMPLATE .cm-s-default .cm-string { color: forestgreen; }
-body.TEMPLATE .cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
-body.TEMPLATE .cm-s-default .cm-type { color: #374049; }
-body.TEMPLATE .cptteach-fixed { background: #ddd; }
+body.TEMPLATE .cm-s-default.CodeMirror { color: var(--default-text); }
+body.TEMPLATE .cm-s-default .cm-comment { color: var(--comment); }
+body.TEMPLATE .cm-s-default .cm-boolean { color: var(--boolean); }
+body.TEMPLATE .cm-s-default .cm-builtin { color: var(--builtin); }
+body.TEMPLATE .cm-s-default .cm-function-name { color: var(--function-name); }
+body.TEMPLATE .cm-s-default .cm-variable { color: var(--variable); }
+body.TEMPLATE .cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
+body.TEMPLATE .cm-s-default .cm-number { color: var(--number); }
+body.TEMPLATE .cm-s-default .cm-roughnum { color: var(--roughnum); }
+body.TEMPLATE .cm-s-default .cm-bad-number { color: var(--bad-number); font-weight: bold; }
+body.TEMPLATE .cm-s-default .cm-string { color: var(--string); }
+body.TEMPLATE .cm-s-default .cm-unterminated-string { color: var(--unterm-string); font-weight: bold; }
+body.TEMPLATE .cm-s-default .cm-type { color: var(--type); }
+body.TEMPLATE .cptteach-fixed { background: var(--cptteach-fixed); }
 
+/* text selected by mouse */
 body.TEMPLATE div.CodeMirror-selected,
 body.TEMPLATE span.CodeMirror-selectedtext {
-  background-color: #ccc!important;
+  background-color: var(--region-highlight) !important;
 }
 
+/* right angles surrounding matched regions */
 body.TEMPLATE .CodeMirror-matchingbracket::before {
-  border: 0px solid rgb(90, 149, 217);
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  border: 0px solid var(--matching-bracket);
+  z-index: 1000;
 }
 
+/* highlighting of matched regions such as (fun ... end), etc. */
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region {
-  background-color: hsl(220, 100%, 95%);
-  border-top: 0.1em solid hsl(220, 100%, 95%);
-  border-bottom: 0.1em solid hsl(220, 100%, 95%);
+  background-color: var(--region-highlight);
+  border-top: 0.1em solid var(--region-highlight);
+  border-bottom: 0.1em solid var(--region-highlight);
 }
 
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
-    box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%);
+    box-shadow: 0.5em 0 0.25em var(--region-highlight);
 }
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
-    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%);
+    box-shadow: -0.5em 0 0.25em var(--region-highlight);
 }
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
-    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.5em 0 0.25em hsl(220, 100%, 95%);
+    box-shadow: -0.5em 0 0.25em var(--region-highlight), 0.5em 0 0.25em var(--region-highlight);
 }
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.open {
-  box-shadow: -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: -0.3ex 0 0.3ex var(--region-highlight);
 }
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
-  box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%), -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: 0.5em 0 0.25em var(--region-highlight), -0.3ex 0 0.3ex var(--region-highlight);
 }
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.close {
-  box-shadow: 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: 0.3ex 0 0.3ex var(--region-highlight);
 }
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
-  box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: -0.5em 0 0.25em var(--region-highlight), 0.3ex 0 0.3ex var(--region-highlight);
+}
+
+body.TEMPLATE .CodeMirror-matchingbracket.close::before {
+  border-width: 0px 0.3ex 0.3ex 0px;
+  border-bottom-right-radius: 0.4ex;
+  margin: 0.3ex;
+}
+
+body.TEMPLATE .CodeMirror-matchingbracket.open::before {
+  border-width: 0.3ex 0px 0px 0.3ex;
+  border-top-left-radius: 0.4ex;
+  margin: -0.3ex;
 }
 
 body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket {
@@ -107,33 +144,33 @@ body.TEMPLATE div.CodeMirror span.CodeMirror-matchingbracket {
 }
 
 body.TEMPLATE div.CodeMirror span.CodeMirror-nonmatchingbracket {
-  background-color: #fdd;
-  color: #e11;
+  background-color: var(--nonmatching-highlight);
+  color: var(--check-error);
 }
 
 body.TEMPLATE div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
-  background-color: #fdc;
-  border-top: 0.1em solid #fdd;
-  border-bottom: 0.1em solid #fdd;
+  background-color: var(--nonmatching-highlight);
+  border-top: 0.1em solid var(--nonmatching-highlight);
+  border-bottom: 0.1em solid var(--nonmatching-highlight);
 }
 
 body.TEMPLATE div.trace.error {
-   background-color: #fff6f2;
+   background-color: var(--check-error-lighter);
 }
 
 body.TEMPLATE div.spy-block {
-  border: 1px solid #9DC5ED;
+  border: 1px solid var(--background-darker-2);
   box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
-  background: #CBDFF2;
+  background: var(--background-darker);
 }
 
 body.TEMPLATE div.spy-block > .spy-title {
-   border-bottom: 1px solid #9DC5ED;
+   border-bottom: 1px solid var(--background-darker-2);
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr {
     background: rgba(255, 255, 255, 0.3);
-    border: 1px solid #9DC5ED;
+    border: 1px solid var(--background-darker-2);
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr:nth-child(even) {
@@ -141,7 +178,7 @@ body.TEMPLATE div.spy-block > table > tbody > tr:nth-child(even) {
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr > td {
-    border-right:  1px solid #9DC5ED;
+    border-right:  1px solid var(--background-darker-2);
 }
 
 body.TEMPLATE .test-reason:not(.highlights-active) .highlight {
@@ -449,6 +486,12 @@ body.TEMPLATE #breakButton {
   box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
 }
 
+body.TEMPLATE #runButton:disabled, 
+body.TEMPLATE #breakButton:disabled {
+  background: none;
+  box-shadow: none;
+}
+
 body.TEMPLATE #runButton{
   background: #317BCF;
 }
@@ -468,6 +511,12 @@ body.TEMPLATE #breakButton:hover{
 body.TEMPLATE #runButton:hover,
 body.TEMPLATE #breakButton:hover{
   box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+}
+
+body.TEMPLATE #runButton:hover[disabled], 
+body.TEMPLATE #breakButton:hover[disabled] {
+  background: none;
+  box-shadow: none;
 }
 
 body.TEMPLATE #runPart {
@@ -759,10 +808,6 @@ body.TEMPLATE .ok-bg {
   background-color: #FFFFFF;
 }
 
-body.TEMPLATE #loader {
-  background: url('/img/pyret-spin.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
-}
-
 body.TEMPLATE #help-keys {
   background-color: #ddd;
   border: 50px solid rgba(0, 0, 0, 0.7);
@@ -811,13 +856,11 @@ body.TEMPLATE #footer {
 }
 
 body.TEMPLATE .blueButton {
-    background-color: rgba(0,0,0,0.3);
-    color: #fff;
+  color: #fff;
 }
 
 body.TEMPLATE .blueButton:hover {
-    box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
-    background: rgba(0,0,0,0.6);
+  box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
 }
 
 body.TEMPLATE .blueButton:disabled {
