@@ -1,4 +1,4 @@
-/*  Taken from https://codemirror.net/theme/monokai.css 
+/*  Taken from https://codemirror.net/theme/monokai.css
     Modified slightly. */
 
 /* color variables for the Monokai theme */
@@ -14,14 +14,14 @@ body.monokai .CodeMirror {
 }
 
 body.monokai .cm-s-default .CodeMirror-line::selection,
-body.monokai .cm-s-default .CodeMirror-line > span::selection, 
-body.monokai .cm-s-default .CodeMirror-line > span > span::selection { 
+body.monokai .cm-s-default .CodeMirror-line > span::selection,
+body.monokai .cm-s-default .CodeMirror-line > span > span::selection {
   background: rgba(73, 72, 62, .99) !important; 
 }
 body.monokai .cm-s-default .CodeMirror-line::-moz-selection,
-body.monokai .cm-s-default .CodeMirror-line > span::-moz-selection, 
-body.monokai .cm-s-default .CodeMirror-line > span > span::-moz-selection { 
-  background: rgba(73, 72, 62, .99) !important; 
+body.monokai .cm-s-default .CodeMirror-line > span::-moz-selection,
+body.monokai .cm-s-default .CodeMirror-line > span > span::-moz-selection {
+  background: rgba(73, 72, 62, .99) !important;
 }
 
 body.monokai .cm-s-default .CodeMirror-gutters { background: #272822 !important; border-right: 0px !important; }
