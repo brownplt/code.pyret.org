@@ -18,8 +18,8 @@ body.TEMPLATE {
   --function-name:    var(--dark-gray); /* function names */
   --variable:         var(--dark-gray); /* variables */
   --keyword:          var(--dark-gray); /* keywords */
-  --number:           var(--dark-gray); /* regular numbers */
-  --roughnum:         var(--dark-gray); /* rough nums */
+  --number:           var(--dark-gray); /* exact numbers */
+  --roughnum:         var(--dark-gray); /* rough numbers */
   --rational:         var(--dark-gray); /* rational numbers */
   --bad-number:       var(--dark-gray); /* bad numbers */
   --string:           var(--dark-gray); /* strings */
@@ -38,6 +38,7 @@ body.TEMPLATE {
   --background-lighter:   var(--yellow); /* lighter background */
   --background-lighter-2: var(--yellow); /* even lighter background */
 
+  --inverted-text:      var(--light-gray);  /* text opposite color of default */
   --repl-out:           var(--light-gray);  /* REPL output (non-printed) */
   --err-highlight:      var(--light-gray);  /* links to problematic areas from check blocks */
   --check-pass:         var(--yellow); /* check block bg color */
@@ -51,10 +52,6 @@ body.TEMPLATE {
 
   --err-halo-selected:    var(--yellow); /* border around errors currently *in focus* */
   --err-halo-unselected:  var(--yellow); /* border around errors NOT in focus */
-
-  --run-button:   var(--yellow); /* top-right Run button */
-  --stop-button:  var(--yellow); /* top-right Stop button */
-  --footer:       var(--yellow); /* footer with login info / save info */
 
   --unknown: var(--red);  /* unknown elements */
 }
@@ -174,7 +171,12 @@ body.TEMPLATE div.spy-block > .spy-title {
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr {
-    border: 1px solid var(--background-darker-2);
+  border: 1px solid var(--background-darker-2);
+  background: var(--background);
+}
+
+body.TEMPLATE div.spy-block > table > tbody > tr:nth-child(even) {
+  background: var(--background-lighter);
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr > td {
@@ -270,7 +272,9 @@ body.TEMPLATE .replOutputFailed {
   color: var(--unknown);
 }
 
-body.TEMPLATE .rationalNumber {
+/* rational numbers and their repeating decimals */
+body.TEMPLATE .rationalNumber,
+body.TEMPLATE .rationalRepeat {
  color: var(--rational);
 }
 
@@ -317,211 +321,134 @@ body.TEMPLATE .parse-error a {
   color: var(--err-halo-unselected);
 }
 
-
-
-
-
-
-/*--------------------------------------------------------------------------*/
-/* Left off */
-/* ------------------------------------------------------------------------ */
-
 body.TEMPLATE .topbar {
-  background-color: #eee;
-}
-
-/* From internet: http://stackoverflow.com/questions/5663137/jquery-modal-dialog-is-hidden-by-overlay-div-if-dialogs-parent-has-fixed-positi */
-body.TEMPLATE .ui-widget-overlay{
-  background: #111;
-}
-/* end from internet */
-
-body.TEMPLATE .ui-dialog {
-  border: 2px solid #111;
-  background-color: #eee;
-}
-
-body.TEMPLATE .ui-dialog-titlebar {
-  background-color: #2a348b;
-}
-
-body.TEMPLATE .ui-dialog-title {
-  color: #eee;
+  background-color: var(--unknown);
 }
 
 /* Resizable REPL */
 body.TEMPLATE #handle{
-  background:-webkit-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  background:-o-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  background:-moz-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  background:linear-gradient(to right, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  border: 1px solid #A6A6A6;
-}
-
-body.TEMPLATE #runButton,
-body.TEMPLATE #breakButton {
-  box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
-}
-
-body.TEMPLATE #runButton:disabled,
-body.TEMPLATE #breakButton:disabled {
-  background: none;
-  box-shadow: none;
-}
-
-body.TEMPLATE #runButton{
-  background: #317BCF;
-}
-
-body.TEMPLATE #runButton:hover{
-  background:#0060CE;
-}
-
-body.TEMPLATE #breakButton{
-  background:#CF3B31;
-}
-
-body.TEMPLATE #breakButton:hover{
-  background:#B30C00;
-}
-
-body.TEMPLATE #runButton:hover,
-body.TEMPLATE #breakButton:hover{
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
-}
-
-body.TEMPLATE #runButton:hover[disabled],
-body.TEMPLATE #breakButton:hover[disabled] {
-  background: none;
-  box-shadow: none;
-}
-
-body.TEMPLATE #runPart {
-  background: #317BCF;
-}
-
-body.TEMPLATE .dropdown {
-  background: #317BCF;
-  box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
-}
-
-body.TEMPLATE #run-dropdown-content li {
-  color: #eeeeee;
-  background: #317BCF;
-  box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
-}
-
-body.TEMPLATE #run-dropdown-content li:hover {
-  background:#0060CE;
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
-}
-
-body.TEMPLATE .dropdown:hover {
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.3);
-  background:#0060CE;
+  background:-webkit-linear-gradient(left, 
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  background:-o-linear-gradient(left, 
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  background:-moz-linear-gradient(left, 
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  background:linear-gradient(to right, 
+    var(--background-lighter) 0%, 
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  border: 1px solid var(--background-darker-2);
 }
 
 body.TEMPLATE .module-info-hover {
-  border: 1px solid #111;
-  background-color: #eeeeee;
+  border: 1px solid var(--default-text);
+  background-color: var(--background);
 }
 
 body.TEMPLATE .editor-check-block-success {
-  background: hsl(88, 50%, 76%);
-  box-shadow: 0 1em 11px 2px hsl(88, 50%, 76%);
+  background: var(--check-pass);
+  box-shadow: 0 1em 11px 2px var(--check-pass);
 }
 
 body.TEMPLATE .editor-check-block-failed {
-  background: hsl(45, 100%, 85%);
-  box-shadow: 0 0.5em 11px 3px hsl(45, 100%, 85%);
+  background: var(--check-fail);
+  box-shadow: 0 0.5em 11px 3px var(--check-fail);
 }
 
 body.TEMPLATE .editor-check-block-error {
-  background: hsl(0, 100%, 90%);
-  box-shadow: 0 1em 11px 2px hsl(0, 100%, 90%);
+  background: var(--check-error);
+  box-shadow: 0 1em 11px 2px var(--check-error);
 }
 
 @keyframes emphasize-error {
-  from {background-color: white;}
+  from {background-color: var(--background);}
   to {}
 }
 
 body.TEMPLATE .check-block-test.failing-test:not(.highlights-active) {
-  background-color: hsl(45, 100%, 94%);
+  background-color: var(--check-fail-lighter);
 }
 body.TEMPLATE .check-block-test.passing-test {
-  background-color: hsl(90,  50%, 91%);}
+  background-color: var(--check-pass-lighter);
+}
 
 body.TEMPLATE #output > .compile-error.highlights-active,
 body.TEMPLATE .check-block-error .highlights-active.compile-error,
 body.TEMPLATE .check-block-test.highlights-active {
-  border: 0.3em hsl(204, 100%, 74%) solid;
+  border: 0.3em var(--err-halo-selected) solid;
 }
 
 body.TEMPLATE .check-block-error .highlights-active.compile-error,
 body.TEMPLATE .check-block-test.highlights-active {
-  background: hsla(0,0%,100%,.9);
+  background: var(--check-error-lighter);
 }
 
 body.TEMPLATE .test-reason:empty,
 body.TEMPLATE .check-block-error:empty {
-  color: #555;
+  color: var(--unknown);
 }
 
 body.TEMPLATE .check-block-error:empty {
-  background-color: rgba(255,255,255,0.4);
+  background-color: var(--unknown);
 }
 
 body.TEMPLATE .check-block-test.failing-test.highlights-active > header {
-  background-color: hsl(45, 100%, 85%);
+  background-color: var(--check-fail-lighter);
 }
 
 body.TEMPLATE .check-block-test .CodeMirror {
-  background:rgba(255,255,255,0.5);
+  background: var(--background);
 }
 
 body.TEMPLATE .errored-test-marker {
-  background-color: hsla(0, 100%, 50%, 0.5);
+  background-color: var(--check-error);
 }
 
 body.TEMPLATE .failed-test-marker {
-  background-color: hsla(45, 90%, 50%, 0.5);
+  background-color: var(--failed-test-marker);
 }
 
+/* tests passed and failed summary */
 body.TEMPLATE .summary-bits {
-  color: black;
+  color: var(--default-text);
 }
 
 body.TEMPLATE .summary-bit.summary-passed {
-  background: hsl(88, 51%, 76%);
+  background: var(--check-pass);
 }
 
 body.TEMPLATE .summary-bit.summary-failed {
-  background: hsl(45, 100%, 85%);
+  background: var(--check-fail);
 }
 
 body.TEMPLATE .summary-errored {
-  background: hsla(0,100%,73%,1);
-  color: white;
+  background: var(--check-error);
+  color: var(--inverted-text);
 }
 
 body.TEMPLATE .summary-text {
-  border-left: 1px hsl(0, 100%, 100%) solid;
+  border-left: 1px var(--inverted-text) solid;
 }
 
 body.TEMPLATE .cm-snippet {
-  border: 1px hsl(0, 0%, 50%) dashed;
+  border: 1px var(--background-darker-2) dashed;
 }
 
 body.TEMPLATE .cm-snippet header {
-  background: hsl(0, 0%, 97%);
+  background: var(--background-darker);
   box-shadow: 0 0 3px hsla(0,0%,0%,0.5);
   border-bottom: 1px hsl(0, 0%, 60%) solid;
 }
-
-
-/*---------------------------------------------------------------------*/
-/* Left off ^ */
 
 body.TEMPLATE table {
     border:1px var(--default-text) solid;
@@ -542,7 +469,15 @@ body.TEMPLATE th, td {
     border-right:1px var(--default-text) solid;
 }
 
-body.TEMPLATE tr:nth-child(even){background-color: var(--background-lighter-2)}
+/* odd table rows */
+body.TEMPLATE tr {
+  background-color: var(--background-lighter);
+}
+
+/* even table rows */
+body.TEMPLATE tr:nth-child(even){
+  background-color: var(--background-lighter-2)
+}
 
 body.TEMPLATE table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--background-lighter);
@@ -556,7 +491,7 @@ body.TEMPLATE table.pyret-row {
 }
 
 body.TEMPLATE .stale.test-results .stale-warning {
-  color: white;
+  color: var(--inverted-text);
   background-color: var(--check-fail);
 }
 
