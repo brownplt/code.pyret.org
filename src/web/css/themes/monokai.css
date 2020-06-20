@@ -5,11 +5,11 @@ body.monokai {
   --black-darker-2: #0d0e0c;
   --black-darker: #1b1c17;
   --black: #272822;
-  --black-lighter: #515346;
-  --black-lighter-2: #797c6a;
-  --black-lighter-3: #9ea191;
+  --black-lighter: #36372f;
+  --black-lighter-2: #43453b;
+  --black-lighter-3: #505346;
   --white: #F8F8F2;
-  --comment: #75715E;
+  --comment-color: #75715E;
   --red: #F92672;
   --orange: #FD971F;
   --light-orange: #E69F66;
@@ -17,6 +17,11 @@ body.monokai {
   --green: #A6E22E;
   --blue: #66D9EF;
   --purple: #AE81FF;
+
+  --err-red: #ff6666;
+  --err-red-lighter: #ff9999;
+  --success-green: #80ff80;
+  --success-green-lighter: #b3ffb3;
 
   --green-lighter: #d9f3a5;
   --yellow-lighter: #f4eebe;
@@ -31,7 +36,7 @@ body.monokai {
   /* syntax-highlighting */
   --default-text:     var(--white); /* default program text */
   --cursor:           var(--white); /* cursor */
-  --comment:          var(--comment); /* code comments */
+  --comment:          var(--comment-color); /* code comments */
   --boolean:          var(--purple); /* booleans */
   --builtin:          var(--blue); /* builtins */
   --function-name:    var(--white); /* function names */
@@ -45,9 +50,9 @@ body.monokai {
   --unterm-string:    var(--yellow); /* unterminated strings */
   --type:             var(--blue); /* types */
 
-  --failed-test-marker:     var(--black-darker); /* bg of line number indicating failed test */
+  --failed-test-marker:     var(--black-darker-2); /* bg of line number indicating failed test */
   --region-highlight:       var(--black-lighter); /* region highlighted by (check: ... end) or mouse drag, etc. */
-  --matching-bracket:       var(--black-darker); /* right angle brackets surrounding highlighted text */
+  --matching-bracket:       var(--black-lighter-2); /* right angle brackets surrounding highlighted text */
   --nonmatching-highlight:  var(--black-lighter);  /* bg of nonmatching regions (e.g. (} )*/
 
   --background:           var(--black); /* main background */
@@ -55,24 +60,29 @@ body.monokai {
   --background-darker-2:  var(--black-darker-2); /* even darker background */
   --background-lighter:   var(--black-lighter); /* lighter background */
   --background-lighter-2: var(--black-lighter-2); /* even lighter background */
+  --background-lighter-3: var(--black-lighter-3); /* thrice lighter background */
 
-  --inverted-text:      var(--black-darker);  /* text opposite color of default */
-  --repl-out:           var(--default-text);  /* REPL output (non-printed) */
-  --err-highlight:      var(--light-gray);  /* links to problematic areas from check blocks */
-  --check-pass:         var(--green); /* check block bg color */
-  --check-pass-lighter: var(--yellow-lighter); /* lighter than check bg */
-  --check-fail:         var(--yellow); /* check fail bg color */
-  --check-fail-lighter: var(--yellow-lighter);/* lighter than check fail */
-
-  --check-error:          var(--red); /* check blocks with unexpected errors */
-  --check-error-lighter:  var(--red-lighter); /* lighter than check-error */
-  --summary-error:        var(--red); /* announcement that blocks errored (top) */
+  --inverted-text:        var(--black-darker);  /* text opposite color of default */
+  --repl-out:             var(--default-text);  /* REPL output (non-printed) */
+  --err-highlight:        var(--white);  /* links to problematic areas from check blocks */
+  --check-pass:           var(--success-green); /* check block bg color */
+  --check-pass-lighter:   var(--success-green-lighter); /* lighter than check bg */
+  --check-fail:           var(--yellow); /* check fail bg color */
+  --check-fail-lighter:   var(--yellow-lighter);/* lighter than check fail */
+  --check-error:          var(--err-red); /* check blocks with unexpected errors */
+  --check-error-lighter:  var(--err-red-lighter); /* lighter than check-error */
+  --summary-error:        var(--white); /* announcement that blocks errored (top) */
 
   --err-halo-selected:    var(--blue-lighter); /* border around errors currently *in focus* */
   --err-halo-unselected:  var(--red-lighter); /* border around errors NOT in focus */
 
   --unknown: var(--unknown-red);  /* unknown elements */
 }
+
+
+
+
+
 
 /* wrapper on entire editor */
 body.monokai .CodeMirror,
@@ -87,7 +97,7 @@ body.monokai .repl .CodeMirror {
 }
 
 /* syntax highlighting */
-body.monokai .CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+body.monokai .CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
 body.monokai .cm-s-default.CodeMirror { color: var(--default-text); }
 body.monokai .cm-s-default .cm-comment { color: var(--comment); }
 body.monokai .cm-s-default .cm-boolean { color: var(--boolean); }
@@ -160,10 +170,6 @@ body.monokai .CodeMirror-matchingbracket.open::before {
   margin: -0.3ex;
 }
 
-body.monokai div.CodeMirror span.CodeMirror-matchingbracket {
-  color: initial;
-}
-
 body.monokai div.CodeMirror span.CodeMirror-nonmatchingbracket {
   background-color: var(--nonmatching-highlight);
   color: var(--check-error);
@@ -173,6 +179,75 @@ body.monokai div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   background-color: var(--nonmatching-highlight);
   border-top: 0.1em solid var(--nonmatching-highlight);
   border-bottom: 0.1em solid var(--nonmatching-highlight);
+}
+
+/* scrollbar in the definitions window */
+body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar {
+  width: 15px;
+  background-color: var(--background-lighter);
+}
+
+body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--background-lighter-2);
+  border-radius: 2px;
+}
+
+body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--background-lighter-3);
+}
+
+/* other scrollbars (interactions window) */
+body.monokai ::-webkit-scrollbar {
+  width: 13px;
+}
+
+body.monokai ::-webkit-scrollbar-track {
+  background-color: var(--background-lighter);
+}
+
+body.monokai ::-webkit-scrollbar-thumb {
+  background-color: var(--background-lighter-2);
+  border-radius: 2px;
+}
+
+body.monokai ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--background-lighter-3);
+  cursor: pointer;
+}
+
+/* lefthand gutters */
+body.monokai .cm-s-default .CodeMirror-gutters { 
+  background: var(--background); 
+  border-right: 0px !important; 
+}
+body.monokai .cm-s-default .CodeMirror-guttermarker { 
+  color: var(--line-number); 
+}
+body.monokai .cm-s-default .CodeMirror-guttermarker-subtle { 
+  color: var(--line-number); 
+}
+
+/* line numbers */
+body.monokai .cm-s-default .CodeMirror-linenumber { 
+  color: var(--line-number); 
+}
+
+/* 100 character line ruler */
+body.monokai .CodeMirror div.CodeMirror-ruler {
+  border: 1.5px;
+  border-color: var(--line-ruler) !important;
+  border-style: solid;
+  border-left-style: none !important;
+}
+
+/* div containing spinny Pyret and loading messages */
+body.monokai #loader {
+  background-color: var(--background);
+}
+
+/* pirate text on loader screen */
+body.monokai #loader > p {
+  color: var(--default-text);
 }
 
 body.monokai div.trace.error {
@@ -198,7 +273,7 @@ body.monokai div.spy-block > table > tbody > tr:nth-child(even) {
 }
 
 body.monokai div.spy-block > table > tbody > tr > td {
-    border-right:  1px solid var(--background-darker-2);
+  border-right:  1px solid var(--background-darker-2);
 }
 
 body.monokai #output > .compile-error:not(.highlights-active):hover:after,
@@ -211,16 +286,25 @@ body.monokai .repl {
   background-color: var(--background);
 }
 
+/* >>> in the repl */
+body.monokai .repl-prompt,
+body.monokai .repl-echo::before, 
+body.monokai .repl-prompt::before {
+  color: var(--default-text);
+}
+
 body.monokai .check {
   border: 1px solid var(--unknown);
 }
 
 body.monokai .check-success {
-  background-color: var(--check-pass);
+  color: var(--check-pass);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .check-failure {
-  background-color: var(--check-fail);
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .check-block {
@@ -228,15 +312,18 @@ body.monokai .check-block {
 }
 
 body.monokai .check-block-failed {
-  background-color: var(--check-fail);
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .check-block-errored {
-  background-color: var(--check-error);
+  color: var(--check-error);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .check-block-success {
-  background-color: var(--check-pass);
+  color: var(--check-pass);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .testing-summary{
@@ -276,6 +363,10 @@ body.monokai .replPrint {
 
 body.monokai .replOutput {
   color: var(--repl-out);
+}
+
+body.monokai .replTextOutput {
+  color: var(--default-text);
 }
 
 body.monokai .replOutput.expanded > dl {
@@ -319,7 +410,8 @@ body.monokai .check-highlight {
 
 body.monokai .compile-error {
   border: 1px dashed var(--err-halo-unselected);
-  background: var(--check-error-lighter);
+  color: var(--default-text);
+  background: var(--background);
 }
 
 body.monokai .compile-error a {
@@ -345,23 +437,23 @@ body.monokai .topbar {
 
 /* Resizable REPL */
 body.monokai #handle{
-  background:-webkit-linear-gradient(left,
+  background:-webkit-linear-gradient(left, 
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:-o-linear-gradient(left,
+  background:-o-linear-gradient(left, 
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:-moz-linear-gradient(left,
+  background:-moz-linear-gradient(left, 
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:linear-gradient(to right,
-    var(--background-lighter) 0%,
+  background:linear-gradient(to right, 
+    var(--background-lighter) 0%, 
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
@@ -394,10 +486,12 @@ body.monokai .editor-check-block-error {
 }
 
 body.monokai .check-block-test.failing-test:not(.highlights-active) {
-  background-color: var(--check-fail-lighter);
+  color: var(--check-fail-lighter);
+  background-color: var(--background);
 }
 body.monokai .check-block-test.passing-test {
-  background-color: var(--check-pass-lighter);
+  color: var(--check-pass-lighter);
+  background-color: var(--background);
 }
 
 body.monokai #output > .compile-error.highlights-active,
@@ -408,7 +502,8 @@ body.monokai .check-block-test.highlights-active {
 
 body.monokai .check-block-error .highlights-active.compile-error,
 body.monokai .check-block-test.highlights-active {
-  background: var(--check-error-lighter);
+  color: var(--check-error-lighter);
+  background-color: var(--background);
 }
 
 body.monokai .test-reason:empty,
@@ -421,7 +516,8 @@ body.monokai .check-block-error:empty {
 }
 
 body.monokai .check-block-test.failing-test.highlights-active > header {
-  background-color: var(--check-fail-lighter);
+  color: var(--check-fail-lighter);
+  background-color: var(--background);
 }
 
 body.monokai .check-block-test .CodeMirror {
@@ -439,33 +535,36 @@ body.monokai .failed-test-marker {
 /* tests passed and failed summary */
 body.monokai .summary-bits {
   color: var(--default-text);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .summary-bit.summary-passed {
-  background: var(--check-pass);
+  color: var(--check-pass);
+  background: var(--background-lighter);
 }
 
 body.monokai .summary-bit.summary-failed {
-  background: var(--check-fail);
+  color: var(--check-fail);
+  background: var(--background-lighter);
 }
 
 body.monokai .summary-errored {
   background: var(--check-error);
-  color: var(--inverted-text);
+  color: var(--summary-error);
 }
 
 body.monokai .summary-text {
-  border-left: 1px var(--inverted-text) solid;
+  border-left: 1px var(--summary-error) solid;
 }
 
 body.monokai .cm-snippet {
-  border: 1px var(--background-darker-2) dashed;
+  border: 1px var(--background-lighter-2) dashed;
 }
 
 body.monokai .cm-snippet header {
   background: var(--background-darker);
-  box-shadow: 0 0 3px hsla(0,0%,0%,0.5);
-  border-bottom: 1px hsl(0, 0%, 60%) solid;
+  /* box-shadow: 0 0 3px hsla(0,0%,0%,0.5); */
+  border-bottom: 1px var(--background-lighter-2) solid;
 }
 
 body.monokai table {
@@ -514,15 +613,18 @@ body.monokai .stale.test-results .stale-warning {
 }
 
 body.monokai .stale.test-results .check-block-failed {
-  background-color: var(--check-fail);
+  color: var(--check-fail);
+  background-color: var(--background);
 }
 
 body.monokai .stale.test-results .check-block-success {
-  background-color: var(--check-pass);
+  color: var(--check-pass);
+  background-color: var(--background);
 }
 
 body.monokai .stale.test-results .check-block-errored {
-  background-color: var(--unknown);
+  color: var(--unknown);
+  background-color: var(--background);
 }
 
 body.monokai .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
@@ -542,15 +644,18 @@ body.monokai .stale.test-results .check-block-test.passing-test {
 }
 
 body.monokai .stale.test-results .testing-summary .summary-passed {
-  background-color: var(--check-pass);
+  color: var(--check-pass);
+  background: var(--background-lighter);
 }
 
 body.monokai .stale.test-results .testing-summary .summary-failed {
-  background-color: var(--check-fail);
+  color: var(--check-fail);
+  background: var(--background-lighter);
 }
 
 body.monokai .stale.test-results .testing-summary .summary-errored {
-  background-color: var(--check-error);
+  background: var(--check-error);
+  color: var(--summary-error);
 }
 
 body.monokai .stale .compile-error.highlights-active,
