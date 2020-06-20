@@ -1,7 +1,12 @@
 
 /* color palette for this theme */
 body.TEMPLATE {
-  --yellow: #FEFF9D;
+  --yellow: #fcff4d;
+  --yellow-lighter: #fdff80;
+  --yellow-lighter-2: #feffb3;
+  --yellow-lighter-3: #ffffe6;
+  --yellow-darker: #c9cc00;
+  --yellow-darker-2: #969900;
   --light-gray: #b3b3b3;
   --dark-gray: #1a1a1a;
   --red: red;
@@ -25,18 +30,20 @@ body.TEMPLATE {
   --string:           var(--dark-gray); /* strings */
   --unterm-string:    var(--dark-gray); /* unterminated strings */
   --type:             var(--dark-gray); /* types */
-  --cptteach-fixed:   var(--dark-gray);
 
+  --line-ruler:             var(--dark-gray); /* vertical line at 100-char boundary */
   --failed-test-marker:     var(--dark-gray); /* bg of line number indicating failed test */
   --region-highlight:       var(--light-gray); /* region highlighted by (check: ... end) or mouse drag, etc. */
   --matching-bracket:       var(--dark-gray); /* right angle brackets surrounding highlighted text */
   --nonmatching-highlight:  var(--yellow);  /* bg of nonmatching regions (e.g. (} )*/
+  --line-number:            var(--light-gray);  /* line numbers */
 
   --background:           var(--yellow); /* main background */
-  --background-darker:    var(--yellow); /* darker background */
-  --background-darker-2:  var(--yellow); /* even darker background */
-  --background-lighter:   var(--yellow); /* lighter background */
-  --background-lighter-2: var(--yellow); /* even lighter background */
+  --background-darker:    var(--yellow-darker); /* darker background */
+  --background-darker-2:  var(--yellow-darker-2); /* even darker background */
+  --background-lighter:   var(--yellow-lighter); /* lighter background */
+  --background-lighter-2: var(--yellow-lighter-2); /* even lighter background */
+  --background-lighter-3: var(--yellow-lighter-3); /* thrice lighter than background */
 
   --inverted-text:      var(--light-gray);  /* text opposite color of default */
   --repl-out:           var(--light-gray);  /* REPL output (non-printed) */
@@ -157,6 +164,74 @@ body.TEMPLATE div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   border-bottom: 0.1em solid var(--nonmatching-highlight);
 }
 
+/* scrollbar in the definitions window */
+body.TEMPLATE .CodeMirror-vscrollbar::-webkit-scrollbar {
+  width: 15px;
+  background-color: var(--background-lighter);
+}
+
+body.TEMPLATE .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--background-lighter-2);
+  border-radius: 2px;
+}
+
+body.TEMPLATE .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--background-lighter-3);
+}
+
+/* other scrollbars (interactions window) */
+body.TEMPLATE ::-webkit-scrollbar {
+  width: 13px;
+}
+
+body.TEMPLATE ::-webkit-scrollbar-track {
+  background-color: var(--background-lighter);
+}
+
+body.TEMPLATE ::-webkit-scrollbar-thumb {
+  background-color: var(--background-lighter-2);
+}
+
+body.TEMPLATE ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--background-lighter-3);
+  cursor: pointer;
+}
+
+/* lefthand gutters */
+body.TEMPLATE .cm-s-default .CodeMirror-gutters { 
+  background: var(--background); 
+  border-right: 0px !important; 
+}
+body.TEMPLATE .cm-s-default .CodeMirror-guttermarker { 
+  color: var(--line-number); 
+}
+body.TEMPLATE .cm-s-default .CodeMirror-guttermarker-subtle { 
+  color: var(--line-number); 
+}
+
+/* line numbers */
+body.TEMPLATE .cm-s-default .CodeMirror-linenumber { 
+  color: var(--line-number); 
+}
+
+/* 100 character line ruler */
+body.TEMPLATE .CodeMirror div.CodeMirror-ruler {
+  border: 1.5px;
+  border-color: var(--line-ruler) !important;
+  border-style: solid;
+  border-left-style: none !important;
+}
+
+/* div containing spinny Pyret and loading messages */
+body.TEMPLATE #loader {
+  background-color: var(--background);
+}
+
+/* pirate text on loader screen */
+body.TEMPLATE #loader > p {
+  color: var(--default-text);
+}
+
 body.TEMPLATE div.trace.error {
    background-color: var(--check-error-lighter);
 }
@@ -191,6 +266,10 @@ body.TEMPLATE .check-block-test.failing-test:not(.highlights-active):hover {
 
 body.TEMPLATE .repl {
   background-color: var(--background);
+}
+
+body.TEMPLATE .repl-prompt {
+  color: var(--default-text);
 }
 
 body.TEMPLATE .check {
@@ -258,6 +337,10 @@ body.TEMPLATE .replPrint {
 
 body.TEMPLATE .replOutput {
   color: var(--repl-out);
+}
+
+body.TEMPLATE .replTextOutput {
+  color: var(--default-text);
 }
 
 body.TEMPLATE .replOutput.expanded > dl {
