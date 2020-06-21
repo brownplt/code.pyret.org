@@ -1,7 +1,9 @@
-
-/* color palette for this theme */
+/* 
+  ------------------------- Theme Color Palette -------------------------
+  These are the colors used by this theme.
+  -----------------------------------------------------------------------
+*/
 body.monokai {
-
   --black-darker-2: #0d0e0c;
   --black-darker: #1b1c17;
   --black: #272822;
@@ -9,6 +11,7 @@ body.monokai {
   --black-lighter-2: #43453b;
   --black-lighter-3: #505346;
   --black-lighter-4: #6b6e5e;
+
   --white: #F8F8F2;
   --comment-color: #75715E;
   --red: #F92672;
@@ -21,24 +24,21 @@ body.monokai {
   --strong-purple: #8b4dff;
 
   --err-red: #ff6666;
-  --err-red-lighter: #ff9999;
   --success-green: #80ff80;
-  --success-green-lighter: #b3ffb3;
   --failing-yellow: #ffff66;
-  --failing-yellow-lighter: #ffff99;
+
   --strong-red: #ff3333;
-
-  --green-lighter: #d9f3a5;
-  --yellow-lighter: #f4eebe;
-  --red-lighter: #fdb4cf;
   --blue-lighter: #baedf8;
-
-  --unknown-red: red;
 }
 
-/* variables that determine the theme's color scheme */
+/* 
+  ------------------------- Color Assignments -------------------------
+  This mapping determines usage of colors from the above palette
+  to stylize elements in groups
+  ---------------------------------------------------------------------
+*/
 body.monokai {
-  /* syntax-highlighting */
+  /* Syntax Highlighting */
   --default-text:     var(--white); /* default program text */
   --cursor:           var(--white); /* cursor */
   --comment:          var(--comment-color); /* code comments */
@@ -55,13 +55,7 @@ body.monokai {
   --unterm-string:    var(--yellow); /* unterminated strings */
   --type:             var(--blue); /* types */
 
-  --line-ruler:             var(--red); /* vertical line at 100-char boundary */
-  --failed-test-marker:     var(--black-darker-2); /* bg of line number indicating failed test */
-  --region-highlight:       var(--black-lighter); /* region highlighted by (check: ... end) or mouse drag, etc. */
-  --matching-bracket:       var(--black-lighter-2); /* right angle brackets surrounding highlighted text */
-  --nonmatching-highlight:  var(--black-lighter);  /* bg of nonmatching regions (e.g. (} )*/
-  --line-number:            var(--comment-color);  /* line numbers */
-
+  /* Backgrounds */
   --background:           var(--black); /* main background */
   --background-darker:    var(--black-darker); /* darker background */
   --background-darker-2:  var(--black-darker-2); /* even darker background */
@@ -70,23 +64,35 @@ body.monokai {
   --background-lighter-3: var(--black-lighter-3); /* thrice lighter background */
   --background-lighter-4: var(--black-lighter-4); /* quadrice lighter background */
 
-  --inverted-text:        var(--black-darker);  /* text opposite color of default */
-  --repl-out:             var(--default-text);  /* REPL output (non-printed) */
+  /* Checks and Errors */
   --err-highlight:        var(--white);  /* links to problematic areas from check blocks */
   --check-pass:           var(--success-green); /* check block bg color */
-  --check-pass-lighter:   var(--success-green-lighter); /* lighter than check bg */
   --check-fail:           var(--failing-yellow); /* check fail bg color */
-  --check-fail-lighter:   var(--failing-yellow-lighter);/* lighter than check fail */
   --check-error:          var(--err-red); /* check blocks with unexpected errors */
-  --check-error-lighter:  var(--err-red-lighter); /* lighter than check-error */
   --summary-error:        var(--white); /* announcement that blocks errored (top) */
-
   --err-halo-selected:    var(--blue-lighter); /* border around errors currently *in focus* */
   --err-halo-unselected:  var(--strong-red); /* border around errors NOT in focus */
 
-  --unknown: var(--unknown-red);  /* unknown elements */
+  /* Text */
+  --inverted-text:        var(--black-darker);  /* text opposite color of default */
+  --repl-out:             var(--default-text);  /* REPL output (non-printed) */
+
+  /* Misc. */
+  --line-ruler:             var(--red); /* vertical line at 100-char boundary */
+  --failed-test-marker:     var(--black-darker-2); /* bg of line number indicating failed test */
+  --region-highlight:       var(--black-lighter); /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --matching-bracket:       var(--black-lighter-2); /* right angle brackets surrounding highlighted text */
+  --nonmatching-highlight:  var(--black-lighter);  /* bg of nonmatching regions (e.g. (} )*/
+  --line-number:            var(--comment-color);  /* line numbers */
 }
 
+
+/* 
+  ----------------------------- Overrides -----------------------------
+  The below styles override the editor's appearance using the
+  color variables defined above, in an internally consistent way.
+  ---------------------------------------------------------------------
+*/
 
 /* wrapper on entire editor */
 body.monokai .CodeMirror,
@@ -189,7 +195,7 @@ body.monokai div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 /* scrollbar in the definitions window */
 body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar {
-  width: 13px;
+  width: 15px;
   background-color: var(--background-lighter-2);
 }
 
@@ -204,7 +210,7 @@ body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
 
 /* other scrollbars (interactions window) */
 body.monokai ::-webkit-scrollbar {
-  width: 13px;
+  width: 15px;
 }
 
 body.monokai ::-webkit-scrollbar-track {
@@ -259,7 +265,7 @@ body.monokai #loader > p {
 }
 
 body.monokai div.trace.error {
-   background-color: var(--check-error-lighter);
+   background-color: var(--check-error);
 }
 
 body.monokai div.spy-block {
@@ -306,10 +312,6 @@ body.monokai .repl-prompt::before {
   color: var(--default-text);
 }
 
-body.monokai .check {
-  border: 1px solid var(--unknown);
-}
-
 body.monokai .check-success {
   color: var(--check-pass);
   background-color: var(--background-lighter);
@@ -327,11 +329,17 @@ body.monokai .check-block {
 body.monokai .check-block-failed {
   color: var(--check-fail);
   background-color: var(--background-lighter-2);
+  border-width: 0.15em;
+  border-style: solid;
+  border-color: var(--check-fail);
 }
 
 body.monokai .check-block-errored {
   color: var(--check-error);
   background-color: var(--background-lighter-2);
+  border-width: 0.15em;
+  border-style: solid;
+  border-color: var(--check-error);
 }
 
 body.monokai .check-block-success {
@@ -342,28 +350,6 @@ body.monokai .check-block-success {
 body.monokai .testing-summary{
   color: var(--default-text);
   background: var(--background-lighter-2);
-}
-
-body.monokai .progressStep {
-  border: 1px solid var(--unknown);
-}
-
-body.monokai .progressStep.done {
-  background-color: var(--unknown);
-}
-
-body.monokai .progressDone {
-  color: var(--unknown);
-}
-
-body.monokai .instructionsWidget {
-  background-color: var(--unknown);
-  border: 1px dotted var(--unknown);
-  color: var(--unknown);
-}
-
-body.monokai .instructionsWidget .toggleInstructions {
-  color: var(--unknown);
 }
 
 body.monokai #program-name-container input {
@@ -380,18 +366,6 @@ body.monokai .replOutput {
 
 body.monokai .replTextOutput {
   color: var(--default-text);
-}
-
-body.monokai .replOutput.expanded > dl {
-   border: 1px solid var(--unknown);
-}
-
-body.monokai .replOutputPassed {
-  color: var(--unknown);
-}
-
-body.monokai .replOutputFailed {
-  color: var(--unknown);
 }
 
 /* rational numbers and their repeating decimals */
@@ -411,15 +385,6 @@ body.monokai .test-reason {
 
 body.monokai a.highlight {
   color: var(--err-highlight) !important;
-}
-
-body.monokai .emphasize-line {
-  background-color: var(--unknown);
-}
-
-body.monokai .check-highlight {
- background-color: var(--unknown);
- border-bottom: 2px solid var(--unknown);
 }
 
 body.monokai .compile-error {
@@ -443,10 +408,6 @@ body.monokai .error-icon {
 
 body.monokai .parse-error a {
   color: var(--err-halo-unselected);
-}
-
-body.monokai .topbar {
-  background-color: var(--unknown);
 }
 
 /* Resizable REPL */
@@ -521,18 +482,13 @@ body.monokai .check-block-test.highlights-active {
 
 body.monokai .check-block-error .highlights-active.compile-error,
 body.monokai .check-block-test.highlights-active {
-  color: var(--check-error-lighter);
+  color: var(--check-error);
   background-color: var(--background-lighter);
 }
 
 body.monokai .test-reason:empty,
 body.monokai .check-block-error:empty {
-  color: var(--unknown);
   background-color: var(--background-lighter);
-}
-
-body.monokai .check-block-error:empty {
-  background-color: var(--unknown);
 }
 
 body.monokai .check-block-test.failing-test.highlights-active > header {
@@ -592,12 +548,6 @@ body.monokai table {
   background: var(--background-lighter);
 }
 
-body.monokai div.choiceContainer > button {
-  background-color: var(--unknown);
-  color: var(--unknown);
-  transition: box-shadow 0.2s;
-}
-
 body.monokai th {
     background: var(--background-darker);
 }
@@ -643,24 +593,24 @@ body.monokai .stale.test-results .check-block-success {
 }
 
 body.monokai .stale.test-results .check-block-errored {
-  color: var(--unknown);
+  color: var(--check-error);
   background-color: var(--background-lighter-2);
 }
 
 body.monokai .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .stale.test-results .check-block-test.highlights-active {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .stale.test-results .check-block-test.highlights-active > header {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .stale.test-results .check-block-test.passing-test {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .stale.test-results .testing-summary .summary-passed {
@@ -678,61 +628,10 @@ body.monokai .stale.test-results .testing-summary .summary-errored {
   color: var(--summary-error);
 }
 
-body.monokai .stale .compile-error.highlights-active,
-body.monokai .stale .compile-error.highlights-active,
-body.monokai .stale .check-block-test.highlights-active {
-  border-color: var(--unknown);
-}
 body.monokai .error-bg {
   background-color: var(--check-error);
-}
-body.monokai .ok-bg {
-  background-color: var(--unknown);
-}
-
-body.monokai #help-keys {
-  background-color: var(--unknown);
-  border: 50px solid var(--unknown);
-}
-
-body.monokai #doc-overlay{
-  box-shadow: 0px 0px 5px var(--unknown);
-}
-
-body.monokai #doc-overlay iframe{
-  background-color: var(--unknown);
-}
-
-body.monokai #doc-bar{
-  color: var(--unknown);
-  background: var(--unknown);
-}
-
-body.monokai #doc-close{
-  background: var(--unknown);
-}
-
-body.monokai #doc-close:hover{
-  background: var(--unknown);
 }
 
 body.monokai #header a {
   color: var(--default-text);
-}
-
-body.monokai .share {
-  background-color: var(--unknown);
-  box-shadow: 0px 3px 5px var(--unknown);
-}
-
-body.monokai .ui-tooltip {
-  background: var(--unknown);
-}
-
-body.monokai .ui-tooltip.ui-widget-content {
-  background: var(--unknown);
-}
-
-body.monokai .sharebox {
-  border: 1px solid var(--unknown);
 }

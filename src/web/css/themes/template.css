@@ -1,69 +1,81 @@
-
-/* color palette for this theme */
+/* 
+  ------------------------- Theme Color Palette -------------------------
+  These are the colors used by this theme.
+  -----------------------------------------------------------------------
+*/
 body.TEMPLATE {
-  --yellow: #fcff4d;
-  --yellow-lighter: #fdff80;
-  --yellow-lighter-2: #feffb3;
-  --yellow-lighter-3: #ffffe6;
-  --yellow-lighter-4: #ffffff;
-  --yellow-darker: #c9cc00;
-  --yellow-darker-2: #969900;
-  --light-gray: #b3b3b3;
-  --dark-gray: #1a1a1a;
-  --red: red;
+  --gray: #404040;
+  --gray-darker-1: #333333;
+  --gray-darker-2: #1a1a1a;
+  --gray-lighter-1: #595959;
+  --gray-lighter-2: #737373;
+  --gray-lighter-3: #8c8c8c;
+  --gray-lighter-4: #a6a6a6;
+  --very-light-gray: #f2f2f2;
 }
 
-/* variables that determine the theme's color scheme */
+/* 
+  ------------------------- Color Assignments -------------------------
+  This mapping determines usage of colors from the above palette
+  to stylize elements in groups
+  ---------------------------------------------------------------------
+*/
 body.TEMPLATE {
-  /* syntax-highlighting */
-  --default-text:     var(--dark-gray); /* default program text */
-  --cursor:           var(--dark-gray); /* cursor */
-  --comment:          var(--dark-gray); /* code comments */
-  --boolean:          var(--dark-gray); /* booleans */
-  --builtin:          var(--dark-gray); /* builtins */
-  --function-name:    var(--dark-gray); /* function names */
-  --variable:         var(--dark-gray); /* variables */
-  --keyword:          var(--dark-gray); /* keywords */
-  --number:           var(--dark-gray); /* exact numbers */
-  --roughnum:         var(--dark-gray); /* rough numbers */
-  --rational:         var(--dark-gray); /* rational numbers */
-  --bad-number:       var(--dark-gray); /* bad numbers */
-  --string:           var(--dark-gray); /* strings */
-  --unterm-string:    var(--dark-gray); /* unterminated strings */
-  --type:             var(--dark-gray); /* types */
+  /* Syntax Highlighting */
+  --default-text:     var(--very-light-gray); /* default program text */
+  --cursor:           var(--very-light-gray); /* cursor */
+  --comment:          var(--very-light-gray); /* code comments */
+  --boolean:          var(--very-light-gray); /* booleans */
+  --builtin:          var(--very-light-gray); /* builtins */
+  --function-name:    var(--very-light-gray); /* function names */
+  --variable:         var(--very-light-gray); /* variables */
+  --keyword:          var(--very-light-gray); /* keywords */
+  --number:           var(--very-light-gray); /* exact numbers */
+  --roughnum:         var(--very-light-gray); /* rough numbers */
+  --rational:         var(--very-light-gray); /* rational numbers */
+  --bad-number:       var(--very-light-gray); /* bad numbers */
+  --string:           var(--very-light-gray); /* strings */
+  --unterm-string:    var(--very-light-gray); /* unterminated strings */
+  --type:             var(--very-light-gray); /* types */
 
-  --line-ruler:             var(--dark-gray); /* vertical line at 100-char boundary */
-  --failed-test-marker:     var(--dark-gray); /* bg of line number indicating failed test */
-  --region-highlight:       var(--light-gray); /* region highlighted by (check: ... end) or mouse drag, etc. */
-  --matching-bracket:       var(--dark-gray); /* right angle brackets surrounding highlighted text */
-  --nonmatching-highlight:  var(--yellow);  /* bg of nonmatching regions (e.g. (} )*/
-  --line-number:            var(--light-gray);  /* line numbers */
+  /* Backgrounds */
+  --background:           var(--gray); /* main background */
+  --background-darker:    var(--gray-darker-1); /* darker background */
+  --background-darker-2:  var(--gray-darker-2); /* even darker background */
+  --background-lighter:   var(--gray-lighter-1); /* lighter background */
+  --background-lighter-2: var(--gray-lighter-2); /* even lighter background */
+  --background-lighter-3: var(--gray-lighter-3); /* thrice lighter than background */
+  --background-lighter-4: var(--gray-lighter-4); /* quadrice lighter background */
 
-  --background:           var(--yellow); /* main background */
-  --background-darker:    var(--yellow-darker); /* darker background */
-  --background-darker-2:  var(--yellow-darker-2); /* even darker background */
-  --background-lighter:   var(--yellow-lighter); /* lighter background */
-  --background-lighter-2: var(--yellow-lighter-2); /* even lighter background */
-  --background-lighter-3: var(--yellow-lighter-3); /* thrice lighter than background */
+  /* Checks and Errors */
+  --err-highlight:        var(--very-light-gray); /* links to problematic areas from check blocks */
+  --check-pass:           var(--very-light-gray); /* passing check block text color */
+  --check-fail:           var(--very-light-gray); /* failing check block text color */
+  --check-error:          var(--very-light-gray); /* check blocks with unexpected errors */
+  --summary-error:        var(--very-light-gray); /* announcement that blocks errored in summary (top) */
+  --err-halo-selected:    var(--very-light-gray); /* border around errors currently *in focus* */
+  --err-halo-unselected:  var(--gray-darker-2); /* border around errors NOT in focus */
 
-  --inverted-text:      var(--light-gray);  /* text opposite color of default */
-  --repl-out:           var(--light-gray);  /* REPL output (non-printed) */
-  --err-highlight:      var(--light-gray);  /* links to problematic areas from check blocks */
-  --check-pass:         var(--yellow); /* check block bg color */
-  --check-pass-lighter: var(--yellow); /* lighter than check bg */
-  --check-fail:         var(--yellow); /* check fail bg color */
-  --check-fail-lighter: var(--yellow);/* lighter than check fail */
+  /* Text */
+  --inverted-text:  var(--gray-darker-2);   /* text opposite color of default */
+  --repl-out:       var(--gray-lighter-4);  /* REPL output (non-printed) */
 
-  --check-error:          var(--yellow); /* check blocks with unexpected errors */
-  --check-error-lighter:  var(--yellow); /* lighter than check-error */
-  --summary-error:        var(--yellow); /* announcement that blocks errored (top) */
-
-  --err-halo-selected:    var(--yellow); /* border around errors currently *in focus* */
-  --err-halo-unselected:  var(--yellow); /* border around errors NOT in focus */
-
-  --unknown: var(--red);  /* unknown elements */
+  /* Misc. */
+  --line-ruler:             var(--very-light-gray); /* vertical line at 100-char boundary */
+  --failed-test-marker:     var(--gray-lighter-3); /* bg of line number indicating failed test */
+  --region-highlight:       var(--gray-lighter-2); /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --matching-bracket:       var(--very-light-gray); /* right angle brackets surrounding highlighted text */
+  --nonmatching-highlight:  var(--gray-lighter-3);  /* bg of nonmatching regions (e.g. (} )*/
+  --line-number:            var(--gray-lighter-3);  /* line numbers */
 }
 
+
+/* 
+  ----------------------------- Overrides -----------------------------
+  The below styles override the editor's appearance using the
+  color variables defined above, in an internally consistent way.
+  ---------------------------------------------------------------------
+*/
 
 /* wrapper on entire editor */
 body.TEMPLATE .CodeMirror,
@@ -236,7 +248,7 @@ body.TEMPLATE #loader > p {
 }
 
 body.TEMPLATE div.trace.error {
-   background-color: var(--check-error-lighter);
+   background-color: var(--check-error);
 }
 
 body.TEMPLATE div.spy-block {
@@ -283,10 +295,6 @@ body.TEMPLATE .repl-prompt::before {
   color: var(--default-text);
 }
 
-body.TEMPLATE .check {
-  border: 1px solid var(--unknown);
-}
-
 body.TEMPLATE .check-success {
   color: var(--check-pass);
   background-color: var(--background-lighter);
@@ -304,11 +312,17 @@ body.TEMPLATE .check-block {
 body.TEMPLATE .check-block-failed {
   color: var(--check-fail);
   background-color: var(--background-lighter-2);
+  border-width: 0.15em;
+  border-style: solid;
+  border-color: var(--check-fail);
 }
 
 body.TEMPLATE .check-block-errored {
   color: var(--check-error);
   background-color: var(--background-lighter-2);
+  border-width: 0.15em;
+  border-style: solid;
+  border-color: var(--check-error);
 }
 
 body.TEMPLATE .check-block-success {
@@ -319,28 +333,6 @@ body.TEMPLATE .check-block-success {
 body.TEMPLATE .testing-summary{
   color: var(--default-text);
   background: var(--background-lighter-2);
-}
-
-body.TEMPLATE .progressStep {
-  border: 1px solid var(--unknown);
-}
-
-body.TEMPLATE .progressStep.done {
-  background-color: var(--unknown);
-}
-
-body.TEMPLATE .progressDone {
-  color: var(--unknown);
-}
-
-body.TEMPLATE .instructionsWidget {
-  background-color: var(--unknown);
-  border: 1px dotted var(--unknown);
-  color: var(--unknown);
-}
-
-body.TEMPLATE .instructionsWidget .toggleInstructions {
-  color: var(--unknown);
 }
 
 body.TEMPLATE #program-name-container input {
@@ -357,18 +349,6 @@ body.TEMPLATE .replOutput {
 
 body.TEMPLATE .replTextOutput {
   color: var(--default-text);
-}
-
-body.TEMPLATE .replOutput.expanded > dl {
-   border: 1px solid var(--unknown);
-}
-
-body.TEMPLATE .replOutputPassed {
-  color: var(--unknown);
-}
-
-body.TEMPLATE .replOutputFailed {
-  color: var(--unknown);
 }
 
 /* rational numbers and their repeating decimals */
@@ -388,15 +368,6 @@ body.TEMPLATE .test-reason {
 
 body.TEMPLATE a.highlight {
   color: var(--err-highlight) !important;
-}
-
-body.TEMPLATE .emphasize-line {
-  background-color: var(--unknown);
-}
-
-body.TEMPLATE .check-highlight {
- background-color: var(--unknown);
- border-bottom: 2px solid var(--unknown);
 }
 
 body.TEMPLATE .compile-error {
@@ -420,10 +391,6 @@ body.TEMPLATE .error-icon {
 
 body.TEMPLATE .parse-error a {
   color: var(--err-halo-unselected);
-}
-
-body.TEMPLATE .topbar {
-  background-color: var(--unknown);
 }
 
 /* Resizable REPL */
@@ -498,18 +465,13 @@ body.TEMPLATE .check-block-test.highlights-active {
 
 body.TEMPLATE .check-block-error .highlights-active.compile-error,
 body.TEMPLATE .check-block-test.highlights-active {
-  color: var(--check-error-lighter);
+  color: var(--check-error);
   background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .test-reason:empty,
 body.TEMPLATE .check-block-error:empty {
-  color: var(--unknown);
   background-color: var(--background-lighter);
-}
-
-body.TEMPLATE .check-block-error:empty {
-  background-color: var(--unknown);
 }
 
 body.TEMPLATE .check-block-test.failing-test.highlights-active > header {
@@ -569,12 +531,6 @@ body.TEMPLATE table {
   background: var(--background-lighter);
 }
 
-body.TEMPLATE div.choiceContainer > button {
-  background-color: var(--unknown);
-  color: var(--unknown);
-  transition: box-shadow 0.2s;
-}
-
 body.TEMPLATE th {
     background: var(--background-darker);
 }
@@ -620,24 +576,24 @@ body.TEMPLATE .stale.test-results .check-block-success {
 }
 
 body.TEMPLATE .stale.test-results .check-block-errored {
-  color: var(--unknown);
+  color: var(--check-error);
   background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.highlights-active {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.highlights-active > header {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.passing-test {
-  background-color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .stale.test-results .testing-summary .summary-passed {
@@ -655,61 +611,10 @@ body.TEMPLATE .stale.test-results .testing-summary .summary-errored {
   color: var(--summary-error);
 }
 
-body.TEMPLATE .stale .compile-error.highlights-active,
-body.TEMPLATE .stale .compile-error.highlights-active,
-body.TEMPLATE .stale .check-block-test.highlights-active {
-  border-color: var(--unknown);
-}
 body.TEMPLATE .error-bg {
   background-color: var(--check-error);
-}
-body.TEMPLATE .ok-bg {
-  background-color: var(--unknown);
-}
-
-body.TEMPLATE #help-keys {
-  background-color: var(--unknown);
-  border: 50px solid var(--unknown);
-}
-
-body.TEMPLATE #doc-overlay{
-  box-shadow: 0px 0px 5px var(--unknown);
-}
-
-body.TEMPLATE #doc-overlay iframe{
-  background-color: var(--unknown);
-}
-
-body.TEMPLATE #doc-bar{
-  color: var(--unknown);
-  background: var(--unknown);
-}
-
-body.TEMPLATE #doc-close{
-  background: var(--unknown);
-}
-
-body.TEMPLATE #doc-close:hover{
-  background: var(--unknown);
 }
 
 body.TEMPLATE #header a {
   color: var(--default-text);
-}
-
-body.TEMPLATE .share {
-  background-color: var(--unknown);
-  box-shadow: 0px 3px 5px var(--unknown);
-}
-
-body.TEMPLATE .ui-tooltip {
-  background: var(--unknown);
-}
-
-body.TEMPLATE .ui-tooltip.ui-widget-content {
-  background: var(--unknown);
-}
-
-body.TEMPLATE .sharebox {
-  border: 1px solid var(--unknown);
 }
