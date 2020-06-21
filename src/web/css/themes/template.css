@@ -261,6 +261,10 @@ body.TEMPLATE div.spy-block > table > tbody > tr > td {
   border-right:  1px solid var(--background-lighter-2);
 }
 
+body.TEMPLATE .check-block-test {
+  background-color: var(--background-lighter);
+}
+
 body.TEMPLATE #output > .compile-error:not(.highlights-active):hover:after,
 body.TEMPLATE .check-block-error > .compile-error:not(.highlights-active):hover::after,
 body.TEMPLATE .check-block-test.failing-test:not(.highlights-active):hover {
@@ -293,22 +297,22 @@ body.TEMPLATE .check-failure {
 }
 
 body.TEMPLATE .check-block {
-  background: var(--background-lighter);
+  background: var(--background-lighter-2);
 }
 
 body.TEMPLATE .check-block-failed {
   color: var(--check-fail);
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .check-block-errored {
   color: var(--check-error);
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .check-block-success {
   color: var(--check-pass);
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .testing-summary{
@@ -378,6 +382,7 @@ body.TEMPLATE .replImageThumbnail:hover canvas {
 
 body.TEMPLATE .test-reason {
   color: var(--default-text);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE a.highlight {
@@ -471,12 +476,17 @@ body.TEMPLATE .editor-check-block-error {
 }
 
 body.TEMPLATE .check-block-test.failing-test:not(.highlights-active) {
-  color: var(--check-fail-lighter);
-  background-color: var(--background);
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
 }
 body.TEMPLATE .check-block-test.passing-test {
-  color: var(--check-pass-lighter);
-  background-color: var(--background);
+  color: var(--check-pass);
+  background-color: var(--background-lighter);
+}
+
+body.TEMPLATE .check-block-test.passing-test > header,
+body.TEMPLATE .check-block-test.failing-test > header {
+  font-weight: bold;
 }
 
 body.TEMPLATE #output > .compile-error.highlights-active,
@@ -488,12 +498,13 @@ body.TEMPLATE .check-block-test.highlights-active {
 body.TEMPLATE .check-block-error .highlights-active.compile-error,
 body.TEMPLATE .check-block-test.highlights-active {
   color: var(--check-error-lighter);
-  background-color: var(--background);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .test-reason:empty,
 body.TEMPLATE .check-block-error:empty {
   color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .check-block-error:empty {
@@ -501,8 +512,8 @@ body.TEMPLATE .check-block-error:empty {
 }
 
 body.TEMPLATE .check-block-test.failing-test.highlights-active > header {
-  color: var(--check-fail-lighter);
-  background-color: var(--background);
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
 }
 
 body.TEMPLATE .check-block-test .CodeMirror {
@@ -599,17 +610,17 @@ body.TEMPLATE .stale.test-results .stale-warning {
 
 body.TEMPLATE .stale.test-results .check-block-failed {
   color: var(--check-fail);
-  background-color: var(--background);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .stale.test-results .check-block-success {
   color: var(--check-pass);
-  background-color: var(--background);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .stale.test-results .check-block-errored {
   color: var(--unknown);
-  background-color: var(--background);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .stale.test-results .check-block-test.failing-test:not(.highlights-active) {

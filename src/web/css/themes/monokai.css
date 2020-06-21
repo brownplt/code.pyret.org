@@ -23,6 +23,8 @@ body.monokai {
   --err-red-lighter: #ff9999;
   --success-green: #80ff80;
   --success-green-lighter: #b3ffb3;
+  --failing-yellow: #ffff66;
+  --failing-yellow-lighter: #ffff99;
   --strong-red: #ff3333;
 
   --green-lighter: #d9f3a5;
@@ -71,8 +73,8 @@ body.monokai {
   --err-highlight:        var(--white);  /* links to problematic areas from check blocks */
   --check-pass:           var(--success-green); /* check block bg color */
   --check-pass-lighter:   var(--success-green-lighter); /* lighter than check bg */
-  --check-fail:           var(--yellow); /* check fail bg color */
-  --check-fail-lighter:   var(--yellow-lighter);/* lighter than check fail */
+  --check-fail:           var(--failing-yellow); /* check fail bg color */
+  --check-fail-lighter:   var(--failing-yellow-lighter);/* lighter than check fail */
   --check-error:          var(--err-red); /* check blocks with unexpected errors */
   --check-error-lighter:  var(--err-red-lighter); /* lighter than check-error */
   --summary-error:        var(--white); /* announcement that blocks errored (top) */
@@ -82,9 +84,6 @@ body.monokai {
 
   --unknown: var(--unknown-red);  /* unknown elements */
 }
-
-
-
 
 
 /* wrapper on entire editor */
@@ -284,6 +283,10 @@ body.monokai div.spy-block > table > tbody > tr > td {
   border-right:  1px solid var(--background-lighter-2);
 }
 
+body.monokai .check-block-test {
+  background-color: var(--background-lighter);
+}
+
 body.monokai #output > .compile-error:not(.highlights-active):hover:after,
 body.monokai .check-block-error > .compile-error:not(.highlights-active):hover::after,
 body.monokai .check-block-test.failing-test:not(.highlights-active):hover {
@@ -316,22 +319,22 @@ body.monokai .check-failure {
 }
 
 body.monokai .check-block {
-  background: var(--background-lighter);
+  background: var(--background-lighter-2);
 }
 
 body.monokai .check-block-failed {
   color: var(--check-fail);
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .check-block-errored {
   color: var(--check-error);
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .check-block-success {
   color: var(--check-pass);
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .testing-summary{
@@ -401,6 +404,7 @@ body.monokai .replImageThumbnail:hover canvas {
 
 body.monokai .test-reason {
   color: var(--default-text);
+  background-color: var(--background-lighter);
 }
 
 body.monokai a.highlight {
@@ -494,12 +498,17 @@ body.monokai .editor-check-block-error {
 }
 
 body.monokai .check-block-test.failing-test:not(.highlights-active) {
-  color: var(--check-fail-lighter);
-  background-color: var(--background);
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
 }
 body.monokai .check-block-test.passing-test {
-  color: var(--check-pass-lighter);
-  background-color: var(--background);
+  color: var(--check-pass);
+  background-color: var(--background-lighter);
+}
+
+body.monokai .check-block-test.passing-test > header,
+body.monokai .check-block-test.failing-test > header {
+  font-weight: bold;
 }
 
 body.monokai #output > .compile-error.highlights-active,
@@ -511,12 +520,13 @@ body.monokai .check-block-test.highlights-active {
 body.monokai .check-block-error .highlights-active.compile-error,
 body.monokai .check-block-test.highlights-active {
   color: var(--check-error-lighter);
-  background-color: var(--background);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .test-reason:empty,
 body.monokai .check-block-error:empty {
   color: var(--unknown);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .check-block-error:empty {
@@ -524,8 +534,8 @@ body.monokai .check-block-error:empty {
 }
 
 body.monokai .check-block-test.failing-test.highlights-active > header {
-  color: var(--check-fail-lighter);
-  background-color: var(--background);
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
 }
 
 body.monokai .check-block-test .CodeMirror {
@@ -622,17 +632,17 @@ body.monokai .stale.test-results .stale-warning {
 
 body.monokai .stale.test-results .check-block-failed {
   color: var(--check-fail);
-  background-color: var(--background);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .stale.test-results .check-block-success {
   color: var(--check-pass);
-  background-color: var(--background);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .stale.test-results .check-block-errored {
   color: var(--unknown);
-  background-color: var(--background);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
