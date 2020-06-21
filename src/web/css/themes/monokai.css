@@ -17,11 +17,13 @@ body.monokai {
   --green: #A6E22E;
   --blue: #66D9EF;
   --purple: #AE81FF;
+  --strong-purple: #8b4dff;
 
   --err-red: #ff6666;
   --err-red-lighter: #ff9999;
   --success-green: #80ff80;
   --success-green-lighter: #b3ffb3;
+  --strong-red: #ff3333;
 
   --green-lighter: #d9f3a5;
   --yellow-lighter: #f4eebe;
@@ -43,17 +45,19 @@ body.monokai {
   --variable:         var(--white); /* variables */
   --keyword:          var(--red); /* keywords */
   --number:           var(--purple); /* exact numbers */
-  --roughnum:         var(--light-orange); /* rough numbers */
+  --roughnum:         var(--strong-purple); /* rough numbers */
   --rational:         var(--purple); /* rational numbers */
   --bad-number:       var(--unknown-red); /* bad numbers */
   --string:           var(--green); /* strings */
   --unterm-string:    var(--yellow); /* unterminated strings */
   --type:             var(--blue); /* types */
 
+  --line-ruler:             var(--red); /* vertical line at 100-char boundary */
   --failed-test-marker:     var(--black-darker-2); /* bg of line number indicating failed test */
   --region-highlight:       var(--black-lighter); /* region highlighted by (check: ... end) or mouse drag, etc. */
   --matching-bracket:       var(--black-lighter-2); /* right angle brackets surrounding highlighted text */
   --nonmatching-highlight:  var(--black-lighter);  /* bg of nonmatching regions (e.g. (} )*/
+  --line-number:            var(--comment-color);  /* line numbers */
 
   --background:           var(--black); /* main background */
   --background-darker:    var(--black-darker); /* darker background */
@@ -74,11 +78,10 @@ body.monokai {
   --summary-error:        var(--white); /* announcement that blocks errored (top) */
 
   --err-halo-selected:    var(--blue-lighter); /* border around errors currently *in focus* */
-  --err-halo-unselected:  var(--red-lighter); /* border around errors NOT in focus */
+  --err-halo-unselected:  var(--strong-red); /* border around errors NOT in focus */
 
   --unknown: var(--unknown-red);  /* unknown elements */
 }
-
 
 
 
@@ -88,11 +91,13 @@ body.monokai {
 body.monokai .CodeMirror,
 body.monokai .inlineExample {
   background: var(--background);
-  color: var(--background);
+  color: var(--default-text);
 }
 
 /* REPL and editor */
-body.monokai .repl .CodeMirror {
+body.monokai .repl .CodeMirror,
+body.monokai .replMain,
+body.monokai {
   background-color: var(--background);
 }
 
@@ -218,11 +223,13 @@ body.monokai ::-webkit-scrollbar-thumb:hover {
 /* lefthand gutters */
 body.monokai .cm-s-default .CodeMirror-gutters { 
   background: var(--background); 
-  border-right: 0px !important; 
+  border-right: 1px solid var(--background-lighter);
 }
+
 body.monokai .cm-s-default .CodeMirror-guttermarker { 
-  color: var(--line-number); 
+  color: var(--line-number);
 }
+
 body.monokai .cm-s-default .CodeMirror-guttermarker-subtle { 
   color: var(--line-number); 
 }
@@ -255,16 +262,17 @@ body.monokai div.trace.error {
 }
 
 body.monokai div.spy-block {
-  border: 1px solid var(--background-darker-2);
+  border: 1px solid var(--background-lighter-2);
   background: var(--background-darker);
+  color: var(--default-text);
 }
 
 body.monokai div.spy-block > .spy-title {
-   border-bottom: 1px solid var(--background-darker-2);
+  border-bottom: 1px solid var(--background-lighter-2);
 }
 
 body.monokai div.spy-block > table > tbody > tr {
-  border: 1px solid var(--background-darker-2);
+  border: 1px solid var(--background-lighter-2);
   background: var(--background);
 }
 
@@ -273,7 +281,7 @@ body.monokai div.spy-block > table > tbody > tr:nth-child(even) {
 }
 
 body.monokai div.spy-block > table > tbody > tr > td {
-  border-right:  1px solid var(--background-darker-2);
+  border-right:  1px solid var(--background-lighter-2);
 }
 
 body.monokai #output > .compile-error:not(.highlights-active):hover:after,
@@ -568,8 +576,8 @@ body.monokai .cm-snippet header {
 }
 
 body.monokai table {
-    border:1px var(--default-text) solid;
-    background: var(background-lighter);
+  border:1px var(--background-lighter-2) solid;
+  background: var(--background-lighter);
 }
 
 body.monokai div.choiceContainer > button {
@@ -583,7 +591,7 @@ body.monokai th {
 }
 
 body.monokai th, td {
-    border-right:1px var(--default-text) solid;
+  border-right: 1px var(--background-lighter-2) solid;
 }
 
 /* odd table rows */

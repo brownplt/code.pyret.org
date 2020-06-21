@@ -68,11 +68,13 @@ body.TEMPLATE {
 body.TEMPLATE .CodeMirror,
 body.TEMPLATE .inlineExample {
   background: var(--background);
-  color: var(--background);
+  color: var(--default-text);
 }
 
 /* REPL and editor */
-body.TEMPLATE .repl .CodeMirror {
+body.TEMPLATE .repl .CodeMirror,
+body.TEMPLATE .replMain,
+body.TEMPLATE {
   background-color: var(--background);
 }
 
@@ -198,11 +200,13 @@ body.TEMPLATE ::-webkit-scrollbar-thumb:hover {
 /* lefthand gutters */
 body.TEMPLATE .cm-s-default .CodeMirror-gutters { 
   background: var(--background); 
-  border-right: 0px !important; 
+  border-right: 1px solid var(--background-lighter);
 }
+
 body.TEMPLATE .cm-s-default .CodeMirror-guttermarker { 
-  color: var(--line-number); 
+  color: var(--line-number);
 }
+
 body.TEMPLATE .cm-s-default .CodeMirror-guttermarker-subtle { 
   color: var(--line-number); 
 }
@@ -235,17 +239,17 @@ body.TEMPLATE div.trace.error {
 }
 
 body.TEMPLATE div.spy-block {
-  border: 1px solid var(--background-darker-2);
+  border: 1px solid var(--background-lighter-2);
   background: var(--background-darker);
   color: var(--default-text);
 }
 
 body.TEMPLATE div.spy-block > .spy-title {
-   border-bottom: 1px solid var(--background-darker-2);
+  border-bottom: 1px solid var(--background-lighter-2);
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr {
-  border: 1px solid var(--background-darker-2);
+  border: 1px solid var(--background-lighter-2);
   background: var(--background);
 }
 
@@ -254,7 +258,7 @@ body.TEMPLATE div.spy-block > table > tbody > tr:nth-child(even) {
 }
 
 body.TEMPLATE div.spy-block > table > tbody > tr > td {
-  border-right:  1px solid var(--background-darker-2);
+  border-right:  1px solid var(--background-lighter-2);
 }
 
 body.TEMPLATE #output > .compile-error:not(.highlights-active):hover:after,
@@ -549,8 +553,8 @@ body.TEMPLATE .cm-snippet header {
 }
 
 body.TEMPLATE table {
-    border:1px var(--default-text) solid;
-    background: var(background-lighter);
+  border:1px var(--background-lighter-2) solid;
+  background: var(--background-lighter);
 }
 
 body.TEMPLATE div.choiceContainer > button {
@@ -564,7 +568,7 @@ body.TEMPLATE th {
 }
 
 body.TEMPLATE th, td {
-    border-right:1px var(--default-text) solid;
+  border-right: 1px var(--background-lighter-2) solid;
 }
 
 /* odd table rows */
