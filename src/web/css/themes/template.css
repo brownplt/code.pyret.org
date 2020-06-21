@@ -5,6 +5,7 @@ body.TEMPLATE {
   --yellow-lighter: #fdff80;
   --yellow-lighter-2: #feffb3;
   --yellow-lighter-3: #ffffe6;
+  --yellow-lighter-4: #ffffff;
   --yellow-darker: #c9cc00;
   --yellow-darker-2: #969900;
   --light-gray: #b3b3b3;
@@ -166,54 +167,54 @@ body.TEMPLATE div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 /* scrollbar in the definitions window */
 body.TEMPLATE .CodeMirror-vscrollbar::-webkit-scrollbar {
   width: 15px;
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--background-lighter-2);
+  background-color: var(--background-lighter-3);
   border-radius: 2px;
 }
 
 body.TEMPLATE .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--background-lighter-3);
+  background-color: var(--background-lighter-4);
 }
 
 /* other scrollbars (interactions window) */
 body.TEMPLATE ::-webkit-scrollbar {
-  width: 13px;
+  width: 15px;
 }
 
 body.TEMPLATE ::-webkit-scrollbar-track {
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.TEMPLATE ::-webkit-scrollbar-thumb {
-  background-color: var(--background-lighter-2);
+  background-color: var(--background-lighter-3);
   border-radius: 2px;
 }
 
 body.TEMPLATE ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--background-lighter-3);
+  background-color: var(--background-lighter-4);
   cursor: pointer;
 }
 
 /* lefthand gutters */
-body.TEMPLATE .cm-s-default .CodeMirror-gutters { 
-  background: var(--background); 
+body.TEMPLATE .cm-s-default .CodeMirror-gutters {
+  background: var(--background);
   border-right: 1px solid var(--background-lighter);
 }
 
-body.TEMPLATE .cm-s-default .CodeMirror-guttermarker { 
+body.TEMPLATE .cm-s-default .CodeMirror-guttermarker {
   color: var(--line-number);
 }
 
-body.TEMPLATE .cm-s-default .CodeMirror-guttermarker-subtle { 
-  color: var(--line-number); 
+body.TEMPLATE .cm-s-default .CodeMirror-guttermarker-subtle {
+  color: var(--line-number);
 }
 
 /* line numbers */
-body.TEMPLATE .cm-s-default .CodeMirror-linenumber { 
-  color: var(--line-number); 
+body.TEMPLATE .cm-s-default .CodeMirror-linenumber {
+  color: var(--line-number);
 }
 
 /* 100 character line ruler */
@@ -273,7 +274,7 @@ body.TEMPLATE .repl {
 
 /* >>> in the repl */
 body.TEMPLATE .repl-prompt,
-body.TEMPLATE .repl-echo::before, 
+body.TEMPLATE .repl-echo::before,
 body.TEMPLATE .repl-prompt::before {
   color: var(--default-text);
 }
@@ -422,23 +423,23 @@ body.TEMPLATE .topbar {
 
 /* Resizable REPL */
 body.TEMPLATE #handle{
-  background:-webkit-linear-gradient(left, 
+  background:-webkit-linear-gradient(left,
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:-o-linear-gradient(left, 
+  background:-o-linear-gradient(left,
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:-moz-linear-gradient(left, 
+  background:-moz-linear-gradient(left,
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:linear-gradient(to right, 
-    var(--background-lighter) 0%, 
+  background:linear-gradient(to right,
+    var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
