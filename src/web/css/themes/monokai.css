@@ -8,6 +8,7 @@ body.monokai {
   --black-lighter: #36372f;
   --black-lighter-2: #43453b;
   --black-lighter-3: #505346;
+  --black-lighter-4: #6b6e5e;
   --white: #F8F8F2;
   --comment-color: #75715E;
   --red: #F92672;
@@ -67,6 +68,7 @@ body.monokai {
   --background-lighter:   var(--black-lighter); /* lighter background */
   --background-lighter-2: var(--black-lighter-2); /* even lighter background */
   --background-lighter-3: var(--black-lighter-3); /* thrice lighter background */
+  --background-lighter-4: var(--black-lighter-4); /* quadrice lighter background */
 
   --inverted-text:        var(--black-darker);  /* text opposite color of default */
   --repl-out:             var(--default-text);  /* REPL output (non-printed) */
@@ -187,17 +189,17 @@ body.monokai div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 /* scrollbar in the definitions window */
 body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar {
-  width: 15px;
-  background-color: var(--background-lighter);
+  width: 13px;
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--background-lighter-2);
+  background-color: var(--background-lighter-3);
   border-radius: 2px;
 }
 
 body.monokai .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--background-lighter-3);
+  background-color: var(--background-lighter-4);
 }
 
 /* other scrollbars (interactions window) */
@@ -206,36 +208,36 @@ body.monokai ::-webkit-scrollbar {
 }
 
 body.monokai ::-webkit-scrollbar-track {
-  background-color: var(--background-lighter);
+  background-color: var(--background-lighter-2);
 }
 
 body.monokai ::-webkit-scrollbar-thumb {
-  background-color: var(--background-lighter-2);
+  background-color: var(--background-lighter-3);
   border-radius: 2px;
 }
 
 body.monokai ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--background-lighter-3);
+  background-color: var(--background-lighter-4);
   cursor: pointer;
 }
 
 /* lefthand gutters */
-body.monokai .cm-s-default .CodeMirror-gutters { 
-  background: var(--background); 
+body.monokai .cm-s-default .CodeMirror-gutters {
+  background: var(--background);
   border-right: 1px solid var(--background-lighter);
 }
 
-body.monokai .cm-s-default .CodeMirror-guttermarker { 
+body.monokai .cm-s-default .CodeMirror-guttermarker {
   color: var(--line-number);
 }
 
-body.monokai .cm-s-default .CodeMirror-guttermarker-subtle { 
-  color: var(--line-number); 
+body.monokai .cm-s-default .CodeMirror-guttermarker-subtle {
+  color: var(--line-number);
 }
 
 /* line numbers */
-body.monokai .cm-s-default .CodeMirror-linenumber { 
-  color: var(--line-number); 
+body.monokai .cm-s-default .CodeMirror-linenumber {
+  color: var(--line-number);
 }
 
 /* 100 character line ruler */
@@ -299,7 +301,7 @@ body.monokai .repl {
 
 /* >>> in the repl */
 body.monokai .repl-prompt,
-body.monokai .repl-echo::before, 
+body.monokai .repl-echo::before,
 body.monokai .repl-prompt::before {
   color: var(--default-text);
 }
@@ -449,23 +451,23 @@ body.monokai .topbar {
 
 /* Resizable REPL */
 body.monokai #handle{
-  background:-webkit-linear-gradient(left, 
+  background:-webkit-linear-gradient(left,
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:-o-linear-gradient(left, 
+  background:-o-linear-gradient(left,
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:-moz-linear-gradient(left, 
+  background:-moz-linear-gradient(left,
     var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
-  background:linear-gradient(to right, 
-    var(--background-lighter) 0%, 
+  background:linear-gradient(to right,
+    var(--background-lighter) 0%,
     var(--background-lighter-2) 40%,
     var(--background-lighter-2) 60%,
     var(--background-lighter) 100%);
