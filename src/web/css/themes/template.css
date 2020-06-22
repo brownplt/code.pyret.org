@@ -618,3 +618,27 @@ body.TEMPLATE .error-bg {
 body.TEMPLATE #header a {
   color: var(--default-text);
 }
+
+/* when error is spotlighted, keep erroring line normal background */
+body.TEMPLATE #main.spotlight div.CodeMirror span.spotlight {
+  background-color: var(--background) !important;
+}
+
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket,
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket.open,
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket.close,
+body.TEMPLATE #main.spotlight .CodeMirror-matchingbracket-region,
+body.TEMPLATE #main.spotlight .repl-echo > div.CodeMirror,
+body.TEMPLATE #main.spotlight .repl,
+body.TEMPLATE #main.spotlight .repl-prompt > div.CodeMirror,
+body.TEMPLATE #main.spotlight > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
+  background-color: var(--background-lighter-3);
+  transition: .1s background-color linear .3s;
+}
+
+body.TEMPLATE #main.spotlight .check-block {
+  transition: .1s background-color linear .3s;
+  background-color: var(--background-lighter-3);
+}

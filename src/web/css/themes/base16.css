@@ -1,3 +1,5 @@
+/* Adapted from https://codemirror.net/theme/base16-dark.css */
+
 /*
   ------------------------- Theme Color Palette -------------------------
   These are the colors used by this theme.
@@ -10,10 +12,10 @@ body.base16 {
   --black-lighter: #282828;
   --black-lighter-2: #383838;
   --black-lighter-3: #575757;
-  --black-lighter-4: #B8B8B8;
+  --black-lighter-4: #808080;
 
   --white: #F8F8F8;
-  --comment-color: #D8D8D8;
+  --comment-color: #737373;
   --red: #AC4542;
   --orange: #DD9655;
   --light-orange: #EABE95;
@@ -634,4 +636,28 @@ body.base16 .error-bg {
 
 body.base16 #header a {
   color: var(--default-text);
+}
+
+/* when error is spotlighted, keep erroring line normal background */
+body.base16 #main.spotlight div.CodeMirror span.spotlight {
+  background-color: var(--background) !important;
+}
+
+body.base16 #main.spotlight .CodeMirror-matchingbracket,
+body.base16 #main.spotlight .CodeMirror-matchingbracket.open,
+body.base16 #main.spotlight .CodeMirror-matchingbracket.close,
+body.base16 #main.spotlight .CodeMirror-matchingbracket-region,
+body.base16 #main.spotlight .repl-echo > div.CodeMirror,
+body.base16 #main.spotlight .repl,
+body.base16 #main.spotlight .repl-prompt > div.CodeMirror,
+body.base16 #main.spotlight > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
+  background-color: var(--background-lighter-3);
+  transition: .1s background-color linear .3s;
+}
+
+body.base16 #main.spotlight .check-block {
+  transition: .1s background-color linear .3s;
+  background-color: var(--background-lighter-3);
 }

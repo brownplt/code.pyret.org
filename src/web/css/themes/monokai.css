@@ -1,3 +1,5 @@
+/* Adapted from https://codemirror.net/theme/monokai.css */
+
 /* 
   ------------------------- Theme Color Palette -------------------------
   These are the colors used by this theme.
@@ -50,7 +52,7 @@ body.monokai {
   --number:           var(--purple); /* exact numbers */
   --roughnum:         var(--strong-purple); /* rough numbers */
   --rational:         var(--purple); /* rational numbers */
-  --bad-number:       var(--unknown-red); /* bad numbers */
+  --bad-number:       var(--strong-red); /* bad numbers */
   --string:           var(--green); /* strings */
   --unterm-string:    var(--yellow); /* unterminated strings */
   --type:             var(--blue); /* types */
@@ -634,4 +636,28 @@ body.monokai .error-bg {
 
 body.monokai #header a {
   color: var(--default-text);
+}
+
+/* when error is spotlighted, keep erroring line normal background */
+body.monokai #main.spotlight div.CodeMirror span.spotlight {
+  background-color: var(--background) !important;
+}
+
+body.monokai #main.spotlight .CodeMirror-matchingbracket,
+body.monokai #main.spotlight .CodeMirror-matchingbracket.open,
+body.monokai #main.spotlight .CodeMirror-matchingbracket.close,
+body.monokai #main.spotlight .CodeMirror-matchingbracket-region,
+body.monokai #main.spotlight .repl-echo > div.CodeMirror,
+body.monokai #main.spotlight .repl,
+body.monokai #main.spotlight .repl-prompt > div.CodeMirror,
+body.monokai #main.spotlight > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
+  background-color: var(--background-lighter-3);
+  transition: .1s background-color linear .3s;
+}
+
+body.monokai #main.spotlight .check-block {
+  transition: .1s background-color linear .3s;
+  background-color: var(--background-lighter-3);
 }

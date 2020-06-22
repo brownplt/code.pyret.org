@@ -1,146 +1,665 @@
-/*
-	Name:       Panda Syntax
-	Author:     Siamak Mokhtari (http://github.com/siamak/)
-	CodeMirror template by Siamak Mokhtari (https://github.com/siamak/atom-panda-syntax)
+/* Adapted from https://codemirror.net/theme/panda-syntax.css */
+
+/* 
+  ------------------------- Theme Color Palette -------------------------
+  These are the colors used by this theme.
+  -----------------------------------------------------------------------
 */
-body.panda .cm-s-default {
-	background: #292A2B !important;
-	color: #E6E6E6 !important;
-	/* line-height: 1.5 !important; */
-	/* font-family: 'Operator Mono', 'Source Code Pro', Menlo, Monaco, Consolas, Courier New, monospace !important; */
-}
-body.panda .cm-s-default .CodeMirror-cursor { border-color: #ff2c6d !important; }
-body.panda .cm-s-default .CodeMirror-activeline-background {
-	background: rgba(99, 123, 156, 0.1) !important;
-}
-body.panda .cm-s-default .CodeMirror-selected {
-	background: #FFF !important;
-}
-body.panda .cm-s-default .cm-comment {
-	font-style: italic !important;
-	color: #676B79 !important;
-}
-body.panda .cm-s-default .cm-operator {
-	color: #f3f3f3 !important;
-}
-body.panda .cm-s-default .cm-string {
-	color: #19F9D8 !important;
-}
-body.panda .cm-s-default .cm-string-2 {
-    color: #FFB86C !important;
+body.panda {
+  --black-darker-2: #181b1b;
+  --black-darker: #252627;
+  --black: #292A2B;
+  --black-lighter: #323334;
+  --black-lighter-2: #3e4041;
+  --black-lighter-3: #4b4d4e;
+  --black-lighter-4: #575a5b;
+
+  --white: #E6E6E6;
+  --light-gray: #cccccc;
+  --blue-gray: #a8b3bd;
+  --red: #ff2c6d;
+  --comment-color: #676B79;
+  --cyan: #19F9D8;
+  --orange: #FFB86C;
+  --strong-orange: #ff901a;
+  --purple: #b084eb;
+  --pink: #FF75B5;
+  --blue: #4dc6ff;
+  --highlight-color: #3e4041;
+
+  --err-red: #ff2c6d;
+  --success-green: #00ff99;
+  --failing-yellow: #ffff80;
+
+  --strong-red: #ff3333;
+  --blue-lighter: #baedf8;
 }
 
-body.panda .cm-s-default .cm-tag {
-	color: #ff2c6d !important;
-}
-body.panda .cm-s-default .cm-meta {
-	color: #b084eb !important;
+/* 
+  ------------------------- Color Assignments -------------------------
+  This mapping determines usage of colors from the above palette
+  to stylize elements in groups
+  ---------------------------------------------------------------------
+*/
+body.panda {
+  /* Syntax Highlighting */
+  --default-text:     var(--white); /* default program text */
+  --cursor:           var(--cyan); /* cursor */
+  --comment:          var(--comment-color); /* code comments */
+  --boolean:          var(--purple); /* booleans */
+  --builtin:          var(--light-gray); /* builtins */
+  --function-name:    var(--blue-gray); /* function names */
+  --variable:         var(--white); /* variables */
+  --keyword:          var(--pink); /* keywords */
+  --number:           var(--orange); /* exact numbers */
+  --roughnum:         var(--strong-orange); /* rough numbers */
+  --rational:         var(--orange); /* rational numbers */
+  --bad-number:       var(--strong-red); /* bad numbers */
+  --string:           var(--cyan); /* strings */
+  --unterm-string:    var(--red); /* unterminated strings */
+  --type:             var(--blue); /* types */
+
+  /* Backgrounds */
+  --background:           var(--black); /* main background */
+  --background-darker:    var(--black-darker); /* darker background */
+  --background-darker-2:  var(--black-darker-2); /* even darker background */
+  --background-lighter:   var(--black-lighter); /* lighter background */
+  --background-lighter-2: var(--black-lighter-2); /* even lighter background */
+  --background-lighter-3: var(--black-lighter-3); /* thrice lighter background */
+  --background-lighter-4: var(--black-lighter-4); /* quadrice lighter background */
+
+  /* Checks and Errors */
+  --err-highlight:        var(--white);  /* links to problematic areas from check blocks */
+  --check-pass:           var(--success-green); /* check block bg color */
+  --check-fail:           var(--failing-yellow); /* check fail bg color */
+  --check-error:          var(--err-red); /* check blocks with unexpected errors */
+  --summary-error:        var(--white); /* announcement that blocks errored (top) */
+  --err-halo-selected:    var(--blue-lighter); /* border around errors currently *in focus* */
+  --err-halo-unselected:  var(--strong-red); /* border around errors NOT in focus */
+
+  /* Text */
+  --inverted-text:        var(--black-darker);  /* text opposite color of default */
+  --repl-out:             var(--default-text);  /* REPL output (non-printed) */
+
+  /* Misc. */
+  --line-ruler:             var(--red); /* vertical line at 100-char boundary */
+  --failed-test-marker:     var(--black-darker-2); /* bg of line number indicating failed test */
+  --region-highlight:       var(--highlight-color); /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --matching-bracket:       var(--cyan); /* right angle brackets surrounding highlighted text */
+  --nonmatching-highlight:  var(--black-lighter);  /* bg of nonmatching regions (e.g. (} )*/
+  --line-number:            var(--comment-color);  /* line numbers */
 }
 
-body.panda .cm-s-default .cm-number {
-	color: #FFB86C !important;
-}
-body.panda .cm-s-default .cm-atom {
-	color: #ff2c6d !important;
-}
-body.panda .cm-s-default .cm-keyword {
-	color: #FF75B5 !important;
-}
-body.panda .cm-s-default .cm-variable {
-	color: #ffb86c !important;
-}
-body.panda .cm-s-default .cm-variable-2 {
-	color: #ff9ac1 !important;
-}
-body.panda .cm-s-default .cm-variable-3,
-body.panda .cm-s-default .cm-type {
-	color: #4dc6ff !important;
+
+/* 
+  ----------------------------- Overrides -----------------------------
+  The below styles override the editor's appearance using the
+  color variables defined above, in an internally consistent way.
+  ---------------------------------------------------------------------
+*/
+
+/* wrapper on entire editor */
+body.panda .CodeMirror,
+body.panda .inlineExample {
+  background: var(--background);
+  color: var(--default-text);
 }
 
-body.panda .cm-s-default .cm-def {
-	color: #e6e6e6 !important;
-}
-body.panda .cm-s-default .cm-property {
-	color: #f3f3f3 !important;
-}
-body.panda .cm-s-default .cm-unit {
-    color: #ffb86c !important;
+/* REPL and editor */
+body.panda .repl .CodeMirror,
+body.panda .replMain,
+body.panda {
+  background-color: var(--background);
 }
 
-body.panda .cm-s-default .cm-attribute {
-    color: #ffb86c !important;
+/* syntax highlighting */
+body.panda .CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
+body.panda .cm-s-default.CodeMirror { color: var(--default-text); }
+body.panda .cm-s-default .cm-comment { color: var(--comment); }
+body.panda .cm-s-default .cm-boolean { color: var(--boolean); }
+body.panda .cm-s-default .cm-builtin { color: var(--builtin); }
+body.panda .cm-s-default .cm-function-name { color: var(--function-name); }
+body.panda .cm-s-default .cm-variable { color: var(--variable); }
+body.panda .cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
+body.panda .cm-s-default .cm-number { color: var(--number); }
+body.panda .cm-s-default .cm-roughnum { color: var(--roughnum); }
+body.panda .cm-s-default .cm-bad-number { color: var(--bad-number); font-weight: bold; }
+body.panda .cm-s-default .cm-string { color: var(--string); }
+body.panda .cm-s-default .cm-unterminated-string { color: var(--unterm-string); font-weight: bold; }
+body.panda .cm-s-default .cm-type { color: var(--type); }
+body.panda .cptteach-fixed { background: var(--cptteach-fixed); }
+
+/* text selected by mouse */
+body.panda div.CodeMirror-selected,
+body.panda span.CodeMirror-selectedtext {
+  background-color: var(--region-highlight) !important;
 }
 
-body.panda .cm-s-default .CodeMirror-matchingbracket {
-    border-bottom: 1px dotted #19F9D8 !important;
-    padding-bottom: 2px !important;
+/* right angles surrounding matched regions */
+body.panda .CodeMirror-matchingbracket::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  border: 0px solid var(--matching-bracket);
+  z-index: 1000;
 }
 
-body.panda .cm-s-default .CodeMirror-gutters {
-    background: #292a2b !important;
-    border-right-color: rgba(255, 255, 255, 0.1) !important;
-}
-body.panda .cm-s-default .CodeMirror-linenumber {
-    color: #e6e6e6 !important;
-    opacity: 0.6 !important;
-}
-
-body.panda .cm-s-default .cm-builtin {
-	color: #cccccc !important;
-}
-
-body.panda .cm-s-default .cm-function-name {
-	color: #a8b3bd !important;
-}
-
-body.panda .cm-s-default .cm-boolean {
-	color: #b084eb !important;
-	font-weight: bold !important;
-}
-
-body.panda .cm-s-default .cm-roughnum {
-	color: #b084eb !important;
-	font-weight: bold !important;
-}
-
-/* this handles selected regions (by mouse dragging) */
-body.panda .cm-s-default div.CodeMirror-selected,
-body.panda span.CodeMirror-selectedtext { background: #3e4041 !important; }
-
-/*  Below handles regions automatically highlighted by Pyret
-    (e.g. "fun ... end") */
+/* highlighting of matched regions such as (fun ... end), etc. */
 body.panda div.CodeMirror span.CodeMirror-matchingbracket-region {
-  position: relative;
-  background-color: #3e4041 !important;
-  border-top: 0.1em solid #3e4041 !important;
-  border-bottom: 0.1em solid #3e4041 !important;
+  background-color: var(--region-highlight);
+  border-top: 0.1em solid var(--region-highlight);
+  border-bottom: 0.1em solid var(--region-highlight);
 }
 
 body.panda div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
-  box-shadow: 0.5em 0 0.25em #3e4041 !important;
+    box-shadow: 0.5em 0 0.25em var(--region-highlight);
 }
 body.panda div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
-  box-shadow: -0.5em 0 0.25em #3e4041 !important;
+    box-shadow: -0.5em 0 0.25em var(--region-highlight);
 }
 body.panda div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
-  box-shadow: -0.5em 0 0.25em #3e4041, 0.5em 0 0.25em #3e4041 !important;
+    box-shadow: -0.5em 0 0.25em var(--region-highlight), 0.5em 0 0.25em var(--region-highlight);
 }
 body.panda div.CodeMirror span.CodeMirror-matchingbracket.open {
-box-shadow: -0.3ex 0 0.3ex #3e4041 !important;
+  box-shadow: -0.3ex 0 0.3ex var(--region-highlight);
 }
 body.panda div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
-box-shadow: 0.5em 0 0.25em #3e4041, -0.3ex 0 0.3ex #3e4041 !important;
+  box-shadow: 0.5em 0 0.25em var(--region-highlight), -0.3ex 0 0.3ex var(--region-highlight);
 }
 body.panda div.CodeMirror span.CodeMirror-matchingbracket.close {
-box-shadow: 0.3ex 0 0.3ex #3e4041 !important;
+  box-shadow: 0.3ex 0 0.3ex var(--region-highlight);
 }
 body.panda div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
-box-shadow: -0.5em 0 0.25em #3e4041, 0.3ex 0 0.3ex #3e4041 !important;
+  box-shadow: -0.5em 0 0.25em var(--region-highlight), 0.3ex 0 0.3ex var(--region-highlight);
 }
 
+body.panda .CodeMirror-matchingbracket.close::before {
+  border-width: 0px 0.3ex 0.3ex 0px;
+  border-bottom-right-radius: 0.4ex;
+  margin: 0.3ex;
+}
 
-/* Interactions Window */
-body.panda .repl,
+body.panda .CodeMirror-matchingbracket.open::before {
+  border-width: 0.3ex 0px 0px 0.3ex;
+  border-top-left-radius: 0.4ex;
+  margin: -0.3ex;
+}
+
+body.panda div.CodeMirror span.CodeMirror-nonmatchingbracket {
+  background-color: var(--nonmatching-highlight);
+  color: var(--check-error);
+}
+
+body.panda div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
+  background-color: var(--nonmatching-highlight);
+  border-top: 0.1em solid var(--nonmatching-highlight);
+  border-bottom: 0.1em solid var(--nonmatching-highlight);
+}
+
+/* scrollbar in the definitions window */
+body.panda .CodeMirror-vscrollbar::-webkit-scrollbar {
+  width: 15px;
+  background-color: var(--background-lighter-2);
+}
+
+body.panda .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--background-lighter-3);
+  border-radius: 2px;
+}
+
+body.panda .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--background-lighter-4);
+}
+
+/* other scrollbars (interactions window) */
+body.panda ::-webkit-scrollbar {
+  width: 15px;
+}
+
+body.panda ::-webkit-scrollbar-track {
+  background-color: var(--background-lighter-2);
+}
+
+body.panda ::-webkit-scrollbar-thumb {
+  background-color: var(--background-lighter-3);
+  border-radius: 2px;
+}
+
+body.panda ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--background-lighter-4);
+  cursor: pointer;
+}
+
+/* lefthand gutters */
+body.panda .cm-s-default .CodeMirror-gutters {
+  background: var(--background);
+  border-right: 1px solid var(--background-lighter);
+}
+
+body.panda .cm-s-default .CodeMirror-guttermarker {
+  color: var(--line-number);
+}
+
+body.panda .cm-s-default .CodeMirror-guttermarker-subtle {
+  color: var(--line-number);
+}
+
+/* line numbers */
+body.panda .cm-s-default .CodeMirror-linenumber {
+  color: var(--line-number);
+}
+
+/* 100 character line ruler */
+body.panda .CodeMirror div.CodeMirror-ruler {
+  border: 1.5px;
+  border-color: var(--line-ruler) !important;
+  border-style: solid;
+  border-left-style: none !important;
+}
+
+/* div containing spinny Pyret and loading messages */
 body.panda #loader {
-  background-color: #292A2B !important;
+  background-color: var(--background);
+}
+
+/* pirate text on loader screen */
+body.panda #loader > p {
+  color: var(--default-text);
+}
+
+body.panda div.trace.error {
+   background-color: var(--check-error);
+}
+
+body.panda div.spy-block {
+  border: 1px solid var(--background-lighter-2);
+  background: var(--background-darker);
+  color: var(--default-text);
+}
+
+body.panda div.spy-block > .spy-title {
+  border-bottom: 1px solid var(--background-lighter-2);
+}
+
+body.panda div.spy-block > table > tbody > tr {
+  border: 1px solid var(--background-lighter-2);
+  background: var(--background);
+}
+
+body.panda div.spy-block > table > tbody > tr:nth-child(even) {
+  background: var(--background-lighter);
+}
+
+body.panda div.spy-block > table > tbody > tr > td {
+  border-right:  1px solid var(--background-lighter-2);
+}
+
+body.panda .check-block-test {
+  background-color: var(--background-lighter);
+}
+
+body.panda #output > .compile-error:not(.highlights-active):hover:after,
+body.panda .check-block-error > .compile-error:not(.highlights-active):hover::after,
+body.panda .check-block-test.failing-test:not(.highlights-active):hover {
+    box-shadow: 0 0 2em var(--err-halo-selected);
+}
+
+body.panda .repl {
+  background-color: var(--background);
+}
+
+/* >>> in the repl */
+body.panda .repl-prompt,
+body.panda .repl-echo::before,
+body.panda .repl-prompt::before {
+  color: var(--default-text);
+}
+
+body.panda .check-success {
+  color: var(--check-pass);
+  background-color: var(--background-lighter);
+}
+
+body.panda .check-failure {
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
+}
+
+body.panda .check-block {
+  background: var(--background-lighter-2);
+}
+
+body.panda .check-block-failed {
+  color: var(--check-fail);
+  background-color: var(--background-lighter-2);
+  border-width: 0.15em;
+  border-style: solid;
+  border-color: var(--check-fail);
+}
+
+body.panda .check-block-errored {
+  color: var(--check-error);
+  background-color: var(--background-lighter-2);
+  border-width: 0.15em;
+  border-style: solid;
+  border-color: var(--check-error);
+}
+
+body.panda .check-block-success {
+  color: var(--check-pass);
+  background-color: var(--background-lighter-2);
+}
+
+body.panda .testing-summary{
+  color: var(--default-text);
+  background: var(--background-lighter-2);
+}
+
+body.panda #program-name-container input {
+  background: var(--background);
+}
+
+body.panda .replPrint {
+  color: var(--default-text);
+}
+
+body.panda .replOutput {
+  color: var(--repl-out);
+}
+
+body.panda .replTextOutput {
+  color: var(--default-text);
+}
+
+/* rational numbers and their repeating decimals */
+body.panda .rationalNumber,
+body.panda .rationalRepeat {
+ color: var(--rational);
+}
+
+body.panda .replImageThumbnail:hover canvas {
+  box-shadow: 0px 2px 4px var(--background-lighter-2);
+}
+
+body.panda .test-reason {
+  color: var(--default-text);
+  background-color: var(--background-lighter);
+}
+
+body.panda a.highlight {
+  color: var(--err-highlight) !important;
+}
+
+body.panda .compile-error {
+  border: 1px dashed var(--err-halo-unselected);
+  color: var(--default-text);
+  background: var(--background);
+}
+
+body.panda .compile-error a {
+  color: var(--err-halo-selected);
+}
+
+body.panda .parse-error {
+  border: 1px dashed var(--err-halo-unselected);
+  background: var(--background);
+}
+
+body.panda .error-icon {
+  color: var(--err-halo-selected);
+}
+
+body.panda .parse-error a {
+  color: var(--err-halo-unselected);
+}
+
+/* Resizable REPL */
+body.panda #handle{
+  background:-webkit-linear-gradient(left,
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  background:-o-linear-gradient(left,
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  background:-moz-linear-gradient(left,
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  background:linear-gradient(to right,
+    var(--background-lighter) 0%,
+    var(--background-lighter-2) 40%,
+    var(--background-lighter-2) 60%,
+    var(--background-lighter) 100%);
+  border: 1px solid var(--background-darker-2);
+}
+
+body.panda .module-info-hover {
+  border: 1px solid var(--default-text);
+  background-color: var(--background);
+}
+
+body.panda .editor-check-block-success {
+  background: var(--check-pass);
+  box-shadow: 0 1em 11px 2px var(--check-pass);
+}
+
+body.panda .editor-check-block-failed {
+  background: var(--check-fail);
+  box-shadow: 0 0.5em 11px 3px var(--check-fail);
+}
+
+body.panda .editor-check-block-error {
+  background: var(--check-error);
+  box-shadow: 0 1em 11px 2px var(--check-error);
+}
+
+@keyframes emphasize-error {
+  from {background-color: var(--background);}
+  to {}
+}
+
+body.panda .check-block-test.failing-test:not(.highlights-active) {
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
+}
+body.panda .check-block-test.passing-test {
+  color: var(--check-pass);
+  background-color: var(--background-lighter);
+}
+
+body.panda .check-block-test.passing-test > header,
+body.panda .check-block-test.failing-test > header {
+  font-weight: bold;
+}
+
+body.panda #output > .compile-error.highlights-active,
+body.panda .check-block-error .highlights-active.compile-error,
+body.panda .check-block-test.highlights-active {
+  border: 0.3em var(--err-halo-selected) solid;
+}
+
+body.panda .check-block-error .highlights-active.compile-error,
+body.panda .check-block-test.highlights-active {
+  color: var(--check-error);
+  background-color: var(--background-lighter);
+}
+
+body.panda .test-reason:empty,
+body.panda .check-block-error:empty {
+  background-color: var(--background-lighter);
+}
+
+body.panda .check-block-test.failing-test.highlights-active > header {
+  color: var(--check-fail);
+  background-color: var(--background-lighter);
+}
+
+body.panda .check-block-test .CodeMirror {
+  background: var(--background);
+}
+
+body.panda .errored-test-marker {
+  background-color: var(--check-error);
+}
+
+body.panda .failed-test-marker {
+  background-color: var(--failed-test-marker);
+}
+
+/* tests passed and failed summary */
+body.panda .summary-bits {
+  color: var(--default-text);
+  background-color: var(--background-lighter);
+}
+
+body.panda .summary-bit.summary-passed {
+  color: var(--check-pass);
+  background: var(--background-lighter);
+}
+
+body.panda .summary-bit.summary-failed {
+  color: var(--check-fail);
+  background: var(--background-lighter);
+}
+
+body.panda .summary-errored {
+  background: var(--check-error);
+  color: var(--summary-error);
+}
+
+body.panda .summary-text {
+  border-left: 1px var(--summary-error) solid;
+}
+
+body.panda .cm-snippet {
+  border: 1px var(--background-lighter-2) dashed;
+}
+
+body.panda .cm-snippet header {
+  background: var(--background-darker);
+  /* box-shadow: 0 0 3px hsla(0,0%,0%,0.5); */
+  border-bottom: 1px var(--background-lighter-2) solid;
+}
+
+body.panda table {
+  border:1px var(--background-lighter-2) solid;
+  background: var(--background-lighter);
+}
+
+body.panda th {
+    background: var(--background-darker);
+}
+
+body.panda th, td {
+  border-right: 1px var(--background-lighter-2) solid;
+}
+
+/* odd table rows */
+body.panda tr {
+  background-color: var(--background-lighter);
+}
+
+/* even table rows */
+body.panda tr:nth-child(even){
+  background-color: var(--background-lighter-2)
+}
+
+body.panda table.pyret-table thead {
+  box-shadow: 0px 2px 2px var(--background-lighter);
+}
+body.panda table.pyret-row th {
+  box-shadow: 2px 0px 2px var(--background-lighter), -2px 0px 2px var(--background-lighter);
+}
+/* NOTE(joe): this helps distinguish a row that appears in a table cell */
+body.panda table.pyret-row {
+  box-shadow: 2px 2px 2px var(--background-lighter);
+}
+
+body.panda .stale.test-results .stale-warning {
+  color: var(--inverted-text);
+  background-color: var(--check-fail);
+}
+
+body.panda .stale.test-results .check-block-failed {
+  color: var(--check-fail);
+  background-color: var(--background-lighter-2);
+}
+
+body.panda .stale.test-results .check-block-success {
+  color: var(--check-pass);
+  background-color: var(--background-lighter-2);
+}
+
+body.panda .stale.test-results .check-block-errored {
+  color: var(--check-error);
+  background-color: var(--background-lighter-2);
+}
+
+body.panda .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
+  background-color: var(--background-lighter);
+}
+
+body.panda .stale.test-results .check-block-test.highlights-active {
+  background-color: var(--background-lighter);
+}
+
+body.panda .stale.test-results .check-block-test.highlights-active > header {
+  background-color: var(--background-lighter);
+}
+
+body.panda .stale.test-results .check-block-test.passing-test {
+  background-color: var(--background-lighter);
+}
+
+body.panda .stale.test-results .testing-summary .summary-passed {
+  color: var(--check-pass);
+  background: var(--background-lighter);
+}
+
+body.panda .stale.test-results .testing-summary .summary-failed {
+  color: var(--check-fail);
+  background: var(--background-lighter);
+}
+
+body.panda .stale.test-results .testing-summary .summary-errored {
+  background: var(--check-error);
+  color: var(--summary-error);
+}
+
+body.panda .error-bg {
+  background-color: var(--check-error);
+}
+
+body.panda #header a {
+  color: var(--default-text);
+}
+
+/* when error is spotlighted, keep erroring line normal background */
+body.panda #main.spotlight div.CodeMirror span.spotlight {
+  background-color: var(--background) !important;
+}
+
+body.panda #main.spotlight .CodeMirror-matchingbracket,
+body.panda #main.spotlight .CodeMirror-matchingbracket.open,
+body.panda #main.spotlight .CodeMirror-matchingbracket.close,
+body.panda #main.spotlight .CodeMirror-matchingbracket-region,
+body.panda #main.spotlight .repl-echo > div.CodeMirror,
+body.panda #main.spotlight .repl,
+body.panda #main.spotlight .repl-prompt > div.CodeMirror,
+body.panda #main.spotlight > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
+  background-color: var(--background-lighter-3);
+  transition: .1s background-color linear .3s;
+}
+
+body.panda #main.spotlight .check-block {
+  transition: .1s background-color linear .3s;
+  background-color: var(--background-lighter-3);
 }
