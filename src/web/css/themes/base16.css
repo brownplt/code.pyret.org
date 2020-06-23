@@ -17,17 +17,15 @@ body.base16 {
   --white: #F8F8F8;
   --comment-color: #737373;
   --red: #AC4542;
-  --orange: #DD9655;
-  --light-orange: #EABE95;
   --yellow: #F7CB87;
   --green: #A2B56B;
   --blue: #7CB0C2;
   --purple: #BA8BAF;
   --strong-purple: #8f5682;
 
-  --err-red: #ff6666;
-  --success-green: #80ff80;
-  --failing-yellow: #ffff66;
+  --err-red: #bf4040;
+  --success-green: #77b300;
+  --failing-yellow: #ffcc66;
 
   --strong-red: #ff3333;
   --blue-lighter: #86C1B9;
