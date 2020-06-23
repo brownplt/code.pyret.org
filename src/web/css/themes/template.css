@@ -39,22 +39,22 @@ body.template {
   --type:             var(--very-light-gray); /* types */
 
   /* Backgrounds */
-  --background:           var(--gray); /* main background */
-  --background-darker:    var(--gray-darker-1); /* darker background */
-  --background-darker-2:  var(--gray-darker-2); /* even darker background */
+  --background:           var(--gray);           /* main background */
+  --background-darker:    var(--gray-darker-1);  /* darker background */
+  --background-darker-2:  var(--gray-darker-2);  /* even darker background */
   --background-lighter:   var(--gray-lighter-1); /* lighter background */
   --background-lighter-2: var(--gray-lighter-2); /* even lighter background */
   --background-lighter-3: var(--gray-lighter-3); /* thrice lighter than background */
   --background-lighter-4: var(--gray-lighter-4); /* quadrice lighter background */
 
   /* Checks and Errors */
-  --err-highlight:        var(--very-light-gray); /* links to problematic areas from check blocks */
+  --err-highlight:        var(--very-light-gray); /* color-flashing text in error messages */
   --check-pass:           var(--very-light-gray); /* passing check block text color */
   --check-fail:           var(--very-light-gray); /* failing check block text color */
-  --check-error:          var(--very-light-gray); /* check blocks with unexpected errors */
+  --check-error:          var(--very-light-gray); /* erroring check block text color */
   --summary-error:        var(--very-light-gray); /* announcement that blocks errored in summary (top) */
-  --err-halo-selected:    var(--very-light-gray); /* border around errors currently *in focus* */
-  --err-halo-unselected:  var(--gray-darker-2); /* border around errors NOT in focus */
+  --err-halo-selected:    var(--very-light-gray); /* border around errors/failures currently *in focus* */
+  --err-halo-unselected:  var(--gray-darker-2);   /* border around errors/failures NOT in focus */
 
   /* Text */
   --inverted-text:  var(--gray-darker-2);   /* text opposite color of default */
@@ -62,8 +62,8 @@ body.template {
 
   /* Misc. */
   --line-ruler:             var(--very-light-gray); /* vertical line at 100-char boundary */
-  --failed-test-marker:     var(--gray-lighter-3); /* bg of line number indicating failed test */
-  --region-highlight:       var(--gray-lighter-2); /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --failed-test-marker:     var(--gray-lighter-3);  /* bg of line number indicating failed test */
+  --region-highlight:       var(--gray-lighter-2);  /* region highlighted by (check: ... end) or mouse drag, etc. */
   --matching-bracket:       var(--very-light-gray); /* right angle brackets surrounding highlighted text */
   --nonmatching-highlight:  var(--gray-lighter-3);  /* bg of nonmatching regions (e.g. (} )*/
   --line-number:            var(--gray-lighter-3);  /* line numbers */

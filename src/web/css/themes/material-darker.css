@@ -43,51 +43,51 @@ body.material-darker {
 */
 body.material-darker {
   /* Syntax Highlighting */
-  --default-text:     var(--white); /* default program text */
-  --cursor:           var(--white); /* cursor */
+  --default-text:     var(--white);         /* default program text */
+  --cursor:           var(--white);         /* cursor */
   --comment:          var(--comment-color); /* code comments */
-  --boolean:          var(--red-pink); /* booleans */
-  --builtin:          var(--orange); /* builtins */
-  --function-name:    var(--light-gray); /* function names */
-  --variable:         var(--light-gray); /* variables */
-  --keyword:          var(--purple); /* keywords */
-  --number:           var(--blue); /* exact numbers */
-  --roughnum:         var(--strong-blue); /* rough numbers */
-  --rational:         var(--blue); /* rational numbers */
-  --bad-number:       var(--err-red); /* bad numbers */
-  --string:           var(--green); /* strings */
-  --unterm-string:    var(--err-red); /* unterminated strings */
-  --type:             var(--teal); /* types */
+  --boolean:          var(--red-pink);      /* booleans */
+  --builtin:          var(--orange);        /* builtins */
+  --function-name:    var(--light-gray);    /* function names */
+  --variable:         var(--light-gray);    /* variables */
+  --keyword:          var(--purple);        /* keywords */
+  --number:           var(--blue);          /* exact numbers */
+  --roughnum:         var(--strong-blue);   /* rough numbers */
+  --rational:         var(--blue);          /* rational numbers */
+  --bad-number:       var(--err-red);       /* bad numbers */
+  --string:           var(--green);         /* strings */
+  --unterm-string:    var(--err-red);       /* unterminated strings */
+  --type:             var(--teal);          /* types */
 
   /* Backgrounds */
-  --background:           var(--bg); /* main background */
-  --background-darker:    var(--bg-darker); /* darker background */
-  --background-darker-2:  var(--bg-darker-2); /* even darker background */
-  --background-lighter:   var(--bg-lighter); /* lighter background */
-  --background-lighter-2: var(--bg-lighter-2); /* even lighter background */
-  --background-lighter-3: var(--bg-lighter-3); /* thrice lighter than background */
-  --background-lighter-4: var(--bg-lighter-4); /* quadrice lighter background */
+  --background:           var(--bg);            /* main background */
+  --background-darker:    var(--bg-darker);     /* darker background */
+  --background-darker-2:  var(--bg-darker-2);   /* even darker background */
+  --background-lighter:   var(--bg-lighter);    /* lighter background */
+  --background-lighter-2: var(--bg-lighter-2);  /* even lighter background */
+  --background-lighter-3: var(--bg-lighter-3);  /* thrice lighter than background */
+  --background-lighter-4: var(--bg-lighter-4);  /* quadrice lighter background */
 
   /* Checks and Errors */
-  --err-highlight:        var(--white); /* links to problematic areas from check blocks */
-  --check-pass:           var(--success-green); /* passing check block text color */
-  --check-fail:           var(--failing-yellow); /* failing check block text color */
-  --check-error:          var(--err-red); /* check blocks with unexpected errors */
-  --summary-error:        var(--white); /* announcement that blocks errored in summary (top) */
-  --err-halo-selected:    var(--blue-lighter); /* border around errors currently *in focus* */
-  --err-halo-unselected:  var(--strong-red); /* border around errors NOT in focus */
+  --err-highlight:        var(--white);           /* color-flashing text in error messages */
+  --check-pass:           var(--success-green);   /* passing check block text color */
+  --check-fail:           var(--failing-yellow);  /* failing check block text color */
+  --check-error:          var(--err-red);         /* erroring check block text color */
+  --summary-error:        var(--white);           /* announcement that blocks errored in summary (top) */
+  --err-halo-selected:    var(--blue-lighter);    /* border around errors/failures currently *in focus* */
+  --err-halo-unselected:  var(--strong-red);      /* border around errors/failures NOT in focus */
 
   /* Text */
   --inverted-text:  var(--bg-darker);   /* text opposite color of default */
   --repl-out:       var(--light-gray);  /* REPL output (non-printed) */
 
   /* Misc. */
-  --line-ruler:             var(--red-pink); /* vertical line at 100-char boundary */
-  --failed-test-marker:     var(--bg-darker-2); /* bg of line number indicating failed test */
-  --region-highlight:       var(--bg-lighter-2); /* region highlighted by (check: ... end) or mouse drag, etc. */
-  --matching-bracket:       var(--light-gray-2); /* right angle brackets surrounding highlighted text */
-  --nonmatching-highlight:  var(--bg-lighter);  /* bg of nonmatching regions (e.g. (} )*/
-  --line-number:            var(--comment-color);  /* line numbers */
+  --line-ruler:             var(--red-pink);      /* vertical line at 100-char boundary */
+  --failed-test-marker:     var(--bg-darker-2);   /* bg of line number indicating failed test */
+  --region-highlight:       var(--bg-lighter-2);  /* region highlighted by (check: ... end) or mouse drag, etc. */
+  --matching-bracket:       var(--light-gray-2);  /* right angle brackets surrounding highlighted text */
+  --nonmatching-highlight:  var(--bg-lighter);    /* bg of nonmatching regions (e.g. (} )*/
+  --line-number:            var(--comment-color); /* line numbers */
 }
 
 
