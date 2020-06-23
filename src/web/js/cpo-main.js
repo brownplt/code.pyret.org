@@ -447,11 +447,31 @@
       }
       $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
-      var curTheme = document.getElementById("theme").value;
+      var curTheme = document.getElementById("theme-select").value;
+      var themeSelect = $("#theme-select");
+
+      function applyTheme(theme) {
+        themeSelect.val(theme);
+        $("body").removeClass(curTheme).addClass(theme);
+        curTheme = theme;
+      }
+
+      if (localSettings.getItem('theme') !== null) {
+        applyTheme(localSettings.getItem('theme'));
+      } else {
+        localSettings.setItem('theme', curTheme);
+      }
+
       $("#theme").change(function(e) {
         var value = e.target.value;
-        $("body").removeClass(curTheme).addClass(value);
-        curTheme = value;
+        applyTheme(value);
+
+        // track theme in local settings
+        localSettings.setItem('theme', curTheme);
+      });
+
+      localSettings.change("theme", function(_, newTheme) {
+        applyTheme(newTheme);
       });
       
       $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
