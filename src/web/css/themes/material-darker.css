@@ -1,6 +1,6 @@
 /* Adapted from https://codemirror.net/theme/material-darker.css */
 
-/* 
+/*
   ------------------------- Theme Color Palette -------------------------
   These are the colors used by this theme.
   -----------------------------------------------------------------------
@@ -21,7 +21,6 @@ body.material-darker {
   --purple: #C792EA;
   --teal: #89DDFF;
   --orange: #FFCB6B;
-  --red-orange: #F78C6C;
   --red-pink: #FF5370;
   --blue: #82AAFF;
   --strong-blue: #3374ff;
@@ -35,7 +34,7 @@ body.material-darker {
   --blue-lighter: #baedf8;
 }
 
-/* 
+/*
   ------------------------- Color Assignments -------------------------
   This mapping determines usage of colors from the above palette
   to stylize elements in groups
@@ -91,7 +90,7 @@ body.material-darker {
 }
 
 
-/* 
+/*
   ----------------------------- Overrides -----------------------------
   The below styles override the editor's appearance using the
   color variables defined above, in an internally consistent way.
