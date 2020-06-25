@@ -1,0 +1,116 @@
+
+/* --------- Overrides not required for the default theme --------- */
+
+
+/* vars that need to be defined (IN THEME FILES) for the below overrides to work */
+body:not(.default) {
+  --repl-text-output: red; /* text output in the REPL */
+  --gutter-bg: red; /* background of line number gutters */
+  --gutter-border: red; /* border between gutter & definitions window */
+  --line-numbers: red;  /* line numbers in left gutter */
+  --repl-prompts: red;  /* >>> prompt in the REPL */
+  --loader-bg: red; /* REPL background during page load */
+  --loader-text: red; /* text containing loading messages during page load */
+  --line-ruler: blue; /* 100-char line ruler */
+  --scroll-bg: black; /* scrollbar track background*/
+  --scroll-thumb: gray; /* scrollbar thumb */
+  --scroll-thumb-highlight: white;  /* scrollbar thumb when hover */
+  --check-fail-border: yellow;  /* border around failing check blocks */
+  --check-error-border: green;  /* border around erroring check blocks */
+}
+
+body:not(.default) .repl {
+  color: var(--default-text);
+}
+
+/* text output in the REPL */
+body:not(.default) .replTextOutput {
+  color: var(--repl-text-output);
+}
+
+/* lefthand gutters */
+body:not(.default) .cm-s-default .CodeMirror-gutters {
+  background: var(--gutter-bg);
+  border-right: 1px solid var(--gutter-border);
+}
+
+/* line numbers */
+body:not(.default) .cm-s-default .CodeMirror-guttermarker,
+body:not(.default) .cm-s-default .CodeMirror-guttermarker-subtle,
+body:not(.default) .CodeMirror-linenumber {
+  color: var(--line-numbers);
+}
+
+/* >>> in the repl */
+body:not(.default) .repl-prompt,
+body:not(.default) .repl-echo::before,
+body:not(.default) .repl-prompt::before {
+  color: var(--repl-prompts);
+}
+
+/* div containing spinny Pyret and loading messages */
+body:not(.default) #loader {
+  background-color: var(--loader-bg);
+}
+
+/* pirate text on loader screen */
+body:not(.default) #loader > p {
+  color: var(--loader-text);
+}
+
+/* 100 character line ruler */
+body:not(.default) .CodeMirror div.CodeMirror-ruler {
+  border: 1.5px;
+  border-color: var(--line-ruler) !important;
+  border-style: solid;
+  border-left-style: none !important;
+}
+
+/* scrollbar in the definitions window */
+body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar {
+  width: 15px;
+  background-color: var(--scroll-bg);
+}
+
+body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: 2px;
+}
+
+body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-highlight);
+}
+
+/* other scrollbars (interactions window) */
+body:not(.default) ::-webkit-scrollbar {
+  width: 15px;
+}
+
+body:not(.default) ::-webkit-scrollbar-track {
+  width: 15px;
+  background-color: var(--scroll-bg);
+}
+
+body:not(.default) ::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: 2px;
+}
+
+body:not(.default) ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-highlight);
+  cursor: pointer;
+}
+
+/* border around failing check blocks (to stand out) */
+body:not(.default) .check-block-failed {
+  border-width: 0.17em;
+  border-style: solid;
+  border-color: var(--check-fail-border);
+}
+
+/* border around erroring check blocks (to stand out) */
+body:not(.default) .check-block-errored {
+  border-width: 0.17em;
+  border-style: solid;
+  border-color: var(--check-error-border);
+}

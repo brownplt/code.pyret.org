@@ -1,20 +1,3 @@
-
-body {
-  --sh-var-1: rgba(249, 249, 249, 0.5);
-  --sh-var-2: #ddd;
-  --sh-var-3: rgba(0, 0, 0, 0.7);
-  --sh-var-4: black;
-  --sh-var-5: #fff;
-  --sh-var-6: #C8C8C8;
-  --sh-var-7: rgba(0, 0, 0, 0.3);
-  --sh-var-8: rgba(0,0,0,0.6);
-  --sh-var-9: rgba(0, 0, 0, 0.5);
-  --sh-var-10: #111;
-  --sh-var-11: rgba(0, 0, 0, 0.2);
-  --sh-var-12: rgba(0, 0, 0, 0.26);
-  --sh-var-13: #fefefe;
-}
-
 :root {
   --font-stack: "Fira Mono","DejaVu Sans Mono","Inconsolata",monospace;
 }
@@ -34,7 +17,7 @@ em {
   width: 50%;
   height: 100%;
   z-index: 8700;
-  background: url('/img/pyret-spin.gif') 50% 30% no-repeat var(--sh-var-1);
+  background: url('/img/pyret-spin.gif') 50% 30% no-repeat rgba(249, 249, 249, 0.5);
   background-size: 50px 50px;
 }
 
@@ -45,9 +28,9 @@ em {
   width: 100%;
   height: 100%;
   z-index: 9999;
-  background-color: var(--sh-var-2);
+  background-color: #ddd;
   border-radius: 5px;
-  border: 50px solid var(--sh-var-3);
+  border: 50px solid rgba(0, 0, 0, 0.7);
   -webkit-background-clip: padding-box; /* for Safari */
   background-clip: padding-box;
   box-sizing: border-box;
@@ -67,7 +50,7 @@ em {
 
 #doc-overlay{
   position:absolute;
-  box-shadow: 0px 0px 5px var(--sh-var-4);
+  box-shadow: 0px 0px 5px black;
   height: 80%;
   width: 60%;
   top: 10%;
@@ -93,7 +76,7 @@ em {
   width: 100%;
   height: calc(100% - 20px);
   z-index: 10000;
-  background-color: var(--sh-var-2);
+  background-color: #ddd;
 }
 
 #doc-bar{
@@ -105,8 +88,8 @@ em {
   top: 0px;
   right: 0px;
   z-index: 10005;
-  color: var(--sh-var-5);
-  background: var(--sh-var-6);
+  color: #fff;
+  background: #C8C8C8;
   font-family:sans-serif;
   cursor: move;
 }
@@ -164,12 +147,12 @@ em {
   height:20px;
   line-height: 20px;
   font-size: 13px;
-  background: var(--sh-var-7);
+  background: rgba(0,0,0,0.3);
   cursor: pointer;
 }
 
 #doc-close:hover{
-  background: var(--sh-var-8);
+  background: rgba(0,0,0,0.6);
 }
 
 #loader p {
@@ -185,10 +168,10 @@ em {
   top: 0;
   width: 100%;
   height: 40px;
-  background:var(--sh-var-6);
+  background:#C8C8C8;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  box-shadow: 0px 1px 2px var(--sh-var-8);
+  box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
 }
 
 body.hideHeader #header {
@@ -217,7 +200,7 @@ body.smallHeader .smallHeaderOnly { display: inline; }
 #showFilename {
   font-style: italic;
   margin-left: 1em;
-  color: var(--sh-var-9);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 #header div a {
@@ -228,7 +211,7 @@ body.smallHeader .smallHeaderOnly { display: inline; }
 }
 
 #header a {
-  color: var(--sh-var-10);
+  color: #111;
   font-family: sans-serif;
 }
 
@@ -262,12 +245,12 @@ body.smallHeader .smallHeaderOnly { display: inline; }
   top: 50px;
   height: 0px;
   width: 100%;
-  background-color: var(--sh-var-10);
+  background-color: #111;
 }
 
 #footer {
   height: 2.5rem;
-  background-color: var(--sh-var-10);
+  background-color: #111;
   position: fixed;
   bottom: 0;
   width: 100%;
@@ -282,10 +265,10 @@ body.hideFooter #footer {
 .blueButton {
     font-family: sans-serif;
 /*  darker blue option #2a348b */
-    background-color: var(--sh-var-7);
+    background-color: rgba(0,0,0,0.3);
     border: none;
     border-radius: 0px;
-    color: var(--sh-var-5);
+    color: #fff;
     text-align: center;
     transition: box-shadow 0.2s;
     font-size: 15px;
@@ -298,14 +281,14 @@ body.hideFooter #footer {
 
 .blueButton:hover {
     cursor: pointer;
-    box-shadow: 0px 0px 5px 2px var(--sh-var-11);
-    background: var(--sh-var-8);
+    box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
+    background: rgba(0,0,0,0.6);
 }
 
 .blueButton:disabled {
     background-color: none;
     border: none;
-    color: var(--sh-var-12);
+    color: rgba(0, 0, 0, 0.26);
     cursor: default;
     box-shadow: none;
 }
@@ -347,9 +330,9 @@ code {
 .share {
   display: inline-block;
   border: none;
-  background-color: var(--sh-var-13);
+  background-color: #fefefe;
   padding: 10px;
-  box-shadow: 0px 3px 5px var(--sh-var-7);
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
 }
 
 .share {
@@ -363,11 +346,11 @@ code {
 
 .ui-tooltip {
   z-index: 15000;
-  background: var(--sh-var-5);
+  background: #fff;
 }
 
 .ui-tooltip.ui-widget-content {
-  background: var(--sh-var-5);
+  background: #fff;
 }
 
 .auto-highlight {
@@ -378,7 +361,7 @@ code {
 }
 
 .sharebox {
-  border: 1px solid var(--sh-var-10);
+  border: 1px solid #111;
   padding: 2px;
 }
 
