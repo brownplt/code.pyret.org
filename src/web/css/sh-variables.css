@@ -1,0 +1,15 @@
+body {
+  --sh-var-1: rgba(249, 249, 249, 0.5);
+  --sh-var-2: #ddd;
+  --sh-var-3: rgba(0, 0, 0, 0.7);
+  --sh-var-4: black;
+  --sh-var-5: #fff;
+  --sh-var-6: #C8C8C8;
+  --sh-var-7: rgba(0, 0, 0, 0.3);
+  --sh-var-8: rgba(0,0,0,0.6);
+  --sh-var-9: rgba(0, 0, 0, 0.5);
+  --sh-var-10: #111;
+  --sh-var-11: rgba(0, 0, 0, 0.2);
+  --sh-var-12: rgba(0, 0, 0, 0.26);
+  --sh-var-13: #fefefe;
+}

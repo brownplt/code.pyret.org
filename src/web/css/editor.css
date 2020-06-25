@@ -1,121 +1,502 @@
 body {
+  /* 
+  - border on .CodeMirror, .inlineExample
+  - border on .check 
+  - border on .progressStep 
+  - box-shadow on .highlight.emphasize:not(:hover)::before 
+  - bg on .modal */
   --var-1: black;
-  --var-2: #f8f8f8;
+
+  /* 
+  - text in .CodeMirror, .inlineExample
+  - text in .notificationArea .active 
+  - text in .notificationArea .autoCorrect-msg
+  - bg on .topbar 
+  - bg on .ui-dialog 
+  - text in .ui-dialog-title */
   --var-3: #eee;
-  --var-4: hsl(0,0%,95%);
+
+  /* 
+  - text in .instructionsWidget
+  - bg color that dims around ui-widget
+  - border around ui-dialog
+  - border on .module-info-hover */
   --var-5: #111;
-  --var-6: #cd7054;
-  --var-7: darkred;
+
+  /* 
+  - color in .test-reason:empty, .check-block-error:empty */
   --var-8: #555;
-  --var-9: #374049;
-  --var-10: #4d5966;
-  --var-11: navy;
-  --var-12: blue;
-  --var-13: red;
-  --var-14: forestgreen;
+
+  /* 
+  - bg on .cptteach-fixed */
   --var-15: #ddd;
-  --var-16: #ccc;
-  --var-17: rgb(90, 149, 217);
-  --var-18: hsl(220, 100%, 95%);
-  --var-19: #fdd;
-  --var-20: #e11;
-  --var-21: #fdc;
-  --var-22: #fff6f2;
-  --var-23: #9DC5ED;
+
+  /* 
+  - box-shadow on div.spy-block
+  - box-shadow on .check-block
+  - box-shadow on .replImageThumbnail canvas
+  - box-shadow on .compile-error
+  - box-shadow on .parse-error */
   --var-24: rgba(0,0,0,0.25);
-  --var-25: #CBDFF2;
-  --var-26: rgba(255, 255, 255, 0.3);
+
+  /* 
+  - part of gradient after hover on errors */
   --var-27: rgba(255, 255, 255, 0.2);
-  --var-28: hsl(204, 100%, 80%);
+
+  /* 
+  - part of gradient after hover on errors */
   --var-29: rgba(255, 255, 255, 0.0);
+
+  /* 
+  - part of gradient after hover on errors */
   --var-30: rgba(255, 255, 255, 0.8);
+
+  /* - (possibly old?) bg on .check-success */
   --var-31: #cfc;
+
+  /* - (possibly old?) bg on .check-failure */
   --var-32: #d66;
-  --var-33: #E1F5FE;
-  --var-34: #FFECB3;
-  --var-35: hsl(0, 100%, 90%);
-  --var-36: #c5e1a5;
+
+  /* 
+  - .info-btn (question mark button in menu)
+  - emphasize-error from color in @keyframes
+  - (possibly old?) text in .modal-header
+  - (possibly old?) text in .modal-footer
+  - (possibly old?) text in .stale.test-results .stale-warning
+  - (possibly old?) bg on .ok-bg */
   --var-37: white;
-  --var-38: hsl(212, 62%, 50%);
+
+  /* 
+  - part of gradient in .check-block-test
+  - box-shadow on header of .cm-snippet */
   --var-39: hsla(0, 0%, 0%,.5);
+
+  /* - part of gradient in .check-block-test */
   --var-40: hsla(0, 0%, 0%, 0);
+
+  /* 
+  - bg on .progressStep.done
+  - text in .progressDone */
   --var-41: green;
+
+  /* - (possibly old?) bg on .instructionsWidget */
   --var-42: #fcf;
+
+  /* - (possibly old?) border on .instructionsWidget */
   --var-43: #c0c;
+
+  /* - (possibly old?) text in .instructionsWidget .toggleInstructions */
   --var-44: #666;
+
+  /* - (possibly old?) bg on #program-name-container input */
   --var-45: #FEFEFE;
+
+  /* 
+  - "Programming as ..." text in #welcome
+  - options in Run dropdown
+  - bg on .module-info-hover */
   --var-46: #eeeeee;
+
+  /* - (possibly old?) bg on .notificationArea */
   --var-47: #111111;
+
+  /* 
+  - (possibly old?) text in .notificationArea .error
+  - (possibly old?) text in .notificationArea .autoCorrect-button */
   --var-48: #F44336;
+
+  /* - bg on New/Save/Download/etc menu (.menuContents) */
   --var-49: #EFEFEF;
+
+  /* 
+  - box-shadow on .menuContents 
+  - box-shadow on .dropdown:hover (aside run button)
+  - (possibly old?) bg on .modal-header
+  - (possibly old?) bg on .modal-footer */
   --var-50: rgba(0, 0, 0, 0.3);
+
+  /* 
+  - bg on .menuContents div:not(.disabled):not(.inert):hover
+  - box-shadow on #runButton, #breakButton (also on hover)
+  - box-shadow on #run-dropdown-content li:hover
+  - box-shadow on table.pyret-table thead
+  - box-shadow on table.pyret-row th
+  - box-shadow on table.pyret-row
+  - (possibly old?) box-shadow on .modal-content
+  - (possibly old?) box-shadow on modal submit and close (also hover) */
   --var-51: rgba(0,0,0,0.2);
+
+  /* 
+  - text in .menuContents div.disabled *
+  - border around expanded objects (.replOutput.expanded > dl) */
   --var-52: gray;
+
+  /* 
+  - text in .menuButton and .menuContents */
   --var-53: #000;
+
+  /* 
+  - bg on .info-btn (question mark) in Bonnie menu
+  - bg on #runButton
+  - bg on #runPart
+  - bg on .dropdown (beside Run)
+  - bg on #run-dropdown-content li
+  - (possibly old?) bg on .choiceContainer > button
+  - (possibly old?) bg on .modal .submit */
   --var-54: #317bcf;
+
+  /* 
+  - bg on .info-btn:hover
+  - bg on #runButton:hover
+  - bg on #run-dropdown-content li:hover
+  - bg on .dropdown:hover
+  - bg on .modal .submit:hover */
   --var-55: #0060ce;
+
+  /* 
+  - border on div#font
+  - border on #font-label
+  - box-shadow on .dropdown
+  - box-shadow on #run-dropdown-content li */
   --var-56: rgba(0,0,0,0.1);
+
+  /* - bg on div#font and div#font:hover */
   --var-57: rgba(0,0,0,0.05);
-  --var-58: #1f1180;
+
+  /* - (possibly old?) .replOutputPassed */
   --var-59: #1f9180;
+
+  /* 
+  - (possibly old?) .replOutputFailed 
+  - (possibly old?) text color in .test-reason, .nestedReason (gets overriden) */
   --var-60: #af1180;
-  --var-61: rgba(128,0,0,0.75);
+
+  /* - bg on .error-highlight */
   --var-62: #fcc;
+
+  /* 
+  - border on .error-highlight
+  - color of .error-icon */
   --var-63: #F33;
+
+  /* - bg of .emphasize-line */
   --var-64: #BBB;
+
+  /* - bg on .check-highlight */
   --var-65: #CCF;
+
+  /* - border on .check-highlight */
   --var-66: #33F;
-  --var-67: #FF3131;
-  --var-70: #FFF2F2;
-  --var-71: #469ad4;
+
+  /* - part of gradient in .warning-upper and .warning-lower */
   --var-72: hsla(0,100%,89%,1);
+
+  /* - part of gradient in .warning-upper and .warning-lower */
   --var-73: rgba(145,78,78,0);
+
+  /* - bg on .ui-dialog-titlebar (hidden by ui-widget-header) */
   --var-74: #2a348b;
-  --var-75: #BFBFBF;
-  --var-76: #D9D9D9;
-  --var-77: #A6A6A6;
+
+  /* 
+  - bg color of #breakButton 
+  - bg of .modal .close */
   --var-78: #CF3B31;
+
+  /* 
+  - hover bg of #breakButton
+  - hover bg of .modal .close */
   --var-79: #B30C00;
+
+  /* 
+  - (possibly old?) bg & box-shadow of .editor-check-block-success */
   --var-80: hsl(88, 50%, 76%);
+
+  /* 
+  - (possibly old?) bg & box-shadow on .editor-check-block-failed */
   --var-81: hsl(45, 100%, 85%);
-  --var-82: hsl(45, 100%, 94%);
-  --var-83: hsl(90,  50%, 91%);
-  --var-84: hsl(204, 100%, 74%);
-  --var-85: hsla(0,0%,100%,.9);
-  --var-86: rgba(255,255,255,0.4);
-  --var-87: rgba(255,255,255,0.5);
+
+  /* - (possibly old?) gutter marker bg for errored test */
   --var-88: hsla(0, 100%, 50%, 0.5);
-  --var-89: hsla(45, 90%, 50%, 0.5);
-  --var-90: hsl(88, 51%, 76%);
-  --var-91: hsla(0,100%,73%,1);
-  --var-92: hsl(0, 100%, 100%);
-  --var-93: hsl(0, 0%, 50%);
-  --var-94: hsl(0, 0%, 97%);
-  --var-95: hsl(0, 0%, 60%);
-  --var-96: rgb(150,150,150);
-  --var-97: hsl(45, 9%, 66%);
+
+  /* 
+  - box-shadow of snippet with stacktrace when hovered
+  - .modal bg with opacity */
   --var-98: rgba(0,0,0,0.4);
+
+  /* - (possibly old?) color of .choiceContainer > button */
   --var-99: #fff;
-  --var-100: #f2f2f2;
+
+  /* - (possibly old?) .modal-content bg */
   --var-101: #C8C8C8;
+
+  /* - (possibly old?) .modal-content border */
   --var-102: #888;
+
+  /* - (possibly old?) .modal-content box-shadow */
   --var-103: rbga(0,0,0,0.19);
+
+  /* - (possibly old?) bg of .stale.test-results .stale-warning */
   --var-104: hsl(212, 30%, 50%);
+
+  /* 
+  - (possibly old?) bg of .stale.test-results .check-block-failed
+  and .testing-summary .summary-failed*/
   --var-105: hsl(45,30%,85%);
+
+  /* 
+  - (possibly old?) bg of .stale.test-results .check-block-success
+  and .testing-summary .summary-passed */
   --var-106: hsl(88, 30%, 76%);
+
+  /* - (possibly old?) bg of .stale.test-results .check-block-errored */
   --var-107: hsl(0, 30%, 85%);
+
+  /* 
+  - (possibly old?) bg of .stale.test-results .check-block-test.failing-test:not(.highlights-active) */
   --var-108: hsl(45, 30%, 93%);
+
+  /* - (possibly old?) bg of .stale.test-results .check-block-test.highlights-active */
   --var-109: hsl(45,0%,95%);
+
+  /* - (possibly old?) bg of .stale.test-results .check-block-test.highlights-active > header */
   --var-110: hsl(45, 50%, 85%);
+
+  /* - (possibly old?) bg of .stale.test-results .check-block-test.passing-test */
   --var-111: hsl(90, 10%, 91%);
+
+  /* - (possibly old?) bg of .stale.test-results .testing-summary .summary-errored */
   --var-112: hsl(0, 30%, 70%);
+
+  /* - (possibly old?) bg of .stale compile errors/tests with highlights active */
   --var-113: hsl(204, 40%, 74%);
+
+  /* - (possibly old?) bg of .error-bg */
   --var-114: #FF9494;
+
+
+
+
+
+  /* ------------------------- Theme-specific ------------------------- */
+
+  /* - default editor text */
+  --default-text: black;
+
+  /* - pyret keywords */
+  --keyword: black;
+
+  /* - pyret comments */
+  --comments: #cd7054;
+
+  /* - pyret booleans */
+  --booleans: darkred;
+
+  /* - pyret built-ins */
+  --built-ins: #555;
+
+  /* - pyret function names */
+  --function-names: #374049;
+
+  /* - pyret types */
+  --types: #374049;
+
+  /* - pyret variables */
+  --variables: #4d5966;
+
+  /* - pyret exact nums */
+  --numbers: navy;
+
+  /* - pyret rough nums */
+  --rough-nums: blue;
+
+  /* - pyret rational numbers */
+  --rationals: #af1180;
+
+  /* - pyret bad numbers */
+  --bad-numbers: red;
+
+  /* - pyret unterminated strings */
+  --unterm-strings: red;
+
+  /* - pyret strings */
+  --strings: forestgreen;
+
+  /* - border on pyret tables */
+  --table-border: black;
+
+  /* - bg on pyret tables */
+  --table-bg: #eee;
+
+  /* - bg on even rows in pyret table */
+  --table-even-rows-bg: #f2f2f2;
+
+  /* - bg on pyret table headers */
+  --th-bg: #ddd;
+
+  /* righthand borders separating table columns */
+  --table-col-dividers: white;
+
+  /* - default bg color */
+  --background: #f8f8f8;
+
+  /* - selected text in editor */
+  --selected-text: #ccc;
+
+  /* - bg on .repl .CodeMirror */
+  --cm-in-repl-bg: hsl(0,0%,95%);
+
+  /* - cursor color */
+  --cursor: #111;
+
+  /* - result of print() in the REPL */
+  --repl-print: #111;
+
+  /* - values displayed in the REPL */
+  --repl-output: #1f1180;
+
+  /* - brackets around check:...end regions, etc. */
+  --matching-brackets: rgb(90, 149, 217);
+
+  /* - bg on regions like check:...end, etc. */
+  --matching-region-bg: hsl(220, 100%, 95%);
+
+  /* - bg on span.CodeMirror-nonmatchingbracket-region */
+  --nonmatching-bg: #fdc;
+
+  /* 
+  - bg on span.CodeMirror-nonmatchingbracket
+  - borders on span.CodeMirror-nonmatchingbracket-region */
+  --nonmatching-bg-2: #fdd;
+
+  /* - brackets that form a nonmatching region */
+  --nonmatching-brackets: #e11;
+
+  /* - bg on div.trace.error */
+  --trace-err-bg: #fff6f2;
+
+  /* - borders on spy block */
+  --spy-borders: #9DC5ED;
+
+  /* - bg on spy block */
+  --spy-bg: #CBDFF2;
+
+  /* - bg on odd table rows of spy block */
+  --spy-odd-rows-bg: rgba(255, 255, 255, 0.3);
+
+  /* - bg on even table rows of spy block */
+  --spy-even-rows-bg: rgba(255, 255, 255, 0.2);
+
+  /* - box-shadow on hover on errors */
+  --err-hover-shadow: hsl(204, 100%, 80%);
+
+  /* - default bg on check blocks (usually invisible) */
+  --check-block-default-bg: #E1F5FE;
+
+  /* - bg on failed check block */
+  --check-fail-bg: #FFECB3;
+
+  /* 
+  - bg on erroring check block
+  - bg & box-shadow on .editor-check-block-error */
+  --check-error-bg: hsl(0, 100%, 90%);
+
+  /* - bg on passing check blocks */
+  --check-success-bg: #c5e1a5;
+
+  /* - text color in testing summary */
+  --testing-summary: white;
+
+  /* - bg on testing summary */
+  --testing-summary-bg: hsl(212, 62%, 50%);
+
+  /* - bg of summary of failed tests */
+  --summary-fail-bg: hsl(45, 100%, 85%);
+
+  /* - bg of summary of passed tests */
+  --summary-pass-bg: hsl(88, 51%, 76%);
+
+  /* - bg of announcement in summary that tests errored */
+  --summary-error-bg: hsla(0,100%,73%,1);
+
+  /* - announcement text that tests errored in testing summary */
+  --summary-err: white;
+
+  /* - vertical border on left of announcement of erroring tests in summary */
+  --summary-err-left-border: hsl(0, 100%, 100%);
+
+  /* - bg on spotlighted text (should match default bg) */
+  --spotlighted-text-bg: white;
+
+  /* - border below .highlight and .hinted-highlight */
+  --highlight-underline: hsla(0, 0%, 0%,.5);
+
+  /* - text color in a.highlight */
+  --highlight-text: #000;
+
+  /* - box-shadow on hover over image thumbnail in REPL */
+  --img-thumbnail-shadow: rgba(128,0,0,0.75);
+
+  /* - dotted border around compile/parse errors */
+  --err-dotted-border: #FF3131;
+
+  /* - bg on compile/parse errors */
+  --err-bg: #FFF2F2;
+
+  /* - links within compile/parse errors */
+  --err-link: #469ad4;
+
+  /* - darker color in REPL handle gradient */
+  --repl-handle-gradient-darker: #BFBFBF;
+
+  /* - lighter color in REPL handle gradient */
+  --repl-handle-gradient-lighter: #D9D9D9;
+
+  /* - border on REPL handle */
+  --repl-handle-border: #A6A6A6;
+  
+  /* - bg of header within a focused failing test (contains "Test n: Failed") */
+  --failing-test-header-bg: hsl(45, 100%, 85%);
+
+  /* - bg of failing test NOT in focus */
+  --failing-test-bg: hsl(45, 100%, 94%);
+
+  /* - bg of passing test */
+  --passing-test-bg: hsl(90,  50%, 91%);
+
+  /* - border around errors/tests with highlights active */
+  --highlights-active-border: hsl(204, 100%, 74%);
+
+  /* - bg on check block errors/tests with highlights active */
+  --highlights-active-bg: hsla(0,0%,100%,.9);
+
+  /* - bg behind "Processing Result..." in check-block-error:empty */
+  --empty-check-err-bg: rgba(255,255,255,0.4);
+
+  /* - bg of code snippets within check block tests */
+  --check-block-snippet-bg: rgba(255,255,255,0.5);
+
+  /* - CodeMirror gutter marker bg for failed test */
+  --failed-test-gutter-marker: hsla(45, 90%, 50%, 0.5);
+
+  /* - dashed border around CodeMirror snippets */
+  --snippet-border: hsl(0, 0%, 50%);
+
+  /* - CodeMirror snippet header bg color */
+  --snippet-header-bg: hsl(0, 0%, 97%);
+
+  /* - border between snippet header & code */
+  --snippet-header-border: hsl(0, 0%, 60%);
+
+  /* - bg on non-spotlighted elements during spotlight */
+  --non-spotlight-bg: rgb(150,150,150);
+
+  /* - bg on check block containing spotlighted test */
+  --surrounding-check-spotlight-bg: hsl(45, 9%, 66%);
 }
 
 .CodeMirror, .inlineExample {
   border: 1px solid var(--var-1);
-  background: var(--var-2);
+  background: var(--background);
   color: var(--var-3);
   font-family: var(--font-stack);
 }
@@ -128,34 +509,34 @@ body {
   border-bottom: none;
 }
 .repl .CodeMirror {
-  background-color: var(--var-4);
+  background-color: var(--cm-in-repl-bg);
   border: none;
   padding: 0;
   margin: 0;
   vertical-align: top;
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
-.CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--var-5); }
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
 .CodeMirror div.CodeMirror-ruler { z-index: 100; }
 .CodeMirror div.CodeMirror-ruler.hidden { display: none; }
-.cm-s-default.CodeMirror { color: var(--var-1); }
-.cm-s-default .cm-comment { color: var(--var-6); }
-.cm-s-default .cm-boolean { color: var(--var-7); }
-.cm-s-default .cm-builtin { color: var(--var-8); }
-.cm-s-default .cm-function-name { color: var(--var-9); }
-.cm-s-default .cm-variable { color: var(--var-10); }
-.cm-s-default .cm-keyword { color: var(--var-1); font-weight: bold; }
-.cm-s-default .cm-number { color: var(--var-11); }
-.cm-s-default .cm-roughnum { color: var(--var-12); }
-.cm-s-default .cm-bad-number { color: var(--var-13); font-weight: bold; }
-.cm-s-default .cm-string { color: var(--var-14); }
-.cm-s-default .cm-unterminated-string { color: var(--var-13); font-weight: bold; }
-.cm-s-default .cm-type { color: var(--var-9); }
+.cm-s-default.CodeMirror { color: var(--default-text); }
+.cm-s-default .cm-comment { color: var(--comments); }
+.cm-s-default .cm-boolean { color: var(--booleans); }
+.cm-s-default .cm-builtin { color: var(--built-ins); }
+.cm-s-default .cm-function-name { color: var(--function-names); }
+.cm-s-default .cm-variable { color: var(--variables); }
+.cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
+.cm-s-default .cm-number { color: var(--numbers); }
+.cm-s-default .cm-roughnum { color: var(--rough-nums); }
+.cm-s-default .cm-bad-number { color: var(--bad-numbers); font-weight: bold; }
+.cm-s-default .cm-string { color: var(--strings); }
+.cm-s-default .cm-unterminated-string { color: var(--unterm-strings); font-weight: bold; }
+.cm-s-default .cm-type { color: var(--types); }
 .cptteach-fixed { line-height: 1.5; background: var(--var-15); }
 
 div.CodeMirror-selected,
 span.CodeMirror-selectedtext {
-  background-color: var(--var-16) !important;
+  background-color: var(--selected-text) !important;
 }
 
 .CodeMirror-matchingbracket {
@@ -167,7 +548,7 @@ span.CodeMirror-selectedtext {
   position: absolute;
   height: 100%;
   width: 100%;
-  border: 0px solid var(--var-17);
+  border: 0px solid var(--matching-brackets);
   z-index: 1000;
 }
 
@@ -188,31 +569,31 @@ span.CodeMirror-selectedtext {
 
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
-  background-color: var(--var-18);
-  border-top: 0.1em solid var(--var-18);
-  border-bottom: 0.1em solid var(--var-18);
+  background-color: var(--matching-region-bg);
+  border-top: 0.1em solid var(--matching-region-bg);
+  border-bottom: 0.1em solid var(--matching-region-bg);
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
-    box-shadow: 0.5em 0 0.25em var(--var-18);
+    box-shadow: 0.5em 0 0.25em var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
-    box-shadow: -0.5em 0 0.25em var(--var-18);
+    box-shadow: -0.5em 0 0.25em var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
-    box-shadow: -0.5em 0 0.25em var(--var-18), 0.5em 0 0.25em var(--var-18);
+    box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.5em 0 0.25em var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.open {
-  box-shadow: -0.3ex 0 0.3ex var(--var-18);
+  box-shadow: -0.3ex 0 0.3ex var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
-  box-shadow: 0.5em 0 0.25em var(--var-18), -0.3ex 0 0.3ex var(--var-18);
+  box-shadow: 0.5em 0 0.25em var(--matching-region-bg), -0.3ex 0 0.3ex var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.close {
-  box-shadow: 0.3ex 0 0.3ex var(--var-18);
+  box-shadow: 0.3ex 0 0.3ex var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
-  box-shadow: -0.5em 0 0.25em var(--var-18), 0.3ex 0 0.3ex var(--var-18);
+  box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.3ex 0 0.3ex var(--matching-region-bg);
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket {
@@ -223,14 +604,14 @@ div.CodeMirror span.CodeMirror-matchingbracket {
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket {
   font-weight: bold;
-  background-color: var(--var-19);
-  color: var(--var-20);
+  background-color: var(--nonmatching-bg-2);
+  color: var(--nonmatching-brackets);
 }
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
-  background-color: var(--var-21);
-  border-top: 0.1em solid var(--var-19);
-  border-bottom: 0.1em solid var(--var-19);
+  background-color: var(--nonmatching-bg);
+  border-top: 0.1em solid var(--nonmatching-bg-2);
+  border-bottom: 0.1em solid var(--nonmatching-bg-2);
   z-index: 4000;
 }
 
@@ -253,7 +634,7 @@ div.trace {
   overflow-x: auto;
 }
 div.trace.error {
-   background-color: var(--var-22);
+   background-color: var(--trace-err-bg);
 }
 span.trace {
    padding-right: 1em;
@@ -267,18 +648,18 @@ span.trace:after {
 div.spy-block {
   font-family: sans-serif;
   clear: both;
-  border: 1px solid var(--var-23);
+  border: 1px solid var(--spy-borders);
   padding: 0.2em;
   box-shadow: 0px 4px 5px var(--var-24);
   border-radius: 3px;
-  background: var(--var-25);
+  background: var(--spy-bg);
   margin: 6px;
 }
 
 div.spy-block > .spy-title {
    display: block;
    width: 100%;
-   border-bottom: 1px solid var(--var-23);
+   border-bottom: 1px solid var(--spy-borders);
    margin-left: -3px;
    margin-right: -3px;
    padding-left: 3px;
@@ -300,16 +681,16 @@ div.spy-block > table {
 }
 
 div.spy-block > table > tbody > tr {
-    background: var(--var-26);
-    border: 1px solid var(--var-23);
+    background: var(--spy-odd-rows-bg);
+    border: 1px solid var(--spy-borders);
 }
 
 div.spy-block > table > tbody > tr:nth-child(even) {
-    background: var(--var-27);
+    background: var(--spy-even-rows-bg);
 }
 
 div.spy-block > table > tbody > tr > td {
-    border-right:  1px solid var(--var-23);
+    border-right:  1px solid var(--spy-borders);
 }
 
 div.spy-block > table > tbody > tr > td:first-child {
@@ -329,7 +710,7 @@ div.spy-block > table > th { display: none; }
 #output > .compile-error:not(.highlights-active):hover:after,
 .check-block-error > .compile-error:not(.highlights-active):hover::after,
 .check-block-test.failing-test:not(.highlights-active):hover {
-    box-shadow: 0 0 2em var(--var-28);
+    box-shadow: 0 0 2em var(--err-hover-shadow);
     transform: scale(1.01);
     backface-visibility: hidden;
     transition: scale(1.01) .2s linear;
@@ -410,7 +791,7 @@ div.spy-block > table > th { display: none; }
   -moz-box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
-  background-color: var(--var-2);
+  background-color: var(--background);
   cursor: text;
 }
 .check {
@@ -435,7 +816,7 @@ div.spy-block > table > th { display: none; }
   margin: .5em;
   padding: .5em;
   box-shadow: 0px 2px 4px var(--var-24);
-  background: var(--var-33);
+  background: var(--check-block-default-bg);
   position:relative;
   cursor:default;
 }
@@ -447,15 +828,15 @@ div.spy-block > table > th { display: none; }
 
 
 .check-block-failed {
-  background-color: var(--var-34);
+  background-color: var(--check-fail-bg);
 }
 
 .check-block-errored {
-  background-color: var(--var-35);
+  background-color: var(--check-error-bg);
 }
 
 .check-block-success {
-  background-color: var(--var-36);
+  background-color: var(--check-success-bg);
   margin: 5px;
 }
 
@@ -465,8 +846,8 @@ div.spy-block > table > th { display: none; }
 }
 
 .testing-summary{
-  color: var(--var-37);
-  background: var(--var-38);
+  color: var(--testing-summary);
+  background: var(--testing-summary-bg);
 }
 
 .check-block-test{
@@ -912,13 +1293,13 @@ div#font-label:hover{
   padding-top: 0;
   padding-bottom: 0.5em;
   padding-left: 0.5em;
-  color: var(--var-5);
+  color: var(--repl-print);
 }
 
 .replOutput {
   padding-top: 0.4em;
   padding-bottom: 0.4em;
-  color: var(--var-58);
+  color: var(--repl-output);
   display: inline-block;
   font-family: var(--font-stack);
 }
@@ -1017,7 +1398,7 @@ ul.inlineCollection > li > span.label {
 }
 
 .rationalNumber {
- color: var(--var-60);
+ color: var(--rationals);
 }
 
 span.rationalRepeat {
@@ -1035,7 +1416,7 @@ span.rationalRepeat {
 
 .replImageThumbnail:hover canvas {
   cursor: pointer;
-  box-shadow: 0px 2px 4px var(--var-61);
+  box-shadow: 0px 2px 4px var(--img-thumbnail-shadow);
   margin: 2px;
 }
 
@@ -1074,7 +1455,7 @@ span.rationalRepeat {
 
 .test-reason {
   padding: 0.5em;
-  color: var(--var-1);
+  color: var(--default-text);
 }
 
 .test-reason > br,
@@ -1096,7 +1477,7 @@ span.rationalRepeat {
 }
 
 a.highlight {
-  color: var(--var-53) !important;
+  color: var(--highlight-text) !important;
 }
 
 #output .highlight {
@@ -1105,11 +1486,11 @@ a.highlight {
 
 .hinted-highlight {
   cursor: pointer;
-  border-bottom: 2px var(--var-39) solid;
+  border-bottom: 2px var(--highlight-underline) solid;
 }
 
 .highlight {
-  border-bottom: 2px var(--var-39) solid;
+  border-bottom: 2px var(--highlight-underline) solid;
 }
 
 .highlight-blink {
@@ -1201,11 +1582,11 @@ code div {
 
 .compile-error {
   font-family: sans-serif;
-  border: 1px dashed var(--var-67);
+  border: 1px dashed var(--err-dotted-border);
   padding: 0.2em;
   box-shadow: 0px 4px 5px var(--var-24);
   border-radius: 3px;
-  background: var(--var-70);
+  background: var(--err-bg);
   margin: 6px;
 }
 
@@ -1218,18 +1599,18 @@ code div {
 }
 
 .compile-error a {
-  color: var(--var-71);
+  color: var(--err-link);
   cursor: pointer;
 }
 
 .parse-error {
   font-family: sans-serif;
-  border: 1px dashed var(--var-67);
+  border: 1px dashed var(--err-dotted-border);
   /* font-size: 10pt; */
   padding: 3px;
   box-shadow: 0px 4px 5px var(--var-24);
   border-radius: 3px;
-  background: var(--var-70);
+  background: var(--err-bg);
   margin: 6px;
 }
 
@@ -1247,7 +1628,7 @@ code div {
 }
 
 .parse-error a {
-  color: var(--var-71);
+  color: var(--err-link);
   cursor: pointer;
 }
 
@@ -1377,13 +1758,29 @@ code div {
 
 /* Resizable REPL */
 #handle{
-  background:-webkit-linear-gradient(left, var(--var-75) 0%,var(--var-76) 40%,var(--var-76) 60%,var(--var-75) 100%);
-  background:-o-linear-gradient(left, var(--var-75) 0%,var(--var-76) 40%,var(--var-76) 60%,var(--var-75) 100%);
-  background:-moz-linear-gradient(left, var(--var-75) 0%,var(--var-76) 40%,var(--var-76) 60%,var(--var-75) 100%);
-  background:linear-gradient(to right, var(--var-75) 0%,var(--var-76) 40%,var(--var-76) 60%,var(--var-75) 100%);
+  background:-webkit-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:-o-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:-moz-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:linear-gradient(to right, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
   cursor: ew-resize;
   width:5px;
-  border: 1px solid var(--var-77);
+  border: 1px solid var(--repl-handle-border);
   border-top: none;
   border-bottom: none;
   top: 0px;
@@ -1551,8 +1948,8 @@ body.smallHeader #run-dropdown-content {
 }
 
 .editor-check-block-error {
-  background: var(--var-35);
-  box-shadow: 0 1em 11px 2px var(--var-35);
+  background: var(--check-error-bg);
+  box-shadow: 0 1em 11px 2px var(--check-error-bg);
 }
 
 .check-block-error {
@@ -1564,9 +1961,14 @@ body.smallHeader #run-dropdown-content {
   to {}
 }
 
-.check-block-test.failing-test:not(.highlights-active) {background-color: var(--var-82); overflow: hidden;}
+.check-block-test.failing-test:not(.highlights-active) {
+  background-color: var(--failing-test-bg); 
+  overflow: hidden;
+}
+
 .check-block-test.passing-test {
-  background-color: var(--var-83);}
+  background-color: var(--passing-test-bg);
+}
 
 .check-block-test.passing-test .cm-snippet {
   margin: 0.5em;
@@ -1575,14 +1977,14 @@ body.smallHeader #run-dropdown-content {
 #output > .compile-error.highlights-active,
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
-  border: 0.3em var(--var-84) solid;
+  border: 0.3em var(--highlights-active-border) solid;
   box-shadow: 0 0 1em;
 }
 
 
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
-  background: var(--var-85);
+  background: var(--highlights-active-bg);
 }
 
 .check-block:not(.expanded) > .check-block-tests {
@@ -1601,7 +2003,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .check-block-error:empty {
-  background-color: var(--var-86);
+  background-color: var(--empty-check-err-bg);
   border-radius: 0.5em;
   padding: 0.5em;
 }
@@ -1650,11 +2052,11 @@ body.smallHeader #run-dropdown-content {
 }
 
 .check-block-test.failing-test.highlights-active > header {
-  background-color: var(--var-81);
+  background-color: var(--failing-test-header-bg);
 }
 
 .check-block-test .CodeMirror {
-  background:var(--var-87);
+  background:var(--check-block-snippet-bg);
 }
 
 .errored-test-marker {
@@ -1662,7 +2064,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .failed-test-marker {
-  background-color: var(--var-89);
+  background-color: var(--failed-test-gutter-marker);
 }
 
 .failed-test-marker > .CodeMirror-linenumber {
@@ -1671,7 +2073,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .summary-bits {
-  color: var(--var-1);
+  color: var(--default-text);
   display: flex;
 }
 
@@ -1687,11 +2089,11 @@ body.smallHeader #run-dropdown-content {
 }
 
 .summary-bit.summary-passed {
-  background: var(--var-90);
+  background: var(--summary-pass-bg);
 }
 
 .summary-bit.summary-failed {
-  background: var(--var-81);
+  background: var(--summary-fail-bg);
 }
 
 .summary-errored > .summary-count {
@@ -1700,8 +2102,8 @@ body.smallHeader #run-dropdown-content {
 }
 
 .summary-errored {
-  background: var(--var-91);
-  color: var(--var-37);
+  background: var(--summary-error-bg);
+  color: var(--summary-err);
   padding: .5em;
   display: flex;
   justify-content: flex-start;
@@ -1709,7 +2111,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .summary-text {
-  border-left: 1px var(--var-92) solid;
+  border-left: 1px var(--summary-err-left-border) solid;
   padding-left: .5em;
 }
 
@@ -1718,7 +2120,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .cm-snippet {
-  border: 1px var(--var-93) dashed;
+  border: 1px var(--snippet-border) dashed;
   overflow: hidden;
   cursor: default;
   border-top-left-radius: .5em;
@@ -1727,12 +2129,12 @@ body.smallHeader #run-dropdown-content {
 
 .cm-snippet header {
   font-size: .7em;
-  background: var(--var-94);
+  background: var(--snippet-header-bg);
   padding: 0 .5em;
   box-shadow: 0 0 3px var(--var-39);
   z-index: 100;
   position: relative;
-  border-bottom: 1px var(--var-95) solid;
+  border-bottom: 1px var(--snippet-header-border) solid;
   text-align: right;
 }
 
@@ -1763,7 +2165,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 #main.spotlight div.CodeMirror span.spotlight {
-  background-color: var(--var-37) !important;
+  background-color: var(--spotlighted-text-bg) !important;
 }
 
 #main.spotlight .CodeMirror-matchingbracket,
@@ -1776,7 +2178,7 @@ body.smallHeader #run-dropdown-content {
 #main.spotlight > div.replMain > div.CodeMirror {
   border-color: transparent;
   box-shadow:none;
-  background-color: var(--var-96);
+  background-color: var(--non-spotlight-bg);
   transition: .1s background-color linear .3s;
 }
 #main.spotlight .compile-error:not(:hover),
@@ -1787,7 +2189,7 @@ body.smallHeader #run-dropdown-content {
 }
 #main.spotlight .check-block {
   transition: .1s background-color linear .3s;
-  background-color: var(--var-97);
+  background-color: var(--surrounding-check-spotlight-bg);
 }
 
 .stacktrace > div .CodeMirror-vscrollbar {
@@ -1810,10 +2212,10 @@ table {
     width: 100%;
     table-layout: auto;
     display: table!important;
-    border:1px var(--var-1) solid;
+    border:1px var(--table-border) solid;
     border-radius:1em;
     overflow:hidden;
-    background:var(--var-3);
+    background:var(--table-bg);
 }
 
 table.choiceContainer {
@@ -1847,14 +2249,14 @@ div.choiceContainer > button {
 }
 
 th {
-    background: var(--var-15);
+    background: var(--th-bg);
 }
 
 th, td {
     text-align: left;
     padding: 1em;
     width: auto;
-    border-right:1px var(--var-37) solid;
+    border-right:1px var(--table-col-dividers) solid;
 }
 
 th:last-child, td:last-child {
@@ -1862,7 +2264,7 @@ th:last-child, td:last-child {
     border-right: unset;
 }
 
-tr:nth-child(even){background-color: var(--var-100)}
+tr:nth-child(even){background-color: var(--table-even-rows-bg)}
 
 table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--var-51);
@@ -1994,7 +2396,7 @@ table.pyret-row {
 .modal-header {
   padding: 2px 16px;
   background-color: var(--var-50);
-  color: var(--var-37);
+  color: var(--modal-header-text);
   text-align: center;
 }
 
