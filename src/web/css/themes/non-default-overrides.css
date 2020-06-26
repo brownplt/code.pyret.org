@@ -53,9 +53,8 @@ body:not(.default) .check-block-test.failing-test > header {
 }
 
 /* text output in the REPL */
-body:not(.default) .replTextOutput {
-  color: var(--repl-text-output);
-}
+body:not(.default) .replTextOutput { color: var(--repl-text-output); }
+body:not(.default) .rationalNumber { color: var(--rationals); } /* make sure rationals stay one color */
 
 /* lefthand gutters */
 body:not(.default) .cm-s-default .CodeMirror-gutters {

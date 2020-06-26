@@ -380,8 +380,16 @@ div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
 
 div.CodeMirror span.CodeMirror-matchingbracket {
   font-weight: 600;
-  color: var(--keyword);
   /* color: initial; */
+}
+
+/* ensure keywords and built-ins retain their color when
+  highlighted as matching brackets */
+div.CodeMirror span.CodeMirror-matchingbracket.cm-keyword {
+  color: var(--keyword);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.cm-builtin {
+  color: var(--built-ins);
 }
 
 
