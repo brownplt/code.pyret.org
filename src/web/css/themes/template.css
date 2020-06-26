@@ -140,4 +140,8 @@ body.template {
   --check-fail-border: gray;  /* border around failing check blocks */
   --check-error-border: gray; /* border around erroring check blocks */
 
+  /* Testing summaries */
+  --summary-pass-text: gray;  /* text saying "N TESTS FAILED" */
+  --summary-fail-text: gray;  /* text saying "N TESTS PASSED" */
+
 }

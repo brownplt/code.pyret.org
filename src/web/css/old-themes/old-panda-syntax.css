@@ -556,7 +556,8 @@ body.panda th {
     background: var(--background-darker);
 }
 
-body.panda th, td {
+body.panda th, 
+body.panda td {
   border-right: 1px var(--background-lighter-2) solid;
 }
 

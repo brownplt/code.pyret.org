@@ -555,7 +555,8 @@ body.material-darker th {
     background: var(--background-darker);
 }
 
-body.material-darker th, td {
+body.material-darker th, 
+body.material-darker td {
   border-right: 1px var(--background-lighter-2) solid;
 }
 

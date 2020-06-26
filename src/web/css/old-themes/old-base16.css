@@ -552,7 +552,8 @@ body.base16 th {
     background: var(--background-darker);
 }
 
-body.base16 th, td {
+body.base16 th, 
+body.base16 td {
   border-right: 1px var(--background-lighter-2) solid;
 }
 

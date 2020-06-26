@@ -552,7 +552,8 @@ body.monokai th {
     background: var(--background-darker);
 }
 
-body.monokai th, td {
+body.monokai th, 
+body.monokai td {
   border-right: 1px var(--background-lighter-2) solid;
 }
 

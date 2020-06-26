@@ -122,3 +122,7 @@ body:not(.default) ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scroll-thumb-highlight);
   cursor: pointer;
 }
+
+/* summaries for passed/failed tests at top */
+.summary-bit.summary-passed { color: var(--summary-pass-text); }
+.summary-bit.summary-failed { color: var(--summary-fail-text); }
