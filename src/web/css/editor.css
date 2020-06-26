@@ -1,123 +1,28 @@
 
 /* --------- Color variables that stay constant across themes --------- */
 :root {
+
   /* 
   - border on .CodeMirror, .inlineExample
   - border on .check 
   - border on .progressStep 
   - box-shadow on .highlight.emphasize:not(:hover)::before 
-  - bg on .modal */
-  --col-1: black;
-
-  /* 
-  - text in .CodeMirror, .inlineExample
-  - text in .notificationArea .active 
-  - text in .notificationArea .autoCorrect-msg
-  - bg on .topbar 
-  - bg on .ui-dialog 
-  - text in .ui-dialog-title */
-  --col-3: #eee;
-
-  /* 
+  - bg on .modal 
   - text in .instructionsWidget
-  - bg color that dims around ui-widget
   - border around ui-dialog
   - border on .module-info-hover */
-  --col-5: #111;
-
-  /* 
-  - color in .test-reason:empty, .check-block-error:empty */
-  --col-8: #555;
-
-  /* 
-  - bg on .cptteach-fixed */
-  --col-15: #ddd;
+  --default-border: black;
 
   /* 
   - box-shadow on div.spy-block
   - box-shadow on .check-block
   - box-shadow on .replImageThumbnail canvas
   - box-shadow on .compile-error
-  - box-shadow on .parse-error */
-  --col-24: rgba(0,0,0,0.25);
-
-  /* 
-  - part of gradient after hover on errors */
-  --col-27: rgba(255, 255, 255, 0.2);
-
-  /* 
-  - part of gradient after hover on errors */
-  --col-29: rgba(255, 255, 255, 0.0);
-
-  /* 
-  - part of gradient after hover on errors */
-  --col-30: rgba(255, 255, 255, 0.8);
-
-  /* - (possibly old?) bg on .check-success */
-  --col-31: #cfc;
-
-  /* - (possibly old?) bg on .check-failure */
-  --col-32: #d66;
-
-  /* 
-  - .info-btn (question mark button in menu)
-  - emphasize-error from color in @keyframes
-  - (possibly old?) text in .modal-header
-  - (possibly old?) text in .modal-footer
-  - (possibly old?) text in .stale.test-results .stale-warning
-  - (possibly old?) bg on .ok-bg */
-  --col-37: white;
-
-  /* 
-  - part of gradient in .check-block-test
-  - box-shadow on header of .cm-snippet */
-  --col-39: hsla(0, 0%, 0%,.5);
-
-  /* - part of gradient in .check-block-test */
-  --col-40: hsla(0, 0%, 0%, 0);
-
-  /* 
-  - bg on .progressStep.done
-  - text in .progressDone */
-  --col-41: green;
-
-  /* - (possibly old?) bg on .instructionsWidget */
-  --col-42: #fcf;
-
-  /* - (possibly old?) border on .instructionsWidget */
-  --col-43: #c0c;
-
-  /* - (possibly old?) text in .instructionsWidget .toggleInstructions */
-  --col-44: #666;
-
-  /* - (possibly old?) bg on #program-name-container input */
-  --col-45: #FEFEFE;
-
-  /* 
-  - "Programming as ..." text in #welcome
-  - options in Run dropdown
-  - bg on .module-info-hover */
-  --col-46: #eeeeee;
-
-  /* - (possibly old?) bg on .notificationArea */
-  --col-47: #111111;
-
-  /* 
-  - (possibly old?) text in .notificationArea .error
-  - (possibly old?) text in .notificationArea .autoCorrect-button */
-  --col-48: #F44336;
-
-  /* - bg on New/Save/Download/etc menu (.menuContents) */
-  --col-49: #EFEFEF;
-
-  /* 
+  - box-shadow on .parse-error 
   - box-shadow on .menuContents 
   - box-shadow on .dropdown:hover (aside run button)
   - (possibly old?) bg on .modal-header
-  - (possibly old?) bg on .modal-footer */
-  --col-50: rgba(0, 0, 0, 0.3);
-
-  /* 
+  - (possibly old?) bg on .modal-footer 
   - bg on .menuContents div:not(.disabled):not(.inert):hover
   - box-shadow on #runButton, #breakButton (also on hover)
   - box-shadow on #run-dropdown-content li:hover
@@ -125,161 +30,219 @@
   - box-shadow on table.pyret-row th
   - box-shadow on table.pyret-row
   - (possibly old?) box-shadow on .modal-content
-  - (possibly old?) box-shadow on modal submit and close (also hover) */
-  --col-51: rgba(0,0,0,0.2);
-
-  /* 
-  - text in .menuContents div.disabled *
-  - border around expanded objects (.replOutput.expanded > dl) */
-  --col-52: gray;
-
-  /* 
-  - text in .menuButton and .menuContents */
-  --col-53: #000;
-
-  /* 
-  - bg on .info-btn (question mark) in Bonnie menu
-  - bg on #runButton
-  - bg on #runPart
-  - bg on .dropdown (beside Run)
-  - bg on #run-dropdown-content li
-  - (possibly old?) bg on .choiceContainer > button
-  - (possibly old?) bg on .modal .submit */
-  --col-54: #317bcf;
-
-  /* 
-  - bg on .info-btn:hover
-  - bg on #runButton:hover
-  - bg on #run-dropdown-content li:hover
-  - bg on .dropdown:hover
-  - bg on .modal .submit:hover */
-  --col-55: #0060ce;
+  - (possibly old?) box-shadow on modal submit and close (also hover)
+  - (possibly old?) .modal-content box-shadow */
+  --shadow-color: rgba(0,0,0,0.25);
 
   /* 
   - border on div#font
   - border on #font-label
   - box-shadow on .dropdown
-  - box-shadow on #run-dropdown-content li */
-  --col-56: rgba(0,0,0,0.1);
-
-  /* - bg on div#font and div#font:hover */
-  --col-57: rgba(0,0,0,0.05);
-
-  /* - (possibly old?) .replOutputPassed */
-  --col-59: #1f9180;
-
-  /* 
-  - (possibly old?) .replOutputFailed 
-  - (possibly old?) text color in .test-reason, .nestedReason (gets overriden) */
-  --col-60: #af1180;
-
-  /* - bg on .error-highlight */
-  --col-62: #fcc;
-
-  /* 
-  - border on .error-highlight
-  - color of .error-icon */
-  --col-63: #F33;
-
-  /* - bg of .emphasize-line */
-  --col-64: #BBB;
-
-  /* - bg on .check-highlight */
-  --col-65: #CCF;
-
-  /* - border on .check-highlight */
-  --col-66: #33F;
-
-  /* - part of gradient in .warning-upper and .warning-lower */
-  --col-72: hsla(0,100%,89%,1);
-
-  /* - part of gradient in .warning-upper and .warning-lower */
-  --col-73: rgba(145,78,78,0);
-
-  /* - bg on .ui-dialog-titlebar (hidden by ui-widget-header) */
-  --col-74: #2a348b;
-
-  /* 
-  - bg color of #breakButton 
-  - bg of .modal .close */
-  --col-78: #CF3B31;
-
-  /* 
-  - hover bg of #breakButton
-  - hover bg of .modal .close */
-  --col-79: #B30C00;
-
-  /* 
-  - (possibly old?) bg & box-shadow of .editor-check-block-success */
-  --col-80: hsl(88, 50%, 76%);
-
-  /* 
-  - (possibly old?) bg & box-shadow on .editor-check-block-failed */
-  --col-81: hsl(45, 100%, 85%);
-
-  /* - (possibly old?) gutter marker bg for errored test */
-  --col-88: hsla(0, 100%, 50%, 0.5);
+  - box-shadow on #run-dropdown-content li
+  - bg on div#font and div#font:hover */
+  --shadow-lighter: rgba(0,0,0,0.1);
 
   /* 
   - box-shadow of snippet with stacktrace when hovered
   - .modal bg with opacity */
-  --col-98: rgba(0,0,0,0.4);
+  --shadow-darker: rgba(0,0,0,0.4);
+
+  /* - (possibly old?) bg on .check-success */
+  --bg-check-success: #cfc;
+
+  /* - (possibly old?) bg on .check-failure */
+  --bg-check-failure: #d66;
+
+  /* - (possibly old?) bg of .error-bg */
+  --error-bg: #FF9494;
+
+  /* 
+  - (possibly old?) text in .notificationArea .error
+  - (possibly old?) text in .notificationArea .autoCorrect-button
+  - border on .error-highlight
+  - color of .error-icon */
+  --error: #F44336;
+
+  /* 
+  - bg on .progressStep.done
+  - text in .progressDone */
+  --progress-done: green;
+
+  /* - (possibly old?) bg on #program-name-container input */
+  --prgm-name-bg: #FEFEFE;
+
+  /* 
+  - text in .notificationArea .active 
+  - text in .notificationArea .autoCorrect-msg */
+  --notif-area-text: #eee;
+
+  /* 
+  - color in .test-reason:empty, .check-block-error:empty */
+  --empty-check-text: #555;
+
+  /* 
+  - bg on .cptteach-fixed */
+  --cptteach-bg: #ddd;
+
+  /* 
+  - "Programming as ..." text in #welcome
+  - options in Run dropdown
+  - bg on .module-info-hover
+  - (possibly old?) text in .modal-footer
+  - (possibly old?) text in .stale.test-results .stale-warning */
+  --light-text: #eeeeee;
+
+  /* - (possibly old?) bg on .notificationArea */
+  --notif-area-bg: #111111;
+
+  /* - bg on New/Save/Download/etc menu (.menuContents) */
+  --menu-contents-bg: #EFEFEF;
+
+  /*
+  - border around expanded objects (.replOutput.expanded > dl) */
+  --repl-obj-border: gray;
+
+  /* 
+  - text in .menuContents div.disabled * */
+  --menu-disabled: gray;
+
+  /* 
+  - text in .menuButton and .menuContents */
+  --menu-text: #000;
+
+  /*
+  - bg on .info-btn (question mark) in Bonnie menu */
+  --info-button-bg: #317bcf;
+
+  /* - bg on .info-btn:hover */
+  --info-button-hover: #0060ce;
+
+  /* 
+  - bg on #runButton
+  - bg on #runPart
+  - bg on .dropdown (beside Run)
+  - bg on #run-dropdown-content li
+  - (possibly old?) bg on .choiceContainer > button
+  - (possibly old?) bg on .modal .submit  */
+  --run-bg: #317bcf;
+
+  /* 
+  - bg on #runButton:hover
+  - bg on #run-dropdown-content li:hover
+  - bg on .dropdown:hover
+  - bg on .modal .submit:hover */
+  --run-hover: #0060ce;
+
+  /* 
+  - bg color of #breakButton 
+  - bg of .modal .close */
+  --stop-bg: #CF3B31;
+
+  /* 
+  - hover bg of #breakButton
+  - hover bg of .modal .close */
+  --stop-hover: #B30C00;
+
+  /* - (possibly old?) .replOutputPassed */
+  --repl-out-passed: #1f9180;
+
+  /* - (possibly old?) .replOutputFailed */
+  --repl-out-failed: #af1180;
+
+  /* - (possibly old?) text color in .test-reason, .nestedReason */
+  --reason-text: #af1180;
+
+  /* - bg on .error-highlight */
+  --err-highlight: #fcc;
+
+  /* - bg of .emphasize-line */
+  --emph-line-bg: #BBB;
+
+  /* - bg on .check-highlight */
+  --check-highlight-bg: #CCF;
+
+  /* - border on .check-highlight */
+  --check-highlight-border: #33F;
+
+  /* - part of gradient in .warning-upper and .warning-lower */
+  --warning-gradient-1: hsla(0,100%,89%,1);
+
+  /* - part of gradient in .warning-upper and .warning-lower */
+  --warning-gradient-2: rgba(145,78,78,0);
+
+  /* - bg on .ui-dialog-titlebar (hidden by ui-widget-header) */
+  --ui-dialog-title-bg: #2a348b;
+
+  /* - (possibly old?) bg & box-shadow of .editor-check-block-success */
+  --success-bg: hsl(88, 50%, 76%);
+
+  /* - (possibly old?) bg & box-shadow on .editor-check-block-failed */
+  --fail-bg: hsl(45, 100%, 85%);
+
+  /* - (possibly old?) gutter marker bg for errored test */
+  --err-gutter: hsla(0, 100%, 50%, 0.5);
 
   /* - (possibly old?) color of .choiceContainer > button */
-  --col-99: #fff;
+  --choice-button: #fff;
 
   /* - (possibly old?) .modal-content bg */
-  --col-101: #C8C8C8;
+  --modal-content-bg: #C8C8C8;
 
   /* - (possibly old?) .modal-content border */
-  --col-102: #888;
-
-  /* - (possibly old?) .modal-content box-shadow */
-  --col-103: rbga(0,0,0,0.19);
+  --modal-content-border: #888;
 
   /* - (possibly old?) bg of .stale.test-results .stale-warning */
-  --col-104: hsl(212, 30%, 50%);
+  --stale-warning-bg: hsl(212, 30%, 50%);
 
   /* 
   - (possibly old?) bg of .stale.test-results .check-block-failed
-  and .testing-summary .summary-failed*/
-  --col-105: hsl(45,30%,85%);
+  and .testing-summary .summary-failed */
+  --stale-fail-bg: hsl(45,30%,85%);
 
   /* 
   - (possibly old?) bg of .stale.test-results .check-block-success
   and .testing-summary .summary-passed */
-  --col-106: hsl(88, 30%, 76%);
+  --stale-success-bg: hsl(88, 30%, 76%);
 
   /* - (possibly old?) bg of .stale.test-results .check-block-errored */
-  --col-107: hsl(0, 30%, 85%);
+  --stale-err-bg: hsl(0, 30%, 85%);
 
   /* 
   - (possibly old?) bg of .stale.test-results .check-block-test.failing-test:not(.highlights-active) */
-  --col-108: hsl(45, 30%, 93%);
+  --stale-fail-no-highlight: hsl(45, 30%, 93%);
 
   /* - (possibly old?) bg of .stale.test-results .check-block-test.highlights-active */
-  --col-109: hsl(45,0%,95%);
+  --stale-highlight: hsl(45,0%,95%);
 
   /* - (possibly old?) bg of .stale.test-results .check-block-test.highlights-active > header */
-  --col-110: hsl(45, 50%, 85%);
+  --stale-highlight-header: hsl(45, 50%, 85%);
 
   /* - (possibly old?) bg of .stale.test-results .check-block-test.passing-test */
-  --col-111: hsl(90, 10%, 91%);
+  --stale-passing-test: hsl(90, 10%, 91%);
 
   /* - (possibly old?) bg of .stale.test-results .testing-summary .summary-errored */
-  --col-112: hsl(0, 30%, 70%);
+  --stale-err-summary: hsl(0, 30%, 70%);
 
   /* - (possibly old?) bg of .stale compile errors/tests with highlights active */
-  --col-113: hsl(204, 40%, 74%);
+  --stale-err-highlight: hsl(204, 40%, 74%);
 
-  /* - (possibly old?) bg of .error-bg */
-  --col-114: #FF9494;
+  /*  - bg on .topbar  */
+  --topbar-bg: #eee;
+
+  /*
+  - bg on .ui-dialog 
+  - text in .ui-dialog-title */
+  --ui-dialog-default: #eee;
+
+  /* - bg color that dims around ui-widget */
+  --ui-widget-dim: #111;
+
 }
 
 .CodeMirror, .inlineExample {
-  border: 1px solid var(--col-1);
+  border: 1px solid var(--default-border);
   background: var(--background);
-  color: var(--col-3);
+  color: var(--default-text);
   font-family: var(--font-stack);
 }
 .CodeMirror {
@@ -314,7 +277,7 @@
 .cm-s-default .cm-string { color: var(--strings); }
 .cm-s-default .cm-unterminated-string { color: var(--unterm-strings); font-weight: bold; }
 .cm-s-default .cm-type { color: var(--types); }
-.cptteach-fixed { line-height: 1.5; background: var(--col-15); }
+.cptteach-fixed { line-height: 1.5; background: var(--cptteach-bg); }
 
 div.CodeMirror-selected,
 span.CodeMirror-selectedtext {
@@ -441,7 +404,7 @@ div.spy-block {
   clear: both;
   border: 1px solid var(--spy-borders);
   padding: 0.2em;
-  box-shadow: 0px 4px 5px var(--col-24);
+  box-shadow: 0px 4px 5px var(--shadow-color);
   border-radius: 3px;
   background: var(--spy-bg);
   margin: 6px;
@@ -517,10 +480,10 @@ div.spy-block > table > th { display: none; }
     width:100%;
     background: linear-gradient(
         45deg,
-        var(--col-29) 0%,
-        var(--col-27) 37%,
-        var(--col-30) 45%,
-        var(--col-29) 50%);
+        rgba(255, 255, 255, 0.0) 0%,
+        rgba(255, 255, 255, 0.2) 37%,
+        rgba(255, 255, 255, 0.8) 45%,
+        rgba(255, 255, 255, 0.0) 50%);
     top:0;
     left:0;
     background-size: cover;
@@ -587,18 +550,18 @@ div.spy-block > table > th { display: none; }
 }
 .check {
   font-family: var(--font-stack);
-  border: 1px solid var(--col-1);
+  border: 1px solid var(--default-border);
   border-radius: 3px;
   padding: 10px;
   margin: 10px;
 }
 
 .check-success {
-  background-color: var(--col-31);
+  background-color: var(--bg-check-success);
 }
 
 .check-failure {
-  background-color: var(--col-32);
+  background-color: var(--bg-check-failure);
 }
 
 .check-block {
@@ -606,7 +569,7 @@ div.spy-block > table > th { display: none; }
   border-radius: 3px;
   margin: .5em;
   padding: .5em;
-  box-shadow: 0px 2px 4px var(--col-24);
+  box-shadow: 0px 2px 4px var(--shadow-color);
   background: var(--check-block-default-bg);
   position:relative;
   cursor:default;
@@ -652,7 +615,7 @@ div.spy-block > table > th { display: none; }
 }
 
 .check-block-test {
-  background-image: linear-gradient(0deg,var(--col-39),var(--col-40));
+  background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
   background-size: 100% .3em;
   background-position:bottom;
   background-repeat: no-repeat;
@@ -694,15 +657,15 @@ div.spy-block > table > th { display: none; }
   display: inline-block;
   vertical-align: top;
   height: 10px;
-  border: 1px solid var(--col-1);
+  border: 1px solid var(--default-border);
 }
 
 .progressStep.done {
-  background-color: var(--col-41);
+  background-color: var(--progress-done);
 }
 
 .progressDone {
-  color: var(--col-41);
+  color: var(--progress-done);
   font-style: italic;
   text-align: center;
   width: 50%;
@@ -715,9 +678,9 @@ div.spy-block > table > th { display: none; }
 }
 
 .instructionsWidget {
-  background-color: var(--col-42);
-  border: 1px dotted var(--col-43);
-  color: var(--col-5);
+  background-color: #fcf;
+  border: 1px dotted #c0c;
+  color: var(--default-border);
   padding: 3px;
   margin: 5px;
   cursor: pointer;
@@ -733,7 +696,7 @@ div.spy-block > table > th { display: none; }
 }
 
 .instructionsWidget .toggleInstructions {
-  color: var(--col-44);
+  color: #666;
   float: right;
   font-size: 0.8em;
   padding: 3px;
@@ -869,7 +832,7 @@ body.smallHeader .replContainer {
   vertical-align:top;
   border:none;
   font-size: 18px;
-  background: var(--col-45);
+  background: var(--prgm-name-bg);
   float:left;
   height: 100%;
   box-sizing: border-box;
@@ -904,7 +867,7 @@ body.smallHeader .replContainer {
 */
 
 #welcome {
-  color: var(--col-46);
+  color: var(--light-text);
   height: 2.5rem;
   line-height: 2.5rem;
   width: 50%;
@@ -920,7 +883,7 @@ body.smallHeader .replContainer {
 
 
 .notificationArea {
-  background: var(--col-47);
+  background: var(--notif-area-bg);
   max-width: 50%;
   float: right;
   font-family: sans-serif;
@@ -936,11 +899,11 @@ body.smallHeader .replContainer {
 }
 
 .notificationArea .active {
-  color: var(--col-3);
+  color: var(--notif-area-text);
 }
 
 .notificationArea .error {
-  color: var(--col-48);
+  color: var(--error);
   font-weight: bold;
 }
 
@@ -949,11 +912,11 @@ body.smallHeader .replContainer {
 }
 
 .notificationArea .autoCorrect-msg{
-  color: var(--col-3);
+  color: var(--notif-area-text);
 }
 
 .notificationArea .autoCorrect-button{
-  color: var(--col-48);
+  color: var(--error);
   font-weight: bold;
   float:right;
 }
@@ -975,26 +938,26 @@ body.smallHeader .replContainer {
 #filemenuContents .hidden { display: none; }
 
 .menuContents {
-  background-color: var(--col-49);
+  background-color: var(--menu-contents-bg);
   border: none;
-  box-shadow: 0px 2px 3px var(--col-50);
+  box-shadow: 0px 2px 3px var(--shadow-color);
   overflow:hidden;
   max-width: min-content;
 }
 
 .menuContents div:not(.disabled):not(.inert):hover{
   transition: box-shadow 0.2s;
-  background-color: var(--col-51);
+  background-color: var(--shadow-color);
 }
 
 .menuContents div.disabled * {
-   color: var(--col-52);
+   color: var(--menu-disabled);
    cursor: default;
 }
 
 .menuButton *,
 .menuContents * {
-  color: var(--col-53);
+  color: var(--menu-text);
   font-family: sans-serif;
   text-decoration: none;
 }
@@ -1019,25 +982,25 @@ body.smallHeader .replContainer {
   line-height: 1em;
   text-align: center;
   text-decoration: none;
-  color: var(--col-37);
-  background-color: var(--col-54);
+  color: white;
+  background-color: var(--info-button-bg);
 }
 
 .info-btn:hover {
-  background-color: var(--col-55);
+  background-color: var(--info-button-hover);
 }
 
 div#font{
   min-width: 180px;
-  border: 1px solid var(--col-56);
+  border: 1px solid var(--shadow-lighter);
   border-left: 0px;
   border-right: 0px;
-  background:var(--col-57);
+  background:var(--shadow-lighter);
   padding: 0px;
 }
 
 div#font:hover{
-  background:var(--col-57);
+  background:var(--shadow-lighter);
   box-shadow: none;
 }
 
@@ -1069,7 +1032,7 @@ div#font:hover{
   width: calc(60% - 2px);
   cursor: default;
   padding: 10px 5px;
-  border: 1px solid var(--col-56);
+  border: 1px solid var(--shadow-lighter);
   border-top:none;
   border-bottom:none;
 }
@@ -1116,7 +1079,7 @@ div#font-label:hover{
 .replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
 
 .replOutput.expanded > dl {
-   border: 1px solid var(--col-52);
+   border: 1px solid var(--repl-obj-border);
 }
 
 .replOutput > dl { display: inline; }
@@ -1174,18 +1137,18 @@ ul.inlineCollection > li > span.label {
 .replOutputPassed {
   padding-top: 0;
   padding-bottom: 0.5em;
-  color: var(--col-59);
+  color: var(--repl-out-passed);
 }
 
 .replOutputFailed {
   padding-top: 0;
   padding-bottom: 0.5em;
-  color: var(--col-60);
+  color: var(--repl-out-failed);
 }
 
 .test-reason, .nestedReason {
  padding-top: 0;
- color: var(--col-60);
+ color: var(--reason-text);
 }
 
 .rationalNumber {
@@ -1200,7 +1163,7 @@ span.rationalRepeat {
 
 .replImageThumbnail canvas {
   cursor: pointer;
-  box-shadow: 0px 2px 4px var(--col-24);
+  box-shadow: 0px 2px 4px var(--shadow-color);
   margin: 2px;
   position: relative;
 }
@@ -1236,8 +1199,8 @@ span.rationalRepeat {
 }
 
 .error-highlight {
-  background-color: var(--col-62) !important;
-  border-bottom: 2px solid var(--col-63) !important;
+  background-color: var(--err-highlight) !important;
+  border-bottom: 2px solid var(--error) !important;
 }
 
 .loc-anchor {
@@ -1327,7 +1290,7 @@ code div {
   margin-left: 1em;
   height: 1em;
   width: 1em;
-  box-shadow:0 0 200px 1em var(--col-1);
+  box-shadow:0 0 200px 1em var(--default-border);
   opacity: 0;
   border-radius: 100%;
   animation: emphasize 0.5s 1;
@@ -1347,7 +1310,7 @@ code div {
 }
 
 .emphasize-line {
-  background-color:var(--col-64);
+  background-color:var(--emph-line-bg);
   opacity: 1;
   animation: emphasize-line 0.5s;
 }
@@ -1367,15 +1330,15 @@ code div {
 
 
 .check-highlight {
- background-color: var(--col-65);
- border-bottom: 2px solid var(--col-66);
+ background-color: var(--check-highlight-bg);
+ border-bottom: 2px solid var(--check-highlight-border);
 }
 
 .compile-error {
   font-family: sans-serif;
   border: 1px dashed var(--err-dotted-border);
   padding: 0.2em;
-  box-shadow: 0px 4px 5px var(--col-24);
+  box-shadow: 0px 4px 5px var(--shadow-color);
   border-radius: 3px;
   background: var(--err-bg);
   margin: 6px;
@@ -1399,7 +1362,7 @@ code div {
   border: 1px dashed var(--err-dotted-border);
   /* font-size: 10pt; */
   padding: 3px;
-  box-shadow: 0px 4px 5px var(--col-24);
+  box-shadow: 0px 4px 5px var(--shadow-color);
   border-radius: 3px;
   background: var(--err-bg);
   margin: 6px;
@@ -1407,7 +1370,7 @@ code div {
 
 .error-icon {
   size: 16pt;
-  color: var(--col-63);
+  color: var(--error);
 }
 
 .parse-error .code {
@@ -1461,14 +1424,14 @@ code div {
   animation-name: arrow-upper-bounce;
   background-image:
       url('/img/up-arrow.png'),
-      linear-gradient(to bottom,  var(--col-72) 0%,var(--col-73) 50%);
+      linear-gradient(to bottom,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
 }
 
 .warning-lower {
   animation-name: arrow-lower-bounce;
   background-image:
       url('/img/down-arrow.png'),
-      linear-gradient(to top,  var(--col-72) 0%,var(--col-73) 50%);
+      linear-gradient(to top,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
 }
 
 @keyframes arrow-upper-bounce {
@@ -1494,7 +1457,7 @@ code div {
 .topbar {
   position: fixed;
   width: 100%;
-  background-color: var(--col-3);
+  background-color: var(--topbar-bg);
 }
 
 /* NOTE(joe): removes the white bar in popups */
@@ -1511,23 +1474,23 @@ code div {
   top: 0;
   left: 0;
   opacity: 0.5;
-  background: var(--col-5);
+  background: var(--ui-widget-dim);
 }
 /* end from internet */
 
 .ui-dialog {
-  border: 2px solid var(--col-5);
-  background-color: var(--col-3);
+  border: 2px solid var(--default-border);
+  background-color: var(--ui-dialog-default);
   border-radius: 5px;
   z-index: 15000;
 }
 
 .ui-dialog-titlebar {
-  background-color: var(--col-74);
+  background-color: var(--ui-dialog-title-bg);
 }
 
 .ui-dialog-title {
-  color: var(--col-3);
+  color: var(--ui-dialog-default);
   font-family: sans-serif;
   position: relative;
   left: 30px;
@@ -1596,7 +1559,7 @@ body.smallHeader #handle {
 
 #runButton, #breakButton {
   width: 150px;
-  box-shadow: 0px -5px 5px 1px var(--col-51);
+  box-shadow: 0px -5px 5px 1px var(--shadow-color);
 }
 
 body.smallHeader #runButton, body.smallHeader #breakButton {
@@ -1608,24 +1571,24 @@ body.smallHeader #runButton > span {
 }
 
 #runButton{
-  background: var(--col-54);
+  background: var(--run-bg);
 }
 
 #runButton:hover{
-  background:var(--col-55);
+  background:var(--run-hover);
 }
 
 #breakButton{
-  background:var(--col-78);
+  background:var(--stop-bg);
 }
 
 #breakButton:hover{
-  background:var(--col-79);
+  background:var(--stop-hover);
 }
 
 #runButton:hover,
 #breakButton:hover{
-  box-shadow: 0px -5px 10px 5px var(--col-51);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
 }
 
 #runButton:disabled, #breakButton:disabled{
@@ -1646,19 +1609,19 @@ body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
 }
 
 #runPart {
-  background: var(--col-54);
+  background: var(--run-bg);
   padding: 0;
   margin: 0;
 }
 
 .dropdown {
-  background: var(--col-54);
+  background: var(--run-bg);
   padding-left: 5px;
   box-sizing: border-box;
   float: right;
   height: 100%;
   width: 20px;
-  box-shadow: 0px -2px 5px 2px var(--col-56);
+  box-shadow: 0px -2px 5px 2px var(--shadow-lighter);
 }
 
 #run-dropdown-content {
@@ -1676,33 +1639,33 @@ body.smallHeader #run-dropdown-content {
 }
 
 #run-dropdown-content li {
-  color: var(--col-46);
+  color: var(--light-text);
   font-family: sans-serif;
   font-size: 15px;
   height: 23px;
-  background: var(--col-54);
+  background: var(--run-bg);
   padding: 5px;
-  box-shadow: 0px -2px 5px 2px var(--col-56);
+  box-shadow: 0px -2px 5px 2px var(--shadow-lighter);
   text-align: center;
 }
 
 #run-dropdown-content li:hover {
-  background:var(--col-55);
-  box-shadow: 0px -5px 10px 5px var(--col-51);
+  background:var(--run-hover);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
   cursor:pointer;
 }
 
 .dropdown:hover {
-  box-shadow: 0px -5px 10px 5px var(--col-50);
-  background:var(--col-55);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
+  background:var(--run-hover);
 }
 
 .module-info-hover {
   width: 30em;
   height: auto;
-  border: 1px solid var(--col-5);
+  border: 1px solid var(--default-border);
   padding: 5px;
-  background-color: var(--col-46);
+  background-color: var(--light-text);
 }
 
 .CodeMirror-linewidget {
@@ -1729,13 +1692,13 @@ body.smallHeader #run-dropdown-content {
 }
 
 .editor-check-block-success {
-  background: var(--col-80);
-  box-shadow: 0 1em 11px 2px var(--col-80);
+  background: var(--success-bg);
+  box-shadow: 0 1em 11px 2px var(--success-bg);
 }
 
 .editor-check-block-failed {
-  background: var(--col-81);
-  box-shadow: 0 0.5em 11px 3px var(--col-81);
+  background: var(--fail-bg);
+  box-shadow: 0 0.5em 11px 3px var(--fail-bg);
 }
 
 .editor-check-block-error {
@@ -1748,7 +1711,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 @keyframes emphasize-error {
-  from {background-color: var(--col-37);}
+  from {background-color: white; }
   to {}
 }
 
@@ -1789,7 +1752,7 @@ body.smallHeader #run-dropdown-content {
   align-items: center;
   justify-content:center;
   height: 3em;
-  color: var(--col-8);
+  color: var(--empty-check-text);
   overflow: hidden;
 }
 
@@ -1851,7 +1814,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .errored-test-marker {
-  background-color: var(--col-88);
+  background-color: var(--err-gutter);
 }
 
 .failed-test-marker {
@@ -1922,7 +1885,7 @@ body.smallHeader #run-dropdown-content {
   font-size: .7em;
   background: var(--snippet-header-bg);
   padding: 0 .5em;
-  box-shadow: 0 0 3px var(--col-39);
+  box-shadow: 0 0 3px hsla(0, 0%, 0%,.5);
   z-index: 100;
   position: relative;
   border-bottom: 1px var(--snippet-header-border) solid;
@@ -1988,7 +1951,7 @@ body.smallHeader #run-dropdown-content {
 }
 
 .stacktrace > div:hover {
-  box-shadow:0 0 1em var(--col-98);
+  box-shadow:0 0 1em var(--shadow-darker);
 }
 
 .stacktrace > div:not(:first-of-type):before {
@@ -2026,10 +1989,10 @@ div.choiceContainer .textLabel {
 div.choiceContainer > button {
   margin: 1em;
   cursor: pointer;
-  background-color: var(--col-54);
+  background-color: var(--run-bg);
   border: none;
   border-radius: 0px;
-  color: var(--col-99);
+  color: var(--choice-button);
   text-align: center;
   transition: box-shadow 0.2s;
   font-size: 15px;
@@ -2058,10 +2021,10 @@ th:last-child, td:last-child {
 tr:nth-child(even){background-color: var(--table-even-rows-bg)}
 
 table.pyret-table thead {
-  box-shadow: 0px 2px 2px var(--col-51);
+  box-shadow: 0px 2px 2px var(--shadow-color);
 }
 table.pyret-row th {
-  box-shadow: 2px 0px 2px var(--col-51), -2px 0px 2px var(--col-51);
+  box-shadow: 2px 0px 2px var(--shadow-color), -2px 0px 2px var(--shadow-color);
   border: none;
 }
 table.pyret-row td {
@@ -2069,7 +2032,7 @@ table.pyret-row td {
 }
 /* NOTE(joe): this helps distinguish a row that appears in a table cell */
 table.pyret-row {
-  box-shadow: 2px 2px 2px var(--col-51);
+  box-shadow: 2px 2px 2px var(--shadow-color);
 }
 
 /* MODAL */
@@ -2084,20 +2047,20 @@ table.pyret-row {
   width: 100%; /* Full width */
   height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
-  background-color: var(--col-1); /* Fallback color */
-  background-color: var(--col-98); /* Black w/ opacity */
+  background-color: var(--default-border); /* Fallback color */
+  background-color: var(--shadow-darker); /* Black w/ opacity */
   font-family: sans-serif;
 }
 
 /* Modal Content */
 .modal-content {
   position: relative;
-  background-color: var(--col-101);
+  background-color: var(--modal-content-bg);
   margin: auto;
   padding: 0;
-  border: 1px solid var(--col-102);
+  border: 1px solid var(--modal-content-border);
   width: 60%;
-  box-shadow: 0 4px 8px 0 var(--col-51),0 6px 20px 0 var(--col-103);
+  box-shadow: 0 4px 8px 0 var(--shadow-color),0 6px 20px 0 var(--shadow-color);
   -webkit-animation-name: animatetop;
   -webkit-animation-duration: 0.4s;
   animation-name: animatetop;
@@ -2159,34 +2122,34 @@ table.pyret-row {
 .modal .close  {
   height: 40px;
   width: 150px;
-  box-shadow: 0px -2px 5px 1px var(--col-51);
+  box-shadow: 0px -2px 5px 1px var(--shadow-color);
   margin-top: 10px;
 }
 
 .modal .submit{
-  background: var(--col-54);
+  background: var(--run-bg);
 }
 
 .modal .submit:hover{
-  background:var(--col-55);
+  background:var(--run-hover);
 }
 
 .modal .close{
-  background:var(--col-78);
+  background:var(--stop-bg);
 }
 
 .modal .close:hover{
-  background:var(--col-79);
+  background:var(--stop-hover);
 }
 
 .modal .submit:hover,
 .modal .close:hover{
-  box-shadow: 0px -5px 10px 5px var(--col-51);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
 }
 
 .modal-header {
   padding: 2px 16px;
-  background-color: var(--col-50);
+  background-color: var(--shadow-color);
   color: var(--modal-header-text);
   text-align: center;
 }
@@ -2202,8 +2165,8 @@ table.pyret-row {
 
 .modal-footer {
   padding: 2px 16px;
-  background-color: var(--col-50);
-  color: var(--col-37);
+  background-color: var(--shadow-color);
+  color: var(--light-text);
   height: 60px;
 }
 
@@ -2220,56 +2183,56 @@ table.pyret-row {
   /* Note: this is FF-only, but if the consensus is that it's a nice
    * effect, there is a polyfill for Chrome that adds support */
   position: sticky;
-  color: var(--col-37);
+  color: var(--light-text);
   top: 0;
   z-index: 500;
-  background-color: var(--col-104);
+  background-color: var(--stale-warning-bg);
 }
 
 .stale.test-results .check-block-failed {
-  background-color: var(--col-105);
+  background-color: var(--stale-fail-bg);
 }
 
 .stale.test-results .check-block-success {
-  background-color: var(--col-106);
+  background-color: var(--stale-success-bg);
 }
 
 .stale.test-results .check-block-errored {
-  background-color: var(--col-107);
+  background-color: var(--stale-err-bg);
 }
 
 .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
-  background-color: var(--col-108);
+  background-color: var(--stale-fail-no-highlight);
 }
 
 .stale.test-results .check-block-test.highlights-active {
-  background-color: var(--col-109);
+  background-color: var(--stale-highlight);
 }
 
 .stale.test-results .check-block-test.highlights-active > header {
-  background-color: var(--col-110);
+  background-color: var(--stale-highlight-header);
 }
 
 .stale.test-results .check-block-test.passing-test {
-  background-color: var(--col-111);
+  background-color: var(--stale-passing-test);
 }
 
 .stale.test-results .testing-summary .summary-passed {
-  background-color: var(--col-106);
+  background-color: var(--stale-success-bg);
 }
 
 .stale.test-results .testing-summary .summary-failed {
-  background-color: var(--col-105);
+  background-color: var(--stale-fail-bg);
 }
 
 .stale.test-results .testing-summary .summary-errored {
-  background-color: var(--col-112);
+  background-color: var(--stale-err-summary);
 }
 
 .stale .compile-error.highlights-active,
 .stale .compile-error.highlights-active,
 .stale .check-block-test.highlights-active {
-  border-color: var(--col-113);
+  border-color: var(--stale-err-highlight);
 }
 
 
@@ -2305,10 +2268,10 @@ table.pyret-row {
    display: inline-block;
 }
 .error-bg {
-  background-color: var(--col-114);
+  background-color: var(--error-bg);
 }
 .ok-bg {
-  background-color: var(--col-37);
+  background-color: white;
 }
 label.controller {
   width: 100px;

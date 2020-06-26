@@ -51,7 +51,7 @@ body.monokai {
   --unterm-strings: var(--yellow);          /* unterminated strings */
   --strings:        var(--green);           /* strings */
   --repl-print:     var(--white);           /* result of print() in the REPL */
-  --repl-output:  #f2f2f2;                /* values displayed in the REPL */
+  --repl-output:    #f2f2f2;                /* values displayed in the REPL */
 
   /* Basic editor appearance */
   --default-text: var(--white);   /* default text across editor */
@@ -78,7 +78,7 @@ body.monokai {
   --passing-test-bg:          var(--black-lighter);   /* bg of passing test */
   --highlights-active-border: var(--blue-lighter);    /* border around errors/tests with highlights active */
   --highlights-active-bg:     var(--black-lighter);   /* bg on check block errors/tests with highlights active */
-  --empty-check-err-bg:     rgba(255,255,255,0.4);  /* bg behind "Processing Result..." in check-block-error:empty */
+  --empty-check-err-bg:       rgba(255,255,255,0.4);  /* bg behind "Processing Result..." in check-block-error:empty */
 
   /* Errors */
   --err-dotted-border:    var(--err-red);         /* dotted border around compile/parse errors */

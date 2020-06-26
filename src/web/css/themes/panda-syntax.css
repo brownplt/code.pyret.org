@@ -55,7 +55,7 @@ body.panda {
   --unterm-strings:   var(--red);             /* unterminated strings */
   --strings:          var(--cyan);            /* strings */
   --repl-print:       var(--white);           /* result of print() in the REPL */
-  --repl-output:    #f2f2f2;                /* values displayed in the REPL */
+  --repl-output:      #f2f2f2;                /* values displayed in the REPL */
 
   /* Basic editor appearance */
   --default-text: var(--white);   /* default text across editor */
@@ -82,7 +82,7 @@ body.panda {
   --passing-test-bg:          var(--black-lighter);   /* bg of passing test */
   --highlights-active-border: var(--blue-lighter);    /* border around errors/tests with highlights active */
   --highlights-active-bg:     var(--black-lighter);   /* bg on check block errors/tests with highlights active */
-  --empty-check-err-bg:     rgba(255,255,255,0.4);  /* bg behind "Processing Result..." in check-block-error:empty */
+  --empty-check-err-bg:       rgba(255,255,255,0.4);  /* bg behind "Processing Result..." in check-block-error:empty */
 
   /* Errors */
   --err-dotted-border:      var(--err-red);       /* dotted border around compile/parse errors */
@@ -90,7 +90,7 @@ body.panda {
   --err-link:               var(--blue-lighter);  /* links within compile/parse errors */
   --trace-err-bg:           var(--black);         /* bg on div.trace.error */
   --err-hover-shadow:       var(--blue-lighter);  /* box-shadow on hover on errors */
-  --highlight-underline:  rgba(0, 0, 0, 0.8);   /* border below .highlight and .hinted-highlight */
+  --highlight-underline:    rgba(0, 0, 0, 0.8);   /* border below .highlight and .hinted-highlight */
   --highlight-text:         var(--white);         /* text color in a.highlight */
 
   /* Testing Summaries */
@@ -149,7 +149,7 @@ body.panda {
   --line-ruler:     var(--red);             /* 100-char line ruler */
 
   /* REPL */
-  --repl-text-output:   #f2f2f2;        /* text output in the REPL */
+  --repl-text-output:     #f2f2f2;        /* text output in the REPL */
   --repl-prompts:         var(--white);   /* >>> prompt in the REPL */
   --loader-bg:            var(--black);   /* REPL background during page load */
   --loader-text:          var(--white);   /* text containing loading messages during page load */
