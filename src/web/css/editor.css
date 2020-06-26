@@ -306,7 +306,7 @@
 .cm-s-default .cm-boolean { color: var(--booleans); }
 .cm-s-default .cm-builtin { color: var(--built-ins); }
 .cm-s-default .cm-function-name { color: var(--function-names); }
-.cm-s-default .cm-variable { color: var(--coliables); }
+.cm-s-default .cm-variable { color: var(--variables); }
 .cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
 .cm-s-default .cm-number { color: var(--numbers); }
 .cm-s-default .cm-roughnum { color: var(--rough-nums); }

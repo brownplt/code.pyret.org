@@ -1,26 +1,55 @@
 
-/* --------- Overrides not required for the default theme --------- */
+/*  ######################################################################
+    #---------- Overrides not required for the default theme ------------#
+    #                                                                    #
+    # This file contains any overrides that should apply to              #
+    # non-default themes only.                                           #
+    ###################################################################### */
 
-
-/* vars that need to be defined (IN THEME FILES) for the below overrides to work */
-body:not(.default) {
-  --repl-text-output: red; /* text output in the REPL */
-  --gutter-bg: red; /* background of line number gutters */
-  --gutter-border: red; /* border between gutter & definitions window */
-  --line-numbers: red;  /* line numbers in left gutter */
-  --repl-prompts: red;  /* >>> prompt in the REPL */
-  --loader-bg: red; /* REPL background during page load */
-  --loader-text: red; /* text containing loading messages during page load */
-  --line-ruler: blue; /* 100-char line ruler */
-  --scroll-bg: black; /* scrollbar track background*/
-  --scroll-thumb: gray; /* scrollbar thumb */
-  --scroll-thumb-highlight: white;  /* scrollbar thumb when hover */
-  --check-fail-border: yellow;  /* border around failing check blocks */
-  --check-error-border: green;  /* border around erroring check blocks */
-}
-
+/* default text in the REPL */
 body:not(.default) .repl {
   color: var(--default-text);
+}
+
+/* succeeding check block */
+body:not(.default) .check-block-success {
+  color: var(--check-success-text);
+}
+
+/* individual passing test within block */
+body:not(.default) .check-block-test.passing-test {
+  color: var(--check-success-text);
+}
+
+/* failing check block */
+body:not(.default) .check-block-failed {
+  color: var(--check-fail-text);
+
+  /* border around failing check blocks (to stand out) */
+  border-width: 0.17em;
+  border-style: solid;
+  border-color: var(--check-fail-border);
+}
+
+/* individual failing test within block */
+body:not(.default) .check-block-test.failing-test {
+  color: var(--check-fail-text);
+}
+
+/* erroring check block */
+body:not(.default) .check-block-errored {
+  color: var(--check-error-text);
+
+  /* border around erroring check blocks (to stand out) */
+  border-width: 0.17em;
+  border-style: solid;
+  border-color: var(--check-error-border);
+}
+
+/* header in indiv. tests containing "Test n: Failed/Passed" */
+body:not(.default) .check-block-test.passing-test > header,
+body:not(.default) .check-block-test.failing-test > header {
+  font-weight: bold;
 }
 
 /* text output in the REPL */
@@ -71,46 +100,25 @@ body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar {
   width: 15px;
   background-color: var(--scroll-bg);
 }
-
 body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar-thumb {
   background-color: var(--scroll-thumb);
   border-radius: 2px;
 }
-
 body:not(.default) .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover {
   background-color: var(--scroll-thumb-highlight);
 }
 
 /* other scrollbars (interactions window) */
-body:not(.default) ::-webkit-scrollbar {
-  width: 15px;
-}
-
+body:not(.default) ::-webkit-scrollbar { width: 15px; }
 body:not(.default) ::-webkit-scrollbar-track {
   width: 15px;
   background-color: var(--scroll-bg);
 }
-
 body:not(.default) ::-webkit-scrollbar-thumb {
   background-color: var(--scroll-thumb);
   border-radius: 2px;
 }
-
 body:not(.default) ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scroll-thumb-highlight);
   cursor: pointer;
-}
-
-/* border around failing check blocks (to stand out) */
-body:not(.default) .check-block-failed {
-  border-width: 0.17em;
-  border-style: solid;
-  border-color: var(--check-fail-border);
-}
-
-/* border around erroring check blocks (to stand out) */
-body:not(.default) .check-block-errored {
-  border-width: 0.17em;
-  border-style: solid;
-  border-color: var(--check-error-border);
 }

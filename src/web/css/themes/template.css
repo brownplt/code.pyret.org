@@ -4,221 +4,140 @@
     #                           Theme: Template                          #
     ###################################################################### */
 
+/*  Color Palette
+    (mapping of friendly names to colors, if needed) */
 body.template {
-  --monochrome: red;
+  --gray: #a6a6a6;
 }
 
+/*  Theme Variables (core)
+    Color values that must be specified by *all* themes */
 body.template {
-  /* - default editor text */
-  --default-text: var(--monochrome);
-  
-  /* - pyret keywords */
-  --keyword: var(--monochrome);
-  
-  /* - pyret comments */
-  --comments: var(--monochrome);
-  
-  /* - pyret booleans */
-  --booleans: var(--monochrome);
-  
-  /* - pyret built-ins */
-  --built-ins: var(--monochrome);
-  
-  /* - pyret function names */
-  --function-names: var(--monochrome);
-  
-  /* - pyret types */
-  --types: var(--monochrome);
-  
-  /* - pyret variables */
-  --variables: var(--monochrome);
-  
-  /* - pyret exact nums */
-  --numbers: var(--monochrome);
-  
-  /* - pyret rough nums */
-  --rough-nums: var(--monochrome);
-  
-  /* - pyret rational numbers */
-  --rationals: var(--monochrome);
-  
-  /* - pyret bad numbers */
-  --bad-numbers: var(--monochrome);
-  
-  /* - pyret unterminated strings */
-  --unterm-strings: var(--monochrome);
-  
-  /* - pyret strings */
-  --strings: var(--monochrome);
-  
-  /* - border on pyret tables */
-  --table-border: var(--monochrome);
-  
-  /* - bg on pyret tables */
-  --table-bg: var(--monochrome);
-  
-  /* - bg on even rows in pyret table */
-  --table-even-rows-bg: var(--monochrome);
-  
-  /* - bg on pyret table headers */
-  --th-bg: var(--monochrome);
-  
-  /* righthand borders separating table columns */
-  --table-col-dividers: var(--monochrome);
-  
-  /* - default bg color */
-  --background: var(--monochrome);
-  
-  /* - selected text in editor */
-  --selected-text: var(--monochrome);
-  
-  /* - bg on .repl .CodeMirror */
-  --cm-in-repl-bg: var(--monochrome);
-  
-  /* - cursor color */
-  --cursor: var(--monochrome);
-  
-  /* - result of print() in the REPL */
-  --repl-print: var(--monochrome);
-  
-  /* - values displayed in the REPL */
-  --repl-output: var(--monochrome);
-  
-  /* - brackets around check:...end regions, etc. */
-  --matching-brackets: var(--monochrome);
-  
-  /* - bg on regions like check:...end, etc. */
-  --matching-region-bg: var(--monochrome);
-  
-  /* - bg on span.CodeMirror-nonmatchingbracket-region */
-  --nonmatching-bg: var(--monochrome);
-  
-  /* 
-  - bg on span.CodeMirror-nonmatchingbracket
-  - borders on span.CodeMirror-nonmatchingbracket-region */
-  --nonmatching-bg-2: var(--monochrome);
-  
-  /* - brackets that form a nonmatching region */
-  --nonmatching-brackets: var(--monochrome);
-  
-  /* - bg on div.trace.error */
-  --trace-err-bg: var(--monochrome);
-  
-  /* - borders on spy block */
-  --spy-borders: var(--monochrome);
-  
-  /* - bg on spy block */
-  --spy-bg: var(--monochrome);
-  
-  /* - bg on odd table rows of spy block */
-  --spy-odd-rows-bg: var(--monochrome);
-  
-  /* - bg on even table rows of spy block */
-  --spy-even-rows-bg: var(--monochrome);
-  
-  /* - box-shadow on hover on errors */
-  --err-hover-shadow: var(--monochrome);
-  
-  /* - default bg on check blocks (usually invisible) */
-  --check-block-default-bg: var(--monochrome);
-  
-  /* - bg on failed check block */
-  --check-fail-bg: var(--monochrome);
-  
-  /* 
-  - bg on erroring check block
-  - bg & box-shadow on .editor-check-block-error */
-  --check-error-bg: var(--monochrome);
-  
-  /* - bg on passing check blocks */
-  --check-success-bg: var(--monochrome);
-  
-  /* - text color in testing summary */
-  --testing-summary: var(--monochrome);
-  
-  /* - bg on testing summary */
-  --testing-summary-bg: var(--monochrome);
-  
-  /* - bg of summary of failed tests */
-  --summary-fail-bg: var(--monochrome);
-  
-  /* - bg of summary of passed tests */
-  --summary-pass-bg: var(--monochrome);
-  
-  /* - bg of announcement in summary that tests errored */
-  --summary-error-bg: var(--monochrome);
-  
-  /* - announcement text that tests errored in testing summary */
-  --summary-err: var(--monochrome);
-  
-  /* - vertical border on left of announcement of erroring tests in summary */
-  --summary-err-left-border: var(--monochrome);
-  
-  /* - bg on spotlighted text (should match default bg) */
-  --spotlighted-text-bg: var(--monochrome);
-  
-  /* - border below .highlight and .hinted-highlight */
-  --highlight-underline: var(--monochrome);
-  
-  /* - text color in a.highlight */
-  --highlight-text: var(--monochrome);
-  
-  /* - box-shadow on hover over image thumbnail in REPL */
-  --img-thumbnail-shadow: var(--monochrome);
-  
-  /* - dotted border around compile/parse errors */
-  --err-dotted-border: var(--monochrome);
-  
-  /* - bg on compile/parse errors */
-  --err-bg: var(--monochrome);
-  
-  /* - links within compile/parse errors */
-  --err-link: var(--monochrome);
-  
-  /* - darker color in REPL handle gradient */
-  --repl-handle-gradient-darker: var(--monochrome);
-  
-  /* - lighter color in REPL handle gradient */
-  --repl-handle-gradient-lighter: var(--monochrome);
-  
-  /* - border on REPL handle */
-  --repl-handle-border: var(--monochrome);  
-  /* - bg of header within a focused failing test (contains "Test n: Failed") */
-  --failing-test-header-bg: var(--monochrome);
-  
-  /* - bg of failing test NOT in focus */
-  --failing-test-bg: var(--monochrome);
-  
-  /* - bg of passing test */
-  --passing-test-bg: var(--monochrome);
-  
-  /* - border around errors/tests with highlights active */
-  --highlights-active-border: var(--monochrome);
-  
-  /* - bg on check block errors/tests with highlights active */
-  --highlights-active-bg: var(--monochrome);
-  
-  /* - bg behind "Processing Result..." in check-block-error:empty */
-  --empty-check-err-bg: var(--monochrome);
-  
-  /* - bg of code snippets within check block tests */
-  --check-block-snippet-bg: var(--monochrome);
-  
-  /* - CodeMirror gutter marker bg for failed test */
-  --failed-test-gutter-marker: var(--monochrome);
-  
-  /* - dashed border around CodeMirror snippets */
-  --snippet-border: var(--monochrome);
-  
-  /* - CodeMirror snippet header bg color */
-  --snippet-header-bg: var(--monochrome);
-  
-  /* - border between snippet header & code */
-  --snippet-header-border: var(--monochrome);
-  
-  /* - bg on non-spotlighted elements during spotlight */
-  --non-spotlight-bg: var(--monochrome);
-  
-  /* - bg on check block containing spotlighted test */
-  --surrounding-check-spotlight-bg: var(--monochrome);
+
+  /* Syntax Highlighting */
+  --keyword: black;           /* keywords */
+  --comments: #cd7054;        /* comments */
+  --booleans: darkred;        /* booleans */
+  --built-ins: #555;          /* built-ins */
+  --function-names: #374049;  /* function names */
+  --types: #374049;           /* types */
+  --variables: #4d5966;       /* variables */
+  --numbers: navy;            /* exact nums */
+  --rough-nums: blue;         /* rough nums */
+  --rationals: #af1180;       /* rational numbers */
+  --bad-numbers: red;         /* bad numbers */
+  --unterm-strings: red;      /* unterminated strings */
+  --strings: forestgreen;     /* strings */
+  --repl-print: #111;         /* result of print() in the REPL */
+  --repl-output: #1f1180;     /* values displayed in the REPL */
+
+  /* Basic editor appearance */
+  --default-text: black;  /* default text across editor */
+  --background: #f8f8f8;  /* default bg color of definitions/interactions */
+  --cursor: #111;         /* cursor color */
+
+  /* Regions/Selected Text */
+  --selected-text: #ccc;                      /* selected text in editor */
+  --matching-brackets: rgb(90, 149, 217);     /* brackets around check:...end regions, etc. */
+  --matching-region-bg: hsl(220, 100%, 95%);  /* bg on regions like check:...end, etc. */
+  --nonmatching-bg: #fdc;                     /* bg on span.CodeMirror-nonmatchingbracket-region */
+  --nonmatching-bg-2: #fdd;                   /*  bg and borders on nonmatchingbracket-region*/
+  --nonmatching-brackets: #e11;               /* brackets that form a nonmatching region */
+
+  /* Check Blocks */
+  --check-block-default-bg: #E1F5FE;    /* default bg on check blocks (usually invisible) */
+  --check-success-bg: #c5e1a5;          /* bg on passing check blocks */
+  --check-fail-bg: #FFECB3;             /* bg on failed check block */
+  --check-error-bg: hsl(0, 100%, 90%);  /* bg (& box-shadow) on erroring check block */
+
+  /* Tests within check blocks */
+  --failing-test-header-bg: hsl(45, 100%, 85%);     /* bg of header within a focused failing test (contains "Test n: Failed") */
+  --failing-test-bg: hsl(45, 100%, 94%);            /* bg of failing test NOT in focus */
+  --passing-test-bg: hsl(90,  50%, 91%);            /* bg of passing test */
+  --highlights-active-border: hsl(204, 100%, 74%);  /* border around errors/tests with highlights active */
+  --highlights-active-bg: hsla(0,0%,100%,.9);       /* bg on check block errors/tests with highlights active */
+  --empty-check-err-bg: rgba(255,255,255,0.4);      /* bg behind "Processing Result..." in check-block-error:empty */
+
+  /* Errors */
+  --err-dotted-border: #FF3131;               /* dotted border around compile/parse errors */
+  --err-bg: #FFF2F2;                          /* bg on compile/parse errors */
+  --err-link: #469ad4;                        /* links within compile/parse errors */
+  --trace-err-bg: #fff6f2;                    /* bg on div.trace.error */
+  --err-hover-shadow: hsl(204, 100%, 80%);    /* box-shadow on hover on errors */
+  --highlight-underline: hsla(0, 0%, 0%,.5);  /* border below .highlight and .hinted-highlight */
+  --highlight-text: #000;                     /* text color in a.highlight */
+
+  /* Testing Summaries */
+  --testing-summary: white;                       /* text color in testing summary */
+  --testing-summary-bg: hsl(212, 62%, 50%);       /* bg on testing summary */
+  --summary-fail-bg: hsl(45, 100%, 85%);          /* bg of summary of failed tests */
+  --summary-pass-bg: hsl(88, 51%, 76%);           /* bg of summary of passed tests */
+  --summary-error-bg: hsla(0,100%,73%,1);         /* bg of announcement in summary that tests errored */
+  --summary-err: white;                           /* announcement text that tests errored in testing summary */
+  --summary-err-left-border: hsl(0, 100%, 100%);  /* vertical border left of error announcement in summary */
+
+  /* Tables */
+  --table-border: black;          /* border on tables */
+  --table-bg: #eee;               /* bg on tables */
+  --table-even-rows-bg: #f2f2f2;  /* bg on even rows in table */
+  --th-bg: #ddd;                  /* bg on table headers */
+  --table-col-dividers: white;    /* righthand borders separating table columns */
+
+  /* Spy Blocks */
+  --spy-borders: #9DC5ED;                       /* borders on spy block */
+  --spy-bg: #CBDFF2;                            /* bg on spy block */
+  --spy-odd-rows-bg: rgba(255, 255, 255, 0.3);  /* bg on odd table rows of spy block */
+  --spy-even-rows-bg: rgba(255, 255, 255, 0.2); /* bg on even table rows of spy block */
+
+  /* Spotlights */
+  --spotlighted-text-bg: white;                       /* bg on spotlighted text (should match default bg) */
+  --non-spotlight-bg: rgb(150,150,150);               /* bg on non-spotlighted elements during spotlight */
+  --surrounding-check-spotlight-bg: hsl(45, 9%, 66%); /* bg on check block containing spotlighted test */
+
+  /* Handle that adjusts interactions window size */
+  --repl-handle-gradient-darker: #BFBFBF;   /* darker color in REPL handle gradient */
+  --repl-handle-gradient-lighter: #D9D9D9;  /* lighter color in REPL handle gradient */
+  --repl-handle-border: #A6A6A6;            /* border on REPL handle */
+
+  /* CodeMirror snippets */
+  --snippet-border: hsl(0, 0%, 50%);                /* dashed border around CodeMirror snippets */
+  --snippet-header-bg: hsl(0, 0%, 97%);             /* CodeMirror snippet header bg color */
+  --snippet-header-border: hsl(0, 0%, 60%);         /* border between snippet header & code */
+  --check-block-snippet-bg: rgba(255,255,255,0.5);  /* bg of code snippets within check block tests */
+
+  /* Misc. */
+  --img-thumbnail-shadow: rgba(128,0,0,0.75);           /* box-shadow on hover over image thumbnail in REPL */
+  --cm-in-repl-bg: hsl(0,0%,95%);                       /* bg on .repl .CodeMirror */
+  --failed-test-gutter-marker: hsla(45, 90%, 50%, 0.5); /* CodeMirror gutter marker bg for failed test */
+
+}
+
+/*  Theme Variables (non-default)
+    Color values that only need to be specified by *non-default* themes */
+body.template {
+
+  /* CodeMirror gutters/line numbers/ruler */
+  --gutter-bg: gray;      /* background of line number gutters */
+  --gutter-border: gray;  /* border between gutter & definitions window */
+  --line-numbers: gray;   /* line numbers in left gutter */
+  --line-ruler: gray;     /* 100-char line ruler */
+
+  /* REPL */
+  --repl-text-output: gray;  /* text output in the REPL */
+  --repl-prompts: gray;      /* >>> prompt in the REPL */
+  --loader-bg: gray;         /* REPL background during page load */
+  --loader-text: gray;       /* text containing loading messages during page load */
+
+  /* Scrollbars */
+  --scroll-bg: gray;               /* scrollbar track background*/
+  --scroll-thumb: gray;            /* scrollbar thumb */
+  --scroll-thumb-highlight: gray;  /* scrollbar thumb when hover */
+
+  /* More granular control of check blocks */
+  --check-success-text: gray; /* text within successful check block */
+  --check-fail-text: gray;    /* text within failing check block */
+  --check-error-text: gray;   /* text within erroring check block */
+  --check-fail-border: gray;  /* border around failing check blocks */
+  --check-error-border: gray; /* border around erroring check blocks */
+
 }
