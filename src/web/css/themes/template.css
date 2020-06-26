@@ -1,7 +1,7 @@
 
 /*  ######################################################################
     #----------------------  Theme-specific colors ----------------------#
-    #                           Theme: Template                          #
+    #                           Theme: template                          #
     ###################################################################### */
 
 /*  Color Palette
@@ -41,7 +41,7 @@ body.template {
   --matching-brackets: rgb(90, 149, 217);     /* brackets around check:...end regions, etc. */
   --matching-region-bg: hsl(220, 100%, 95%);  /* bg on regions like check:...end, etc. */
   --nonmatching-bg: #fdc;                     /* bg on span.CodeMirror-nonmatchingbracket-region */
-  --nonmatching-bg-2: #fdd;                   /*  bg and borders on nonmatchingbracket-region*/
+  --nonmatching-bg-2: #fdd;                   /* bg and borders on nonmatchingbracket-region*/
   --nonmatching-brackets: #e11;               /* brackets that form a nonmatching region */
 
   /* Check Blocks */
