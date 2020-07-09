@@ -489,7 +489,7 @@ function start(config, onServerReady) {
     return both;
   }
 
-  function getSharedContents(id, config, res) {
+  function getSharedContents(id, requestOptions, config, res) {
     var ret = Q.defer();
     if(!id) {
       ret.reject("No id given");
@@ -506,8 +506,8 @@ function start(config, onServerReady) {
         if(err) { ret.reject("Could not access shared file."); return; }
         else {
           var drive = getDriveClient(newToken, 'v3');
-          config.fileId = prog.programId;
-          drive.files.get(config).then(function(response) { ret.resolve(response); })
+          requestOptions.fileId = prog.programId;
+          drive.files.get(requestOptions, config).then(function(response) { ret.resolve(response); })
           .catch(function(err) { console.log(err); });
         }
       })
@@ -521,7 +521,7 @@ function start(config, onServerReady) {
     // webContentLink for binary-encoded files, and plaintext doesn't
     // count. If you try, you get an HTML 404 page (helpfully headered and
     // encoded as text/plain).
-    var contents = getSharedContents(req.query.sharedProgramId, { alt: "media" }, res);
+    var contents = getSharedContents(req.query.sharedProgramId, { alt: "media" }, {responseType: 'text'}, res);
     contents.fail(function(err) {
       res.status(400);
       res.send("Unable to fetch shared file");
@@ -534,6 +534,7 @@ function start(config, onServerReady) {
         res.end();
       }
       else {
+        console.log(response);
         // TODO(joe): If a program is _just_ a string enclosed in quotes
         // surrounded by whitespace, response.data will be the contents of the
         // string not including the quotes. This needs to be addressed/reported
@@ -546,7 +547,7 @@ function start(config, onServerReady) {
   });
 
   app.get("/shared-image-contents", function(req, res) {
-    var contents = getSharedContents(req.query.sharedImageId, { fields: "webContentLink" }, res);
+    var contents = getSharedContents(req.query.sharedImageId, { fields: "webContentLink" }, {}, res);
     contents.then(function(response) {
       // NOTE(joe): Setting content-disposition is mostly useful for debugging;
       // this will make the image open in a browser tab rather than triggering
