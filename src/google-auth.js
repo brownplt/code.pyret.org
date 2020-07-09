@@ -1,4 +1,4 @@
-var gapi = require('googleapis');
+var gapi = require('googleapis').google;
 var jwt = require('jwt-simple');
 var OAuth2 = gapi.auth.OAuth2;
 
