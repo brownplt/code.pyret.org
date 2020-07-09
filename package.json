@@ -42,7 +42,7 @@
     "js-sha256": "^0.5.0",
     "js-yaml": "^3.13.1",
     "jwt-simple": "^0.5.3",
-    "karma": "^4.4.1",
+    "karma": "^5.1.0",
     "karma-babel-preprocessor": "6.0.1",
     "karma-coverage": "^1.1.2",
     "karma-coveralls": "^2.1.0",
