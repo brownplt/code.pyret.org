@@ -177,11 +177,11 @@ describe("Rendering errors", function() {
     ["violates-fail1",                 "check: 3 violates is-number because 'hi' end", [[["The test operator violates failed", "predicate", "left side", "3"]]]],
     ["violates-fail2",                 "check: 3 violates 5 end", [[["1-argument function that returns a boolean", "5"]]]],
     ["violates-fail3",                 "check: 3 violates 5 because 6 end", [[["1-argument function that returns a boolean", "5"]]]],
-    ["violates-fail4",                 "check: 3 violates num-sqr end", [[["test predicate", "must return a boolean", "left side", "num-sqr", "3"]]]],
+    ["violates-fail4",                 "check: 3 violates num-sqr end", [[["test predicate", "must return a boolean", "left side"]]]],
     ["violates-fail5",                 "check: 3 violates lam(_): 1 / 0 end end", [[["The test operator violates failed", "exception", "right side", "division by zero"]]]],
     ["violates-fail6",                 "check: 3 violates lam(_, _): 1 / 0 end end", [[["test predicate", "1-argument function that returns a boolean", "<anonymous function>"]]]],
     ["violates-because-fail1",         "check: 3 violates is-string because 'hi' end", [[["The test was inconsistent", "predicate", "explanation", "\"hi\""]]]],
-    ["violates-because-fail2",         "check: 3 violates num-sqr because 6 end", [[["test predicate", "must return a boolean", "explanation", "num-sqr", "6"]]]],
+    ["violates-because-fail2",         "check: 3 violates num-sqr because 6 end", [[["test predicate", "must return a boolean", "explanation"]]]],
     ["violates-because-fail3",         "check: 3 violates lam(_): 1 / 0 end because 4 end", [[["The test operator violates failed", "exception", "right side", "division by zero"]]]],
     ["violates-because-fail4",         "check: 3 violates lam(_, _): 1 / 0 end because 4 end", [[["test predicate", "1-argument function that returns a boolean", "<anonymous function>"]]]],
                                        
