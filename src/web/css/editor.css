@@ -237,6 +237,9 @@
   /* - bg color that dims around ui-widget */
   --ui-widget-dim: #111;
 
+  /* background on image thumbnails in REPL */
+  --img-thumbnail-bg: white;
+
 }
 
 .CodeMirror, .inlineExample {
@@ -1166,6 +1169,7 @@ span.rationalRepeat {
   box-shadow: 0px 2px 4px var(--shadow-color);
   margin: 2px;
   position: relative;
+  background-color: var(--img-thumbnail-bg);
 }
 
 .replImageThumbnail:hover canvas {
