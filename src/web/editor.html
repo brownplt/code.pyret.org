@@ -183,6 +183,11 @@
 <script src="/js/google-apis/picker.js"></script>
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
+<script>
+  var themeOnLoad = localSettings.getItem('theme');
+  $('#theme-select').val(themeOnLoad);
+  $("body").removeClass("default").addClass(themeOnLoad);
+</script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";

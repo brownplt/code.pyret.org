@@ -84,7 +84,7 @@ body.material-darker {
   --empty-check-err-bg:       rgba(255,255,255,0.4);  /* bg behind "Processing Result..." in check-block-error:empty */
 
   /* Errors */
-  --err-dotted-border:      var(-err-red);        /* dotted border around compile/parse errors */
+  --err-dotted-border:      var(--err-red);        /* dotted border around compile/parse errors */
   --err-bg:                 var(--black);         /* bg on compile/parse errors */
   --err-link:               var(--blue-lighter);  /* links within compile/parse errors */
   --trace-err-bg:           var(--black);         /* bg on div.trace.error */
