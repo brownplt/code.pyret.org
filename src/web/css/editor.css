@@ -21,17 +21,17 @@
   - box-shadow on .parse-error 
   - box-shadow on .menuContents 
   - box-shadow on .dropdown:hover (aside run button)
-  - (possibly old?) bg on .modal-header
-  - (possibly old?) bg on .modal-footer 
+  - bg on .modal-header
+  - bg on .modal-footer 
   - bg on .menuContents div:not(.disabled):not(.inert):hover
   - box-shadow on #runButton, #breakButton (also on hover)
   - box-shadow on #run-dropdown-content li:hover
   - box-shadow on table.pyret-table thead
   - box-shadow on table.pyret-row th
   - box-shadow on table.pyret-row
-  - (possibly old?) box-shadow on .modal-content
-  - (possibly old?) box-shadow on modal submit and close (also hover)
-  - (possibly old?) .modal-content box-shadow */
+  - box-shadow on .modal-content
+  - box-shadow on modal submit and close (also hover)
+  - .modal-content box-shadow */
   --shadow-color: rgba(0,0,0,0.25);
 
   /* 
@@ -47,18 +47,18 @@
   - .modal bg with opacity */
   --shadow-darker: rgba(0,0,0,0.4);
 
-  /* - (possibly old?) bg on .check-success */
+  /* - bg on .check-success */
   --bg-check-success: #cfc;
 
-  /* - (possibly old?) bg on .check-failure */
+  /* - bg on .check-failure */
   --bg-check-failure: #d66;
 
-  /* - (possibly old?) bg of .error-bg */
+  /* - bg of .error-bg */
   --error-bg: #FF9494;
 
   /* 
-  - (possibly old?) text in .notificationArea .error
-  - (possibly old?) text in .notificationArea .autoCorrect-button
+  - text in .notificationArea .error
+  - text in .notificationArea .autoCorrect-button
   - border on .error-highlight
   - color of .error-icon */
   --error: #F44336;
@@ -68,7 +68,7 @@
   - text in .progressDone */
   --progress-done: green;
 
-  /* - (possibly old?) bg on #program-name-container input */
+  /* - bg on #program-name-container input */
   --prgm-name-bg: #FEFEFE;
 
   /* 
@@ -88,11 +88,11 @@
   - "Programming as ..." text in #welcome
   - options in Run dropdown
   - bg on .module-info-hover
-  - (possibly old?) text in .modal-footer
-  - (possibly old?) text in .stale.test-results .stale-warning */
+  - text in .modal-footer
+  - text in .stale.test-results .stale-warning */
   --light-text: #eeeeee;
 
-  /* - (possibly old?) bg on .notificationArea */
+  /* - bg on .notificationArea */
   --notif-area-bg: #111111;
 
   /* - bg on New/Save/Download/etc menu (.menuContents) */
@@ -122,8 +122,8 @@
   - bg on #runPart
   - bg on .dropdown (beside Run)
   - bg on #run-dropdown-content li
-  - (possibly old?) bg on .choiceContainer > button
-  - (possibly old?) bg on .modal .submit  */
+  - bg on .choiceContainer > button
+  - bg on .modal .submit  */
   --run-bg: #317bcf;
 
   /* 
@@ -143,13 +143,13 @@
   - hover bg of .modal .close */
   --stop-hover: #B30C00;
 
-  /* - (possibly old?) .replOutputPassed */
+  /* - .replOutputPassed */
   --repl-out-passed: #1f9180;
 
-  /* - (possibly old?) .replOutputFailed */
+  /* - .replOutputFailed */
   --repl-out-failed: #af1180;
 
-  /* - (possibly old?) text color in .test-reason, .nestedReason */
+  /* - text color in .test-reason, .nestedReason */
   --reason-text: #af1180;
 
   /* - bg on .error-highlight */
@@ -173,57 +173,57 @@
   /* - bg on .ui-dialog-titlebar (hidden by ui-widget-header) */
   --ui-dialog-title-bg: #2a348b;
 
-  /* - (possibly old?) bg & box-shadow of .editor-check-block-success */
+  /* - bg & box-shadow of .editor-check-block-success */
   --success-bg: hsl(88, 50%, 76%);
 
-  /* - (possibly old?) bg & box-shadow on .editor-check-block-failed */
+  /* - bg & box-shadow on .editor-check-block-failed */
   --fail-bg: hsl(45, 100%, 85%);
 
-  /* - (possibly old?) gutter marker bg for errored test */
+  /* - gutter marker bg for errored test */
   --err-gutter: hsla(0, 100%, 50%, 0.5);
 
-  /* - (possibly old?) color of .choiceContainer > button */
+  /* - color of .choiceContainer > button */
   --choice-button: #fff;
 
-  /* - (possibly old?) .modal-content bg */
+  /* - .modal-content bg */
   --modal-content-bg: #C8C8C8;
 
-  /* - (possibly old?) .modal-content border */
+  /* - .modal-content border */
   --modal-content-border: #888;
 
-  /* - (possibly old?) bg of .stale.test-results .stale-warning */
+  /* - bg of .stale.test-results .stale-warning */
   --stale-warning-bg: hsl(212, 30%, 50%);
 
   /* 
-  - (possibly old?) bg of .stale.test-results .check-block-failed
+  - bg of .stale.test-results .check-block-failed
   and .testing-summary .summary-failed */
   --stale-fail-bg: hsl(45,30%,85%);
 
   /* 
-  - (possibly old?) bg of .stale.test-results .check-block-success
+  - bg of .stale.test-results .check-block-success
   and .testing-summary .summary-passed */
   --stale-success-bg: hsl(88, 30%, 76%);
 
-  /* - (possibly old?) bg of .stale.test-results .check-block-errored */
+  /* - bg of .stale.test-results .check-block-errored */
   --stale-err-bg: hsl(0, 30%, 85%);
 
   /* 
-  - (possibly old?) bg of .stale.test-results .check-block-test.failing-test:not(.highlights-active) */
+  - bg of .stale.test-results .check-block-test.failing-test:not(.highlights-active) */
   --stale-fail-no-highlight: hsl(45, 30%, 93%);
 
-  /* - (possibly old?) bg of .stale.test-results .check-block-test.highlights-active */
+  /* - bg of .stale.test-results .check-block-test.highlights-active */
   --stale-highlight: hsl(45,0%,95%);
 
-  /* - (possibly old?) bg of .stale.test-results .check-block-test.highlights-active > header */
+  /* - bg of .stale.test-results .check-block-test.highlights-active > header */
   --stale-highlight-header: hsl(45, 50%, 85%);
 
-  /* - (possibly old?) bg of .stale.test-results .check-block-test.passing-test */
+  /* - bg of .stale.test-results .check-block-test.passing-test */
   --stale-passing-test: hsl(90, 10%, 91%);
 
-  /* - (possibly old?) bg of .stale.test-results .testing-summary .summary-errored */
+  /* - bg of .stale.test-results .testing-summary .summary-errored */
   --stale-err-summary: hsl(0, 30%, 70%);
 
-  /* - (possibly old?) bg of .stale compile errors/tests with highlights active */
+  /* - bg of .stale compile errors/tests with highlights active */
   --stale-err-highlight: hsl(204, 40%, 74%);
 
   /*  - bg on .topbar  */
@@ -413,6 +413,11 @@ div.spy-block {
   margin: 6px;
 }
 
+/* labels aren't highlighted, but are a.highlight elements */
+div.spy-block a.highlight {
+  color: var(--inactive-highlight-text) !important;
+}
+
 div.spy-block > .spy-title {
    display: block;
    width: 100%;
@@ -506,7 +511,6 @@ div.spy-block > table > th { display: none; }
 .check-block-error > .compile-error:not(.highlights-active) > *,
 .check-block-test.failing-test:not(.highlights-active) .test-reason {
   opacity: 0.5;
-
 }
 
 .check-block-header {
@@ -1234,8 +1238,18 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
+/* colored text highlights within highlights-active blocks */
 a.highlight {
-  color: var(--highlight-text) !important;
+  color: var(--active-highlight-text) !important;
+}
+
+/*  colored text highlights within non- highlights-active blocks
+    (dark themes make this lighter so text doesn't disappear into the bg
+    while not being highlighted) */
+#output > .compile-error:not(.highlights-active) a.highlight,
+.check-block-error > .compile-error:not(.highlights-active) a.highlight,
+.check-block-test.failing-test:not(.highlights-active) a.highlight {
+  color: var(--inactive-highlight-text) !important;
 }
 
 #output .highlight {

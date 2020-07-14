@@ -28,8 +28,8 @@ body.material-darker {
   --green: #C3E88D;
 
   --err-red: #FF5370;
-  --success-green: #C3E88D;
-  --failing-yellow: #FFCB6B;
+  --success-green: #8bf083;
+  --failing-yellow: #ffed6f;
 
   --strong-red: #ff3333;
   --blue-lighter: #baedf8;
@@ -84,13 +84,14 @@ body.material-darker {
   --empty-check-err-bg:       rgba(255,255,255,0.4);  /* bg behind "Processing Result..." in check-block-error:empty */
 
   /* Errors */
-  --err-dotted-border:      var(--err-red);        /* dotted border around compile/parse errors */
-  --err-bg:                 var(--black);         /* bg on compile/parse errors */
-  --err-link:               var(--blue-lighter);  /* links within compile/parse errors */
-  --trace-err-bg:           var(--black);         /* bg on div.trace.error */
-  --err-hover-shadow:       var(--blue-lighter);  /* box-shadow on hover on errors */
+  --err-dotted-border:      var(--err-red);         /* dotted border around compile/parse errors */
+  --err-bg:                 var(--black);           /* bg on compile/parse errors */
+  --err-link:               var(--blue-lighter);    /* links within compile/parse errors */
+  --trace-err-bg:           var(--black);           /* bg on div.trace.error */
+  --err-hover-shadow:       var(--blue-lighter);    /* box-shadow on hover on errors */
   --highlight-underline:    rgba(0, 0, 0, 0.8);   /* border below .highlight and .hinted-highlight */
-  --highlight-text:         var(--white);         /* text color in a.highlight */
+  --active-highlight-text:  black;                /* text color in a.highlight */
+  --inactive-highlight-text: var(--white);          /* text color in a.highlight within non-highlighted blocks */
 
   /* Testing Summaries */
   --testing-summary:          var(--white);             /* text color in testing summary */
@@ -132,7 +133,7 @@ body.material-darker {
 
   /* Misc. */
   --img-thumbnail-shadow:       var(--black-lighter-2);   /* box-shadow on hover over image thumbnail in REPL */
-  --cm-in-repl-bg:              var(--black  );           /* bg on .repl .CodeMirror */
+  --cm-in-repl-bg:              #303030;                /* bg on .repl .CodeMirror */
   --failed-test-gutter-marker:  var(--black-darker-2);    /* CodeMirror gutter marker bg for failed test */
 
 }
