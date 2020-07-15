@@ -457,6 +457,7 @@
           $('#main').css('font-size', '-=4');
         }
         editor.refresh();
+        replWidget.refresh();
         $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
       }
       $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
@@ -481,6 +482,8 @@
       function leftResize(event, ui) {
         var leftWidth = (window.innerWidth - ui.size.width)
         $(".replMain").css("width", leftWidth + "px");
+        editor.refresh();
+        replWidget.refresh();
       }
 
       $( "#REPL" ).on( "resizestop", toPercent);

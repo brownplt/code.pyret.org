@@ -922,6 +922,8 @@
       breakButton.click(onBreak);
 
       return {
+        cm: CM,
+        refresh: function() { CM.refresh(); },
         runCode: runMainCode,
         focus: function() { CM.focus(); }
       };
