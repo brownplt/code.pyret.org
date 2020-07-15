@@ -208,6 +208,11 @@ nav ul a, nav ul button {
   padding-right: 2em;
 }
 
+#detailed-logging-learn-more {
+  padding: 0.25em;
+  margin-top: -0.25em;
+}
+
 nav a, nav button {
   color: #111;
   font-family: sans-serif;
