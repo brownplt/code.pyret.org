@@ -684,6 +684,7 @@
         var cssColor = hueToRGB(color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', cssColor);
+          anchors[i].addClass('highlight-on');
         }
         for(var i = 0; i < positions.length; i++) {
           positions[i].highlight(cssColor);
@@ -697,6 +698,7 @@
         var positions = allHighlightPositions.get(color);
         for(var i = 0; i < anchors.length; i++) {
           anchors[i].css('background-color', 'initial');
+          anchors[i].removeClass('highlight-on');
         }
         for(var i = 0; i < positions.length; i++) {
           positions[i].highlight(undefined);

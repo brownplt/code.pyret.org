@@ -1238,8 +1238,16 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
-/* colored text highlights within highlights-active blocks */
+/*  colored text highlights within highlights-active blocks,
+    but that do not default to having their highlight on */
 a.highlight {
+  color: var(--inactive-highlight-text) !important;
+}
+
+/*  text highlights in highlights-active blocks that default
+    to highlighted background */
+a.highlight.highlight-on,
+a.highlight.highlight-on .replTextOutput {
   color: var(--active-highlight-text) !important;
 }
 
