@@ -146,10 +146,10 @@ body.base16 {
   --line-ruler:     var(--red);             /* 100-char line ruler */
 
   /* REPL */
-  --repl-text-output:   #e9e9e9;            /* text output in the REPL */
-  --repl-prompts:       var(--white);       /* >>> prompt in the REPL */
-  --loader-bg:          var(--background);  /* REPL background during page load */
-  --loader-text:        var(--white);       /* text containing loading messages during page load */
+  --repl-text-output:   #e9e9e9;                /* text output in the REPL */
+  --repl-prompts:       var(--white);             /* >>> prompt in the REPL */
+  --loader-bg:          rgba(25, 25, 25, 0.5);  /* REPL background during page load */
+  --loader-text:        var(--white);             /* text containing loading messages during page load */
 
   /* Scrollbars */
   --scroll-bg:              var(--black-lighter-2);   /* scrollbar track background*/

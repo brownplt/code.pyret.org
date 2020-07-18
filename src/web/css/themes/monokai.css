@@ -146,10 +146,10 @@ body.monokai {
   --line-ruler:     var(--red);             /* 100-char line ruler */
 
   /* REPL */
-  --repl-text-output: #f2f2f2;      /* text output in the REPL */
-  --repl-prompts:     var(--white);   /* >>> prompt in the REPL */
-  --loader-bg:        var(--black);   /* REPL background during page load */
-  --loader-text:      var(--white);   /* text containing loading messages during page load */
+  --repl-text-output: #f2f2f2;                  /* text output in the REPL */
+  --repl-prompts:     var(--white);               /* >>> prompt in the REPL */
+  --loader-bg:        rgba(39, 40, 34, 0.5);    /* REPL background during page load */
+  --loader-text:      var(--white);               /* text containing loading messages during page load */
 
   /* Scrollbars */
   --scroll-bg:              var(--black-lighter-2);   /* scrollbar track background*/

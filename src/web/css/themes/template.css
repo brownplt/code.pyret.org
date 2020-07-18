@@ -124,10 +124,10 @@ body.template {
   --line-ruler: gray;     /* 100-char line ruler */
 
   /* REPL */
-  --repl-text-output: gray;  /* text output in the REPL */
-  --repl-prompts: gray;      /* >>> prompt in the REPL */
-  --loader-bg: gray;         /* REPL background during page load */
-  --loader-text: gray;       /* text containing loading messages during page load */
+  --repl-text-output: gray;         /* text output in the REPL */
+  --repl-prompts: gray;             /* >>> prompt in the REPL */
+  --loader-bg: rgba(0, 0, 0, 0.5);  /* REPL background during page load (should be semi-transparent) */
+  --loader-text: gray;              /* text containing loading messages during page load */
 
   /* Scrollbars */
   --scroll-bg: gray;               /* scrollbar track background*/
