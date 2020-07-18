@@ -20,8 +20,17 @@
   <link rel="icon" type="image/png" href="/img/pyret-icon.png">
   <style id="highlight-styles"></style>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
+  <script src="/js/localSettings.js"></script>
 </head>
 <body class="default">
+  <script>
+    var themeOnLoad = localSettings.getItem('theme') || 'default';
+    document.body.classList.remove("default");
+    document.body.classList.add(themeOnLoad);
+    window.addEventListener('load', function() {
+      document.getElementById('#theme-select').value = themeOnLoad;
+    }, { once: true });
+  </script>
 <div id="header">
   <div id="bonniemenu" class="menu">
     <button class="blueButton">
@@ -175,7 +184,7 @@
 <script src="/js/mousetrap.min.js"></script>
 <script src="/js/mousetrap-global-bind.min.js"></script>
 
-<script src="/js/localSettings.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script src="/js/log.js"></script>
 <script src="/js/share.js"></script>
 <script src="/js/google-apis/api-wrapper.js"></script>
@@ -183,12 +192,6 @@
 <script src="/js/google-apis/picker.js"></script>
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
-<script>
-  var themeOnLoad = localSettings.getItem('theme') || 'default';
-  $('#theme-select').val(themeOnLoad);
-  $("body").removeClass("default").addClass(themeOnLoad);
-</script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";
 function handleGoogLoad() {

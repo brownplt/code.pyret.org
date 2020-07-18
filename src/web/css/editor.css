@@ -242,6 +242,12 @@
 
 }
 
+html, body { height: 100%; }
+
+body {
+  background: var(--background);
+}
+
 .CodeMirror, .inlineExample {
   border: 1px solid var(--default-border);
   background: var(--background);
