@@ -184,7 +184,7 @@
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
 <script>
-  var themeOnLoad = localSettings.getItem('theme');
+  var themeOnLoad = localSettings.getItem('theme') || 'default';
   $('#theme-select').val(themeOnLoad);
   $("body").removeClass("default").addClass(themeOnLoad);
 </script>
