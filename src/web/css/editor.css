@@ -1272,11 +1272,16 @@ a.highlight.highlight-on .replTextOutput {
 
 .hinted-highlight {
   cursor: pointer;
-  border-bottom: 2px var(--highlight-underline) solid;
+  border-bottom: 2px var(--active-highlight-underline) solid;
 }
 
 .highlight {
-  border-bottom: 2px var(--highlight-underline) solid;
+  border-bottom: 2px var(--active-highlight-underline) solid;
+}
+
+.hinted-highlight.highlight-on,
+.highlight.highlight-on {
+  border-bottom: 2px var(--inactive-highlight-underline) solid;
 }
 
 .highlight-blink {
@@ -1764,7 +1769,7 @@ body.smallHeader #run-dropdown-content {
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
   border: 0.3em var(--highlights-active-border) solid;
-  box-shadow: 0 0 1em;
+  box-shadow: 0 0 1em var(--err-focused-shadow);
 }
 
 

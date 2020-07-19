@@ -51,7 +51,7 @@ body.base16 {
   --unterm-strings: var(--yellow);          /* unterminated strings */
   --strings:        var(--green);           /* strings */
   --repl-print:     var(--white);           /* result of print() in the REPL */
-  --repl-output:    #e9e9e9;                /* values displayed in the REPL */
+  --repl-output:    #e9e9e9;              /* values displayed in the REPL */
 
   /* Basic editor appearance */
   --default-text: var(--white);   /* default text across editor */
@@ -86,7 +86,9 @@ body.base16 {
   --err-link:               var(--blue-lighter);    /* links within compile/parse errors */
   --trace-err-bg:           var(--black);           /* bg on div.trace.error */
   --err-hover-shadow:       var(--blue-lighter);    /* box-shadow on hover on errors */
-  --highlight-underline:    rgba(0, 0, 0, 0.8);   /* border below .highlight and .hinted-highlight */
+  --err-focused-shadow:     #737373;              /* box-shadow on errors in focus */
+  --active-highlight-underline:  rgba(255, 255, 255, 0.5);    /* border below .highlight and .hinted-highlight */
+  --inactive-highlight-underline: rgba(255, 255, 255, 0.5);   /* border below inactive highlights (darker) */
   --active-highlight-text:  black;                /* text color in a.highlight */
   --inactive-highlight-text: var(--white);          /* text color in a.highlight within non-highlighted blocks */
 

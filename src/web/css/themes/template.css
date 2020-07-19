@@ -64,7 +64,9 @@ body.template {
   --err-link: #469ad4;                        /* links within compile/parse errors */
   --trace-err-bg: #fff6f2;                    /* bg on div.trace.error */
   --err-hover-shadow: hsl(204, 100%, 80%);    /* box-shadow on hover on errors */
-  --highlight-underline: hsla(0, 0%, 0%,.5);  /* border below .highlight and .hinted-highlight */
+  --err-focused-shadow: black;                /* box-shadow on errors in focus */
+  --active-highlight-underline: hsla(0, 0%, 0%,.5);  /* border below .highlight and .hinted-highlight */
+  --inactive-highlight-underline: hsla(0, 0%, 0%,.5); /* border below inactive highlights (darker) */
   --active-highlight-text: #000;              /* text color in a.highlight */
   --inactive-highlight-text: #000;            /* text color in a.highlight within non-highlighted blocks */
 
