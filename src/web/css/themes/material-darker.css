@@ -15,17 +15,30 @@ body.material-darker {
   --black-lighter-3: #404040;
   --black-lighter-4: #4d4d4d;
 
-  --white: #EEFFFF;
-  --light-gray: #d9d9d9;
-  --light-gray-2: #b3b3b3;
-  --comment-color: #545454;
-  --purple: #C792EA;
-  --teal: #89DDFF;
-  --orange: #FFCB6B;
-  --red-pink: #FF5370;
-  --blue: #82AAFF;
-  --strong-blue: #3374ff;
-  --green: #C3E88D;
+  --white: hsl(180, 100%, 97%);
+  --light-gray: hsl(0, 0%, 85%);
+  --light-gray-2: hsl(0, 0%, 70%);
+  --comment-color: hsl(0, 0%, 33%);
+  --purple: hsl(276, 68%, 75%);
+  --teal: hsl(197, 100%, 77%);
+  --orange: hsl(39, 100%, 71%);
+  --red-pink: hsl(350, 100%, 66%);
+  --blue: hsl(221, 100%, 75%);
+  --strong-blue: hsl(221, 100%, 60%);
+  --green: hsl(84, 66%, 73%);
+
+  /* darkened syntax highlighting (highlights) */
+  --dark-white: hsl(0, 0%, 0%);
+  --dark-light-gray: hsl(0, 0%, 5%);
+  --dark-light-gray-2: hsl(0, 0%, 20%);
+  --dark-comment-color: hsl(0, 0%, 15%);
+  --dark-purple: hsl(276, 68%, 30%);
+  --dark-teal: hsl(197, 100%, 30%);
+  --dark-orange: hsl(39, 100%, 30%);
+  --dark-red-pink: hsl(350, 100%, 35%);
+  --dark-blue: hsl(221, 100%, 30%);
+  --dark-strong-blue: hsl(221, 100%, 20%);
+  --dark-green: hsl(84, 66%, 30%);
 
   --err-red: #FF5370;
   --success-green: #8bf083;
@@ -50,11 +63,11 @@ body.material-darker {
   --numbers:          var(--blue);          /* exact nums */
   --rough-nums:       var(--strong-blue);   /* rough nums */
   --rationals:        var(--blue);          /* rational numbers */
-  --bad-numbers:      var(--err-red);       /* bad numbers */
-  --unterm-strings:   var(--err-red);       /* unterminated strings */
+  --bad-numbers:      var(--red-pink);      /* bad numbers */
+  --unterm-strings:   var(--red-pink);      /* unterminated strings */
   --strings:          var(--green);         /* strings */
   --repl-print:       var(--white);         /* result of print() in the REPL */
-  --repl-output:      #e6ffff;              /* values displayed in the REPL */
+  --repl-output:      #e6ffff;            /* values displayed in the REPL */
 
   /* Basic editor appearance */
   --default-text: var(--white);   /* default text across editor */
@@ -171,5 +184,20 @@ body.material-darker {
   /* Testing summaries */
   --summary-pass-text: var(--success-green);    /* text saying "N TESTS FAILED" */
   --summary-fail-text: var(--failing-yellow);   /* text saying "N TESTS PASSED" */
+
+  /* darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    var(--dark-white);
+  --dark-comments:        var(--dark-comment-color); 
+  --dark-booleans:        var(--dark-red-pink);
+  --dark-built-ins:       var(--dark-orange);
+  --dark-function-names:  var(--dark-light-gray);
+  --dark-variables:       var(--dark-light-gray);
+  --dark-keyword:         var(--dark-purple);
+  --dark-numbers:         var(--dark-blue);
+  --dark-rough-nums:      var(--dark-strong-blue);
+  --dark-bad-numbers:     var(--dark-red-pink);
+  --dark-strings:         var(--dark-green);
+  --dark-unterm-strings:  var(--dark-red-pink);
+  --dark-types:           var(--dark-teal);
   
 }

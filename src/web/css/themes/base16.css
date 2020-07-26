@@ -15,17 +15,28 @@ body.base16 {
   --black-lighter-3: #434343;
   --black-lighter-4: #575757;
 
-  --white: #F8F8F8;
-  --comment-color: #737373;
-  --red: #AC4542;
-  --yellow: #F7CB87;
-  --green: #A2B56B;
-  --blue: #7CB0C2;
-  --purple: #BA8BAF;
-  --strong-purple: #8f5682;
+  --white: hsl(0, 0%, 97%);
+  --comment-color: hsl(0, 0%, 45%);
+  --red: hsl(2, 45%, 47%);
+  --yellow: hsl(36, 88%, 75%);
+  --green: hsl(75, 33%, 56%);
+  --blue: hsl(195, 36%, 62%);
+  --purple: hsl(314, 25%, 64%);
+  --strong-purple: hsl(314, 25%, 45%);
+
+  /* darkened syntax highlighting (highlights) */
+  --dark-white: hsl(0, 0%, 0%);
+  --dark-comment-color: hsl(0, 0%, 15%);
+  --dark-red: hsl(2, 45%, 20%);
+  --dark-yellow: hsl(36, 88%, 30%);
+  --dark-green: hsl(75, 33%, 30%);
+  --dark-blue: hsl(195, 36%, 35%);
+  --dark-purple: hsl(314, 25%, 30%);
+  --dark-strong-purple: hsl(314, 25%, 20%);
+  --dark-strong-red: hsl(0, 100%, 30%);
 
   --err-red: #bf4040;
-  --success-green: #88cc00; /*#77b300;*/
+  --success-green: #88cc00;
   --failing-yellow: #ffcc66;
 
   --strong-red: #ff3333;
@@ -168,5 +179,20 @@ body.base16 {
   /* Testing summaries */
   --summary-pass-text: var(--success-green);  /* text saying "N TESTS FAILED" */
   --summary-fail-text: var(--failing-yellow); /* text saying "N TESTS PASSED" */
+
+  /* darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    var(--dark-white);
+  --dark-comments:        var(--dark-comment-color); 
+  --dark-booleans:        var(--dark-purple);
+  --dark-built-ins:       var(--dark-blue);
+  --dark-function-names:  var(--dark-white);
+  --dark-variables:       var(--dark-white);
+  --dark-keyword:         var(--dark-red);
+  --dark-numbers:         var(--dark-purple);
+  --dark-rough-nums:      var(--dark-strong-purple);
+  --dark-bad-numbers:     var(--dark-strong-red);
+  --dark-strings:         var(--dark-green);
+  --dark-unterm-strings:  var(--dark-yellow);
+  --dark-types:           var(--dark-blue);
 
 }

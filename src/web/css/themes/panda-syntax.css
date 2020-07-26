@@ -15,18 +15,33 @@ body.panda {
   --black-lighter-3: #4b4d4e;
   --black-lighter-4: #575a5b;
 
-  --white: #E6E6E6;
-  --light-gray: #cccccc;
-  --blue-gray: #a8b3bd;
-  --red: #ff2c6d;
-  --comment-color: #676B79;
-  --cyan: #19F9D8;
-  --orange: #FFB86C;
-  --strong-orange: #ff901a;
-  --purple: #b084eb;
-  --pink: #FF75B5;
-  --blue: #4dc6ff;
-  --highlight-color: #3e4041;
+  --highlight-color: hsl(200, 2%, 25%);
+
+  --white: hsl(0, 0%, 90%);
+  --light-gray: hsl(0, 0%, 80%);
+  --blue-gray: hsl(209, 14%, 70%);
+  --red: hsl(342, 100%, 59%);
+  --comment-color: hsl(227, 8%, 44%);
+  --cyan: hsl(171, 95%, 54%);
+  --orange: hsl(31, 100%, 71%);
+  --strong-orange: hsl(31, 100%, 55%);
+  --purple: hsl(266, 72%, 72%);
+  --pink: hsl(332, 100%, 73%);
+  --blue: hsl(199, 100%, 65%);
+
+  /* darkened syntax highlighting (highlights) */
+  --dark-white: hsl(0, 0%, 0%);
+  --dark-light-gray: hsl(0, 0%, 25%);
+  --dark-blue-gray: hsl(209, 14%, 30%);
+  --dark-red: hsl(342, 100%, 30%);
+  --dark-comment-color: hsl(227, 8%, 15%);
+  --dark-cyan: hsl(171, 95%, 25%);
+  --dark-orange: hsl(31, 100%, 25%);
+  --dark-strong-orange: hsl(31, 100%, 17%);
+  --dark-purple: hsl(266, 72%, 30%);
+  --dark-pink: hsl(332, 100%, 30%);
+  --dark-blue: hsl(199, 100%, 25%);
+  --dark-strong-red: hsl(0, 100%, 30%);
 
   --err-red: #ff2c6d;
   --success-green: #00ff99;
@@ -172,5 +187,20 @@ body.panda {
   /* Testing summaries */
   --summary-pass-text: var(--success-green);    /* text saying "N TESTS FAILED" */
   --summary-fail-text: var(--failing-yellow);   /* text saying "N TESTS PASSED" */
+
+  /* darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    var(--dark-white);
+  --dark-comments:        var(--dark-comment-color); 
+  --dark-booleans:        var(--dark-purple);
+  --dark-built-ins:       var(--dark-light-gray);
+  --dark-function-names:  var(--dark-blue-gray);
+  --dark-variables:       var(--dark-white);
+  --dark-keyword:         var(--dark-pink);
+  --dark-numbers:         var(--dark-orange);
+  --dark-rough-nums:      var(--dark-strong-orange);
+  --dark-bad-numbers:     var(--dark-strong-red);
+  --dark-strings:         var(--dark-cyan);
+  --dark-unterm-strings:  var(--dark-red);
+  --dark-types:           var(--dark-blue);
 
 }

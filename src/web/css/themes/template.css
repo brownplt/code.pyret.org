@@ -147,4 +147,19 @@ body.template {
   --summary-pass-text: gray;  /* text saying "N TESTS FAILED" */
   --summary-fail-text: gray;  /* text saying "N TESTS PASSED" */
 
+  /* darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    black;
+  --dark-comments:        black; 
+  --dark-booleans:        black;
+  --dark-built-ins:       black;
+  --dark-function-names:  black;
+  --dark-variables:       black;
+  --dark-keyword:         black;
+  --dark-numbers:         black;
+  --dark-rough-nums:      black;
+  --dark-bad-numbers:     black;
+  --dark-strings:         black;
+  --dark-unterm-strings:  black;
+  --dark-types:           black;
+
 }

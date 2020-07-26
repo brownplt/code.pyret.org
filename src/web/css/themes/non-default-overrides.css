@@ -125,3 +125,47 @@ body:not(.default) #REPL ::-webkit-scrollbar-thumb:hover {
 /* summaries for passed/failed tests at top */
 body:not(.default) .summary-bit.summary-passed { color: var(--summary-pass-text); }
 body:not(.default) .summary-bit.summary-failed { color: var(--summary-fail-text); }
+
+/* code appearing in a highlighted span
+  (dark themes darken this text for better contrast with light highlight bg)
+  (note: uncomment the commented lines below to keep dark syntax colors
+  on highlight-blink) */
+body:not(.default) .CodeMirror .bg-highlighted
+/* body:not(.default) .CodeMirror .highlight-blink */
+{ color: var(--dark-default-text); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-comment
+/* body:not(.default) .CodeMirror .highlight-blink.cm-comment */
+{ color: var(--dark-comments); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-boolean
+/* body:not(.default) .CodeMirror .highlight-blink.cm-boolean */
+{ color: var(--dark-booleans); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-builtin
+/* body:not(.default) .CodeMirror .highlight-blink.cm-builtin */
+ { color: var(--dark-built-ins); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-function-name
+/* body:not(.default) .CodeMirror .highlight-blink.cm-function-name */
+{ color: var(--dark-function-names); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-variable
+/* body:not(.default) .CodeMirror .highlight-blink.cm-variable */
+{ color: var(--dark-variables); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-keyword
+/* body:not(.default) .CodeMirror .highlight-blink.cm-keyword */
+{ color: var(--dark-keyword); font-weight: bold; }
+body:not(.default) .CodeMirror .bg-highlighted.cm-number
+/* body:not(.default) .CodeMirror .highlight-blink.cm-number */
+{ color: var(--dark-numbers); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-roughnum
+/* body:not(.default) .CodeMirror .highlight-blink.cm-roughnum */
+{ color: var(--dark-rough-nums); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-bad-number
+/* body:not(.default) .CodeMirror .highlight-blink.cm-bad-number */
+{ color: var(--dark-bad-numbers); font-weight: bold; }
+body:not(.default) .CodeMirror .bg-highlighted.cm-string
+/* body:not(.default) .CodeMirror .highlight-blink.cm-string */
+{ color: var(--dark-strings); }
+body:not(.default) .CodeMirror .bg-highlighted.cm-unterminated-string
+/* body:not(.default) .CodeMirror .highlight-blink.cm-unterminated-string */
+{ color: var(--dark-unterm-strings); font-weight: bold; }
+body:not(.default) .CodeMirror .bg-highlighted.cm-type
+/* body:not(.default) .CodeMirror .highlight-blink.cm-type */
+{ color: var(--dark-types); }

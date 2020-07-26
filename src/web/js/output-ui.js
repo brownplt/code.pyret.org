@@ -148,6 +148,7 @@
             inclusiveRight  : this.inclusiveRight,
             shared          : false,
             clearOnEnter    : true,
+            className       : "bg-highlighted",
             css             : "background-color:" + color });
         this.highlighter.on('clear', function (_) {
           this.highlighter === undefined;

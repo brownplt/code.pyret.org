@@ -15,14 +15,25 @@ body.monokai {
   --black-lighter-3: #505346;
   --black-lighter-4: #6b6e5e;
 
-  --white: #F8F8F2;
-  --comment-color: #75715E;
-  --red: #F92672;
-  --yellow: #E6DB74;
-  --green: #A6E22E;
-  --blue: #66D9EF;
-  --purple: #AE81FF;
-  --strong-purple: #8b4dff;
+  --white: hsl(60, 30%, 96%);
+  --comment-color: hsl(50, 11%, 41%);
+  --red: hsl(338, 95%, 56%);
+  --yellow: hsl(54, 70%, 68%);
+  --green: hsl(80, 76%, 53%);
+  --blue: hsl(190, 81%, 67%);
+  --purple: hsl(261, 100%, 75%);
+  --strong-purple: hsl(261, 100%, 65%);
+
+  /* darkened syntax highlighting (highlights) */
+  --dark-white: hsl(0, 0%, 0%);
+  --dark-comment-color: hsl(50, 11%, 15%);
+  --dark-red: hsl(338, 95%, 30%);
+  --dark-yellow: hsl(54, 70%, 30%);
+  --dark-green: hsl(80, 76%, 30%);
+  --dark-blue: hsl(190, 81%, 20%);
+  --dark-purple: hsl(261, 100%, 30%);
+  --dark-strong-purple: hsl(261, 100%, 20%);
+  --dark-strong-red: hsl(0, 100%, 30%);
 
   --err-red: #ff6666;
   --success-green: #80ff80;
@@ -51,7 +62,7 @@ body.monokai {
   --unterm-strings: var(--yellow);          /* unterminated strings */
   --strings:        var(--green);           /* strings */
   --repl-print:     var(--white);           /* result of print() in the REPL */
-  --repl-output:    #f2f2f2;                /* values displayed in the REPL */
+  --repl-output:    #f2f2f2;              /* values displayed in the REPL */
 
   /* Basic editor appearance */
   --default-text: var(--white);   /* default text across editor */
@@ -168,5 +179,20 @@ body.monokai {
   /* Testing summaries */
   --summary-pass-text: var(--success-green);  /* text saying "N TESTS FAILED" */
   --summary-fail-text: var(--failing-yellow); /* text saying "N TESTS PASSED" */
+
+  /* darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    var(--dark-white);
+  --dark-comments:        var(--dark-comment-color); 
+  --dark-booleans:        var(--dark-purple);
+  --dark-built-ins:       var(--dark-blue);
+  --dark-function-names:  var(--dark-white);
+  --dark-variables:       var(--dark-white);
+  --dark-keyword:         var(--dark-red);
+  --dark-numbers:         var(--dark-purple);
+  --dark-rough-nums:      var(--dark-strong-purple);
+  --dark-bad-numbers:     var(--dark-strong-red);
+  --dark-strings:         var(--dark-green);
+  --dark-unterm-strings:  var(--dark-yellow);
+  --dark-types:           var(--dark-blue);
 
 }
