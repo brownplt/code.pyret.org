@@ -18,12 +18,13 @@ end
 
 test = table: x, y, name
   row: 10, 10, "Joe"
-  row: 20, 20, "emmanuel has a long name"
+  row: 20, 20, "emmanuel"
 end
 
 img = image-scatter-plot(test, lam(r): circle(string-length(r["name"]), "solid", "red") end, "x", "y" )
 
 check:
   img satisfies is-image
-  color-at-position(img, 615, 118) is red
+  color-at-position(img, 610, 113) is red
 end
+

@@ -242,8 +242,8 @@ input.form {
   height: 1.5rem;
   bottom: 0;
   left: 0;
-  border-top: 1px solid #eee;
-  margin-left: 1em;
+  border-top: 1px solid #111;
+  background: #eee;
 }
 
 .footer p {

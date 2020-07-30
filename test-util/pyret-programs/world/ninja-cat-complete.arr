@@ -1,4 +1,5 @@
 include image
+include image-structs
 import world as W
 
 # The world is the x and y position of the dog, the x and y position of the
@@ -34,13 +35,13 @@ CLOUD = image-url(
 fun draw-world(w):
   ask:
     | w.score > 500 then:
-      put-image(text(num-to-string(w.score), 30, "purple"), 320, 450,
+      put-image(text(num-to-string(w.score), 30, purple), 320, 450,
     put-image(PLAYER, w.catX, w.catY,
       put-image(TARGET, w.coinX, w.coinY,
         put-image(CLOUD, 500, 400,
               put-image(DANGER, w.dogX, w.dogY, BACKGROUND2)))))
     | otherwise: 
-      put-image(text(num-to-string(w.score), 30, "purple"), 320, 450,
+      put-image(text(num-to-string(w.score), 30, purple), 320, 450,
         put-image(PLAYER, w.catX, w.catY,
           put-image(TARGET, w.coinX, w.coinY,
             put-image(CLOUD, 500, 400,
