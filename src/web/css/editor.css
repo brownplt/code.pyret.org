@@ -350,18 +350,22 @@ div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
   box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.3ex 0 0.3ex var(--matching-region-bg);
 }
 
-div.CodeMirror span.CodeMirror-matchingbracket {
+/* bold ends of matching bracket regions (unless variables) */
+div.CodeMirror span.CodeMirror-matchingbracket:not(.cm-variable) {
   font-weight: 600;
   /* color: initial; */
 }
 
-/* ensure keywords and built-ins retain their color when
+/* ensure keywords, built-ins, & variables retain their color when
   highlighted as matching brackets */
 div.CodeMirror span.CodeMirror-matchingbracket.cm-keyword {
   color: var(--keyword);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.cm-builtin {
   color: var(--built-ins);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.cm-variable {
+  color: var(--variables);
 }
 
 
@@ -983,6 +987,9 @@ body.smallHeader .replContainer {
   padding: initial;
 }
 
+#theme {
+  padding: 10px;
+}
 
 .info-btn {
   display: inline-block;

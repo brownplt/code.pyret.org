@@ -26,14 +26,14 @@ body.base16 {
 
   /* darkened syntax highlighting (highlights) */
   --dark-white: hsl(0, 0%, 0%);
-  --dark-comment-color: hsl(0, 0%, 15%);
+  --dark-comment-color: hsl(0, 0%, 13%);
   --dark-red: hsl(2, 45%, 20%);
-  --dark-yellow: hsl(36, 88%, 30%);
-  --dark-green: hsl(75, 33%, 30%);
-  --dark-blue: hsl(195, 36%, 35%);
-  --dark-purple: hsl(314, 25%, 30%);
+  --dark-yellow: hsl(36, 88%, 25%);
+  --dark-green: hsl(75, 33%, 15%);
+  --dark-blue: hsl(195, 36%, 25%);
+  --dark-purple: hsl(314, 25%, 25%);
   --dark-strong-purple: hsl(314, 25%, 20%);
-  --dark-strong-red: hsl(0, 100%, 30%);
+  --dark-strong-red: hsl(0, 100%, 20%);
 
   --err-red: #bf4040;
   --success-green: #88cc00;

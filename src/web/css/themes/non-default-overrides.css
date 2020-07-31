@@ -126,46 +126,57 @@ body:not(.default) #REPL ::-webkit-scrollbar-thumb:hover {
 body:not(.default) .summary-bit.summary-passed { color: var(--summary-pass-text); }
 body:not(.default) .summary-bit.summary-failed { color: var(--summary-fail-text); }
 
-/* code appearing in a highlighted span
-  (dark themes darken this text for better contrast with light highlight bg)
-  (note: uncomment the commented lines below to keep dark syntax colors
-  on highlight-blink) */
-body:not(.default) .CodeMirror .bg-highlighted
-/* body:not(.default) .CodeMirror .highlight-blink */
+/*  Code appearing in a highlighted span that is *by default* highlighted,
+    but NOT blinking, spotlighted, or selected.
+    (dark themes darken this text for better contrast with light highlight bg) */
+body:not(.default) .CodeMirror 
+.bg-highlighted:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-default-text); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-comment
-/* body:not(.default) .CodeMirror .highlight-blink.cm-comment */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-comment:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-comments); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-boolean
-/* body:not(.default) .CodeMirror .highlight-blink.cm-boolean */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-boolean:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-booleans); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-builtin
-/* body:not(.default) .CodeMirror .highlight-blink.cm-builtin */
- { color: var(--dark-built-ins); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-function-name
-/* body:not(.default) .CodeMirror .highlight-blink.cm-function-name */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-builtin:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-built-ins); }
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-function-name:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-function-names); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-variable
-/* body:not(.default) .CodeMirror .highlight-blink.cm-variable */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-variable:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-variables); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-keyword
-/* body:not(.default) .CodeMirror .highlight-blink.cm-keyword */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-keyword:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-keyword); font-weight: bold; }
-body:not(.default) .CodeMirror .bg-highlighted.cm-number
-/* body:not(.default) .CodeMirror .highlight-blink.cm-number */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-numbers); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-roughnum
-/* body:not(.default) .CodeMirror .highlight-blink.cm-roughnum */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-roughnum:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-rough-nums); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-bad-number
-/* body:not(.default) .CodeMirror .highlight-blink.cm-bad-number */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-bad-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-bad-numbers); font-weight: bold; }
-body:not(.default) .CodeMirror .bg-highlighted.cm-string
-/* body:not(.default) .CodeMirror .highlight-blink.cm-string */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-strings); }
-body:not(.default) .CodeMirror .bg-highlighted.cm-unterminated-string
-/* body:not(.default) .CodeMirror .highlight-blink.cm-unterminated-string */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-unterminated-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-unterm-strings); font-weight: bold; }
-body:not(.default) .CodeMirror .bg-highlighted.cm-type
-/* body:not(.default) .CodeMirror .highlight-blink.cm-type */
+
+body:not(.default) .CodeMirror 
+.bg-highlighted.cm-type:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
 { color: var(--dark-types); }

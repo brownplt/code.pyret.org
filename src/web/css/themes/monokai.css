@@ -26,14 +26,14 @@ body.monokai {
 
   /* darkened syntax highlighting (highlights) */
   --dark-white: hsl(0, 0%, 0%);
-  --dark-comment-color: hsl(50, 11%, 15%);
-  --dark-red: hsl(338, 95%, 30%);
-  --dark-yellow: hsl(54, 70%, 30%);
-  --dark-green: hsl(80, 76%, 30%);
+  --dark-comment-color: hsl(50, 11%, 13%);
+  --dark-red: hsl(338, 95%, 25%);
+  --dark-yellow: hsl(54, 70%, 25%);
+  --dark-green: hsl(80, 76%, 15%);
   --dark-blue: hsl(190, 81%, 20%);
-  --dark-purple: hsl(261, 100%, 30%);
+  --dark-purple: hsl(261, 100%, 25%);
   --dark-strong-purple: hsl(261, 100%, 20%);
-  --dark-strong-red: hsl(0, 100%, 30%);
+  --dark-strong-red: hsl(0, 100%, 25%);
 
   --err-red: #ff6666;
   --success-green: #80ff80;
@@ -144,7 +144,7 @@ body.monokai {
   /* Misc. */
   --img-thumbnail-shadow:       var(--black-lighter-2);   /* box-shadow on hover over image thumbnail in REPL */
   --cm-in-repl-bg:              #31322b;                /* bg on .repl .CodeMirror */
-  --failed-test-gutter-marker:  var(--black-darker-2);    /* CodeMirror gutter marker bg for failed test */
+  --failed-test-gutter-marker:  var(--black-darker);      /* CodeMirror gutter marker bg for failed test */
 
 }
 
