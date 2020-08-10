@@ -6,7 +6,9 @@
     "pyret-base/js/js-numbers"
   ],
   provides: {},
-  theModule: function(runtime, namespace, uri, image, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLib, jsnums) {
+    var image = runtime.getField(imageLib, "internal");
+    
     function makeImageLib(moduleName, annots) {
       const colorDb = image.colorDb;
       const ffi = runtime.ffi;

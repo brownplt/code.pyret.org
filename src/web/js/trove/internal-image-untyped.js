@@ -151,11 +151,15 @@
                  name: "Image" }
     }
   },
-  theModule: function(runtime, namespace, uri, image, makeImage, jsnums) {
-    var colorDb = image.colorDb;
+  theModule: function(runtime, namespace, uri, imageLib, makeImage, jsnums) {
     var ffi = runtime.ffi;
 
     var isString = runtime.isString;
+
+    console.log("From untyped: ", imageLib);
+
+    var image = runtime.getField(imageLib, "internal");
+    var colorDb = image.colorDb;
 
     const checkArity = ffi.checkArity;
     const c = function(name, ...argsAndAnns) {
@@ -362,7 +366,7 @@
 
     
     return runtime.makeModuleReturn(values, {
-        "Image": runtime.makePrimitiveAnn("Image", checkImagePred),
+        "Image": image.Image,
         "Scene": runtime.makePrimitiveAnn("Scene", checkScenePred)
       });
   }
