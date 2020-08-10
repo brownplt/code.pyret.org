@@ -18,8 +18,9 @@
     "pyret-base/js/runtime-util",
     "pyret-base/js/js-numbers"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, image, loadLib, util, jsnums) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, imageLib, loadLib, util, jsnums) {
 
+    var image = runtime.getField(imageLib, "internal");
     var srcloc = runtime.getField(srclocLib, "values");
     var isSrcloc = runtime.getField(srcloc, "is-Srcloc");
     var AST = runtime.getField(astLib, "values");

@@ -51,7 +51,8 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibrary, rawJsworld, VSlib, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, jsnums) {
+    var imageLibrary = runtime.getField(imageLibraryLib, "internal");
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
 
