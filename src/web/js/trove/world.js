@@ -46,7 +46,7 @@
       "is-world-config": ["arrow", [ "Any" ], "Boolean"],
       "is-key-equal": ["arrow", [ "String", "String" ], "Boolean"]
     },
-    aliases: {},
+    aliases: { "WorldConfigOption": ["local", "WorldConfigOption"] },
     datatypes: {
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }

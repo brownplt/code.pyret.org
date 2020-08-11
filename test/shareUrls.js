@@ -5,10 +5,9 @@ const shares = [
   // name : An informative title for the test case output
   // id : /editor#share=<id>
   // expr : Run at REPL after running definitions and expected to *not produce an error*
-
-  // NOTE: Definitions can't produce any modal windows for this to work (e.g.
-  // no overlaid charts, etc, has to show REPL)
-  { name: "Data Science 1.5", id: "1Z8ncVGKqWiED_wHl8TlNF3D9AGBb7awm", expr: "animals-table.column('name')" }
+  // modal : How many modal windows to expect to have to close
+  { name: "Data Science 1.5", id: "1Z8ncVGKqWiED_wHl8TlNF3D9AGBb7awm", expr: "animals-table.column('name')", modal: 0 },
+  { name: "Blank Game.arr", id: "1xL3ZnWb43d5ih_fRib3dz3h8z9d__2om", expr: "BACKGROUND", modal: 1 }
 ];
 
 describe("Load share urls for known starter files", function() {
@@ -21,9 +20,12 @@ describe("Load share urls for known starter files", function() {
       var self = this;
       this.browser.get(this.base + "/editor#share=" + share.id);
       this.browser.wait(function() { return tester.pyretLoaded(self.browser); });
-      this.browser.wait(function() { return tester.evalDefinitionsAndWait(self.browser); });
+      tester.evalDefinitions(self.browser, {});
+      for(var i = 0; i < share.modal; i += 1) {
+        tester.waitForWorldProgram(self.browser, 20000, 5000);
+      }
+      tester.waitForBreakButton(this.browser);
       this.browser.wait(function() { return tester.evalPyretNoError(self.browser, share.expr); });
-      this.browser.sleep(10000);
       this.browser.call(done);
     });
   });

@@ -98,10 +98,14 @@ function evalDefinitions(driver, options) {
   }
 }
 
-function evalDefinitionsAndWait(driver, options) {
-  evalDefinitions(driver, options);
+function waitForBreakButton(driver) {
   var breakButton = driver.findElement(webdriver.By.id('breakButton'));
   driver.wait(webdriver.until.elementIsDisabled(breakButton));
+}
+
+function evalDefinitionsAndWait(driver, options) {
+  evalDefinitions(driver, options);
+  waitForBreakButton();
   return driver.findElement(webdriver.By.id("output"));
 }
 
@@ -177,16 +181,20 @@ function loadAndRunPyret(code, driver, timeout) {
   setDefinitionsAndEval(driver, code);
 }
 
-function checkWorldProgramRunsCleanly(code, driver, test, timeout) {
-  loadAndRunPyret(code, driver, timeout);
+function waitForWorldProgram(driver, timeout, worldTimeout) {
   driver.wait(function() {
     return driver
       .findElements(webdriver.By.className("ui-dialog-title")).then(
         function(elements) { return elements.length > 0; });
   }, timeout);
-  driver.sleep(5000); // make sure the big-bang can run for 5 seconds
+  driver.sleep(worldTimeout); // make sure the big-bang can run for 5 seconds
   driver.findElement(webdriver.By.className("ui-icon-closethick"))
     .click();
+}
+
+function checkWorldProgramRunsCleanly(code, driver, test, timeout) {
+  loadAndRunPyret(code, driver, timeout);
+  waitForWorldProgram(driver, timeout, 5000);
   checkAllTestsPassed(driver, test.title, timeout);
 }
 
@@ -474,7 +482,10 @@ module.exports = {
   runAndCheckAllTestsPassed: runAndCheckAllTestsPassed,
   checkTableRendersCorrectly: checkTableRendersCorrectly,
   checkWorldProgramRunsCleanly: checkWorldProgramRunsCleanly,
+  waitForWorldProgram: waitForWorldProgram,
   doForEachPyretFile: doForEachPyretFile,
   evalDefinitionsAndWait: evalDefinitionsAndWait,
-  evalPyretNoError: evalPyretNoError
+  evalDefinitions: evalDefinitions,
+  evalPyretNoError: evalPyretNoError,
+  waitForBreakButton: waitForBreakButton
 }
