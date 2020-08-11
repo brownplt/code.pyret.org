@@ -105,7 +105,7 @@ function waitForBreakButton(driver) {
 
 function evalDefinitionsAndWait(driver, options) {
   evalDefinitions(driver, options);
-  waitForBreakButton();
+  waitForBreakButton(driver);
   return driver.findElement(webdriver.By.id("output"));
 }
 
@@ -422,7 +422,7 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs, options) {
   it("should render " + name + " check blocks", function() {
     var self = this;
     this.timeout(20000);
-    var replOutput = setDefinitionsEvalAndWait(this.browser, toEval, options);
+    var replOutput = setDefinitionsEvalAndWait(self.browser, toEval, options);
     var checkBlocks = replOutput.then(function(response) {
       self.browser.wait(function () {
         return isElementPresent(self.browser, webdriver.By.className("check-results-done-rendering"));
