@@ -6,22 +6,14 @@ const shares = [
   // id : /editor#share=<id>
   // expr : Run at REPL after running definitions and expected to *not produce an error*
 
-  // NOTE: Definitions can't produce any modal windows for this to work (e.g. no overlaid charts, etc, has to show REPL)
+  // NOTE: Definitions can't produce any modal windows for this to work (e.g.
+  // no overlaid charts, etc, has to show REPL)
   { name: "Data Science 1.5", id: "1Z8ncVGKqWiED_wHl8TlNF3D9AGBb7awm", expr: "animals-table.column('name')" }
 ];
 
 describe("Load share urls for known starter files", function() {
   beforeEach(tester.setup);
   afterEach(tester.teardown);
-
-/*
-  it("should load the index", function(done) {
-    this.timeout(10000);
-    this.browser.get(this.base);
-    var headline = this.browser.findElement(webdriver.By.id('right'));
-    this.browser.call(done);
-  });
-*/
 
   shares.forEach(function(share) {
     it("should load the shared file at " + share.id + " (" + share.name + ")", function(done) {
