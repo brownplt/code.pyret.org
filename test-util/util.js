@@ -367,6 +367,12 @@ function ensureRendered(text) {
   }
 }
 
+/*
+    NOTE: This function _removes_ any CodeMirrors rendering output code to
+    avoid false positives from code rather than from the error message itself.
+    Don't rely on, or test, the snippets that show up in CodeMirror with this
+    function.
+*/
 function testErrorRendersString(it, name, toEval, expectedString, options) {
   it("should render " + name + " errors", function() {
     this.timeout(15000);
@@ -376,14 +382,17 @@ function testErrorRendersString(it, name, toEval, expectedString, options) {
       self.browser.wait(function () {
         return isElementPresent(replOutput, webdriver.By.className("compile-error"));
       }, 6000);
-      return response.getText().then(function(text) {
-        ensureRendered(text);
-        if(text.indexOf(expectedString) !== -1) {
-          return true;
-        }
-        else {
-          throw new Error("Text content of error \"" + text + "\" did not match \"" + expectedString + "\"");
-        }
+      self.browser.executeScript("$('#output .CodeMirror').remove()");
+      return self.browser.call(function() {
+        return response.getText().then(function(text) {
+          ensureRendered(text);
+          if(text.indexOf(expectedString) !== -1) {
+            return true;
+          }
+          else {
+            throw new Error("Text content of error \"" + text + "\" did not match \"" + expectedString + "\"");
+          }
+        })
       });
     });
   });
@@ -395,6 +404,11 @@ function testErrorRendersString(it, name, toEval, expectedString, options) {
     There should be a number of check blocks equal to the outer array, each
     with a number of test results equal to the inner array, each containing
     all of the given strings as substrings of the output.
+    
+    NOTE: This function _removes_ any CodeMirrors rendering output code to
+    avoid false positives from code rather than from the error message itself.
+    Don't rely on, or test, the snippets that show up in CodeMirror with this
+    function.
 */
 function testRunsAndHasCheckBlocks(it, name, toEval, specs, options) {
   it("should render " + name + " check blocks", function() {
@@ -405,7 +419,8 @@ function testRunsAndHasCheckBlocks(it, name, toEval, specs, options) {
       self.browser.wait(function () {
         return isElementPresent(self.browser, webdriver.By.className("check-results-done-rendering"));
       }, 20000);
-      return response.findElements(webdriver.By.className("check-block"));
+      self.browser.executeScript("$('#output .CodeMirror').remove()");
+      return self.browser.call(function() { return response.findElements(webdriver.By.className("check-block")) });
     });
     var blocksAsSpec = checkBlocks.then(function(cbs) {
       var tests = cbs.slice(1).map(function(cb, i) {

@@ -45,7 +45,7 @@ describe("Rendering check blocks", function() {
     ["raises-violates-pass",  "check: raise('a') raises-violates _ == 'b' end",   [[["Passed"]]]],
 
     fileTest("deep-recursion-in-first-test", [
-      [["2001", "o is-not o"], ["failed"], ["failed"]]
+      [["2001"], ["failed"], ["failed"]]
     ])
   ];
 
