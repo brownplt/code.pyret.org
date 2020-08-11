@@ -15,7 +15,6 @@ before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install stable
 - nvm use stable
-- if [[ `npm -v` != 5.2* ]]; then npm i -g npm@5.2; fi
 - npm install -g heroku-cli
 install:
 - npm install --ignore-scripts

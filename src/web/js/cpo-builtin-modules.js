@@ -57,6 +57,21 @@ define("cpo/cpo-builtin-modules", ["pyret-base/js/type-util"], function(t) {
               }
               return [];
             }),
+          "get-raw-module-provides":
+            F(function() {
+              if(typeof m.provides.modules === "object") {
+                var mods = m.provides.modules;
+                return Object.keys(mods).map(function(k) {
+                  return RUNTIME.makeObject({
+                    name: k,
+                    uri: mods[k].uri
+                  });
+                });
+              }
+              else {
+                return [];
+              }
+            }, "get-raw-module-provides"),
           "get-raw-alias-provides":
             F(function() {
               if(m.provides) {
@@ -93,7 +108,7 @@ define("cpo/cpo-builtin-modules", ["pyret-base/js/type-util"], function(t) {
 
                     return RUNTIME.makeObject({
                       name: k,
-                      value: t.bindToPyret(RUNTIME, expanded)
+                      value: t.bindToPyret(RUNTIME, expanded, shorthands)
                     });
                   });
                 }
