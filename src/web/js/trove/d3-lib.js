@@ -7,8 +7,10 @@
     'd3'
   ],
   provides: {},
-  theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums, d3) {
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums, d3) {
   'use strict';
+
+  var IMAGE = RUNTIME.getField(IMAGELIB, "internal");
 
   function assert(val, msg) {
     if (!val) { throw new Error('Assertion failed: ' + (msg || '')); }
