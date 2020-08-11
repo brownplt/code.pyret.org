@@ -283,12 +283,14 @@ function evalPyret(driver, toEval) {
     "($(\".repl-prompt > .CodeMirror\")[0].CodeMirror)"
   ].join(""));
   driver.wait(webdriver.until.elementIsVisible(livePrompt));
-  return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
-    if (elements.length === 0) {
-      throw new Error("Failed to run Pyret code, no elements after executing: " + toEval);
-    } else {
-      return elements[elements.length - 1];
-    }
+  return driver.call(function() {
+    return replOutput.findElements(webdriver.By.xpath("*")).then(function(elements) {
+      if (elements.length === 0) {
+        throw new Error("Failed to run Pyret code, no elements after executing: " + toEval);
+      } else {
+        return elements[elements.length - 1];
+      }
+    });
   });
 }
 
