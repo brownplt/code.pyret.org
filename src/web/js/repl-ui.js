@@ -863,6 +863,7 @@
         run: runner,
         initial: "",
         cmOptions: {
+          scrollPastEnd: true,
           extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
