@@ -692,6 +692,42 @@
         });
       });
 
+      /**
+         Richly displays the output in the interactions area
+         @param {!PBase} val
+
+         @return {!PBase} the value given in
+       */
+      repl.runtime.setParam("displayRenderer", function(val) {
+        return repl.runtime.pauseStack(function(restarter) {
+          repl.runtime.runThunk(function() {
+            return repl.runtime.toReprJS(val, repl.runtime.ReprMethods["$cpo"]);
+          }, function(container) {
+            if (repl.runtime.isSuccessResult(container)) {
+              $(output).append($("<div>").append(container.result));
+              scroll(output);
+            } else {
+              $(output).append($("<div>").addClass("error")
+                               .append($("<span>").text("<error displaying value: details logged to console>")));
+              console.log(container.exn);
+              scroll(output);
+            }
+            restarter.resume(val);
+          });
+        });
+      });
+
+      /**
+         Directly outputs the given Pyret value to the console
+         @param {!PBase} val
+
+         @return {!PBase} the value given in
+       */
+      repl.runtime.setParam("errorDisplayRenderer", function(val) {
+        console.log("display-error: ", val);
+        return val;
+      });
+
       repl.runtime.setParam("onSpy", function(loc, message, locs, names, vals) {
         return repl.runtime.safeCall(function() {
           /*
@@ -863,6 +899,7 @@
         run: runner,
         initial: "",
         cmOptions: {
+          scrollPastEnd: true,
           extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
