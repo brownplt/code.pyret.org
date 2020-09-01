@@ -15,7 +15,7 @@
       'plot': "tany"
     }
   },
-  theModule: function (RUNTIME, NAMESPACE, uri, IMAGE, jsnums , google) {
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
   'use strict';
 
   // Load google library via editor.html to avoid loading issues
@@ -25,6 +25,8 @@
   const get = RUNTIME.getField;
   const toFixnum = jsnums.toFixnum;
   const cases = RUNTIME.ffi.cases;
+
+  var IMAGE = get(IMAGELIB, "internal");
 
   google.charts.load('current', {'packages' : ['corechart']});
 

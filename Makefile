@@ -129,6 +129,9 @@ build/web/js/codemirror.js: $(CM)/lib/codemirror.js
 build/web/js/rulers.js: $(CM)/addon/display/rulers.js
 	cp $< $@
 
+build/web/js/scrollpastend.js: $(CM)/addon/scroll/scrollpastend.js
+	cp $< $@
+
 build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
 	cp $< $@
 
@@ -164,6 +167,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/seedrandom.js \
           build/web/js/source-map.js \
           build/web/js/pyret-fold.js \
+          build/web/js/scrollpastend.js \
           build/web/js/matchkw.js \
           build/web/js/foldcode.js \
           build/web/js/foldgutter.js \

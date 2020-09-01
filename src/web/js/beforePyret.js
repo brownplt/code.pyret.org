@@ -201,7 +201,8 @@ $(function() {
       lineWrapping: true,
       logging: true,
       rulers: rulers,
-      rulersMinCol: rulersMinCol
+      rulersMinCol: rulersMinCol,
+      scrollPastEnd: true,
     };
 
     cmOptions = merge(cmOptions, options.cmOptions || {});
@@ -1058,7 +1059,8 @@ $(function() {
     runButton: $("#runButton"),
     simpleEditor: false,
     run: CPO.RUN_CODE,
-    initialGas: 100
+    initialGas: 100,
+    scrollPastEnd: true,
   });
   CPO.editor.cm.setOption("readOnly", "nocursor");
   CPO.editor.cm.setOption("longLines", new Map());
