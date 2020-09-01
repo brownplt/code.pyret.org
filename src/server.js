@@ -1,5 +1,5 @@
 var Q = require("q");
-var gapi = require('googleapis');
+var gapi = require('googleapis').google; // https://github.com/googleapis/google-auth-library-nodejs/issues/355
 var path = require('path');
 var uuid = require('node-uuid');
 
@@ -114,7 +114,6 @@ function start(config, onServerReady) {
 
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
-    console.log("Config: ", config);
     res.render("index.html", {
       LEFT_LINK: content,
       GOOGLE_API_KEY: config.google.apiKey,
@@ -437,10 +436,11 @@ function start(config, onServerReady) {
           });
 
           var done = newFileP.promise.then(function(newFile) {
-            var sharedProgram = db.createSharedProgram(newFile.id, u.google_id);
+            const newFileId = newFile.data.id;
+            var sharedProgram = db.createSharedProgram(newFileId, u.google_id);
             sharedProgram.then(function(sp) {
               res.send({
-                id: newFile.id,
+                id: newFileId,
                 modifiedDate: newFile.modifiedDate,
                 title: title
               });
@@ -477,25 +477,25 @@ function start(config, onServerReady) {
     return drive;
   }
 
-  function programAndToken(sharedProgramId, res) {
-    var program = db.getSharedProgram(sharedProgramId);
-    var refreshToken = program.then(function(prog) {
-      var uP = db.getUserByGoogleId(prog.userId);
+  function fileAndToken(sharedProgramId, res) {
+    var file = db.getSharedProgram(sharedProgramId);
+    var refreshToken = file.then(function(f) {
+      var uP = db.getUserByGoogleId(f.userId);
       return uP.then(function(u) {
         return u.refresh_token;
       });
     });
-    var both = Q.all([program, refreshToken]);
+    var both = Q.all([file, refreshToken]);
     return both;
   }
 
-  function getSharedContents(id, res) {
+  function getSharedContents(id, requestOptions, config, res) {
     var ret = Q.defer();
     if(!id) {
       ret.reject("No id given");
       return;
     }
-    var both = programAndToken(id);
+    var both = fileAndToken(id);
     both.fail(function(err) {
       ret.reject("Fetching shared file failed");
     });
@@ -506,10 +506,9 @@ function start(config, onServerReady) {
         if(err) { ret.reject("Could not access shared file."); return; }
         else {
           var drive = getDriveClient(newToken, 'v3');
-          ret.resolve(drive.files.get({
-            fileId: prog.programId,
-            alt: "media"
-          }));
+          requestOptions.fileId = prog.programId;
+          drive.files.get(requestOptions, config).then(function(response) { ret.resolve(response); })
+          .catch(function(err) { console.log(err); });
         }
       })
     });
@@ -517,33 +516,59 @@ function start(config, onServerReady) {
   }
 
   app.get("/shared-program-contents", function(req, res) {
-    var contents = getSharedContents(req.query.sharedProgramId, res);
+    // NOTE(joe): We _cannot_ use the same configuration as in
+    // shared-image-contents because Google only allows us to use
+    // webContentLink for binary-encoded files, and plaintext doesn't
+    // count. If you try, you get an HTML 404 page (helpfully headered and
+    // encoded as text/plain).
+    var contents = getSharedContents(req.query.sharedProgramId, { alt: "media" }, {responseType: 'text'}, res);
     contents.fail(function(err) {
       res.status(400);
       res.send("Unable to fetch shared file");
       res.end();
     });
     contents.then(function(response) {
-      if(!response.headers["content-type"] === "text/plain") {
+      if(!response.headers['content-type'] === "text/plain") {
         res.status(400);
         res.send("Expected a text file, but got: " + response.headers["content-type"]);
         res.end();
       }
       else {
-        res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
-        response.pipe(res);
+        console.log(response);
+        // TODO(joe): If a program is _just_ a string enclosed in quotes
+        // surrounded by whitespace, response.data will be the contents of the
+        // string not including the quotes. This needs to be addressed/reported
+        // (this comment is in an intermediate-state commit).
+        res.set("content-disposition", "inline; filename=\"" + req.query.sharedProgramId + "\"");
+        res.send(response.data);
+        res.end();
       }
     });
   });
 
   app.get("/shared-image-contents", function(req, res) {
-    var contents = getSharedContents(req.query.sharedImageId, res);
+    var contents = getSharedContents(req.query.sharedImageId, { fields: "webContentLink" }, {}, res);
     contents.then(function(response) {
-      res.set("content-disposition", "inline; filename=\"" + req.sharedProgramId + "\"");
-      response.pipe(res);
-    });
-    contents.fail(function(err) {
+      // NOTE(joe): Setting content-disposition is mostly useful for debugging;
+      // this will make the image open in a browser tab rather than triggering
+      // a download
+      res.set("content-disposition", "inline; filename=\"" + req.query.sharedImageId + "\"");
+
+      // This used to be response.pipe(res), but in newer versions of the gapi,
+      // the response object is no longer streamable, so we instead get the
+      // contentLink as a new request and pipe that. This causes an extra
+      // request on the server, but it's hard to get around without getting in
+      // the business of detecting and mucking with image headers.
+
+      // If we just use the alt: 'media' approach as before, we get a
+      // string-encoded, rather than binary-encoded, image response, and piping
+      // the request to the actual downloadable file seems a lot cleaner. There
+      // may be a way to go back and use the alt: 'media' approach if we spend
+      // more time figuring out how to get its encoding right.
+      request({uri: response.data.webContentLink}).pipe(res);
+    }).fail(function(err) {
       res.status(400);
+      console.error(err);
       res.send("Could not fetch shared image");
       res.end();
     });
@@ -551,8 +576,9 @@ function start(config, onServerReady) {
 
   app.get("/shared-file", function(req, res) {
     var sharedProgramId = req.query.sharedProgramId;
-    var both = programAndToken(sharedProgramId);
+    var both = fileAndToken(sharedProgramId);
     both.fail(function(err) {
+      console.error(err);
       res.status(404).send("No share information found for " + sharedProgramId);
       res.end();
     });
@@ -567,10 +593,10 @@ function start(config, onServerReady) {
             if(err) { res.status(400).send("Couldn't access shared file " + sharedProgramId); }
             else {
               res.send({
-                id: response.id,
-                modifiedDate: response.modifiedDate,
-                title: response.title,
-                selfLink: response.selfLink
+                id: response.data.id,
+                modifiedDate: response.data.modifiedDate,
+                title: response.data.title,
+                selfLink: response.data.selfLink
               });
               res.status(200);
               res.end();

@@ -33,6 +33,22 @@ var IndexedDBBackend = function() {
 };
 
 var logger = (function(backend) {
+  var sessionStorage;
+  var localStorage;
+  try {
+    sessionStorage = window.localStorage;
+    localStorage = window.sessionStorage;
+  }
+  catch(e) {
+    sessionStorage = {
+      getItem: function() { },
+      setItem: function() { },
+    };
+    localStorage = {
+      getItem: function() { },
+      setItem: function() { },
+    };
+  }
   function guid() {
     var array = new Uint32Array(6);
     window.crypto.getRandomValues(array);

@@ -18,39 +18,26 @@ module.exports = {
     "js/beforePyret": './src/web/js/beforePyret.js',
   },
   module: {
-    loaders: [
-      {test: /\.css$/, loaders: ["style", "css"]},
+    rules: [
+      {test: /\.css$/, loaders: ["style-loader", "css-loader"]},
       {test:/.png|.jpg|.jpeg|.gif|.svg/, loader: "url-loader?limit=10000"},
-      {test:/.woff|.woff2/, loader: "url-loader?limit=10000"},
-      {test:/.woff|.woff2/, loader: "url-loader?limit=10000"},
-      {test:/.ttf|.eot/, loader: "file-loader"},
-      {test: /\.less$/, loader:'style!css!less'},
-    ],
-    preLoaders: [{
-      test: /\.js$/,
-      include: [
-        SRC_DIRECTORY,
-        // for some reason, webpack doesn't know how to deal with symlinks
-        // when deciding which loaders to use
-        fs.realpathSync(IDE_SRC_DIRECTORY),
-      ],
-      loader: "babel",
-      query: {
-        cacheDirectory: true
-      }
-    }].concat(
-      (process.env.COVERAGE || process.env.CONTINUOUS_INTEGRATION) ?
-      [{
-        test: /\.js/,
-        loader: 'isparta',
-        include: SRC_DIRECTORY,
-        exclude: /node_modules/
-      }] :
-      []
-    ),
+      {
+        test: /\.js$/,
+        enforce: "pre",
+        include: [
+          SRC_DIRECTORY,
+          // for some reason, webpack doesn't know how to deal with symlinks
+          // when deciding which loaders to use
+          fs.realpathSync(IDE_SRC_DIRECTORY),
+        ],
+        loader: "babel-loader",
+        query: {
+          cacheDirectory: true
+        }
+      }]
   },
   resolve: {
-    root: [path.resolve("./node_modules")],
+    modules: [__dirname, 'node_modules'],
     alias: {
       'pyret-ide': path.resolve(IDE_SRC_DIRECTORY, 'pyret-ide'),
     },
@@ -68,19 +55,10 @@ module.exports = {
       'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL),
       'process.env.CURRENT_PYRET_RELEASE': JSON.stringify(process.env.CURRENT_PYRET_RELEASE),
     }),
-  ].concat(IS_PRODUCTION ? [
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
-      }
-    }),
-  ] : [
-    new webpack.HotModuleReplacementPlugin(),
-  ]),
-  devServer: IS_PRODUCTION ? false : {
+  ],
+  optimization: { minimize: IS_PRODUCTION },
+  devServer: IS_PRODUCTION ? {} : {
     inline: true,
-    hot: true,
-    progress: true,
     port: 5001,
     proxy: {
       "/**": {
@@ -88,5 +66,4 @@ module.exports = {
       }
     }
   },
-  progress: true
 };
