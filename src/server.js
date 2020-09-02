@@ -489,7 +489,7 @@ function start(config, onServerReady) {
     return both;
   }
 
-  function getSharedContents(id, requestOptions, config, res) {
+  function getSharedContents(id, requestOptions, config) {
     var ret = Q.defer();
     if(!id) {
       ret.reject("No id given");
@@ -502,13 +502,19 @@ function start(config, onServerReady) {
     both.then(function(both) {
       var prog = both[0];
       var refreshToken = both[1];
+      console.log("Both: ", both);
       auth.refreshAccess(refreshToken, function(err, newToken) {
         if(err) { ret.reject("Could not access shared file."); return; }
         else {
           var drive = getDriveClient(newToken, 'v3');
           requestOptions.fileId = prog.programId;
-          drive.files.get(requestOptions, config).then(function(response) { ret.resolve(response); })
-          .catch(function(err) { console.log(err); });
+          const requestURL = `https://www.googleapis.com/drive/v3/files/${prog.programId}?alt=media`;
+          console.log("About to request " , requestURL);
+          const getResponse = request({url: requestURL, headers: { Authorization: `Bearer ${newToken}`}});
+          console.log("On method: ", getResponse);
+          ret.resolve(getResponse);
+          //getResponse.then(function(response) { ret.resolve(response); })
+          //.catch(function(err) { console.log(err); });
         }
       })
     });
@@ -521,7 +527,7 @@ function start(config, onServerReady) {
     // webContentLink for binary-encoded files, and plaintext doesn't
     // count. If you try, you get an HTML 404 page (helpfully headered and
     // encoded as text/plain).
-    var contents = getSharedContents(req.query.sharedProgramId, { alt: "media" }, {responseType: 'text'}, res);
+    var contents = getSharedContents(req.query.sharedProgramId, { alt: "media" }, {responseType: 'text'});
     contents.fail(function(err) {
       res.status(400);
       res.send("Unable to fetch shared file");
@@ -547,12 +553,23 @@ function start(config, onServerReady) {
   });
 
   app.get("/shared-image-contents", function(req, res) {
-    var contents = getSharedContents(req.query.sharedImageId, { fields: "webContentLink" }, {}, res);
+    console.log("Getting contents");
+    var contents = getSharedContents(req.query.sharedImageId, { alt: "media" }, { responseType: 'text' });
+    contents.then(function(response) { console.log("Response: ", response); response.pipe(res); });
+    /*
     contents.then(function(response) {
+      console.log(response.data.length);
+      console.log(typeof response.data);
+      console.log(response[0]);
+      console.log(response.data.charCodeAt(0));
       // NOTE(joe): Setting content-disposition is mostly useful for debugging;
       // this will make the image open in a browser tab rather than triggering
       // a download
+      res.set(response.headers);
       res.set("content-disposition", "inline; filename=\"" + req.query.sharedImageId + "\"");
+      res.send(response.data);
+      delete response.data;
+      console.log(response);
 
       // This used to be response.pipe(res), but in newer versions of the gapi,
       // the response object is no longer streamable, so we instead get the
@@ -565,13 +582,14 @@ function start(config, onServerReady) {
       // the request to the actual downloadable file seems a lot cleaner. There
       // may be a way to go back and use the alt: 'media' approach if we spend
       // more time figuring out how to get its encoding right.
-      request({uri: response.data.webContentLink}).pipe(res);
+      // request({uri: response.data.webContentLink}).pipe(res);
     }).fail(function(err) {
       res.status(400);
       console.error(err);
       res.send("Could not fetch shared image");
       res.end();
     });
+    */
   });
 
   app.get("/shared-file", function(req, res) {
