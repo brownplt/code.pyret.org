@@ -489,7 +489,7 @@ function start(config, onServerReady) {
     return both;
   }
 
-  function getSharedContents(id, requestOptions, config) {
+  function getSharedContents(id) {
     var ret = Q.defer();
     if(!id) {
       ret.reject("No id given");
@@ -502,19 +502,28 @@ function start(config, onServerReady) {
     both.then(function(both) {
       var prog = both[0];
       var refreshToken = both[1];
-      console.log("Both: ", both);
       auth.refreshAccess(refreshToken, function(err, newToken) {
         if(err) { ret.reject("Could not access shared file."); return; }
         else {
-          var drive = getDriveClient(newToken, 'v3');
-          requestOptions.fileId = prog.programId;
+        /*
+          Rather than mucking with the client library, just construct the request
+          ourselves, using the lightly documented but remarkably stable alt=media
+          parameter (noted in
+          https://developers.google.com/drive/api/v3/reference/files/get and
+          https://developers.google.com/drive/api/v3/manage-downloads)
+
+          Note that when I try the Node.js example for downloading files at
+          https://developers.google.com/drive/api/v3/manage-downloads, I get an error
+          that `.on` is not a function (neither is `.pipe`), so I'm not sure what's going
+          on with that API documentation, but this gives us a pipe-able response.
+
+          In any event, this request is relatively straightforward and the
+          `Bearer` header is a fine way to manage & send the token, so there's
+          little value in going through the library anyway.
+        */ 
           const requestURL = `https://www.googleapis.com/drive/v3/files/${prog.programId}?alt=media`;
-          console.log("About to request " , requestURL);
           const getResponse = request({url: requestURL, headers: { Authorization: `Bearer ${newToken}`}});
-          console.log("On method: ", getResponse);
           ret.resolve(getResponse);
-          //getResponse.then(function(response) { ret.resolve(response); })
-          //.catch(function(err) { console.log(err); });
         }
       })
     });
@@ -522,12 +531,7 @@ function start(config, onServerReady) {
   }
 
   app.get("/shared-program-contents", function(req, res) {
-    // NOTE(joe): We _cannot_ use the same configuration as in
-    // shared-image-contents because Google only allows us to use
-    // webContentLink for binary-encoded files, and plaintext doesn't
-    // count. If you try, you get an HTML 404 page (helpfully headered and
-    // encoded as text/plain).
-    var contents = getSharedContents(req.query.sharedProgramId, { alt: "media" }, {responseType: 'text'});
+    var contents = getSharedContents(req.query.sharedProgramId);
     contents.fail(function(err) {
       res.status(400);
       res.send("Unable to fetch shared file");
@@ -540,56 +544,25 @@ function start(config, onServerReady) {
         res.end();
       }
       else {
-        console.log(response);
-        // TODO(joe): If a program is _just_ a string enclosed in quotes
-        // surrounded by whitespace, response.data will be the contents of the
-        // string not including the quotes. This needs to be addressed/reported
-        // (this comment is in an intermediate-state commit).
-        res.set("content-disposition", "inline; filename=\"" + req.query.sharedProgramId + "\"");
-        res.send(response.data);
-        res.end();
+        response
+          .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedProgramId}"`)
+          .pipe(res);
       }
     });
   });
 
   app.get("/shared-image-contents", function(req, res) {
-    console.log("Getting contents");
-    var contents = getSharedContents(req.query.sharedImageId, { alt: "media" }, { responseType: 'text' });
-    contents.then(function(response) { console.log("Response: ", response); response.pipe(res); });
-    /*
+    var contents = getSharedContents(req.query.sharedImageId);
     contents.then(function(response) {
-      console.log(response.data.length);
-      console.log(typeof response.data);
-      console.log(response[0]);
-      console.log(response.data.charCodeAt(0));
-      // NOTE(joe): Setting content-disposition is mostly useful for debugging;
-      // this will make the image open in a browser tab rather than triggering
-      // a download
-      res.set(response.headers);
-      res.set("content-disposition", "inline; filename=\"" + req.query.sharedImageId + "\"");
-      res.send(response.data);
-      delete response.data;
-      console.log(response);
-
-      // This used to be response.pipe(res), but in newer versions of the gapi,
-      // the response object is no longer streamable, so we instead get the
-      // contentLink as a new request and pipe that. This causes an extra
-      // request on the server, but it's hard to get around without getting in
-      // the business of detecting and mucking with image headers.
-
-      // If we just use the alt: 'media' approach as before, we get a
-      // string-encoded, rather than binary-encoded, image response, and piping
-      // the request to the actual downloadable file seems a lot cleaner. There
-      // may be a way to go back and use the alt: 'media' approach if we spend
-      // more time figuring out how to get its encoding right.
-      // request({uri: response.data.webContentLink}).pipe(res);
-    }).fail(function(err) {
+      response
+        .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedImageId}"`)
+        .pipe(res);
+    })
+    .fail(function(err) {
       res.status(400);
-      console.error(err);
-      res.send("Could not fetch shared image");
+      res.send("Could not access shared file, or shared file was not an image.");
       res.end();
     });
-    */
   });
 
   app.get("/shared-file", function(req, res) {
