@@ -343,6 +343,7 @@ $(function() {
 
   function setTitle(progName) {
     document.title = progName + " - code.pyret.org";
+    $("#showFilename").text("File: " + progName);
   }
   CPO.setTitle = setTitle;
 
@@ -1045,9 +1046,7 @@ $(function() {
 
 
   if(params["get"]["hideDefinitions"]) {
-    $(".replMain").attr("aria-hidden", true).attr("tabindex", '-1').css("display", "none");
-    $("#handle").css("display", "none");
-    $(".replContainer").css("left", "-5px").css("width", "100%");
+    $(".replMain").attr("aria-hidden", true).attr("tabindex", '-1');
   }
 
   if(!("warnOnExit" in params["get"]) || (params["get"]["warnOnExit"] !== "false")) {

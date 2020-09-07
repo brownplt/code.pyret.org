@@ -450,11 +450,18 @@
 
       function changeFont(e){
         fontSize = parseInt($('#main').css("font-size"));
-        if ($(e.target).is("#font-plus") && (fontSize < 55)){
-          $('#main').css('font-size', '+=4');
-        }
-        else if ($(e.target).is("#font-minus") && (fontSize > 10)){
-          $('#main').css('font-size', '-=4');
+        if ($(e.target).is("#font-plus")) {
+          if (fontSize < 32) {
+            $('#main').css('font-size', '+=2');
+          } else if (fontSize < 55) {
+            $('#main').css('font-size', '+=4');
+          }
+        } else if ($(e.target).is("#font-minus")) {
+          if (fontSize > 32) {
+            $('#main').css('font-size', '-=4');
+          } else if (fontSize > 10) {
+            $('#main').css('font-size', '-=2');
+          }
         }
         editor.refresh();
         replWidget.refresh();
@@ -462,6 +469,33 @@
       }
       $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
 
+      var curTheme = document.getElementById("theme-select").value;
+      var themeSelect = $("#theme-select");
+
+      function applyTheme(theme) {
+        themeSelect.val(theme);
+        $("body").removeClass(curTheme).addClass(theme);
+        curTheme = theme;
+      }
+
+      if (localSettings.getItem('theme') !== null) {
+        applyTheme(localSettings.getItem('theme'));
+      } else {
+        localSettings.setItem('theme', curTheme);
+      }
+
+      $("#theme").change(function(e) {
+        var value = e.target.value;
+        applyTheme(value);
+
+        // track theme in local settings
+        localSettings.setItem('theme', curTheme);
+      });
+
+      localSettings.change("theme", function(_, newTheme) {
+        applyTheme(newTheme);
+      });
+      
       $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
 
       editor.cm.on('beforeChange', function(instance, changeObj){textHandlers.autoCorrect(instance, changeObj, editor.cm);});
