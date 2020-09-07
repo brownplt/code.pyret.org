@@ -1,5 +1,259 @@
 
-.CodeMirror, .inlineExample { border: 1px solid black; background: #f8f8f8; color: #eee; }
+/* --------- Color variables that stay constant across themes --------- */
+:root {
+
+  /* 
+  - border on .CodeMirror, .inlineExample
+  - border on .check 
+  - border on .progressStep 
+  - box-shadow on .highlight.emphasize:not(:hover)::before 
+  - bg on .modal 
+  - text in .instructionsWidget
+  - border around ui-dialog
+  - border on .module-info-hover */
+  --default-border: black;
+
+  /* 
+  - box-shadow on div.spy-block
+  - box-shadow on .check-block
+  - box-shadow on .replImageThumbnail canvas
+  - box-shadow on .compile-error
+  - box-shadow on .parse-error 
+  - box-shadow on .menuContents 
+  - box-shadow on .dropdown:hover (aside run button)
+  - bg on .modal-header
+  - bg on .modal-footer 
+  - bg on .menuContents div:not(.disabled):not(.inert):hover
+  - box-shadow on #runButton, #breakButton (also on hover)
+  - box-shadow on #run-dropdown-content li:hover
+  - box-shadow on table.pyret-table thead
+  - box-shadow on table.pyret-row th
+  - box-shadow on table.pyret-row
+  - box-shadow on .modal-content
+  - box-shadow on modal submit and close (also hover)
+  - .modal-content box-shadow */
+  --shadow-color: rgba(0,0,0,0.25);
+
+  /* 
+  - border on div#font
+  - border on #font-label
+  - box-shadow on .dropdown
+  - box-shadow on #run-dropdown-content li
+  - bg on div#font and div#font:hover */
+  --shadow-lighter: rgba(0,0,0,0.1);
+
+  /* 
+  - box-shadow of snippet with stacktrace when hovered
+  - .modal bg with opacity */
+  --shadow-darker: rgba(0,0,0,0.4);
+
+  /* - bg on .check-success */
+  --bg-check-success: #cfc;
+
+  /* - bg on .check-failure */
+  --bg-check-failure: #d66;
+
+  /* - bg of .error-bg */
+  --error-bg: #FF9494;
+
+  /* 
+  - text in .notificationArea .error
+  - text in .notificationArea .autoCorrect-button
+  - border on .error-highlight
+  - color of .error-icon */
+  --error: #F44336;
+
+  /* 
+  - bg on .progressStep.done
+  - text in .progressDone */
+  --progress-done: green;
+
+  /* - bg on #program-name-container input */
+  --prgm-name-bg: #FEFEFE;
+
+  /* 
+  - text in .notificationArea .active 
+  - text in .notificationArea .autoCorrect-msg */
+  --notif-area-text: #eee;
+
+  /* 
+  - color in .test-reason:empty, .check-block-error:empty */
+  --empty-check-text: #555;
+
+  /* 
+  - bg on .cptteach-fixed */
+  --cptteach-bg: #ddd;
+
+  /* 
+  - "Programming as ..." text in #welcome
+  - options in Run dropdown
+  - bg on .module-info-hover
+  - text in .modal-footer
+  - text in .stale.test-results .stale-warning */
+  --light-text: #eeeeee;
+
+  /* - bg on .notificationArea */
+  --notif-area-bg: #111111;
+
+  /* - bg on New/Save/Download/etc menu (.menuContents) */
+  --menu-contents-bg: #EFEFEF;
+
+  /*
+  - border around expanded objects (.replOutput.expanded > dl) */
+  --repl-obj-border: gray;
+
+  /* 
+  - text in .menuContents div.disabled * */
+  --menu-disabled: gray;
+
+  /* 
+  - text in .menuButton and .menuContents */
+  --menu-text: #000;
+
+  /*
+  - bg on .info-btn (question mark) in Bonnie menu */
+  --info-button-bg: #317bcf;
+
+  /* - bg on .info-btn:hover */
+  --info-button-hover: #0060ce;
+
+  /* 
+  - bg on #runButton
+  - bg on #runPart
+  - bg on .dropdown (beside Run)
+  - bg on #run-dropdown-content li
+  - bg on .choiceContainer > button
+  - bg on .modal .submit  */
+  --run-bg: #317bcf;
+
+  /* 
+  - bg on #runButton:hover
+  - bg on #run-dropdown-content li:hover
+  - bg on .dropdown:hover
+  - bg on .modal .submit:hover */
+  --run-hover: #0060ce;
+
+  /* 
+  - bg color of #breakButton 
+  - bg of .modal .close */
+  --stop-bg: #CF3B31;
+
+  /* 
+  - hover bg of #breakButton
+  - hover bg of .modal .close */
+  --stop-hover: #B30C00;
+
+  /* - .replOutputPassed */
+  --repl-out-passed: #1f9180;
+
+  /* - .replOutputFailed */
+  --repl-out-failed: #af1180;
+
+  /* - text color in .test-reason, .nestedReason */
+  --reason-text: #af1180;
+
+  /* - bg on .error-highlight */
+  --err-highlight: #fcc;
+
+  /* - bg of .emphasize-line */
+  --emph-line-bg: #BBB;
+
+  /* - bg on .check-highlight */
+  --check-highlight-bg: #CCF;
+
+  /* - border on .check-highlight */
+  --check-highlight-border: #33F;
+
+  /* - part of gradient in .warning-upper and .warning-lower */
+  --warning-gradient-1: hsla(0,100%,89%,1);
+
+  /* - part of gradient in .warning-upper and .warning-lower */
+  --warning-gradient-2: rgba(145,78,78,0);
+
+  /* - bg on .ui-dialog-titlebar (hidden by ui-widget-header) */
+  --ui-dialog-title-bg: #2a348b;
+
+  /* - bg & box-shadow of .editor-check-block-success */
+  --success-bg: hsl(88, 50%, 76%);
+
+  /* - bg & box-shadow on .editor-check-block-failed */
+  --fail-bg: hsl(45, 100%, 85%);
+
+  /* - gutter marker bg for errored test */
+  --err-gutter: hsla(0, 100%, 50%, 0.5);
+
+  /* - color of .choiceContainer > button */
+  --choice-button: #fff;
+
+  /* - .modal-content bg */
+  --modal-content-bg: #C8C8C8;
+
+  /* - .modal-content border */
+  --modal-content-border: #888;
+
+  /* - bg of .stale.test-results .stale-warning */
+  --stale-warning-bg: hsl(212, 30%, 50%);
+
+  /* 
+  - bg of .stale.test-results .check-block-failed
+  and .testing-summary .summary-failed */
+  --stale-fail-bg: hsl(45,30%,85%);
+
+  /* 
+  - bg of .stale.test-results .check-block-success
+  and .testing-summary .summary-passed */
+  --stale-success-bg: hsl(88, 30%, 76%);
+
+  /* - bg of .stale.test-results .check-block-errored */
+  --stale-err-bg: hsl(0, 30%, 85%);
+
+  /* 
+  - bg of .stale.test-results .check-block-test.failing-test:not(.highlights-active) */
+  --stale-fail-no-highlight: hsl(45, 30%, 93%);
+
+  /* - bg of .stale.test-results .check-block-test.highlights-active */
+  --stale-highlight: hsl(45,0%,95%);
+
+  /* - bg of .stale.test-results .check-block-test.highlights-active > header */
+  --stale-highlight-header: hsl(45, 50%, 85%);
+
+  /* - bg of .stale.test-results .check-block-test.passing-test */
+  --stale-passing-test: hsl(90, 10%, 91%);
+
+  /* - bg of .stale.test-results .testing-summary .summary-errored */
+  --stale-err-summary: hsl(0, 30%, 70%);
+
+  /* - bg of .stale compile errors/tests with highlights active */
+  --stale-err-highlight: hsl(204, 40%, 74%);
+
+  /*  - bg on .topbar  */
+  --topbar-bg: #eee;
+
+  /*
+  - bg on .ui-dialog 
+  - text in .ui-dialog-title */
+  --ui-dialog-default: #eee;
+
+  /* - bg color that dims around ui-widget */
+  --ui-widget-dim: #111;
+
+  /* background on image thumbnails in REPL */
+  --img-thumbnail-bg: white;
+
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--background);
+}
+
+.CodeMirror, .inlineExample {
+  border: 1px solid var(--default-border);
+  background: var(--background);
+  color: var(--default-text);
+  font-family: var(--font-stack);
+}
 .CodeMirror {
   font-size: 1em;
   line-height: calc(1em + 2px);
@@ -9,34 +263,34 @@
   border-bottom: none;
 }
 .repl .CodeMirror {
-  background-color: hsl(0,0%,95%);
+  background-color: var(--cm-in-repl-bg);
   border: none;
   padding: 0;
   margin: 0;
   vertical-align: top;
 }
 .CodeMirror div.CodeMirror-cursors { z-index: 9500; }
-.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
 .CodeMirror div.CodeMirror-ruler { z-index: 100; }
 .CodeMirror div.CodeMirror-ruler.hidden { display: none; }
-.cm-s-default.CodeMirror { color: black; }
-.cm-s-default .cm-comment { color: #cd7054; }
-.cm-s-default .cm-boolean { color: darkred; }
-.cm-s-default .cm-builtin { color: #555; }
-.cm-s-default .cm-function-name { color: #374049; }
-.cm-s-default .cm-variable { color: #4d5966; }
-.cm-s-default .cm-keyword { color: black; font-weight: bold; }
-.cm-s-default .cm-number { color: navy; }
-.cm-s-default .cm-roughnum { color: blue; }
-.cm-s-default .cm-bad-number { color: red; font-weight: bold; }
-.cm-s-default .cm-string { color: forestgreen; }
-.cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
-.cm-s-default .cm-type { color: #374049; }
-.cptteach-fixed { line-height: 1.5; background: #ddd; }
+.cm-s-default.CodeMirror { color: var(--default-text); }
+.cm-s-default .cm-comment { color: var(--comments); }
+.cm-s-default .cm-boolean { color: var(--booleans); }
+.cm-s-default .cm-builtin { color: var(--built-ins); }
+.cm-s-default .cm-function-name { color: var(--function-names); }
+.cm-s-default .cm-variable { color: var(--variables); }
+.cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
+.cm-s-default .cm-number { color: var(--numbers); }
+.cm-s-default .cm-roughnum { color: var(--rough-nums); }
+.cm-s-default .cm-bad-number { color: var(--bad-numbers); font-weight: bold; }
+.cm-s-default .cm-string { color: var(--strings); }
+.cm-s-default .cm-unterminated-string { color: var(--unterm-strings); font-weight: bold; }
+.cm-s-default .cm-type { color: var(--types); }
+.cptteach-fixed { line-height: 1.5; background: var(--cptteach-bg); }
 
 div.CodeMirror-selected,
 span.CodeMirror-selectedtext {
-  background-color: #ccc!important;
+  background-color: var(--selected-text) !important;
 }
 
 .CodeMirror-matchingbracket {
@@ -48,7 +302,7 @@ span.CodeMirror-selectedtext {
   position: absolute;
   height: 100%;
   width: 100%;
-  border: 0px solid rgb(90, 149, 217);
+  border: 0px solid var(--matching-brackets);
   z-index: 1000;
 }
 
@@ -69,59 +323,71 @@ span.CodeMirror-selectedtext {
 
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
-  background-color: hsl(220, 100%, 95%);
-  border-top: 0.1em solid hsl(220, 100%, 95%);
-  border-bottom: 0.1em solid hsl(220, 100%, 95%);
+  background-color: var(--matching-region-bg);
+  border-top: 0.1em solid var(--matching-region-bg);
+  border-bottom: 0.1em solid var(--matching-region-bg);
 }
 
 div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
-    box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%);
+    box-shadow: 0.5em 0 0.25em var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
-    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%);
+    box-shadow: -0.5em 0 0.25em var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
-    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.5em 0 0.25em hsl(220, 100%, 95%);
+    box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.5em 0 0.25em var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.open {
-  box-shadow: -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: -0.3ex 0 0.3ex var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
-  box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%), -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: 0.5em 0 0.25em var(--matching-region-bg), -0.3ex 0 0.3ex var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.close {
-  box-shadow: 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: 0.3ex 0 0.3ex var(--matching-region-bg);
 }
 div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
-  box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+  box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.3ex 0 0.3ex var(--matching-region-bg);
 }
 
-div.CodeMirror span.CodeMirror-matchingbracket {
+/* bold ends of matching bracket regions (unless variables) */
+div.CodeMirror span.CodeMirror-matchingbracket:not(.cm-variable) {
   font-weight: 600;
-  color: initial;
+  /* color: initial; */
+}
+
+/* ensure keywords, built-ins, & variables retain their color when
+  highlighted as matching brackets */
+div.CodeMirror span.CodeMirror-matchingbracket.cm-keyword {
+  color: var(--keyword);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.cm-builtin {
+  color: var(--built-ins);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.cm-variable {
+  color: var(--variables);
 }
 
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket {
   font-weight: bold;
-  background-color: #fdd;
-  color: #e11;
+  background-color: var(--nonmatching-bg-2);
+  color: var(--nonmatching-brackets);
 }
 
 div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
-  background-color: #fdc;
-  border-top: 0.1em solid #fdd;
-  border-bottom: 0.1em solid #fdd;
+  background-color: var(--nonmatching-bg);
+  border-top: 0.1em solid var(--nonmatching-bg-2);
+  border-bottom: 0.1em solid var(--nonmatching-bg-2);
   z-index: 4000;
 }
 
 #REPL {
   font-family: sans-serif;
-  background: #f8f8f8;
 }
 
 .replTextOutput {
-  font-family: monospace;
+  font-family: var(--font-stack);
   border: none;
   background-color: transparent;
   white-space: pre;
@@ -135,7 +401,7 @@ div.trace {
   overflow-x: auto;
 }
 div.trace.error {
-   background-color: #fff6f2;
+   background-color: var(--trace-err-bg);
 }
 span.trace {
    padding-right: 1em;
@@ -149,18 +415,23 @@ span.trace:after {
 div.spy-block {
   font-family: sans-serif;
   clear: both;
-  border: 1px solid #9DC5ED;
+  border: 1px solid var(--spy-borders);
   padding: 0.2em;
-  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  box-shadow: 0px 4px 5px var(--shadow-color);
   border-radius: 3px;
-  background: #CBDFF2;
+  background: var(--spy-bg);
   margin: 6px;
+}
+
+/* labels aren't highlighted, but are a.highlight elements */
+div.spy-block a.highlight {
+  color: var(--inactive-highlight-text) !important;
 }
 
 div.spy-block > .spy-title {
    display: block;
    width: 100%;
-   border-bottom: 1px solid #9DC5ED;
+   border-bottom: 1px solid var(--spy-borders);
    margin-left: -3px;
    margin-right: -3px;
    padding-left: 3px;
@@ -182,16 +453,16 @@ div.spy-block > table {
 }
 
 div.spy-block > table > tbody > tr {
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid #9DC5ED;
+    background: var(--spy-odd-rows-bg);
+    border: 1px solid var(--spy-borders);
 }
 
 div.spy-block > table > tbody > tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--spy-even-rows-bg);
 }
 
 div.spy-block > table > tbody > tr > td {
-    border-right:  1px solid #9DC5ED;
+    border-right:  1px solid var(--spy-borders);
 }
 
 div.spy-block > table > tbody > tr > td:first-child {
@@ -211,7 +482,7 @@ div.spy-block > table > th { display: none; }
 #output > .compile-error:not(.highlights-active):hover:after,
 .check-block-error > .compile-error:not(.highlights-active):hover::after,
 .check-block-test.failing-test:not(.highlights-active):hover {
-    box-shadow: 0 0 2em hsl(204, 100%, 80%);
+    box-shadow: 0 0 2em var(--err-hover-shadow);
     transform: scale(1.01);
     backface-visibility: hidden;
     transition: scale(1.01) .2s linear;
@@ -250,7 +521,6 @@ div.spy-block > table > th { display: none; }
 .check-block-error > .compile-error:not(.highlights-active) > *,
 .check-block-test.failing-test:not(.highlights-active) .test-reason {
   opacity: 0.5;
-
 }
 
 .check-block-header {
@@ -258,7 +528,7 @@ div.spy-block > table > th { display: none; }
 }
 
 .inlineExample {
-  font-family: monospace;
+  font-family: var(--font-stack);
   padding: 0 2px;
 }
 
@@ -292,23 +562,23 @@ div.spy-block > table > th { display: none; }
   -moz-box-sizing: border-box;
   height: 100%;
   overflow-y: scroll;
-  background-color: #f8f8f8;
+  background-color: var(--background);
   cursor: text;
 }
 .check {
-  font-family: monospace;
-  border: 1px solid black;
+  font-family: var(--font-stack);
+  border: 1px solid var(--default-border);
   border-radius: 3px;
   padding: 10px;
   margin: 10px;
 }
 
 .check-success {
-  background-color: #cfc;
+  background-color: var(--bg-check-success);
 }
 
 .check-failure {
-  background-color: #d66;
+  background-color: var(--bg-check-failure);
 }
 
 .check-block {
@@ -316,8 +586,8 @@ div.spy-block > table > th { display: none; }
   border-radius: 3px;
   margin: .5em;
   padding: .5em;
-  box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
-  background: #E1F5FE;
+  box-shadow: 0px 2px 4px var(--shadow-color);
+  background: var(--check-block-default-bg);
   position:relative;
   cursor:default;
 }
@@ -329,15 +599,15 @@ div.spy-block > table > th { display: none; }
 
 
 .check-block-failed {
-  background-color: #FFECB3;
+  background-color: var(--check-fail-bg);
 }
 
 .check-block-errored {
-  background-color: hsl(0, 100%, 90%);
+  background-color: var(--check-error-bg);
 }
 
 .check-block-success {
-  background-color: #c5e1a5;
+  background-color: var(--check-success-bg);
   margin: 5px;
 }
 
@@ -347,8 +617,8 @@ div.spy-block > table > th { display: none; }
 }
 
 .testing-summary{
-  color: white;
-  background: hsl(212, 62%, 50%);
+  color: var(--testing-summary);
+  background: var(--testing-summary-bg);
 }
 
 .check-block-test{
@@ -404,15 +674,15 @@ div.spy-block > table > th { display: none; }
   display: inline-block;
   vertical-align: top;
   height: 10px;
-  border: 1px solid black;
+  border: 1px solid var(--default-border);
 }
 
 .progressStep.done {
-  background-color: green;
+  background-color: var(--progress-done);
 }
 
 .progressDone {
-  color: green;
+  color: var(--progress-done);
   font-style: italic;
   text-align: center;
   width: 50%;
@@ -427,7 +697,7 @@ div.spy-block > table > th { display: none; }
 .instructionsWidget {
   background-color: #fcf;
   border: 1px dotted #c0c;
-  color: #111;
+  color: var(--default-border);
   padding: 3px;
   margin: 5px;
   cursor: pointer;
@@ -470,7 +740,7 @@ div.spy-block > table > th { display: none; }
 }
 
 .repl-prompt-arrow {
-  font-family: monospace;
+  font-family: var(--font-stack);
   vertical-align: top;
   display: inline-block;
 }
@@ -506,7 +776,22 @@ body {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   margin:0;
-  background: #f8f8f8;
+}
+
+body.hideFooter .replMain {
+  padding-bottom: 0rem;
+}
+
+body.hideHeader #main {
+  padding-top: 0px;
+}
+
+body.hideHeader .replMain {
+  padding-top: 0px;
+}
+
+body.smallHeader .replMain {
+  padding-top: 25px;
 }
 
 .replContainer {
@@ -525,6 +810,18 @@ body {
   margin:0;
 }
 
+body.hideFooter .replContainer {
+  padding-bottom: 0rem;
+}
+
+body.hideHeader .replContainer {
+  padding-top: 0px;
+}
+
+body.smallHeader .replContainer {
+  padding-top: 25px;
+}
+
 #main {
   width: 100%;
   z-index: 5000;
@@ -533,7 +830,7 @@ body {
   padding-bottom: 0px;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 #program-name-container {
@@ -551,7 +848,7 @@ body {
   vertical-align:top;
   border:none;
   font-size: 18px;
-  background: #FEFEFE;
+  background: var(--prgm-name-bg);
   float:left;
   height: 100%;
   box-sizing: border-box;
@@ -586,7 +883,7 @@ body {
 */
 
 #welcome {
-  color: #eeeeee;
+  color: var(--light-text);
   height: 2.5rem;
   line-height: 2.5rem;
   width: 50%;
@@ -602,7 +899,7 @@ body {
 
 
 .notificationArea {
-  background: #111111;
+  background: var(--notif-area-bg);
   max-width: 50%;
   float: right;
   font-family: sans-serif;
@@ -618,11 +915,11 @@ body {
 }
 
 .notificationArea .active {
-  color: #eee;
+  color: var(--notif-area-text);
 }
 
 .notificationArea .error {
-  color: #F44336;
+  color: var(--error);
   font-weight: bold;
 }
 
@@ -631,11 +928,11 @@ body {
 }
 
 .notificationArea .autoCorrect-msg{
-  color: #eee;
+  color: var(--notif-area-text);
 }
 
 .notificationArea .autoCorrect-button{
-  color: #F44336;
+  color: var(--error);
   font-weight: bold;
   float:right;
 }
@@ -657,26 +954,26 @@ body {
 #filemenuContents .hidden { display: none; }
 
 .menuContents {
-  background-color: #EFEFEF;
+  background-color: var(--menu-contents-bg);
   border: none;
-  box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 2px 3px var(--shadow-color);
   overflow:hidden;
   max-width: min-content;
 }
 
 .menuContents div:not(.disabled):not(.inert):hover{
   transition: box-shadow 0.2s;
-  background-color: rgba(0,0,0,0.2);
+  background-color: var(--shadow-color);
 }
 
 .menuContents div.disabled * {
-   color: gray;
+   color: var(--menu-disabled);
    cursor: default;
 }
 
 .menuButton *,
 .menuContents * {
-  color: #000;
+  color: var(--menu-text);
   font-family: sans-serif;
   text-decoration: none;
 }
@@ -690,36 +987,39 @@ body {
   padding: initial;
 }
 
+#theme {
+  padding: 10px;
+}
 
 .info-btn {
   display: inline-block;
   height: 1em;
   width: 1em;
   border-radius: 100%;
-  font-family: monospace;
+  font-family: var(--font-stack);
   font-size: 1em;
   line-height: 1em;
   text-align: center;
   text-decoration: none;
   color: white;
-  background-color: #317bcf;
+  background-color: var(--info-button-bg);
 }
 
 .info-btn:hover {
-  background-color: #0060ce;
+  background-color: var(--info-button-hover);
 }
 
 div#font{
   min-width: 180px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--shadow-lighter);
   border-left: 0px;
   border-right: 0px;
-  background:rgba(0,0,0,0.05);
+  background:var(--shadow-lighter);
   padding: 0px;
 }
 
 div#font:hover{
-  background:rgba(0,0,0,0.05);
+  background:var(--shadow-lighter);
   box-shadow: none;
 }
 
@@ -751,7 +1051,7 @@ div#font:hover{
   width: calc(60% - 2px);
   cursor: default;
   padding: 10px 5px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid var(--shadow-lighter);
   border-top:none;
   border-bottom:none;
 }
@@ -762,19 +1062,19 @@ div#font-label:hover{
 }
 
 .replPrint {
-  font-family: monospace;
+  font-family: var(--font-stack);
   padding-top: 0;
   padding-bottom: 0.5em;
   padding-left: 0.5em;
-  color: #111;
+  color: var(--repl-print);
 }
 
 .replOutput {
   padding-top: 0.4em;
   padding-bottom: 0.4em;
-  color: #1f1180;
+  color: var(--repl-output);
   display: inline-block;
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .replOutput .replOutput {
@@ -798,7 +1098,7 @@ div#font-label:hover{
 .replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
 
 .replOutput.expanded > dl {
-   border: 1px solid gray;
+   border: 1px solid var(--repl-obj-border);
 }
 
 .replOutput > dl { display: inline; }
@@ -847,8 +1147,8 @@ ul.inlineCollection > li {
   display: inline;
 }
 ul.inlineCollection > li > span.label {
-   display: none;
- }
+  display: none;
+}
 
 
 
@@ -856,22 +1156,22 @@ ul.inlineCollection > li > span.label {
 .replOutputPassed {
   padding-top: 0;
   padding-bottom: 0.5em;
-  color: #1f9180;
+  color: var(--repl-out-passed);
 }
 
 .replOutputFailed {
   padding-top: 0;
   padding-bottom: 0.5em;
-  color: #af1180;
+  color: var(--repl-out-failed);
 }
 
 .test-reason, .nestedReason {
  padding-top: 0;
- color: #af1180;
+ color: var(--reason-text);
 }
 
 .rationalNumber {
- color: #af1180;
+ color: var(--rationals);
 }
 
 span.rationalRepeat {
@@ -891,14 +1191,15 @@ span.rationalRepeat {
 
 .replImageThumbnail canvas {
   cursor: pointer;
-  box-shadow: 0px 2px 4px rgba(0,0,0,0.25);
+  box-shadow: 0px 2px 4px var(--shadow-color);
   margin: 2px;
   position: relative;
+  background-color: var(--img-thumbnail-bg);
 }
 
 .replImageThumbnail:hover canvas {
   cursor: pointer;
-  box-shadow: 0px 2px 4px rgba(128,0,0,0.75);
+  box-shadow: 0px 2px 4px var(--img-thumbnail-shadow);
   margin: 2px;
 }
 
@@ -927,8 +1228,8 @@ span.rationalRepeat {
 }
 
 .error-highlight {
-  background-color: #fcc !important;
-  border-bottom: 2px solid #F33 !important;
+  background-color: var(--err-highlight) !important;
+  border-bottom: 2px solid var(--error) !important;
 }
 
 .loc-anchor {
@@ -937,7 +1238,7 @@ span.rationalRepeat {
 
 .test-reason {
   padding: 0.5em;
-  color: black;
+  color: var(--default-text);
 }
 
 .test-reason > br,
@@ -958,8 +1259,26 @@ span.rationalRepeat {
   margin-left: 1.5em;
 }
 
+/*  colored text highlights within highlights-active blocks,
+    but that do not default to having their highlight on */
 a.highlight {
-  color: #000 !important;
+  color: var(--inactive-highlight-text) !important;
+}
+
+/*  text highlights in highlights-active blocks that default
+    to highlighted background */
+a.highlight.highlight-on,
+a.highlight.highlight-on .replTextOutput {
+  color: var(--active-highlight-text) !important;
+}
+
+/*  colored text highlights within non- highlights-active blocks
+    (dark themes make this lighter so text doesn't disappear into the bg
+    while not being highlighted) */
+#output > .compile-error:not(.highlights-active) a.highlight,
+.check-block-error > .compile-error:not(.highlights-active) a.highlight,
+.check-block-test.failing-test:not(.highlights-active) a.highlight {
+  color: var(--inactive-highlight-text) !important;
 }
 
 #output .highlight {
@@ -968,11 +1287,16 @@ a.highlight {
 
 .hinted-highlight {
   cursor: pointer;
-  border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
+  border-bottom: 2px var(--active-highlight-underline) solid;
 }
 
 .highlight {
-  border-bottom: 2px hsla(0, 0%, 0%,.5) solid;
+  border-bottom: 2px var(--active-highlight-underline) solid;
+}
+
+.hinted-highlight.highlight-on,
+.highlight.highlight-on {
+  border-bottom: 2px var(--inactive-highlight-underline) solid;
 }
 
 .highlight-blink {
@@ -1018,7 +1342,7 @@ code div {
   margin-left: 1em;
   height: 1em;
   width: 1em;
-  box-shadow:0 0 200px 1em black;
+  box-shadow:0 0 200px 1em var(--default-border);
   opacity: 0;
   border-radius: 100%;
   animation: emphasize 0.5s 1;
@@ -1038,7 +1362,7 @@ code div {
 }
 
 .emphasize-line {
-  background-color:#BBB;
+  background-color:var(--emph-line-bg);
   opacity: 1;
   animation: emphasize-line 0.5s;
 }
@@ -1058,60 +1382,59 @@ code div {
 
 
 .check-highlight {
- background-color: #CCF;
- border-bottom: 2px solid #33F;
+ background-color: var(--check-highlight-bg);
+ border-bottom: 2px solid var(--check-highlight-border);
 }
 
 .compile-error {
   font-family: sans-serif;
-  border: 1px dashed #FF3131;
+  border: 1px dashed var(--err-dotted-border);
   padding: 0.2em;
-  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  box-shadow: 0px 4px 5px var(--shadow-color);
   border-radius: 3px;
-  background: #FFF2F2;
+  background: var(--err-bg);
   margin: 6px;
 }
 
 .compile-error .code {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .compile-error .srcloc {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .compile-error a {
-  color: #469ad4;
+  color: var(--err-link);
   cursor: pointer;
 }
 
-
 .parse-error {
   font-family: sans-serif;
-  border: 1px dashed #FF3131;
+  border: 1px dashed var(--err-dotted-border);
   /* font-size: 10pt; */
   padding: 3px;
-  box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+  box-shadow: 0px 4px 5px var(--shadow-color);
   border-radius: 3px;
-  background: #FFF2F2;
+  background: var(--err-bg);
   margin: 6px;
 }
 
 .error-icon {
   size: 16pt;
-  color: #f33;
+  color: var(--error);
 }
 
 .parse-error .code {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .parse-error .srcloc {
-  font-family: monospace;
+  font-family: var(--font-stack);
 }
 
 .parse-error a {
-  color: #469ad4;
+  color: var(--err-link);
   cursor: pointer;
 }
 
@@ -1153,14 +1476,14 @@ code div {
   animation-name: arrow-upper-bounce;
   background-image:
       url('/img/up-arrow.png'),
-      linear-gradient(to bottom,  hsla(0,100%,89%,1) 0%,rgba(145,78,78,0) 50%);
+      linear-gradient(to bottom,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
 }
 
 .warning-lower {
   animation-name: arrow-lower-bounce;
   background-image:
       url('/img/down-arrow.png'),
-      linear-gradient(to top,  hsla(0,100%,89%,1) 0%,rgba(145,78,78,0) 50%);
+      linear-gradient(to top,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
 }
 
 @keyframes arrow-upper-bounce {
@@ -1186,7 +1509,7 @@ code div {
 .topbar {
   position: fixed;
   width: 100%;
-  background-color: #eee;
+  background-color: var(--topbar-bg);
 }
 
 /* NOTE(joe): removes the white bar in popups */
@@ -1203,23 +1526,23 @@ code div {
   top: 0;
   left: 0;
   opacity: 0.5;
-  background: #111;
+  background: var(--ui-widget-dim);
 }
 /* end from internet */
 
 .ui-dialog {
-  border: 2px solid #111;
-  background-color: #eee;
+  border: 2px solid var(--default-border);
+  background-color: var(--ui-dialog-default);
   border-radius: 5px;
   z-index: 15000;
 }
 
 .ui-dialog-titlebar {
-  background-color: #2a348b;
+  background-color: var(--ui-dialog-title-bg);
 }
 
 .ui-dialog-title {
-  color: #eee;
+  color: var(--ui-dialog-default);
   font-family: sans-serif;
   position: relative;
   left: 30px;
@@ -1241,13 +1564,29 @@ code div {
 
 /* Resizable REPL */
 #handle{
-  background:-webkit-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  background:-o-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  background:-moz-linear-gradient(left, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
-  background:linear-gradient(to right, #BFBFBF 0%,#D9D9D9 40%,#D9D9D9 60%,#BFBFBF 100%);
+  background:-webkit-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:-o-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:-moz-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:linear-gradient(to right, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
   cursor: ew-resize;
   width:5px;
-  border: 1px solid #A6A6A6;
+  border: 1px solid var(--repl-handle-border);
   border-top: none;
   border-bottom: none;
   top: 0px;
@@ -1258,31 +1597,51 @@ code div {
   height:auto;
 }
 
+body.hideFooter #handle {
+  margin-bottom: 0rem;
+}
+
+body.hideHeader #handle {
+  margin-top: 0px;
+}
+
+body.smallHeader #handle {
+  margin-top: 25px;
+}
+
 #runButton, #breakButton {
   width: 150px;
-  box-shadow: 0px -5px 5px 1px rgba(0,0,0,0.2);
+  box-shadow: 0px -5px 5px 1px var(--shadow-color);
+}
+
+body.smallHeader #runButton, body.smallHeader #breakButton {
+  width: 60px;
+}
+
+body.smallHeader #runButton > span {
+  display: none;
 }
 
 #runButton, #runDropdown {
-  background: #317BCF;
+  background: var(--run-bg);
   color: #eee;
 }
 
 #runButton:hover{
-  background:#0060CE;
+  background:var(--run-hover);
 }
 
 #breakButton{
-  background:#CF3B31;
+  background:var(--stop-bg);
 }
 
 #breakButton:hover{
-  background:#B30C00;
+  background:var(--stop-hover);
 }
 
 #runButton:hover,
 #breakButton:hover{
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
 }
 
 #runButton:disabled, #breakButton:disabled{
@@ -1290,6 +1649,11 @@ code div {
   background: none;
   box-shadow: none;
 }
+
+body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
+  width: 60px;
+}
+
 
 #runButton:disabled, #runDropdown:disabled {
   color: #111;
@@ -1310,7 +1674,7 @@ code div {
 }
 
 #runPart {
-  background: #317BCF;
+  background: var(--run-bg);
   padding: 0;
   /* margin != 0 because we'll be pushing this flex item right */
 }
@@ -1338,13 +1702,13 @@ code div {
 }
 
 .dropdown {
+  background: var(--run-bg);
   height: 100%;
   width: 100%;
   box-sizing: border-box;
-  padding-top: 12px;
   padding-left: 5px;
   border: 0;
-  box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px -2px 5px 2px var(--shadow-lighter);
 }
 
 #select-run a {
@@ -1359,18 +1723,28 @@ code div {
 
 
 #run-dropdown-content {
-  width: 163px;
+  position: absolute;
+  right: 153px;
+  top: 40px;
+  margin: 0;
+  width: 172px;
+  display: none;
 }
 
-#run-dropdown-content > li {
-  color: #eeeeee;
+body.smallHeader #run-dropdown-content {
+  top: 25px;
+  right: 63px;
+}
+
+#run-dropdown-content li {
+  color: var(--light-text);
   font-family: sans-serif;
   font-size: 15px;
   height: 23px;
   width: 100%;
-  background: #317BCF;
+  background: var(--run-bg);
   padding: 5px;
-  box-shadow: 0px -2px 5px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px -2px 5px 2px var(--shadow-lighter);
   text-align: center;
 }
 
@@ -1387,22 +1761,22 @@ code div {
 }
 
 #run-dropdown-content li:hover {
-  background:#0060CE;
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+  background:var(--run-hover);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
   cursor:pointer;
 }
 
 .dropdown:hover {
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.3);
-  background:#0060CE;
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
+  background:var(--run-hover);
 }
 
 .module-info-hover {
   width: 30em;
   height: auto;
-  border: 1px solid #111;
+  border: 1px solid var(--default-border);
   padding: 5px;
-  background-color: #eeeeee;
+  background-color: var(--light-text);
 }
 
 .CodeMirror-linewidget {
@@ -1429,18 +1803,18 @@ code div {
 }
 
 .editor-check-block-success {
-  background: hsl(88, 50%, 76%);
-  box-shadow: 0 1em 11px 2px hsl(88, 50%, 76%);
+  background: var(--success-bg);
+  box-shadow: 0 1em 11px 2px var(--success-bg);
 }
 
 .editor-check-block-failed {
-  background: hsl(45, 100%, 85%);
-  box-shadow: 0 0.5em 11px 3px hsl(45, 100%, 85%);
+  background: var(--fail-bg);
+  box-shadow: 0 0.5em 11px 3px var(--fail-bg);
 }
 
 .editor-check-block-error {
-  background: hsl(0, 100%, 90%);
-  box-shadow: 0 1em 11px 2px hsl(0, 100%, 90%);
+  background: var(--check-error-bg);
+  box-shadow: 0 1em 11px 2px var(--check-error-bg);
 }
 
 .check-block-error {
@@ -1448,13 +1822,18 @@ code div {
 }
 
 @keyframes emphasize-error {
-  from {background-color: white;}
+  from {background-color: white; }
   to {}
 }
 
-.check-block-test.failing-test:not(.highlights-active) {background-color: hsl(45, 100%, 94%);overflow: hidden;}
+.check-block-test.failing-test:not(.highlights-active) {
+  background-color: var(--failing-test-bg); 
+  overflow: hidden;
+}
+
 .check-block-test.passing-test {
-  background-color: hsl(90,  50%, 91%);}
+  background-color: var(--passing-test-bg);
+}
 
 .check-block-test.passing-test .cm-snippet {
   margin: 0.5em;
@@ -1463,14 +1842,14 @@ code div {
 #output > .compile-error.highlights-active,
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
-  border: 0.3em hsl(204, 100%, 74%) solid;
-  box-shadow: 0 0 1em;
+  border: 0.3em var(--highlights-active-border) solid;
+  box-shadow: 0 0 1em var(--err-focused-shadow);
 }
 
 
 .check-block-error .highlights-active.compile-error,
 .check-block-test.highlights-active {
-  background: hsla(0,0%,100%,.9);
+  background: var(--highlights-active-bg);
 }
 
 .check-block:not(.expanded) > .check-block-tests {
@@ -1484,12 +1863,12 @@ code div {
   align-items: center;
   justify-content:center;
   height: 3em;
-  color: #555;
+  color: var(--empty-check-text);
   overflow: hidden;
 }
 
 .check-block-error:empty {
-  background-color: rgba(255,255,255,0.4);
+  background-color: var(--empty-check-err-bg);
   border-radius: 0.5em;
   padding: 0.5em;
 }
@@ -1538,19 +1917,19 @@ code div {
 }
 
 .check-block-test.failing-test.highlights-active > header {
-  background-color: hsl(45, 100%, 85%);
+  background-color: var(--failing-test-header-bg);
 }
 
 .check-block-test .CodeMirror {
-  background:rgba(255,255,255,0.5);
+  background:var(--check-block-snippet-bg);
 }
 
 .errored-test-marker {
-  background-color: hsla(0, 100%, 50%, 0.5);
+  background-color: var(--err-gutter);
 }
 
 .failed-test-marker {
-  background-color: hsla(45, 90%, 50%, 0.5);
+  background-color: var(--failed-test-gutter-marker);
 }
 
 .failed-test-marker > .CodeMirror-linenumber {
@@ -1559,7 +1938,7 @@ code div {
 }
 
 .summary-bits {
-  color: black;
+  color: var(--default-text);
   display: flex;
 }
 
@@ -1575,11 +1954,11 @@ code div {
 }
 
 .summary-bit.summary-passed {
-  background: hsl(88, 51%, 76%);
+  background: var(--summary-pass-bg);
 }
 
 .summary-bit.summary-failed {
-  background: hsl(45, 100%, 85%);
+  background: var(--summary-fail-bg);
 }
 
 .summary-errored > .summary-count {
@@ -1588,8 +1967,8 @@ code div {
 }
 
 .summary-errored {
-  background: hsla(0,100%,73%,1);
-  color: white;
+  background: var(--summary-error-bg);
+  color: var(--summary-err);
   padding: .5em;
   display: flex;
   justify-content: flex-start;
@@ -1597,7 +1976,7 @@ code div {
 }
 
 .summary-text {
-  border-left: 1px hsl(0, 100%, 100%) solid;
+  border-left: 1px var(--summary-err-left-border) solid;
   padding-left: .5em;
 }
 
@@ -1606,7 +1985,7 @@ code div {
 }
 
 .cm-snippet {
-  border: 1px hsl(0, 0%, 50%) dashed;
+  border: 1px var(--snippet-border) dashed;
   overflow: hidden;
   cursor: default;
   border-top-left-radius: .5em;
@@ -1615,12 +1994,12 @@ code div {
 
 .cm-snippet header {
   font-size: .7em;
-  background: hsl(0, 0%, 97%);
+  background: var(--snippet-header-bg);
   padding: 0 .5em;
-  box-shadow: 0 0 3px hsla(0,0%,0%,0.5);
+  box-shadow: 0 0 3px hsla(0, 0%, 0%,.5);
   z-index: 100;
   position: relative;
-  border-bottom: 1px hsl(0, 0%, 60%) solid;
+  border-bottom: 1px var(--snippet-header-border) solid;
   text-align: right;
 }
 
@@ -1651,7 +2030,7 @@ code div {
 }
 
 #main.spotlight div.CodeMirror span.spotlight {
-  background-color: white!important;
+  background-color: var(--spotlighted-text-bg) !important;
 }
 
 #main.spotlight .CodeMirror-matchingbracket,
@@ -1664,7 +2043,7 @@ code div {
 #main.spotlight > div.replMain > div.CodeMirror {
   border-color: transparent;
   box-shadow:none;
-  background-color: rgb(150,150,150);
+  background-color: var(--non-spotlight-bg);
   transition: .1s background-color linear .3s;
 }
 #main.spotlight .compile-error:not(:hover),
@@ -1675,7 +2054,7 @@ code div {
 }
 #main.spotlight .check-block {
   transition: .1s background-color linear .3s;
-  background-color: hsl(45, 9%, 66%);
+  background-color: var(--surrounding-check-spotlight-bg);
 }
 
 .stacktrace > div .CodeMirror-vscrollbar {
@@ -1683,7 +2062,7 @@ code div {
 }
 
 .stacktrace > div:hover {
-  box-shadow:0 0 1em rgba(0,0,0,0.4);
+  box-shadow:0 0 1em var(--shadow-darker);
 }
 
 .stacktrace > div:not(:first-of-type):before {
@@ -1698,10 +2077,10 @@ table {
     width: 100%;
     table-layout: auto;
     display: table!important;
-    border:1px black solid;
+    border:1px var(--table-border) solid;
     border-radius:1em;
     overflow:hidden;
-    background:#eee;;
+    background:var(--table-bg);
 }
 
 table.choiceContainer {
@@ -1721,10 +2100,10 @@ div.choiceContainer .textLabel {
 div.choiceContainer > button {
   margin: 1em;
   cursor: pointer;
-  background-color: #317BCF;
+  background-color: var(--run-bg);
   border: none;
   border-radius: 0px;
-  color: #fff;
+  color: var(--choice-button);
   text-align: center;
   transition: box-shadow 0.2s;
   font-size: 15px;
@@ -1735,14 +2114,14 @@ div.choiceContainer > button {
 }
 
 th {
-    background: #ddd;
+    background: var(--th-bg);
 }
 
 th, td {
     text-align: left;
     padding: 1em;
     width: auto;
-    border-right:1px white solid;
+    border-right:1px var(--table-col-dividers) solid;
 }
 
 th:last-child, td:last-child {
@@ -1750,13 +2129,13 @@ th:last-child, td:last-child {
     border-right: unset;
 }
 
-tr:nth-child(even){background-color: #f2f2f2}
+tr:nth-child(even){background-color: var(--table-even-rows-bg)}
 
 table.pyret-table thead {
-  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 2px 2px var(--shadow-color);
 }
 table.pyret-row th {
-  box-shadow: 2px 0px 2px rgba(0, 0, 0, 0.2), -2px 0px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 0px 2px var(--shadow-color), -2px 0px 2px var(--shadow-color);
   border: none;
 }
 table.pyret-row td {
@@ -1764,7 +2143,7 @@ table.pyret-row td {
 }
 /* NOTE(joe): this helps distinguish a row that appears in a table cell */
 table.pyret-row {
-  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 2px 2px var(--shadow-color);
 }
 
 /* MODAL */
@@ -1779,20 +2158,20 @@ table.pyret-row {
   width: 100%; /* Full width */
   height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  background-color: var(--default-border); /* Fallback color */
+  background-color: var(--shadow-darker); /* Black w/ opacity */
   font-family: sans-serif;
 }
 
 /* Modal Content */
 .modal-content {
   position: relative;
-  background-color: #C8C8C8;
+  background-color: var(--modal-content-bg);
   margin: auto;
   padding: 0;
-  border: 1px solid #888;
+  border: 1px solid var(--modal-content-border);
   width: 60%;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  box-shadow: 0 4px 8px 0 var(--shadow-color),0 6px 20px 0 var(--shadow-color);
   -webkit-animation-name: animatetop;
   -webkit-animation-duration: 0.4s;
   animation-name: animatetop;
@@ -1854,35 +2233,35 @@ table.pyret-row {
 .modal .close  {
   height: 40px;
   width: 150px;
-  box-shadow: 0px -2px 5px 1px rgba(0,0,0,0.2);
+  box-shadow: 0px -2px 5px 1px var(--shadow-color);
   margin-top: 10px;
 }
 
 .modal .submit{
-  background: #317BCF;
+  background: var(--run-bg);
 }
 
 .modal .submit:hover{
-  background:#0060CE;
+  background:var(--run-hover);
 }
 
 .modal .close{
-  background:#CF3B31;
+  background:var(--stop-bg);
 }
 
 .modal .close:hover{
-  background:#B30C00;
+  background:var(--stop-hover);
 }
 
 .modal .submit:hover,
 .modal .close:hover{
-  box-shadow: 0px -5px 10px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px -5px 10px 5px var(--shadow-color);
 }
 
 .modal-header {
   padding: 2px 16px;
-  background-color: rgba(0, 0, 0, 0.3);
-  color: white;
+  background-color: var(--shadow-color);
+  color: var(--modal-header-text);
   text-align: center;
 }
 
@@ -1897,8 +2276,8 @@ table.pyret-row {
 
 .modal-footer {
   padding: 2px 16px;
-  background-color: rgba(0, 0, 0, 0.3);
-  color: white;
+  background-color: var(--shadow-color);
+  color: var(--light-text);
   height: 60px;
 }
 
@@ -1915,56 +2294,56 @@ table.pyret-row {
   /* Note: this is FF-only, but if the consensus is that it's a nice
    * effect, there is a polyfill for Chrome that adds support */
   position: sticky;
-  color: white;
+  color: var(--light-text);
   top: 0;
   z-index: 500;
-  background-color: hsl(212, 30%, 50%)
+  background-color: var(--stale-warning-bg);
 }
 
 .stale.test-results .check-block-failed {
-  background-color: hsl(45,30%,85%);
+  background-color: var(--stale-fail-bg);
 }
 
 .stale.test-results .check-block-success {
-  background-color: hsl(88, 30%, 76%);
+  background-color: var(--stale-success-bg);
 }
 
 .stale.test-results .check-block-errored {
-  background-color: hsl(0, 30%, 85%);
+  background-color: var(--stale-err-bg);
 }
 
 .stale.test-results .check-block-test.failing-test:not(.highlights-active) {
-  background-color: hsl(45, 30%, 93%);
+  background-color: var(--stale-fail-no-highlight);
 }
 
 .stale.test-results .check-block-test.highlights-active {
-  background-color: hsl(45,0%,95%);
+  background-color: var(--stale-highlight);
 }
 
 .stale.test-results .check-block-test.highlights-active > header {
-  background-color: hsl(45, 50%, 85%);
+  background-color: var(--stale-highlight-header);
 }
 
 .stale.test-results .check-block-test.passing-test {
-  background-color: hsl(90, 10%, 91%);
+  background-color: var(--stale-passing-test);
 }
 
 .stale.test-results .testing-summary .summary-passed {
-  background-color: hsl(88, 30%, 76%);
+  background-color: var(--stale-success-bg);
 }
 
 .stale.test-results .testing-summary .summary-failed {
-  background-color: hsl(45,30%,85%);
+  background-color: var(--stale-fail-bg);
 }
 
 .stale.test-results .testing-summary .summary-errored {
-  background-color: hsl(0, 30%, 70%);
+  background-color: var(--stale-err-summary);
 }
 
 .stale .compile-error.highlights-active,
 .stale .compile-error.highlights-active,
 .stale .check-block-test.highlights-active {
-  border-color: hsl(204, 40%, 74%);
+  border-color: var(--stale-err-highlight);
 }
 
 
@@ -2001,10 +2380,10 @@ table.pyret-row {
    display: inline-block;
 }
 .error-bg {
-  background-color: #FF9494;
+  background-color: var(--error-bg);
 }
 .ok-bg {
-  background-color: #FFFFFF;
+  background-color: white;
 }
 label.controller {
   width: 100px;

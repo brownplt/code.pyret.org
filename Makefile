@@ -59,6 +59,11 @@ COPY_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/*.cs
 build/web/css/%.css: src/web/css/%.css
 	cp $< $@
 
+COPY_THEMES := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/themes/*.css))
+
+build/web/css/themes/%.css: src/web/css/themes/%.css
+	cp $< $@
+
 COPY_FONTS := $(patsubst src/web/%,build/web/%,$(wildcard src/web/css/fonts/*))
 
 build/web/css/fonts/%: src/web/css/fonts/%
@@ -125,6 +130,9 @@ build/web/js/codemirror.js: $(CM)/lib/codemirror.js
 build/web/js/rulers.js: $(CM)/addon/display/rulers.js
 	cp $< $@
 
+build/web/js/scrollpastend.js: $(CM)/addon/scroll/scrollpastend.js
+	cp $< $@
+
 build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
 	cp $< $@
 
@@ -160,6 +168,7 @@ MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
           build/web/js/seedrandom.js \
           build/web/js/source-map.js \
           build/web/js/pyret-fold.js \
+          build/web/js/scrollpastend.js \
           build/web/js/matchkw.js \
           build/web/js/foldcode.js \
           build/web/js/foldgutter.js \
@@ -186,6 +195,7 @@ WEBV = build/web/views
 WEBJS = build/web/js
 WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
+WEBTHEMES = build/web/css/themes
 WEBFONTS = $(WEBCSS)/fonts
 WEBIMG = build/web/img
 WEBARR = build/web/arr
@@ -205,6 +215,9 @@ $(WEBJSGOOG):
 $(WEBCSS):
 	@$(call MKDIR,$(WEBCSS))
 
+$(WEBTHEMES):
+	@$(call MKDIR,$(WEBTHEMES))
+
 $(WEBFONTS):
 	@$(call MKDIR,$(WEBFONTS))
 
@@ -214,9 +227,9 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS)
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
