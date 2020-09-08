@@ -24,7 +24,9 @@ window.localSettings = function() {
     window.addEventListener('storage', function(e) {
       if (e.storageArea !== localStorage) { return; }
       cache.set(e.key, e.newValue);
-      f(e.oldValue, e.newValue);
+      if(e.key === key) {
+        f(e.oldValue, e.newValue);
+      }
     });
   }
 
