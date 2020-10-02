@@ -113,7 +113,7 @@ You can also get a personal free account with unlimited testing if you only
 test open-source stuff (which Pyret/CPO are).  Sauce also stores screencasts
 and logs of your tests, which can be helpful with debugging.
 
-First, add your sauce username and access key (from your account page at
+Firstly, add your sauce username and access key (from your account page at
 Sauce) to `.env`:
 
 ```
@@ -123,7 +123,7 @@ SAUCE_ACCESS_KEY="deadbeef-2671-11e5-a6a1-206a8a0824be"
 
 (Not my real access key)
 
-Second, install the Sauce Connect client for your system from
+Secondly, install the Sauce Connect client for your system from
 https://docs.saucelabs.com/reference/sauce-connect/.  Follow the instructions
 for starting the server (the default configuration should work fine), using
 the same username and access key, for example, on Ubuntu I run:
