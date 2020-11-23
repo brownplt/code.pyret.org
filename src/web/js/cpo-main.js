@@ -378,6 +378,11 @@
           editor.cm.eachLine(function(lh){
             editor.cm.removeLineClass(lh, "background");});
           for(var i = 0; i < marks.length; i++) {
+            let mark = marks[i];
+            // don't clear code-folding related markers
+            if (mark.replacedWith || mark.className.includes("CodeMirror-matchingbracket")) {
+              continue;
+            }
             marks[i].clear();
           }
         });
