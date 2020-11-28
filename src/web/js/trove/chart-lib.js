@@ -182,6 +182,16 @@
     $.extend(options, {hAxis: hAxis, vAxis: vAxis});
   }
 
+  function gridlinesMutator(options, globalOptions, _) {
+    const hAxis = ('hAxis' in options) ? options.hAxis : {};
+    const vAxis = ('vAxis' in options) ? options.vAxis : {};
+    hAxis.minorGridlines = {color: '#ddd', minSpacing: 5};
+    vAxis.minorGridlines = {color: '#ddd', minSpacing: 5};
+    hAxis.gridlines = {color: '#aaa', minSpacing: 40};
+    vAxis.gridlines = {color: '#aaa', minSpacing: 40};
+    $.extend(options, {hAxis: hAxis, vAxis: vAxis});
+  }
+
   function yAxisRangeMutator(options, globalOptions, _) {
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
     const viewWindow = ('viewWindow' in vAxis) ? vAxis.viewWindow : {};
@@ -563,7 +573,10 @@ ${labelRow}`;
           restarter,
           RUNTIME.ffi.makeRight)
       },
-      mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
+      mutators: [axesNameMutator,
+                 yAxisRangeMutator,
+                 xAxisRangeMutator,
+                 gridlinesMutator],
       overlay: (overlay, restarter, chart, container) => {
         overlay.css({
           width: '30%',
