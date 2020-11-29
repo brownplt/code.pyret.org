@@ -185,10 +185,15 @@
   function gridlinesMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
-    hAxis.minorGridlines = {color: '#ddd', minSpacing: 5};
-    vAxis.minorGridlines = {color: '#ddd', minSpacing: 5};
-    hAxis.gridlines = {color: '#aaa', minSpacing: 40};
-    vAxis.gridlines = {color: '#aaa', minSpacing: 40};
+    hAxis.gridlines = {color: '#aaa'};
+    vAxis.gridlines = {color: '#aaa'};
+    if (get(globalOptions, 'show-minor-grid-lines')) {
+      hAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
+      vAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
+    } else {
+      hAxis.minorGridlines = {count: 0};
+      vAxis.minorGridlines = {count: 0};
+    }
     $.extend(options, {hAxis: hAxis, vAxis: vAxis});
   }
 

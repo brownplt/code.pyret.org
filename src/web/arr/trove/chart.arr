@@ -94,6 +94,10 @@ legend-method = method(self, legend :: String):
   self.constr()(self.obj.{legend: legend})
 end
 
+show-minor-grid-lines-method = method(self, is-showing :: Boolean):
+  self.constr()(self.obj.{show-minor-grid-lines: is-showing})
+end
+
 x-axis-method = method(self, x-axis :: String):
   self.constr()(self.obj.{x-axis: x-axis})
 end
@@ -344,6 +348,7 @@ type PlotChartWindowObject = {
 default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window-object.{
   x-axis: '',
   y-axis: '',
+  show-minor-grid-lines: false,
   x-min: none,
   x-max: none,
   y-min: none,
@@ -443,6 +448,7 @@ data ChartWindow:
     y-max: y-max-method,
   | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
+    show-minor-grid-lines: show-minor-grid-lines-method,
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     x-min: x-min-method,
