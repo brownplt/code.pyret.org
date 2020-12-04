@@ -512,12 +512,13 @@ ${labelRow}`;
       }));
     });
 
+    // ASSERT: if we're using custom images, *every* series will have idx 3 defined
+    const hasImage = combined.every(p => get(p, 'ps').filter(p => p[3]).length > 0);
+
     const options = {
       tooltip: {isHtml: true},
       series: combined.map((p, i) => {
-        // are we using custom images instead of dots?
-        const hasImage = get(p, 'ps').filter(p => p[3]).length > 0;
-    
+        
         // scatters and then lines
         const seriesOptions = {};
 
@@ -530,7 +531,7 @@ ${labelRow}`;
         // If we have our own image, make the point small and transparent
         if (i < scatters.length) {
           $.extend(seriesOptions, {
-            pointSize: hasImage? 1 :toFixnum(get(p, 'point-size')),
+            pointSize: hasImage? 1 : toFixnum(get(p, 'point-size')),
             lineWidth: 0,
             dataOpacity: hasImage? 0 : 1,
           });
@@ -659,6 +660,9 @@ ${labelRow}`;
             .append(redrawG);
         }
 
+        // If we don't have images, our work is done!
+        if(!hasImage){ return; }
+        
         // if custom images is defined, use the image at that location
         // and overlay it atop each dot
         google.visualization.events.addListener(chart, 'ready', function () {
@@ -691,7 +695,7 @@ ${labelRow}`;
               svgRoot.appendChild(imageElt);
             });
           });
-        });
+        }); 
       },
     };
   }
