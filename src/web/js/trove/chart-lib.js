@@ -182,6 +182,21 @@
     $.extend(options, {hAxis: hAxis, vAxis: vAxis});
   }
 
+  function gridlinesMutator(options, globalOptions, _) {
+    const hAxis = ('hAxis' in options) ? options.hAxis : {};
+    const vAxis = ('vAxis' in options) ? options.vAxis : {};
+    hAxis.gridlines = {color: '#aaa'};
+    vAxis.gridlines = {color: '#aaa'};
+    if (get(globalOptions, 'show-minor-grid-lines')) {
+      hAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
+      vAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
+    } else {
+      hAxis.minorGridlines = {count: 0};
+      vAxis.minorGridlines = {count: 0};
+    }
+    $.extend(options, {hAxis: hAxis, vAxis: vAxis});
+  }
+
   function yAxisRangeMutator(options, globalOptions, _) {
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
     const viewWindow = ('viewWindow' in vAxis) ? vAxis.viewWindow : {};
@@ -564,7 +579,10 @@ ${labelRow}`;
           restarter,
           RUNTIME.ffi.makeRight)
       },
-      mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
+      mutators: [axesNameMutator,
+                 yAxisRangeMutator,
+                 xAxisRangeMutator,
+                 gridlinesMutator],
       overlay: (overlay, restarter, chart, container) => {
         overlay.css({
           width: '30%',
