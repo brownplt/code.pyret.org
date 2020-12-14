@@ -362,9 +362,9 @@ function testRunAndUseRepl(it, name, toEval, toRepl, options) {
         if(elts.length === 0 && tr[1] === "") {
           return true;
         }
-	else if(elts.length === 0 && tr[1] !== "") {
+        else if(elts.length === 0 && tr[1] !== "") {
           throw new Error("Expected repl text content " + tr[1] + " but got empty output for repl entry " + tr[0]);
-	}
+        }
         else {
           return elts[0].getText().then(function(t) {
             if(t.indexOf(tr[1]) !== -1) { return true; }
