@@ -943,7 +943,7 @@
       this.translateY = translate.y;
       this.pinholeX   = img.pinholeX*cos - img.pinholeY*sin + translate.x;
       this.pinholeY   = img.pinholeX*sin + img.pinholeY*cos + translate.y;
-      this.ariaText   = "Rotated image, "+angle+" degrees: "+img.ariaText;
+      this.ariaText   = "Rotated image, "+(-1 * angle)+" degrees: "+img.ariaText;
     };
 
     RotateImage.prototype = heir(BaseImage.prototype);
