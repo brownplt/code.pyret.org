@@ -18,7 +18,6 @@ CM=node_modules/codemirror
 PYRET_MODE=node_modules/pyret-codemirror-mode
 CPOMAIN=build/web/js/cpo-main.jarr
 CPOGZ=build/web/js/cpo-main.jarr.gz.js
-CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
 PHASEA=pyret/build/phaseA/pyret.jarr
 COMMITID=$(shell git rev-parse --short HEAD)
 
@@ -227,7 +226,7 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ)
 
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
 
@@ -235,7 +234,7 @@ link-pyret:
 	ln -s node_modules/pyret-lang pyret;
 	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
 
-deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) cpo-main-release 
+deploy-cpo-main: link-pyret $(CPOMAIN) cpo-main-release 
 
 cpo-main-release: $(CPOGZ)
 	mkdir -p build/release/$(COMMITID);
@@ -273,22 +272,6 @@ $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js sr
 # non-.js extension.
 $(CPOGZ): $(CPOMAIN)
 	gzip -c -f $(CPOMAIN) > $(CPOGZ)
-
-$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA) $(BUNDLED_DEPS)
-	mkdir -p compiled/;
-	#cp pyret/build/phaseA/compiled/*.js ./compiled/
-	node pyret/build/phaseA/pyret.jarr \
-    --builtin-js-dir src/web/js/trove/ \
-    --builtin-js-dir pyret/src/js/trove/ \
-    -allow-builtin-overrides \
-    --builtin-arr-dir src/web/arr/trove/ \
-    --builtin-arr-dir pyret/src/arr/trove/ \
-    --require-config cpo-config.json \
-    --build-runnable src/web/arr/cpo-ide-hooks.arr \
-    --standalone-file cpo-standalone.js \
-    --compiled-dir ./compiled \
-    --deps-file $(BUNDLED_DEPS) \
-    --outfile $(CPOIDEHOOKS) -no-check-mode
 
 clean:
 	rm -rf build/

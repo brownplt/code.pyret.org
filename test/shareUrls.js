@@ -113,12 +113,17 @@ describe("Load share urls for known starter files", function() {
       var self = this;
       this.browser.get(this.base + "/editor#share=" + share.id);
       this.browser.wait(function() { return tester.pyretLoaded(self.browser); });
+      this.browser.call(() => console.log("Pyret loaded", Date.now()));
+      tester.waitForEditorContent(this.browser);
+      this.browser.call(() => console.log("Program loaded", Date.now()));
       tester.evalDefinitions(self.browser, {});
       for(var i = 0; i < share.modal; i += 1) {
         tester.waitForWorldProgram(self.browser, timeout, 5000);
       }
-      tester.waitForBreakButton(this.browser);
-      this.browser.wait(function() { return tester.evalPyretNoError(self.browser, share.expr); });
+      this.browser.call(() => console.log("Sleeping for 1s before checking interactions", Date.now()));
+      this.browser.sleep(1000);
+      this.browser.call(() => console.log("Checking " + share.expr + " in interactions", Date.now()));
+      tester.evalPyretNoError(self.browser, share.expr);
       this.browser.call(done);
     });
   });
