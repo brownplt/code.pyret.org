@@ -546,9 +546,9 @@ ${labelRow}`;
         // If we have our own image, make the point small and transparent
         if (i < scatters.length) {
           $.extend(seriesOptions, {
-            pointSize: hasImage? 1 : toFixnum(get(p, 'point-size')),
+            pointSize: hasImage ? 1 : toFixnum(get(p, 'point-size')),
             lineWidth: 0,
-            dataOpacity: hasImage? 0 : 1,
+            dataOpacity: hasImage ? 0 : 1,
           });
         }
         return seriesOptions;
@@ -679,7 +679,7 @@ ${labelRow}`;
         }
 
         // If we don't have images, our work is done!
-        if(!hasImage){ return; }
+        if(!hasImage) { return; }
         
         // if custom images is defined, use the image at that location
         // and overlay it atop each dot
@@ -713,7 +713,7 @@ ${labelRow}`;
               svgRoot.appendChild(imageElt);
             });
           });
-        }); 
+        });
       },
     };
   }
