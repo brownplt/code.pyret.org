@@ -19,6 +19,9 @@ describe("Running with type-check mode", function() {
       [["x = make-mutable-string-dict()", ""],
        ["x.set-now('a', 12)", ""],
        ["x", "12"]]],
+    ["beside-list", "include image",
+      [["a = beside-list([list: circle(50, 'solid', 'red')])", ""],
+       ["image-width(a)", "100"]]],
   ];
 
   replTest.forEach(function(t) {

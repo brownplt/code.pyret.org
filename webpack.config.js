@@ -4,7 +4,6 @@ var webpack = webpack = require('webpack');
 
 var IS_PRODUCTION = process.env.NODE_ENV == 'production';
 var SRC_DIRECTORY = path.resolve(__dirname, 'src');
-var IDE_SRC_DIRECTORY = path.resolve(__dirname, 'node_modules', 'pyret-ide', 'src');
 
 module.exports = {
   output: {
@@ -26,9 +25,6 @@ module.exports = {
         enforce: "pre",
         include: [
           SRC_DIRECTORY,
-          // for some reason, webpack doesn't know how to deal with symlinks
-          // when deciding which loaders to use
-          fs.realpathSync(IDE_SRC_DIRECTORY),
         ],
         loader: "babel-loader",
         query: {
@@ -38,9 +34,7 @@ module.exports = {
   },
   resolve: {
     modules: [__dirname, 'node_modules'],
-    alias: {
-      'pyret-ide': path.resolve(IDE_SRC_DIRECTORY, 'pyret-ide'),
-    },
+    alias: { },
   },
   plugins: [
     new webpack.DefinePlugin({

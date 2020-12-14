@@ -103,6 +103,11 @@ function waitForBreakButton(driver) {
   driver.wait(webdriver.until.elementIsDisabled(breakButton));
 }
 
+function waitForNoPrompt(driver) {
+  var livePrompt = driver.findElement(webdriver.By.className('prompt-container'));
+  return driver.wait(webdriver.until.elementIsNotVisible(livePrompt));
+}
+
 function evalDefinitionsAndWait(driver, options) {
   evalDefinitions(driver, options);
   waitForBreakButton(driver);
@@ -132,7 +137,6 @@ function checkTableRendersCorrectly(code, driver, test, timeout) {
   var maybeTest = replOutput.findElements(webdriver.By.xpath('pre'));
   return maybeTest.then(function(elements) {
     if (elements.length > 0) {
-      console.log(Object.keys(elements[0]));
       elements[0].getAttribute("innerHTML")
         .then(function(testsStr) {
           try {
@@ -181,13 +185,21 @@ function loadAndRunPyret(code, driver, timeout) {
   setDefinitionsAndEval(driver, code);
 }
 
+function waitForEditorContent(driver) {
+  driver.wait(function() {
+    return driver.executeScript(
+      "return $('.replMain > .CodeMirror')[0].CodeMirror.getValue() !== ''"
+    );
+  });
+}
+
 function waitForWorldProgram(driver, timeout, worldTimeout) {
   driver.wait(function() {
     return driver
       .findElements(webdriver.By.className("ui-dialog-title")).then(
         function(elements) { return elements.length > 0; });
   }, timeout);
-  driver.sleep(worldTimeout); // make sure the big-bang can run for 5 seconds
+  driver.sleep(worldTimeout); // make sure the big-bang can run for worldTimeout ms
   driver.findElement(webdriver.By.className("ui-icon-closethick"))
     .click();
 }
@@ -297,15 +309,18 @@ function evalPyret(driver, toEval) {
 function evalPyretNoError(driver, toEval) {
   return evalPyret(driver, toEval).then(function(element) {
     return webdriver.promise
-      .all([element.getTagName(), element.getAttribute('class')])
+      .all([element.getTagName(), element.getAttribute('class'), element.getText()])
       .then(function(resp) {
-        var name = resp[0];
-        var clss = resp[1];
+        const name = resp[0];
+        const clss = resp[1];
+        const text = resp[2];
 
         if (!(clss === "echo-container" || clss === "trace")) {
-          throw new Error("Failed to run Pyret code: " + toEval);
+          const errorstring = "Failed to run Pyret code: " + toEval + "\n" + text;
+          console.error(errorstring);
+          throw new Error(errorstring);
         } else {
-          return element.findElements(webdriver.By.className("replOutput"));
+          return element.findElements(webdriver.By.css(".replOutput, .replTextOutput"));
         }
       });
   });
@@ -346,6 +361,9 @@ function testRunAndUseRepl(it, name, toEval, toRepl, options) {
       return evalPyretNoError(self.browser, tr[0]).then(function(elts) {
         if(elts.length === 0 && tr[1] === "") {
           return true;
+        }
+        else if(elts.length === 0 && tr[1] !== "") {
+          throw new Error("Expected repl text content " + tr[1] + " but got empty output for repl entry " + tr[0]);
         }
         else {
           return elts[0].getText().then(function(t) {
@@ -489,5 +507,7 @@ module.exports = {
   evalDefinitionsAndWait: evalDefinitionsAndWait,
   evalDefinitions: evalDefinitions,
   evalPyretNoError: evalPyretNoError,
-  waitForBreakButton: waitForBreakButton
+  waitForBreakButton: waitForBreakButton,
+  waitForNoPrompt: waitForNoPrompt,
+  waitForEditorContent: waitForEditorContent
 }

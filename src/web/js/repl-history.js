@@ -15,7 +15,7 @@
       var thisItem;
       while (this.pointer >= 0 && this.pointer < this.items.length) {
         thisItem = this.items[this.pointer];
-        if (thisItem.dup) {
+        if (thisItem.skip) {
           if (backward) this.pointer++;
           else this.pointer--;
         } else break;
@@ -29,8 +29,10 @@
     }
     function addToHistory(newItem) {
       var prev = this.items[0];
-      if (prev && prev.code === newItem.code) {
-        newItem.dup = true;
+      var isDuplicate = prev && prev.code === newItem.code;
+      var isBlank = newItem.code === "";
+      if (isBlank || isDuplicate) {
+        newItem.skip = true;
       }
       this.items.unshift(newItem);
       this.pointer = -1;
@@ -53,18 +55,16 @@
       }
     }
     function nextItem() {
-      if (this.pointer >= 1) {
+      if (this.pointer >= 0) {
         this.pointer--;
         this.advanceDups(false);
+      }
+      if (this.pointer >= 0) {
         this.loadItem();
       }
-      else if (this.pointer === 0) {
+      else if (this.pointer === -1) {
         this.CM.setValue(this.current);
         this.CM.refresh();
-        this.pointer--;
-      }
-      else {
-        // intentional no-op if pointer at -1
       }
     }
     function getHistory(n) {
