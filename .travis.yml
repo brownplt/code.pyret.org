@@ -17,7 +17,8 @@ before_install:
 - nvm use stable
 - npm install -g heroku-cli
 install:
-- npm install --ignore-scripts
+- npm ci --ignore-scripts
+- npm update
 - make web
 - make deploy-cpo-main
 script:
