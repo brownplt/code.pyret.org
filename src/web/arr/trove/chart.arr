@@ -182,13 +182,17 @@ end
 
 type BoxChartSeries = {
   tab :: TableIntern,
-  height :: Number,
-  horizontal :: Boolean
+  height :: Number, 
+  horizontal :: Boolean,
+  min :: Option<Number>,
+  max :: Option<Number>
 }
 
 default-box-plot-series = {
   horizontal: false,
-  show-outliers: true
+  show-outliers: true,
+  min: none,
+  max: none
 }
 
 type PieChartSeries = {
@@ -393,6 +397,12 @@ data DataSeries:
     end,
     method show-outliers(self, show):
       self.constr()(self.obj.{show-outliers: show})
+    end,
+    method min(self, min):
+      self.constr()(self.obj.{min: some(min)})
+    end,
+    method max(self, max):
+      self.constr()(self.obj.{max: some(max)})
     end
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
