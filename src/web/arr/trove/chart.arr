@@ -627,17 +627,30 @@ fun grouped-bar-chart-from-list(
   value-lists :: List<List<Number>>,
   legends :: List<String>
 ) -> DataSeries block:
+  doc: ```
+       Produces a grouped bar chart where labels are bar group names, legends are bar names, 
+       and value-lists contains the data of each bar seperated into seperate groups 
+       ```
+  # Constants
   label-length = labels.length()
   value-length = value-lists.length()
+  legend-length = legends.length() 
+
+  # Edge Case Error Checking 
   when label-length == 0:
     raise("grouped-bar-chart: can't have empty data")
+  end
+  when legend-length == 0: 
+    raise("grouped-bar-chart: can't have empty legends")
   end
   when label-length <> value-length:
     raise('grouped-bar-chart: labels and values should have the same length')
   end
-  when legends.length() <> value-lists.first.length():
+  when any({(group): legend-length <> group.length()}, value-lists):
     raise('grouped-bar-chart: labels and legends should have the same length')
   end
+  
+  # Constructing the Data Series
   value-lists.each(_.each(check-num))
   labels.each(check-string)
   legends.each(check-string)
