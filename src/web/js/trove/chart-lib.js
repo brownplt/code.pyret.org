@@ -278,6 +278,7 @@
     return {
       data: data,
       options: {
+        isStacked: get(rawData, 'is-stacked'),
         legend: {
           position: isTrue(get(rawData, 'has-legend')) ? 'right' : 'none'
         }

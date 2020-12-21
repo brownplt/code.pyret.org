@@ -201,9 +201,12 @@ type BarChartSeries = {
   tab :: TableIntern,
   legends :: RawArray<String>,
   has-legend :: Boolean,
+  is-stacked :: Boolean,
 }
 
-default-bar-chart-series = {}
+default-bar-chart-series = {
+  is-stacked: false,
+}
 
 type HistogramSeries = {
   tab :: TableIntern,
@@ -661,6 +664,46 @@ fun grouped-bar-chart-from-list(
   } ^ bar-chart-series
 end
 
+fun stacked-bar-chart-from-list(
+  labels :: List<String>,
+  value-lists :: List<List<Number>>,
+  legends :: List<String>
+) -> DataSeries block:
+  doc: ```
+       Produces a stacked bar chart where labels are bar stack names, legends are bar names, 
+       and value-lists contains the data of each bar seperated into seperate stacks 
+       ```
+  # Constants
+  label-length = labels.length()
+  value-length = value-lists.length()
+  legend-length = legends.length() 
+
+  # Edge Case Error Checking 
+  when label-length == 0:
+    raise("stacked-bar-chart: can't have empty data")
+  end
+  when legend-length == 0: 
+    raise("stacked-bar-chart: can't have empty legends")
+  end
+  when label-length <> value-length:
+    raise('stacked-bar-chart: labels and values should have the same length')
+  end
+  when any({(stack): legend-length <> stack.length()}, value-lists):
+    raise('stacked-bar-chart: labels and legends should have the same length')
+  end
+  
+  # Constructing the Data Series
+  value-lists.each(_.each(check-num))
+  labels.each(check-string)
+  legends.each(check-string)
+  default-bar-chart-series.{
+    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    legends: legends ^ builtins.raw-array-from-list,
+    has-legend: true,
+    is-stacked: true,
+  } ^ bar-chart-series
+end
+
 fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
   doc: "Consume values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
@@ -853,6 +896,23 @@ where:
       [list: 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       [list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
   render-now(from-list.grouped-bar-chart(
+      [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
+      [list:
+        [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
+        [list: 2027307,3277946,1420518,2454721,7017731,5656528,2472223],
+        [list: 1208495,2141490,1058031,1999120,5355235,5120254,2607672],
+        [list: 1140516,1938695,925060,1607297,4782119,4746856,3187797],
+        [list: 894368,1558919,725973,1311479,3596343,3239173,1575308],
+        [list: 737462,1345341,679201,1203944,3157759,3414001,1910571]],
+      [list:
+        'Under 5 Years',
+        '5 to 13 Years',
+        '14 to 17 Years',
+        '18 to 24 Years',
+        '25 to 44 Years',
+        '45 to 64 Years',
+        '65 Years and Over'])) does-not-raise
+  render-now(from-list.stacked-bar-chart(
       [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
       [list:
         [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
@@ -1215,6 +1275,7 @@ from-list = {
   exploding-pie-chart: exploding-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
+  stacked-bar-chart: stacked-bar-chart-from-list,
   freq-bar-chart: freq-bar-chart-from-list,
   labeled-box-plot: labeled-box-plot-from-list,
   box-plot: box-plot-from-list,
