@@ -90,6 +90,13 @@ color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{color: some(color)})
 end
 
+color-list-method = method(self, colors :: List<I.Color>):
+  cases (List) colors: 
+    | empty => self.constr()(self.obj.{color: none})
+    | link(_, _) => self.constr()(self.obj.{color: some(colors)})
+  end
+end
+
 legend-method = method(self, legend :: String):
   self.constr()(self.obj.{legend: legend})
 end
@@ -202,10 +209,12 @@ type BarChartSeries = {
   legends :: RawArray<String>,
   has-legend :: Boolean,
   is-stacked :: Boolean,
+  colors :: Option<List<I.Color>>
 }
 
 default-bar-chart-series = {
   is-stacked: false,
+  colors: none
 }
 
 type HistogramSeries = {
@@ -387,6 +396,7 @@ data DataSeries:
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
+    color: color-list-method,
     constr: {(): bar-chart-series},
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,

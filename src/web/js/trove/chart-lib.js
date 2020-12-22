@@ -70,6 +70,22 @@
     return rgb2hex(IMAGE.colorString(checkColor(v)));
   }
 
+  function convertColorList(l) {
+    var color_list = [];
+
+    function buildColorList(val) { 
+    // Recursively runs convertColor on every element of v 
+    // Then pushes the result into the color_list array
+      if (val.dict.first) { 
+        color_list.push(convertColor(val.dict.first));
+        buildColorList(val.dict.rest);
+      }
+    }
+
+    buildColorList(l); 
+    return color_list;
+  }
+
   //////////////////////////////////////////////////////////////////////////////
 
   function getNewWindow(xMinC, xMaxC, yMinC, yMaxC, numSamplesC) {
@@ -272,6 +288,18 @@
     const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
     const data = new google.visualization.DataTable();
+    var colors_list = [];
+
+    // Sets up the color list
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+          none: function () {},
+          some: function (colors) {
+            console.log(colors);
+            colors_list = convertColorList(colors);
+            console.log(colors_list);
+          }
+    });
+
     data.addColumn('string', 'Label');
     legends.forEach(legend => data.addColumn('number', legend));
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
@@ -279,6 +307,7 @@
       data: data,
       options: {
         isStacked: get(rawData, 'is-stacked'),
+        series: colors_list.map(c => ({color: c})),
         legend: {
           position: isTrue(get(rawData, 'has-legend')) ? 'right' : 'none'
         }
