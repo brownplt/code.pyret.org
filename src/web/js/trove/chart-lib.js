@@ -291,7 +291,7 @@
     var colors_list = [];
 
     // Sets up the color list
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
             console.log(colors);
