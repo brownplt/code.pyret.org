@@ -10,6 +10,7 @@
     values: {
       'pie-chart': "tany",
       'bar-chart': "tany",
+      'multi-bar-chart': "tany",
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany"
@@ -286,30 +287,65 @@
 
   function barChart(globalOptions, rawData) {
     const table = get(rawData, 'tab');
+    const data = new google.visualization.DataTable();
+    var colors_list = [];
+
+    // Sets up the color list
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
+          none: function () {},
+          some: function (colors) {
+            colors_list = convertColorList(colors);
+          }
+    });
+    const colors_list_length = colors_list.length;
+
+    data.addColumn('string', 'Label');
+    data.addColumn('number', 'Values');
+    data.addColumn({type: 'string', role: 'style'});
+
+    table.forEach(function (row, idx) {
+      const bar_color = idx < colors_list_length ? colors_list[idx] : "";
+      data.addRow([row[0], toFixnum(row[1]), bar_color]);
+    });
+
+    return {
+      data: data,
+      options: {
+        legend: {
+          position: 'none'
+        }
+      },
+      chartType: google.visualization.ColumnChart,
+      onExit: defaultImageReturn,
+      mutators: [axesNameMutator, yAxisRangeMutator],
+    };
+  }
+
+  function multiBarChart(globalOptions, rawData) {
+    const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
     const data = new google.visualization.DataTable();
     var colors_list = [];
 
     // Sets up the color list
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
-            console.log(colors);
             colors_list = convertColorList(colors);
-            console.log(colors_list);
           }
     });
 
     data.addColumn('string', 'Label');
     legends.forEach(legend => data.addColumn('number', legend));
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+
     return {
       data: data,
       options: {
         isStacked: get(rawData, 'is-stacked'),
         series: colors_list.map(c => ({color: c})),
         legend: {
-          position: isTrue(get(rawData, 'has-legend')) ? 'right' : 'none'
+          position: 'right'
         }
       },
       chartType: google.visualization.ColumnChart,
@@ -863,6 +899,7 @@ ${labelRow}`;
       values: RUNTIME.makeObject({
         'pie-chart': makeFunction(pieChart),
         'bar-chart': makeFunction(barChart),
+        'multi-bar-chart': makeFunction(multiBarChart),
         'histogram': makeFunction(histogram),
         'box-plot': makeFunction(boxPlot),
         'plot': makeFunction(plot),

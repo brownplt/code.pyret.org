@@ -92,8 +92,8 @@ end
 
 color-list-method = method(self, colors :: List<I.Color>):
   cases (List) colors: 
-    | empty => self.constr()(self.obj.{color: none})
-    | link(_, _) => self.constr()(self.obj.{color: some(colors)})
+    | empty => self.constr()(self.obj.{colors: none})
+    | link(_, _) => self.constr()(self.obj.{colors: some(colors)})
   end
 end
 
@@ -206,17 +206,25 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  legends :: RawArray<String>,
-  has-legend :: Boolean,
-  is-stacked :: Boolean,
   colors :: Option<List<I.Color>>
 }
 
 default-bar-chart-series = {
-  is-stacked: false,
   colors: none
 }
 
+type MultiBarChartSeries = { 
+  tab :: TableIntern,
+  legends :: RawArray<String>,
+  is-stacked :: Boolean,
+  colors :: Option<List<I.Color>>
+}
+
+default-multi-bar-chart-series = {
+  is-stacked: false,
+  colors: none
+}
+  
 type HistogramSeries = {
   tab :: TableIntern,
   bin-width :: Option<Number>,
@@ -396,8 +404,12 @@ data DataSeries:
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
-    color: color-list-method,
+    colors: color-list-method,
     constr: {(): bar-chart-series},
+  | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
+    is-single: true,
+    colors: color-list-method,
+    constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
@@ -620,18 +632,23 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
        Consume labels, a list of string, and values, a list of numbers
        and construct a bar chart
        ```
+  # Constants
   label-length = labels.length()
   value-length = values.length()
+
+  # Edge Case Error Checking
   when label-length <> value-length:
     raise('bar-chart: labels and values should have the same length')
   end
+
+  # Type Checking
   values.each(check-num)
   labels.each(check-string)
+
   value-lists = values.map({(v): [list: v]})
+
   default-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    legends: [raw-array: ''],
-    has-legend: false,
+    tab: to-table2(labels, values)
   } ^ bar-chart-series
 end
 
@@ -663,15 +680,16 @@ fun grouped-bar-chart-from-list(
     raise('grouped-bar-chart: labels and legends should have the same length')
   end
   
-  # Constructing the Data Series
+  # Typechecking each input
   value-lists.each(_.each(check-num))
   labels.each(check-string)
   legends.each(check-string)
-  default-bar-chart-series.{
+
+  # Constructing the Data Series
+  default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    legends: legends ^ builtins.raw-array-from-list,
-    has-legend: true,
-  } ^ bar-chart-series
+    legends: legends ^ builtins.raw-array-from-list
+  } ^ multi-bar-chart-series
 end
 
 fun stacked-bar-chart-from-list(
@@ -706,12 +724,11 @@ fun stacked-bar-chart-from-list(
   value-lists.each(_.each(check-num))
   labels.each(check-string)
   legends.each(check-string)
-  default-bar-chart-series.{
+  default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,
-    has-legend: true,
-    is-stacked: true,
-  } ^ bar-chart-series
+    is-stacked: true
+  } ^ multi-bar-chart-series
 end
 
 fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
@@ -875,6 +892,13 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
         method render(self):
           _ = check-render-y-axis(self)
           P.bar-chart(self, obj)
+        end
+      } ^ bar-chart-window
+    | multi-bar-chart-series(obj) => 
+      default-bar-chart-window-object.{
+        method render(self):
+          _ = check-render-y-axis(self)
+          P.multi-bar-chart(self, obj)
         end
       } ^ bar-chart-window
     | box-plot-series(obj) =>
@@ -1278,7 +1302,6 @@ from-list = {
   image-scatter-plot: image-scatter-plot-from-list,
   scatter-plot: scatter-plot-from-list,
   function-plot: function-plot-from-list,
-
   histogram: histogram-from-list,
   labeled-histogram: labeled-histogram-from-list,
   pie-chart: pie-chart-from-list,
