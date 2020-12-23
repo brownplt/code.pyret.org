@@ -206,11 +206,13 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  colors :: Option<List<I.Color>>
+  color :: Option<I.Color>,
+  colors :: Option<List<I.Color>>,
 }
 
 default-bar-chart-series = {
-  colors: none
+  color: none,
+  colors: none,
 }
 
 type MultiBarChartSeries = { 
