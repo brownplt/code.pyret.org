@@ -61,4 +61,7 @@ check "colors":
 
   render-image(grouped-bars.colors(single-color)) satisfies is-image
   render-image(grouped-bars.colors(rainbow-colors)) satisfies is-image
+
+  render-image(stacked-bars.colors(single-color)) satisfies is-image
+  render-image(stacked-bars.colors(rainbow-colors)) satisfies is-image
 end
