@@ -292,6 +292,8 @@
     var table = get(rawData, 'tab');
     const dimension = toFixnum(get(rawData, 'height'));
     const horizontal = get(rawData, 'horizontal');
+    const min = get(rawData, 'min');
+    const max = get(rawData, 'max');
     const showOutliers = get(rawData, 'show-outliers');
     const axisName = horizontal ? 'hAxis' : 'vAxis';
     const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
@@ -309,7 +311,6 @@
         color: '#777'
       }
     };
-
 
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Total');
@@ -383,18 +384,36 @@
         style: 'boxes'
       },
       interval: intervalOptions,
-      dataOpacity: 0
+      dataOpacity: 0,
     };
-    /* NOTE(Oak): manually set the max value to coincide with bar charts' height
+
+    /* NOTE(Oak): manually set the default max to coincide with bar charts' height
      * so that the bar charts are concealed (the automatic value from Google
      * is likely to screw this up)
      */
-    options[axisName] = {
+    const axisOpts = {
       maxValue: dimension,
       viewWindow: {
         max: dimension
-      },
+      },      
     };
+    /* NOTE(Emmanuel): if min and max are set, override these defaults
+     * 
+     */
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min'), {
+      none: function () {},
+      some: function (min) {
+          axisOpts.viewWindow.min = toFixnum(min);
+        }
+    });
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'max'), {
+      none: function () {},
+      some: function (max) {
+          axisOpts.viewWindow.max = toFixnum(max);
+        }
+    });
+    options[axisName] = axisOpts;
+
     return {
       data: data,
       options: options,

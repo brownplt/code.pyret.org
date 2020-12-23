@@ -51,7 +51,7 @@
     "node-uuid": "^1.4.1",
     "popper.js": "^1.16.0",
     "pyret-codemirror-mode": "git://github.com/brownplt/pyret-codemirror-mode.git#master",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#master",
     "q": "~1.4.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
