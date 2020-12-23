@@ -10,6 +10,7 @@
     values: {
       'pie-chart': "tany",
       'bar-chart': "tany",
+      'multi-bar-chart': "tany",
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany"
@@ -68,6 +69,22 @@
         ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
     }
     return rgb2hex(IMAGE.colorString(checkColor(v)));
+  }
+
+  function convertColorList(l) {
+    var color_list = [];
+
+    function buildColorList(val) { 
+    // Recursively runs convertColor on every element of v 
+    // Then pushes the result into the color_list array
+      if (val.dict.first) { 
+        color_list.push(convertColor(val.dict.first));
+        buildColorList(val.dict.rest);
+      }
+    }
+
+    buildColorList(l); 
+    return color_list;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -269,18 +286,82 @@
   }
 
   function barChart(globalOptions, rawData) {
+    // Variables and constants 
+    const table = get(rawData, 'tab');
+    const data = new google.visualization.DataTable();
+    var colors_list = [];
+    var default_color = "";
+
+    // Sets up the color list [Each Bar Colored Individually]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
+          none: function () {},
+          some: function (colors) {
+            colors_list = convertColorList(colors);
+          }
+    });
+    const colors_list_length = colors_list.length;
+
+    // Sets up the default color [Default Bar Color if not specified in color_list]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+          none: function () {},
+          some: function (color) {
+            default_color = convertColor(color);
+          }
+    });
+
+    // Initializes the Columns of the data 
+    data.addColumn('string', 'Label');
+    data.addColumn('number', 'Values');
+    data.addColumn({type: 'string', role: 'style'});
+
+    // Adds each row of bar data and bar_color data
+    table.forEach(function (row, idx) {
+      const bar_color = idx < colors_list_length ? colors_list[idx] : default_color;
+      data.addRow([row[0], toFixnum(row[1]), bar_color]);
+    });
+
+    return {
+      data: data,
+      options: {
+        legend: {
+          position: 'none'
+        }
+      },
+      chartType: google.visualization.ColumnChart,
+      onExit: defaultImageReturn,
+      mutators: [axesNameMutator, yAxisRangeMutator],
+    };
+  }
+
+  function multiBarChart(globalOptions, rawData) {
+    // Variables and Constants
     const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
     const data = new google.visualization.DataTable();
+    var colors_list = [];
+
+    // Sets up the color list [Coloring each group memeber/stack]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
+          none: function () {},
+          some: function (colors) {
+            colors_list = convertColorList(colors);
+          }
+    });
+
+    // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
     legends.forEach(legend => data.addColumn('number', legend));
+
+    // Adds each row of bar data
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+
     return {
       data: data,
       options: {
         isStacked: get(rawData, 'is-stacked'),
+        series: colors_list.map(c => ({color: c})),
         legend: {
-          position: isTrue(get(rawData, 'has-legend')) ? 'right' : 'none'
+          position: 'right'
         }
       },
       chartType: google.visualization.ColumnChart,
@@ -834,6 +915,7 @@ ${labelRow}`;
       values: RUNTIME.makeObject({
         'pie-chart': makeFunction(pieChart),
         'bar-chart': makeFunction(barChart),
+        'multi-bar-chart': makeFunction(multiBarChart),
         'histogram': makeFunction(histogram),
         'box-plot': makeFunction(boxPlot),
         'plot': makeFunction(plot),
