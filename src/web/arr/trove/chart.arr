@@ -404,6 +404,7 @@ data DataSeries:
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
+    default-color: color-method, 
     colors: color-list-method,
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
@@ -720,10 +721,12 @@ fun stacked-bar-chart-from-list(
     raise('stacked-bar-chart: labels and legends should have the same length')
   end
   
-  # Constructing the Data Series
+  # Typechecking the input 
   value-lists.each(_.each(check-num))
   labels.each(check-string)
   legends.each(check-string)
+
+  # Constructing the Data Series
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,

@@ -286,11 +286,13 @@
   }
 
   function barChart(globalOptions, rawData) {
+    // Variables and constants 
     const table = get(rawData, 'tab');
     const data = new google.visualization.DataTable();
     var colors_list = [];
+    var default_color = "";
 
-    // Sets up the color list
+    // Sets up the color list [Each Bar Colored Individually]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
@@ -299,12 +301,22 @@
     });
     const colors_list_length = colors_list.length;
 
+    // Sets up the default color [Default Bar Color if not specified in color_list]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+          none: function () {},
+          some: function (color) {
+            default_color = convertColor(color);
+          }
+    });
+
+    // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Values');
     data.addColumn({type: 'string', role: 'style'});
 
+    // Adds each row of bar data and bar_color data
     table.forEach(function (row, idx) {
-      const bar_color = idx < colors_list_length ? colors_list[idx] : "";
+      const bar_color = idx < colors_list_length ? colors_list[idx] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
 
@@ -322,12 +334,13 @@
   }
 
   function multiBarChart(globalOptions, rawData) {
+    // Variables and Constants
     const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
     const data = new google.visualization.DataTable();
     var colors_list = [];
 
-    // Sets up the color list
+    // Sets up the color list [Coloring each group memeber/stack]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
@@ -335,8 +348,11 @@
           }
     });
 
+    // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
     legends.forEach(legend => data.addColumn('number', legend));
+
+    // Adds each row of bar data
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
 
     return {
