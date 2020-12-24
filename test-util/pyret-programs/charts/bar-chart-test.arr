@@ -183,7 +183,7 @@ check "Rendering: Single Bars":
   from-list.bar-chart(empty, empty)
   raises "can't have empty data"
 
-  from-list.bar-chart([list: "label"], empty) 
+  from-list.bar-chart([list: "label1", "label2"], [list: 1]) 
   raises "labels and values should have the same length"
 
   from-list.bar-chart([list: "label"], [list: 1, 2]) 
@@ -236,7 +236,7 @@ check "Rendering: Stacked Bars":
   render-image(stacked-bars-rep) satisfies is-image
   render-image(stacked-bars-repstacks) satisfies is-image
 
-  from-list.grouped-bar-chart(empty, empty, empty)
+  from-list.stacked-bar-chart(empty, empty, empty)
   raises "can't have empty data"
 
   from-list.stacked-bar-chart(
@@ -251,7 +251,7 @@ check "Rendering: Stacked Bars":
         [list: 'Component 1', 'Component 2'])
   raises "labels and values should have the same length"
   
-  from-list.stackd-bar-chart(
+  from-list.stacked-bar-chart(
         [list: 'Bar 1', 'Bar 2'],
         [list: [list: 1, 3], [list: 2, 2], [list: 0, -3]], 
         [list: 'Component 1', 'Component 2']) 
