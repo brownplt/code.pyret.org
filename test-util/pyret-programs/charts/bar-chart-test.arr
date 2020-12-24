@@ -2,13 +2,14 @@ include color
 include chart
 include image
 
-fun render-image(series):
-  render-chart(series).get-image()
-end
+################################################################################
+# CONSTANTS
+################################################################################
 
 single-bars = from-list.bar-chart(
   [list: "Pyret", "OCaml", "C", "C++", "Python", "Racket", "Smalltalk"],
   [list: 10,       6,       1,   3,     5,       8,        9])
+
 grouped-bars = from-list.grouped-bar-chart(
   [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
   [list:
@@ -26,6 +27,7 @@ grouped-bars = from-list.grouped-bar-chart(
     '25 to 44 Years',
     '45 to 64 Years',
     '65 Years and Over'])
+
 stacked-bars = from-list.stacked-bar-chart(
   [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
   [list:
@@ -44,16 +46,27 @@ stacked-bars = from-list.stacked-bar-chart(
     '45 to 64 Years',
     '65 Years and Over'])
 
-check "rendering":
+################################################################################
+# Helper Functions -- Testing 
+################################################################################
+
+fun render-image(series):
+  render-chart(series).get-image()
+end
+
+################################################################################
+# Actual Testing -- Check
+################################################################################
+
+check "Rendering":
   render-image(single-bars) satisfies is-image
   render-image(grouped-bars) satisfies is-image
   render-image(stacked-bars) satisfies is-image
 end
 
-check "colors":
+check "Color Methods: Doesn't Break Rendering":
   single-color = [list: red]
-  rainbow-colors = [list:
-    red, orange, yellow, green, blue, indigo, violet]
+  rainbow-colors = [list: red, orange, yellow, green, blue, indigo, violet]
 
   render-image(single-bars.default-color(red)) satisfies is-image
   render-image(single-bars.colors(single-color)) satisfies is-image
