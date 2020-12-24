@@ -741,6 +741,9 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   value-length = values.length()
 
   # Edge Case Error Checking
+  when value-length == 0:
+    raise("bar-chart: can't have empty data")
+  end
   when label-length <> value-length:
     raise('bar-chart: labels and values should have the same length')
   end
@@ -769,7 +772,7 @@ fun grouped-bar-chart-from-list(
   legend-length = legends.length() 
 
   # Edge Case Error Checking 
-  when label-length == 0:
+  when value-length == 0:
     raise("grouped-bar-chart: can't have empty data")
   end
   when legend-length == 0: 
@@ -809,7 +812,7 @@ fun stacked-bar-chart-from-list(
   legend-length = legends.length() 
 
   # Edge Case Error Checking 
-  when label-length == 0:
+  when value-length == 0:
     raise("stacked-bar-chart: can't have empty data")
   end
   when legend-length == 0: 
