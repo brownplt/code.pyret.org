@@ -21,6 +21,7 @@ import either as E
 import string-dict as SD
 import valueskeleton as VS
 import statistics as ST
+import color as C
 
 ################################################################################
 # CONSTANTS
@@ -224,7 +225,7 @@ type MultiBarChartSeries = {
 
 default-multi-bar-chart-series = {
   is-stacked: false,
-  colors: none
+  colors: [list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]
 }
   
 type HistogramSeries = {
