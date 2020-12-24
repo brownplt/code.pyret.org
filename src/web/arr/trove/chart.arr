@@ -83,6 +83,33 @@ fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
     ^ VS.vs-value
 end
 
+fun table-sorter<A,B>(
+    t :: TableIntern, 
+    value-getter :: (RawArray -> A), 
+    scorer :: (A -> B), 
+    cmp :: (B, B -> Boolean), 
+    eq :: (B, B -> Boolean)): 
+  doc: ```
+       General Data Table Sorting Function:
+       Value-getter grabs the Column of the Data table you want to use to sort
+       Scorer Modifies the values in that Column to what you want to sort-by
+       ```
+  list-of-rows = t ^ raw-array-to-list
+
+  scored-values = 
+    map(
+      {(row): {row; row ^ value-getter ^ scorer}}, 
+      list-of-rows)
+
+  sorted-by-score = 
+    scored-values.sort-by(
+      {(row-score, oth-row-score): cmp(row-score.{1}, oth-row-score.{1})}, 
+      {(row-score, oth-row-score): eq(row-score.{1}, oth-row-score.{1})})
+
+  sorted-rows = map({(row-score): row-score.{0}}, sorted-by-score)
+  sorted-rows ^ builtins.raw-array-from-list
+end
+
 ################################################################################
 # METHODS
 ################################################################################
@@ -128,6 +155,74 @@ end
 
 y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
+end
+
+sort-method = method(self, 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-value(row :: RawArray) -> Number: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in Number form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1)
+  end
+  
+  identity = {(x): x}
+  sorted-table = table-sorter(self.obj!tab, get-value, identity, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+label-sort-method = method(self, 
+    cmp :: (String, String -> Boolean), 
+    eq :: (String, String -> Boolean)): 
+  
+  fun get-label(row :: RawArray) -> String: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in Number form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 0)
+  end
+  
+  identity = {(x): x}
+  sorted-table = table-sorter(self.obj!tab, get-label, identity, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+multi-sort-method = method(self, 
+    scorer :: (List<Number> -> Number), 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-values(row :: RawArray) -> List<Number>: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in List form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1) ^ raw-array-to-list
+  end
+  
+  sorted-table = table-sorter(self.obj!tab, get-values, scorer, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+default-multi-sort-method = method(self, 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-values(row :: RawArray) -> List<Number>: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in List form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1) ^ raw-array-to-list
+  end
+  
+  sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+  sorted-table = table-sorter(self.obj!tab, get-values, sum, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
 end
 
 ################################################################################
@@ -225,7 +320,7 @@ type MultiBarChartSeries = {
 
 default-multi-bar-chart-series = {
   is-stacked: false,
-  colors: [list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]
+  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown])
 }
   
 type HistogramSeries = {
@@ -409,10 +504,15 @@ data DataSeries:
     is-single: true,
     default-color: color-method, 
     colors: color-list-method,
+    sort-by: sort-method,
+    sort-by-label: label-sort-method,
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
+    sort-by: default-multi-sort-method,
+    sort-by-data: multi-sort-method, 
+    sort-by-label: label-sort-method,
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
@@ -648,8 +748,6 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   # Type Checking
   values.each(check-num)
   labels.each(check-string)
-
-  value-lists = values.map({(v): [list: v]})
 
   default-bar-chart-series.{
     tab: to-table2(labels, values)
