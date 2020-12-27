@@ -325,6 +325,9 @@
       options: {
         legend: {
           position: 'none'
+        }, 
+        vAxis: {
+          format: get(rawData, 'format')
         }
       },
       chartType: google.visualization.ColumnChart,
@@ -362,7 +365,10 @@
         series: colors_list.map(c => ({color: c})),
         legend: {
           position: 'right'
-        }
+        }, 
+        vAxis: {
+          format: get(rawData, 'format')
+        },
       },
       chartType: google.visualization.ColumnChart,
       onExit: defaultImageReturn,
@@ -514,7 +520,7 @@
       none: function () {},
       some: function (binWidth) {
         // NOTE(joe, aug 2019): The chart library has a bug for histograms with
-        // a single unique value (https://jsfiddle.net/L0y64fbo/2/), so thisi
+        // a single unique value (https://jsfiddle.net/L0y64fbo/2/), so this
         // hackaround makes it so this case can't come up.
         if(hasAtLeastTwoValues) {
           options.histogram.bucketSize = toFixnum(binWidth);

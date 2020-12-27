@@ -378,3 +378,8 @@ check "Sorting Methods: Stacked Bars":
     stacked-bars-rep.sort-by-data(weekend-weekday-scoring, ascending-cmp, vanilla-eq)) 
   satisfies is-image
 end
+
+########################
+# AXIS FORMATTER TESTS 
+########################
+
