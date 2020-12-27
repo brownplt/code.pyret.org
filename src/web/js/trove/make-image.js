@@ -552,7 +552,7 @@
         checkArity(1, arguments, "center-pinhole", false);
         c1("center-pinhole", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return makeImage(img.updatePinhole(img.getWidth() / 2, img.getHeight() / 2));
+        return makeImage(img.centerPinhole());
       });
 
       f("place-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
