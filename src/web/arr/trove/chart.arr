@@ -225,10 +225,6 @@ default-multi-sort-method = method(self,
   self.constr()(self.obj.{tab: sorted-table})
 end
 
-axis-format-method = method(self, format-string :: String): 
-  self.constr()(self.obj.{format: format-string})
-end
-
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -308,27 +304,23 @@ type BarChartSeries = {
   tab :: TableIntern,
   color :: Option<I.Color>,
   colors :: Option<List<I.Color>>,
-  format :: String
 }
 
 default-bar-chart-series = {
   color: none,
   colors: none,
-  format : ''
 }
 
 type MultiBarChartSeries = { 
   tab :: TableIntern,
   legends :: RawArray<String>,
   is-stacked :: Boolean,
-  colors :: Option<List<I.Color>>, 
-  format :: String
+  colors :: Option<List<I.Color>>
 }
 
 default-multi-bar-chart-series = {
   is-stacked: false,
-  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]), 
-  format : ''
+  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown])
 }
   
 type HistogramSeries = {
@@ -514,7 +506,6 @@ data DataSeries:
     colors: color-list-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
-    axis-format: axis-format-method,
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
@@ -522,7 +513,6 @@ data DataSeries:
     sort-by: default-multi-sort-method,
     sort-by-data: multi-sort-method, 
     sort-by-label: label-sort-method,
-    axis-format: axis-format-method,
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
