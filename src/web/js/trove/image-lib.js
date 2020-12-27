@@ -601,7 +601,12 @@
         data2 = ctx2.getImageData(0, 0, w2, h2);
         var pixels1 = data1.data,
             pixels2 = data2.data;
-        return RUNTIME.ffi.makeRight(rmsDiff(pixels1, pixels2));
+        var diff = rmsDiff(pixels1, pixels2);
+        if (diff === Math.floor(diff)) {
+          return RUNTIME.ffi.makeRight(jsnums.fromFixnum(diff, RUNTIME.NumberErrbacks));
+        } else {
+          return RUNTIME.ffi.makeRight(jsnums.makeRoughnum(diff, RUNTIME.NumberErrbacks));
+        }
       } catch(e){
         // if we violate CORS, just bail
         return RUNTIME.ffi.makeLeft("exception: " + String(e));

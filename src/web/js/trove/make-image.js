@@ -1119,21 +1119,21 @@
         checkArity(1, arguments, "image-width", false);
         c1("image-width", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return runtime.wrap(img.getWidth());
+        return runtime.wrap(jsnums.fromFixnum(img.getWidth(), runtime.NumberErrbacks));
       });
 
       f("image-height", function(maybeImg) {
         checkArity(1, arguments, "image-height", false);
         c1("image-height", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return runtime.wrap(img.getHeight());
+        return runtime.wrap(jsnums.fromFixnum(img.getHeight(), runtime.NumberErrbacks));
       });
 
       f("image-baseline", function(maybeImg) {
         checkArity(1, arguments, "image-baseline", false);
         c1("image-baseline", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return runtime.wrap(img.getBaseline());
+        return runtime.wrap(jsnums.fromFixnum(img.getBaseline(), runtime.NumberErrbacks));
       });
 
       f("image-pinhole-x", function(maybeImg) {
@@ -1141,7 +1141,7 @@
         c1("image-pinhole-x", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
         debugger
-        return runtime.wrap(img.getPinholeX());
+        return runtime.wrap(jsnums.fromFixnum(img.getPinholeX(), runtime.NumberErrbacks));
       });
 
       f("image-pinhole-y", function(maybeImg) {
@@ -1149,7 +1149,7 @@
         c1("image-pinhole-y", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
         debugger
-        return runtime.wrap(img.getPinholeY());
+        return runtime.wrap(jsnums.fromFixnum(img.getPinholeY(), runtime.NumberErrbacks));
       });
 
       f("color-at-position", function(maybeImage, maybeX, maybeY) {
