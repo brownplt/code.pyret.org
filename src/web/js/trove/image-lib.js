@@ -1218,7 +1218,10 @@
     };
 
     FrameImage.prototype = heir(BaseImage.prototype);
-    FrameImage.prototype.computeBB = function(tx) { return this.img.computeBB(tx); };
+    FrameImage.prototype.computeBB = function(tx) {
+      // The frame needs to be entirely contained in the resulting image
+      return getBB(this.img).transform(tx);
+    };
 
     // scale the context, and pass it to the image's render function
     FrameImage.prototype.render = function(ctx) {
