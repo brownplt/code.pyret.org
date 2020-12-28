@@ -75,6 +75,10 @@ fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
   map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
+fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
+  builtins.raw-array-from-list(table.map(builtins.raw-array-from-list))
+end
+
 fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
   I.color(190, 190, 190, 0.75)
     ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
@@ -127,6 +131,39 @@ end
 
 y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
+end
+
+annotations-method = method(self,
+    annotations :: List<List<Option<String>>>) block:
+  # Annotations should match previous lengths
+  expected-length = raw-array-length(self.obj.annotations)
+  given-length = annotations.length()
+  when given-length <> expected-length:
+    raise("annotations: input dimensions mismatch. Expected "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.annotations),
+      given from annotations,
+      index from range(0, annotations.length())):
+    shadow expected-length = raw-array-length(expected)
+    shadow given-length = given.length()
+    when given-length <> expected-length:
+      raise("annotations: length mismatch on row "
+          + num-to-string(index)
+          + ". Expected "
+          + num-to-string(expected-length)
+          + ", received "
+          + num-to-string(given-length))
+    end
+  end
+
+  self.constr()(self.obj.{annotations: list-to-table2(annotations)})
+end
+
+single-annotations-method = method(self, annotations :: List<Option<String>>):
+  annotations-method(self, annotations.and-then(_.map(link(_, empty))))
 end
 
 ################################################################################
@@ -206,7 +243,8 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  colors :: Option<List<I.Color>>
+  colors :: Option<List<I.Color>>,
+  annotations :: RawArray<RawArray<Option<String>>>,
 }
 
 default-bar-chart-series = {
@@ -217,7 +255,8 @@ type MultiBarChartSeries = {
   tab :: TableIntern,
   legends :: RawArray<String>,
   is-stacked :: Boolean,
-  colors :: Option<List<I.Color>>
+  colors :: Option<List<I.Color>>,
+  annotations :: RawArray<RawArray<Option<String>>>,
 }
 
 default-multi-bar-chart-series = {
@@ -407,10 +446,12 @@ data DataSeries:
     default-color: color-method, 
     colors: color-list-method,
     constr: {(): bar-chart-series},
+    annotations: single-annotations-method,
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
-    constr: {(): multi-bar-chart-series}
+    constr: {(): multi-bar-chart-series},
+    annotations: annotations-method,
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
@@ -649,7 +690,8 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   value-lists = values.map({(v): [list: v]})
 
   default-bar-chart-series.{
-    tab: to-table2(labels, values)
+    tab: to-table2(labels, values),
+    annotations: values.map({(_): [list: none]}) ^ list-to-table2,
   } ^ bar-chart-series
 end
 
@@ -689,7 +731,8 @@ fun grouped-bar-chart-from-list(
   # Constructing the Data Series
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    legends: legends ^ builtins.raw-array-from-list
+    legends: legends ^ builtins.raw-array-from-list,
+    annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
   } ^ multi-bar-chart-series
 end
 
@@ -730,7 +773,8 @@ fun stacked-bar-chart-from-list(
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,
-    is-stacked: true
+    annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
+    is-stacked: true,
   } ^ multi-bar-chart-series
 end
 
