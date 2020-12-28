@@ -163,7 +163,33 @@ annotations-method = method(self,
 end
 
 single-annotations-method = method(self, annotations :: List<Option<String>>):
-  annotations-method(self, annotations.and-then(_.map(link(_, empty))))
+  self.{annotations-method: annotations-method}
+    .annotations-method(annotations.map(link(_, empty)))
+end
+
+intervals-method = method(self, intervals :: List<List<List<String>>>) block:
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = intervals.length()
+  when given-length <> expected-length:
+    raise("intervals: input dimensions mismatch. Expected "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.intervals),
+      given from intervals,
+      index from range(0, intervals.length())):
+    shadow expected-length = raw-array-length(expected)
+    shadow given-length = given.length()
+    when given-length <> expected-length:
+      raise("intervals: length mismatch on row "
+          + num-to-string(index)
+          + ". Expected "
+          + num-to-string(expected-length)
+          + ", received "
+          + num-to-string(given-length))
+    end
+  end
 end
 
 ################################################################################
