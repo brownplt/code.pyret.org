@@ -20,8 +20,7 @@
     var xyPoint = gf(image, "point-xy");
     var annPoint = imageTypes["Point"];
     var rawIsPoint = gf(image, "is-Point");
-    var isPoint = function(p) { return unwrap(rawIsPoint.app(p)); };
-    var unwrap = RUNTIME.unwrap;
+    var isPoint = function(p) { return rawIsPoint.app(p); };
 
     var hasOwnProperty = {}.hasOwnProperty;
 
@@ -33,11 +32,11 @@
         throw new Error("Internal error: non-number in makeColor argList ", [r, g, b, a]);
       }
       return color.app(
-        RUNTIME.wrap(r),
-        RUNTIME.wrap(g),
-        RUNTIME.wrap(b),
+        jsnums.fromFixnum(r, RUNTIME.NumberErrbacks),
+        jsnums.fromFixnum(g, RUNTIME.NumberErrbacks),
+        jsnums.fromFixnum(b, RUNTIME.NumberErrbacks),
         // alpha may be passed in as a fixnum, so we coerce to rational
-        RUNTIME.wrap(jsnums.fromFixnum(a)) 
+        jsnums.fromFixnum(a, RUNTIME.NumberErrbacks)
       );
     };
 
@@ -46,11 +45,11 @@
       else if (num > max) { return max; }
       else { return num; }
     }
-    var isColor = function(c) { return unwrap(rawIsColor.app(c)); };
-    var colorRed = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "red"))), 0, 255); }
-    var colorGreen = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "green"))), 0, 255); }
-    var colorBlue = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "blue"))), 0, 255); }
-    var colorAlpha = function(c) { return clamp(jsnums.toFixnum(unwrap(gf(c, "alpha"))), 0, 1); }
+    var isColor = function(c) { return rawIsColor.app(c); };
+    var colorRed = function(c) { return clamp(jsnums.toFixnum(gf(c, "red")), 0, 255); }
+    var colorGreen = function(c) { return clamp(jsnums.toFixnum(gf(c, "green")), 0, 255); }
+    var colorBlue = function(c) { return clamp(jsnums.toFixnum(gf(c, "blue")), 0, 255); }
+    var colorAlpha = function(c) { return clamp(jsnums.toFixnum(gf(c, "alpha")), 0, 1); }
 
     var annFillMode = imageTypes["FillMode"];
     var annXPlace = imageTypes["XPlace"];

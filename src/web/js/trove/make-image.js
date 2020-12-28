@@ -59,7 +59,7 @@
         var ans = base;
         var gf = runtime.getField;
         var index = 0;
-        while (runtime.unwrap(ffi.isLink(cur))) {
+        while (ffi.isLink(cur)) {
           var f = gf(cur, "first");
           ans = func(ans, index++, unwrapImage(f));
           cur = gf(cur, "rest");
@@ -141,19 +141,19 @@
       });
       f("is-angle", function(maybeAngle) {
         checkArity(1, arguments, "is-angle", false);
-        return runtime.wrap(image.isAngle(maybeAngle));
+        return image.isAngle(maybeAngle);
       });
       f("is-side-count", function(maybeSideCount) {
         checkArity(1, arguments, "is-side-count", false);
-        return runtime.wrap(image.isSideCount(maybeSideCount));
+        return image.isSideCount(maybeSideCount);
       });
       f("is-step-count", function(maybeStepCount) {
         checkArity(1, arguments, "is-step-count", false);
-        return runtime.wrap(image.isStepCount(maybeStepCount));
+        return image.isStepCount(maybeStepCount);
       });
       f("is-image", function(maybeImage) {
         checkArity(1, arguments, "is-image", false);
-        return runtime.wrap(runtime.isOpaque(maybeImage) && image.isImage(maybeImage.val));
+        return runtime.isOpaque(maybeImage) && image.isImage(maybeImage.val);
       });
       f("bitmap-url", function(maybeURL) {
         checkArity(1, arguments, "bitmap-url", false);
@@ -168,14 +168,14 @@
         c2("images-difference", maybeImage1, annImage, maybeImage2, annImage);
         var img1 = unwrapImage(maybeImage1);
         var img2 = unwrapImage(maybeImage2);
-        return runtime.wrap(image.imageDifference(img1, img2));
+        return image.imageDifference(img1, img2);
       });
       f("images-equal", function(maybeImage1, maybeImage2) {
         checkArity(2, arguments, "image", false);
         c2("images-equal", maybeImage1, annImage, maybeImage2, annImage);
         var img1 = unwrapImage(maybeImage1);
         var img2 = unwrapImage(maybeImage2);
-        return runtime.wrap(image.imageEquals(img1, img2));
+        return image.imageEquals(img1, img2);
       });
       f("text", function(maybeString, maybeSize, maybeColor) {
         checkArity(3, arguments, "image", false);
@@ -1119,21 +1119,21 @@
         checkArity(1, arguments, "image-width", false);
         c1("image-width", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return runtime.wrap(jsnums.fromFixnum(img.getWidth(), runtime.NumberErrbacks));
+        return jsnums.fromFixnum(img.getWidth(), runtime.NumberErrbacks);
       });
 
       f("image-height", function(maybeImg) {
         checkArity(1, arguments, "image-height", false);
         c1("image-height", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return runtime.wrap(jsnums.fromFixnum(img.getHeight(), runtime.NumberErrbacks));
+        return jsnums.fromFixnum(img.getHeight(), runtime.NumberErrbacks);
       });
 
       f("image-baseline", function(maybeImg) {
         checkArity(1, arguments, "image-baseline", false);
         c1("image-baseline", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return runtime.wrap(jsnums.fromFixnum(img.getBaseline(), runtime.NumberErrbacks));
+        return jsnums.fromFixnum(img.getBaseline(), runtime.NumberErrbacks);
       });
 
       f("image-pinhole-x", function(maybeImg) {
@@ -1141,7 +1141,7 @@
         c1("image-pinhole-x", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
         debugger
-        return runtime.wrap(jsnums.fromFixnum(img.getPinholeX(), runtime.NumberErrbacks));
+        return jsnums.fromFixnum(img.getPinholeX(), runtime.NumberErrbacks);
       });
 
       f("image-pinhole-y", function(maybeImg) {
@@ -1149,7 +1149,7 @@
         c1("image-pinhole-y", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
         debugger
-        return runtime.wrap(jsnums.fromFixnum(img.getPinholeY(), runtime.NumberErrbacks));
+        return jsnums.fromFixnum(img.getPinholeY(), runtime.NumberErrbacks);
       });
 
       f("color-at-position", function(maybeImage, maybeX, maybeY) {
@@ -1220,7 +1220,7 @@
         var name = maybeName;
         var val = colorDb.get(String(name));
         if (val) {
-          return runtime.wrap(val);
+          return val;
         }
         throwMessage("Unknown color name '" + String(name) + "'");
       });

@@ -203,7 +203,7 @@
       if (!runtime.ffi.isList(val)) return false;
       var cur = val;
       var gf = runtime.getField;
-      while (runtime.unwrap(ffi.isLink(cur))) {
+      while (ffi.isLink(cur)) {
         var f = gf(cur, "first");
         if (!checkImagePred(f)) return false;
         cur = gf(cur, "rest");
@@ -314,7 +314,7 @@
         if (!runtime.ffi.isList(val)) return false;
         var cur = val;
         var gf = runtime.getField;
-        while (runtime.unwrap(ffi.isLink(cur))) {
+        while (ffi.isLink(cur)) {
           var f = gf(cur, "first");
           if (!image.isColor(f)) return false;
           cur = gf(cur, "rest");
@@ -327,7 +327,7 @@
         var cur = val;
         var gf = runtime.getField;
         var count = 0;
-        while (runtime.unwrap(ffi.isLink(cur))) {
+        while (ffi.isLink(cur)) {
           var f = gf(cur, "first");
           if (!image.isPoint(f)) return false;
           cur = gf(cur, "rest");
