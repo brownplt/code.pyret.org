@@ -70,7 +70,7 @@ body.base16 {
   --cursor:       var(--white);   /* cursor color */
 
   /* Regions/Selected Text */
-  --selected-text:        var(--black-lighter);     /* selected text in editor */
+  --selected-text:        var(--black-lighter-3);     /* selected text in editor */
   --matching-brackets:    var(--black-lighter-2);   /* brackets around check:...end regions, etc. */
   --matching-region-bg:   var(--black-lighter);     /* bg on regions like check:...end, etc. */
   --nonmatching-bg:       var(--black-lighter);     /* bg on span.CodeMirror-nonmatchingbracket-region */
@@ -143,7 +143,7 @@ body.base16 {
 
   /* Misc. */
   --img-thumbnail-shadow:       var(--black-lighter-2);   /* box-shadow on hover over image thumbnail in REPL */
-  --cm-in-repl-bg:              #232323;                /* bg on .repl .CodeMirror */
+  --cm-in-repl-bg:              #202020;                /* bg on .repl .CodeMirror */
   --failed-test-gutter-marker:  var(--black-darker-2);    /* CodeMirror gutter marker bg for failed test */
 
 }
