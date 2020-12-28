@@ -213,6 +213,106 @@
 
   //////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Adds multiple columns with the given properties and values after data
+   * columns
+   * 
+   * For example, if given:
+   * colProperties:
+   *   {type: 'string', role: 'style'}
+   * colValues:
+   *   [[['red', 'black'], ['white', 'blue'], ['green', 'purple']], []]
+   * addNSpecialColumns will add 2 style columns after the first data column
+   * and no columns after the second data column.
+   * 
+   * The number of columns added after a particular data column do not have to
+   * agree. It is possible to add one special value on one row and two
+   * special values on another row.
+   * 
+   * https://jsfiddle.net/eyanje/u83kaf92/
+   * 
+   * @param {DataTable} table a table to expand
+   * @param {object} colProperties an object specifying column properties
+   * @param {Array<Array<*>>>} colValues rows of groups of values to insert
+   */
+  function addNSpecialColumns(table, colProperties, colValues) {
+    let dataColNums = [];
+    let nDataCols;
+    let groupWidths;
+    for (let i = 1; i < table.getNumberOfColumns(); i++) {
+      const role = table.getColumnRole(i);
+      if (role === '' || role === 'data') {
+        dataColNums.push(i);
+      }
+    }
+    nDataCols = dataColNums.length;
+    // Check column count
+    colValues.forEach((row, rowN) => {
+        if (row.length !== nDataCols) {
+        throw new Error(`Incorrect column count in row ${rowN}.`
+          + ` Expected ${nDataCols}, given ${row.length}.`);
+      }
+    });
+    // Tally columns needed for each group
+    groupWidths = dataColNums.map(() => 0);
+    colValues.forEach(row => {
+      row.forEach((group, groupN) => {
+        groupWidths[groupN] = Math.max(group.length, groupWidths[groupN]);
+      });
+    });
+    // Add columns in reverse order
+    for (let groupIndex = nDataCols - 1; groupIndex >= 0; groupIndex--) {
+      for (let i = 0; i < groupWidths[groupIndex]; i++) {
+        table.insertColumn(dataColNums[groupIndex] + 1, colProperties);
+      }
+    }
+    console.log(colValues);
+    // Adjust dataColNums to match expanded table
+    let sum = 0;
+    dataColNums.forEach((dataColNum, i) => {
+        dataColNums[i] += sum;
+      sum += groupWidths[i];
+    });
+    // Add columns in reverse order to avoid extra calculations
+    colValues.forEach((row, rowN) => {
+        row.forEach((group, groupN) => {
+          group.forEach((val, i) => {
+          table.setValue(rowN, dataColNums[groupN] + i + 1, val);
+        });
+      })
+    });
+  }
+
+  /**
+   * Adds columns with the given properties and values after data columns
+   * 
+   * For example, you may use this function to add columns with properties
+   * {type: 'string', role: 'style'} and values
+   * [['red', 'black'] ['white', 'blue'], ['green', 'purple']], to add
+   * two style columns to a table with 3 rows and 2 columns.
+   * 
+   * @param {DataTable} table a table to expand
+   * @param {object} colProperties an object specifying column properties
+   * @param {Array<Array<*>>>} colValues rows of values to insert
+   */
+  function addSpecialColumns(table, colProperties, colValues) {
+    addNSpecialColumns(table, colProperties,
+      colValues.map(r => r.map(c => [c])));
+  }
+
+  function addAnnotations(table, rawData) {
+    const rawAnnotations = get(rawData, 'annotations').map(row =>
+      row.map(col =>
+        cases(RUNTIME.ffi.isOption, 'Option', col, {
+          none: function () {},
+          some: function (annotation) { return annotation; }
+        })
+      )
+    );
+    const colProperties = { type: 'string', role: 'annotation' };
+    addSpecialColumns(table, colProperties, rawAnnotations);
+  }
+
   function axesNameMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
@@ -351,6 +451,7 @@
       const bar_color = idx < colors_list_length ? colors_list[idx] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
+    addAnnotations(data, rawData);
 
     var options = {
         legend: {
@@ -438,6 +539,7 @@
 
     // Adds each row of bar data
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+    addAnnotations(data, rawData);
 
     var options = {
         isStacked: get(rawData, 'is-stacked'),
