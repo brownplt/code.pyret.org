@@ -118,8 +118,8 @@
       var c = new C();
       for (property in obj) {
         if (hasOwnProperty.call(obj, property)) {
-          if (obj[property] instanceof DOMPoint) {
-            c[property] = DOMPoint.fromPoint(obj[property]);
+          if (obj[property] instanceof Point2D) {
+            c[property] = Point2D.fromPoint(obj[property]);
           } else {
             c[property] = obj[property];
           }
@@ -274,7 +274,7 @@
     function getBB(img) {
       var bb = imageBBs.get(img);
       if (bb !== undefined) { return bb; }
-      bb = img.computeBB(new DOMMatrix());
+      bb = img.computeBB(Matrix.identity());
       imageBBs.set(img, bb);
       return bb;
     };
@@ -317,9 +317,62 @@
       })
     }
 
+    function Point2D(x, y) {
+      this.x = x;
+      this.y = y;
+    };
+    Point2D.fromPoint = function(obj) {
+      return new Point2D(obj.x, obj.y);
+    };
+    Point2D.prototype.matrixTransform = function(mtx) {
+      return new Point2D(mtx.a * this.x + mtx.b * this.y + mtx.c,
+                         mtx.d * this.x + mtx.e * this.y + mtx.f);
+    };
+    function Matrix(a, b, c, d, e, f) {
+      this.a = a; this.b = b; this.c = c;
+      this.d = d; this.e = e; this.f = f;
+    };
+    Matrix.identity = function() { return new Matrix(1, 0, 0, 0, 1, 0); }
+    Matrix.rotation = function(angleDeg) {
+      var angleRad = angleDeg * (Math.PI / 180);
+      var c = Math.cos(angleRad);
+      var s = Math.sin(angleRad);
+      return new Matrix(c, -s, 0,
+                        s,  c, 0);
+    };
+    Matrix.translation = function(tx, ty) {
+      return new Matrix(1, 0, tx,
+                        0, 1, ty);
+    };
+    Matrix.scale = function(s) {
+      return new Matrix(s, 0, 0,
+                        0, s, 0);
+    };
+    Matrix.scaleXY = function(sx, sy) {
+      return new Matrix(sx, 0, 0,
+                        0, sy, 0);
+    };
+    Matrix.prototype.times = function(that) {
+      /* returns this * that:
+        /a1 b1 c1\   /a2 b2 c2\
+        |d1 e1 f1|   |d2 e3 f2|
+        \0  0  1 /   \0  0  1 /
+      */
+      var a = this.a * that.a + this.b * that.d;
+      var b = this.a * that.b + this.b * that.e;
+      var c = this.a * that.c + this.b * that.f + this.c;
+      var d = this.d * that.a + this.e * that.d;
+      var e = this.d * that.b + this.e * that.e;
+      var f = this.d * that.c + this.e * that.f + this.f;
+      return new Matrix(a, b, c, d, e, f);
+    };
+    Matrix.prototype.rotate    = function(angleDeg) { return this.times(Matrix.rotation(angleDeg)); }
+    Matrix.prototype.scale     = function(sx, sy) { return this.times(Matrix.scaleXY(sx, sy)); }
+    Matrix.prototype.translate = function(tx, ty) { return this.times(Matrix.translation(tx, ty)); }
+    
     function BoundingBox(topLeft, botRight) {
-      this.topLeft = DOMPoint.fromPoint(topLeft);
-      this.botRight = DOMPoint.fromPoint(botRight === undefined ? topLeft : botRight);
+      this.topLeft = Point2D.fromPoint(topLeft);
+      this.botRight = Point2D.fromPoint(botRight === undefined ? topLeft : botRight);
     };
     BoundingBox.prototype.getWidth = function() {
       return Math.round(Math.abs(this.botRight.x - this.topLeft.x));
@@ -355,15 +408,15 @@
     BoundingBox.prototype.center = function() {
       var halfW = this.getWidth() / 2;
       var halfH = this.getHeight() / 2;
-      return new BoundingBox(new DOMPoint(this.topLeft.x - halfW, this.topLeft.y - halfH),
-                             new DOMPoint(this.botRight.x - halfW, this.botRight.y - halfH));
+      return new BoundingBox(new Point2D(this.topLeft.x - halfW, this.topLeft.y - halfH),
+                             new Point2D(this.botRight.x - halfW, this.botRight.y - halfH));
     };
     // Transforms this bounding box by the given transformation to produce a new bounding box
     BoundingBox.prototype.transform = function(tx) {
       return new BoundingBox(this.topLeft.matrixTransform(tx))
         .addPoint(this.botRight.matrixTransform(tx))
-        .addPoint(new DOMPoint(this.topLeft.x, this.botRight.y).matrixTransform(tx))
-        .addPoint(new DOMPoint(this.botRight.x, this.topLeft.y).matrixTransform(tx));
+        .addPoint(new Point2D(this.topLeft.x, this.botRight.y).matrixTransform(tx))
+        .addPoint(new Point2D(this.botRight.x, this.topLeft.y).matrixTransform(tx));
     };
 
     
@@ -371,8 +424,8 @@
     var BaseImage = function() {};
 
     BaseImage.prototype.computeBB = function(tx) {
-      var topLeft = new DOMPoint(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-      var botRight = new DOMPoint(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+      var topLeft = new Point2D(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+      var botRight = new Point2D(Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
       if (this.vertices === undefined) {
         topLeft.x = 0;
         topLeft.y = 0;
@@ -393,7 +446,7 @@
     
     BaseImage.prototype.updatePinhole = function(x, y) {
       var aCopy = clone(this);
-      aCopy.pinhole = new DOMPoint(x, y);
+      aCopy.pinhole = new Point2D(x, y);
       return aCopy;
     };
 
@@ -406,8 +459,8 @@
 
     BaseImage.prototype.centerPinhole = function() {
       var aCopy = clone(this);
-      var bb = this.computeBB(new DOMMatrix())
-      aCopy.pinhole = new DOMPoint(bb.getCenterX(), bb.getCenterY());
+      var bb = this.computeBB(Matrix.identity())
+      aCopy.pinhole = new Point2D(bb.getCenterX(), bb.getCenterY());
       return aCopy;
     };
 
@@ -688,11 +741,11 @@
       this.children = children; // arrayof [image, number, number]
       this.withBorder = withBorder;
       this.color = color;
-      this.pinhole = new DOMPoint(width / 2, height / 2);
+      this.pinhole = new Point2D(width / 2, height / 2);
     };
     SceneImage.prototype = heir(BaseImage.prototype);
     SceneImage.prototype.computeBB = function(tx) {
-      return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).transform(tx);
+      return new BoundingBox(new Point2D(0, 0), new Point2D(this.width, this.height)).transform(tx);
     };
 
     // add: image primitive-number primitive-number -> Scene
@@ -778,7 +831,7 @@
         this.isLoaded = true;
         self.width = self.img.width;
         self.height = self.img.height;
-        self.pinhole = new DOMPoint(self.width / 2, self.height / 2);
+        self.pinhole = new Point2D(self.width / 2, self.height / 2);
       } else {
         // fixme: we may want to do something blocking here for
         // onload, since we don't know at this time what the file size
@@ -789,7 +842,7 @@
           self.isLoaded = true;
           self.width = self.img.width;
           self.height = self.img.height;
-          self.pinhole = new DOMPoint(self.width / 2, self.height / 2);
+          self.pinhole = new Point2D(self.width / 2, self.height / 2);
         };
         this.img.onerror = function(e) {
           self.img.onerror = "";
@@ -800,7 +853,7 @@
     }
     FileImage.prototype = heir(BaseImage.prototype);
     FileImage.prototype.computeBB = function(tx) {
-      return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).transform(tx);
+      return new BoundingBox(new Point2D(0, 0), new Point2D(this.width, this.height)).transform(tx);
     };
     FileImage.prototype.getAriaText = function(depth) {
       return " image file from "+decodeURIComponent(this.src).slice(16);
@@ -917,12 +970,12 @@
       this.imageData= imageData;
       this.width    = imageData.width;
       this.height   = imageData.height;
-      this.pinhole  = new DOMPoint(this.width / 2, this.height / 2);
+      this.pinhole  = new Point2D(this.width / 2, this.height / 2);
     };
 
     ImageDataImage.prototype = heir(BaseImage.prototype);
     ImageDataImage.prototype.computeBB = function(tx) {
-      return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).transform(tx);
+      return new BoundingBox(new Point2D(0, 0), new Point2D(this.width, this.height)).transform(tx);
     };
 
     ImageDataImage.prototype.render = function(ctx) {
@@ -1051,7 +1104,7 @@
       this.y2 = y2;
       this.img1 = img1;
       this.img2 = img2;
-      this.pinhole = new DOMPoint(img1.getPinholeX() + x1, img1.getPinholeY() + y1); // TODO(Ben): +x1/y1?
+      this.pinhole = new Point2D(img1.getPinholeX() + x1, img1.getPinholeY() + y1); // TODO(Ben): +x1/y1?
       this.alphaBaseline = img1.alphaBaseline ? img1.getBaseline() + y1 : img2.getBaseline() + y2;
       // console.log("Baseline1: " + img1.alphaBaseline + ", Baseline2: " + img2.alphaBaseline + " ==> " + this.alphaBaseline);
       var shiftText = "";
@@ -1114,7 +1167,7 @@
       }
       this.img        = img;
       this.angle      = Math.round(angle);
-      this.pinhole    = DOMPoint.fromPoint(img.pinhole).matrixTransform(new DOMMatrix().rotate(this.angle));
+      this.pinhole    = Point2D.fromPoint(img.pinhole).matrixTransform(Matrix.rotation(this.angle));
     };
 
     RotateImage.prototype = heir(BaseImage.prototype);
@@ -1151,7 +1204,7 @@
       this.img      = img;
       this.scaleX   = xFactor;
       this.scaleY   = yFactor;
-      this.pinhole  = DOMPoint.fromPoint(img.pinhole);
+      this.pinhole  = Point2D.fromPoint(img.pinhole);
     };
 
     ScaleImage.prototype = heir(BaseImage.prototype);
@@ -1197,15 +1250,15 @@
       this.img        = img;
       if (img.getPinholeX() >= x && img.getPinholeX() <= x + width &&
           img.getPinholeY() >= y && img.getPinholeY() <= y + height) {
-        this.pinhole = new DOMPoint(img.getPinholeX() - x, img.getPinholeY() - y);
+        this.pinhole = new Point2D(img.getPinholeX() - x, img.getPinholeY() - y);
       } else {
-        this.pinhole   = new DOMPoint(width / 2, height / 2);
+        this.pinhole   = new Point2D(width / 2, height / 2);
       }
     };
 
     CropImage.prototype = heir(BaseImage.prototype);
     CropImage.prototype.computeBB = function(tx) {
-      return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).center().transform(tx);
+      return new BoundingBox(new Point2D(0, 0), new Point2D(this.width, this.height)).center().transform(tx);
     };
     CropImage.prototype.getAriaText = function(depth) {
       if (depth <= 0) return "cropped image";
@@ -1238,7 +1291,7 @@
     var FrameImage = function(img) {
       BaseImage.call(this);
       this.img        = img;
-      this.pinhole    = DOMPoint.fromPoint(img.pinhole);
+      this.pinhole    = Point2D.fromPoint(img.pinhole);
       this.alphaBaseline = img.alphaBaseline;
     };
 
@@ -1281,7 +1334,7 @@
       this.img        = img;
       this.width      = img.width;
       this.height     = img.height;
-      this.pinhole    = DOMPoint.fromPoint(img.pinhole);
+      this.pinhole    = Point2D.fromPoint(img.pinhole);
     };
 
     PinholeImage.prototype = heir(BaseImage.prototype);
@@ -1330,9 +1383,9 @@
       this.img        = img;
       this.direction  = direction;
       if (direction === "horizontal") {
-        this.pinhole  = new DOMPoint(-img.getPinholeX(), img.getPinholeY());
+        this.pinhole  = new Point2D(-img.getPinholeX(), img.getPinholeY());
       } else {
-        this.pinhole  = new DOMPoint(img.getPinholeX(), -img.getPinholeY());
+        this.pinhole  = new Point2D(img.getPinholeX(), -img.getPinholeY());
       }
     };
 
@@ -1381,15 +1434,15 @@
       this.height = height;
       this.style  = style;
       this.color  = color;
-      this.vertices = [new DOMPoint(-width/2,height/2),
-                       new DOMPoint(-width/2,-height/2),
-                       new DOMPoint(width/2,-height/2),
-                       new DOMPoint(width/2,height/2)];
-      this.pinhole = new DOMPoint(0, 0);
+      this.vertices = [new Point2D(-width/2,height/2),
+                       new Point2D(-width/2,-height/2),
+                       new Point2D(width/2,-height/2),
+                       new Point2D(width/2,height/2)];
+      this.pinhole = new Point2D(0, 0);
     };
     RectangleImage.prototype = heir(BaseImage.prototype);
     RectangleImage.prototype.computeBB = function(tx) {
-      return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).center().transform(tx);
+      return new BoundingBox(new Point2D(0, 0), new Point2D(this.width, this.height)).center().transform(tx);
     };
     RectangleImage.prototype.getAriaText = function(depth) {
       return " a" + colorToSpokenString(this.color,this.style) +
@@ -1408,11 +1461,11 @@
       this.height = Math.abs(Math.cos(angle/2 * Math.PI / 180)) * side * 2;
       this.style  = style;
       this.color  = color;
-      this.vertices = [new DOMPoint(this.width/2, 0),
-                       new DOMPoint(this.width,   this.height/2),
-                       new DOMPoint(this.width/2, this.height),
-                       new DOMPoint(0,            this.height/2)];
-      this.pinhole  = new DOMPoint(this.width / 2, this.height / 2);
+      this.vertices = [new Point2D(this.width/2, 0),
+                       new Point2D(this.width,   this.height/2),
+                       new Point2D(this.width/2, this.height),
+                       new Point2D(0,            this.height/2)];
+      this.pinhole  = new Point2D(this.width / 2, this.height / 2);
     };
     RhombusImage.prototype = heir(BaseImage.prototype);
     RhombusImage.prototype.getAriaText = function(depth) {
@@ -1443,7 +1496,7 @@
         radians = curComp * angle;
         for(var i = 0; i < pointsPerComponent; i++) {
           radians = radians + (step * angle);
-          vertices.push(new DOMPoint(Math.round(this.outerRadius*Math.cos(radians-adjust)),
+          vertices.push(new Point2D(Math.round(this.outerRadius*Math.cos(radians-adjust)),
                                      Math.round(this.outerRadius*Math.sin(radians-adjust))));
         }
       }
@@ -1459,7 +1512,7 @@
         }
         this._vertices.push(component);
       }
-      this.pinhole = new DOMPoint(0, 0);
+      this.pinhole = new Point2D(0, 0);
       for (var v = 0; v < this.vertices.length; v++) {
         this.pinhole.x += this.vertices[v].x;
         this.pinhole.y += this.vertices[v].y;
@@ -1492,7 +1545,7 @@
         totX += x;
         var y = -1 * jsnums.toFixnum(vertices[v].y);
         totY += y;
-        this.vertices[v] = new DOMPoint(x, y);
+        this.vertices[v] = new Point2D(x, y);
       }
       totX /= vertices.length;
       totY /= vertices.length;
@@ -1503,7 +1556,7 @@
       
       this.style      = style;
       this.color      = color;
-      this.pinhole = new DOMPoint(0, 0);
+      this.pinhole = new Point2D(0, 0);
     };
     PointPolygonImage.prototype = heir(BaseImage.prototype);
     PointPolygonImage.prototype.getAriaText = function(depth) {
@@ -1580,12 +1633,12 @@
       this.height      = metrics.height;
       // we measure coordinates from the *top* of the image, and getTextDimensions seems to be off by a bit
       this.alphaBaseline = metrics.ascent + baselineFudge;
-      this.pinhole     = new DOMPoint(0, this.alphaBaseline - this.height / 2);
+      this.pinhole     = new Point2D(0, this.alphaBaseline - this.height / 2);
 
     };
     TextImage.prototype = heir(BaseImage.prototype);
     TextImage.prototype.computeBB = function(tx) {
-      return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).center().transform(tx);
+      return new BoundingBox(new Point2D(0, 0), new Point2D(this.width, this.height)).center().transform(tx);
     };
     TextImage.prototype.getAriaText = function(depth) {
       return " the string "+this.str+", colored "+colorToSpokenString(this.color,'solid')+" of size "+ this.size;
@@ -1648,14 +1701,14 @@
       for(var pt = 0; pt < (points * 2) + 1; pt++ ) {
         var rads = ( ( 360 / (2 * points) ) * pt ) * oneDegreeAsRadian - 0.5;
         var whichRadius = ( pt % 2 === 1 ) ? outer : inner;
-        vertices.push(new DOMPoint(maxRadius + ( Math.sin( rads ) * whichRadius ),
+        vertices.push(new Point2D(maxRadius + ( Math.sin( rads ) * whichRadius ),
                                    maxRadius + ( Math.cos( rads ) * whichRadius )) );
       }
       // calculate width and height of the bounding box
       this.style      = style;
       this.color      = color;
       this.vertices   = vertices;
-      this.pinhole  = new DOMPoint(0, 0);
+      this.pinhole  = new Point2D(0, 0);
     };
 
     StarImage.prototype = heir(BaseImage.prototype);
@@ -1681,13 +1734,13 @@
       var vertices = [];
       // if angle < 180 start at the top of the canvas, otherwise start at the bottom
       if(thirdY > 0){
-        vertices.push(new DOMPoint(offsetX + 0, 0));
-        vertices.push(new DOMPoint(offsetX + sideC, 0));
-        vertices.push(new DOMPoint(offsetX + thirdX, thirdY));
+        vertices.push(new Point2D(offsetX + 0, 0));
+        vertices.push(new Point2D(offsetX + sideC, 0));
+        vertices.push(new Point2D(offsetX + thirdX, thirdY));
       } else {
-        vertices.push(new DOMPoint(offsetX + 0, -thirdY));
-        vertices.push(new DOMPoint(offsetX + sideC, -thirdY));
-        vertices.push(new DOMPoint(offsetX + thirdX, 0));
+        vertices.push(new Point2D(offsetX + 0, -thirdY));
+        vertices.push(new Point2D(offsetX + sideC, -thirdY));
+        vertices.push(new Point2D(offsetX + thirdX, 0));
       }
 
       this.style = style;
@@ -1700,7 +1753,7 @@
       var centerX = (left + right) / 2;
       var centerY = (top + bot) / 2;
       // pinhole is set to centroid (or barycenter): average of three corners
-      this.pinhole = new DOMPoint((vertices[0].x + vertices[1].x + vertices[2].x) / 3 - centerX,
+      this.pinhole = new Point2D((vertices[0].x + vertices[1].x + vertices[2].x) / 3 - centerX,
                                   (vertices[0].y + vertices[1].y + vertices[2].y) / 3 - centerY);
       for (var i = 0; i < vertices.length; i++) {
         vertices[i].x -= centerX;
@@ -1721,7 +1774,7 @@
       this.height = height;
       this.style = style;
       this.color = color;
-      this.pinhole = new DOMPoint(0, 0);
+      this.pinhole = new Point2D(0, 0);
     };
 
     EllipseImage.prototype = heir(BaseImage.prototype);
@@ -1731,24 +1784,23 @@
       var rx = this.width / 2.0;
       var ry = this.height / 2.0;
 
-      // /M11 M21 0 M41\
-      // |M12 M22 0 M42| Transform matrix format
-      // |0   0   1  0 |
-      // \0   0   0  1/
-      var xOffset = Math.sqrt((Math.pow(tx.m11, 2) * Math.pow(rx, 2))
-                              + (Math.pow(tx.m21, 2) * Math.pow(ry, 2)));
-      var yOffset = Math.sqrt((Math.pow(tx.m12, 2) * Math.pow(rx, 2))
-                              + (Math.pow(tx.m22, 2) * Math.pow(ry, 2)));
+      // /a b c\
+      // |d e f| Transform matrix format
+      // \0 0 1/
+      var xOffset = Math.sqrt((Math.pow(tx.a, 2) * Math.pow(rx, 2))
+                              + (Math.pow(tx.b, 2) * Math.pow(ry, 2)));
+      var yOffset = Math.sqrt((Math.pow(tx.d, 2) * Math.pow(rx, 2))
+                              + (Math.pow(tx.e, 2) * Math.pow(ry, 2)));
 
-      var centerX = tx.m41; // Transform center of
-      var centerY = tx.m42; // ellipse using M
+      var centerX = tx.c; // Transform center of
+      var centerY = tx.f; // ellipse using M
       var xMin = centerX - xOffset;
       var xMax = centerX + xOffset;
 
       var yMin = centerY - yOffset;
       var yMax = centerY + yOffset;
 
-      return new BoundingBox(new DOMPoint(xMin, yMin), new DOMPoint(xMax, yMax));
+      return new BoundingBox(new Point2D(xMin, yMin), new Point2D(xMax, yMax));
     };
     EllipseImage.prototype.getAriaText = function(depth) {
       return " a"+colorToSpokenString(this.color,this.style) +
@@ -1817,7 +1869,7 @@
       this.angle = (angle % 360.0);
       this.style = style;
       this.color = color;
-      this.pinhole = new DOMPoint(0, 0);
+      this.pinhole = new Point2D(0, 0);
       this.offsetX = 0;
       this.offsetY = 0;
       this.pinhole.x = 0;
@@ -1826,8 +1878,8 @@
 
     WedgeImage.prototype = heir(BaseImage.prototype);
     WedgeImage.prototype.computeBB = function(tx) {
-      var pt = new DOMPoint(this.radius, 0);
-      var bb = new BoundingBox(new DOMPoint(0, 0).matrixTransform(tx));
+      var pt = new Point2D(this.radius, 0);
+      var bb = new BoundingBox(new Point2D(0, 0).matrixTransform(tx));
       // when the tx is rotated, we can't just assume that the "obvious" extremeties at 90n degrees
       // are actually extremal: suppose the wedge is 30deg and the rotation is 75deg.  Then the
       // rotated start and end points of the wedge straddle 90 degrees, which is the actual y maximum.
@@ -1885,17 +1937,17 @@
       BaseImage.call(this);
       var vertices;
       if (x >= 0) {
-        if (y >= 0) { vertices = [new DOMPoint(0, 0), new DOMPoint(x, y)]; }
-        else        { vertices = [new DOMPoint(0, -y), new DOMPoint(x, 0)]; }
+        if (y >= 0) { vertices = [new Point2D(0, 0), new Point2D(x, y)]; }
+        else        { vertices = [new Point2D(0, -y), new Point2D(x, 0)]; }
       } else {
-        if (y >= 0) { vertices = [new DOMPoint(-x, 0), new DOMPoint(0, y)]; }
-        else        { vertices = [new DOMPoint(-x, -y), new DOMPoint(0, 0)]; }
+        if (y >= 0) { vertices = [new Point2D(-x, 0), new Point2D(0, y)]; }
+        else        { vertices = [new Point2D(-x, -y), new Point2D(0, 0)]; }
       }
 
       this.style  = "outline"; // all vertex-based images must have a style
       this.color  = color;
       this.vertices = vertices;
-      this.pinhole = new DOMPoint(Math.abs(x) / 2, Math.abs(y) / 2);
+      this.pinhole = new Point2D(Math.abs(x) / 2, Math.abs(y) / 2);
       
     };
 
