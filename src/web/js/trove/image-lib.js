@@ -369,6 +369,8 @@
     Matrix.prototype.rotate    = function(angleDeg) { return this.times(Matrix.rotation(angleDeg)); }
     Matrix.prototype.scale     = function(sx, sy) { return this.times(Matrix.scaleXY(sx, sy)); }
     Matrix.prototype.translate = function(tx, ty) { return this.times(Matrix.translation(tx, ty)); }
+    Matrix.prototype.flipX     = function() { return this.times(Matrix.scaleXY(-1, 1)); }
+    Matrix.prototype.flipY     = function() { return this.times(Matrix.scaleXY(1, -1)); }
     
     function BoundingBox(topLeft, botRight) {
       this.topLeft = Point2D.fromPoint(topLeft);
