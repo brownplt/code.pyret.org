@@ -541,12 +541,14 @@
       // Canvases lose their drawn content on cloning.  data may help us to preserve it.
       jQuery(canvas).data('toRender', onAfterAttach);
       // ARIA: use "image" as default text.
-      canvas.ariaText = this.ariaText || "image";
+      canvas.ariaText = this.getAriaText(BaseImage.ariaNestingDepth);
       return canvas;
     };
+    BaseImage.ariaNestingDepth = 6;
 
     BaseImage.prototype.toWrittenString = function(cache) { return "<image>"; }
     BaseImage.prototype.toDisplayedString = function(cache) { return "<image>"; }
+    BaseImage.prototype.getAriaText = function(depth) { return "image"; }
 
     /* Calculates the difference between two images, and returns it
        as a Pyret Either<String, Number>
@@ -687,10 +689,6 @@
       this.withBorder = withBorder;
       this.color = color;
       this.pinhole = new DOMPoint(width / 2, height / 2);
-      this.ariaText = " scene that is "+width+" by "+height+". children are: ";
-      this.ariaText += children.map(function(c,i){
-        return "child "+(i+1)+": "+c[0].ariaText+", positioned at "+c[1]+","+c[2]+" ";
-      }).join(". ");
     };
     SceneImage.prototype = heir(BaseImage.prototype);
     SceneImage.prototype.computeBB = function(tx) {
@@ -706,6 +704,14 @@
                                                    y - anImage.getCenterY()]]),
                             this.withBorder,
                             this.color);
+    };
+    SceneImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "scene image";
+      var ariaText = " scene that is "+this.width+" by "+this.height+". children are: ";
+      ariaText += this.children.map(function(c,i){
+        return "child "+(i+1)+": "+c[0].getAriaText(depth - 1)+", positioned at "+c[1]+","+c[2]+" ";
+      }).join(". ");
+      return ariaText;
     };
 
     // render: 2d-context -> void
@@ -764,8 +770,6 @@
       var self = this;
       this.src = src;
       this.isLoaded = false;
-      this.ariaText = " image file from "+decodeURIComponent(src).slice(16);
-
       // animationHack: see installHackToSupportAnimatedGifs() for details.
       this.animationHackImg = undefined;
 
@@ -798,7 +802,10 @@
     FileImage.prototype.computeBB = function(tx) {
       return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).transform(tx);
     };
-
+    FileImage.prototype.getAriaText = function(depth) {
+      return " image file from "+decodeURIComponent(this.src).slice(16);
+    };
+    
     var imageCache = {};
     FileImage.makeInstance = function(path, rawImage) {
       if (! (path in imageCache)) {
@@ -850,7 +857,6 @@
       BaseImage.call(this);
       var self = this;
       this.src = src;
-      this.ariaText = " video file from "+decodeURIComponent(src).slice(16);
       if (rawVideo) {
         this.video			= rawVideo;
         this.width			= self.video.videoWidth;
@@ -884,7 +890,10 @@
       }
     }
     FileVideo.prototype = heir(BaseImage.prototype);
-
+    FileVideo.prototype.getAriaText = function(depth) {
+      return " video file from "+decodeURIComponent(this.src).slice(16);
+    };
+    
     var videoCache = {};
     FileVideo.makeInstance = function(path, rawVideo) {
       if (! (path in FileVideo)) {
@@ -1052,7 +1061,9 @@
       if (offsetY > 0) { shiftText += "shifted up by " + offsetX; }
       else if (offsetX < 0) { shiftText += "shifted down by " + (-offsetX); }
       if (shiftText !== "") { shiftText = ", and " + shiftText; }
-      this.ariaText = " an overlay: first image is " + img1.ariaText + ", second image is " + img2.ariaText + ", aligning " + anchor1 + " of first image with " + anchor2 + " of second image" + shiftText;
+      this.anchor1 = anchor1;
+      this.anchor2 = anchor2;
+      this.shiftText = shiftText;
     };
 
     OverlayImage.prototype = heir(BaseImage.prototype);
@@ -1064,7 +1075,11 @@
       // console.log("Merged: ", JSON.stringify(bb1.union(bb2)));
       return bb1.merge(bb2);
     };
-
+    OverlayImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "overlay image";
+      return " an overlay: first image is " + this.img1.getAriaText(depth - 1) + ", second image is " + this.img2.getAriaText(depth - 1) + ", aligning " + this.anchor1 + " of first image with " + this.anchor2 + " of second image" + this.shiftText;
+    };
+    
     OverlayImage.prototype.render = function(ctx) {
       ctx.save();
       ctx.translate(this.x2, this.y2);
@@ -1100,12 +1115,15 @@
       this.img        = img;
       this.angle      = Math.round(angle);
       this.pinhole    = DOMPoint.fromPoint(img.pinhole).matrixTransform(new DOMMatrix().rotate(this.angle));
-      this.ariaText   = "Rotated image, "+(-1 * angle)+" degrees: "+img.ariaText;
     };
 
     RotateImage.prototype = heir(BaseImage.prototype);
     RotateImage.prototype.computeBB = function(tx) {
       return this.img.computeBB(tx.rotate(this.angle));
+    };
+    RotateImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "rotated image";
+      return "Rotated image, "+(-1 * this.angle)+" degrees: "+this.img.getAriaText(depth - 1);
     };
 
     // translate the canvas using the calculated values, then rotate as needed.
@@ -1134,13 +1152,19 @@
       this.scaleX   = xFactor;
       this.scaleY   = yFactor;
       this.pinhole  = DOMPoint.fromPoint(img.pinhole);
-      this.ariaText = "Scaled Image, "+ (xFactor===yFactor? "by "+xFactor
-        : "horizontally by "+xFactor+" and vertically by "+yFactor)+". "+img.ariaText;
     };
 
     ScaleImage.prototype = heir(BaseImage.prototype);
     ScaleImage.prototype.computeBB = function(tx) {
       return this.img.computeBB(tx.scale(this.scaleX, this.scaleY));
+    };
+    ScaleImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "scaled image";
+      return "Scaled Image, "+
+        (this.scaleX===this.scaleY
+         ? "by "+this.scaleX
+         : "horizontally by "+this.scaleX+" and vertically by "+this.scaleY)+". " +
+        this.img.getAriaText(depth - 1);
     };
 
     // scale the context, and pass it to the image's render function
@@ -1177,12 +1201,15 @@
       } else {
         this.pinhole   = new DOMPoint(width / 2, height / 2);
       }
-      this.ariaText = "Cropped image, from "+x+", "+y+" to "+(x+width)+", "+(y+height)+": "+img.ariaText;
     };
 
     CropImage.prototype = heir(BaseImage.prototype);
     CropImage.prototype.computeBB = function(tx) {
       return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).center().transform(tx);
+    };
+    CropImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "cropped image";
+      return "Cropped image, from "+this.x+", "+this.y+" to "+(this.x+this.width)+", "+(this.y+this.height)+": "+this.img.getAriaText(depth - 1);
     };
 
     CropImage.prototype.render = function(ctx) {
@@ -1212,7 +1239,6 @@
       BaseImage.call(this);
       this.img        = img;
       this.pinhole    = DOMPoint.fromPoint(img.pinhole);
-      this.ariaText = " Framed image: "+img.ariaText;
       this.alphaBaseline = img.alphaBaseline;
     };
 
@@ -1220,6 +1246,10 @@
     FrameImage.prototype.computeBB = function(tx) {
       // The frame needs to be entirely contained in the resulting image
       return getBB(this.img).transform(tx);
+    };
+    FrameImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "framed image";
+      return " Framed image: "+this.img.getAriaText(depth - 1);
     };
 
     // scale the context, and pass it to the image's render function
@@ -1252,11 +1282,14 @@
       this.width      = img.width;
       this.height     = img.height;
       this.pinhole    = DOMPoint.fromPoint(img.pinhole);
-      this.ariaText = " Pinhole image: "+img.ariaText;
     };
 
     PinholeImage.prototype = heir(BaseImage.prototype);
     PinholeImage.prototype.computeBB = function(tx) { return this.img.computeBB(tx); }
+    PinholeImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "pinhole image";
+      return " Pinhole image: "+this.img.getAriaText(depth - 1);
+    };
 
     // scale the context, and pass it to the image's render function
     PinholeImage.prototype.render = function(ctx) {
@@ -1301,7 +1334,6 @@
       } else {
         this.pinhole  = new DOMPoint(img.getPinholeX(), -img.getPinholeY());
       }
-      this.ariaText   = direction+"ly flipped image: " + img.ariaText;
     };
 
     FlipImage.prototype = heir(BaseImage.prototype);
@@ -1311,6 +1343,10 @@
       } else {
         return this.img.computeBB(tx.flipY());
       }
+    };
+    FlipImage.prototype.getAriaText = function(depth) {
+      if (depth <= 0) return "flipped image";
+      return this.direction+"ly flipped image: " + this.img.getAriaText(depth - 1);
     };
 
     FlipImage.prototype.render = function(ctx) {
@@ -1350,12 +1386,16 @@
                        new DOMPoint(width/2,-height/2),
                        new DOMPoint(width/2,height/2)];
       this.pinhole = new DOMPoint(0, 0);
-      this.ariaText = " a" + colorToSpokenString(color,style) + ((width===height)? " square of size "+width
-          : " rectangle of width "+width+" and height "+height);
     };
     RectangleImage.prototype = heir(BaseImage.prototype);
     RectangleImage.prototype.computeBB = function(tx) {
       return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).center().transform(tx);
+    };
+    RectangleImage.prototype.getAriaText = function(depth) {
+      return " a" + colorToSpokenString(this.color,this.style) +
+        ((this.width===this.height)
+         ? " square of size "+this.width
+         : " rectangle of width "+this.width+" and height "+this.height);
     };
 
     //////////////////////////////////////////////////////////////////////
@@ -1373,9 +1413,11 @@
                        new DOMPoint(this.width/2, this.height),
                        new DOMPoint(0,            this.height/2)];
       this.pinhole  = new DOMPoint(this.width / 2, this.height / 2);
-      this.ariaText = " a"+colorToSpokenString(color,style) + " rhombus of size "+side+" and angle "+angle;
     };
     RhombusImage.prototype = heir(BaseImage.prototype);
+    RhombusImage.prototype.getAriaText = function(depth) {
+      return " a"+colorToSpokenString(this.color,this.style) + " rhombus of size "+this.side+" and angle "+this.angle;
+    };
 
     //////////////////////////////////////////////////////////////////////
     // RegularPolygonImage: Number Count Step Mode Color -> Image
@@ -1424,8 +1466,6 @@
       }
       this.pinhole.x /= this.vertices.length;
       this.pinhole.y /= this.vertices.length;
-      this.ariaText = " a"+colorToSpokenString(color,style) + ", "+count
-                      +" sided polygon with each side of length "+length;
     };
 
     RegularPolygonImage.prototype = heir(BaseImage.prototype);
@@ -1436,6 +1476,10 @@
         BaseImage.prototype.render.call(this, ctx);
       }
       this.vertices = actualVertices;
+    }
+    RegularPolygonImage.prototype.getAriaText = function(depth) {
+      return " a"+colorToSpokenString(this.color,this.style) + ", "+this.count
+        +" sided polygon with each side of length "+this.length;
     }
 
     // For point-polygon images, positive-y points *upward*, by request
@@ -1460,10 +1504,11 @@
       this.style      = style;
       this.color      = color;
       this.pinhole = new DOMPoint(0, 0);
-      this.ariaText = " a"+colorToSpokenString(color,style) + ", polygon with "+vertices.length+" points";
     };
     PointPolygonImage.prototype = heir(BaseImage.prototype);
-    
+    PointPolygonImage.prototype.getAriaText = function(depth) {
+     return " a"+colorToSpokenString(this.color,this.style) + ", polygon with "+this.vertices.length+" points";
+    }
 
     // We don't trust ctx.measureText, since (a) it's buggy and (b) it doesn't measure height
     // based off of https://stackoverflow.com/a/9847841/783424,
@@ -1537,11 +1582,13 @@
       this.alphaBaseline = metrics.ascent + baselineFudge;
       this.pinhole     = new DOMPoint(0, this.alphaBaseline - this.height / 2);
 
-      this.ariaText = " the string "+str+", colored "+colorToSpokenString(color,'solid')+" of size "+ size;
     };
     TextImage.prototype = heir(BaseImage.prototype);
     TextImage.prototype.computeBB = function(tx) {
       return new BoundingBox(new DOMPoint(0, 0), new DOMPoint(this.width, this.height)).center().transform(tx);
+    };
+    TextImage.prototype.getAriaText = function(depth) {
+      return " the string "+this.str+", colored "+colorToSpokenString(this.color,'solid')+" of size "+ this.size;
     };
 
     TextImage.prototype.render = function(ctx) {
@@ -1609,11 +1656,13 @@
       this.color      = color;
       this.vertices   = vertices;
       this.pinhole  = new DOMPoint(0, 0);
-      this.ariaText   = " a" + colorToSpokenString(color,style) + ", " + points +
-                        "pointed star with inner radius "+inner+" and outer radius "+outer;
     };
 
     StarImage.prototype = heir(BaseImage.prototype);
+    StarImage.prototype.getAriaText = function(depth) {
+      return " a" + colorToSpokenString(this.color,this.style) + ", " + this.points +
+        "pointed star with inner radius "+this.inner+" and outer radius "+this.outer;
+    };
 
     /////////////////////////////////////////////////////////////////////
     //TriangleImage: Number Number Number Mode Color -> Image
@@ -1622,6 +1671,9 @@
     // See http://docs.racket-lang.org/teachpack/2htdpimage.html#(def._((lib._2htdp/image..rkt)._triangle))
     var TriangleImage = function(sideC, angleA, sideB, style, color) {
       BaseImage.call(this);
+      this.sideC = sideC;
+      this.sideB = sideB;
+      this.angleA = angleA;
       var thirdX = sideB * Math.cos(angleA * Math.PI/180);
       var thirdY = sideB * Math.sin(angleA * Math.PI/180);
       var offsetX = 0 - Math.min(0, thirdX); // angleA could be obtuse
@@ -1654,10 +1706,12 @@
         vertices[i].x -= centerX;
         vertices[i].y -= centerY;
       }
-      this.ariaText = " a"+colorToSpokenString(color,style) + " triangle whose base is of length "+sideC
-          +", with an angle of " + (angleA%180) + " degrees between it and a side of length "+sideB;
     };
     TriangleImage.prototype = heir(BaseImage.prototype);
+    TriangleImage.prototype.getAriaText = function(depth) {
+      return " a"+colorToSpokenString(this.color,this.style) + " triangle whose base is of length "+this.sideC
+          +", with an angle of " + (this.angleA % 180) + " degrees between it and a side of length "+this.sideB;
+    }
 
     //////////////////////////////////////////////////////////////////////
     //Ellipse : Number Number Mode Color -> Image
@@ -1668,8 +1722,6 @@
       this.style = style;
       this.color = color;
       this.pinhole = new DOMPoint(0, 0);
-      this.ariaText = " a"+colorToSpokenString(color,style) + ((width===height)? " circle of radius "+(width/2)
-            : " ellipse of width "+width+" and height "+height);
     };
 
     EllipseImage.prototype = heir(BaseImage.prototype);
@@ -1697,6 +1749,12 @@
       var yMax = centerY + yOffset;
 
       return new BoundingBox(new DOMPoint(xMin, yMin), new DOMPoint(xMax, yMax));
+    };
+    EllipseImage.prototype.getAriaText = function(depth) {
+      return " a"+colorToSpokenString(this.color,this.style) +
+        ((this.width===this.height)
+         ? " circle of radius "+(this.width/2)
+         : " ellipse of width "+this.width+" and height "+this.height);
     };
 
     EllipseImage.prototype.render = function(ctx) {
@@ -1764,7 +1822,6 @@
       this.offsetY = 0;
       this.pinhole.x = 0;
       this.pinhole.y = 0;
-      this.ariaText = " a"+colorToSpokenString(color,style) + " wedge of angle "+angle;
     };
 
     WedgeImage.prototype = heir(BaseImage.prototype);
@@ -1780,6 +1837,9 @@
       bb.addPoint(pt.matrixTransform(tx.rotate(-this.angle)));
       // console.log("Final wedge bb", JSON.stringify(bb));
       return bb;
+    };
+    WedgeImage.prototype.getAriaText = function(depth) {
+      return " a"+colorToSpokenString(this.color,this.style) + " wedge of angle "+this.angle;
     };
     
     WedgeImage.prototype.render = function(ctx) {
@@ -1836,11 +1896,13 @@
       this.color  = color;
       this.vertices = vertices;
       this.pinhole = new DOMPoint(Math.abs(x) / 2, Math.abs(y) / 2);
-      this.ariaText = " a" + colorToSpokenString(color,'solid') + " line of width "+x+" and height "+y;
       
     };
 
     LineImage.prototype = heir(BaseImage.prototype);
+    LineImage.prototype.getAriaText = function(depth) {
+      return " a" + colorToSpokenString(this.color,'solid') + " line of width "+this.x+" and height "+this.y;
+    };
 
     var colorAtPosition = function(img, x, y) {
       var width = img.getWidth(),
