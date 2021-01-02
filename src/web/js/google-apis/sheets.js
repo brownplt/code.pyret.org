@@ -165,7 +165,12 @@ function createSheetsAPI(immediate) {
         } else if (v.effectiveValue.boolValue !== undefined) {
           return { value: v.effectiveValue.boolValue, type: VALUE_TYPES.BOOL };
         } else if (v.effectiveValue.errorValue) {
-          errors.push("Google Sheets Error: " + v.effectiveValue.errorValue);
+          if(v.effectiveValue.errorValue.type === "N_A") {
+            errors.push("Google Sheets Error: there are #N/A values in the sheet, so it cannot be loaded correctly. The #N/A values must first be fixed before importing.");
+          }
+          else {
+            errors.push("Google Sheets Error: " + v.effectiveValue.errorValue);
+          }
           return { value: null, type: VALUE_TYPES.NONE };
         } else {
           return { value: v.formattedValue, type: VALUE_TYPES.STRING };
