@@ -436,11 +436,8 @@
         return new BoundingBox(topLeft, botRight);
       } else {
         var ans = new BoundingBox(topLeft, botRight);
-        // console.log("bb", JSON.stringify(ans));
         for (let v of this.vertices) {
-          // console.log("v", v.toJSON(), "tx(v)", v.matrixTransform(tx).toJSON());
           ans.addPoint(v.matrixTransform(tx));
-          // console.log("bb", JSON.stringify(ans));
         }
         return ans;
       }
@@ -1009,105 +1006,57 @@
       // To find where to place the two images relative to one another
       // start in a coordinate system with origin defined by each image.
       var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-      console.log("Image 1", JSON.stringify(getBB(img1)), x1, y1);
-      console.log("Image 2", JSON.stringify(getBB(img2)), x2, y2);
       var anchor1, anchor2;
       
       // compute the x1/y1 and x2/y2 offsets, to translate the target points to a common origin
+      var bb1 = getBB(img1);
+      var bb2 = getBB(img2);
       switch(placeX1.toLowerCase()) {
-      case "left": x1 += img1.getWidth() / 2; anchor1 = "-left"; break;
-      case "middle": x1 -= img1.getCenterX(); anchor1 = "-middle"; break;
+      case "left": x1 -= bb1.topLeft.x; anchor1 = "-left"; break;
+      case "middle": x1 -= bb1.getCenterX(); anchor1 = "-middle"; break;
       case "pinhole": x1 -= img1.getPinholeX(); anchor1 = "-pinhole"; break;
-      case "right": x1 -= img1.getWidth() / 2; anchor1 = "-right"; break;
+      case "right": x1 -= bb1.botRight.x; anchor1 = "-right"; break;
       default: throw new Error("Unknown XPlace option for image 1: " + placeX1);
       }
       switch(placeY1.toLowerCase()) {
-      case "top": y1 += img1.getHeight() / 2; anchor1 = "top" + anchor1; break;
-      case "center": y1 -= img1.getCenterY(); anchor1 = "center" + anchor1; break;
+      case "top": y1 -= bb1.topLeft.y; anchor1 = "top" + anchor1; break;
+      case "center": y1 -= bb1.getCenterY(); anchor1 = "center" + anchor1; break;
       case "pinhole": y1 -= img1.getPinholeY(); anchor1 = "pinhole" + anchor1; break;
       case "baseline": y1 -= img1.getBaseline() - img1.getHeight() / 2; anchor1 = "baseline" + anchor1; break;
-      case "bottom": y1 -= img1.getHeight() / 2; anchor1 = "bottom" + anchor1; break;
+      case "bottom": y1 -= bb1.botRight.y; anchor1 = "bottom" + anchor1; break;
       default: throw new Error("Unknown YPlace option for image 1: " + placeY1);
       }
       switch(placeX2.toLowerCase()) {
-      case "left": x2 += img2.getWidth() / 2; anchor2 = "-left"; break;
-      case "middle": x2 -= img2.getCenterX(); anchor2 = "-middle"; break;
+      case "left": x2 -= bb2.topLeft.x; anchor2 = "-left"; break;
+      case "middle": x2 -= bb2.getCenterX(); anchor2 = "-middle"; break;
       case "pinhole": x2 -= img2.getPinholeX(); anchor2 = "-pinhole"; break;
-      case "right": x2 -= img2.getWidth() / 2; anchor2 = "-right"; break;
+      case "right": x2 -= bb2.botRight.x; anchor2 = "-right"; break;
       default: throw new Error("Unknown XPlace option for image 2: " + placeX2);
       }
       switch(placeY2.toLowerCase()) {
-      case "top": y2 += img2.getHeight() / 2; anchor2 = "top" + anchor2; break;
-      case "center": y2 -= img2.getCenterY(); anchor2 = "center" + anchor2; break;
+      case "top": y2 -= bb2.topLeft.y; anchor2 = "top" + anchor2; break;
+      case "center": y2 -= bb2.getCenterY(); anchor2 = "center" + anchor2; break;
       case "pinhole": y2 -= img2.getPinholeY(); anchor2 = "pinhole" + anchor2; break;
       case "baseline": y2 -= img2.getBaseline() - img2.getHeight() / 2; anchor2 = "baseline" + anchor2; break;
-      case "bottom": y2 -= img2.getHeight() / 2; anchor2 = "bottom" + anchor2; break;
+      case "bottom": y2 -= bb2.botRight.y; anchor2 = "bottom" + anchor2; break;
       default: throw new Error("Unknown YPlace option for image 2: " + placeY2);
       }
-
-      /*
-      // To find where to place the two images relative to one another
-      // start in a coordinate system with origin at top/left corners
-      var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-      var anchor1, anchor2;
-      
-      // compute the x1/y1 and x2/y2 offsets, relative to the top/left of img1/img2:
-      switch(placeX1.toLowerCase()) {
-      case "left": x1 -= 0; anchor1 = "-left"; break;
-      case "middle": x1 -= img1.getWidth() / 2; anchor1 = "-middle"; break;
-      case "pinhole": x1 -= img1.getPinholeX(); anchor1 = "-pinhole"; break;
-      case "right": x1 -= img1.getWidth(); anchor1 = "-right"; break;
-      default: throw new Error("Unknown XPlace option for image 1: " + placeX1);
-      }
-      switch(placeY1.toLowerCase()) {
-      case "top": y1 -= 0; anchor1 = "top" + anchor1; break;
-      case "center": y1 -= img1.getHeight() / 2; anchor1 = "center" + anchor1; break;
-      case "pinhole": y1 -= img1.getPinholeY(); anchor1 = "pinhole" + anchor1; break;
-      case "baseline": y1 -= img1.getBaseline(); anchor1 = "baseline" + anchor1; break;
-      case "bottom": y1 -= img1.getHeight(); anchor1 = "bottom" + anchor1; break;
-      default: throw new Error("Unknown YPlace option for image 1: " + placeY1);
-      }
-      switch(placeX2.toLowerCase()) {
-      case "left": x2 -= 0; anchor2 = "-left"; break;
-      case "middle": x2 -= img2.getWidth() / 2; anchor2 = "-middle"; break;
-      case "pinhole": x2 -= img2.getPinholeX(); anchor2 = "-pinhole"; break;
-      case "right": x2 -= img2.getWidth(); anchor2 = "-right"; break;
-      default: throw new Error("Unknown XPlace option for image 2: " + placeX2);
-      }
-      switch(placeY2.toLowerCase()) {
-      case "top": y2 -= 0; anchor2 = "top" + anchor2; break;
-      case "center": y2 -= img2.getHeight() / 2; anchor2 = "center" + anchor2; break;
-      case "pinhole": y2 -= img2.getPinholeY(); anchor2 = "pinhole" + anchor2; break;
-      case "baseline": y2 -= img2.getBaseline(); anchor2 = "baseline" + anchor2; break;
-      case "bottom": y2 -= img2.getHeight(); anchor2 = "bottom" + anchor2; break;
-      default: throw new Error("Unknown YPlace option for image 2: " + placeY2);
-      }
-      */
       
       // Next, offset x2/y2 by the given offsetX/Y
       x2 += offsetX; y2 += offsetY;
-      var bb1 = getBB(img1);
-      var bb2 = getBB(img2);
-      var newBB = bb1.transform(Matrix.translation(x1, y1)).merge(bb2.transform(Matrix.translation(x2, y2)))
 
-      var centerX = newBB.getCenterX();
-      var centerY = newBB.getCenterY();
+      // Recenter the overlay, such that its midpoint is at (0,0)
+      // (This is not strictly necessary, though it does help "normalize" the images a bit.)
+      var leftX   = Math.min(bb1.topLeft.x  + x1, bb2.topLeft.x  + x2)
+      var rightX  = Math.min(bb1.botRight.x + x1, bb2.botRight.x + x2)
+      var topY    = Math.min(bb1.topLeft.y  + y1, bb2.topLeft.y  + y2)
+      var bottomY = Math.min(bb1.botRight.y + y1, bb2.botRight.y + y2)
 
+      var centerX = (leftX + rightX) / 2;
+      var centerY = (topY + bottomY) / 2;
 
       x1 -= centerX; x2 -= centerX;
       y1 -= centerY; y2 -= centerY;
-      
-      // // Translate both offset pairs by the smaller of the half-dimensions
-      // var xMax = Math.max(img1.getWidth(), img2.getWidth());
-      // var yMax = Math.max(img1.getHeight(), img2.getHeight());
-      // x1 += xMax; x2 += xMax;
-      // y1 += yMax; y2 += yMax;
-
-      // // Last, translate both offset pairs so that none are negative
-      // var xMin = Math.min(x1, x2)
-      // var yMin = Math.min(y1, y2)
-      // x1 -= xMin; x2 -= xMin;
-      // y1 -= yMin; y2 -= yMin;
 
       // store the offsets for rendering
       this.x1 = x1;
@@ -1116,7 +1065,7 @@
       this.y2 = y2;
       this.img1 = img1;
       this.img2 = img2;
-      this.pinhole = new Point2D(img1.getPinholeX() + x1, img1.getPinholeY() + y1); // TODO(Ben): +x1/y1?
+      this.pinhole = new Point2D(img1.getPinholeX() + x1, img1.getPinholeY() + y1);
       this.alphaBaseline = img1.alphaBaseline ? img1.getBaseline() + y1 : img2.getBaseline() + y2;
       // console.log("Baseline1: " + img1.alphaBaseline + ", Baseline2: " + img2.alphaBaseline + " ==> " + this.alphaBaseline);
       var shiftText = "";
@@ -1135,9 +1084,6 @@
     OverlayImage.prototype.computeBB = function(tx) {
       var bb1 = this.img1.computeBB(tx.translate(this.x1, this.y1));
       var bb2 = this.img2.computeBB(tx.translate(this.x2, this.y2));
-      // console.log("Img1: ", this.x1, this.y1, JSON.stringify(bb1));
-      // console.log("Img2: ", this.x2, this.y2, JSON.stringify(bb2));
-      // console.log("Merged: ", JSON.stringify(bb1.union(bb2)));
       return bb1.merge(bb2);
     };
     OverlayImage.prototype.getAriaText = function(depth) {
@@ -1327,7 +1273,6 @@
       ctx.beginPath();
       ctx.strokeStyle = colorString(this.color);
       var bb = getBB(this.img);
-      // console.log(JSON.stringify(bb));
       ctx.strokeRect(bb.topLeft.x, bb.topLeft.y, bb.botRight.x - bb.topLeft.x, bb.botRight.y - bb.topLeft.y);
       ctx.closePath();
       ctx.restore();
@@ -1365,11 +1310,6 @@
       ctx.restore();
       var px = this.getPinholeX();
       var py = this.getPinholeY();
-      console.log("In pinhole, px = ", px, " py = ", py);
-      var tx = ctx.getTransform();
-      var pt = new DOMPoint(px, py);
-      var txpt = pt.matrixTransform(tx);
-      console.log("Transformed pinhole, px = ", txpt.x, " py = ", txpt.y);
       ctx.beginPath();
       ctx.strokeStyle = colorString(this.color1); ctx.lineWidth = 1.5;
       ctx.moveTo(px - 5, py);
@@ -1914,7 +1854,6 @@
         bb.addPoint(pt.matrixTransform(tx.rotate(-i)));
       }
       bb.addPoint(pt.matrixTransform(tx.rotate(-this.angle)));
-      // console.log("Final wedge bb", JSON.stringify(bb));
       return bb;
     };
     WedgeImage.prototype.getAriaText = function(depth) {

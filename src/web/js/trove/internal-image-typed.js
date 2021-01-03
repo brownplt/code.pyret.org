@@ -168,8 +168,6 @@
   theModule: function(runtime, namespace, uri, imageLib, makeImage, jsnums) {
     var ffi = runtime.ffi;
 
-    console.log("From typed: ", imageLib);
-
     var image = runtime.getField(imageLib, "internal");
     var colorDb = image.colorDb;
 
