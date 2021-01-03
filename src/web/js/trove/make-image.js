@@ -546,7 +546,9 @@
         var img = unwrapImage(maybeImg);
         var x = jsnums.toFixnum(maybeX);
         var y = jsnums.toFixnum(maybeY);
-        return makeImage(img.updatePinhole(x, y));
+        var bb = image.getBB(img);
+        // Per documentation, a pinhole of (0,0) is in the upper-left corner
+        return makeImage(img.updatePinhole(x + bb.topLeft.x, y + bb.topLeft.y));
       });
       f("center-pinhole", function(maybeImg) {
         checkArity(1, arguments, "center-pinhole", false);
@@ -594,7 +596,7 @@
         c2("rotate", maybeAngle, annReal, maybeImg, annImage);
         var angle = jsnums.toFixnum(canonicalizeAngle(maybeAngle));
         var img = unwrapImage(maybeImg);
-        return makeImage(image.makeRotateImage(-angle, img));
+        return makeImage(image.makeRotateImage(angle, img));
       });
 
       f("scale", function(maybeFactor, maybeImg) {
@@ -635,14 +637,30 @@
         checkArity(1, arguments, "frame", false);
         c1("frame", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return makeImage(image.makeFrameImage(img));
+        return makeImage(image.makeFrameImage(img, colorDb.get("black")));
+      });
+
+      f("color-frame", function(maybeColor, maybeImg) {
+        checkArity(2, arguments, "frame", false);
+        c1("color-frame", maybeColor, annColor, maybeImg, annImage);
+        var color = unwrapColor(maybeColor);
+        var img = unwrapImage(maybeImg);
+        return makeImage(image.makeFrameImage(img, color));
       });
 
       f("draw-pinhole", function(maybeImg) {
         checkArity(1, arguments, "draw-pinhole", false);
         c1("draw-pinhole", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return makeImage(image.makePinholeImage(img));
+        return makeImage(image.makePinholeImage(img, colorDb.get("black"), colorDb.get("white")));
+      });
+
+      f("color-pinhole", function(maybeColor, maybeImg) {
+        checkArity(2, arguments, "color-pinhole", false);
+        c2("color-pinhole", maybeColor, annColor, maybeImg, annImage);
+        var color = unwrapColor(maybeColor)
+        var img = unwrapImage(maybeImg);
+        return makeImage(image.makePinholeImage(img, colorDb.get("transparent"), color));
       });
 
       f("crop", function(maybeX, maybeY, maybeWidth, maybeHeight, maybeImg) {
@@ -1119,14 +1137,14 @@
         checkArity(1, arguments, "image-width", false);
         c1("image-width", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return jsnums.fromFixnum(img.getWidth(), runtime.NumberErrbacks);
+        return jsnums.fromFixnum(Math.ceil(img.getWidth()), runtime.NumberErrbacks);
       });
 
       f("image-height", function(maybeImg) {
         checkArity(1, arguments, "image-height", false);
         c1("image-height", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        return jsnums.fromFixnum(img.getHeight(), runtime.NumberErrbacks);
+        return jsnums.fromFixnum(Math.ceil(img.getHeight()), runtime.NumberErrbacks);
       });
 
       f("image-baseline", function(maybeImg) {
@@ -1140,16 +1158,18 @@
         checkArity(1, arguments, "image-pinhole-x", false);
         c1("image-pinhole-x", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        debugger
-        return jsnums.fromFixnum(img.getPinholeX(), runtime.NumberErrbacks);
+        var bb = image.getBB(img);
+        // per documentation, image-pinhole-x measures from the left of the image
+        return jsnums.fromFixnum(img.getPinholeX() - bb.topLeft.x, runtime.NumberErrbacks);
       });
 
       f("image-pinhole-y", function(maybeImg) {
         checkArity(1, arguments, "image-pinhole-y", false);
         c1("image-pinhole-y", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        debugger
-        return jsnums.fromFixnum(img.getPinholeY(), runtime.NumberErrbacks);
+        var bb = image.getBB(img);
+        // per documentation, image-pinhole-x measures from the left of the image
+        return jsnums.fromFixnum(img.getPinholeY() - bb.topLeft.y, runtime.NumberErrbacks);
       });
 
       f("color-at-position", function(maybeImage, maybeX, maybeY) {

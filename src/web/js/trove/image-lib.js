@@ -377,10 +377,10 @@
       this.botRight = Point2D.fromPoint(botRight === undefined ? topLeft : botRight);
     };
     BoundingBox.prototype.getWidth = function() {
-      return Math.round(Math.abs(this.botRight.x - this.topLeft.x));
+      return Math.abs(this.botRight.x - this.topLeft.x);
     };
     BoundingBox.prototype.getHeight = function() {
-      return Math.round(Math.abs(this.botRight.y - this.topLeft.y));
+      return Math.abs(this.botRight.y - this.topLeft.y);
     };
     BoundingBox.prototype.getCenterX = function() {
       return (this.topLeft.x + this.botRight.x) / 2;
@@ -548,7 +548,17 @@
         ctx.strokeStyle = colorString(this.color);
         ctx.stroke();
       }
+      ctx.beginPath();
+      var tx = ctx.getTransform();
+      ctx.setTransform(1, 0, 0, 0, 1, 0);
+      var pt = this.pinhole.matrixTransform(tx);
+      ctx.ellipse(pt.x, pt.y, 3, 3, 0, 0, Math.PI * 2.0);
+      ctx.closePath();
+      ctx.fillStyle = "red";
+      ctx.fill();
       ctx.restore();
+
+      
     };
 
     // makeCanvas: number number -> canvas
@@ -997,21 +1007,23 @@
       BaseImage.call(this);
 
       // To find where to place the two images relative to one another
-      // start in a coordinate system with origin at centers.
+      // start in a coordinate system with origin defined by each image.
       var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+      console.log("Image 1", JSON.stringify(getBB(img1)), x1, y1);
+      console.log("Image 2", JSON.stringify(getBB(img2)), x2, y2);
       var anchor1, anchor2;
       
       // compute the x1/y1 and x2/y2 offsets, to translate the target points to a common origin
       switch(placeX1.toLowerCase()) {
       case "left": x1 += img1.getWidth() / 2; anchor1 = "-left"; break;
-      case "middle": x1 -= 0; anchor1 = "-middle"; break;
+      case "middle": x1 -= img1.getCenterX(); anchor1 = "-middle"; break;
       case "pinhole": x1 -= img1.getPinholeX(); anchor1 = "-pinhole"; break;
       case "right": x1 -= img1.getWidth() / 2; anchor1 = "-right"; break;
       default: throw new Error("Unknown XPlace option for image 1: " + placeX1);
       }
       switch(placeY1.toLowerCase()) {
       case "top": y1 += img1.getHeight() / 2; anchor1 = "top" + anchor1; break;
-      case "center": y1 -= 0; anchor1 = "center" + anchor1; break;
+      case "center": y1 -= img1.getCenterY(); anchor1 = "center" + anchor1; break;
       case "pinhole": y1 -= img1.getPinholeY(); anchor1 = "pinhole" + anchor1; break;
       case "baseline": y1 -= img1.getBaseline() - img1.getHeight() / 2; anchor1 = "baseline" + anchor1; break;
       case "bottom": y1 -= img1.getHeight() / 2; anchor1 = "bottom" + anchor1; break;
@@ -1019,14 +1031,14 @@
       }
       switch(placeX2.toLowerCase()) {
       case "left": x2 += img2.getWidth() / 2; anchor2 = "-left"; break;
-      case "middle": x2 -= 0; anchor2 = "-middle"; break;
+      case "middle": x2 -= img2.getCenterX(); anchor2 = "-middle"; break;
       case "pinhole": x2 -= img2.getPinholeX(); anchor2 = "-pinhole"; break;
       case "right": x2 -= img2.getWidth() / 2; anchor2 = "-right"; break;
       default: throw new Error("Unknown XPlace option for image 2: " + placeX2);
       }
       switch(placeY2.toLowerCase()) {
       case "top": y2 += img2.getHeight() / 2; anchor2 = "top" + anchor2; break;
-      case "center": y2 -= 0; anchor2 = "center" + anchor2; break;
+      case "center": y2 -= img2.getCenterY(); anchor2 = "center" + anchor2; break;
       case "pinhole": y2 -= img2.getPinholeY(); anchor2 = "pinhole" + anchor2; break;
       case "baseline": y2 -= img2.getBaseline() - img2.getHeight() / 2; anchor2 = "baseline" + anchor2; break;
       case "bottom": y2 -= img2.getHeight() / 2; anchor2 = "bottom" + anchor2; break;
@@ -1074,14 +1086,12 @@
       
       // Next, offset x2/y2 by the given offsetX/Y
       x2 += offsetX; y2 += offsetY;
+      var bb1 = getBB(img1);
+      var bb2 = getBB(img2);
+      var newBB = bb1.transform(Matrix.translation(x1, y1)).merge(bb2.transform(Matrix.translation(x2, y2)))
 
-      var leftX   = Math.min((-img1.getWidth() / 2) + x1, (-img2.getWidth() / 2) + x2);
-      var rightX  = Math.max(( img1.getWidth() / 2) + x1, ( img2.getWidth() / 2) + x2);
-      var topY    = Math.min((-img1.getHeight() / 2) + y1, (-img2.getHeight() / 2) + y2);
-      var bottomY = Math.max(( img1.getHeight() / 2) + y1, ( img2.getHeight() / 2) + y2);
-
-      var centerX = (rightX + leftX) / 2;
-      var centerY = (bottomY + topY) / 2;
+      var centerX = newBB.getCenterX();
+      var centerY = newBB.getCenterY();
 
 
       x1 -= centerX; x2 -= centerX;
@@ -1168,7 +1178,7 @@
           angle = 0;
       }
       this.img        = img;
-      this.angle      = Math.round(angle);
+      this.angle      = -1 * Math.round(angle);  // since +y points downward, need to negate rotation angle
       this.pinhole    = Point2D.fromPoint(img.pinhole).matrixTransform(Matrix.rotation(this.angle));
     };
 
@@ -1206,7 +1216,7 @@
       this.img      = img;
       this.scaleX   = xFactor;
       this.scaleY   = yFactor;
-      this.pinhole  = Point2D.fromPoint(img.pinhole);
+      this.pinhole  = Point2D.fromPoint(img.pinhole).matrixTransform(Matrix.scale(xFactor, yFactor));
     };
 
     ScaleImage.prototype = heir(BaseImage.prototype);
@@ -1290,9 +1300,10 @@
     //////////////////////////////////////////////////////////////////////
     // FrameImage: image -> image
     // Stick a frame around the image
-    var FrameImage = function(img) {
+    var FrameImage = function(img, color) {
       BaseImage.call(this);
       this.img        = img;
+      this.color      = color;
       this.pinhole    = Point2D.fromPoint(img.pinhole);
       this.alphaBaseline = img.alphaBaseline;
     };
@@ -1314,7 +1325,7 @@
       this.img.render(ctx);
       ctx.restore();
       ctx.beginPath();
-      ctx.strokeStyle = "black";
+      ctx.strokeStyle = colorString(this.color);
       var bb = getBB(this.img);
       // console.log(JSON.stringify(bb));
       ctx.strokeRect(bb.topLeft.x, bb.topLeft.y, bb.botRight.x - bb.topLeft.x, bb.botRight.y - bb.topLeft.y);
@@ -1331,11 +1342,11 @@
     //////////////////////////////////////////////////////////////////////
     // PinholeImage: image -> image
     // Draw a small mark at the pinhole of the image
-    var PinholeImage = function(img) {
+    var PinholeImage = function(img, color1, color2) {
       BaseImage.call(this);
       this.img        = img;
-      this.width      = img.width;
-      this.height     = img.height;
+      this.color1     = color1;
+      this.color2     = color2;
       this.pinhole    = Point2D.fromPoint(img.pinhole);
     };
 
@@ -1352,20 +1363,33 @@
       ctx.save();
       this.img.render(ctx);
       ctx.restore();
+      var px = this.getPinholeX();
+      var py = this.getPinholeY();
+      console.log("In pinhole, px = ", px, " py = ", py);
+      var tx = ctx.getTransform();
+      var pt = new DOMPoint(px, py);
+      var txpt = pt.matrixTransform(tx);
+      console.log("Transformed pinhole, px = ", txpt.x, " py = ", txpt.y);
       ctx.beginPath();
-      ctx.strokeStyle = "black"; ctx.lineWidth = 1.5;
-      ctx.moveTo(this.getPinholeX() - 5, this.getPinholeY());
-      ctx.lineTo(this.getPinholeX() + 5, this.getPinholeY());
-      ctx.moveTo(this.getPinholeX(), this.getPinholeY() - 5);
-      ctx.lineTo(this.getPinholeX(), this.getPinholeY() + 5);
+      ctx.strokeStyle = colorString(this.color1); ctx.lineWidth = 1.5;
+      ctx.moveTo(px - 5, py);
+      ctx.lineTo(px + 5, py);
+      ctx.moveTo(px, py - 5);
+      ctx.lineTo(px, py + 5);
       ctx.closePath();
       ctx.stroke();
       ctx.beginPath();
-      ctx.strokeStyle = "white"; ctx.lineWidth = 0.75;
-      ctx.moveTo(this.getPinholeX() - 5, this.getPinholeY());
-      ctx.lineTo(this.getPinholeX() + 5, this.getPinholeY());
-      ctx.moveTo(this.getPinholeX(), this.getPinholeY() - 5);
-      ctx.lineTo(this.getPinholeX(), this.getPinholeY() + 5);
+      ctx.strokeStyle = colorString(this.color2);
+      if (colorAlpha(this.color1) === 0) {
+        // full-width stroke if only one color
+        ctx.lineWidth = 1;
+      } else {
+        ctx.lineWidth = 0.75;
+      }
+      ctx.moveTo(px - 5, py);
+      ctx.lineTo(px + 5, py);
+      ctx.moveTo(px, py - 5);
+      ctx.lineTo(px, py + 5);
       ctx.closePath();
       ctx.stroke();
       ctx.restore();
@@ -1756,7 +1780,7 @@
       var centerY = (top + bot) / 2;
       // pinhole is set to centroid (or barycenter): average of three corners
       this.pinhole = new Point2D((vertices[0].x + vertices[1].x + vertices[2].x) / 3 - centerX,
-                                  (vertices[0].y + vertices[1].y + vertices[2].y) / 3 - centerY);
+                                 (vertices[0].y + vertices[1].y + vertices[2].y) / 3 - centerY);
       for (var i = 0; i < vertices.length; i++) {
         vertices[i].x -= centerX;
         vertices[i].y -= centerY;
@@ -1802,7 +1826,8 @@
       var yMin = centerY - yOffset;
       var yMax = centerY + yOffset;
 
-      return new BoundingBox(new Point2D(xMin, yMin), new Point2D(xMax, yMax));
+      return new BoundingBox(new Point2D(Math.floor(xMin), Math.floor(yMin)),
+                             new Point2D(Math.ceil(xMax), Math.ceil(yMax)));
     };
     EllipseImage.prototype.getAriaText = function(depth) {
       return " a"+colorToSpokenString(this.color,this.style) +
@@ -2076,11 +2101,11 @@
     var makeCropImage = function(x, y, width, height, img) {
       return new CropImage(x, y, width, height, img);
     };
-    var makeFrameImage = function(img) {
-      return new FrameImage(img);
+    var makeFrameImage = function(img, color) {
+      return new FrameImage(img, color);
     };
-    var makePinholeImage = function(img) {
-      return new PinholeImage(img);
+    var makePinholeImage = function(img, color1, color2) {
+      return new PinholeImage(img, color1, color2);
     }
     var makeFlipImage = function(img, direction) {
       return new FlipImage(img, direction);
@@ -2190,6 +2215,7 @@
         imageToColorList: imageToColorList,
         colorListToImage: colorListToImage,
 
+        getBB: getBB,
 
         isImage: isImage,
         isScene: isScene,
