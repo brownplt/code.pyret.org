@@ -163,7 +163,8 @@ annotations-method = method(self,
 end
 
 single-annotations-method = method(self, annotations :: List<Option<String>>):
-  annotations-method(self, annotations.and-then(_.map(link(_, empty))))
+  self.{annotations-method: annotations-method}
+    .annotations-method(annotations.map(link(_, empty)))
 end
 
 ################################################################################
