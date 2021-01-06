@@ -71,20 +71,25 @@
     return rgb2hex(IMAGE.colorString(checkColor(v)));
   }
 
-  function convertColorList(l) {
-    var color_list = [];
+  function convertPointer(p) {
+    return {v: toFixnum(p.dict.value) , f: p.dict.label}
+  }
 
-    function buildColorList(val) { 
-    // Recursively runs convertColor on every element of v 
-    // Then pushes the result into the color_list array
+  // Create a convertListWith function:
+  function convertListWith(func, l) {
+    var js_list = []; 
+
+    function buildJsList(val) { 
+    // Recursively runs func on every element of val 
+    // Then pushes the result into the js_list array
       if (val.dict.first) { 
-        color_list.push(convertColor(val.dict.first));
-        buildColorList(val.dict.rest);
+        js_list.push(func(val.dict.first));
+        buildJsList(val.dict.rest);
       }
     }
 
-    buildColorList(l); 
-    return color_list;
+    buildJsList(l);
+    return js_list;
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -296,7 +301,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
-            colors_list = convertColorList(colors);
+            colors_list = convertListWith(convertColor, colors);
           }
     });
     const colors_list_length = colors_list.length;
@@ -339,12 +344,22 @@
     const legends = get(rawData, 'legends');
     const data = new google.visualization.DataTable();
     var colors_list = [];
+    var pointers_list = [];
+    var pointer_color = 'black';
 
     // Sets up the color list [Coloring each group memeber/stack]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
-            colors_list = convertColorList(colors);
+            colors_list = convertListWith(convertColor, colors);
+          }
+    });
+
+    // Sets up the pointers list [Coloring each group memeber/stack]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
+          none: function () {},
+          some: function (pointers) {
+            pointers_list = convertListWith(convertPointer, pointers);
           }
     });
 
@@ -355,15 +370,43 @@
     // Adds each row of bar data
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
 
-    return {
-      data: data,
-      options: {
+    var options = {
         isStacked: get(rawData, 'is-stacked'),
-        series: colors_list.map(c => ({color: c})),
+        series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
         legend: {
           position: 'right'
         }
-      },
+      }
+
+    /* NOTE(John & Edward, Dec 2020): 
+       Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
+       The Current Chart library necessitates that we assign at least one stack/bar to the 
+       second axis in order for it to show up, and we have to fix the min/max of each axis 
+       manually to make sure that both are consistent with each other rather than being 
+       relative to the data. Theres also a problem: When the pointers are too close to each 
+       other, one or both of them disappear! 
+    */
+    if (pointers_list != []) {
+
+      // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
+      data.addColumn('number', 'Pointers')
+      options['series'][(data.If.length - 2)] = {color: pointer_color, targetAxisIndex: 1};
+
+      // Update Options to include the new axis ticks consistent with the first axis
+      options['vAxes'] = 
+        { 1: 
+          { maxValue: get(rawData, 'axis-top'), 
+            minValue: get(rawData, 'axis-bottom'),
+            gridlines: { color: pointer_color },
+            ticks: pointers_list
+          } 
+        }
+    }
+    
+
+    return {
+      data: data,
+      options: options,
       chartType: google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],

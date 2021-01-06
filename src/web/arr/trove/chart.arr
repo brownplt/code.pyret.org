@@ -32,12 +32,15 @@ FUNCTION-POINT-SIZE = 0.1
 DEFAULT-RANGE = {-10; 10}
 
 ################################################################################
-# TYPE SYNONYMS
+# DATA + TYPE SYNONYMS
 ################################################################################
 
 type PlottableFunction = (Number -> Number)
 type Posn = RawArray<Number>
 type TableIntern = RawArray<RawArray<Any>>
+data Pointer: 
+  | pointer(label :: String, value :: Number)
+end
 
 ################################################################################
 # HELPERS
@@ -225,6 +228,13 @@ default-multi-sort-method = method(self,
   self.constr()(self.obj.{tab: sorted-table})
 end
 
+axis-pointer-method = method(self,
+    tickValues :: List<Number>, 
+    tickLabels :: List<String>): 
+  ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
+  self.constr()(self.obj.{pointers: some(ticks)})
+end
+
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -313,14 +323,18 @@ default-bar-chart-series = {
 
 type MultiBarChartSeries = { 
   tab :: TableIntern,
+  axis-bottom :: Number,
+  axis-top :: Number,
   legends :: RawArray<String>,
   is-stacked :: Boolean,
-  colors :: Option<List<I.Color>>
+  colors :: Option<List<I.Color>>, 
+  pointers :: Option<List<Pointer>>
 }
 
 default-multi-bar-chart-series = {
   is-stacked: false,
-  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown])
+  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
+  pointers: none
 }
   
 type HistogramSeries = {
@@ -513,6 +527,7 @@ data DataSeries:
     sort-by: default-multi-sort-method,
     sort-by-data: multi-sort-method, 
     sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method, 
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
@@ -830,16 +845,34 @@ fun stacked-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
+  # Calculating the max axis (top) and min axis (bottom) values 
+  sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+  positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
+  negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  positive-sums = map(positive-only-sum, value-lists)
+  negative-sums = map(negative-only-sum, value-lists)
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
+
   # Constructing the Data Series
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list,
     is-stacked: true
   } ^ multi-bar-chart-series
 end
 
 fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
-  doc: "Consume values, a list of list of numbers and construct a box chart"
+  doc: "Consunum-maxme values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
   labeled-box-plot-from-list(labels, values)
 end
