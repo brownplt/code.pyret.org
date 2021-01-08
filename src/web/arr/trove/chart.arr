@@ -249,6 +249,12 @@ default-function-plot-series = {
   legend: '',
 }
 
+type GeoChartSeries = {
+  tab :: TableIntern,
+}
+
+default-geochart-series = {}
+
 ###########
 
 type ChartWindowObject = {
@@ -351,6 +357,15 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
   num-samples: 1000,
 }
 
+type GeoChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  render :: ( -> IM.Image),
+}
+
+default-geo-chart-window-object :: GeoChartWindowObject = default-chart-window-object
+
 ################################################################################
 # DATA DEFINITIONS
 ################################################################################
@@ -403,10 +418,13 @@ data DataSeries:
     end,
     method num-bins(self, num-bins :: Number):
       histogram-series(self.obj.{
-        min-num-bins: some(num-bins),
-        max-num-bins: some(num-bins)
-      })
-    end,
+          min-num-bins: some(num-bins),
+          max-num-bins: some(num-bins)
+        })
+    end
+  | geochart-series(obj :: GeoChartSeries) with:
+    is-single: true,
+    contr: {(): geochart-series},
 sharing:
   method _output(self):
     get-vs-from-img("DataSeries", render-chart(self).get-image())
@@ -454,7 +472,9 @@ data ChartWindow:
         raise('num-samples: value must be an ineger between 1 and 100000')
       end
       plot-chart-window(self.obj.{num-samples: num-samples})
-    end,
+    end
+  | geochart-window(obj :: GeoChartWindowObject) with:
+    constr: {(): geochart-window},
 sharing:
   method display(self):
     _ = check-chart-window(self.obj)
@@ -477,6 +497,7 @@ sharing:
     get-vs-from-img("ChartWindow", self.get-image())
   end
 end
+
 
 ################################################################################
 # FUNCTIONS
@@ -752,6 +773,22 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
   } ^ histogram-series
 end
 
+fun geochart-from-list(
+    region-labels :: List<String>,
+    values :: List<Number>) -> DataSeries block:
+  region-length = region-labels.length()
+  values-length = values.length()
+  when region-length <> values-length:
+    raise("geochart: region-labels and values should have the same length")
+  end
+  values.each(check-num)
+  region-labels.each(check-string)
+  default-geochart-series.{
+    tab: to-table2(region-labels, values)
+  } ^ geochart-series
+end
+
+
 ################################################################################
 # PLOTS
 ################################################################################
@@ -820,6 +857,11 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.histogram(self, obj)
         end
       } ^ histogram-chart-window
+    |geochart-series(obj) =>
+      default-geo-chart-window-object.{
+        method render(self):
+        geo-map(self, obj) end
+      } ^ geochart-window
   end
 where:
   render-now = {(x): render-chart(x).get-image()}
@@ -859,8 +901,9 @@ where:
       [list: 2, 3.1, 1, 3, 6, 5])) does-not-raise
   render-now(from-list.box-plot(
       [list: [list: 1, 2, 3, 4], [list: 1, 2, 3, 4, 5], [list: 10, 11]]
-    )) does-not-raise
+      )) does-not-raise
 end
+
 
 fun generate-xy(
     p :: FunctionPlotSeries,
