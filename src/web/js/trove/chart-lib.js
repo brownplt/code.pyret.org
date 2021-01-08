@@ -464,7 +464,24 @@
       mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
     };
   }
-
+    
+  function geoChart(globalOptions, rawData) {
+      const table = get(rawData, 'tab');
+      const data = new google.visualization.GeoMap;
+      return {
+          data: data,
+          options: {
+              slices: table.map(row => ({offset: toFixnum(row[2])})),
+              legend: {
+                  alignment: 'end'
+              }
+          },
+          chartType: google.visualization.GeoMap,
+          onExit: defaultImageReturn,
+      }
+  }
+    
+    
   function plot(globalOptions, rawData) {
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
