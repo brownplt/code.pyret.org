@@ -68,6 +68,8 @@ data Series:
     typ: 'bar-chart'
   | histogram-series(values :: List<Number>, n :: Number) with:
     typ: 'histogram'
+  | geo-map-series(labels :: List<String>, values :: List<Number>, threshold :: List<Number>) 
+    with: typ: 'geo-map'
 sharing:
   method _output(self :: Series) -> VS.ValueSkeleton:
     VS.vs-constr(self.typ + "-like-series", [list: VS.vs-str("...")])
@@ -378,6 +380,38 @@ end
    end
 |#
 
+fun adjustable-geo-map(labels :: List<String>, values :: List<Number>, radiuses :: List<Number>) 
+  -> Series block:
+  label-length = labels.length()
+  value-length = values.length()
+  when label-length <> value-length:
+    raise('adjustable-geo-chart: labels and values should have the same length')
+  end
+  radius-length = radiuses.length()
+  when label-length <> radius-length:
+    raise('adjustable-geo-chart: labels and radiuses should have the same length')
+  end
+  when label-length == 0:
+    raise('adjustable-geo-chart: need at least one data')
+  end
+  geo-map-series(labels, values, radiuses)
+end
+
+fun geo-map-s(labels :: List<String>, values :: List<Number>) -> Series block:
+  doc: ```
+       Consume labels, a list of string, and values, a list of numbers
+       and construct a geo chart   ```
+  label-length = labels.length()
+  value-length = values.length()
+  when label-length <> value-length:
+    raise('geo-chart: labels and values should have the same length')
+  end
+  when label-length == 0:
+    raise('geo-chart: need at least one data')
+  end
+  geo-map-series(labels, values, repeat(label-length, 1))
+end
+
 fun plot(s :: Series) -> PlotObject:
   cases (Series) s:
     | line-plot-series(_, _, _) => plots([list: s])
@@ -411,6 +445,16 @@ fun plot(s :: Series) -> PlotObject:
         method _render(self):
           shadow values = values.map({(x): [raw-array: x]})
           P.histogram(self, builtins.raw-array-from-list(values), n)
+        end
+      }
+    | geo-map-series(labels, values, threshold) =>
+      plot-object-base.{
+        method _render(self):
+          geo-map-s(self, map3(
+              {(l :: String, v :: Number, t :: Number): [raw-array: l, v, t]},
+              labels,
+              values,
+              threshold) ^ builtins.raw-array-from-list)
         end
       }
   end
