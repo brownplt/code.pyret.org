@@ -118,6 +118,9 @@ box-chart-window-options :: BoxChartWindowOptions = axis-window-options
 type HistogramWindowOptions = AxisWindowOptions
 histogram-window-options :: HistogramWindowOptions = axis-window-options
 
+type GeoChartWindowOptions = BaseWindowOptions
+geo-chart-window-option :: GeoChartWindowOptions = base-window-options
+
 type PlotOptions = {
   color :: I.Color
 }
@@ -133,6 +136,7 @@ type WrappedPieChartWindowOptions = (PieChartWindowOptions -> PieChartWindowOpti
 type WrappedHistogramWindowOptions = (HistogramWindowOptions -> HistogramWindowOptions)
 type WrappedDotChartWindowOptions = (DotChartWindowOptions -> DotChartWindowOptions)
 type WrappedBoxChartWindowOptions = (BoxChartWindowOptions -> BoxChartWindowOptions)
+type WrappedGeoChartWindowOptions = (GeoChartWindowOptions -> GeoChartWindowOptions)
 type PlottableFunction = (Number -> Number)
 type Posn = RawArray<Number>
 type TableInt = RawArray<Posn>
@@ -545,6 +549,19 @@ fun render-plots(
     options
   end
   render-multi-plot(new-plots, options)
+end
+
+fun geo-map(tab :: Table, options-generator :: WrappedGeoChartWindowOptions) -> IM.Image block:
+  doc: 'Consume a table with two columns: `region` and `value`, and show a geo-map'
+  when not(tab._header-raw-array =~ [raw-array: 'region', 'value']):
+    raise('geo-map: expect a table with columns named `region` and `value`')
+  end
+  when raw-array-length(tab._rows-raw-array) == 0:
+    raise('geo-map: expect the table to have at least one row')
+  end
+  options = options-generator(geo-chart-window-option)
+  _ = check-base-window-options(options)
+  P.geo-map(options, tab._rows-raw-array)
 end
 
 make-function-plot = function-plot(_, _.{color: I.blue})
