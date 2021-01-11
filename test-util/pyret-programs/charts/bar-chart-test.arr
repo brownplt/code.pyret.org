@@ -20,7 +20,7 @@ single-bars-neg = from-list.bar-chart(
 
 single-bars-rep = from-list.bar-chart(
   [list: "Pyret", "OCaml", "C", "C++", "Python", "Racket", "Pyret"],
-  [list: 10,       6,       1,   3,     5,       8,        9])
+  [list: 10,       6,       1,   3,     5.5,       8,        9])
 
 ######################
 # GROUPED BAR CHARTS 
@@ -168,7 +168,7 @@ fun count-vowels(s):
 end
 
 ################################################################################
-# Actual Testing -- Check
+# Actual Testing -- Checks
 ################################################################################
 
 #####################
@@ -287,6 +287,8 @@ more-colors = [list: red, green, blue, orange, purple, yellow, indigo, violet]
 
 check "Color Methods: Single Bars":
   render-image(single-bars.default-color(red)) satisfies is-image
+  render-image(single-bars-neg.default-color(green)) satisfies is-image
+  render-image(single-bars-rep.default-color(violet)) satisfies is-image
 
   render-image(single-bars.colors(empty)) satisfies is-image
   render-image(single-bars.colors(single-color)) satisfies is-image
@@ -294,6 +296,8 @@ check "Color Methods: Single Bars":
   render-image(single-bars.colors(manual-colors)) satisfies is-image
   render-image(single-bars.colors(less-colors)) satisfies is-image
   render-image(single-bars.colors(more-colors)) satisfies is-image
+  render-image(single-bars-neg.colors(rainbow-colors)) satisfies is-image
+  render-image(single-bars-rep.colors(more-colors)) satisfies is-image
 end
 
 check "Color Methods: Grouped Bars":
@@ -303,6 +307,9 @@ check "Color Methods: Grouped Bars":
   render-image(grouped-bars.colors(manual-colors)) satisfies is-image
   render-image(grouped-bars.colors(less-colors)) satisfies is-image
   render-image(grouped-bars.colors(more-colors)) satisfies is-image
+  render-image(grouped-bars-neg.colors(single-color)) satisfies is-image
+  render-image(grouped-bars-rep.colors(less-colors)) satisfies is-image
+  render-image(grouped-bars-repgroups.colors(more-colors)) satisfies is-image
 end
 
 check "Color Methods: Stacked Bars":
@@ -312,6 +319,9 @@ check "Color Methods: Stacked Bars":
   render-image(stacked-bars.colors(manual-colors)) satisfies is-image
   render-image(stacked-bars.colors(less-colors)) satisfies is-image
   render-image(stacked-bars.colors(more-colors)) satisfies is-image
+  render-image(stacked-bars-neg.colors(manual-colors)) satisfies is-image
+  render-image(stacked-bars-rep.colors(single-color)) satisfies is-image
+  render-image(stacked-bars-repstacks.colors(rainbow-colors)) satisfies is-image
 end
 
 ########################
@@ -337,44 +347,232 @@ str-len-eq = {(a, b): string-length(a) == string-length(b)}
 vowel-eq = {(a, b): count-vowels(a) == count-vowels(b)}
 
 #### Scoring Functions ####
-  sum = {(l): fold({(acc, elm): acc + elm}, 0, l)}
-  get-first = {(l): l.get(0)}
-  pos-only-sum = {(l): sum(filter({(elm): elm > 0}, l))}
-  priority-scoring = 
-    {(coeff, l): fold2({(acc, e1, e2): acc + (e1 * e2)}, 0, coeff, l)}
-  weekend-weekday-scoring = 
-    {(l): priority-scoring([list: 1, 1, 1, 1, 1, -1, -1], l)}
+sum = {(l): fold({(acc, elm): acc + elm}, 0, l)}
+get-first = {(l): l.get(0)}
+pos-only-sum = {(l): sum(filter({(elm): elm > 0}, l))}
+priority-scoring = 
+  {(coeff, l): fold2({(acc, e1, e2): acc + (e1 * e2)}, 0, coeff, l)}
+weekend-weekday-scoring = 
+  {(l): priority-scoring([list: 1, 1, 1, 1, 1, -1, -1], l)}
 
 check "Sorting Methods: Single Bars":
   render-image(single-bars.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
   render-image(single-bars.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
   render-image(single-bars.sort-by(ascending-even-priority, vanilla-eq)) satisfies is-image
+  render-image(single-bars-neg.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
+  render-image(single-bars-rep.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
 
   render-image(single-bars.sort-by-label(ascending-cmp, vanilla-eq)) satisfies is-image
   render-image(single-bars.sort-by-label(descending-cmp, vanilla-eq)) satisfies is-image
   render-image(single-bars.sort-by-label(descending-str-len, str-len-eq)) satisfies is-image
   render-image(single-bars.sort-by-label(ascending-vowels, vowel-eq)) satisfies is-image
+  render-image(single-bars-neg.sort-by-label(descending-str-len, str-len-eq)) satisfies is-image
+  render-image(single-bars-rep.sort-by-label(ascending-vowels, vowel-eq)) satisfies is-image
+end
+
+check "Sorting Methods: Grouped Bars":
+  render-image(grouped-bars.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars.sort-by(ascending-even-priority, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars-neg.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars-rep.sort-by(ascending-even-priority, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars-repgroups.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
+
+  render-image(grouped-bars.sort-by-label(ascending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars.sort-by-label(descending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars.sort-by-label(ascending-vowels, vowel-eq)) satisfies is-image
+  render-image(grouped-bars-neg.sort-by-label(ascending-vowels, vowel-eq)) satisfies is-image
+  render-image(grouped-bars-rep.sort-by-label(descending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars-repgroups.sort-by-label(ascending-cmp, vanilla-eq)) 
+    satisfies is-image
+
+  render-image(grouped-bars.sort-by-data(sum, ascending-cmp, vanilla-eq)) satisfies is-image
+  render-image(grouped-bars.sort-by-data(sum, descending-cmp, vanilla-eq)) 
+    satisfies is-image
+  render-image(grouped-bars.sort-by-data(sum, ascending-even-priority, vanilla-eq)) 
+    satisfies is-image
+  render-image(grouped-bars.sort-by-data(get-first, descending-cmp, vanilla-eq)) 
+    satisfies is-image
+  render-image(grouped-bars-neg.sort-by-data(pos-only-sum, ascending-cmp, vanilla-eq)) 
+    satisfies is-image
+  render-image(grouped-bars-repgroups.sort-by-data(sum, ascending-even-priority, vanilla-eq)) 
+    satisfies is-image
+  render-image(
+    grouped-bars-rep.sort-by-data(weekend-weekday-scoring, ascending-cmp, vanilla-eq)) 
+    satisfies is-image
+
 end
 
 check "Sorting Methods: Stacked Bars":
   render-image(stacked-bars.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
   render-image(stacked-bars.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
   render-image(stacked-bars.sort-by(ascending-even-priority, vanilla-eq)) satisfies is-image
+  render-image(stacked-bars-neg.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
+  render-image(stacked-bars-rep.sort-by(ascending-even-priority, vanilla-eq)) satisfies is-image
+  render-image(stacked-bars-repstacks.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
 
   render-image(stacked-bars.sort-by-label(ascending-cmp, vanilla-eq)) satisfies is-image
   render-image(stacked-bars.sort-by-label(descending-cmp, vanilla-eq)) satisfies is-image
   render-image(stacked-bars.sort-by-label(ascending-vowels, vowel-eq)) satisfies is-image
+  render-image(stacked-bars-neg.sort-by-label(ascending-vowels, vowel-eq)) satisfies is-image
+  render-image(stacked-bars-rep.sort-by-label(descending-cmp, vanilla-eq)) satisfies is-image
+  render-image(stacked-bars-repstacks.sort-by-label(ascending-cmp, vanilla-eq)) 
+    satisfies is-image
 
   render-image(stacked-bars.sort-by-data(sum, ascending-cmp, vanilla-eq)) satisfies is-image
-  render-image(stacked-bars.sort-by-data(sum, descending-cmp, vanilla-eq)) 
-  satisfies is-image
+  render-image(stacked-bars.sort-by-data(sum, descending-cmp, vanilla-eq)) satisfies is-image
   render-image(stacked-bars.sort-by-data(sum, ascending-even-priority, vanilla-eq)) 
-  satisfies is-image
+    satisfies is-image
   render-image(stacked-bars.sort-by-data(get-first, descending-cmp, vanilla-eq)) 
-  satisfies is-image
+    satisfies is-image
   render-image(stacked-bars-neg.sort-by-data(pos-only-sum, ascending-cmp, vanilla-eq)) 
-  satisfies is-image
+    satisfies is-image
+  render-image(stacked-bars-repstacks.sort-by-data(sum, ascending-even-priority, vanilla-eq)) 
+    satisfies is-image
   render-image(
     stacked-bars-rep.sort-by-data(weekend-weekday-scoring, ascending-cmp, vanilla-eq)) 
-  satisfies is-image
+    satisfies is-image
+end
+
+#############################
+# ADD POINTERS METHOD TESTS 
+#############################
+
+check "Add Pointers Method: Single Bars": 
+  render-image(single-bars.add-pointers(empty, empty)) satisfies is-image
+  render-image(single-bars.add-pointers([list: 6, 7], [list: "median", "mean + 1"])) 
+    satisfies is-image
+  render-image(single-bars.add-pointers(
+    [list: -10000000, 900000000], 
+    [list: "to-far-below", "to-far-above"])) # Wont show up
+    satisfies is-image
+  render-image(single-bars.add-pointers([list: 0, 4, 10], [list: "zero", "four", "max"]))
+    satisfies is-image
+  render-image(single-bars-neg.add-pointers([list: 3, 1, -2, -5], [list: "a", "b", "c", "d"]))
+    satisfies is-image
+  render-image(single-bars-neg.add-pointers([list: 1.546, -2.213], [list: 'decimal', 'negdec']))
+    satisfies is-image
+  render-image(single-bars-rep.add-pointers([list: 3, 5], [list: 'tres', 'cinco']))
+    satisfies is-image
+
+  render-image(single-bars.add-pointers(empty, [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(single-bars.add-pointers([list: 0], empty))
+    raises "pointers values and names should have the same length"
+  render-image(single-bars.add-pointers([list: 0], [list: "base", "target"]))
+    raises "pointers values and names should have the same length"
+  render-image(single-bars.add-pointers([list: 0, 1], [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(single-bars-neg.add-pointers([list: 0], [list: "base", "target"]))
+    raises "pointers values and names should have the same length"
+  render-image(single-bars-rep.add-pointers([list: 0, 1], [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(single-bars.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(single-bars-neg.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(single-bars-rep.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+end
+
+check "Add Pointers Method: Grouped Bars": 
+  render-image(grouped-bars.add-pointers(empty, empty)) satisfies is-image
+  render-image(grouped-bars.add-pointers(
+    [list: 1874094, 41417373 / 14], 
+    [list: "median (All Bars)", "mean (All Bars)"])) 
+    satisfies is-image
+  render-image(grouped-bars.add-pointers(
+    [list: -10000000, 900000000], 
+    [list: "to-far-below", "to-far-above"])) # Wont show up
+    satisfies is-image
+  render-image(grouped-bars.add-pointers(
+    [list: 0, 6000000, 12000000], 
+    [list: "zero", "middle", "max"]))
+    satisfies is-image
+  render-image(grouped-bars-neg.add-pointers(
+    [list: 0.3, 0, -1.5, -3], 
+    [list: "a", "b", "c", "d"]))
+    satisfies is-image
+  render-image(grouped-bars-rep.add-pointers(
+    [list: 3.5, 9], 
+    [list: "Decimal", "Almost Max"]))
+    satisfies is-image
+  render-image(grouped-bars-repgroups.add-pointers(
+    [list: 6, 9], 
+    [list: "Almost Middle", "Almost Max"]))
+    satisfies is-image
+
+  render-image(grouped-bars.add-pointers(empty, [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars.add-pointers([list: 0], empty))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars.add-pointers([list: 0], [list: "base", "target"]))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars.add-pointers([list: 0, 1], [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars-neg.add-pointers([list: 0], [list: "base", "target"]))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars-rep.add-pointers([list: 0, 1], [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars-repgroups.add-pointers(empty, [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(grouped-bars.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(grouped-bars-neg.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(grouped-bars-rep.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(grouped-bars-repgroups.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+end
+
+check "Add Pointers Method: Stacked Bars": 
+  render-image(stacked-bars.add-pointers(empty, empty)) satisfies is-image
+  render-image(stacked-bars.add-pointers(
+    [list: 18409317.5, 20708686.5],
+    [list: "median", "mean"])) 
+    satisfies is-image
+  render-image(stacked-bars.add-pointers(
+    [list: -10000000, 900000000], 
+    [list: "to-far-below", "to-far-above"])) # Wont show up
+    satisfies is-image
+  render-image(stacked-bars.add-pointers(
+    [list: 0, 20000000, 40000000], 
+    [list: "zero", "middle", "max"]))
+    satisfies is-image
+  render-image(stacked-bars-neg.add-pointers(
+    [list: 1.3, 0, -1.5, -3], 
+    [list: "a", "b", "c", "d"]))
+    satisfies is-image
+  render-image(stacked-bars-rep.add-pointers(
+    [list: 3.5, 59], 
+    [list: "Decimal", "Almost Max"]))
+    satisfies is-image
+  render-image(stacked-bars-repstacks.add-pointers(
+    [list: 31, 59], 
+    [list: "Almost Middle", "Almost Max"]))
+    satisfies is-image
+
+  render-image(stacked-bars.add-pointers(empty, [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars.add-pointers([list: 0], empty))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars.add-pointers([list: 0], [list: "base", "target"]))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars.add-pointers([list: 0, 1], [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars-neg.add-pointers([list: 0], [list: "base", "target"]))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars-rep.add-pointers([list: 0, 1], [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars-repstacks.add-pointers(empty, [list: "base"]))
+    raises "pointers values and names should have the same length"
+  render-image(stacked-bars.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(stacked-bars-neg.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(stacked-bars-rep.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
+  render-image(stacked-bars-repstacks.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
+    raises "pointers cannot overlap"
 end

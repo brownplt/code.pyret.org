@@ -230,7 +230,21 @@ end
 
 axis-pointer-method = method(self,
     tickValues :: List<Number>, 
-    tickLabels :: List<String>): 
+    tickLabels :: List<String>) block: 
+
+  # Lengths of Lists
+  TVLen = tickValues.length() 
+  TLLen = tickLabels.length()
+  distinctTVLen = distinct(tickValues).length()
+
+  # Edge Case Error Checking
+  when not(distinctTVLen == TVLen): 
+    raise('add-pointers: pointers cannot overlap')
+  end
+  when not(TVLen == TLLen): 
+    raise('add-pointers: pointers values and names should have the same length')
+  end
+
   ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
   self.constr()(self.obj.{pointers: some(ticks)})
 end
@@ -312,13 +326,17 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
+  axis-bottom :: Number, 
+  axis-top :: Number,
   color :: Option<I.Color>,
   colors :: Option<List<I.Color>>,
+  pointers :: Option<List<Pointer>>
 }
 
 default-bar-chart-series = {
   color: none,
   colors: none,
+  pointers: none
 }
 
 type MultiBarChartSeries = { 
@@ -520,6 +538,7 @@ data DataSeries:
     colors: color-list-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method, 
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
@@ -767,8 +786,20 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   values.each(check-num)
   labels.each(check-string)
 
+  # Calculating the max axis (top) and min axis (bottom) values 
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
+
   default-bar-chart-series.{
-    tab: to-table2(labels, values)
+    tab: to-table2(labels, values),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height
   } ^ bar-chart-series
 end
 
@@ -805,9 +836,24 @@ fun grouped-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
+  # Calculating the max axis (top) and min axis (bottom) values 
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, value-lists)
+  negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, value-lists)
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
+
   # Constructing the Data Series
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list
   } ^ multi-bar-chart-series
 end
