@@ -71,21 +71,43 @@
     return rgb2hex(IMAGE.colorString(checkColor(v)));
   }
 
-  function convertColorList(l) {
-    var color_list = [];
+  function convertPointer(p) {
+    return {v: toFixnum(p.dict.value) , f: p.dict.label}
+  }
 
-    function buildColorList(val) { 
-    // Recursively runs convertColor on every element of v 
-    // Then pushes the result into the color_list array
+  // Converts a list with func:
+  function convertListWith(func, l) {
+    var js_list = []; 
+
+    function buildJsList(val) { 
+    // Recursively runs func on every element of val 
+    // Then pushes the result into the js_list array
       if (val.dict.first) { 
-        color_list.push(convertColor(val.dict.first));
-        buildColorList(val.dict.rest);
+        js_list.push(func(val.dict.first));
+        buildJsList(val.dict.rest);
       }
     }
 
-    buildColorList(l); 
-    return color_list;
+    buildJsList(l);
+    return js_list;
   }
+
+  // Function that takes in the height of the highest bar and finds the edges of the Vertical Axis
+    function roundedAxis(posBarHeight, negBarHeight) {
+      console.log("Bar Heights:", posBarHeight, negBarHeight)
+      var step_types = [0.2, 0.25, 0.5, 1];
+      var [pos_coeff, pos_exponent] = posBarHeight.toExponential().split("e").map(num => parseFloat(num));
+      var [neg_coeff, neg_exponent] = negBarHeight.toExponential().split("e").map(num => parseFloat(num));
+      console.log("Pos Scientific:", pos_coeff, pos_exponent)
+      console.log("Neg Scientific:", neg_coeff, neg_exponent)
+      var pos_step = step_types.filter(s => s >= (Math.abs(pos_coeff) / 9))[0] * Math.pow(10, pos_exponent);
+      var neg_step = step_types.filter(s => s >= (Math.abs(neg_coeff) / 9))[0] * Math.pow(10, neg_exponent);
+      var step = Math.max(pos_step, neg_step);
+      console.log("Step:", pos_step, neg_step, step);
+      var [axis_top, axis_bottom] = [step * Math.ceil(posBarHeight / step), step * Math.floor(negBarHeight / step)];
+      return [axis_top, axis_bottom];
+    }
+
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -291,12 +313,14 @@
     const data = new google.visualization.DataTable();
     var colors_list = [];
     var default_color = "";
+    var pointers_list = [];
+    var pointer_color = 'black';
 
     // Sets up the color list [Each Bar Colored Individually]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
-            colors_list = convertColorList(colors);
+            colors_list = convertListWith(convertColor, colors);
           }
     });
     const colors_list_length = colors_list.length;
@@ -306,6 +330,14 @@
           none: function () {},
           some: function (color) {
             default_color = convertColor(color);
+          }
+    });
+
+    // Sets up the pointers list [Coloring each group memeber/stack]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
+          none: function () {},
+          some: function (pointers) {
+            pointers_list = convertListWith(convertPointer, pointers);
           }
     });
 
@@ -320,13 +352,55 @@
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
 
-    return {
-      data: data,
-      options: {
+    var options = {
         legend: {
           position: 'none'
         }
-      },
+      }
+
+     /* NOTE(John & Edward, Dec 2020): 
+       Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
+       The Current Chart library necessitates that we assign at least one stack/bar to the 
+       second axis in order for it to show up, and we have to fix the min/max of each axis 
+       manually to make sure that both are consistent with each other rather than being relative 
+       to the data. This also means that we'll have to make this a fake multi-bar-chart. There is
+       also a problem: When the pointers are too close to each other, one or both of them 
+       disappear!
+    */
+    if (pointers_list.length > 0) {
+
+      // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
+      data.addColumn('number', 'Pointers')
+      options['series'] = { 1: { color: pointer_color, targetAxisIndex: 1 } };
+
+      // Update Options to include the new axis ticks consistent with the first axis
+      var [max, min] = 
+        roundedAxis(
+          toFixnum(get(rawData, 'axis-top')), 
+          toFixnum(get(rawData, 'axis-bottom')))
+
+      options['vAxes'] = {
+        0: {
+          viewWindow: { 
+            max: max, 
+            min: min
+          }
+        },
+        1: { 
+          viewWindow: { 
+            max: max, 
+            min: min
+          },
+          gridlines: { color: pointer_color },
+          ticks: pointers_list, 
+          textStyle: { color: pointer_color }
+        } 
+      }
+    }
+
+    return {
+      data: data,
+      options: options,
       chartType: google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],
@@ -339,12 +413,22 @@
     const legends = get(rawData, 'legends');
     const data = new google.visualization.DataTable();
     var colors_list = [];
+    var pointers_list = [];
+    var pointer_color = 'black';
 
     // Sets up the color list [Coloring each group memeber/stack]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
           none: function () {},
           some: function (colors) {
-            colors_list = convertColorList(colors);
+            colors_list = convertListWith(convertColor, colors);
+          }
+    });
+
+    // Sets up the pointers list [Coloring each group memeber/stack]
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
+          none: function () {},
+          some: function (pointers) {
+            pointers_list = convertListWith(convertPointer, pointers);
           }
     });
 
@@ -355,15 +439,57 @@
     // Adds each row of bar data
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
 
+    var options = {
+        isStacked: get(rawData, 'is-stacked'),
+        series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
+        legend: {
+          position: 'top', 
+          maxLines: data.If.length - 1
+        }
+      }
+
+    /* NOTE(John & Edward, Dec 2020): 
+       Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
+       The Current Chart library necessitates that we assign at least one stack/bar to the 
+       second axis in order for it to show up, and we have to fix the min/max of each axis 
+       manually to make sure that both are consistent with each other rather than being 
+       relative to the data. Theres also a problem: When the pointers are too close to each 
+       other, one or both of them disappear! 
+    */
+
+    if (pointers_list.length > 0) {
+      // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
+      data.addColumn('number', 'Pointers')
+      options['series'][(data.If.length - 2)] = {color: pointer_color, targetAxisIndex: 1};
+
+      // Update Options to include the new axis ticks consistent with the first axis
+      var [max, min] = 
+        roundedAxis(
+          toFixnum(get(rawData, 'axis-top')), 
+          toFixnum(get(rawData, 'axis-bottom')))
+
+      options['vAxes'] = {
+        0: {
+          viewWindow: { 
+            max: max, 
+            min: min
+          }
+        },
+        1: { 
+          viewWindow: { 
+            max: max, 
+            min: min
+          },
+          gridlines: { color: pointer_color },
+          ticks: pointers_list, 
+          textStyle: { color: pointer_color }
+        } 
+      }
+    }
+
     return {
       data: data,
-      options: {
-        isStacked: get(rawData, 'is-stacked'),
-        series: colors_list.map(c => ({color: c})),
-        legend: {
-          position: 'right'
-        }
-      },
+      options: options,
       chartType: google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],

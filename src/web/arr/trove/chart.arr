@@ -21,6 +21,7 @@ import either as E
 import string-dict as SD
 import valueskeleton as VS
 import statistics as ST
+import color as C
 
 ################################################################################
 # CONSTANTS
@@ -31,12 +32,15 @@ FUNCTION-POINT-SIZE = 0.1
 DEFAULT-RANGE = {-10; 10}
 
 ################################################################################
-# TYPE SYNONYMS
+# DATA + TYPE SYNONYMS
 ################################################################################
 
 type PlottableFunction = (Number -> Number)
 type Posn = RawArray<Number>
 type TableIntern = RawArray<RawArray<Any>>
+data Pointer: 
+  | pointer(label :: String, value :: Number)
+end
 
 ################################################################################
 # HELPERS
@@ -80,6 +84,33 @@ fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
     ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
     ^ IM.overlay-align("center", "bottom", _, raw-img)
     ^ VS.vs-value
+end
+
+fun table-sorter<A,B>(
+    t :: TableIntern, 
+    value-getter :: (RawArray -> A), 
+    scorer :: (A -> B), 
+    cmp :: (B, B -> Boolean), 
+    eq :: (B, B -> Boolean)): 
+  doc: ```
+       General Data Table Sorting Function:
+       Value-getter grabs the Column of the Data table you want to use to sort
+       Scorer Modifies the values in that Column to what you want to sort-by
+       ```
+  list-of-rows = t ^ raw-array-to-list
+
+  scored-values = 
+    map(
+      {(row): {row; row ^ value-getter ^ scorer}}, 
+      list-of-rows)
+
+  sorted-by-score = 
+    scored-values.sort-by(
+      {(row-score, oth-row-score): cmp(row-score.{1}, oth-row-score.{1})}, 
+      {(row-score, oth-row-score): eq(row-score.{1}, oth-row-score.{1})})
+
+  sorted-rows = map({(row-score): row-score.{0}}, sorted-by-score)
+  sorted-rows ^ builtins.raw-array-from-list
 end
 
 ################################################################################
@@ -127,6 +158,95 @@ end
 
 y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
+end
+
+sort-method = method(self, 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-value(row :: RawArray) -> Number: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in Number form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1)
+  end
+  
+  identity = {(x): x}
+  sorted-table = table-sorter(self.obj!tab, get-value, identity, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+label-sort-method = method(self, 
+    cmp :: (String, String -> Boolean), 
+    eq :: (String, String -> Boolean)): 
+  
+  fun get-label(row :: RawArray) -> String: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in Number form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 0)
+  end
+  
+  identity = {(x): x}
+  sorted-table = table-sorter(self.obj!tab, get-label, identity, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+multi-sort-method = method(self, 
+    scorer :: (List<Number> -> Number), 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-values(row :: RawArray) -> List<Number>: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in List form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1) ^ raw-array-to-list
+  end
+  
+  sorted-table = table-sorter(self.obj!tab, get-values, scorer, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+default-multi-sort-method = method(self, 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-values(row :: RawArray) -> List<Number>: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in List form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1) ^ raw-array-to-list
+  end
+  
+  sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+  sorted-table = table-sorter(self.obj!tab, get-values, sum, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+axis-pointer-method = method(self,
+    tickValues :: List<Number>, 
+    tickLabels :: List<String>) block: 
+
+  # Lengths of Lists
+  TVLen = tickValues.length() 
+  TLLen = tickLabels.length()
+  distinctTVLen = distinct(tickValues).length()
+
+  # Edge Case Error Checking
+  when not(distinctTVLen == TVLen): 
+    raise('add-pointers: pointers cannot overlap')
+  end
+  when not(TVLen == TLLen): 
+    raise('add-pointers: pointers values and names should have the same length')
+  end
+
+  ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
+  self.constr()(self.obj.{pointers: some(ticks)})
 end
 
 ################################################################################
@@ -206,23 +326,33 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  colors :: Option<List<I.Color>>
+  axis-bottom :: Number, 
+  axis-top :: Number,
+  color :: Option<I.Color>,
+  colors :: Option<List<I.Color>>,
+  pointers :: Option<List<Pointer>>
 }
 
 default-bar-chart-series = {
-  colors: none
+  color: none,
+  colors: none,
+  pointers: none
 }
 
 type MultiBarChartSeries = { 
   tab :: TableIntern,
+  axis-bottom :: Number,
+  axis-top :: Number,
   legends :: RawArray<String>,
   is-stacked :: Boolean,
-  colors :: Option<List<I.Color>>
+  colors :: Option<List<I.Color>>, 
+  pointers :: Option<List<Pointer>>
 }
 
 default-multi-bar-chart-series = {
   is-stacked: false,
-  colors: none
+  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
+  pointers: none
 }
   
 type HistogramSeries = {
@@ -406,10 +536,17 @@ data DataSeries:
     is-single: true,
     default-color: color-method, 
     colors: color-list-method,
+    sort-by: sort-method,
+    sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method, 
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
+    sort-by: default-multi-sort-method,
+    sort-by-data: multi-sort-method, 
+    sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method, 
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
@@ -638,6 +775,9 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   value-length = values.length()
 
   # Edge Case Error Checking
+  when value-length == 0:
+    raise("bar-chart: can't have empty data")
+  end
   when label-length <> value-length:
     raise('bar-chart: labels and values should have the same length')
   end
@@ -646,10 +786,20 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   values.each(check-num)
   labels.each(check-string)
 
-  value-lists = values.map({(v): [list: v]})
+  # Calculating the max axis (top) and min axis (bottom) values 
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
 
   default-bar-chart-series.{
-    tab: to-table2(labels, values)
+    tab: to-table2(labels, values),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height
   } ^ bar-chart-series
 end
 
@@ -668,7 +818,7 @@ fun grouped-bar-chart-from-list(
   legend-length = legends.length() 
 
   # Edge Case Error Checking 
-  when label-length == 0:
+  when value-length == 0:
     raise("grouped-bar-chart: can't have empty data")
   end
   when legend-length == 0: 
@@ -686,9 +836,24 @@ fun grouped-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
+  # Calculating the max axis (top) and min axis (bottom) values 
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, value-lists)
+  negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, value-lists)
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
+
   # Constructing the Data Series
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list
   } ^ multi-bar-chart-series
 end
@@ -708,7 +873,7 @@ fun stacked-bar-chart-from-list(
   legend-length = legends.length() 
 
   # Edge Case Error Checking 
-  when label-length == 0:
+  when value-length == 0:
     raise("stacked-bar-chart: can't have empty data")
   end
   when legend-length == 0: 
@@ -726,16 +891,34 @@ fun stacked-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
+  # Calculating the max axis (top) and min axis (bottom) values 
+  sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+  positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
+  negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  positive-sums = map(positive-only-sum, value-lists)
+  negative-sums = map(negative-only-sum, value-lists)
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
+
   # Constructing the Data Series
   default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list,
     is-stacked: true
   } ^ multi-bar-chart-series
 end
 
 fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
-  doc: "Consume values, a list of list of numbers and construct a box chart"
+  doc: "Consunum-maxme values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
   labeled-box-plot-from-list(labels, values)
 end
