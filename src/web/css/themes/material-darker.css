@@ -18,7 +18,7 @@ body.material-darker {
   --white: hsl(180, 100%, 97%);
   --light-gray: hsl(0, 0%, 85%);
   --light-gray-2: hsl(0, 0%, 70%);
-  --comment-color: hsl(0, 0%, 33%);
+  --comment-color:  hsl(0, 0%, 45%);
   --purple: hsl(276, 68%, 75%);
   --teal: hsl(197, 100%, 77%);
   --orange: hsl(39, 100%, 71%);
@@ -75,7 +75,7 @@ body.material-darker {
   --cursor:       var(--white);   /* cursor color */
 
   /* Regions/Selected Text */
-  --selected-text:        var(--black-lighter-2);   /* selected text in editor */
+  --selected-text:        var(--black-lighter-4);   /* selected text in editor */
   --matching-brackets:    var(--black-lighter-4);   /* brackets around check:...end regions, etc. */
   --matching-region-bg:   var(--black-lighter-2);   /* bg on regions like check:...end, etc. */
   --nonmatching-bg:       var(--black-lighter-2);   /* bg on span.CodeMirror-nonmatchingbracket-region */
@@ -148,7 +148,7 @@ body.material-darker {
 
   /* Misc. */
   --img-thumbnail-shadow:       var(--black-lighter-2);   /* box-shadow on hover over image thumbnail in REPL */
-  --cm-in-repl-bg:              #303030;                /* bg on .repl .CodeMirror */
+  --cm-in-repl-bg:              var(--black-lighter);     /* bg on .repl .CodeMirror */
   --failed-test-gutter-marker:  #141414;                /* CodeMirror gutter marker bg for failed test */
 
 }
