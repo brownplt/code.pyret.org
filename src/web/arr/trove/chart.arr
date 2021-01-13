@@ -406,10 +406,10 @@ data DataSeries:
     method show-outliers(self, show):
       self.constr()(self.obj.{show-outliers: show})
     end,
-    method min(self, min :: Number): -> Option<Number>
+    method min(self :: DataSeries, min :: Number): -> Option<Number>
       self.constr()(self.obj.{min: some(min)})
     end,
-    method max(self, max :: Number): -> Option<Number>
+    method max(self :: DataSeries, max :: Number): -> Option<Number>
       self.constr()(self.obj.{max: some(max)})
     end
   | histogram-series(obj :: HistogramSeries) with:
