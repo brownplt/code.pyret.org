@@ -122,6 +122,14 @@ y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
 end
 
+min-method = method(self, min :: Number):
+  self.constr()(self.obj.{min: some(min)})
+end
+
+max-method = method(self, max :: Number):
+  self.constr()(self.obj.{max: some(max)})
+end
+
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -398,10 +406,10 @@ data DataSeries:
     method show-outliers(self, show):
       self.constr()(self.obj.{show-outliers: show})
     end,
-    method min(self, min):
+    method min(self, min :: Number): -> Option<Number>
       self.constr()(self.obj.{min: some(min)})
     end,
-    method max(self, max):
+    method max(self, max :: Number): -> Option<Number>
       self.constr()(self.obj.{max: some(max)})
     end
   | histogram-series(obj :: HistogramSeries) with:
@@ -443,6 +451,8 @@ data ChartWindow:
     constr: {(): box-plot-chart-window},
     x-axis: x-axis-method,
     y-axis: y-axis-method,
+    min: min-method,
+    max: max-method,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
     x-axis: x-axis-method,
