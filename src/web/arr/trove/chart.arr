@@ -167,7 +167,7 @@ single-annotations-method = method(self, annotations :: List<Option<String>>):
     .annotations-method(annotations.map(link(_, empty)))
 end
 
-intervals-method = method(self, intervals :: List<List<List<String>>>) block:
+intervals-method = method(self, intervals :: List<List<List<Number>>>) block:
   expected-length = raw-array-length(self.obj.intervals)
   given-length = intervals.length()
   when given-length <> expected-length:
@@ -190,6 +190,13 @@ intervals-method = method(self, intervals :: List<List<List<String>>>) block:
           + num-to-string(given-length))
     end
   end
+  raw-intervals = intervals.map(_.map(raw-array-from-list)) ^ list-to-table2
+  self.constr()(self.obj.{intervals: raw-intervals})
+end
+
+single-intervals-method = method(self, intervals :: List<List<Number>>):
+  self.{intervals-method: intervals-method}
+    .intervals-method(intervals.map(link(_, empty)))
 end
 
 ################################################################################
@@ -271,6 +278,7 @@ type BarChartSeries = {
   tab :: TableIntern,
   colors :: Option<List<I.Color>>,
   annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
 }
 
 default-bar-chart-series = {
@@ -283,6 +291,7 @@ type MultiBarChartSeries = {
   is-stacked :: Boolean,
   colors :: Option<List<I.Color>>,
   annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
 }
 
 default-multi-bar-chart-series = {
@@ -473,11 +482,13 @@ data DataSeries:
     colors: color-list-method,
     constr: {(): bar-chart-series},
     annotations: single-annotations-method,
+    intervals: single-intervals-method,
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
     constr: {(): multi-bar-chart-series},
     annotations: annotations-method,
+    intervals: intervals-method,
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
@@ -718,6 +729,7 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   default-bar-chart-series.{
     tab: to-table2(labels, values),
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
   } ^ bar-chart-series
 end
 
@@ -759,6 +771,7 @@ fun grouped-bar-chart-from-list(
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,
     annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
+    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
   } ^ multi-bar-chart-series
 end
 
@@ -801,6 +814,7 @@ fun stacked-bar-chart-from-list(
     legends: legends ^ builtins.raw-array-from-list,
     annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
     is-stacked: true,
+    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
   } ^ multi-bar-chart-series
 end
 

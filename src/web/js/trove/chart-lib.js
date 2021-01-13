@@ -291,6 +291,11 @@
     addSpecialColumns(table, colProperties, rawAnnotations);
   }
 
+  function addIntervals(table, rawData) {
+    const colProperties = {type: 'number', role: 'interval'};
+    addNSpecialColumns(table, colProperties, get(rawData, 'intervals'));
+  }
+
   function axesNameMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
@@ -420,6 +425,7 @@
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
     addAnnotations(data, rawData);
+    addIntervals(data, rawData);
 
     return {
       data: data,
@@ -456,6 +462,7 @@
     // Adds each row of bar data
     data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
     addAnnotations(data, rawData);
+    addIntervals(data, rawData);
 
     return {
       data: data,
