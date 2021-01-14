@@ -83,6 +83,10 @@ fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
   builtins.raw-array-from-list(table.map(builtins.raw-array-from-list))
 end
 
+fun table2-to-list<A>(table :: RawArray<RawArray<A>>) -> List<List<A>>:
+  raw-array-to-list(table).map(raw-array-to-list)
+end
+
 fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
   I.color(190, 190, 190, 0.75)
     ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
@@ -316,6 +320,104 @@ end
 
 single-intervals-method = method(self, intervals :: List<List<Number>>):
   self.{intervals: intervals-method}.intervals(intervals.map(link(_, empty)))
+end
+
+error-bars-method = method(self, errors :: List<List<List<Number>>>) block:
+  doc: ```Given a list of one negative number and one positive number for every
+       data point, set intervals to lower and upper error intervals.```
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = errors.length()
+  when given-length <> expected-length:
+    raise("error-bars: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.intervals),
+      given from errors,
+      index from range(0, errors.length())):
+    block:
+      shadow expected-length = raw-array-length(expected)
+      shadow given-length = given.length()
+      row-str = num-to-string(index)
+      when given-length <> expected-length:
+        raise("error-bars: length mismatch on row " + row-str
+            + ". Expected "
+            + num-to-string(expected-length)
+            + ", received "
+            + num-to-string(given-length))
+      end
+      for each2(pair from given, column from range(0, given.length())):
+        block:
+          col-str = num-to-string(column)
+          when pair.length() <> 2:
+            raise("error-bars: on row " + row-str + " column " + col-str
+                + ", 2 intervals must be given.")
+          end
+          when pair.get(0) > 0:
+            raise("error-bars: on row " + row-str + " column " + col-str
+                + ", first pair must be non-positive.")
+          end
+          when pair.get(1) < 0:
+            raise("error-bars: on row " + row-str + " column " + col-str
+                + ", second pair must be non-negative.")
+          end
+        end
+      end
+    end
+  end
+  # Defer to intervals-method
+  raw-table-data = raw-array-map(raw-array-get(_, 1), self.obj.tab)
+  table-data = table2-to-list(raw-table-data)
+  intervals-at-end = for map2(data-row from table-data,
+      error-row from errors):
+    for map2(data-col from data-row, error-bounds from error-row):
+      error-bounds.map(_ + data-col)
+    end
+  end
+  self.intervals(intervals-at-end)
+end
+
+single-error-bars-method = method(self, errors :: List<List<Number>>) block:
+  doc: ```Given a list of pairs of one positive and one negative number
+       corresponding to upper and lower bounds, produces a chart with error
+       bars using the given bounds.```
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = errors.length()
+  when given-length <> expected-length:
+    raise("error-bars: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.intervals),
+      given from errors,
+      index from range(0, errors.length())):
+    block:
+      row-str = num-to-string(index)
+      when given.length() <> 2:
+        raise("error-bars: on row " + row-str
+            + ", 2 intervals must be given (received "
+            + num-to-string(given.length()) + ").")
+      end
+      when given.get(0) > 0:
+        raise("error-bars: on row " + row-str
+            + ", first pair must be non-positive.")
+      end
+      when given.get(1) < 0:
+        raise("error-bars: on row " + row-str
+            + ", second pair must be non-negative.")
+      end
+    end
+  end
+  # Defer to intervals-method
+  raw-table-data = raw-array-map(raw-array-get(_, 1), self.obj.tab)
+  table-data = raw-array-to-list(raw-table-data)
+  intervals-at-end = for map2(data-val from table-data,
+      error from errors):
+    error.map(_ + data-val)
+  end
+  self.intervals(intervals-at-end)
 end
 
 ################################################################################
@@ -615,6 +717,7 @@ data DataSeries:
     constr: {(): bar-chart-series},
     annotations: single-annotations-method,
     intervals: single-intervals-method,
+    error-bars: single-error-bars-method,
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
@@ -625,6 +728,7 @@ data DataSeries:
     constr: {(): multi-bar-chart-series},
     annotations: annotations-method,
     intervals: intervals-method,
+    error-bars: error-bars-method,
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
