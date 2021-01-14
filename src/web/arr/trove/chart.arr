@@ -251,6 +251,8 @@ axis-pointer-method = method(self,
 
   ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
   self.constr()(self.obj.{pointers: some(ticks)})
+end
+
 annotations-method = method(self,
     annotations :: List<List<Option<String>>>) block:
   # Annotations should match previous lengths
