@@ -291,7 +291,7 @@ intervals-method = method(self, intervals :: List<List<List<String>>>) block:
   expected-length = raw-array-length(self.obj.intervals)
   given-length = intervals.length()
   when given-length <> expected-length:
-    raise("intervals: input dimensions mismatch. Expected "
+    raise("intervals: input dimensions mismatch. Expected length "
         + num-to-string(expected-length)
         + ", received "
         + num-to-string(given-length))
