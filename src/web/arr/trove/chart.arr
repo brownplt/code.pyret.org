@@ -314,6 +314,10 @@ intervals-method = method(self, intervals :: List<List<List<String>>>) block:
   self.constr()(self.obj.{intervals: raw-intervals})
 end
 
+single-intervals-method = method(self, intervals :: List<List<Number>>):
+  self.{intervals: intervals-method}.intervals(intervals.map(link(_, empty)))
+end
+
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -610,6 +614,7 @@ data DataSeries:
     add-pointers: axis-pointer-method, 
     constr: {(): bar-chart-series},
     annotations: single-annotations-method,
+    intervals: single-intervals-method,
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
@@ -619,6 +624,7 @@ data DataSeries:
     add-pointers: axis-pointer-method, 
     constr: {(): multi-bar-chart-series},
     annotations: annotations-method,
+    intervals: intervals-method,
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
@@ -872,7 +878,7 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
     axis-top: max-positive-height, 
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
-    intervals: values.map({(_): [list: empty]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
   } ^ bar-chart-series
 end
 
