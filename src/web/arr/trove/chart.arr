@@ -397,6 +397,7 @@ type BarChartSeries = {
   colors :: Option<List<I.Color>>,
   pointers :: Option<List<Pointer>>,
   annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
 }
 
 default-bar-chart-series = {
@@ -414,6 +415,7 @@ type MultiBarChartSeries = {
   colors :: Option<List<I.Color>>, 
   pointers :: Option<List<Pointer>>,
   annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
 }
 
 default-multi-bar-chart-series = {
@@ -870,6 +872,7 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
     axis-top: max-positive-height, 
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: empty]}) ^ list-to-table2,
   } ^ bar-chart-series
 end
 
@@ -926,6 +929,7 @@ fun grouped-bar-chart-from-list(
     axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list,
     annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
+    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
   } ^ multi-bar-chart-series
 end
 
@@ -985,6 +989,7 @@ fun stacked-bar-chart-from-list(
     axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list,
     annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
+    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
     is-stacked: true,
   } ^ multi-bar-chart-series
 end
