@@ -576,3 +576,96 @@ check "Add Pointers Method: Stacked Bars":
   render-image(stacked-bars-repstacks.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
     raises "pointers cannot overlap"
 end
+
+#####################
+# ANNOTATIONS TESTS
+#####################
+
+check "Annotations: Single Bars":
+  render-image(single-bars.annotations([list: some("P"), some("O"), some("C"),
+      some("CPP"), some("P"), some("R"), some("SM")]))
+    satisfies is-image
+end
+
+check "Annotations: Multiple Bars":
+  multi-annotations = [list: 
+        [list: some('0.82%'), some('1.37%'), some('0.66%'), some('1.17%'),
+          some('3.23%'), some('2.69%'), some('1.25%')], 
+        [list: some('0.62%'), some('1.00%'), some('0.43%'), some('0.75%'), 
+          some('2.14%'), some('1.72%'), some('0.75%')],
+        [list: some('0.37%'), some('0.65%'), some('0.32%'), some('0.61%'), 
+          some('1.63%'), some('1.56%'), some('0.79%')],
+        [list: some('0.35%'), some('0.59%'), some('0.28%'), some('0.49%'), 
+          some('1.46%'), some('1.45%'), some('0.97%')],
+        [list: some('0.27%'), some('0.47%'), some('0.22%'), some('0.40%'), 
+          some('1.10%'), some('0.99%'), some('0.48%')],
+        [list: some('0.22%'), some('0.41%'), some('0.21%'), some('0.37%'), 
+          some('0.96%'), some('1.04%'), some('0.58%')]]
+  render-image(grouped-bars.annotations(multi-annotations))
+    satisfies is-image
+  render-image(stacked-bars.annotations(multi-annotations))
+    satisfies is-image
+end
+
+###################
+# INTERVALS TESTS
+###################
+
+check "Intervals: Single Bars":
+  render-image(single-bars.intervals([list: [list: 9, 11],
+      [list: 1, 2, 3, 4, 5], [list: -1, -2], empty, empty, empty, empty]))
+    satisfies is-image
+end
+
+check "Intervals: Multiple Bars":
+  grouped-small-data = from-list.grouped-bar-chart(
+      [list: "Year 1", "Year 2"],
+      [list:
+        [list: 50, 20, 10],
+        [list: 20, 40, 10]],
+      [list: "Mail", "Phone", "Fax"])
+  stacked-small-data = from-list.stacked-bar-chart(
+      [list: "Year 1", "Year 2"],
+      [list:
+        [list: 50, 20, 10],
+        [list: 20, 40, 10]],
+      [list: "Mail", "Phone", "Fax"])
+  intervals = [list:
+    [list: [list: 45, 55], [list: 15, 17, 23, 24], [list: ]],
+    [list: [list: 25],     [list: ],               [list: ]]]
+  
+  render-image(stacked-small-data.intervals(intervals)) satisfies is-image
+  render-image(grouped-small-data.intervals(intervals)) satisfies is-image
+end
+
+###################
+# ERROR BAR TESTS
+###################
+
+check "Error bars: Single Bars":
+  render-image(single-bars.error-bars([list: [list: -1, 1], [list: -1, 1],
+      [list: -1, 2], [list: -1, 1], [list: -1, 1], [list: -1, 1],
+      [list: -1, 1]]))
+    satisfies is-image
+end
+
+check "Error bars: Multiple Bars":
+  grouped-small-data = from-list.grouped-bar-chart(
+      [list: "Year 1", "Year 2"],
+      [list:
+        [list: 50, 20, 10],
+        [list: 20, 40, 10]],
+      [list: "Mail", "Phone", "Fax"])
+  stacked-small-data = from-list.stacked-bar-chart(
+      [list: "Year 1", "Year 2"],
+      [list:
+        [list: 50, 20, 10],
+        [list: 20, 40, 10]],
+      [list: "Mail", "Phone", "Fax"])
+  error-amounts = [list:
+    [list: [list: -5, 2], [list: -4, 2], [list: -3, 2]],
+    [list: [list: -3, 6], [list: -1, 4], [list: -5, 5]]]
+  
+  render-image(stacked-small-data.error-bars(error-amounts)) satisfies is-image
+  render-image(grouped-small-data.error-bars(error-amounts)) satisfies is-image
+end
