@@ -310,6 +310,8 @@ intervals-method = method(self, intervals :: List<List<List<String>>>) block:
           + num-to-string(given-length))
     end
   end
+  raw-intervals = intervals.map(_.map(raw-array-from-list)) ^ list-to-table2
+  self.constr()(self.obj.{intervals: raw-intervals})
 end
 
 ################################################################################
