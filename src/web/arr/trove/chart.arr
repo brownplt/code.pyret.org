@@ -41,6 +41,13 @@ type TableIntern = RawArray<RawArray<Any>>
 data Pointer: 
   | pointer(label :: String, value :: Number)
 end
+data SciNumber: 
+  | sci-notation(coeff :: Number, exponent :: Number, base :: Number)
+end
+data AxisData: 
+  | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: List<Pointer>)
+end
+
 
 ################################################################################
 # HELPERS
@@ -113,6 +120,49 @@ fun table-sorter<A,B>(
   sorted-rows ^ builtins.raw-array-from-list
 end
 
+fun num-to-scientific(base :: Number) -> (Number -> SciNumber) block: 
+  doc: ```
+       Produces a function that takes a number and turns it into it's scientific representation. 
+       Calculates the resulting Coeff, Exponent where number = coeff * base ^ Exponent.
+       Currently only works with bases > 1.
+       ```
+  when base <= 1: 
+    raise("Num-to-scientific: Only defined on bases > 1")
+  end
+  
+  fun recur(s :: SciNumber): 
+    doc: ``` 
+         Takes the current Coeff, Exponent and divides/multiplies by base to move closer to 
+         the actual scientific representation.
+         ```
+    cases (SciNumber) s: 
+      | sci-notation(c, e, b) => 
+        pos-c = num-abs(c)
+        ask: 
+          | (pos-c > 0) and (pos-c < 1) then: recur(sci-notation(c * b, e - 1, b))
+          | (pos-c == 0) or ((pos-c >= 1) and (pos-c < b)) then: sci-notation(c, e, b)
+          | otherwise: recur(sci-notation(c / b, e + 1, b))
+        end
+    end
+  end
+  
+  {(n): recur(sci-notation(n, 0, base))}
+#|
+where: 
+  num-to-scientific(10)(0) is sci-notation(0, 0, 10)
+  num-to-scientific(10)(3.214) is sci-notation(3.214, 0, 10)
+  num-to-scientific(10)(513) is sci-notation(5.13, 2, 10)
+  num-to-scientific(10)(-23) is sci-notation(-2.3, 1, 10)
+  num-to-scientific(10)(0.00123) is sci-notation(1.23, -3, 10)
+  num-to-scientific(10)(-0.0231) is sci-notation(-2.31, -2, 10)
+  num-to-scientific(2)(256) is sci-notation(1, 8, 2)
+  num-to-scientific(1) raises "Only defined on bases > 1"
+  num-to-scientific(0.32) raises "Only defined on bases > 1"
+  num-to-scientific(0) raises "Only defined on bases > 1"
+  num-to-scientific(-50) raises "Only defined on bases > 1"
+|#
+end
+
 ################################################################################
 # METHODS
 ################################################################################
@@ -126,6 +176,10 @@ color-list-method = method(self, colors :: List<I.Color>):
     | empty => self.constr()(self.obj.{colors: none})
     | link(_, _) => self.constr()(self.obj.{colors: some(colors)})
   end
+end
+
+pointer-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{pointer-color: some(color)})
 end
 
 legend-method = method(self, legend :: String):
@@ -249,6 +303,46 @@ axis-pointer-method = method(self,
   self.constr()(self.obj.{pointers: some(ticks)})
 end
 
+make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
+  step-types = [list: 0.2, 0.25, 0.5, 1]
+
+  # Turn the numbers into Scientific Numbers
+  scientific-b10 = num-to-scientific(10)
+  pos-sci = scientific-b10(pos-bar-height)
+  neg-sci = scientific-b10(neg-bar-height)
+
+  # Calculate the step distance between gridlines
+  pos-step = step-types.filter({(n): n >= num-abs(pos-sci.coeff / 9)}).get(0) * num-expt(10, pos-sci.exponent)
+  neg-step = step-types.filter({(n): n >= num-abs(neg-sci.coeff / 9)}).get(0) * num-expt(10, neg-sci.exponent)
+  step = num-max(pos-step, neg-step)
+  sci-expt = num-min(pos-sci.exponent, neg-sci.exponent)
+
+  # Use step distance to calculate Axis Properties
+  name-tick = 
+    {(n, expt): 
+      if expt < 0: 
+        pointer(num-to-string-digits(n, 1 - expt), n)
+      else: 
+        pointer(num-to-string(n), n)
+      end}
+
+  axisTop = step * num-ceiling(pos-bar-height / step)
+  axisBottom = step * num-floor(neg-bar-height / step)
+  pos-ticks = map({(n): name-tick(n, sci-expt)}, range-by(0, axisTop + step, step))
+  neg-ticks = map({(n): name-tick(n, sci-expt)}, range-by(0, axisBottom - step, -1 * step))
+
+  self.constr()(self.obj.{axisdata: some(axis-data(axisTop, axisBottom, pos-ticks + neg-ticks))})
+end
+
+format-axis-data-method = method(self, format-func :: (Number -> String)):
+  cases (Option) self.obj!axisdata: 
+    | none => 
+      raise("Should never have reached this point. Yell at John for not setting up the axis properties somewhere where he should have and please report this as a bug")
+    | some(ad) => 
+      new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad.ticks)
+      self.constr()(self.obj.{axisdata: some(axis-data(ad.axisTop, ad.axisBottom, new-ticks))})
+  end
+end
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -326,33 +420,37 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  axis-bottom :: Number, 
-  axis-top :: Number,
+  axisdata :: Option<AxisData>, 
   color :: Option<I.Color>,
   colors :: Option<List<I.Color>>,
-  pointers :: Option<List<Pointer>>
+  pointers :: Option<List<Pointer>>, 
+  pointer-color :: Option<I.Color>
 }
 
 default-bar-chart-series = {
   color: none,
   colors: none,
-  pointers: none
+  pointers: none, 
+  pointer-color: none,
+  axisdata: none
 }
 
 type MultiBarChartSeries = { 
   tab :: TableIntern,
-  axis-bottom :: Number,
-  axis-top :: Number,
+  axisdata :: Option<AxisData>,
   legends :: RawArray<String>,
   is-stacked :: Boolean,
   colors :: Option<List<I.Color>>, 
-  pointers :: Option<List<Pointer>>
+  pointers :: Option<List<Pointer>>, 
+  pointer-color :: Option<I.Color>
 }
 
 default-multi-bar-chart-series = {
   is-stacked: false,
   colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
-  pointers: none
+  pointers: none, 
+  pointer-color: none,
+  axisdata: none
 }
   
 type HistogramSeries = {
@@ -538,7 +636,10 @@ data DataSeries:
     colors: color-list-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
-    add-pointers: axis-pointer-method, 
+    add-pointers: axis-pointer-method,
+    pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method, 
+    make-axis: make-axis-data-method, 
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
@@ -547,6 +648,9 @@ data DataSeries:
     sort-by-data: multi-sort-method, 
     sort-by-label: label-sort-method,
     add-pointers: axis-pointer-method, 
+    pointer-color: pointer-color-method,
+    make-axis: make-axis-data-method,
+    format-axis: format-axis-data-method, 
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
@@ -796,11 +900,11 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
   max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
 
-  default-bar-chart-series.{
-    tab: to-table2(labels, values),
-    axis-top: max-positive-height, 
-    axis-bottom: max-negative-height
+  data-series = default-bar-chart-series.{
+    tab: to-table2(labels, values)
   } ^ bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun grouped-bar-chart-from-list(
@@ -850,12 +954,12 @@ fun grouped-bar-chart-from-list(
   max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
 
   # Constructing the Data Series
-  default-multi-bar-chart-series.{
+  data-series = default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    axis-top: max-positive-height, 
-    axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list
   } ^ multi-bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun stacked-bar-chart-from-list(
@@ -908,13 +1012,13 @@ fun stacked-bar-chart-from-list(
   max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
 
   # Constructing the Data Series
-  default-multi-bar-chart-series.{
+  data-series = default-multi-bar-chart-series.{
     tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    axis-top: max-positive-height, 
-    axis-bottom: max-negative-height,
     legends: legends ^ builtins.raw-array-from-list,
     is-stacked: true
   } ^ multi-bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:

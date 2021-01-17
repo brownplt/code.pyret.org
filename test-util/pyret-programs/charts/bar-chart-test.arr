@@ -448,11 +448,26 @@ check "Add Pointers Method: Single Bars":
     satisfies is-image
   render-image(single-bars.add-pointers([list: 0, 4, 10], [list: "zero", "four", "max"]))
     satisfies is-image
+  render-image(single-bars.add-pointers([list: 4], [list: "thislabelnameiswaytoolong"]))
+    satisfies is-image
   render-image(single-bars-neg.add-pointers([list: 3, 1, -2, -5], [list: "a", "b", "c", "d"]))
     satisfies is-image
   render-image(single-bars-neg.add-pointers([list: 1.546, -2.213], [list: 'decimal', 'negdec']))
     satisfies is-image
   render-image(single-bars-rep.add-pointers([list: 3, 5], [list: 'tres', 'cinco']))
+    satisfies is-image
+
+  render-image(
+    single-bars.add-pointers([list: 6, 7], [list: "median", "mean + 1"])
+               .pointer-color(red)) 
+    satisfies is-image
+  render-image(
+    single-bars-neg.add-pointers([list: 3, 1, -2, -5], [list: "a", "b", "c", "d"])
+                   .pointer-color(green)) 
+    satisfies is-image
+  render-image(
+    single-bars-rep.add-pointers([list: 3, 5], [list: 'tres', 'cinco'])
+                   .pointer-color(cyan)) 
     satisfies is-image
 
   render-image(single-bars.add-pointers(empty, [list: "base"]))
@@ -489,6 +504,10 @@ check "Add Pointers Method: Grouped Bars":
     [list: 0, 6000000, 12000000], 
     [list: "zero", "middle", "max"]))
     satisfies is-image
+  render-image(grouped-bars.add-pointers(
+    [list: 6000000], 
+    [list: "thislabelnameiswaytoolong"]))
+    satisfies is-image
   render-image(grouped-bars-neg.add-pointers(
     [list: 0.3, 0, -1.5, -3], 
     [list: "a", "b", "c", "d"]))
@@ -500,6 +519,25 @@ check "Add Pointers Method: Grouped Bars":
   render-image(grouped-bars-repgroups.add-pointers(
     [list: 6, 9], 
     [list: "Almost Middle", "Almost Max"]))
+    satisfies is-image
+
+  render-image(
+    grouped-bars.add-pointers([list: 1874094, 41417373 / 14], 
+                              [list: "median (All Bars)", "mean (All Bars)"])
+               .pointer-color(red)) 
+    satisfies is-image
+  render-image(
+    grouped-bars-neg.add-pointers([list: 0.3, 0, -1.5, -3], 
+                                  [list: "a", "b", "c", "d"])
+                   .pointer-color(magenta)) 
+    satisfies is-image
+  render-image(
+    grouped-bars-rep.add-pointers([list: 3.5, 9], [list: "Decimal", "Almost Max"])
+                   .pointer-color(yellow)) 
+    satisfies is-image
+  render-image(
+    grouped-bars-repgroups.add-pointers([list: 6, 9], [list: "~Mid", "~Max"])
+                          .pointer-color(orange)) 
     satisfies is-image
 
   render-image(grouped-bars.add-pointers(empty, [list: "base"]))
@@ -540,6 +578,10 @@ check "Add Pointers Method: Stacked Bars":
     [list: 0, 20000000, 40000000], 
     [list: "zero", "middle", "max"]))
     satisfies is-image
+  render-image(stacked-bars.add-pointers(
+    [list: 20000000], 
+    [list: "thislabelnameiswaytoolong"]))
+    satisfies is-image
   render-image(stacked-bars-neg.add-pointers(
     [list: 1.3, 0, -1.5, -3], 
     [list: "a", "b", "c", "d"]))
@@ -551,6 +593,23 @@ check "Add Pointers Method: Stacked Bars":
   render-image(stacked-bars-repstacks.add-pointers(
     [list: 31, 59], 
     [list: "Almost Middle", "Almost Max"]))
+    satisfies is-image
+
+  render-image(
+    stacked-bars.add-pointers([list: 18409317.5, 20708686.5], [list: "median", "mean"])
+                .pointer-color(red)) 
+    satisfies is-image
+  render-image(
+    stacked-bars-neg.add-pointers([list: 1.3, 0, -1.5, -3], [list: "a", "b", "c", "d"])
+                    .pointer-color(magenta)) 
+    satisfies is-image
+  render-image(
+    stacked-bars-rep.add-pointers([list: 3.5, 59], [list: "Decimal", "Almost Max"])
+                    .pointer-color(yellow)) 
+    satisfies is-image
+  render-image(
+    stacked-bars-repstacks.add-pointers([list: 31, 59], [list: "Almost Middle", "Almost Max"])
+                          .pointer-color(orange)) 
     satisfies is-image
 
   render-image(stacked-bars.add-pointers(empty, [list: "base"]))
@@ -575,4 +634,57 @@ check "Add Pointers Method: Stacked Bars":
     raises "pointers cannot overlap"
   render-image(stacked-bars-repstacks.add-pointers([list: 0, 0], [list: "dup", "duplicate"]))
     raises "pointers cannot overlap"
+end
+
+################################
+# AXIS FORMATTING METHOD TESTS 
+################################
+
+check "Axis Formatting Methods: Single Bars":
+  render-image(single-bars.format-axis({(n): num-to-string(n)})) satisfies is-image
+  render-image(single-bars.format-axis({(n): num-to-string(n) + " votes"})) satisfies is-image
+  render-image(single-bars.format-axis({(n): "Counted " + num-to-string(n) + " votes"}))
+    satisfies is-image
+  render-image(single-bars.format-axis({(n): num-to-string(n / 10) + " * 10"})) 
+    satisfies is-image
+  render-image(single-bars.format-axis({(_): "?"})) 
+    satisfies is-image
+  render-image(single-bars-neg.format-axis({(n): num-to-string(n / 10) + " * 10"}) 
+    satisfies is-image
+  render-image(single-bars-rep.format-axis({(n): num-to-string(n) + " votes"})) 
+    satisfies is-image
+end
+
+check "Axis Formatting Methods: Grouped Bars":
+  render-image(grouped-bars.format-axis({(n): num-to-string(n)})) satisfies is-image
+  render-image(grouped-bars.format-axis({(n): num-to-string(n) + " people"})) satisfies is-image
+  render-image(grouped-bars.format-axis({(n): "For " + num-to-string(n) + " people"}))
+    satisfies is-image
+  render-image(grouped-bars.format-axis({(n): num-to-string(n / 10) + " * 10"})) 
+    satisfies is-image
+  render-image(grouped-bars.format-axis({(_): "?"})) 
+    satisfies is-image
+  render-image(grouped-bars-neg.format-axis({(n): num-to-string-digits(n, 2) + " Δ Fertility Rate"})) 
+    satisfies is-image
+  render-image(grouped-bars-rep.format-axis({(n): num-to-string(n) + " hours"})) 
+    satisfies is-image
+  render-image(grouped-bars-repgroups.format-axis({(n):"For " + num-to-string(n) + " hours"})) 
+    satisfies is-image
+end
+
+check "Axis Formatting Methods: Stacked Bars":
+  render-image(stacked-bars.format-axis({(n): num-to-string(n)})) satisfies is-image
+  render-image(stacked-bars.format-axis({(n): num-to-string(n) + " people"})) satisfies is-image
+  render-image(stacked-bars.format-axis({(n): "For " + num-to-string(n) + " people"}))
+    satisfies is-image
+  render-image(stacked-bars.format-axis({(n): num-to-string(n / 10) + " * 10"})) 
+    satisfies is-image
+  render-image(stacked-bars.format-axis({(_): "?"})) 
+    satisfies is-image
+  render-image(stacked-bars-neg.format-axis({(n): num-to-string-digits(n, 2) + " Δ Fertility Rate"})) 
+    satisfies is-image
+  render-image(stacked-bars-rep.format-axis({(n): num-to-string(n) + " hours"})) 
+    satisfies is-image
+  render-image(stacked-bars-repstacks.format-axis({(n):"For " + num-to-string(n) + " hours"})) 
+    satisfies is-image
 end
