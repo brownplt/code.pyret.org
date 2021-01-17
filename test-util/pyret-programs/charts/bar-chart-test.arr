@@ -434,11 +434,11 @@ check "Sorting Methods: Stacked Bars":
     satisfies is-image
 end
 
-#############################
-# ADD POINTERS METHOD TESTS 
-#############################
+#########################
+# POINTER METHODS TESTS 
+#########################
 
-check "Add Pointers Method: Single Bars": 
+check "Pointer Method: Single Bars": 
   render-image(single-bars.add-pointers(empty, empty)) satisfies is-image
   render-image(single-bars.add-pointers([list: 6, 7], [list: "median", "mean + 1"])) 
     satisfies is-image
@@ -490,7 +490,7 @@ check "Add Pointers Method: Single Bars":
     raises "pointers cannot overlap"
 end
 
-check "Add Pointers Method: Grouped Bars": 
+check "Pointer Methods: Grouped Bars": 
   render-image(grouped-bars.add-pointers(empty, empty)) satisfies is-image
   render-image(grouped-bars.add-pointers(
     [list: 1874094, 41417373 / 14], 
@@ -564,7 +564,7 @@ check "Add Pointers Method: Grouped Bars":
     raises "pointers cannot overlap"
 end
 
-check "Add Pointers Method: Stacked Bars": 
+check "Pointers Methods: Stacked Bars": 
   render-image(stacked-bars.add-pointers(empty, empty)) satisfies is-image
   render-image(stacked-bars.add-pointers(
     [list: 18409317.5, 20708686.5],
@@ -649,7 +649,7 @@ check "Axis Formatting Methods: Single Bars":
     satisfies is-image
   render-image(single-bars.format-axis({(_): "?"})) 
     satisfies is-image
-  render-image(single-bars-neg.format-axis({(n): num-to-string(n / 10) + " * 10"}) 
+  render-image(single-bars-neg.format-axis({(n): num-to-string(n / 10) + " * 10"})) 
     satisfies is-image
   render-image(single-bars-rep.format-axis({(n): num-to-string(n) + " votes"})) 
     satisfies is-image
