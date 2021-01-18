@@ -12,7 +12,8 @@
       'bar-chart': "tany",
       'histogram': "tany",
       'box-plot': "tany",
-      'plot': "tany"
+      'plot': "tany",
+      'geo-map': "tany"
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
