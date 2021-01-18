@@ -860,7 +860,7 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
     |geochart-series(obj) =>
       default-geo-chart-window-object.{
         method render(self):
-        geo-map(self, obj) end
+        P.geo-map(self, obj) end
       } ^ geochart-window
   end
 where:
@@ -1242,4 +1242,5 @@ from-list = {
   freq-bar-chart: freq-bar-chart-from-list,
   labeled-box-plot: labeled-box-plot-from-list,
   box-plot: box-plot-from-list,
+  geochart: geochart-from-list,
 }
