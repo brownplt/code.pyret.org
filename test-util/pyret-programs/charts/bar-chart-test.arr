@@ -688,3 +688,44 @@ check "Axis Formatting Methods: Stacked Bars":
   render-image(stacked-bars-repstacks.format-axis({(n):"For " + num-to-string(n) + " hours"})) 
     satisfies is-image
 end
+
+######################
+# SCALE METHOD TESTS 
+######################
+
+check "Scale Methods: Single Bars":
+  render-image(single-bars.scale({(n): n})) satisfies is-image
+  render-image(single-bars.scale({(n): n + 5})) satisfies is-image
+  render-image(single-bars.scale({(n): 2 * n})) satisfies is-image
+  render-image(single-bars.scale({(n): n / 100})) satisfies is-image
+  render-image(single-bars.scale(num-log)) satisfies is-image
+  render-image(single-bars.scale({(n): (2 * n) + 231}).scale(num-log)) satisfies is-image
+  render-image(single-bars-neg.scale({(n): (2 * n) + 231})) satisfies is-image
+  render-image(single-bars-rep.scale({(n): n * n})) satisfies is-image
+end
+
+check "Scale Methods: Grouped Bars":
+  render-image(grouped-bars.scale({(n): n})) satisfies is-image
+  render-image(grouped-bars.scale({(n): n + 5})) satisfies is-image
+  render-image(grouped-bars.scale({(n): 2 * n})) satisfies is-image
+  render-image(grouped-bars.scale({(n): n / 100})) satisfies is-image
+  render-image(grouped-bars.scale(num-log)) satisfies is-image
+  render-image(grouped-bars.scale({(n): (2 * n) + 231}).scale(num-log)) satisfies is-image
+  render-image(grouped-bars-neg.scale({(n): (2 * n) + 231})) satisfies is-image
+  render-image(grouped-bars-rep.scale({(n): n * n})) satisfies is-image
+  render-image(grouped-bars-repgroups.scale({(n): n / 100})) satisfies is-image
+end
+
+check "Scale Methods: Stacked Bars":
+  render-image(stacked-bars.scale({(n): n})) satisfies is-image
+  render-image(stacked-bars.scale({(n): n + 5})) satisfies is-image
+  render-image(stacked-bars.scale({(n): 2 * n})) satisfies is-image
+  render-image(stacked-bars.scale({(n): n / 100})) satisfies is-image
+  render-image(stacked-bars.scale(num-log)) satisfies is-image
+  render-image(stacked-bars.scale({(n): (2 * n) + 231}).scale(num-log)) satisfies is-image
+  render-image(stacked-bars-neg.scale({(n): (2 * n) + 231})) satisfies is-image
+  render-image(stacked-bars-rep.scale({(n): n * n})) satisfies is-image
+  render-image(stacked-bars-repstacks.scale({(n): n / 100})) satisfies is-image
+end
+
+

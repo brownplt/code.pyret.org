@@ -304,7 +304,7 @@ axis-pointer-method = method(self,
 end
 
 make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
-  step-types = [list: 0.2, 0.25, 0.5, 1]
+  step-types = [list: 0, 0.2, 0.25, 0.5, 1]
 
   # Turn the numbers into Scientific Numbers
   scientific-b10 = num-to-scientific(10)
@@ -315,21 +315,24 @@ make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :
   pos-step = step-types.filter({(n): n >= num-abs(pos-sci.coeff / 9)}).get(0) * num-expt(10, pos-sci.exponent)
   neg-step = step-types.filter({(n): n >= num-abs(neg-sci.coeff / 9)}).get(0) * num-expt(10, neg-sci.exponent)
   step = num-max(pos-step, neg-step)
-  sci-expt = num-min(pos-sci.exponent, neg-sci.exponent)
+  step-sci = scientific-b10(step)
 
   # Use step distance to calculate Axis Properties
   name-tick = 
-    {(n, expt): 
-      if expt < 0: 
-        pointer(num-to-string-digits(n, 1 - expt), n)
-      else: 
+    {(n): 
+      ask:
+      | (step-sci.coeff == 2.5) and (step-sci.exponent <= 0) then: 
+        pointer(num-to-string-digits(n, 2 - step-sci.exponent), n)
+      | step-sci.exponent < 0 then: 
+        pointer(num-to-string-digits(n, 1 - step-sci.exponent), n)
+      | otherwise: 
         pointer(num-to-string(n), n)
       end}
 
-  axisTop = step * num-ceiling(pos-bar-height / step)
-  axisBottom = step * num-floor(neg-bar-height / step)
-  pos-ticks = map({(n): name-tick(n, sci-expt)}, range-by(0, axisTop + step, step))
-  neg-ticks = map({(n): name-tick(n, sci-expt)}, range-by(0, axisBottom - step, -1 * step))
+  axisTop = num-max(0, step * num-ceiling(pos-bar-height / step))
+  axisBottom = num-min(0, step * num-floor(neg-bar-height / step))
+  pos-ticks = map(name-tick, range-by(0, axisTop + step, step))
+  neg-ticks = map(name-tick, range-by(0, axisBottom - step, -1 * step))
 
   self.constr()(self.obj.{axisdata: some(axis-data(axisTop, axisBottom, pos-ticks + neg-ticks))})
 end
@@ -343,6 +346,27 @@ format-axis-data-method = method(self, format-func :: (Number -> String)):
       self.constr()(self.obj.{axisdata: some(axis-data(ad.axisTop, ad.axisBottom, new-ticks))})
   end
 end
+
+scale-method = method(self, scale-fun :: (Number -> Number)): 
+  list-of-rows = self.obj!tab ^ raw-array-to-list
+  scale-value = {(row): [raw-array: raw-array-get(row, 0), raw-array-get(row, 1) ^ scale-fun]}
+  scaled-values = map(scale-value, list-of-rows)
+  scaled-self = self.constr()(self.obj.{tab: scaled-values ^ builtins.raw-array-from-list})
+  ad = scaled-self.obj!axisdata.value
+  scaled-self.make-axis(ad.axisTop ^ scale-fun, ad.axisBottom ^ scale-fun)
+end
+
+multi-scale-method = method(self, scale-fun :: (Number -> Number)): 
+  list-of-rows = self.obj!tab ^ raw-array-to-list
+  get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
+  scale-row = {(row): map(scale-fun, row ^ get-values) ^ builtins.raw-array-from-list}
+  scale-row-values = {(row): [raw-array: raw-array-get(row, 0), row ^ scale-row]}
+  scaled-values = map(scale-row-values, list-of-rows)
+  scaled-self = self.constr()(self.obj.{tab: scaled-values ^ builtins.raw-array-from-list})
+  ad = scaled-self.obj!axisdata.value
+  scaled-self.make-axis(ad.axisTop ^ scale-fun, ad.axisBottom ^ scale-fun)
+end
+
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -640,6 +664,7 @@ data DataSeries:
     pointer-color: pointer-color-method,
     format-axis: format-axis-data-method, 
     make-axis: make-axis-data-method, 
+    scale: scale-method, 
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
@@ -649,8 +674,9 @@ data DataSeries:
     sort-by-label: label-sort-method,
     add-pointers: axis-pointer-method, 
     pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method,
     make-axis: make-axis-data-method,
-    format-axis: format-axis-data-method, 
+    scale: multi-scale-method,
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
