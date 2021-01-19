@@ -468,11 +468,11 @@
     
   function geoChart(globalOptions, rawData) {
       const table = get(rawData, 'tab');
-      const data = new google.visualization.GeoMap;
+      const data = new google.visualization.DataTable();
       return {
           data: data,
           options: {
-              slices: table.map(row => ({offset: toFixnum(row[2])})),
+              slices: table.map(row => ({offset: toFixnum(row[1])})),
               legend: {
                   alignment: 'end'
               }
