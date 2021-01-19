@@ -1047,8 +1047,8 @@
         .center([0, 5])
     var geo = d3.geoPath().projection(proj)
     var color = d3.scale.category20();
-
-    d3.select("svg").selectAll("path").data(countries.features)
+      
+    d3.select("svg").selectAll("path").data(tab.map(function (f): return row[2]))
         .enter
         .append("path")
         .attr("d", geo)
