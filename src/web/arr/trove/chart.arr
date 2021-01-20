@@ -304,7 +304,7 @@ axis-pointer-method = method(self,
 end
 
 make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
-  step-types = [list: 0, 0.2, 0.25, 0.5, 1]
+  step-types = [list: 0, 0.2, 0.25, 0.5, 1, 2]
 
   # Turn the numbers into Scientific Numbers
   scientific-b10 = num-to-scientific(10)
@@ -348,23 +348,60 @@ format-axis-data-method = method(self, format-func :: (Number -> String)):
 end
 
 scale-method = method(self, scale-fun :: (Number -> Number)): 
+  exact-sf = {(n): n ^ scale-fun ^ num-to-rational}
   list-of-rows = self.obj!tab ^ raw-array-to-list
-  scale-value = {(row): [raw-array: raw-array-get(row, 0), raw-array-get(row, 1) ^ scale-fun]}
-  scaled-values = map(scale-value, list-of-rows)
-  scaled-self = self.constr()(self.obj.{tab: scaled-values ^ builtins.raw-array-from-list})
-  ad = scaled-self.obj!axisdata.value
-  scaled-self.make-axis(ad.axisTop ^ scale-fun, ad.axisBottom ^ scale-fun)
+  scale-row = {(row): [raw-array: raw-array-get(row, 0), raw-array-get(row, 1) ^ exact-sf]}
+  scaled-tab = map(scale-row, list-of-rows) ^ builtins.raw-array-from-list
+  scaled-self = self.constr()(self.obj.{tab: scaled-tab})
+
+  # Recalculating the max axis (top) and min axis (bottom) values 
+  scaled-values = map({(row): raw-array-get(row, 1) ^ exact-sf}, list-of-rows)
+
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, scaled-values))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, scaled-values))
+
+  scaled-self.make-axis(max-positive-height, max-negative-height)
 end
 
 multi-scale-method = method(self, scale-fun :: (Number -> Number)): 
+  exact-sf = {(n): n ^ scale-fun ^ num-to-rational}
   list-of-rows = self.obj!tab ^ raw-array-to-list
   get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
-  scale-row = {(row): map(scale-fun, row ^ get-values) ^ builtins.raw-array-from-list}
-  scale-row-values = {(row): [raw-array: raw-array-get(row, 0), row ^ scale-row]}
-  scaled-values = map(scale-row-values, list-of-rows)
-  scaled-self = self.constr()(self.obj.{tab: scaled-values ^ builtins.raw-array-from-list})
-  ad = scaled-self.obj!axisdata.value
-  scaled-self.make-axis(ad.axisTop ^ scale-fun, ad.axisBottom ^ scale-fun)
+  scale-row = {(row): [raw-array: raw-array-get(row, 0), map(exact-sf, row ^ get-values) ^ builtins.raw-array-from-list]}
+  scaled-tab = map(scale-row, list-of-rows) ^ builtins.raw-array-from-list
+  scaled-self = self.constr()(self.obj.{tab: scaled-tab})
+
+  # Calculating the max axis (top) and min axis (bottom) values 
+  scaled-values = map({(row): map(exact-sf, row ^ get-values)}, list-of-rows)
+
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  if scaled-self.obj!is-stacked:
+    sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+    positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
+    negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
+    positive-sums = map(positive-only-sum, scaled-values)
+    negative-sums = map(negative-only-sum, scaled-values)
+    max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
+    max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
+    scaled-self.make-axis(max-positive-height, max-negative-height)
+  else:
+    positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, scaled-values)
+    negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, scaled-values)
+    max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
+    max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
+    scaled-self.make-axis(max-positive-height, max-negative-height)
+  end
 end
 
 ################################################################################
@@ -903,6 +940,7 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   # Constants
   label-length = labels.length()
   value-length = values.length()
+  rational-values = map(num-to-rational, values)
 
   # Edge Case Error Checking
   when value-length == 0:
@@ -913,7 +951,7 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   end
 
   # Type Checking
-  values.each(check-num)
+  rational-values.each(check-num)
   labels.each(check-string)
 
   # Calculating the max axis (top) and min axis (bottom) values 
@@ -923,11 +961,11 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
       else: elm
       end}, l.first, l)}
 
-  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
-  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, rational-values))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, rational-values))
 
   data-series = default-bar-chart-series.{
-    tab: to-table2(labels, values)
+    tab: to-table2(labels, rational-values)
   } ^ bar-chart-series
 
   data-series.make-axis(max-positive-height, max-negative-height)
@@ -946,6 +984,7 @@ fun grouped-bar-chart-from-list(
   label-length = labels.length()
   value-length = value-lists.length()
   legend-length = legends.length() 
+  rational-values = value-lists.map({(row): map(num-to-rational, row)})
 
   # Edge Case Error Checking 
   when value-length == 0:
@@ -973,15 +1012,15 @@ fun grouped-bar-chart-from-list(
       else: elm
       end}, l.first, l)}
 
-  positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, value-lists)
-  negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, value-lists)
+  positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, rational-values)
+  negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, rational-values)
 
   max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
   max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    tab: to-table2(labels, map(builtins.raw-array-from-list, rational-values)),
     legends: legends ^ builtins.raw-array-from-list
   } ^ multi-bar-chart-series
 
@@ -1001,6 +1040,7 @@ fun stacked-bar-chart-from-list(
   label-length = labels.length()
   value-length = value-lists.length()
   legend-length = legends.length() 
+  rational-values = value-lists.map({(row): map(num-to-rational, row)})
 
   # Edge Case Error Checking 
   when value-length == 0:
@@ -1031,15 +1071,15 @@ fun stacked-bar-chart-from-list(
       else: elm
       end}, l.first, l)}
 
-  positive-sums = map(positive-only-sum, value-lists)
-  negative-sums = map(negative-only-sum, value-lists)
+  positive-sums = map(positive-only-sum, rational-values)
+  negative-sums = map(negative-only-sum, rational-values)
 
   max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
   max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
+    tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,
     is-stacked: true
   } ^ multi-bar-chart-series

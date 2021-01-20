@@ -338,8 +338,8 @@
       cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
           none: function () {},
           some: function (axisdata) {
-            axisTop = axisdata.dict.axisTop;
-            axisBottom = axisdata.dict.axisBottom;
+            axisTop = toFixnum(axisdata.dict.axisTop);
+            axisBottom = toFixnum(axisdata.dict.axisBottom);
             ticks = convertListWith(convertPointer, axisdata.dict.ticks);
           }
       });
@@ -435,8 +435,8 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
           none: function () {},
           some: function (axisdata) {
-            axisTop = axisdata.dict.axisTop;
-            axisBottom = axisdata.dict.axisBottom;
+            axisTop = toFixnum(axisdata.dict.axisTop);
+            axisBottom = toFixnum(axisdata.dict.axisBottom);
             ticks = convertListWith(convertPointer, axisdata.dict.ticks);
           }
     });
