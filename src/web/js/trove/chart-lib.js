@@ -294,6 +294,7 @@
   function barChart(globalOptions, rawData) {
     // Variables and constants 
     const table = get(rawData, 'tab');
+    var horizontal = get(rawData, 'horizontal');
     const data = new google.visualization.DataTable();
     var colors_list = [];
     var default_color = "";
@@ -358,18 +359,19 @@
     var options = {
         legend: {
           position: 'none'
-        },
-        vAxes: {
-          0: {
-            viewWindow: { 
-              max: axisTop, 
-              min: axisBottom
-            }, 
-            ticks: ticks
-          }
         }
       }
 
+    var axisloc = horizontal ? 'hAxes' : 'vAxes';
+    
+
+    console.log(axisTop, axisBottom, ticks);
+    options[axisloc] =
+    { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
+           ticks: ticks
+         }
+    }
+    
      /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
        The Current Chart library necessitates that we assign at least one stack/bar to the 
@@ -385,7 +387,7 @@
       options['series'] = { 1: { color: pointer_color, targetAxisIndex: 1 } };
 
       // Update Options to include the new axis ticks consistent with the first axis
-      options['vAxes'][1] = { 
+      options[axisloc][1] = { 
         viewWindow: { 
           max: axisTop, 
           min: axisBottom
@@ -399,7 +401,7 @@
     return {
       data: data,
       options: options,
-      chartType: google.visualization.ColumnChart,
+      chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],
     };
@@ -409,6 +411,7 @@
     // Variables and Constants
     const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
+    var horizontal = get(rawData, 'horizontal');
     const data = new google.visualization.DataTable();
     var colors_list = [];
     var pointers_list = [];
@@ -460,20 +463,17 @@
         isStacked: get(rawData, 'is-stacked'),
         series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
         legend: {
-          position: 'top', 
+          position: horizontal ? 'right' : 'top', 
           maxLines: data.If.length - 1
         }
       }
 
-    var customAxesNeeded = (get(rawData, 'is-stacked') === 'none') || (get(rawData, 'is-stacked') === 'absolute')
-    
-    options['vAxes'] = //customAxesNeeded ? 
+    var axisloc = horizontal ? 'hAxes' : 'vAxes';
+    options[axisloc] =
     { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
            ticks: ticks }
-    } //: { 0: null }
+    }
          
-  
-
     /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
        The Current Chart library necessitates that we assign at least one stack/bar to the 
@@ -490,7 +490,7 @@
       options['series'][(data.If.length - 2)] = {color: pointer_color, targetAxisIndex: 1};
 
       // Update Options to include the new axis ticks consistent with the first axis
-      options['vAxes'][1] = { 
+      options[axisloc][1] = { 
         viewWindow: { 
           max: axisTop, 
           min: axisBottom
@@ -504,7 +504,7 @@
     return {
       data: data,
       options: options,
-      chartType: google.visualization.ColumnChart,
+      chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],
     };

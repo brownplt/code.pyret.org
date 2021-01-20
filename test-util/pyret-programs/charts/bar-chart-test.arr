@@ -1002,3 +1002,50 @@ check "Stacking type: stacked Bars":
   render-image(stacked-bars-roughsome.stacking-type('')) 
     raises "stacking-type: type must be absolute, relative, percent, or none"
 end
+
+###########################
+# HORIZONTAL METHOD TESTS 
+###########################
+
+check "Horizontal Method: Single Bars":
+  render-image(single-bars.horizontal(false)) satisfies is-image
+  render-image(single-bars-neg.horizontal(false)) satisfies is-image
+  render-image(single-bars-rep.horizontal(false)) satisfies is-image
+  render-image(single-bars-roughall.horizontal(false)) satisfies is-image
+  render-image(single-bars-roughsome.horizontal(false)) satisfies is-image
+  render-image(single-bars.horizontal(true)) satisfies is-image
+  render-image(single-bars-neg.horizontal(true)) satisfies is-image
+  render-image(single-bars-rep.horizontal(true)) satisfies is-image
+  render-image(single-bars-roughall.horizontal(true)) satisfies is-image
+  render-image(single-bars-roughsome.horizontal(true)) satisfies is-image
+end
+
+check "Rendering: Grouped Bars": 
+  render-image(grouped-bars.horizontal(false)) satisfies is-image
+  render-image(grouped-bars-neg.horizontal(false)) satisfies is-image
+  render-image(grouped-bars-rep.horizontal(false)) satisfies is-image
+  render-image(grouped-bars-repgroups.horizontal(false)) satisfies is-image
+  render-image(grouped-bars-roughall.horizontal(false)) satisfies is-image
+  render-image(grouped-bars-roughsome.horizontal(false)) satisfies is-image
+  render-image(grouped-bars.horizontal(true)) satisfies is-image
+  render-image(grouped-bars-neg.horizontal(true)) satisfies is-image
+  render-image(grouped-bars-rep.horizontal(true)) satisfies is-image
+  render-image(grouped-bars-repgroups.horizontal(true)) satisfies is-image
+  render-image(grouped-bars-roughall.horizontal(true)) satisfies is-image
+  render-image(grouped-bars-roughsome.horizontal(true)) satisfies is-image
+end
+
+check "Rendering: Stacked Bars": 
+  render-image(stacked-bars.horizontal(false)) satisfies is-image
+  render-image(stacked-bars-neg.horizontal(false)) satisfies is-image
+  render-image(stacked-bars-rep.horizontal(false)) satisfies is-image
+  render-image(stacked-bars-repstacks.horizontal(false)) satisfies is-image
+  render-image(stacked-bars-roughall.horizontal(false)) satisfies is-image
+  render-image(stacked-bars-roughsome.horizontal(false)) satisfies is-image
+  render-image(stacked-bars.horizontal(true)) satisfies is-image
+  render-image(stacked-bars-neg.horizontal(true)) satisfies is-image
+  render-image(stacked-bars-rep.horizontal(true)) satisfies is-image
+  render-image(stacked-bars-repstacks.horizontal(true)) satisfies is-image
+  render-image(stacked-bars-roughall.horizontal(true)) satisfies is-image
+  render-image(stacked-bars-roughsome.horizontal(true)) satisfies is-image
+end

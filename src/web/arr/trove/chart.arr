@@ -359,7 +359,7 @@ axis-pointer-method = method(self,
   end
 
   ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
-  self.constr()(self.obj.{pointers: some(ticks)})
+  self.constr()(self.obj.{pointers: some(distinct(ticks))})
 end
 
 make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
@@ -393,7 +393,9 @@ make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :
   pos-ticks = map(name-tick, range-by(0, axisTop + step, step))
   neg-ticks = map(name-tick, range-by(0, axisBottom - step, -1 * step))
 
-  self.constr()(self.obj.{axisdata: some(axis-data(axisTop, axisBottom, pos-ticks + neg-ticks))})
+  self.constr()(
+    self.obj.{axisdata: some(axis-data(axisTop, axisBottom, distinct(pos-ticks + neg-ticks)))}
+    )
 end
 
 format-axis-data-method = method(self, format-func :: (Number -> String)):
@@ -542,7 +544,8 @@ type BarChartSeries = {
   color :: Option<I.Color>,
   colors :: Option<List<I.Color>>,
   pointers :: Option<List<Pointer>>, 
-  pointer-color :: Option<I.Color>
+  pointer-color :: Option<I.Color>, 
+  horizontal :: Boolean
 }
 
 default-bar-chart-series = {
@@ -550,7 +553,8 @@ default-bar-chart-series = {
   colors: none,
   pointers: none, 
   pointer-color: none,
-  axisdata: none
+  axisdata: none, 
+  horizontal: false 
 }
 
 type MultiBarChartSeries = { 
@@ -560,7 +564,8 @@ type MultiBarChartSeries = {
   is-stacked :: String,
   colors :: Option<List<I.Color>>, 
   pointers :: Option<List<Pointer>>, 
-  pointer-color :: Option<I.Color>
+  pointer-color :: Option<I.Color>, 
+  horizontal :: Boolean
 }
 
 default-multi-bar-chart-series = {
@@ -568,7 +573,8 @@ default-multi-bar-chart-series = {
   colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
   pointers: none, 
   pointer-color: none,
-  axisdata: none
+  axisdata: none, 
+  horizontal: false 
 }
   
 type HistogramSeries = {
@@ -759,6 +765,9 @@ data DataSeries:
     format-axis: format-axis-data-method, 
     make-axis: make-axis-data-method, 
     scale: scale-method, 
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
@@ -772,6 +781,9 @@ data DataSeries:
     make-axis: make-axis-data-method,
     scale: multi-scale-method,
     stacking-type: stacking-type-method, 
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
