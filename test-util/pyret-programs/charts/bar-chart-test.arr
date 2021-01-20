@@ -456,7 +456,7 @@ check "Sorting Methods: Single Bars":
   render-image(single-bars-neg.sort-by(descending-cmp, vanilla-eq)) satisfies is-image
   render-image(single-bars-rep.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
   render-image(single-bars-roughall.sort-by(ascending-cmp, vanilla-eq)) satisfies is-image
-  render-image(single-bars-roughsome.sort-by(ascending-even-priority, vanilla-eq)) 
+  render-image(single-bars-roughsome.sort-by(ascending-cmp, vanilla-eq)) 
     satisfies is-image
 
   render-image(single-bars.sort-by-label(ascending-cmp, vanilla-eq)) satisfies is-image
@@ -923,7 +923,7 @@ check "Scale Methods: Stacked Bars":
   render-image(stacked-bars.scale({(n): 2 * n})) satisfies is-image
   render-image(stacked-bars.scale({(n): n / 100})) satisfies is-image
   render-image(stacked-bars.scale(num-log)) satisfies is-image
-  render-image(stacked-bars.scale({(n): (2 * n) + 231}).scale(n / 2)) satisfies is-image
+  render-image(stacked-bars.scale({(n): (2 * n) + 231}).scale({(n): n / 2})) satisfies is-image
   render-image(stacked-bars-neg.scale({(n): (2 * n) + 231})) satisfies is-image
   render-image(stacked-bars-rep.scale({(n): n * n})) satisfies is-image
   render-image(stacked-bars-repstacks.scale({(n): n / 100})) satisfies is-image
@@ -931,4 +931,74 @@ check "Scale Methods: Stacked Bars":
   render-image(stacked-bars-roughsome.scale({(n): 2 * n})) satisfies is-image
 end
 
+##############################
+# STACKING TYPE METHOD TESTS 
+##############################
 
+check "Stacking type: Grouped Bars":
+  # Keep as grouped bars 
+  render-image(grouped-bars.stacking-type('none')) satisfies is-image
+  render-image(grouped-bars-neg.stacking-type('none')) satisfies is-image
+  render-image(grouped-bars-rep.stacking-type('none')) satisfies is-image
+  render-image(grouped-bars-repgroups.stacking-type('none')) satisfies is-image
+  render-image(grouped-bars-roughall.stacking-type('none')) satisfies is-image
+  render-image(grouped-bars-roughsome.stacking-type('none')) satisfies is-image
+
+  # Switch to stacked bars 
+  render-image(grouped-bars.stacking-type('absolute')) satisfies is-image
+  render-image(grouped-bars.stacking-type('relative')) satisfies is-image
+  render-image(grouped-bars.stacking-type('percent')) satisfies is-image
+  render-image(grouped-bars-neg.stacking-type('relative')) satisfies is-image
+  render-image(grouped-bars-rep.stacking-type('percent')) satisfies is-image
+  render-image(grouped-bars-repgroups.stacking-type('relative')) satisfies is-image
+  render-image(grouped-bars-roughall.stacking-type('absolute')) satisfies is-image
+  render-image(grouped-bars-roughsome.stacking-type('percent')) satisfies is-image
+
+  # Raise Errors 
+  render-image(grouped-bars.stacking-type('true')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(grouped-bars-neg.stacking-type('false')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(grouped-bars-rep.stacking-type('Relative')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(grouped-bars-repgroups.stacking-type('Absolute')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(grouped-bars-roughall.stacking-type('AFHQIEHFQOH')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(grouped-bars-roughsome.stacking-type('')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+end
+
+check "Stacking type: stacked Bars":
+  # Switch to grouped bars 
+  render-image(stacked-bars.stacking-type('none')) satisfies is-image
+  render-image(stacked-bars-neg.stacking-type('none')) satisfies is-image
+  render-image(stacked-bars-rep.stacking-type('none')) satisfies is-image
+  render-image(stacked-bars-repstacks.stacking-type('none')) satisfies is-image
+  render-image(stacked-bars-roughall.stacking-type('none')) satisfies is-image
+  render-image(stacked-bars-roughsome.stacking-type('none')) satisfies is-image
+
+  # Switch between stacked bar types 
+  render-image(stacked-bars.stacking-type('absolute')) satisfies is-image
+  render-image(stacked-bars.stacking-type('relative')) satisfies is-image
+  render-image(stacked-bars.stacking-type('percent')) satisfies is-image
+  render-image(stacked-bars-neg.stacking-type('relative')) satisfies is-image
+  render-image(stacked-bars-rep.stacking-type('percent')) satisfies is-image
+  render-image(stacked-bars-repstacks.stacking-type('relative')) satisfies is-image
+  render-image(stacked-bars-roughall.stacking-type('absolute')) satisfies is-image
+  render-image(stacked-bars-roughsome.stacking-type('percent')) satisfies is-image
+
+  # Raise Errors 
+  render-image(stacked-bars.stacking-type('true')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(stacked-bars-neg.stacking-type('false')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(stacked-bars-rep.stacking-type('Relative')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(stacked-bars-repstacks.stacking-type('Absolute')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(stacked-bars-roughall.stacking-type('AFHQIEHFQOH')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+  render-image(stacked-bars-roughsome.stacking-type('')) 
+    raises "stacking-type: type must be absolute, relative, percent, or none"
+end

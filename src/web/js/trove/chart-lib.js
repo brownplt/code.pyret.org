@@ -462,17 +462,17 @@
         legend: {
           position: 'top', 
           maxLines: data.If.length - 1
-        },
-        vAxes: {
-          0: {
-            viewWindow: { 
-              max: axisTop, 
-              min: axisBottom
-            }, 
-            ticks: ticks
-          }
         }
       }
+
+    var customAxesNeeded = (get(rawData, 'is-stacked') === 'none') || (get(rawData, 'is-stacked') === 'absolute')
+    
+    options['vAxes'] = //customAxesNeeded ? 
+    { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
+           ticks: ticks }
+    } //: { 0: null }
+         
+  
 
     /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
