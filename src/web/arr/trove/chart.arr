@@ -41,6 +41,13 @@ type TableIntern = RawArray<RawArray<Any>>
 data Pointer: 
   | pointer(label :: String, value :: Number)
 end
+data SciNumber: 
+  | sci-notation(coeff :: Number, exponent :: Number, base :: Number)
+end
+data AxisData: 
+  | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: List<Pointer>)
+end
+
 
 ################################################################################
 # HELPERS
@@ -113,6 +120,108 @@ fun table-sorter<A,B>(
   sorted-rows ^ builtins.raw-array-from-list
 end
 
+fun num-to-scientific(base :: Number) -> (Number -> SciNumber) block: 
+  doc: ```
+       Produces a function that takes a number and turns it into it's scientific representation. 
+       Calculates the resulting Coeff, Exponent where number = coeff * base ^ Exponent.
+       Currently only works with bases > 1.
+       ```
+  when base <= 1: 
+    raise("Num-to-scientific: Only defined on bases > 1")
+  end
+  
+  fun recur(s :: SciNumber): 
+    doc: ``` 
+         Takes the current Coeff, Exponent and divides/multiplies by base to move closer to 
+         the actual scientific representation.
+         ```
+    cases (SciNumber) s: 
+      | sci-notation(c, e, b) => 
+        pos-c = num-abs(c)
+        ask: 
+          | (pos-c > 0) and (pos-c < 1) then: recur(sci-notation(c * b, e - 1, b))
+          | (pos-c == 0) or ((pos-c >= 1) and (pos-c < b)) then: sci-notation(c, e, b)
+          | otherwise: recur(sci-notation(c / b, e + 1, b))
+        end
+    end
+  end
+  
+  {(n): recur(sci-notation(n, 0, base))}
+#|
+where: 
+  num-to-scientific(10)(0) is sci-notation(0, 0, 10)
+  num-to-scientific(10)(3.214) is sci-notation(3.214, 0, 10)
+  num-to-scientific(10)(513) is sci-notation(5.13, 2, 10)
+  num-to-scientific(10)(-23) is sci-notation(-2.3, 1, 10)
+  num-to-scientific(10)(0.00123) is sci-notation(1.23, -3, 10)
+  num-to-scientific(10)(-0.0231) is sci-notation(-2.31, -2, 10)
+  num-to-scientific(2)(256) is sci-notation(1, 8, 2)
+  num-to-scientific(1) raises "Only defined on bases > 1"
+  num-to-scientific(0.32) raises "Only defined on bases > 1"
+  num-to-scientific(0) raises "Only defined on bases > 1"
+  num-to-scientific(-50) raises "Only defined on bases > 1"
+|#
+end
+
+fun prep-axis(values :: List<Number>) -> {Number; Number}: 
+  doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
+
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>) -> Number: 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
+  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
+
+  {max-positive-height; max-negative-height}
+end
+
+fun multi-prep-axis(is-stacked :: String, value-lists :: List<List<Number>>) 
+  -> {Number; Number}: 
+  doc: ``` 
+       Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
+       ```
+
+  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>) -> Number: 
+    fold({(acc, elm): 
+      if cmp(acc, elm): acc
+      else: elm
+      end}, l.first, l)}
+
+  ask:
+    | is-stacked == 'none' then: 
+      # Find the tallest bar in the entire group 
+      positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, value-lists)
+      negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, value-lists)
+      max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
+      max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
+      {max-positive-height; max-negative-height}
+
+    | is-stacked == 'absolute' then: 
+      # Find height of stack using sum functions
+      sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+      positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
+      negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
+      positive-sums = map(positive-only-sum, value-lists)
+      negative-sums = map(negative-only-sum, value-lists)
+      max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
+      max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
+      {max-positive-height; max-negative-height}
+
+    | otherwise: 
+      has-pos = any({(l): any( _ > 0, l)}, value-lists)
+      has-neg = any({(l): any( _ < 0, l)}, value-lists)
+      ask: 
+        | has-pos and has-neg then: {1; -1}
+        | has-pos then: {1; 0}
+        | has-neg then: {0; -1}
+        | otherwise: {1; -1}
+      end
+  end
+end
+
 ################################################################################
 # METHODS
 ################################################################################
@@ -126,6 +235,10 @@ color-list-method = method(self, colors :: List<I.Color>):
     | empty => self.constr()(self.obj.{colors: none})
     | link(_, _) => self.constr()(self.obj.{colors: some(colors)})
   end
+end
+
+pointer-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{pointer-color: some(color)})
 end
 
 legend-method = method(self, legend :: String):
@@ -246,7 +359,108 @@ axis-pointer-method = method(self,
   end
 
   ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
-  self.constr()(self.obj.{pointers: some(ticks)})
+  self.constr()(self.obj.{pointers: some(distinct(ticks))})
+end
+
+make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
+  step-types = [list: 0, 0.2, 0.25, 0.5, 1, 2]
+
+  # Turn the numbers into Scientific Numbers
+  scientific-b10 = num-to-scientific(10)
+  pos-sci = scientific-b10(pos-bar-height)
+  neg-sci = scientific-b10(neg-bar-height)
+
+  # Calculate the step distance between gridlines
+  pos-step = step-types.filter({(n): n >= num-abs(pos-sci.coeff / 9)}).get(0) * num-expt(10, pos-sci.exponent)
+  neg-step = step-types.filter({(n): n >= num-abs(neg-sci.coeff / 9)}).get(0) * num-expt(10, neg-sci.exponent)
+  step = num-max(pos-step, neg-step)
+  step-sci = scientific-b10(step)
+
+  # Use step distance to calculate Axis Properties
+  name-tick = 
+    {(n): 
+      ask:
+      | (step-sci.coeff == 2.5) and (step-sci.exponent <= 0) then: 
+        pointer(num-to-string-digits(n, 2 - step-sci.exponent), n)
+      | step-sci.exponent < 0 then: 
+        pointer(num-to-string-digits(n, 1 - step-sci.exponent), n)
+      | otherwise: 
+        pointer(num-to-string(n), n)
+      end}
+
+  axisTop = num-max(0, step * num-ceiling(pos-bar-height / step))
+  axisBottom = num-min(0, step * num-floor(neg-bar-height / step))
+  pos-ticks = map(name-tick, range-by(0, axisTop + step, step))
+  neg-ticks = map(name-tick, range-by(0, axisBottom - step, -1 * step))
+
+  self.constr()(
+    self.obj.{axisdata: some(axis-data(axisTop, axisBottom, distinct(pos-ticks + neg-ticks)))}
+    )
+end
+
+format-axis-data-method = method(self, format-func :: (Number -> String)):
+  cases (Option) self.obj!axisdata: 
+    | none => 
+      raise("Should never have reached this point. Yell at John for not setting up the axis properties somewhere where he should have and please report this as a bug")
+    | some(ad) => 
+      new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad.ticks)
+      self.constr()(self.obj.{axisdata: some(axis-data(ad.axisTop, ad.axisBottom, new-ticks))})
+  end
+end
+
+scale-method = method(self, scale-fun :: (Number -> Number)): 
+  exact-sf = {(n): n ^ scale-fun ^ num-to-rational}
+  list-of-rows = self.obj!tab ^ raw-array-to-list
+  scale-row = {(row): [raw-array: raw-array-get(row, 0), raw-array-get(row, 1) ^ exact-sf]}
+  scaled-tab = map(scale-row, list-of-rows) ^ builtins.raw-array-from-list
+  scaled-self = self.constr()(self.obj.{tab: scaled-tab})
+  scaled-values = map({(row): raw-array-get(row, 1) ^ exact-sf}, list-of-rows)
+  {max-positive-height; max-negative-height} = prep-axis(scaled-values)
+
+  scaled-self.make-axis(max-positive-height, max-negative-height)
+end
+
+multi-scale-method = method(self, scale-fun :: (Number -> Number)): 
+  exact-sf = {(n): n ^ scale-fun ^ num-to-rational}
+  list-of-rows = self.obj!tab ^ raw-array-to-list
+  get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
+  scale-row = {(row): [raw-array: raw-array-get(row, 0), map(exact-sf, row ^ get-values) ^ builtins.raw-array-from-list]}
+  scaled-tab = map(scale-row, list-of-rows) ^ builtins.raw-array-from-list
+  scaled-self = self.constr()(self.obj.{tab: scaled-tab})
+  scaled-values = map({(row): map(exact-sf, row ^ get-values)}, list-of-rows)
+  {max-positive-height; max-negative-height} = 
+    multi-prep-axis(scaled-self.obj!is-stacked, scaled-values)
+
+  scaled-self.make-axis(max-positive-height, max-negative-height)
+end
+
+stacking-type-method = method(self, stack-type :: String): 
+  get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
+  value-lists = map(get-values, self.obj!tab ^ raw-array-to-list)
+  ask: 
+    | stack-type == 'absolute' then: 
+      new-self = self.constr()(self.obj.{is-stacked: 'absolute'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('absolute', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+    | stack-type == 'relative' then: 
+      new-self = self.constr()(self.obj.{is-stacked: 'relative'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('relative', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+    | stack-type == 'percent' then:
+      new-self = self.constr()(self.obj.{is-stacked: 'percent'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('percent', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+              .format-axis({(n): num-to-string(n * 100) + "%"})
+    | stack-type == 'none' then: 
+      new-self = self.constr()(self.obj.{is-stacked: 'none'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('none', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+    | otherwise: raise('stacking-type: type must be absolute, relative, percent, or none')
+  end
 end
 
 ################################################################################
@@ -326,33 +540,41 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  axis-bottom :: Number, 
-  axis-top :: Number,
+  axisdata :: Option<AxisData>, 
   color :: Option<I.Color>,
   colors :: Option<List<I.Color>>,
-  pointers :: Option<List<Pointer>>
+  pointers :: Option<List<Pointer>>, 
+  pointer-color :: Option<I.Color>, 
+  horizontal :: Boolean
 }
 
 default-bar-chart-series = {
   color: none,
   colors: none,
-  pointers: none
+  pointers: none, 
+  pointer-color: none,
+  axisdata: none, 
+  horizontal: false 
 }
 
 type MultiBarChartSeries = { 
   tab :: TableIntern,
-  axis-bottom :: Number,
-  axis-top :: Number,
+  axisdata :: Option<AxisData>,
   legends :: RawArray<String>,
-  is-stacked :: Boolean,
+  is-stacked :: String,
   colors :: Option<List<I.Color>>, 
-  pointers :: Option<List<Pointer>>
+  pointers :: Option<List<Pointer>>, 
+  pointer-color :: Option<I.Color>, 
+  horizontal :: Boolean
 }
 
 default-multi-bar-chart-series = {
-  is-stacked: false,
+  is-stacked: 'none',
   colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
-  pointers: none
+  pointers: none, 
+  pointer-color: none,
+  axisdata: none, 
+  horizontal: false 
 }
   
 type HistogramSeries = {
@@ -538,7 +760,14 @@ data DataSeries:
     colors: color-list-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
-    add-pointers: axis-pointer-method, 
+    add-pointers: axis-pointer-method,
+    pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method, 
+    make-axis: make-axis-data-method, 
+    scale: scale-method, 
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
     constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
@@ -547,6 +776,14 @@ data DataSeries:
     sort-by-data: multi-sort-method, 
     sort-by-label: label-sort-method,
     add-pointers: axis-pointer-method, 
+    pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method,
+    make-axis: make-axis-data-method,
+    scale: multi-scale-method,
+    stacking-type: stacking-type-method, 
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
@@ -773,6 +1010,7 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   # Constants
   label-length = labels.length()
   value-length = values.length()
+  rational-values = map(num-to-rational, values)
 
   # Edge Case Error Checking
   when value-length == 0:
@@ -783,24 +1021,16 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   end
 
   # Type Checking
-  values.each(check-num)
+  rational-values.each(check-num)
   labels.each(check-string)
 
-  # Calculating the max axis (top) and min axis (bottom) values 
-  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
-    fold({(acc, elm): 
-      if cmp(acc, elm): acc
-      else: elm
-      end}, l.first, l)}
+  {max-positive-height; max-negative-height} = prep-axis(rational-values)
 
-  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
-  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
-
-  default-bar-chart-series.{
-    tab: to-table2(labels, values),
-    axis-top: max-positive-height, 
-    axis-bottom: max-negative-height
+  data-series = default-bar-chart-series.{
+    tab: to-table2(labels, rational-values)
   } ^ bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun grouped-bar-chart-from-list(
@@ -816,6 +1046,7 @@ fun grouped-bar-chart-from-list(
   label-length = labels.length()
   value-length = value-lists.length()
   legend-length = legends.length() 
+  rational-values = value-lists.map({(row): map(num-to-rational, row)})
 
   # Edge Case Error Checking 
   when value-length == 0:
@@ -836,26 +1067,15 @@ fun grouped-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
-  # Calculating the max axis (top) and min axis (bottom) values 
-  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
-    fold({(acc, elm): 
-      if cmp(acc, elm): acc
-      else: elm
-      end}, l.first, l)}
-
-  positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, value-lists)
-  negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, value-lists)
-
-  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
-  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
+ {max-positive-height; max-negative-height} = multi-prep-axis('none', rational-values)
 
   # Constructing the Data Series
-  default-multi-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    axis-top: max-positive-height, 
-    axis-bottom: max-negative-height,
+  data-series = default-multi-bar-chart-series.{
+    tab: to-table2(labels, map(builtins.raw-array-from-list, rational-values)),
     legends: legends ^ builtins.raw-array-from-list
   } ^ multi-bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun stacked-bar-chart-from-list(
@@ -871,6 +1091,7 @@ fun stacked-bar-chart-from-list(
   label-length = labels.length()
   value-length = value-lists.length()
   legend-length = legends.length() 
+  rational-values = value-lists.map({(row): map(num-to-rational, row)})
 
   # Edge Case Error Checking 
   when value-length == 0:
@@ -891,30 +1112,16 @@ fun stacked-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
-  # Calculating the max axis (top) and min axis (bottom) values 
-  sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
-  positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
-  negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
-  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>): 
-    fold({(acc, elm): 
-      if cmp(acc, elm): acc
-      else: elm
-      end}, l.first, l)}
-
-  positive-sums = map(positive-only-sum, value-lists)
-  negative-sums = map(negative-only-sum, value-lists)
-
-  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
-  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
+  {max-positive-height; max-negative-height} = multi-prep-axis('absolute', rational-values)
 
   # Constructing the Data Series
-  default-multi-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    axis-top: max-positive-height, 
-    axis-bottom: max-negative-height,
+  data-series = default-multi-bar-chart-series.{
+    tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,
-    is-stacked: true
+    is-stacked: 'absolute'
   } ^ multi-bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
