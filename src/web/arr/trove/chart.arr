@@ -86,6 +86,14 @@ fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
   map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
+fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
+  builtins.raw-array-from-list(table.map(builtins.raw-array-from-list))
+end
+
+fun table2-to-list<A>(table :: RawArray<RawArray<A>>) -> List<List<A>>:
+  raw-array-to-list(table).map(raw-array-to-list)
+end
+
 fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
   I.color(190, 190, 190, 0.75)
     ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
@@ -463,6 +471,169 @@ stacking-type-method = method(self, stack-type :: String):
   end
 end
 
+annotations-method = method(self,
+    annotations :: List<List<Option<String>>>) block:
+  # Annotations should match previous lengths
+  expected-length = raw-array-length(self.obj.annotations)
+  given-length = annotations.length()
+  when given-length <> expected-length:
+    raise("annotations: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.annotations),
+      given from annotations,
+      index from range(0, annotations.length())):
+    shadow expected-length = raw-array-length(expected)
+    shadow given-length = given.length()
+    when given-length <> expected-length:
+      raise("annotations: length mismatch on row "
+          + num-to-string(index)
+          + ". Expected "
+          + num-to-string(expected-length)
+          + ", received "
+          + num-to-string(given-length))
+    end
+  end
+
+  self.constr()(self.obj.{annotations: list-to-table2(annotations)})
+end
+
+single-annotations-method = method(self, annotations :: List<Option<String>>):
+  self.{annotations-method: annotations-method}
+    .annotations-method(annotations.map(link(_, empty)))
+end
+
+intervals-method = method(self, intervals :: List<List<List<String>>>) block:
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = intervals.length()
+  when given-length <> expected-length:
+    raise("intervals: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.intervals),
+      given from intervals,
+      index from range(0, intervals.length())):
+    shadow expected-length = raw-array-length(expected)
+    shadow given-length = given.length()
+    when given-length <> expected-length:
+      raise("intervals: length mismatch on row "
+          + num-to-string(index)
+          + ". Expected "
+          + num-to-string(expected-length)
+          + ", received "
+          + num-to-string(given-length))
+    end
+  end
+  raw-intervals = intervals.map(_.map(raw-array-from-list)) ^ list-to-table2
+  self.constr()(self.obj.{intervals: raw-intervals})
+end
+
+single-intervals-method = method(self, intervals :: List<List<Number>>):
+  self.{intervals: intervals-method}.intervals(intervals.map(link(_, empty)))
+end
+
+error-bars-method = method(self, errors :: List<List<List<Number>>>) block:
+  doc: ```Given a list of one negative number and one positive number for every
+       data point, set intervals to lower and upper error intervals.```
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = errors.length()
+  when given-length <> expected-length:
+    raise("error-bars: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.intervals),
+      given from errors,
+      index from range(0, errors.length())):
+    block:
+      shadow expected-length = raw-array-length(expected)
+      shadow given-length = given.length()
+      row-str = num-to-string(index)
+      when given-length <> expected-length:
+        raise("error-bars: length mismatch on row " + row-str
+            + ". Expected "
+            + num-to-string(expected-length)
+            + ", received "
+            + num-to-string(given-length))
+      end
+      for each2(pair from given, column from range(0, given.length())):
+        block:
+          col-str = num-to-string(column)
+          when pair.length() <> 2:
+            raise("error-bars: on row " + row-str + " column " + col-str
+                + ", 2 intervals must be given.")
+          end
+          when pair.get(0) > 0:
+            raise("error-bars: on row " + row-str + " column " + col-str
+                + ", first pair must be non-positive.")
+          end
+          when pair.get(1) < 0:
+            raise("error-bars: on row " + row-str + " column " + col-str
+                + ", second pair must be non-negative.")
+          end
+        end
+      end
+    end
+  end
+  # Defer to intervals-method
+  raw-table-data = raw-array-map(raw-array-get(_, 1), self.obj.tab)
+  table-data = table2-to-list(raw-table-data)
+  intervals-at-end = for map2(data-row from table-data,
+      error-row from errors):
+    for map2(data-col from data-row, error-bounds from error-row):
+      error-bounds.map(_ + data-col)
+    end
+  end
+  self.intervals(intervals-at-end)
+end
+
+single-error-bars-method = method(self, errors :: List<List<Number>>) block:
+  doc: ```Given a list of pairs of one positive and one negative number
+       corresponding to upper and lower bounds, produces a chart with error
+       bars using the given bounds.```
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = errors.length()
+  when given-length <> expected-length:
+    raise("error-bars: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  for each3(expected from raw-array-to-list(self.obj.intervals),
+      given from errors,
+      index from range(0, errors.length())):
+    block:
+      row-str = num-to-string(index)
+      when given.length() <> 2:
+        raise("error-bars: on row " + row-str
+            + ", 2 intervals must be given (received "
+            + num-to-string(given.length()) + ").")
+      end
+      when given.get(0) > 0:
+        raise("error-bars: on row " + row-str
+            + ", first pair must be non-positive.")
+      end
+      when given.get(1) < 0:
+        raise("error-bars: on row " + row-str
+            + ", second pair must be non-negative.")
+      end
+    end
+  end
+  # Defer to intervals-method
+  raw-table-data = raw-array-map(raw-array-get(_, 1), self.obj.tab)
+  table-data = raw-array-to-list(raw-table-data)
+  intervals-at-end = for map2(data-val from table-data,
+      error from errors):
+    error.map(_ + data-val)
+  end
+  self.intervals(intervals-at-end)
+end
+
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -545,7 +716,9 @@ type BarChartSeries = {
   colors :: Option<List<I.Color>>,
   pointers :: Option<List<Pointer>>, 
   pointer-color :: Option<I.Color>, 
-  horizontal :: Boolean
+  horizontal :: Boolean,
+  annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
 }
 
 default-bar-chart-series = {
@@ -562,10 +735,12 @@ type MultiBarChartSeries = {
   axisdata :: Option<AxisData>,
   legends :: RawArray<String>,
   is-stacked :: String,
-  colors :: Option<List<I.Color>>, 
+  colors :: Option<List<I.Color>>,
   pointers :: Option<List<Pointer>>, 
   pointer-color :: Option<I.Color>, 
-  horizontal :: Boolean
+  horizontal :: Boolean,
+  annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
 }
 
 default-multi-bar-chart-series = {
@@ -769,6 +944,9 @@ data DataSeries:
       self.constr()(self.obj.{horizontal: b})
     end,
     constr: {(): bar-chart-series},
+    annotations: single-annotations-method,
+    intervals: single-intervals-method,
+    error-bars: single-error-bars-method,
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
@@ -784,6 +962,9 @@ data DataSeries:
     method horizontal(self, b :: Boolean):
       self.constr()(self.obj.{horizontal: b})
     end,
+    annotations: annotations-method,
+    intervals: intervals-method,
+    error-bars: error-bars-method,
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
@@ -1027,7 +1208,11 @@ fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   {max-positive-height; max-negative-height} = prep-axis(rational-values)
 
   data-series = default-bar-chart-series.{
-    tab: to-table2(labels, rational-values)
+    tab: to-table2(labels, rational-values),
+    axis-top: max-positive-height,
+    axis-bottom: max-negative-height,
+    annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
   } ^ bar-chart-series
 
   data-series.make-axis(max-positive-height, max-negative-height)
@@ -1071,8 +1256,12 @@ fun grouped-bar-chart-from-list(
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
-    tab: to-table2(labels, map(builtins.raw-array-from-list, rational-values)),
-    legends: legends ^ builtins.raw-array-from-list
+    tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height,
+    legends: legends ^ builtins.raw-array-from-list,
+    annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
+    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
   } ^ multi-bar-chart-series
 
   data-series.make-axis(max-positive-height, max-negative-height)
@@ -1118,6 +1307,8 @@ fun stacked-bar-chart-from-list(
   data-series = default-multi-bar-chart-series.{
     tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
     legends: legends ^ builtins.raw-array-from-list,
+    annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
+    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
     is-stacked: 'absolute'
   } ^ multi-bar-chart-series
 
