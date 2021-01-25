@@ -92,22 +92,6 @@
     return js_list;
   }
 
-  // Function that takes in the height of the highest bar and finds the edges of the Vertical Axis
-    function roundedAxis(posBarHeight, negBarHeight) {
-      console.log("Bar Heights:", posBarHeight, negBarHeight)
-      var step_types = [0.2, 0.25, 0.5, 1];
-      var [pos_coeff, pos_exponent] = posBarHeight.toExponential().split("e").map(num => parseFloat(num));
-      var [neg_coeff, neg_exponent] = negBarHeight.toExponential().split("e").map(num => parseFloat(num));
-      console.log("Pos Scientific:", pos_coeff, pos_exponent)
-      console.log("Neg Scientific:", neg_coeff, neg_exponent)
-      var pos_step = step_types.filter(s => s >= (Math.abs(pos_coeff) / 9))[0] * Math.pow(10, pos_exponent);
-      var neg_step = step_types.filter(s => s >= (Math.abs(neg_coeff) / 9))[0] * Math.pow(10, neg_exponent);
-      var step = Math.max(pos_step, neg_step);
-      console.log("Step:", pos_step, neg_step, step);
-      var [axis_top, axis_bottom] = [step * Math.ceil(posBarHeight / step), step * Math.floor(negBarHeight / step)];
-      return [axis_top, axis_bottom];
-    }
-
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -415,11 +399,13 @@
   function barChart(globalOptions, rawData) {
     // Variables and constants 
     const table = get(rawData, 'tab');
+    var horizontal = get(rawData, 'horizontal');
     const data = new google.visualization.DataTable();
     var colors_list = [];
     var default_color = "";
     var pointers_list = [];
     var pointer_color = 'black';
+    var axisTop, axisBottom, ticks;
 
     // Sets up the color list [Each Bar Colored Individually]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
@@ -446,6 +432,24 @@
           }
     });
 
+    // Sets up the pointer color
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointer-color'), {
+          none: function () {},
+          some: function (color) {
+            pointer_color = convertColor(color);
+          }
+    });
+
+    // Sets up the calculated axis properties/data
+      cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
+          none: function () {},
+          some: function (axisdata) {
+            axisTop = toFixnum(axisdata.dict.axisTop);
+            axisBottom = toFixnum(axisdata.dict.axisBottom);
+            ticks = convertListWith(convertPointer, axisdata.dict.ticks);
+          }
+      });
+
     // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Values');
@@ -465,14 +469,23 @@
         }
       }
 
+    var axisloc = horizontal ? 'hAxes' : 'vAxes';
+    
+
+    console.log(axisTop, axisBottom, ticks);
+    options[axisloc] =
+    { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
+           ticks: ticks
+         }
+    }
+    
      /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
        The Current Chart library necessitates that we assign at least one stack/bar to the 
        second axis in order for it to show up, and we have to fix the min/max of each axis 
        manually to make sure that both are consistent with each other rather than being relative 
-       to the data. This also means that we'll have to make this a fake multi-bar-chart. There is
-       also a problem: When the pointers are too close to each other, one or both of them 
-       disappear!
+       to the data. There is also a problem: When the pointers are too close to each other, one or 
+       both of them disappear!
     */
     if (pointers_list.length > 0) {
 
@@ -481,34 +494,21 @@
       options['series'] = { 1: { color: pointer_color, targetAxisIndex: 1 } };
 
       // Update Options to include the new axis ticks consistent with the first axis
-      var [max, min] = 
-        roundedAxis(
-          toFixnum(get(rawData, 'axis-top')), 
-          toFixnum(get(rawData, 'axis-bottom')))
-
-      options['vAxes'] = {
-        0: {
-          viewWindow: { 
-            max: max, 
-            min: min
-          }
+      options[axisloc][1] = { 
+        viewWindow: { 
+          max: axisTop, 
+          min: axisBottom
         },
-        1: { 
-          viewWindow: { 
-            max: max, 
-            min: min
-          },
-          gridlines: { color: pointer_color },
-          ticks: pointers_list, 
-          textStyle: { color: pointer_color }
-        } 
+        gridlines: { color: pointer_color },
+        ticks: pointers_list, 
+        textStyle: { color: pointer_color }
       }
     }
 
     return {
       data: data,
       options: options,
-      chartType: google.visualization.ColumnChart,
+      chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],
     };
@@ -518,10 +518,12 @@
     // Variables and Constants
     const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
+    var horizontal = get(rawData, 'horizontal');
     const data = new google.visualization.DataTable();
     var colors_list = [];
     var pointers_list = [];
     var pointer_color = 'black';
+    var axisTop, axisBottom, ticks;
 
     // Sets up the color list [Coloring each group memeber/stack]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
@@ -539,6 +541,24 @@
           }
     });
 
+    // Sets up the calculated axis properties/data
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
+          none: function () {},
+          some: function (axisdata) {
+            axisTop = toFixnum(axisdata.dict.axisTop);
+            axisBottom = toFixnum(axisdata.dict.axisBottom);
+            ticks = convertListWith(convertPointer, axisdata.dict.ticks);
+          }
+    });
+
+    // Sets up the pointer color
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointer-color'), {
+          none: function () {},
+          some: function (color) {
+            pointer_color = convertColor(color);
+          }
+    });
+
     // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
     legends.forEach(legend => data.addColumn('number', legend));
@@ -552,54 +572,48 @@
         isStacked: get(rawData, 'is-stacked'),
         series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
         legend: {
-          position: 'top', 
+          position: horizontal ? 'right' : 'top', 
           maxLines: data.If.length - 1
         }
       }
 
+    var axisloc = horizontal ? 'hAxes' : 'vAxes';
+    options[axisloc] =
+    { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
+           ticks: ticks }
+    }
+         
     /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
        The Current Chart library necessitates that we assign at least one stack/bar to the 
        second axis in order for it to show up, and we have to fix the min/max of each axis 
-       manually to make sure that both are consistent with each other rather than being 
-       relative to the data. Theres also a problem: When the pointers are too close to each 
-       other, one or both of them disappear! 
+       manually to make sure that both are consistent with each other rather than being relative 
+       to the data. There is also a problem: When the pointers are too close to each other, one or 
+       both of them disappear!
     */
 
     if (pointers_list.length > 0) {
+
       // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
       data.addColumn('number', 'Pointers')
       options['series'][(data.If.length - 2)] = {color: pointer_color, targetAxisIndex: 1};
 
       // Update Options to include the new axis ticks consistent with the first axis
-      var [max, min] = 
-        roundedAxis(
-          toFixnum(get(rawData, 'axis-top')), 
-          toFixnum(get(rawData, 'axis-bottom')))
-
-      options['vAxes'] = {
-        0: {
-          viewWindow: { 
-            max: max, 
-            min: min
-          }
+      options[axisloc][1] = { 
+        viewWindow: { 
+          max: axisTop, 
+          min: axisBottom
         },
-        1: { 
-          viewWindow: { 
-            max: max, 
-            min: min
-          },
-          gridlines: { color: pointer_color },
-          ticks: pointers_list, 
-          textStyle: { color: pointer_color }
-        } 
-      }
+        gridlines: { color: pointer_color },
+        ticks: pointers_list, 
+        textStyle: { color: pointer_color }
+      } 
     }
 
     return {
       data: data,
       options: options,
-      chartType: google.visualization.ColumnChart,
+      chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],
     };
