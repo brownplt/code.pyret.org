@@ -1088,6 +1088,10 @@ check "Intervals: Single Bars":
   render-image(single-bars.intervals([list: [list: 9, 11],
       [list: 1, 2, 3, 4, 5], [list: -1, -2], empty, empty, empty, empty]))
     satisfies is-image
+  render-image(single-bars.intervals([list: [list: 9, 11],
+      [list: 1, 2, 3, 4, 5], [list: -1, -2], empty, empty, empty, empty])
+      .interval-color(orange))
+    satisfies is-image
 end
 
 check "Intervals: Multiple Bars":
@@ -1109,6 +1113,11 @@ check "Intervals: Multiple Bars":
   
   render-image(stacked-small-data.intervals(intervals)) satisfies is-image
   render-image(grouped-small-data.intervals(intervals)) satisfies is-image
+
+  render-image(stacked-small-data.intervals(intervals).interval-color(red)) 
+    satisfies is-image
+  render-image(grouped-small-data.intervals(intervals).interval-color(green)) 
+    satisfies is-image
 end
 
 ###################
@@ -1119,6 +1128,10 @@ check "Error bars: Single Bars":
   render-image(single-bars.error-bars([list: [list: -1, 1], [list: -1, 1],
       [list: -1, 2], [list: -1, 1], [list: -1, 1], [list: -1, 1],
       [list: -1, 1]]))
+    satisfies is-image
+  render-image(single-bars.error-bars([list: [list: -1, 1], [list: -1, 1],
+      [list: -1, 2], [list: -1, 1], [list: -1, 1], [list: -1, 1],
+      [list: -1, 1]]).interval-color(purple))
     satisfies is-image
 end
 
@@ -1141,4 +1154,9 @@ check "Error bars: Multiple Bars":
   
   render-image(stacked-small-data.error-bars(error-amounts)) satisfies is-image
   render-image(grouped-small-data.error-bars(error-amounts)) satisfies is-image
+
+  render-image(stacked-small-data.error-bars(error-amounts).interval-color(red)) 
+    satisfies is-image
+  render-image(grouped-small-data.error-bars(error-amounts).interval-color(green)) 
+    satisfies is-image
 end

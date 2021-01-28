@@ -249,6 +249,10 @@ pointer-color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{pointer-color: some(color)})
 end
 
+interval-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{default-interval-color: some(color)})
+end
+
 legend-method = method(self, legend :: String):
   self.constr()(self.obj.{legend: legend})
 end
@@ -505,7 +509,7 @@ single-annotations-method = method(self, annotations :: List<Option<String>>):
     .annotations-method(annotations.map(link(_, empty)))
 end
 
-intervals-method = method(self, intervals :: List<List<List<String>>>) block:
+intervals-method = method(self, intervals :: List<List<List<Number>>>) block:
   expected-length = raw-array-length(self.obj.intervals)
   given-length = intervals.length()
   when given-length <> expected-length:
@@ -529,7 +533,15 @@ intervals-method = method(self, intervals :: List<List<List<String>>>) block:
     end
   end
   raw-intervals = intervals.map(_.map(raw-array-from-list)) ^ list-to-table2
-  self.constr()(self.obj.{intervals: raw-intervals})
+  flatten = {(lol): fold({(acc, elm): acc + elm}, empty, lol)}
+  curr-axis = self.obj!axisdata.value
+  interval-max = fold(num-max, 0, flatten(flatten(intervals)))
+  interval-min = fold(num-min, 0, flatten(flatten(intervals)))
+  self.constr()(
+    self.obj.{intervals: raw-intervals})
+            .make-axis(
+              num-max(curr-axis.axisTop, interval-max), 
+              num-min(curr-axis.axisBottom, interval-min))
 end
 
 single-intervals-method = method(self, intervals :: List<List<Number>>):
@@ -719,6 +731,7 @@ type BarChartSeries = {
   horizontal :: Boolean,
   annotations :: RawArray<RawArray<Option<String>>>,
   intervals :: RawArray<RawArray<RawArray<Number>>>,
+  default-interval-color :: Option<I.Color>
 }
 
 default-bar-chart-series = {
@@ -727,7 +740,8 @@ default-bar-chart-series = {
   pointers: none, 
   pointer-color: none,
   axisdata: none, 
-  horizontal: false 
+  horizontal: false, 
+  default-interval-color: none
 }
 
 type MultiBarChartSeries = { 
@@ -741,6 +755,7 @@ type MultiBarChartSeries = {
   horizontal :: Boolean,
   annotations :: RawArray<RawArray<Option<String>>>,
   intervals :: RawArray<RawArray<RawArray<Number>>>,
+  default-interval-color :: Option<I.Color>
 }
 
 default-multi-bar-chart-series = {
@@ -749,7 +764,8 @@ default-multi-bar-chart-series = {
   pointers: none, 
   pointer-color: none,
   axisdata: none, 
-  horizontal: false 
+  horizontal: false, 
+  default-interval-color: none
 }
   
 type HistogramSeries = {
@@ -943,10 +959,11 @@ data DataSeries:
     method horizontal(self, b :: Boolean):
       self.constr()(self.obj.{horizontal: b})
     end,
-    constr: {(): bar-chart-series},
     annotations: single-annotations-method,
     intervals: single-intervals-method,
     error-bars: single-error-bars-method,
+    interval-color: interval-color-method, 
+    constr: {(): bar-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
@@ -965,6 +982,7 @@ data DataSeries:
     annotations: annotations-method,
     intervals: intervals-method,
     error-bars: error-bars-method,
+    interval-color: interval-color-method, 
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,

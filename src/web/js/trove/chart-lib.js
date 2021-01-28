@@ -250,7 +250,6 @@
         table.insertColumn(dataColNums[groupIndex] + 1, colProperties);
       }
     }
-    console.log(colValues);
     // Adjust dataColNums to match expanded table
     let sum = 0;
     dataColNums.forEach((dataColNum, i) => {
@@ -406,6 +405,7 @@
     var pointers_list = [];
     var pointer_color = 'black';
     var axisTop, axisBottom, ticks;
+    var default_interval_color = 'black'; 
 
     // Sets up the color list [Each Bar Colored Individually]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
@@ -440,6 +440,14 @@
           }
     });
 
+    // Sets up the default interval color
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'default-interval-color'), {
+          none: function () {},
+          some: function (color) {
+            default_interval_color = convertColor(color);
+          }
+    });
+
     // Sets up the calculated axis properties/data
       cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
           none: function () {},
@@ -466,13 +474,14 @@
     var options = {
         legend: {
           position: 'none'
+        }, 
+        intervals: {
+          color : default_interval_color, 
         }
       }
 
     var axisloc = horizontal ? 'hAxes' : 'vAxes';
     
-
-    console.log(axisTop, axisBottom, ticks);
     options[axisloc] =
     { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
            ticks: ticks
@@ -524,6 +533,7 @@
     var pointers_list = [];
     var pointer_color = 'black';
     var axisTop, axisBottom, ticks;
+    var default_interval_color = 'black'; 
 
     // Sets up the color list [Coloring each group memeber/stack]
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
@@ -559,6 +569,14 @@
           }
     });
 
+    // Sets up the default interval color
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'default-interval-color'), {
+          none: function () {},
+          some: function (color) {
+            default_interval_color = convertColor(color);
+          }
+    });
+
     // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
     legends.forEach(legend => data.addColumn('number', legend));
@@ -574,6 +592,9 @@
         legend: {
           position: horizontal ? 'right' : 'top', 
           maxLines: data.If.length - 1
+        }, 
+        intervals: { 
+          color : default_interval_color, 
         }
       }
 
@@ -592,11 +613,15 @@
        both of them disappear!
     */
 
-    if (pointers_list.length > 0) {
-
+    if (pointers_list.length > 0) { 
       // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
       data.addColumn('number', 'Pointers')
-      options['series'][(data.If.length - 2)] = {color: pointer_color, targetAxisIndex: 1};
+
+      for (var i = 0; i < data.If.length - 1; i++) {
+        if (options['series'][i] == null) {
+          options['series'][i] = {color: pointer_color, targetAxisIndex: 1};
+        }
+      }
 
       // Update Options to include the new axis ticks consistent with the first axis
       options[axisloc][1] = { 
@@ -607,7 +632,7 @@
         gridlines: { color: pointer_color },
         ticks: pointers_list, 
         textStyle: { color: pointer_color }
-      } 
+      }
     }
 
     return {
@@ -615,7 +640,7 @@
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator],
+      mutatorgraphs: [axesNameMutator, yAxisRangeMutator],
     };
   }
 
