@@ -45,7 +45,7 @@ data SciNumber:
   | sci-notation(coeff :: Number, exponent :: Number, base :: Number)
 end
 data AxisData: 
-  | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: List<Pointer>)
+  | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: RawArray<Pointer>)
 end
 
 
@@ -241,7 +241,8 @@ end
 color-list-method = method(self, colors :: List<I.Color>):
   cases (List) colors: 
     | empty => self.constr()(self.obj.{colors: none})
-    | link(_, _) => self.constr()(self.obj.{colors: some(colors)})
+    | link(_, _) => 
+      self.constr()(self.obj.{colors: some(colors ^ builtins.raw-array-from-list)})
   end
 end
 
@@ -371,7 +372,7 @@ axis-pointer-method = method(self,
   end
 
   ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
-  self.constr()(self.obj.{pointers: some(distinct(ticks))})
+  self.constr()(self.obj.{pointers: some(distinct(ticks) ^ builtins.raw-array-from-list)})
 end
 
 make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
@@ -404,9 +405,9 @@ make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :
   axisBottom = num-min(0, step * num-floor(neg-bar-height / step))
   pos-ticks = map(name-tick, range-by(0, axisTop + step, step))
   neg-ticks = map(name-tick, range-by(0, axisBottom - step, -1 * step))
-
+  ticks = distinct(pos-ticks + neg-ticks) ^ builtins.raw-array-from-list
   self.constr()(
-    self.obj.{axisdata: some(axis-data(axisTop, axisBottom, distinct(pos-ticks + neg-ticks)))}
+    self.obj.{axisdata: some(axis-data(axisTop, axisBottom, ticks))}
     )
 end
 
@@ -415,7 +416,8 @@ format-axis-data-method = method(self, format-func :: (Number -> String)):
     | none => 
       raise("Should never have reached this point. Yell at John for not setting up the axis properties somewhere where he should have and please report this as a bug")
     | some(ad) => 
-      new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad.ticks)
+      ad-tick-list = ad.ticks ^ raw-array-to-list
+      new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad-tick-list) ^ builtins.raw-array-from-list
       self.constr()(self.obj.{axisdata: some(axis-data(ad.axisTop, ad.axisBottom, new-ticks))})
   end
 end
@@ -725,8 +727,8 @@ type BarChartSeries = {
   tab :: TableIntern,
   axisdata :: Option<AxisData>, 
   color :: Option<I.Color>,
-  colors :: Option<List<I.Color>>,
-  pointers :: Option<List<Pointer>>, 
+  colors :: Option<RawArray<I.Color>>,
+  pointers :: Option<RawArray<Pointer>>, 
   pointer-color :: Option<I.Color>, 
   horizontal :: Boolean,
   annotations :: RawArray<RawArray<Option<String>>>,
@@ -749,8 +751,8 @@ type MultiBarChartSeries = {
   axisdata :: Option<AxisData>,
   legends :: RawArray<String>,
   is-stacked :: String,
-  colors :: Option<List<I.Color>>,
-  pointers :: Option<List<Pointer>>, 
+  colors :: Option<RawArray<I.Color>>,
+  pointers :: Option<RawArray<Pointer>>, 
   pointer-color :: Option<I.Color>, 
   horizontal :: Boolean,
   annotations :: RawArray<RawArray<Option<String>>>,
@@ -760,7 +762,7 @@ type MultiBarChartSeries = {
 
 default-multi-bar-chart-series = {
   is-stacked: 'none',
-  colors: some([list: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
+  colors: some([raw-array: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
   pointers: none, 
   pointer-color: none,
   axisdata: none, 

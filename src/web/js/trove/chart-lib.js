@@ -75,23 +75,6 @@
     return {v: toFixnum(p.dict.value) , f: p.dict.label}
   }
 
-  // Converts a list with func:
-  function convertListWith(func, l) {
-    var js_list = []; 
-
-    function buildJsList(val) { 
-    // Recursively runs func on every element of val 
-    // Then pushes the result into the js_list array
-      if (val.dict.first) { 
-        js_list.push(func(val.dict.first));
-        buildJsList(val.dict.rest);
-      }
-    }
-
-    buildJsList(l);
-    return js_list;
-  }
-
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -395,68 +378,98 @@
     };
   }
 
+  //////////// Bar Chart Getter Functions /////////////////
+
+  function get_colors_list(rawData) {
+    // Sets up the color list [Each Bar Colored Individually]
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
+        none: function () {
+          return [];
+        },
+        some: function (colors) {
+          return colors.map(convertColor);
+        }
+    });
+  }
+
+  function get_default_color(rawData) { 
+    // Sets up the default color [Default Bar Color if not specified in color_list]
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+        none: function () {
+          return "";
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+    });
+  }
+
+  function get_pointers_list(rawData) {
+    // Sets up the pointers list [Coloring each group memeber/stack]
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
+        none: function () {
+          return [];
+        },
+        some: function (pointers) {
+          return pointers.map(convertPointer);
+        }
+    });
+  }
+
+  function get_pointer_color(rawData) { 
+    // Sets up the pointer color
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointer-color'), {
+        none: function () {
+          return 'black';
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+    });
+  }
+
+  function get_axis(rawData) {
+    // Sets up the calculated axis properties/data
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
+        none: function () {
+          return undefined;
+        },
+        some: function (axisdata) {
+          return {
+            top : toFixnum(axisdata.dict.axisTop), 
+            bottom : toFixnum(axisdata.dict.axisBottom),
+            ticks : axisdata.dict.ticks.map(convertPointer)
+          };
+        }
+    });
+  }
+
+  function get_interval_color(rawData) { 
+    // Sets up the default interval color
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'default-interval-color'), {
+        none: function () {
+          return 'black';
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+    });
+  }
+
+  /////////////////////////////////////////////////////////
   function barChart(globalOptions, rawData) {
     // Variables and constants 
     const table = get(rawData, 'tab');
-    var horizontal = get(rawData, 'horizontal');
+    const horizontal = get(rawData, 'horizontal');
+    const axisloc = horizontal ? 'hAxes' : 'vAxes';
     const data = new google.visualization.DataTable();
-    var colors_list = [];
-    var default_color = "";
-    var pointers_list = [];
-    var pointer_color = 'black';
-    var axisTop, axisBottom, ticks;
-    var default_interval_color = 'black'; 
-
-    // Sets up the color list [Each Bar Colored Individually]
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
-          none: function () {},
-          some: function (colors) {
-            colors_list = convertListWith(convertColor, colors);
-          }
-    });
+    const colors_list = get_colors_list(rawData);
+    const default_color = get_default_color(rawData);
+    const pointers_list = get_pointers_list(rawData);
+    const pointer_color = get_pointer_color(rawData);
+    const axis = get_axis(rawData);
+    const interval_color = get_interval_color(rawData); 
     const colors_list_length = colors_list.length;
-
-    // Sets up the default color [Default Bar Color if not specified in color_list]
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
-          none: function () {},
-          some: function (color) {
-            default_color = convertColor(color);
-          }
-    });
-
-    // Sets up the pointers list [Coloring each group memeber/stack]
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
-          none: function () {},
-          some: function (pointers) {
-            pointers_list = convertListWith(convertPointer, pointers);
-          }
-    });
-
-    // Sets up the pointer color
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointer-color'), {
-          none: function () {},
-          some: function (color) {
-            pointer_color = convertColor(color);
-          }
-    });
-
-    // Sets up the default interval color
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'default-interval-color'), {
-          none: function () {},
-          some: function (color) {
-            default_interval_color = convertColor(color);
-          }
-    });
-
-    // Sets up the calculated axis properties/data
-      cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
-          none: function () {},
-          some: function (axisdata) {
-            axisTop = toFixnum(axisdata.dict.axisTop);
-            axisBottom = toFixnum(axisdata.dict.axisBottom);
-            ticks = convertListWith(convertPointer, axisdata.dict.ticks);
-          }
-      });
 
     // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
@@ -471,22 +484,21 @@
     addAnnotations(data, rawData);
     addIntervals(data, rawData);
 
-    var options = {
+    let options = {
         legend: {
           position: 'none'
         }, 
         intervals: {
-          color : default_interval_color, 
+          color : interval_color, 
         }
+      };
+ 
+    options[axisloc] = { 
+      0: { 
+        viewWindow: { max: axis.top, min: axis.bottom }, 
+        ticks: axis.ticks
       }
-
-    var axisloc = horizontal ? 'hAxes' : 'vAxes';
-    
-    options[axisloc] =
-    { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
-           ticks: ticks
-         }
-    }
+    };
     
      /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
@@ -499,19 +511,19 @@
     if (pointers_list.length > 0) {
 
       // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
-      data.addColumn('number', 'Pointers')
+      data.addColumn('number', 'Pointers');
       options['series'] = { 1: { color: pointer_color, targetAxisIndex: 1 } };
 
       // Update Options to include the new axis ticks consistent with the first axis
       options[axisloc][1] = { 
         viewWindow: { 
-          max: axisTop, 
-          min: axisBottom
+          max: axis.top, 
+          min: axis.bottom
         },
         gridlines: { color: pointer_color },
         ticks: pointers_list, 
         textStyle: { color: pointer_color }
-      }
+      };
     }
 
     return {
@@ -527,55 +539,14 @@
     // Variables and Constants
     const table = get(rawData, 'tab');
     const legends = get(rawData, 'legends');
-    var horizontal = get(rawData, 'horizontal');
+    const horizontal = get(rawData, 'horizontal');
+    const axisloc = horizontal ? 'hAxes' : 'vAxes';
     const data = new google.visualization.DataTable();
-    var colors_list = [];
-    var pointers_list = [];
-    var pointer_color = 'black';
-    var axisTop, axisBottom, ticks;
-    var default_interval_color = 'black'; 
-
-    // Sets up the color list [Coloring each group memeber/stack]
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
-          none: function () {},
-          some: function (colors) {
-            colors_list = convertListWith(convertColor, colors);
-          }
-    });
-
-    // Sets up the pointers list [Coloring each group memeber/stack]
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
-          none: function () {},
-          some: function (pointers) {
-            pointers_list = convertListWith(convertPointer, pointers);
-          }
-    });
-
-    // Sets up the calculated axis properties/data
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
-          none: function () {},
-          some: function (axisdata) {
-            axisTop = toFixnum(axisdata.dict.axisTop);
-            axisBottom = toFixnum(axisdata.dict.axisBottom);
-            ticks = convertListWith(convertPointer, axisdata.dict.ticks);
-          }
-    });
-
-    // Sets up the pointer color
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointer-color'), {
-          none: function () {},
-          some: function (color) {
-            pointer_color = convertColor(color);
-          }
-    });
-
-    // Sets up the default interval color
-    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'default-interval-color'), {
-          none: function () {},
-          some: function (color) {
-            default_interval_color = convertColor(color);
-          }
-    });
+    const colors_list = get_colors_list(rawData);
+    const pointers_list = get_pointers_list(rawData);
+    const pointer_color = get_pointer_color(rawData);
+    const axis = get_axis(rawData);
+    const interval_color = get_interval_color(rawData); 
 
     // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
@@ -586,23 +557,25 @@
     addAnnotations(data, rawData);
     addIntervals(data, rawData);
 
-    var options = {
-        isStacked: get(rawData, 'is-stacked'),
-        series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
-        legend: {
-          position: horizontal ? 'right' : 'top', 
-          maxLines: data.If.length - 1
-        }, 
-        intervals: { 
-          color : default_interval_color, 
-        }
+    let options = {
+      isStacked: get(rawData, 'is-stacked'),
+      series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
+      legend: {
+        position: horizontal ? 'right' : 'top', 
+        maxLines: data.If.length - 1
+      }, 
+      intervals: { 
+        color : interval_color, 
       }
+    };
 
-    var axisloc = horizontal ? 'hAxes' : 'vAxes';
-    options[axisloc] =
-    { 0: { viewWindow: { max: axisTop, min: axisBottom }, 
-           ticks: ticks }
-    }
+    
+    options[axisloc] = { 
+      0: { 
+        viewWindow: { max: axis.top, min: axis.bottom }, 
+        ticks: axis.ticks 
+      }
+    };
          
     /* NOTE(John & Edward, Dec 2020): 
        Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
@@ -617,7 +590,7 @@
       // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
       data.addColumn('number', 'Pointers')
 
-      for (var i = 0; i < data.If.length - 1; i++) {
+      for (let i = 0; i < data.If.length - 1; i++) {
         if (options['series'][i] == null) {
           options['series'][i] = {color: pointer_color, targetAxisIndex: 1};
         }
@@ -626,13 +599,13 @@
       // Update Options to include the new axis ticks consistent with the first axis
       options[axisloc][1] = { 
         viewWindow: { 
-          max: axisTop, 
-          min: axisBottom
+          max: axis.top, 
+          min: axis.bottom
         },
         gridlines: { color: pointer_color },
         ticks: pointers_list, 
         textStyle: { color: pointer_color }
-      }
+      };
     }
 
     return {
