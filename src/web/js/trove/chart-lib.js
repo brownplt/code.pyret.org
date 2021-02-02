@@ -72,7 +72,7 @@
   }
 
   function convertPointer(p) {
-    return {v: toFixnum(p.dict.value) , f: p.dict.label}
+    return {v: toFixnum(get(p, 'value')) , f: get(p, 'label')}
   }
 
 
@@ -436,9 +436,9 @@
         },
         some: function (axisdata) {
           return {
-            top : toFixnum(axisdata.dict.axisTop), 
-            bottom : toFixnum(axisdata.dict.axisBottom),
-            ticks : axisdata.dict.ticks.map(convertPointer)
+            top : toFixnum(get(axisdata, 'axisTop')), 
+            bottom : toFixnum(get(axisdata, 'axisBottom')),
+            ticks : get(axisdata, 'ticks').map(convertPointer)
           };
         }
     });
