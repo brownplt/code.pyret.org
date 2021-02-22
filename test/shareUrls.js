@@ -16,19 +16,16 @@ const shares = [
     expr: "SCENE", modal: 0 },
   { id: "0B9rKDmABYlJVdHZESmZ6ZnRmdXc", name: "Reactive: Review",
     expr: "SQUARE", modal: 0 },
-  /* Removing until https://github.com/bootstrapworld/curriculum/issues/448 fixed
   { id: "0B9rKDmABYlJVWUlZTHVVRDFOdk0", name: "Reactive: Package Delivery",
-    expr: "next-position(10, 10)", modal: 1 }, */
+    expr: "next-position(10, 10)", modal: 1 },
   { id: "0B9rKDmABYlJVa0cxbEpoSG1pT0k", name: "Reactive: Your Bakery",
     expr: "red-velvet-cake", modal: 0 },
   { id: "0B9rKDmABYlJVSm94cFA4T3R2NTA", name: "Reactive: Sunset",
     expr: "HORIZON-HEIGHT", modal: 0 },
-  /* Removing until https://github.com/bootstrapworld/curriculum/issues/448 fixed
   { id: "0B9rKDmABYlJVaUw0VjdiOE5DVzQ", name: "Reactive: What to wear",
-    expr: "wear(81)", modal: 0 }, */
-  /* Removing until https://github.com/bootstrapworld/curriculum/issues/448 fixed
+    expr: "wear(81)", modal: 0 },
   { id: "0B9rKDmABYlJVNDdsNDBNcHdSVWs", name: "Reactive: Where's my Order?",
-    expr: "next-position(10, 10)", modal: 1 }, */
+    expr: "next-position(10, 10)", modal: 1 },
   { id: "0B9rKDmABYlJVVWk4MGJidEtsRWc", name: "Reactive: Moving Character",
     expr: "char-react", modal: 1 },
   { id: "0B9rKDmABYlJVXy00M1VteEZxaHM", name: "Reactive: Virtual Pet Starter",
