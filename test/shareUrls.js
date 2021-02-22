@@ -28,8 +28,6 @@ const shares = [
     expr: "next-position(10, 10)", modal: 1 },
   { id: "0B9rKDmABYlJVVWk4MGJidEtsRWc", name: "Reactive: Moving Character",
     expr: "char-react", modal: 1 },
-  { id: "0B9rKDmABYlJVVWk4MGJidEtsRWc", name: "Reactive: Moving Character",
-    expr: "char-react", modal: 1 },
   { id: "0B9rKDmABYlJVXy00M1VteEZxaHM", name: "Reactive: Virtual Pet Starter",
     expr: "pet-react", modal: 1 },
 
