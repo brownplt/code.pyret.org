@@ -16,7 +16,7 @@ body.monokai {
   --black-lighter-4: #6b6e5e;
 
   --white: hsl(60, 30%, 96%);
-  --comment-color: hsl(50, 11%, 41%);
+  --comment-color: hsl(50, 11%, 47%);
   --red: hsl(338, 95%, 56%);
   --yellow: hsl(54, 70%, 68%);
   --green: hsl(80, 76%, 53%);
@@ -70,7 +70,7 @@ body.monokai {
   --cursor:       var(--white);   /* cursor color */
 
   /* Regions/Selected Text */
-  --selected-text:        var(--black-lighter);   /* selected text in editor */
+  --selected-text:        var(--black-lighter-3);   /* selected text in editor */
   --matching-brackets:    var(--black-lighter-4); /* brackets around check:...end regions, etc. */
   --matching-region-bg:   var(--black-lighter);   /* bg on regions like check:...end, etc. */
   --nonmatching-bg:       var(--black-lighter);   /* bg on span.CodeMirror-nonmatchingbracket-region */

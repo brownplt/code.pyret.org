@@ -527,7 +527,7 @@
                 tileH = Math.min(tileH, c1.height- y);
                 slice1.canvas.width  = slice2.canvas.width  = tileW;
                 slice1.canvas.height = slice2.canvas.height = tileH;
-                console.log('processing chunk from ('+x+','+y+') to ('+(x+tileW)+','+(y+tileH)+')');
+                // console.log('processing chunk from ('+x+','+y+') to ('+(x+tileW)+','+(y+tileH)+')');
                 slice1.clearRect(0, 0, tileW, tileH);
                 slice1.drawImage(c1, x, y, tileW, tileH, 0, 0, tileW, tileH);
                 slice2.clearRect(0, 0, tileW, tileH);
@@ -871,7 +871,7 @@
       this.pinholeX = img1.pinholeX + x1;
       this.pinholeY = img1.pinholeY + y1;
       this.alphaBaseline = img1.alphaBaseline ? img1.getBaseline() + y1 : img2.getBaseline() + y2;
-      console.log("Baseline1: " + img1.alphaBaseline + ", Baseline2: " + img2.alphaBaseline + " ==> " + this.alphaBaseline);
+      // console.log("Baseline1: " + img1.alphaBaseline + ", Baseline2: " + img2.alphaBaseline + " ==> " + this.alphaBaseline);
       var shiftText = "";
       if (offsetX > 0) { shiftText += "shifted right by " + offsetX; }
       else if (offsetX < 0) { shiftText == "shifted left by " + (-offsetX); }

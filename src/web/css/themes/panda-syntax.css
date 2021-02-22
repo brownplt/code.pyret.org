@@ -21,7 +21,7 @@ body.panda {
   --light-gray: hsl(0, 0%, 80%);
   --blue-gray: hsl(209, 14%, 70%);
   --red: hsl(342, 100%, 59%);
-  --comment-color: hsl(227, 8%, 44%);
+  --comment-color: hsl(227, 8%, 55%);
   --cyan: hsl(171, 95%, 54%);
   --orange: hsl(31, 100%, 71%);
   --strong-orange: hsl(31, 100%, 55%);
@@ -78,7 +78,7 @@ body.panda {
   --cursor:       var(--cyan);    /* cursor color */
 
   /* Regions/Selected Text */
-  --selected-text:        var(--black-lighter-2);   /* selected text in editor */
+  --selected-text:        var(--black-lighter-4);   /* selected text in editor */
   --matching-brackets:    var(--black-lighter-4);   /* brackets around check:...end regions, etc. */
   --matching-region-bg:   var(--black-lighter-2);   /* bg on regions like check:...end, etc. */
   --nonmatching-bg:       var(--black-lighter-2);   /* bg on span.CodeMirror-nonmatchingbracket-region */
