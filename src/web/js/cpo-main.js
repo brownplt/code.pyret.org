@@ -333,8 +333,8 @@
           });
 
       // NOTE(joe): assigned on window for debuggability
-      window.RUN_CODE = function(src, uiOpts, replOpts) {
-        doRunAction(src);
+      window.RUN_CODE = CPO.RUN_CODE = function(src) {
+        doRunAction(src, true);
       };
 
       /*
@@ -350,7 +350,7 @@
       $("#select-run").click(function() {
         runButton.text("Run");
         currentAction = "run";
-        doRunAction(editor.cm.getValue());
+        doRunAction(editor.cm.getValue(), false);
         $('#runDropdown').attr('aria-expanded', 'false');
         $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
@@ -358,7 +358,7 @@
       $("#select-tc-run").click(function() {
         runButton.text("Type-check and Run");
         currentAction = "tc-and-run";
-        doRunAction(editor.cm.getValue());
+        doRunAction(editor.cm.getValue(), false);
         $('#runDropdown').attr('aria-expanded', 'false');
         $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
@@ -370,7 +370,10 @@
       $("#select-mcmh").click(function() {
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
-      function doRunAction(src) {
+      function doRunAction(src, synthetic) {
+        if(!synthetic) {
+          CPO.triggerOnRun();
+        }
         editor.cm.operation(function() {
           editor.cm.clearGutter("test-marker-gutter");
           var marks = editor.cm.getAllMarks();
@@ -378,7 +381,10 @@
           editor.cm.eachLine(function(lh){
             editor.cm.removeLineClass(lh, "background");});
           for(var i = 0; i < marks.length; i++) {
-            marks[i].clear();
+            const attribs = marks[i].attributes;
+            if(!(attribs && attribs.useline)) {
+              marks[i].clear();
+            }
           }
         });
         var sheet = document.getElementById("highlight-styles").sheet;
@@ -395,7 +401,7 @@
         }
       }
 
-      runButton.on("click", function() { doRunAction(editor.cm.getValue()); });
+      runButton.on("click", function() { doRunAction(editor.cm.getValue(), false); });
 
       $(window).on("keyup", function(e) {
         if(e.keyCode === 27) { // "ESC"
@@ -570,7 +576,7 @@
 
       // run the definitions area
       Mousetrap.bindGlobal('ctrl+enter', function(e){
-        doRunAction(editor.cm.getValue());
+        doRunAction(editor.cm.getValue(), false);
         CPO.autoSave();
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -631,7 +637,7 @@
       });
 
       Mousetrap.bindGlobal('f7', function(e) {
-        doRunAction(editor.cm.getValue());
+        doRunAction(editor.cm.getValue(), false);
         CPO.autoSave();
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -677,27 +683,40 @@
         curImg = maxSoFar + 1;
       }
 
-      var photoPrompt = function() {
+      var photoPrompt = function(count) {
+        var plural = count > 1;
         return new modalPrompt({
-          title: "Select Import Style",
+          title: "Import options",
           style: "radio",
+          submitText: "Import",
+          cancelText: "Close",
           options: [
             {
-              message: "Import as Values",
+              message: "Value" + (plural ? "s" : ""),
               value: "values",
-              example: 'image-url("<URL>")\nimage-url("<URL>")\n# ...'
+              example: 'image-url("<URL>")'
+                + (plural ? '\n'
+                      + (count > 2 ? '# ' + (count-2) + ' more...\n': '')
+                      + 'image-url("<URL>")'
+                    : '')
             },
             {
-              message: "Import as Definitions",
+              message: "Definition" + (plural ? "s" : ""),
               value: "defs",
-              example: 'image0 = image-url("<URL>")\nimage1 = image-url("<URL>")\n# ...'
+              example: 'image' + (plural ? '0' : '') + ' = image-url("<URL>")'
+                + (plural ? 
+                      (count > 2 ? '\n# ' + (count-2) + ' more...' : '')
+                      + '\nimage' + (count-1) + ' = image-url("<URL>")'
+                    : '')
             },
             {
-              message: "Import as a List",
+              message: "List",
               value: "list",
-              example: '[list: image-url("<URL>"),\n'
-                + '       image-url("<URL>"),\n'
-                + '       # ...\n       ]'
+              example: '[list: image-url("<URL>")'
+                + (plural ? 
+                      ',\n' + (count > 2 ? '       # ' + (count-2) + ' more...\n' : '')
+                        + '       image-url("<URL>")]'
+                    : ']')
             }]
         });
       }
@@ -759,7 +778,7 @@
         else if (documents[0][picker.Document.TYPE] === picker.Type.PHOTO) {
 
           try {
-            photoPrompt().show(function(res) {
+            photoPrompt(documents.length).show(function(res) {
               // Name of event for CM undo history
               var origin = "+insertImage" + curImg;
               var asValues = (res === "values");
@@ -852,7 +871,7 @@
         onError: flashError,
         onInternalError: stickError,
         views: ["imageView"],
-        title: "Select an image to use"
+        title: "Select images"
       });
 
       return runtime.makeModuleReturn({

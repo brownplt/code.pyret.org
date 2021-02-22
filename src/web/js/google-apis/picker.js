@@ -124,6 +124,8 @@ FilePicker.prototype.initOpen = function(picker) {
 
       this.pickerInstance = pickerBuilder
         .setOAuthToken(gapi.auth.getToken().access_token)
+        .setDeveloperKey(apiKey)
+        .setAppId(appId)
         .setCallback(pickerCallback)
         .build();
 

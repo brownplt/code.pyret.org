@@ -10,8 +10,8 @@ if (process.env.GOOGLE_CHROME_BINARY) {
   PATH_TO_CHROME = process.env.GOOGLE_CHROME_BINARY;
 }
 else {
-  console.log("The tester is guessing that you're on a Mac :-) You can set GOOGLE_CHROME_BINARY to the path to your Chrome install if this path isn't for your machine work");
   PATH_TO_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  console.log(`The tester is guessing that you're on a Mac and using ${PATH_TO_CHROME}. You can set GOOGLE_CHROME_BINARY to the path to your Chrome install if this path is not working.`);
 }
 
 let leave_open = process.env.LEAVE_OPEN === "true" || false;
@@ -83,10 +83,20 @@ function waitForPyretLoad(driver, timeout) {
   return driver.wait(function() { return pyretLoaded(driver); }, timeout);
 }
 
+function setCodemirror(driver, getCM, content) {
+  var escaped = escape(content);
+  driver.executeScript(`
+var CM = ${getCM};
+var first = CM.firstLine();
+var last = CM.lastLine();
+CM.replaceRange(unescape(\"${escaped}\"), {line: first, ch: 0}, {line: last + 1, ch: 0});
+`);
+  // driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(unescape(\""+ escaped + "\"));");
+}
+
 function setDefinitions(driver, code) {
   // http://stackoverflow.com/a/1145525 
-  var escaped = escape(code);
-  driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(unescape(\""+ escaped + "\"));");
+  setCodemirror(driver, "$(\".CodeMirror\")[0].CodeMirror", code);
 }
 function evalDefinitions(driver, options) {
   if(options && options.typeCheck) {
@@ -286,10 +296,9 @@ function evalPyret(driver, toEval) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   var livePrompt = driver.findElement(webdriver.By.className('prompt-container'));
   driver.wait(webdriver.until.elementIsVisible(livePrompt));
-  var escaped = escape(toEval);
+  setCodemirror(driver, "$(\".repl-prompt > .CodeMirror\")[0].CodeMirror", toEval);
   driver.executeScript([
     "(function(cm){",
-    "cm.setValue(unescape(\"" + escaped + "\"));",
     "cm.options.extraKeys.Enter(cm);",
     "})",
     "($(\".repl-prompt > .CodeMirror\")[0].CodeMirror)"
