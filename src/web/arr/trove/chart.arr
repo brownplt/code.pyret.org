@@ -192,15 +192,11 @@ type BoxChartSeries = {
   tab :: TableIntern,
   height :: Number, 
   horizontal :: Boolean,
-  min :: Option<Number>,
-  max :: Option<Number>
 }
 
 default-box-plot-series = {
   horizontal: false,
   show-outliers: true,
-  min: none,
-  max: none
 }
 
 type PieChartSeries = {
@@ -287,12 +283,16 @@ type BoxChartWindowObject = {
   height :: Number,
   x-axis :: String,
   y-axis :: String,
+  min :: Option<Number>,
+  max :: Option<Number>,
   render :: ( -> IM.Image),
 }
 
 default-box-plot-chart-window-object :: BoxChartWindowObject = default-chart-window-object.{
   x-axis: '',
   y-axis: '',
+  min: none,
+  max: none,
 }
 
 type PieChartWindowObject = {
@@ -406,8 +406,6 @@ data DataSeries:
     method show-outliers(self, show):
       self.constr()(self.obj.{show-outliers: show})
     end,
-    min: min-method,
-    max: max-method,
   | histogram-series(obj :: HistogramSeries) with:
     is-single: true,
     constr: {(): histogram-series},
