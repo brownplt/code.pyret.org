@@ -95,6 +95,9 @@ COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-api
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 	cp $< $@
 
+build/web/js/events.js: src/web/js/events.js
+	cp $< $@
+
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
 	`npm bin`/webpack
 

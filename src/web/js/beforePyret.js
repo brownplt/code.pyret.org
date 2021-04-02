@@ -1238,5 +1238,6 @@ $(function() {
   CPO.cycleFocus = cycleFocus;
   CPO.say = say;
   CPO.sayAndForget = sayAndForget;
+  makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
 
 });
