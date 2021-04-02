@@ -24,7 +24,11 @@ function makeEvents(config) {
 
   const comm = commSetup(config, onmessage);
 
+  // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
+  const thisAPI = "@ignore-this-api";
+
   editor.cm.on("change", function(instance, change) {
+    if(change.origin === thisAPI) { return; }
     comm.sendEvent({
       type: "change",
       change: change
@@ -34,7 +38,7 @@ function makeEvents(config) {
   function onmessage(message) {
     console.log("received: ", message);
     if(message.type === "change") {
-      editor.cm.replaceRange(message.change.text, message.change.from, message.change.to);
+      editor.cm.replaceRange(message.change.text, message.change.from, message.change.to, thisAPI);
     }
   }
 }
