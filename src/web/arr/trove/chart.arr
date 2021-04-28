@@ -395,7 +395,7 @@ end
 format-axis-data-method = method(self, format-func :: (Number -> String)):
   cases (Option) self.obj!axisdata: 
     | none => 
-      raise("Axis properties initialized improperly. Please report as a bug!)
+      raise("Axis properties initialized improperly. Please report as a bug!")
     | some(ad) => 
       ad-tick-list = ad.ticks ^ raw-array-to-list
       new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad-tick-list) ^ builtins.raw-array-from-list
@@ -627,6 +627,14 @@ single-error-bars-method = method(self, errors :: List<List<Number>>) block:
     error.map(_ + data-val)
   end
   self.intervals(intervals-at-end)
+end
+
+min-method = method(self, min :: Number):
+  self.constr()(self.obj.{min: some(min)})
+end
+
+max-method = method(self, max :: Number):
+  self.constr()(self.obj.{max: some(max)})
 end
 
 ################################################################################
