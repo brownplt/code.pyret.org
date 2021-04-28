@@ -468,7 +468,9 @@
     
   function geoChart(globalOptions, rawData) {
       const table = get(rawData, 'tab');
-      const data = new google.visualization.GeoMap;
+      const data = new google.visualization.DataTable();
+      data.addColumn('string', 'Region');
+      data.addColumn('number', "Color");
       return {
           data: data,
           options: {
@@ -477,7 +479,7 @@
                   alignment: 'end'
               }
           },
-          chartType: google.visualization.GeoMap,
+          chartType: google.visualization.GeoChart,
           onExit: defaultImageReturn,
       }
   }
