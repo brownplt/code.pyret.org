@@ -138,23 +138,15 @@ fun num-to-scientific(base :: Number) -> (Number -> SciNumber) block:
     raise("Num-to-scientific: Only defined on bases > 1")
   end
   
-  fun recur(s :: SciNumber): 
-    doc: ``` 
-         Takes the current Coeff, Exponent and divides/multiplies by base to move closer to 
-         the actual scientific representation.
-         ```
-    cases (SciNumber) s: 
-      | sci-notation(c, e, b) => 
-        pos-c = num-abs(c)
-        ask: 
-          | (pos-c > 0) and (pos-c < 1) then: recur(sci-notation(c * b, e - 1, b))
-          | (pos-c == 0) or ((pos-c >= 1) and (pos-c < b)) then: sci-notation(c, e, b)
-          | otherwise: recur(sci-notation(c / b, e + 1, b))
-        end
+  fun convert(n :: Number):
+    if num-is-rational(n) and (n == 0): sci-notation(0, 0, base)
+    else:
+      pow = num-floor(num-log(num-abs(n)) / num-log(base))
+      c = n / num-expt(base, pow)
+      sci-notation(c, pow, base)
     end
   end
-  
-  {(n): recur(sci-notation(n, 0, base))}
+  convert
 #|
 where: 
   num-to-scientific(10)(0) is sci-notation(0, 0, 10)
@@ -174,14 +166,8 @@ end
 fun prep-axis(values :: List<Number>) -> {Number; Number}: 
   doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
 
-  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>) -> Number: 
-    fold({(acc, elm): 
-      if cmp(acc, elm): acc
-      else: elm
-      end}, l.first, l)}
-
-  max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, values))
-  max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, values))
+  max-positive-height = fold(num-max, 0, values)
+  max-negative-height = fold(num-min, 0, values)
 
   {max-positive-height; max-negative-height}
 end
@@ -192,19 +178,14 @@ fun multi-prep-axis(is-stacked :: String, value-lists :: List<List<Number>>)
        Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
        ```
 
-  get-with-cmp = {(cmp :: (Number, Number -> Boolean), l :: List<Number>) -> Number: 
-    fold({(acc, elm): 
-      if cmp(acc, elm): acc
-      else: elm
-      end}, l.first, l)}
-
   ask:
     | is-stacked == 'none' then: 
       # Find the tallest bar in the entire group 
-      positive-max-groups = map({(l): get-with-cmp({(a, b): a > b}, l)}, value-lists)
-      negative-max-groups = map({(l): get-with-cmp({(a, b): a < b}, l)}, value-lists)
-      max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-max-groups))
-      max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-max-groups))
+      # We know that the value lists have at least one value since we check for that when initializing the value list data. 
+      positive-max-groups = map({(l): fold(num-max, l.first, l)}, value-lists)
+      negative-max-groups = map({(l): fold(num-min, l.first, l)}, value-lists)
+      max-positive-height = fold(num-max, 0, positive-max-groups)
+      max-negative-height = fold(num-min, 0, negative-max-groups)
       {max-positive-height; max-negative-height}
 
     | is-stacked == 'absolute' then: 
@@ -214,13 +195,13 @@ fun multi-prep-axis(is-stacked :: String, value-lists :: List<List<Number>>)
       negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
       positive-sums = map(positive-only-sum, value-lists)
       negative-sums = map(negative-only-sum, value-lists)
-      max-positive-height = num-max(0, get-with-cmp({(a, b): a > b}, positive-sums))
-      max-negative-height = num-min(0, get-with-cmp({(a, b): a < b}, negative-sums))
+      max-positive-height = fold(num-max, 0, positive-sums)
+      max-negative-height = fold(num-min, 0, negative-sums)
       {max-positive-height; max-negative-height}
 
     | otherwise: 
-      has-pos = any({(l): any( _ > 0, l)}, value-lists)
-      has-neg = any({(l): any( _ < 0, l)}, value-lists)
+      has-pos = any({(l): any({(e): e > 0}, l)}, value-lists)
+      has-neg = any({(l): any({(e): e < 0}, l)}, value-lists)
       ask: 
         | has-pos and has-neg then: {1; -1}
         | has-pos then: {1; 0}
@@ -414,7 +395,7 @@ end
 format-axis-data-method = method(self, format-func :: (Number -> String)):
   cases (Option) self.obj!axisdata: 
     | none => 
-      raise("Should never have reached this point. Yell at John for not setting up the axis properties somewhere where he should have and please report this as a bug")
+      raise("Axis properties initialized improperly. Please report as a bug!)
     | some(ad) => 
       ad-tick-list = ad.ticks ^ raw-array-to-list
       new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad-tick-list) ^ builtins.raw-array-from-list

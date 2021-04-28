@@ -562,7 +562,7 @@
       series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
       legend: {
         position: horizontal ? 'right' : 'top', 
-        maxLines: data.If.length - 1
+        maxLines: data.getNumberOfRows() - 1
       }, 
       intervals: { 
         color : interval_color, 
@@ -590,7 +590,7 @@
       // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
       data.addColumn('number', 'Pointers')
 
-      for (let i = 0; i < data.If.length - 1; i++) {
+      for (let i = 0; i < data.getNumberOfRows() - 1; i++) {
         if (options['series'][i] == null) {
           options['series'][i] = {color: pointer_color, targetAxisIndex: 1};
         }
