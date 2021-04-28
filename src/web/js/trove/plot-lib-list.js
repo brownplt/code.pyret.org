@@ -1291,10 +1291,10 @@
     return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
-    function geoChart(restart, windowOptions, tab) {
+  function geoChart(restart, windowOptions, tab) {
 
     function resizer(restarter, windowOptions) {
-        geoChart(restarter, windowOptions, tab);
+        return geoChart(restarter, windowOptions, tab);
     }
 
     var sum = tab.map(function (row) {
