@@ -13,7 +13,11 @@
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany",
+<<<<<<< HEAD
       'geo-map': "tany"
+=======
+      'geochart': "tany"
+>>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
@@ -469,15 +473,28 @@
   function geoChart(globalOptions, rawData) {
       const table = get(rawData, 'tab');
       const data = new google.visualization.DataTable();
+<<<<<<< HEAD
       return {
           data: data,
           options: {
               slices: table.map(row => ({offset: toFixnum(row[1])})),
+=======
+      data.addColumn('string', 'Region');
+      data.addColumn('number', "Color");
+      return {
+          data: data,
+          options: {
+              slices: table.map(row => ({offset: toFixnum(row[2])})),
+>>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
               legend: {
                   alignment: 'end'
               }
           },
+<<<<<<< HEAD
           chartType: google.visualization.GeoMap,
+=======
+          chartType: google.visualization.GeoChart,
+>>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
           onExit: defaultImageReturn,
       }
   }
