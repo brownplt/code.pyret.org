@@ -15,6 +15,7 @@
       'bar-chart': "tany",
       'dot-chart': "tany",
       'box-chart': "tany"
+      'geo-map': "tany"
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
@@ -886,10 +887,10 @@
         'shape-rendering': 'crispEdges'
       })
       .on('mouseover', function () {
-        d3.select(this).style('fill', 'black');
+        d3.select(this).style('xfill', 'black');
       })
       .on('mouseout', function () {
-        d3.select(this).style('fill', 'steelblue');
+        d3.select(this).xstyle('fill', 'steelblue');
       });
 
 
@@ -897,6 +898,76 @@
     return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
+  function geoChart(restart, windowOptions, tab) {
+
+    function resizer(restarter, windowOptions) {
+      geoChart(restarter, windowOptions, tab);
+    }
+
+    var sum = tab.map(function (row) { return row[1]; })
+        .reduce(function (a, b) {
+          return jsnums.add(a, b, RUNTIME.NumberErrbacks);
+        });
+    var valueScaler = libNum.scaler(0, sum, 0, 100, true);
+
+    var dimension = getDimension({
+          minWindowWidth: 700,
+          minWindowHeight: 550,
+          outerMarginLeft: 10,
+          outerMarginRight: 10,
+          marginLeft: 120,
+          marginRight: 120,
+          marginTop: 90,
+          marginBottom: 40,
+          mode: 'center',
+        }, windowOptions),
+        width = dimension.width,
+        height = dimension.height,
+        detached = createDiv(),
+        canvas = createCanvas(detached, dimension);
+
+    var proj = d3.geoMercator()
+        .scale(100)
+        .translate([250, 250])
+        .center([0, 5])
+    var geo = d3.geoPath().projection(proj)
+    var color = d3.scale.category20();
+
+    d3.select("svg").selectAll("path").data(countries.features)
+        .enter
+        .append("path")
+        .attr("d", geo)
+        .attr("class", "countries");
+
+
+
+
+
+    d3.selectAll("path.countries")
+        .on("mouseover", centerBounds)
+        .on("mouseout", clearCenterBounds)
+
+
+    var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
+    var tip = d3tip(detached)
+        .attr('class', 'd3-tip')
+        .direction('e')
+        .offset([0, 20])
+        .html(function (d) {
+          return 'value: <br />' + prettyNumToStringDigits9(d.data[1]) + '<br />' +
+              'percent: <br />' + prettyNumToStringDigits9(valueScaler(d.data[1])) + '%';
+        });
+
+    canvas.call(tip);
+
+    stylizeTip(tip)
+
+
+
+
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null)
+
+  }
   function pieChart(restarter, windowOptions, tab) {
     /*
      * Pie Chart
@@ -1418,6 +1489,7 @@
         'bar-chart': makeFunction(barChart),
         'dot-chart': makeFunction(dotChart),
         'box-chart': makeFunction(boxChart),
+        'geo-map': makeFunction(geoChart)
       })
     })
   });
