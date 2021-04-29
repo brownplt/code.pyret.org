@@ -15,7 +15,7 @@
       'bar-chart': "tany",
       'dot-chart': "tany",
       'box-chart': "tany",
-      'geo-map': "tany"
+      'geo-chart': "tany"
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
@@ -1092,9 +1092,9 @@
 
     canvas.call(tip);
 
-    stylizeTip(tip)
+    stylizeTip(tip);
 
-    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null)
+    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
 }
 
   function barChart(restarter, windowOptions, table, legend, showLegend) {
@@ -1506,7 +1506,7 @@
         'bar-chart': makeFunction(barChart),
         'dot-chart': makeFunction(dotChart),
         'box-chart': makeFunction(boxChart),
-        'geo-map': makeFunction(geoChart),
+        'geo-chart': makeFunction(geoChart),
       })
     })
   });
