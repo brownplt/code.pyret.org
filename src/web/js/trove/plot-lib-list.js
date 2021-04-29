@@ -14,11 +14,7 @@
       'plot-multi': "tany",
       'bar-chart': "tany",
       'dot-chart': "tany",
-<<<<<<< HEAD
       'box-chart': "tany",
-=======
-      'box-chart': "tany"
->>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
       'geo-map': "tany"
     }
   },
@@ -1580,11 +1576,7 @@
         'bar-chart': makeFunction(barChart),
         'dot-chart': makeFunction(dotChart),
         'box-chart': makeFunction(boxChart),
-<<<<<<< HEAD
-        'geo-map': makeFunction(geoChart),
-=======
         'geo-map': makeFunction(geoChart)
->>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
       })
     })
   });

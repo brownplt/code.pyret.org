@@ -13,11 +13,7 @@
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany",
-<<<<<<< HEAD
-      'geo-map': "tany"
-=======
       'geochart': "tany"
->>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
@@ -351,7 +347,7 @@
       // ONLY if we're showing outliers, add whiskers to the tooltip
       // (otherwise, the min/max ARE the bottom/top whiskers)
       if(table.length == 1 && showOutliers) {
-        tooltip += 
+        tooltip +=
           ` <p>bottom whisker: <b>${summaryValues[4]}</b></p>
             <p>top whisker: <b>${summaryValues[3]}</b></p>`;
       }
@@ -400,7 +396,7 @@
 
     data.addColumn('string', 'Label');
     data.addColumn('number', '');
-    
+
     var max, min;
     var val = null;
     var hasAtLeastTwoValues = false;
@@ -440,7 +436,7 @@
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'min-num-bins'), {
       none: function () {
         if(options.histogram.bucketSize !== undefined) {
-          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize) + 1; 
+          options.histogram.minNumBuckets = Math.floor((max - min) / options.histogram.bucketSize) + 1;
         }
       },
       some: function (minNumBins) {
@@ -469,37 +465,26 @@
       mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
     };
   }
-    
+
   function geoChart(globalOptions, rawData) {
       const table = get(rawData, 'tab');
       const data = new google.visualization.DataTable();
-<<<<<<< HEAD
-      return {
-          data: data,
-          options: {
-              slices: table.map(row => ({offset: toFixnum(row[1])})),
-=======
       data.addColumn('string', 'Region');
       data.addColumn('number', "Color");
       return {
           data: data,
           options: {
               slices: table.map(row => ({offset: toFixnum(row[2])})),
->>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
               legend: {
                   alignment: 'end'
               }
           },
-<<<<<<< HEAD
-          chartType: google.visualization.GeoMap,
-=======
           chartType: google.visualization.GeoChart,
->>>>>>> 0db881fcc8ced6b2a63d3d1e75158540eb329b25
           onExit: defaultImageReturn,
       }
   }
-    
-    
+
+
   function plot(globalOptions, rawData) {
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
@@ -552,7 +537,7 @@ ${labelRow}`;
       series: combined.map((p, i) => {
         // are we using custom images instead of dots?
         const hasImage = get(p, 'ps').filter(p => p[3]).length > 0;
-    
+
         // scatters and then lines
         const seriesOptions = {};
 
@@ -697,11 +682,11 @@ ${labelRow}`;
         // if custom images is defined, use the image at that location
         // and overlay it atop each dot
         google.visualization.events.addListener(chart, 'ready', function () {
-          // HACK(Emmanuel): 
+          // HACK(Emmanuel):
           // The only way to hijack marker events is to walk the DOM here
           // If Google changes the DOM, these lines will likely break
           const svgRoot = chart.container.querySelector('svg');
-          const markers = svgRoot.children[2].children[2].children;          
+          const markers = svgRoot.children[2].children[2].children;
 
           const layout = chart.getChartLayoutInterface();
           // remove any labels that have previously been drawn
