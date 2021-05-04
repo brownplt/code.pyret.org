@@ -481,7 +481,7 @@
           },
           chartType: google.visualization.GeoChart,
           onExit: defaultImageReturn,
-      }
+      };
   }
 
 
