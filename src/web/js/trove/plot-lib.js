@@ -14,8 +14,7 @@
       'plot-multi': "tany",
       'bar-chart': "tany",
       'dot-chart': "tany",
-      'box-chart': "tany",
-      'geo-chart': "tany"
+      'box-chart': "tany"
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, CLIB, jsnums, d3, D3TIP) {
@@ -1010,110 +1009,6 @@
     return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
   }
 
-    function geoChart(restart, windowOptions, tab) {
-
-    function resizer(restarter, windowOptions) {
-        geoChart(restarter, windowOptions, tab);
-    }
-
-      var sum = tab.map(function (row) { return row[1]; })
-          .reduce(function (a, b) {
-            return jsnums.add(a, b, RUNTIME.NumberErrbacks);
-          });
-      var valueScaler = libNum.scaler(0, sum, 0, 100, true);
-
-
-      var dimension = getDimension({
-            minWindowWidth: 700,
-            minWindowHeight: 550,
-            outerMarginLeft: 10,
-            outerMarginRight: 10,
-            marginLeft: 120,
-            marginRight: 120,
-            marginTop: 90,
-            marginBottom: 40,
-            mode: 'center',
-          }, windowOptions),
-          width = dimension.width,
-          height = dimension.height,
-          detached = createDiv(),
-          canvas = createCanvas(detached, dimension);
-
-      var maxRadius = Math.min(width, height) / 2;
-      var maxRadiusValue = tab.map(function (row) { return row[2]; })
-          .reduce(libNum.numMax);
-      var radiusScaler = libNum.scaler(0, maxRadiusValue, 0, maxRadius, true);
-      var color = d3.scale.category20();
-      var arc = d3.svg.arc()
-          .outerRadius(function (row) { return radiusScaler(row.data[2]); })
-          .innerRadius(0);
-      var pie = d3.layout.pie()
-          .sort(null)
-          .value(function (row) { return valueScaler(row[1]); });
-
-      var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
-      var tip = d3tip(detached)
-          .attr('class', 'd3-tip')
-          .direction('e')
-          .offset([0, 20])
-          .html(function (d) {
-            return 'value: <br />' + prettyNumToStringDigits9(d.data[1]) + '<br />' +
-                'percent: <br />' + prettyNumToStringDigits9(valueScaler(d.data[1])) + '%';
-          });
-
-      canvas.call(tip);
-
-      var g = canvas.selectAll('.arc')
-          .data(pie(tab))
-          .enter().append('g')
-          .attr('class', 'arc');
-
-      g.append('path').attr('class', 'path').attr('d', arc);
-
-      const arc2 = d3.svg.arc();
-
-      g.append('path').attr('class', 'transparent').attr('d', arc);
-
-      g.append('text')
-          .attr('transform', function (d) {
-            const r = radiusScaler(d.data[2]);
-            d.outerRadius = r + 15;
-            d.innerRadius = r + 10;
-            return svgTranslate(arc2.centroid(d));
-          })
-          .attr('dy', '.35em')
-          .style('text-anchor', function(d) {
-            const placement = arc2.centroid(d)[0];
-            if (-10 <= placement && placement <= 10) {
-              return 'middle';
-            }
-            return (placement >= 0) ? 'start' : 'end';
-          })
-          .text(function (d) { return d.data[0]; });
-
-      canvas.selectAll('.arc path')
-          .style({
-            fill: function (d, i) { return color(i); }
-          })
-          .on('mouseover', function (e) {
-            d3.select(this.parentNode)
-                .selectAll('.path')
-                .style('opacity', '0.4');
-            tip.show(e);
-          })
-          .on('mouseout', function (e) {
-            d3.select(this.parentNode)
-                .selectAll('.path')
-                .style('opacity', '0.9');
-            tip.hide(e);
-          });
-      canvas.selectAll('.transparent').style('opacity', '0');
-      canvas.selectAll('text').style({'font-size': '15px'});
-
-      stylizeTip(detached);
-      return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
-}
-
   function barChart(restarter, windowOptions, table, legend, showLegend) {
     /*
      * Bar Chart
@@ -1523,7 +1418,6 @@
         'bar-chart': makeFunction(barChart),
         'dot-chart': makeFunction(dotChart),
         'box-chart': makeFunction(boxChart),
-        'geo-chart': makeFunction(geoChart),
       })
     })
   });
