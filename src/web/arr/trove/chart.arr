@@ -857,10 +857,10 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.histogram(self, obj)
         end
       } ^ histogram-chart-window
-    |geochart-series(obj) =>
+    | geochart-series(obj) =>
       default-geo-chart-window-object.{
         method render(self):
-        P.geo-map(self, obj) end
+        P.geo-chart(self, obj) end
       } ^ geochart-window
   end
 where:

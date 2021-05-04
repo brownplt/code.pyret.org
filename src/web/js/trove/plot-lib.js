@@ -1016,15 +1016,14 @@
         geoChart(restarter, windowOptions, tab);
     }
 
-    var sum = tab.map(function (row) {
-        return row[1];
-    })
-        .reduce(function (a, b) {
+      var sum = tab.map(function (row) { return row[1]; })
+          .reduce(function (a, b) {
             return jsnums.add(a, b, RUNTIME.NumberErrbacks);
-        });
-    var valueScaler = libNum.scaler(0, sum, 0, 100, true);
+          });
+      var valueScaler = libNum.scaler(0, sum, 0, 100, true);
 
-    var dimension = getDimension({
+
+      var dimension = getDimension({
             minWindowWidth: 700,
             minWindowHeight: 550,
             outerMarginLeft: 10,
@@ -1034,67 +1033,85 @@
             marginTop: 90,
             marginBottom: 40,
             mode: 'center',
-        }, windowOptions),
-        width = dimension.width,
-        height = dimension.height,
-        detached = createDiv(),
-        canvas = createCanvas(detached, dimension);
+          }, windowOptions),
+          width = dimension.width,
+          height = dimension.height,
+          detached = createDiv(),
+          canvas = createCanvas(detached, dimension);
 
-    //d3.json("world.geojson", createMap)
-    var proj = d3.geoMercator()
-        .scale(100)
-        .translate([250, 250])
-        .center([0, 5])
-    var geo = d3.geoPath().projection(proj)
-    var color = d3.scale.category20();
-      
-    d3.select("svg").selectAll("path").data(tab.map(function (f): return row[2]))
-        .enter
-        .append("path")
-        .attr("d", geo)
-        .attr("class", "countries");
+      var maxRadius = Math.min(width, height) / 2;
+      var maxRadiusValue = tab.map(function (row) { return row[2]; })
+          .reduce(libNum.numMax);
+      var radiusScaler = libNum.scaler(0, maxRadiusValue, 0, maxRadius, true);
+      var color = d3.scale.category20();
+      var arc = d3.svg.arc()
+          .outerRadius(function (row) { return radiusScaler(row.data[2]); })
+          .innerRadius(0);
+      var pie = d3.layout.pie()
+          .sort(null)
+          .value(function (row) { return valueScaler(row[1]); });
 
-    d3.selectAll("path.countries")
-        .on("mouseover", centerBounds)
-        .on("mouseout", clearCenterBounds)
-
-    function centerBounds(d) {
-        var thisBounds = geoPath.bounds(d);
-        var thisCenter = geoPath.centroid(d);
-        d3.select("svg")
-            .append("rect")
-            .attr("class", "bbox")
-            .attr("x", thisBounds[0][0])
-            .attr("y", thisBounds[0][1])
-            .attr("width", thisBounds[1][0] - thisBounds[0][0])
-            .attr("height", thisBounds[1][1] - thisBounds[0][1])
-        d3.select("svg")
-            .append("circle")
-            .attr("class", "centroid")
-            .attr("r", 5)
-            .attr("cx", thisCenter[0]).attr("cy", thisCenter[1])
-    }
-
-    function clearCenterBounds() {
-        d3.selectAll("circle.centroid").remove();
-        d3.selectAll("rect.bbox").remove();
-    }
-
-    var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
-    var tip = d3tip(detached)
-        .attr('class', 'd3-tip')
-        .direction('e')
-        .offset([0, 20])
-        .html(function (d) {
+      var prettyNumToStringDigits9 = libNum.getPrettyNumToStringDigits(9);
+      var tip = d3tip(detached)
+          .attr('class', 'd3-tip')
+          .direction('e')
+          .offset([0, 20])
+          .html(function (d) {
             return 'value: <br />' + prettyNumToStringDigits9(d.data[1]) + '<br />' +
                 'percent: <br />' + prettyNumToStringDigits9(valueScaler(d.data[1])) + '%';
-        });
+          });
 
-    canvas.call(tip);
+      canvas.call(tip);
 
-    stylizeTip(tip);
+      var g = canvas.selectAll('.arc')
+          .data(pie(tab))
+          .enter().append('g')
+          .attr('class', 'arc');
 
-    return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
+      g.append('path').attr('class', 'path').attr('d', arc);
+
+      const arc2 = d3.svg.arc();
+
+      g.append('path').attr('class', 'transparent').attr('d', arc);
+
+      g.append('text')
+          .attr('transform', function (d) {
+            const r = radiusScaler(d.data[2]);
+            d.outerRadius = r + 15;
+            d.innerRadius = r + 10;
+            return svgTranslate(arc2.centroid(d));
+          })
+          .attr('dy', '.35em')
+          .style('text-anchor', function(d) {
+            const placement = arc2.centroid(d)[0];
+            if (-10 <= placement && placement <= 10) {
+              return 'middle';
+            }
+            return (placement >= 0) ? 'start' : 'end';
+          })
+          .text(function (d) { return d.data[0]; });
+
+      canvas.selectAll('.arc path')
+          .style({
+            fill: function (d, i) { return color(i); }
+          })
+          .on('mouseover', function (e) {
+            d3.select(this.parentNode)
+                .selectAll('.path')
+                .style('opacity', '0.4');
+            tip.show(e);
+          })
+          .on('mouseout', function (e) {
+            d3.select(this.parentNode)
+                .selectAll('.path')
+                .style('opacity', '0.9');
+            tip.hide(e);
+          });
+      canvas.selectAll('.transparent').style('opacity', '0');
+      canvas.selectAll('text').style({'font-size': '15px'});
+
+      stylizeTip(detached);
+      return callBigBang(detached, restarter, resizer, windowOptions, dimension, null, null);
 }
 
   function barChart(restarter, windowOptions, table, legend, showLegend) {
