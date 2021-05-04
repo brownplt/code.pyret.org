@@ -860,7 +860,7 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
     | geochart-series(obj) =>
       default-geo-chart-window-object.{
         method render(self):
-        P.geo-chart(self, obj) end
+        P.geochart(self, obj) end
       } ^ geochart-window
   end
 where:

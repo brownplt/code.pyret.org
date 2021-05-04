@@ -834,7 +834,7 @@ ${labelRow}`;
         'histogram': makeFunction(histogram),
         'box-plot': makeFunction(boxPlot),
         'plot': makeFunction(plot),
-        'geo-chart': makeFunction(geoChart),
+        'geochart': makeFunction(geoChart),
       })
     })
   });
