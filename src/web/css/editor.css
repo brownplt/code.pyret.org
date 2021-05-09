@@ -383,7 +383,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 }
 
 #REPL {
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
 }
 
 .replTextOutput {
@@ -413,7 +413,7 @@ span.trace:after {
 }
 
 div.spy-block {
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   clear: both;
   border: 1px solid var(--spy-borders);
   padding: 0.2em;
@@ -835,7 +835,7 @@ body.smallHeader .replContainer {
 
 #program-name-container {
   display: inline-block;
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   vertical-align:top;
   float:left;
   height:100%;
@@ -874,7 +874,7 @@ body.smallHeader .replContainer {
 .notificationArea {
   z-index: 12000;
   width: 35%;
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   position:fixed;
   display:block;
   left: 55%;
@@ -894,7 +894,7 @@ body.smallHeader .replContainer {
   vertical-align: middle;
   line-height: normal;
   padding-left: 2em;
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
 }
 
 
@@ -902,7 +902,7 @@ body.smallHeader .replContainer {
   background: var(--notif-area-bg);
   max-width: 50%;
   float: right;
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   height: 2.5rem;
   line-height: 2.5rem;
 }
@@ -974,7 +974,7 @@ body.smallHeader .replContainer {
 .menuButton *,
 .menuContents * {
   color: var(--menu-text);
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   text-decoration: none;
 }
 
@@ -1028,7 +1028,7 @@ div#font:hover{
   padding: 10px 0px;
   text-align:center;
   display: inline-block;
-  font-family:sans-serif;
+  font-family:var(--ui-font-stack);
   -webkit-touch-callout: none;
   -webkit-user-select: none; /* Webkit */
   -moz-user-select: none;  /* Firefox */
@@ -1387,7 +1387,7 @@ code div {
 }
 
 .compile-error {
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   border: 1px dashed var(--err-dotted-border);
   padding: 0.2em;
   box-shadow: 0px 4px 5px var(--shadow-color);
@@ -1410,7 +1410,7 @@ code div {
 }
 
 .parse-error {
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   border: 1px dashed var(--err-dotted-border);
   /* font-size: 10pt; */
   padding: 3px;
@@ -1543,7 +1543,7 @@ code div {
 
 .ui-dialog-title {
   color: var(--ui-dialog-default);
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   position: relative;
   left: 30px;
 }
@@ -1738,7 +1738,7 @@ body.smallHeader #run-dropdown-content {
 
 #run-dropdown-content li {
   color: var(--light-text);
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
   font-size: 15px;
   height: 23px;
   width: 100%;
@@ -2160,7 +2160,7 @@ table.pyret-row {
   overflow: auto; /* Enable scroll if needed */
   background-color: var(--default-border); /* Fallback color */
   background-color: var(--shadow-darker); /* Black w/ opacity */
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
 }
 
 /* Modal Content */

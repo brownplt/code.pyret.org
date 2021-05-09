@@ -1,9 +1,11 @@
 :root {
   --font-stack: "Fira Mono","DejaVu Sans Mono","Inconsolata",monospace;
+  --ui-font-stack: "Fira Sans", Roboto, helvetica, sans-serif;
 }
 
 body {
   line-height: 1.3;
+  font-family: var(--ui-font-stack);
 }
 
 em {
@@ -103,7 +105,6 @@ body.hideDefinitions .replMain, body.hideDefinitions #handle {
   z-index: 10005;
   color: #fff;
   background: #C8C8C8;
-  font-family:sans-serif;
   cursor: move;
 }
 
@@ -231,7 +232,7 @@ nav > div {
 
 #header a {
   color: #111;
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
 }
 */
 
@@ -261,7 +262,7 @@ nav ul a, nav ul button {
 
 nav a, nav button {
   color: #111;
-  font-family: sans-serif;
+  font-family: var(--ui-font-stack);
 }
 
 nav > div > ul {
@@ -404,7 +405,7 @@ body.hideFooter #footer {
 
 
 .blueButton {
-    font-family: sans-serif;
+    font-family: var(--ui-font-stack);
 /*  darker blue option #2a348b */
     background-color: rgba(0,0,0,0.3);
     border: none;
