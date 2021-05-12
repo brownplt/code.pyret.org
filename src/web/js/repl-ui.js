@@ -116,6 +116,7 @@
               html.addClass('compile-error').appendTo(output);
               //updateItems?
               if (click) html.click();
+              scroll(output);
             }).done(function () {
               //updateItems(isMain);
               restarter.resume(runtime.nothing)
