@@ -542,11 +542,11 @@
     const horizontal = get(rawData, 'horizontal');
     const axisloc = horizontal ? 'hAxes' : 'vAxes';
     const data = new google.visualization.DataTable();
-    const colors_list = get_colors_list(rawData);
     const pointers_list = get_pointers_list(rawData);
     const pointer_color = get_pointer_color(rawData);
     const axis = get_axis(rawData);
     const interval_color = get_interval_color(rawData); 
+    var colors_list = get_colors_list(rawData);
 
     // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
@@ -562,7 +562,7 @@
       series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
       legend: {
         position: horizontal ? 'right' : 'top', 
-        maxLines: data.getNumberOfRows() - 1
+        maxLines: data.getNumberOfColumns() - 1
       }, 
       intervals: { 
         color : interval_color, 
@@ -587,10 +587,12 @@
     */
 
     if (pointers_list.length > 0) { 
+      colors_list = colors_list.slice(0, legends.length);
+      
       // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
       data.addColumn('number', 'Pointers')
 
-      for (let i = 0; i < data.getNumberOfRows() - 1; i++) {
+      for (let i = 0; i < data.getNumberOfColumns() - 1; i++) {
         if (options['series'][i] == null) {
           options['series'][i] = {color: pointer_color, targetAxisIndex: 1};
         }
@@ -606,8 +608,14 @@
         ticks: pointers_list, 
         textStyle: { color: pointer_color }
       };
+    } else {
+      for (let i = 0; i < data.getNumberOfColumns() - 1; i++) {
+        if (options['series'][i] == null) {
+          options['series'][i] = {color: 'black', targetAxisIndex: 0};
+        }
+      }
     }
-
+    
     return {
       data: data,
       options: options,
