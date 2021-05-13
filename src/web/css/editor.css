@@ -23,7 +23,6 @@
   - box-shadow on .dropdown:hover (aside run button)
   - bg on .modal-header
   - bg on .modal-footer 
-  - bg on .menuContents div:not(.disabled):not(.inert):hover
   - box-shadow on #runButton, #breakButton (also on hover)
   - box-shadow on #run-dropdown-content li:hover
   - box-shadow on table.pyret-table thead
@@ -96,7 +95,7 @@
   --notif-area-bg: #111111;
 
   /* - bg on New/Save/Download/etc menu (.menuContents) */
-  --menu-contents-bg: #EFEFEF;
+  --menu-contents-bg: #fff;
 
   /*
   - border around expanded objects (.replOutput.expanded > dl) */
@@ -108,7 +107,7 @@
 
   /* 
   - text in .menuButton and .menuContents */
-  --menu-text: #000;
+  --menu-text: #333;
 
   /*
   - bg on .info-btn (question mark) in Bonnie menu */
@@ -954,16 +953,20 @@ body.smallHeader .replContainer {
 #filemenuContents .hidden { display: none; }
 
 .menuContents {
+  color: #333;
+  border: 1px solid white;
+  border-radius: 3px;
+  margin-top: -2px;
   background-color: var(--menu-contents-bg);
-  border: none;
-  box-shadow: 0px 2px 3px var(--shadow-color);
+  box-shadow: 0px 1px 5px var(--shadow-color);
   overflow:hidden;
   max-width: min-content;
+  padding: 6px 0;
 }
 
 .menuContents div:not(.disabled):not(.inert):hover{
   transition: box-shadow 0.2s;
-  background-color: var(--shadow-color);
+  background-color: #e4e4e4;
 }
 
 .menuContents div.disabled * {
@@ -979,7 +982,7 @@ body.smallHeader .replContainer {
 }
 
 .menuButton > *, .menuContents > * {
-  padding: 10px;
+  padding: 8px 24px 6px;
   display: block;
 }
 
@@ -2088,7 +2091,7 @@ table.choiceContainer {
    margin: 1em;
 }
 div.choiceContainer {
-   text-align: center;
+   text-align: left;
 }
 div.choiceContainer input[type=text] {
   padding: 0.5em;
@@ -2166,16 +2169,21 @@ table.pyret-row {
 /* Modal Content */
 .modal-content {
   position: relative;
-  background-color: var(--modal-content-bg);
+  background-color: white;
   margin: auto;
   padding: 0;
   border: 1px solid var(--modal-content-border);
+  border-radius: 6px;
   width: 60%;
   box-shadow: 0 4px 8px 0 var(--shadow-color),0 6px 20px 0 var(--shadow-color);
   -webkit-animation-name: animatetop;
   -webkit-animation-duration: 0.4s;
   animation-name: animatetop;
   animation-duration: 0.4s
+}
+
+.modal-content.narrow {
+  max-width: 500px;
 }
 
 /* Add Animation */
@@ -2197,11 +2205,6 @@ table.pyret-row {
   font-weight: bold;
   padding: 10px 5px;
 }*/
-
-.modal .submit {
-  float: right;
-  padding: 0px 5px;
-}
 
 .modal table {
   width: 90%;
@@ -2229,45 +2232,57 @@ table.pyret-row {
   cursor: pointer;
 }*/
 
+.modal p {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .modal .submit,
 .modal .close  {
-  height: 40px;
-  width: 150px;
-  box-shadow: 0px -2px 5px 1px var(--shadow-color);
-  margin-top: 10px;
+  display: inline-block;
+  padding: 12px 20px;
+  height: auto;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 .modal .submit{
+  border: 1px solid var(--run-bg);
   background: var(--run-bg);
 }
 
 .modal .submit:hover{
   background:var(--run-hover);
+  border-color: var(--run-hover);
 }
 
 .modal .close{
-  background:var(--stop-bg);
+  border: 1px solid #ccc;
+  background: white;
+  color: #999;
+  margin-right: 16px;
 }
 
 .modal .close:hover{
-  background:var(--stop-hover);
+  color: #666;
+  border-color: #999;
 }
 
 .modal .submit:hover,
 .modal .close:hover{
-  box-shadow: 0px -5px 10px 5px var(--shadow-color);
+  box-shadow: 0px 2px 4px var(--shadow-color);
 }
 
 .modal-header {
-  padding: 2px 16px;
-  background-color: var(--shadow-color);
-  color: var(--modal-header-text);
-  text-align: center;
+  padding: 20px;
+  padding-bottom: 8px;
+  text-align: left;
 }
 
 .modal-body {
-  padding: 2px 16px;
-  font-size: 18px;
+  padding: 2px 20px;
+  font-size: 16px;
 }
 
 .modal td {
@@ -2275,10 +2290,9 @@ table.pyret-row {
 }
 
 .modal-footer {
-  padding: 2px 16px;
-  background-color: var(--shadow-color);
-  color: var(--light-text);
-  height: 60px;
+  padding: 2px 20px 20px;
+  display: flex;
+  flex-direction: row-reverse;
 }
 
 .stale.test-results .check-block-failed,
