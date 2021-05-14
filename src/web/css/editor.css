@@ -945,7 +945,7 @@ body.smallHeader .replContainer {
 }
 
 #bonniemenuContents {
-  min-width: 200px;
+  min-width: 250px;
 }
 #filemenuContents {
   min-width: 200px;
@@ -956,7 +956,9 @@ body.smallHeader .replContainer {
   color: #333;
   border: 1px solid white;
   border-radius: 3px;
-  margin-top: -2px;
+  border-top-left-radius: 0px;
+  margin-top: -3px;
+  margin-left: 1px;
   background-color: var(--menu-contents-bg);
   box-shadow: 0px 1px 5px var(--shadow-color);
   overflow:hidden;
@@ -982,7 +984,7 @@ body.smallHeader .replContainer {
 }
 
 .menuButton > *, .menuContents > * {
-  padding: 8px 24px 6px;
+  padding: 10px 30px 10px;
   display: block;
 }
 
@@ -2096,10 +2098,13 @@ div.choiceContainer {
 div.choiceContainer input[type=text] {
   padding: 0.5em;
   font-size: 100%;
+  border: 1px solid #999;
+  border-radius: 2px;
 }
 div.choiceContainer .textLabel {
   margin-right: 1em;
 }
+
 div.choiceContainer > button {
   margin: 1em;
   cursor: pointer;

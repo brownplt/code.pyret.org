@@ -185,7 +185,8 @@ body.hideDefinitions .replMain, body.hideDefinitions #handle {
   background:#fff;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  box-shadow: 0px 1px 4px rgba(0,0,0,0.3);
+  /* box-shadow: 0px 1px 4px rgba(0,0,0,0.3);*/
+  border-bottom: 1px solid #ccc;
 }
 
 body.hideHeader #header {
@@ -335,6 +336,12 @@ nav > div > ul ul > li > div {
 .menuitemtitle > button {
   padding-left: 1em;
   padding-right: 1em;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.menuitemtitle > .blueButton:hover {
+  box-shadow: none;
 }
 
 .menuButton {
