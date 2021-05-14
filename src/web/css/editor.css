@@ -1615,7 +1615,9 @@ body.smallHeader #handle {
 }
 
 #runButton, #breakButton {
-  width: 150px;
+  min-width: 180px;
+  padding-left: 30px;
+  padding-right: 30px;
   box-shadow: 0px -5px 5px 1px var(--shadow-color);
 }
 
@@ -1627,55 +1629,58 @@ body.smallHeader #runButton > span {
   display: none;
 }
 
-#runButton, #runDropdown {
-  background: var(--run-bg);
+#runButton, #runDropdown, #breakButton {
   color: #eee;
+  border: 5px solid white;
+  box-shadow: none;
+  border-radius: 8px;
+  height: 39px;
+  cursor: pointer;
 }
 
-#runButton:hover{
+#runButton, #runDropdown {
+  background: var(--run-bg);
+}
+
+#runButton:hover, #runDropdown:hover, #breakButton:hover {
+  box-shadow: none;
+}
+
+#runButton {
+  border-right-width: 1px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+#runDropdown {
+  border-left: 0px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
+#runButton:hover, #runDropdown:hover {
   background:var(--run-hover);
 }
 
 #breakButton{
   background:var(--stop-bg);
+  margin-right: 6px;
 }
 
 #breakButton:hover{
   background:var(--stop-hover);
 }
 
-#runButton:hover,
-#breakButton:hover{
-  box-shadow: 0px -5px 10px 5px var(--shadow-color);
-}
-
-#runButton:disabled, #breakButton:disabled{
+#runButton:disabled, #runDropdown:disabled, #breakButton:disabled{
   width: 150px;
-  background: none;
   box-shadow: none;
+  background: #e2e2e2;
+  color: #666;
+  cursor: auto;
 }
 
 body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
   width: 60px;
-}
-
-
-#runButton:disabled, #runDropdown:disabled {
-  color: #111;
-}
-
-#runButton:hover[disabled],
-#breakButton:hover[disabled]{
-  background: none;
-  box-shadow: none;
-}
-
-#breakButton:disabled {
-  background: #C8C8C8;
-}
-
-#breakButton:hover[disabled] {
-  background: #C8C8C8;
 }
 
 #runPart {
@@ -1697,7 +1702,6 @@ body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
   margin: 0;
   height: 100%;
   width: 20px;
-  background: #317bcf;
 }
 
 #rundropdownli > div {

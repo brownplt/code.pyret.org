@@ -656,7 +656,7 @@
             breakButton.attr("disabled", false);
             stopLi.attr('disabled', false);
             options.runButton.empty();
-            var text = $("<span>").text("Running...");
+            var text = $("<span>").text("  Running...");
             text.css({
               "vertical-align": "middle"
             });
