@@ -302,10 +302,6 @@ nav > div > ul > li > ul:not([id="run-dropdown-content"]) {
   left: 0;
 }
 
-nav > div > ul > li > ul[id="run-dropdown-content"] {
-  left: -150px;
-}
-
 nav > div > ul > li:focus ul {
   /* aria-hidden: false; */
   display: block;
