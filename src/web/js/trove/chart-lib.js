@@ -29,7 +29,8 @@
 
   var IMAGE = get(IMAGELIB, "internal");
 
-  google.charts.load('current', {'packages' : ['corechart']});
+  google.charts.load('current', {'packages' : ['corechart', 'geochart'],
+'mapsApiKey': 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'});
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -467,18 +468,26 @@
   }
 
   function geoChart(globalOptions, rawData) {
+      console.log("test 123")
       const table = get(rawData, 'tab');
-      const data = new google.visualization.DataTable();
-      data.addColumn('string', 'Region');
-      data.addColumn('number', "Color");
+      //const data = new google.visualization.DataTable();
+      //data.addColumn('string', 'Region');
+      //data.addColumn('number', "Color");
+      //data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
+      const data = google.visualization.arrayToDataTable([
+          ['Country', 'Popularity'],
+          ['Germany', 200],
+          ['United States', 300],
+          ['Brazil', 400],
+          ['Canada', 500],
+          ['France', 600],
+          ['RU', 700]
+        ]);
+
+
       return {
           data: data,
-          options: {
-              slices: table.map(row => ({offset: toFixnum(row[2])})),
-              legend: {
-                  alignment: 'end'
-              }
-          },
+          options: {},
           chartType: google.visualization.GeoChart,
           onExit: defaultImageReturn,
       };
@@ -760,6 +769,7 @@ ${labelRow}`;
     However, somehow this event is never triggered, so we will just call
     it here to guarantee that it will return.
     */
+
     imageReturn(result.chart.getImageURI(), restarter, x => x);
   }
 
