@@ -468,23 +468,12 @@
   }
 
   function geoChart(globalOptions, rawData) {
-      console.log("test 123")
+      //console.log("test 123")
       const table = get(rawData, 'tab');
-      //const data = new google.visualization.DataTable();
-      //data.addColumn('string', 'Region');
-      //data.addColumn('number', "Color");
-      //data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
-      const data = google.visualization.arrayToDataTable([
-          ['Country', 'Popularity'],
-          ['Germany', 200],
-          ['United States', 300],
-          ['Brazil', 400],
-          ['Canada', 500],
-          ['France', 600],
-          ['RU', 700]
-        ]);
-
-
+      const data = new google.visualization.DataTable();
+      data.addColumn('string', 'Region');
+      data.addColumn('number', "Color");
+      data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
       return {
           data: data,
           options: {},
