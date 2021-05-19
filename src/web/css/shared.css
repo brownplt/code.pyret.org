@@ -1,6 +1,6 @@
 :root {
   --font-stack: "Fira Mono","DejaVu Sans Mono","Inconsolata",monospace;
-  --ui-font-stack: "Fira Sans", Roboto, helvetica, sans-serif;
+  --ui-font-stack: "Fira Sans", "Roboto", helvetica, sans-serif;
 }
 
 body {
@@ -182,10 +182,11 @@ body.hideDefinitions .replMain, body.hideDefinitions #handle {
   top: 0;
   width: 100%;
   height: 40px;
-  background:#C8C8C8;
+  background:#fff;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  box-shadow: 0px 1px 2px rgba(0,0,0,0.6);
+  /* box-shadow: 0px 1px 4px rgba(0,0,0,0.3);*/
+  border-bottom: 1px solid #ccc;
 }
 
 body.hideHeader #header {
@@ -271,7 +272,6 @@ nav > div > ul {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: #C8C8C8;
   list-style-type: none;
 }
 
@@ -282,6 +282,10 @@ nav > div > ul > li {
   position: relative;
  /* border: thin solid green; */
   list-style-type: none;
+}
+
+nav button {
+  background: none;
 }
 
 nav > div > ul > li  ul {
@@ -296,10 +300,6 @@ nav > div > ul > li  ul {
 
 nav > div > ul > li > ul:not([id="run-dropdown-content"]) {
   left: 0;
-}
-
-nav > div > ul > li > ul[id="run-dropdown-content"] {
-  left: -150px;
 }
 
 nav > div > ul > li:focus ul {
@@ -332,6 +332,12 @@ nav > div > ul ul > li > div {
 .menuitemtitle > button {
   padding-left: 1em;
   padding-right: 1em;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.menuitemtitle > .blueButton:hover {
+  box-shadow: none;
 }
 
 .menuButton {
@@ -406,29 +412,31 @@ body.hideFooter #footer {
 
 .blueButton {
     font-family: var(--ui-font-stack);
-/*  darker blue option #2a348b */
-    background-color: rgba(0,0,0,0.3);
     border: none;
     border-radius: 0px;
-    color: #fff;
+    color: #333;
     text-align: center;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s linear, background 0.2s linear;
     font-size: 15px;
     height: 100%;
     padding: 0px 15px;
     vertical-align: middle;
     float:left;
     margin:0px 1px;
+    cursor: pointer;
 }
 
 .blueButton:hover {
-    cursor: pointer;
-    box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.2);
-    background: rgba(0,0,0,0.6);
+    box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.2);
+    background: #e5e5e5;
+    color: #000;
+}
+.blueButton:active {
+    background: #999;
 }
 
 .blueButton:disabled {
-    background-color: #C8C8C8;
+    background-color: red;
     border: none;
     color: rgba(0, 0, 0, 0.26);
     cursor: default;
@@ -539,33 +547,4 @@ code {
   margin: 0;
   padding: 0;
 */
-}
-
-.focusable:focus {
-  background: rgba(0,0,0,0.3);
-}
-
-.tooltip {
-  position: relative;
-}
-
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px 0;
-  position: absolute;
-  z-index: 1;
-  top: 5ex;
-  left: 5ex;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
 }
