@@ -36,7 +36,7 @@ const shares = [
     expr: "animals-table.column('name')", modal: 0 },
   { id: "1VVz4l0P6GLwbcpYyAGYJuRgBxj69R52Z", name: "DataScience: Trust, but verify!",
     expr: "verify1", modal: 0 },
-  { id: "1Fm3bSkeWZ5f4VwZ24TtOkZ3Pu0CPkJT2", name: "DataScience: Table Methods Starter File (v1.5.1)",
+  { id: "1IIU2f7IlUkFmTCjQ39tgkmKTJDAjN2NI", name: "DataScience: Table Methods Starter File (v1.5.1)",
     expr: "animals-table", modal: 0 },
   { id: "1ymyvlI7RTtq8lHh4VH3x1N3WlcZB650j", name: "DataScience: Mood Generator Starter File",
     expr: "mood('happy')", modal: 0 },
