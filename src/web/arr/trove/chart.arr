@@ -431,7 +431,10 @@ data DataSeries:
   | geochart-series(obj :: GeoChartSeries) with:
     is-single: true,
     contr: {(): geochart-series},
-    region: region-method,
+    method region(self, region :: String):
+        geochart-series(self.obj.{
+            region: region})
+        end
 sharing:
   method _output(self):
     get-vs-from-img("DataSeries", render-chart(self).get-image())
