@@ -474,9 +474,19 @@
       data.addColumn('string', 'Region');
       data.addColumn('number', "Color");
       data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
+
+      const options = {region: {}};
+
+      cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'region'), {
+        none: function () {},
+        some: function (r) {
+          options.region = r;
+        }
+      });
+
       return {
           data: data,
-          options: {},
+          options: options,
           chartType: google.visualization.GeoChart,
           onExit: defaultImageReturn,
       };
