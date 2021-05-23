@@ -118,6 +118,9 @@ y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
 end
 
+region-method = method(self, region :: String):
+  self.constr()(self.obj.{region: region})
+end
 ################################################################################
 # BOUNDING BOX
 ################################################################################
@@ -251,9 +254,12 @@ default-function-plot-series = {
 
 type GeoChartSeries = {
   tab :: TableIntern,
+  region :: String,
 }
 
-default-geochart-series = {}
+default-geochart-series = {
+  region: "world",
+}
 
 ###########
 
@@ -425,6 +431,7 @@ data DataSeries:
   | geochart-series(obj :: GeoChartSeries) with:
     is-single: true,
     contr: {(): geochart-series},
+    region: region-method,
 sharing:
   method _output(self):
     get-vs-from-img("DataSeries", render-chart(self).get-image())

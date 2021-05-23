@@ -468,21 +468,15 @@
   }
 
   function geoChart(globalOptions, rawData) {
-      //console.log("test 123")
       const table = get(rawData, 'tab');
       const data = new google.visualization.DataTable();
+      const region = get(rawData, 'region');
       data.addColumn('string', 'Region');
       data.addColumn('number', "Color");
       data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
-
-      const options = {region: {}};
-
-      cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'region'), {
-        none: function () {},
-        some: function (r) {
-          options.region = r;
-        }
-      });
+      console.log("test123");
+      console.log(region);
+      const options = {region: region};
 
       return {
           data: data,
