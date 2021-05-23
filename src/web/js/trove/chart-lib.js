@@ -472,7 +472,7 @@
       const data = new google.visualization.DataTable();
       const region = get(rawData, 'region');
       data.addColumn('string', 'Region');
-      data.addColumn('number', "Color");
+      data.addColumn('number', "Value");
       data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
       console.log("test123");
       console.log(region);
