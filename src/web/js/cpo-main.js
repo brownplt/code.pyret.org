@@ -333,8 +333,8 @@
           });
 
       // NOTE(joe): assigned on window for debuggability
-      window.RUN_CODE = CPO.RUN_CODE = function(src) {
-        doRunAction(src, true);
+      window.RUN_CODE = function(src, uiOpts, replOpts) {
+        doRunAction(src);
       };
 
       /*
@@ -350,7 +350,7 @@
       $("#select-run").click(function() {
         runButton.text("Run");
         currentAction = "run";
-        doRunAction(editor.cm.getValue(), false);
+        doRunAction(editor.cm.getValue());
         $('#runDropdown').attr('aria-expanded', 'false');
         $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
@@ -358,7 +358,7 @@
       $("#select-tc-run").click(function() {
         runButton.text("Type-check and Run");
         currentAction = "tc-and-run";
-        doRunAction(editor.cm.getValue(), false);
+        doRunAction(editor.cm.getValue());
         $('#runDropdown').attr('aria-expanded', 'false');
         $("#run-dropdown-content").attr('aria-hidden', 'true').hide();
       });
@@ -370,10 +370,7 @@
       $("#select-mcmh").click(function() {
         highlightMode = "mcmh"; $("#run-dropdown-content").hide();});
       */
-      function doRunAction(src, synthetic) {
-        if(!synthetic) {
-          CPO.triggerOnRun();
-        }
+      function doRunAction(src) {
         editor.cm.operation(function() {
           editor.cm.clearGutter("test-marker-gutter");
           var marks = editor.cm.getAllMarks();
@@ -398,7 +395,7 @@
         }
       }
 
-      runButton.on("click", function() { doRunAction(editor.cm.getValue(), false); });
+      runButton.on("click", function() { doRunAction(editor.cm.getValue()); });
 
       $(window).on("keyup", function(e) {
         if(e.keyCode === 27) { // "ESC"
@@ -573,7 +570,7 @@
 
       // run the definitions area
       Mousetrap.bindGlobal('ctrl+enter', function(e){
-        doRunAction(editor.cm.getValue(), false);
+        doRunAction(editor.cm.getValue());
         CPO.autoSave();
         e.stopImmediatePropagation();
         e.preventDefault();
@@ -634,7 +631,7 @@
       });
 
       Mousetrap.bindGlobal('f7', function(e) {
-        doRunAction(editor.cm.getValue(), false);
+        doRunAction(editor.cm.getValue());
         CPO.autoSave();
         e.stopImmediatePropagation();
         e.preventDefault();
