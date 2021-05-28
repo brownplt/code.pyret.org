@@ -684,6 +684,8 @@
         return new modalPrompt({
           title: "Select Import Style",
           style: "radio",
+          submitText: "Import",
+          cancelText: "Close",
           options: [
             {
               message: "Import as Values",

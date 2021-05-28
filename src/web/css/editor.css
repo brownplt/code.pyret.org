@@ -2100,13 +2100,21 @@ table.choiceContainer {
 }
 div.choiceContainer {
    text-align: left;
+   margin-top: 16px;
 }
 div.choiceContainer input[type=text] {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: var(--font-stack);
   padding: 0.5em;
   font-size: 100%;
-  border: 1px solid #999;
-  border-radius: 2px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
 }
+
 div.choiceContainer .textLabel {
   margin-right: 1em;
 }
@@ -2194,7 +2202,7 @@ table.pyret-row {
 }
 
 .modal-content.narrow {
-  max-width: 500px;
+  max-width: 400px;
 }
 
 /* Add Animation */
@@ -2301,7 +2309,7 @@ table.pyret-row {
 }
 
 .modal-footer {
-  padding: 2px 20px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: row-reverse;
 }

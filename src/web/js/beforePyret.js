@@ -631,10 +631,11 @@ $(function() {
       var saveAsPrompt = new modalPrompt({
         title: "Save a copy",
         style: "text",
+        submitText: "Save",
+        narrow: true,
         options: [
           {
             message: "The name for the copy:",
-            submitText: "Save",
             defaultValue: name
           }
         ]
@@ -656,6 +657,7 @@ $(function() {
       var renamePrompt = new modalPrompt({
         title: "Rename this file",
         style: "text",
+        narrow: true,
         options: [
           {
             message: "The new name for the file:",
