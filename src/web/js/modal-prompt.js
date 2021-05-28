@@ -79,7 +79,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     else {
       this.closeButton.text("Cancel");
     }
-    this.modalContent.toggleClass("narrow", this.options.narrow);
+    this.modalContent.toggleClass("narrow", !!this.options.narrow);
 
     this.isCompiled = false;
     this.deferred = Q.defer();
