@@ -173,7 +173,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
           value: option.example,
           mode: 'pyret',
           lineNumbers: false,
-          readOnly: true
+          readOnly: "nocursor" // this makes it readOnly & not focusable as a form input
         });
         setTimeout(function(){
           cm.refresh();
