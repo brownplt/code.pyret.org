@@ -868,7 +868,7 @@
         onError: flashError,
         onInternalError: stickError,
         views: ["imageView"],
-        title: "Select an image to use"
+        title: "Select images"
       });
 
       return runtime.makeModuleReturn({
