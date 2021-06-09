@@ -305,6 +305,7 @@
         CM.setValue("");
         CM.focus();
         CM.refresh();
+        scroll(output);
       }
       promptContainer.append(prompt);
 
