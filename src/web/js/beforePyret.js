@@ -1062,6 +1062,9 @@ $(function() {
     initialGas: 100,
     scrollPastEnd: true,
   });
+  if(params["get"]["editorContents"] && !(params["get"]["program"] || params["get"]["share"])) {
+    CPO.editor.cm.setValue(params["get"]["editorContents"]);
+  }
   CPO.editor.cm.setOption("readOnly", "nocursor");
   CPO.editor.cm.setOption("longLines", new Map());
   function removeShortenedLine(lineHandle) {
@@ -1225,6 +1228,14 @@ $(function() {
 
   });
 
+  const onRunHandlers = [];
+  function onRun(handler) {
+    onRunHandlers.push(handler);
+  }
+  function triggerOnRun() {
+    onRunHandlers.forEach(h => h());
+  }
+
   programLoaded.fin(function() {
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
@@ -1238,5 +1249,8 @@ $(function() {
   CPO.cycleFocus = cycleFocus;
   CPO.say = say;
   CPO.sayAndForget = sayAndForget;
+  CPO.onRun = onRun;
+  CPO.triggerOnRun = triggerOnRun;
+  makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
 
 });
