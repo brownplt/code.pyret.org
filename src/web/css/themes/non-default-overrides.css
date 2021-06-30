@@ -96,7 +96,7 @@ body:not(.default) .CodeMirror div.CodeMirror-ruler {
 
 /* scroll bar color */
 body:not(.default) .CodeMirror, body:not(.default) #REPL {
-  color-scheme: dark; 
+  color-scheme: var(--scrollbar-theme); 
 }
 
 /* summaries for passed/failed tests at top */
