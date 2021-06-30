@@ -232,7 +232,7 @@ $(function() {
         const element = document.createElement("span");
         element.textContent = CM.getLine(0);
         element.className = "useline";
-        namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: firstline.length}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        namespacemark = CM.markText({line: 0, ch: 0}, {line: 0, ch: firstline.length}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
         // NOTE(joe): This seems to be the best way to get a click on a mark: https://github.com/codemirror/CodeMirror/issues/3529
         CM.getWrapperElement().onmousedown = function(e) {
           var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
@@ -253,6 +253,7 @@ $(function() {
               });
             namespaceResult.show((result) => {
               if(!result) { return; }
+              if(!result.match(/^use namespace*/)) { return; }
               CM.replaceRange(result + "\n", { line:0, ch: 0}, {line: 1, ch: 0});
             });
             
@@ -1213,6 +1214,9 @@ $(function() {
 
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
+    if(c === "") {
+      c = "use namespace playground\n";
+    }
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
