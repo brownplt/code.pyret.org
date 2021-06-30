@@ -12,7 +12,10 @@
     { "import-type": "builtin", "name": "reactors" },
     { "import-type": "builtin", "name": "math" },
     { "import-type": "builtin", "name": "statistics" },
-    { "import-type": "builtin", "name": "constants" }
+    { "import-type": "builtin", "name": "constants" },
+    { "import-type": "builtin", "name": "empty-namespace" },
+    { "import-type": "builtin", "name": "playground" },
+    { "import-type": "builtin", "name": "legacy-cpo" }
   ],
   provides: {},
   nativeRequires: [],

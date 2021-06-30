@@ -209,6 +209,58 @@ $(function() {
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
 
+    function firstLineIsNamespace() {
+      const firstline = CM.getLine(0);
+      const match = firstline.match(/^use namespace.*/);
+      return match !== null;
+    }
+
+    let namespacemark = null;
+    CM.on("change", function(change) {
+      const firstline = CM.getLine(0);
+      function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
+      console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
+      if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+      var hasNamespace = firstLineIsNamespace();
+      if(!hasNamespace && namespacemark !== null) {
+        namespacemark.clear();
+      }
+      if(!hasNamespace) {
+        CM.replaceRange("use namespace legacy-cpo\n", { line:0, ch: 0}, {line: 0, ch: 0});
+      }
+      if(hasNamespace) {
+        const element = document.createElement("span");
+        element.textContent = CM.getLine(0);
+        element.className = "useline";
+        namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: firstline.length}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        // NOTE(joe): This seems to be the best way to get a click on a mark: https://github.com/codemirror/CodeMirror/issues/3529
+        CM.getWrapperElement().onmousedown = function(e) {
+          var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
+          var markers = CM.findMarksAt(lineCh);
+          console.log(lineCh);
+          if (markers.length === 0) { return; }
+          if (lineCh.line === 0 && markers[0] === namespacemark) {
+            const namespaceResult = new modalPrompt({
+                title: "Choose a Namespace",
+                style: "text",
+                options: [
+                  {
+                    message: "Write or paste the full use namespace line here. Try `legacy-cpo` for legacy behavior, `playground` for the common bindings, or `empty-namespace` if you're ambitious.",
+                    submitText: "Change Namespace",
+                    defaultValue: firstline
+                  }
+                ]
+              });
+            namespaceResult.show((result) => {
+              if(!result) { return; }
+              CM.replaceRange(result + "\n", { line:0, ch: 0}, {line: 1, ch: 0});
+            });
+            
+          }
+        }
+      }
+    });
+
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
@@ -218,6 +270,15 @@ $(function() {
 
     return {
       cm: CM,
+      changeNamespace: function(firstline) {
+        if(namespacemark) { namespacemark.clear(); }
+        if(firstLineIsNamespace()) {
+          CM.replaceRange(firstline + "\n", {line: 0, ch: 0}, {line: 1, ch: 0});
+        }
+        else {
+          CM.replaceRange(firstline + "\n", {line: 0, ch: 0}, {line: 0, ch: 0});
+        }
+      },
       refresh: function() { CM.refresh(); },
       run: function() {
         runFun(CM.getValue());
@@ -309,7 +370,7 @@ $(function() {
       programLoad = api.getFileById(params["get"]["program"]);
       programLoad.then(function(p) { showShareContainer(p); });
     }
-    if(params["get"] && params["get"]["share"]) {
+    else if(params["get"] && params["get"]["share"]) {
       logger.log('shared-program-load',
         {
           id: params["get"]["share"]
@@ -329,6 +390,9 @@ $(function() {
           });
         });
       });
+    }
+    else {
+      programLoad = null;
     }
     if(programLoad) {
       programLoad.fail(function(err) {
@@ -387,6 +451,9 @@ $(function() {
           window.stickMessage("You are viewing a shared program. Any changes you make will not be saved. You can use File -> Save a copy to save your own version with any edits you make.");
         }
         return prog.getContents();
+      }
+      else {
+        return "use namespace playground\n";
       }
     });
   }

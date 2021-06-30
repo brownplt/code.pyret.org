@@ -19,6 +19,8 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     textBox.on("mouseup", function() { $(this).select(); });
     textBox.val(text);
     return textBox;
+
+
   }
 
   // Allows asynchronous requesting of prompts
@@ -186,7 +188,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     }
 
     function createTextElt(option) {
-      var elt = $("<div>");
+      var elt = $("<div class=\"pyret-modal-text\">");
       elt.append($("<span>").addClass("textLabel").text(option.message));
 //      elt.append($("<span>").text("(" + option.details + ")"));
       elt.append($("<input type='text'>").val(option.defaultValue));

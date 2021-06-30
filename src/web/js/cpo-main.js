@@ -381,7 +381,10 @@
           editor.cm.eachLine(function(lh){
             editor.cm.removeLineClass(lh, "background");});
           for(var i = 0; i < marks.length; i++) {
-            marks[i].clear();
+            const attribs = marks[i].attributes;
+            if(!(attribs && attribs.useline)) {
+              marks[i].clear();
+            }
           }
         });
         var sheet = document.getElementById("highlight-styles").sheet;

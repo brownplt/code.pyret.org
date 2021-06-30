@@ -2233,6 +2233,12 @@ table.pyret-row {
 .pyret-modal-option-message {
   vertical-align: middle;
 }
+
+.pyret-modal-text input {
+  width: 30em;
+  font-family: monospace;
+}
+
 /*
 .submit:hover,
 .submit:focus,
@@ -2429,3 +2435,18 @@ button.controller {
     clip: rect(1px, 1px, 1px, 1px);
 }
 
+
+.useline {
+  opacity: 0.5;
+  cursor: pointer;
+  user-select: none;
+}
+
+.define-use {
+  cursor: pointer;
+  background-color: #1f9180;
+}
+
+.gutter-help {
+  width: 1em;
+}
