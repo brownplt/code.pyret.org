@@ -2438,7 +2438,6 @@ button.controller {
 
 .useline {
   opacity: 0.5;
-  cursor: pointer;
   user-select: none;
 }
 
@@ -2447,6 +2446,12 @@ button.controller {
   background-color: #1f9180;
 }
 
-.gutter-help {
+.gutter-question {
   width: 1em;
+  cursor: pointer;
+  display: block;
+}
+
+.help-gutter {
+  width: 0em;
 }

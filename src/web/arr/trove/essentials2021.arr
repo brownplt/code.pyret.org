@@ -249,7 +249,6 @@ provide from I:
   type FontWeight,
   type Image,
   type Point,
-  type Point2D,
   type XPlace,
   type YPlace,
 
@@ -257,9 +256,7 @@ provide from I:
   data FontFamily,
   data FontStyle,
   data FontWeight,
-  data Image,
   data Point,
-  data Point2D,
   data XPlace,
   data YPlace,
 end

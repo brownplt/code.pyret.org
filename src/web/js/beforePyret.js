@@ -154,7 +154,7 @@ $(function() {
     var useFolding = !options.simpleEditor;
 
     var gutters = !options.simpleEditor ?
-      ["CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
+      ["help-gutter", "CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
       [];
 
     function reindentAllLines(cm) {
@@ -225,44 +225,54 @@ $(function() {
       }
     }
 
+    function showModal(defaultValue) {
+      const namespaceResult = new modalPrompt({
+          title: "Choose a Context",
+          style: "text",
+          options: [
+            {
+              message: "Write or paste the full use context line here. Try `essentials2020` for legacy behavior, `essentials2021` for the new common bindings, or `empty-namespace` if you're ambitious.",
+              submitText: "Change Namespace",
+              defaultValue: defaultValue
+            }
+          ]
+        });
+      namespaceResult.show((result) => {
+        if(!result) { return; }
+        if(!result.match(/^use context*/)) { return; }
+        CM.replaceRange(result + "\n", { line:0, ch: 0}, {line: 1, ch: 0});
+      });
+    }
     let namespacemark = null;
     CM.on("change", function(change) {
-      const firstline = CM.getLine(0);
       function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
       console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
       if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
       var hasNamespace = firstLineIsNamespace();
       if(hasNamespace) {
-        const element = document.createElement("span");
-        element.textContent = CM.getLine(0);
-        element.className = "useline";
         namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        const gutterQuestion = document.createElement("img");
+        gutterQuestion.src = "/img/question.png";
+        gutterQuestion.className = "gutter-question";
+        gutterQuestion.addEventListener("click", function() { showModal(CM.getLine(0)); });
+        CM.setGutterMarker(0, "help-gutter", gutterQuestion);
         // NOTE(joe): This seems to be the best way to get a click on a mark: https://github.com/codemirror/CodeMirror/issues/3529
-        CM.getWrapperElement().onmousedown = function(e) {
+        CM.getWrapperElement().onmousemove = function(e) {
           var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
           var markers = CM.findMarksAt(lineCh);
           console.log(lineCh);
-          if (markers.length === 0) { return; }
+          if (markers.length === 0) {
+            gutterQuestion.style.display = 'none'
+          }
           if (lineCh.line === 0 && markers[0] === namespacemark) {
-            const namespaceResult = new modalPrompt({
-                title: "Choose a Namespace",
-                style: "text",
-                options: [
-                  {
-                    message: "Write or paste the full use context line here. Try `essentials2020` for legacy behavior, `essentials2021` for the new common bindings, or `empty-namespace` if you're ambitious.",
-                    submitText: "Change Namespace",
-                    defaultValue: firstline
-                  }
-                ]
-              });
-            namespaceResult.show((result) => {
-              if(!result) { return; }
-              if(!result.match(/^use context*/)) { return; }
-              CM.replaceRange(result + "\n", { line:0, ch: 0}, {line: 1, ch: 0});
-            });
-            
+            gutterQuestion.style.display = 'block';
+          }
+          else {
+            gutterQuestion.style.display = 'none';
           }
         }
+
+
       }
     });
 
