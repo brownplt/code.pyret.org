@@ -14,8 +14,8 @@
     { "import-type": "builtin", "name": "statistics" },
     { "import-type": "builtin", "name": "constants" },
     { "import-type": "builtin", "name": "empty-namespace" },
-    { "import-type": "builtin", "name": "playground" },
-    { "import-type": "builtin", "name": "legacy-cpo" }
+    { "import-type": "builtin", "name": "essentials2020" },
+    { "import-type": "builtin", "name": "essentials2021" }
   ],
   provides: {},
   nativeRequires: [],

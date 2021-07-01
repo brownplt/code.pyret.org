@@ -215,12 +215,7 @@ $(function() {
       return match !== null;
     }
 
-    let namespacemark = null;
-    CM.on("change", function(change) {
-      const firstline = CM.getLine(0);
-      function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
-      console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
-      if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+    function setContextLine(newContextLine) {
       var hasNamespace = firstLineIsNamespace();
       if(!hasNamespace && namespacemark !== null) {
         namespacemark.clear();
@@ -228,6 +223,15 @@ $(function() {
       if(!hasNamespace) {
         CM.replaceRange("use context essentials2020\n", { line:0, ch: 0}, {line: 0, ch: 0});
       }
+    }
+
+    let namespacemark = null;
+    CM.on("change", function(change) {
+      const firstline = CM.getLine(0);
+      function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
+      console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
+      if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+      var hasNamespace = firstLineIsNamespace();
       if(hasNamespace) {
         const element = document.createElement("span");
         element.textContent = CM.getLine(0);
