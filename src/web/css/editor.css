@@ -2446,6 +2446,27 @@ button.controller {
   background-color: #1f9180;
 }
 
+/* https://codepen.io/c0un7z3r0/pen/LZWXEw */
+.gutter-question-wrapper:hover > .gutter-question-tooltip {
+  display: block;
+}
+
+.gutter-question-tooltip {
+  display: none;
+  position: absolute;
+  left: 1em;
+  top: 1em;
+  font-size: 8pt;
+  width: 12em;
+  font-family: sans-serif;
+  background: #eee;
+  border-radius: 1em;
+  border: 1px solid #111;
+  color: #111;
+  padding: 1em;
+  z-index: 9000;
+}
+
 .gutter-question {
   width: 1em;
   cursor: pointer;

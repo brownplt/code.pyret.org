@@ -215,6 +215,8 @@ $(function() {
       return match !== null;
     }
 
+    $("#choose-context").on("click", function() { showModal(CM.getLine(0)); });
+
     function setContextLine(newContextLine) {
       var hasNamespace = firstLineIsNamespace();
       if(!hasNamespace && namespacemark !== null) {
@@ -251,11 +253,18 @@ $(function() {
       var hasNamespace = firstLineIsNamespace();
       if(hasNamespace) {
         namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        const gutterQuestionWrapper = document.createElement("span");
+        gutterQuestionWrapper.className = "gutter-question-wrapper";
+        const gutterTooltip = document.createElement("span");
+        gutterTooltip.className = "gutter-question-tooltip";
+        gutterTooltip.innerText = "This line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu.";
         const gutterQuestion = document.createElement("img");
         gutterQuestion.src = "/img/question.png";
         gutterQuestion.className = "gutter-question";
-        gutterQuestion.addEventListener("click", function() { showModal(CM.getLine(0)); });
-        CM.setGutterMarker(0, "help-gutter", gutterQuestion);
+        gutterQuestionWrapper.appendChild(gutterQuestion);
+        gutterQuestionWrapper.appendChild(gutterTooltip);
+//        gutterQuestion.addEventListener("click", function() { showModal(CM.getLine(0)); });
+        CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
         // NOTE(joe): This seems to be the best way to get a click on a mark: https://github.com/codemirror/CodeMirror/issues/3529
         CM.getWrapperElement().onmousemove = function(e) {
           var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
