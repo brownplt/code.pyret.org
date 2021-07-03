@@ -118,6 +118,8 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
+  const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
+  const CONTEXT_FOR_EXISTING_FILES = "use context essentials2020\n";
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -215,76 +217,58 @@ $(function() {
       return match !== null;
     }
 
-    $("#choose-context").on("click", function() { showModal(CM.getLine(0)); });
-
     function setContextLine(newContextLine) {
       var hasNamespace = firstLineIsNamespace();
       if(!hasNamespace && namespacemark !== null) {
         namespacemark.clear();
       }
       if(!hasNamespace) {
-        CM.replaceRange("use context essentials2020\n", { line:0, ch: 0}, {line: 0, ch: 0});
+        CM.replaceRange(newContextLine, { line:0, ch: 0}, {line: 0, ch: 0});
+      }
+      else {
+        CM.replaceRange(newContextLine, { line:0, ch: 0}, {line: 1, ch: 0});
       }
     }
 
-    function showModal(defaultValue) {
-      const namespaceResult = new modalPrompt({
-          title: "Choose a Context",
-          style: "text",
-          options: [
-            {
-              message: "Write or paste the full use context line here. Try `essentials2020` for legacy behavior, `essentials2021` for the new common bindings, or `empty-namespace` if you're ambitious.",
-              submitText: "Change Namespace",
-              defaultValue: defaultValue
-            }
-          ]
-        });
-      namespaceResult.show((result) => {
-        if(!result) { return; }
-        if(!result.match(/^use context*/)) { return; }
-        CM.replaceRange(result + "\n", { line:0, ch: 0}, {line: 1, ch: 0});
+    if(!options.simpleEditor) {
+      let namespacemark = null;
+
+      const gutterQuestionWrapper = document.createElement("span");
+      gutterQuestionWrapper.className = "gutter-question-wrapper";
+      const gutterTooltip = document.createElement("span");
+      gutterTooltip.className = "gutter-question-tooltip";
+      gutterTooltip.innerText = "This line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu.";
+      const gutterQuestion = document.createElement("img");
+      gutterQuestion.src = "/img/question.png";
+      gutterQuestion.className = "gutter-question";
+      gutterQuestionWrapper.appendChild(gutterQuestion);
+      gutterQuestionWrapper.appendChild(gutterTooltip);
+      CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+
+      // NOTE(joe): This seems to be the best way to get a hover on a mark: https://github.com/codemirror/CodeMirror/issues/3529
+      CM.getWrapperElement().onmousemove = function(e) {
+        var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
+        var markers = CM.findMarksAt(lineCh);
+        console.log(lineCh);
+        if (markers.length === 0) {
+          CM.clearGutter("help-gutter");
+        }
+        if (lineCh.line === 0 && markers[0] === namespacemark) {
+          CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+        }
+        else {
+          CM.clearGutter("help-gutter");
+        }
+      }
+      CM.on("change", function(change) {
+        function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
+        console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
+        if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+        var hasNamespace = firstLineIsNamespace();
+        if(!hasNamespace) { setContextLine(CONTEXT_FOR_EXISTING_FILES); }
+        namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
       });
     }
-    let namespacemark = null;
-    CM.on("change", function(change) {
-      function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
-      console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
-      if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
-      var hasNamespace = firstLineIsNamespace();
-      if(hasNamespace) {
-        namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
-        const gutterQuestionWrapper = document.createElement("span");
-        gutterQuestionWrapper.className = "gutter-question-wrapper";
-        const gutterTooltip = document.createElement("span");
-        gutterTooltip.className = "gutter-question-tooltip";
-        gutterTooltip.innerText = "This line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu.";
-        const gutterQuestion = document.createElement("img");
-        gutterQuestion.src = "/img/question.png";
-        gutterQuestion.className = "gutter-question";
-        gutterQuestionWrapper.appendChild(gutterQuestion);
-        gutterQuestionWrapper.appendChild(gutterTooltip);
-//        gutterQuestion.addEventListener("click", function() { showModal(CM.getLine(0)); });
-        CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
-        // NOTE(joe): This seems to be the best way to get a click on a mark: https://github.com/codemirror/CodeMirror/issues/3529
-        CM.getWrapperElement().onmousemove = function(e) {
-          var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
-          var markers = CM.findMarksAt(lineCh);
-          console.log(lineCh);
-          if (markers.length === 0) {
-            gutterQuestion.style.display = 'none'
-          }
-          if (lineCh.line === 0 && markers[0] === namespacemark) {
-            gutterQuestion.style.display = 'block';
-          }
-          else {
-            gutterQuestion.style.display = 'none';
-          }
-        }
-
-
-      }
-    });
-
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
@@ -294,15 +278,7 @@ $(function() {
 
     return {
       cm: CM,
-      changeNamespace: function(firstline) {
-        if(namespacemark) { namespacemark.clear(); }
-        if(firstLineIsNamespace()) {
-          CM.replaceRange(firstline + "\n", {line: 0, ch: 0}, {line: 1, ch: 0});
-        }
-        else {
-          CM.replaceRange(firstline + "\n", {line: 0, ch: 0}, {line: 0, ch: 0});
-        }
-      },
+      setContextLine: setContextLine,
       refresh: function() { CM.refresh(); },
       run: function() {
         runFun(CM.getValue());
@@ -452,6 +428,26 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  function showModal(defaultValue) {
+    const namespaceResult = new modalPrompt({
+        title: "Choose a Context",
+        style: "text",
+        options: [
+          {
+            message: "Write or paste the full use context line here. Try `essentials2020` for legacy behavior, `essentials2021` for the new common bindings, or `empty-namespace` if you're ambitious.",
+            submitText: "Change Namespace",
+            defaultValue: defaultValue
+          }
+        ]
+      });
+    namespaceResult.show((result) => {
+      if(!result) { return; }
+      if(!result.match(/^use context*/)) { return; }
+      CPO.editor.setContextLine(result + "\n");
+    });
+  }
+  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0)); });
+
   var TRUNCATE_LENGTH = 20;
 
   function truncateName(name) {
@@ -477,7 +473,7 @@ $(function() {
         return prog.getContents();
       }
       else {
-        return "use context essentials2021\n";
+        return CONTEXT_FOR_NEW_FILES;
       }
     });
   }
@@ -1238,7 +1234,7 @@ $(function() {
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
     if(c === "") {
-      c = "use context essentials2021\n";
+      c = CONTEXT_FOR_NEW_FILES;
     }
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
