@@ -1,4 +1,4 @@
-use namespace empty-namespace
+use context empty-namespace
 
 # Translated from compile-structs.arr, standard-imports
 

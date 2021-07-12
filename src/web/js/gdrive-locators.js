@@ -114,7 +114,7 @@ define("cpo/gdrive-locators", [], function() {
           }
 
           function getGlobals(self) {
-            return gmf(compileStructs, "standard-globals");
+            return gmf(compileStructs, "no-globals");
           }
 
           function getCompileEnv(_) {
@@ -249,7 +249,7 @@ define("cpo/gdrive-locators", [], function() {
           }
 
           function getGlobals(self) {
-            return gmf(compileStructs, "standard-globals");
+            return gmf(compileStructs, "no-globals");
           }
 
           function getCompileEnv(_) {
@@ -433,7 +433,7 @@ define("cpo/gdrive-locators", [], function() {
           }
 
           function getGlobals(self) {
-            return gmf(compileStructs, "standard-globals");
+            return gmf(compileStructs, "no-globals");
           }
 
           function getCompileEnv(_) {

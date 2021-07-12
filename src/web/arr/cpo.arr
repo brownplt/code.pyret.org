@@ -64,7 +64,7 @@ fun make-js-locator-from-raw(raw, check-mode, uri, name):
       raw-array-to-list(natives).map(CS.requirejs)
     end,
     method get-globals(_):
-      CS.standard-globals
+      CS.no-globals
     end,
 
     method uri(_): uri end,
@@ -101,7 +101,7 @@ fun ast-locator(uri :: String, a :: A.Program):
     method get-native-modules(self): [list:] end,
     method get-dependencies(self): CL.get-standard-dependencies(self.get-module(), uri) end,
     method get-extra-imports(self): CS.standard-imports end,
-    method get-globals(self): CS.standard-globals end,
+    method get-globals(self): CS.no-globals end,
     method uri(self): uri end,
     method name(self): uri end,
     method set-compiled(self, _, _): nothing end,
