@@ -683,7 +683,7 @@
       var photoPrompt = function(count) {
         var plural = count > 1;
         return new modalPrompt({
-          title: "Import type",
+          title: "Import options",
           style: "radio",
           submitText: "Import",
           cancelText: "Close",
