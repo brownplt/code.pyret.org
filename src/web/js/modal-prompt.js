@@ -64,6 +64,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
       this.elts = $($.parseHTML("<div></div>")).addClass("choiceContainer");
     }
     this.title = $(".modal-header > h3", this.modal);
+    this.modalContent = $(".modal-content", this.modal);
     this.closeButton = $(".close", this.modal);
     this.submitButton = $(".submit", this.modal);
     if(this.options.submitText) {
@@ -72,6 +73,14 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     else {
       this.submitButton.text("Submit");
     }
+    if(this.options.cancelText) {
+      this.closeButton.text(this.options.cancelText);
+    }
+    else {
+      this.closeButton.text("Cancel");
+    }
+    this.modalContent.toggleClass("narrow", !!this.options.narrow);
+
     this.isCompiled = false;
     this.deferred = Q.defer();
     this.promise = this.deferred.promise;
@@ -120,6 +129,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     this.title.text(this.options.title);
     this.populateModal();
     this.modal.css('display', 'block');
+    $(":input:enabled:visible:first", this.modal).focus().select()
 
     if (callback) {
       return this.promise.then(callback);
@@ -163,7 +173,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
           value: option.example,
           mode: 'pyret',
           lineNumbers: false,
-          readOnly: true
+          readOnly: "nocursor" // this makes it readOnly & not focusable as a form input
         });
         setTimeout(function(){
           cm.refresh();
@@ -187,9 +197,9 @@ define("cpo/modal-prompt", ["q"], function(Q) {
 
     function createTextElt(option) {
       var elt = $("<div>");
-      elt.append($("<span>").addClass("textLabel").text(option.message));
+      elt.append($("<label for='modal-prompt-text'>").addClass("textLabel").text(option.message));
 //      elt.append($("<span>").text("(" + option.details + ")"));
-      elt.append($("<input type='text'>").val(option.defaultValue));
+      elt.append($("<input id='modal-prompt-text' type='text'>").val(option.defaultValue));
       return elt;
     }
 
@@ -241,7 +251,6 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     $("input[type='radio']", optionElts[0]).attr('checked', true);
     this.elts.append(optionElts);
     $(".modal-body", this.modal).empty().append(this.elts);
-    optionElts[0].focus();
   };
 
   /**
