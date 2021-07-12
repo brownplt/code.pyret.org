@@ -233,17 +233,21 @@ $(function() {
     if(!options.simpleEditor) {
       let namespacemark = null;
 
-      const gutterQuestionWrapper = document.createElement("span");
+      const gutterQuestionWrapper = document.createElement("div");
       gutterQuestionWrapper.className = "gutter-question-wrapper";
       const gutterTooltip = document.createElement("span");
       gutterTooltip.className = "gutter-question-tooltip";
-      gutterTooltip.innerText = "This line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu.";
+      gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu.";
       const gutterQuestion = document.createElement("img");
       gutterQuestion.src = "/img/question.png";
       gutterQuestion.className = "gutter-question";
       gutterQuestionWrapper.appendChild(gutterQuestion);
       gutterQuestionWrapper.appendChild(gutterTooltip);
       CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+
+      CM.getWrapperElement().onmouseleave = function(e) {
+        CM.clearGutter("help-gutter");
+      }
 
       // NOTE(joe): This seems to be the best way to get a hover on a mark: https://github.com/codemirror/CodeMirror/issues/3529
       CM.getWrapperElement().onmousemove = function(e) {
