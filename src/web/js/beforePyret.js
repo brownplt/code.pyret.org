@@ -723,7 +723,7 @@ $(function() {
   }
 
   function updateEditorHeight() {
-    var toolbarHeight = document.getElementById('topTierUl').scrollHeight;
+    var toolbarHeight = document.getElementById('topTierUl').offsetHeight;
     // gets bumped to 67 on initial resize perturbation, but actual value is indeed 40
     if (toolbarHeight < 80) toolbarHeight = 40;
     toolbarHeight += 'px';
