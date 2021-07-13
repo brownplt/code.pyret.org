@@ -189,9 +189,15 @@ define("cpo/modal-prompt", ["q"], function(Q) {
 
     function createTextElt(option) {
       var elt = $("<div class=\"pyret-modal-text\">");
-      elt.append($("<span>").addClass("textLabel").text(option.message));
+      const input = $("<input type='text'>").val(option.defaultValue);
+      if(option.drawElement) {
+        elt.append(option.drawElement(input));
+      }
+      else {
+        elt.append($("<span>").addClass("textLabel").text(option.message));
+        elt.append(input);
+      }
 //      elt.append($("<span>").text("(" + option.details + ")"));
-      elt.append($("<input type='text'>").val(option.defaultValue));
       return elt;
     }
 

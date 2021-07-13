@@ -237,7 +237,7 @@ $(function() {
       gutterQuestionWrapper.className = "gutter-question-wrapper";
       const gutterTooltip = document.createElement("span");
       gutterTooltip.className = "gutter-question-tooltip";
-      gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu.";
+      gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu. Most of the time you won't need to change this at all.";
       const gutterQuestion = document.createElement("img");
       gutterQuestion.src = "/img/question.png";
       gutterQuestion.className = "gutter-question";
@@ -432,25 +432,42 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
-  function showModal(defaultValue) {
+  function showModal(currentContext) {
+    function drawElement(input) {
+      const element = $("<div>");
+      const greeting = $("<p>");
+      const shared = $("<tt>shared-gdrive(...)</tt>");
+      const currentContextElt = $("<tt>" + currentContext + "</tt>");
+      greeting.append("Enter the context to use for the program, or choose “Close” to keep the current context of ", currentContextElt, ".");
+      const essentials = $("<tt>essentials2021</tt>");
+      const list = $("<ul>")
+        .append($("<li>").append("The default is ", essentials, "."))
+        .append($("<li>").append("You might use something like ", shared, " if one was provided as part of a course."));
+      element.append(greeting);
+      element.append($("<p>").append(list));
+      const useContext = $("<tt>use context </tt>");
+      const entry = $("<span>").append(useContext).append(input)
+      element.append(entry);
+      return element;
+    }
     const namespaceResult = new modalPrompt({
         title: "Choose a Context",
         style: "text",
         options: [
           {
-            message: "Write or paste the full use context line here. Try `essentials2020` for legacy behavior, `essentials2021` for the new common bindings, or `empty-namespace` if you're ambitious.",
+            drawElement: drawElement,
             submitText: "Change Namespace",
-            defaultValue: defaultValue
+            defaultValue: currentContext
           }
         ]
       });
     namespaceResult.show((result) => {
       if(!result) { return; }
-      if(!result.match(/^use context*/)) { return; }
-      CPO.editor.setContextLine(result + "\n");
+      if(result.match(/^use context*/)) { result = result.slice("use context ".length); }
+      CPO.editor.setContextLine("use context " + result + "\n");
     });
   }
-  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0)); });
+  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0).slice("use context ".length)); });
 
   var TRUNCATE_LENGTH = 20;
 
