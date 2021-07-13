@@ -238,7 +238,7 @@
         return source;
       });
     };
-    var replGlobals = gmf(compileStructs, "no-globals");
+    var replGlobals = gmf(compileStructs, "standard-globals");
 
     var defaultOptions = gmf(compileStructs, "default-compile-options");
 
