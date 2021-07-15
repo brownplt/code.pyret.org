@@ -19,6 +19,8 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     textBox.on("mouseup", function() { $(this).select(); });
     textBox.val(text);
     return textBox;
+
+
   }
 
   // Allows asynchronous requesting of prompts
@@ -196,10 +198,15 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     }
 
     function createTextElt(option) {
-      var elt = $("<div>");
-      elt.append($("<label for='modal-prompt-text'>").addClass("textLabel").text(option.message));
-//      elt.append($("<span>").text("(" + option.details + ")"));
-      elt.append($("<input id='modal-prompt-text' type='text'>").val(option.defaultValue));
+      var elt = $("<div class=\"pyret-modal-text\">");
+      const input = $("<input id='modal-prompt-text' type='text'>").val(option.defaultValue);
+      if(option.drawElement) {
+        elt.append(option.drawElement(input));
+      }
+      else {
+        elt.append($("<label for='modal-prompt-text'>").addClass("textLabel").text(option.message));
+        elt.append(input);
+      }
       return elt;
     }
 

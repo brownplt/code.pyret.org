@@ -118,6 +118,8 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
+  const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
+  const CONTEXT_FOR_EXISTING_FILES = "use context essentials2020\n";
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -154,7 +156,7 @@ $(function() {
     var useFolding = !options.simpleEditor;
 
     var gutters = !options.simpleEditor ?
-      ["CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
+      ["help-gutter", "CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
       [];
 
     function reindentAllLines(cm) {
@@ -209,6 +211,68 @@ $(function() {
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
 
+    function firstLineIsNamespace() {
+      const firstline = CM.getLine(0);
+      const match = firstline.match(/^use context.*/);
+      return match !== null;
+    }
+
+    let namespacemark = null;
+    function setContextLine(newContextLine) {
+      var hasNamespace = firstLineIsNamespace();
+      if(!hasNamespace && namespacemark !== null) {
+        namespacemark.clear();
+      }
+      if(!hasNamespace) {
+        CM.replaceRange(newContextLine, { line:0, ch: 0}, {line: 0, ch: 0});
+      }
+      else {
+        CM.replaceRange(newContextLine, { line:0, ch: 0}, {line: 1, ch: 0});
+      }
+    }
+
+    if(!options.simpleEditor) {
+
+      const gutterQuestionWrapper = document.createElement("div");
+      gutterQuestionWrapper.className = "gutter-question-wrapper";
+      const gutterTooltip = document.createElement("span");
+      gutterTooltip.className = "gutter-question-tooltip";
+      gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu. Most of the time you won't need to change this at all.";
+      const gutterQuestion = document.createElement("img");
+      gutterQuestion.src = "/img/question.png";
+      gutterQuestion.className = "gutter-question";
+      gutterQuestionWrapper.appendChild(gutterQuestion);
+      gutterQuestionWrapper.appendChild(gutterTooltip);
+      CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+
+      CM.getWrapperElement().onmouseleave = function(e) {
+        CM.clearGutter("help-gutter");
+      }
+
+      // NOTE(joe): This seems to be the best way to get a hover on a mark: https://github.com/codemirror/CodeMirror/issues/3529
+      CM.getWrapperElement().onmousemove = function(e) {
+        var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
+        var markers = CM.findMarksAt(lineCh);
+        console.log(lineCh);
+        if (markers.length === 0) {
+          CM.clearGutter("help-gutter");
+        }
+        if (lineCh.line === 0 && markers[0] === namespacemark) {
+          CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+        }
+        else {
+          CM.clearGutter("help-gutter");
+        }
+      }
+      CM.on("change", function(change) {
+        function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
+        console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
+        if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+        var hasNamespace = firstLineIsNamespace();
+        if(!hasNamespace) { setContextLine(CONTEXT_FOR_EXISTING_FILES); }
+        namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+      });
+    }
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
@@ -218,6 +282,7 @@ $(function() {
 
     return {
       cm: CM,
+      setContextLine: setContextLine,
       refresh: function() { CM.refresh(); },
       run: function() {
         runFun(CM.getValue());
@@ -309,7 +374,7 @@ $(function() {
       programLoad = api.getFileById(params["get"]["program"]);
       programLoad.then(function(p) { showShareContainer(p); });
     }
-    if(params["get"] && params["get"]["share"]) {
+    else if(params["get"] && params["get"]["share"]) {
       logger.log('shared-program-load',
         {
           id: params["get"]["share"]
@@ -329,6 +394,9 @@ $(function() {
           });
         });
       });
+    }
+    else {
+      programLoad = null;
     }
     if(programLoad) {
       programLoad.fail(function(err) {
@@ -364,6 +432,50 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  function showModal(currentContext) {
+    function drawElement(input) {
+      const element = $("<div>");
+      const greeting = $("<p>");
+      const shared = $("<tt>shared-gdrive(...)</tt>");
+      const currentContextElt = $("<tt>" + currentContext + "</tt>");
+      greeting.append("Enter the context to use for the program, or choose “Close” to keep the current context of ", currentContextElt, ".");
+      const essentials = $("<tt>essentials2021</tt>");
+      const list = $("<ul>")
+        .append($("<li>").append("The default is ", essentials, "."))
+        .append($("<li>").append("You might use something like ", shared, " if one was provided as part of a course."));
+      element.append(greeting);
+      element.append($("<p>").append(list));
+      const useContext = $("<tt>use context</tt>").css({ 'flex-grow': '0', 'padding-right': '1em' });
+      const inputWrapper = $("<div>").append(input).css({ 'flex-grow': '1' });
+      const entry = $("<div>").css({
+        display: 'flex',
+        'flex-direction': 'row',
+        'justify-content': 'flex-start',
+        'align-items': 'baseline'
+      });
+      entry.append(useContext).append(inputWrapper);
+      element.append(entry);
+      return element;
+    }
+    const namespaceResult = new modalPrompt({
+        title: "Choose a Context",
+        style: "text",
+        options: [
+          {
+            drawElement: drawElement,
+            submitText: "Change Namespace",
+            defaultValue: currentContext
+          }
+        ]
+      });
+    namespaceResult.show((result) => {
+      if(!result) { return; }
+      if(result.match(/^use context*/)) { result = result.slice("use context ".length); }
+      CPO.editor.setContextLine("use context " + result + "\n");
+    });
+  }
+  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0).slice("use context ".length)); });
+
   var TRUNCATE_LENGTH = 20;
 
   function truncateName(name) {
@@ -387,6 +499,9 @@ $(function() {
           window.stickMessage("You are viewing a shared program. Any changes you make will not be saved. You can use File -> Save a copy to save your own version with any edits you make.");
         }
         return prog.getContents();
+      }
+      else {
+        return CONTEXT_FOR_NEW_FILES;
       }
     });
   }
@@ -1148,6 +1263,9 @@ $(function() {
 
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
+    if(c === "") {
+      c = CONTEXT_FOR_NEW_FILES;
+    }
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty

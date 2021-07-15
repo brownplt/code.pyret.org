@@ -79,10 +79,15 @@ COPY_GIF := $(patsubst src/web/img/%.gif,build/web/img/%.gif,$(wildcard src/web/
 
 COPY_SVG := $(patsubst src/web/img/%.svg,build/web/img/%.svg,$(wildcard src/web/img/*.svg))
 
+COPY_SVG := $(patsubst src/web/img/%.png,build/web/img/%.png,$(wildcard src/web/img/*.png))
+
 build/web/img/%.gif: src/web/img/%.gif
 	cp $< $@
 
 build/web/img/%.svg: src/web/img/%.svg
+	cp $< $@
+
+build/web/img/%.png: src/web/img/%.png
 	cp $< $@
 
 COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.js))

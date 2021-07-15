@@ -268,9 +268,7 @@ body {
   margin: 0;
   vertical-align: top;
 }
-.CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
-.CodeMirror div.CodeMirror-ruler { z-index: 100; }
 .CodeMirror div.CodeMirror-ruler.hidden { display: none; }
 .cm-s-default.CodeMirror { color: var(--default-text); }
 .cm-s-default .cm-comment { color: var(--comments); }
@@ -316,9 +314,6 @@ span.CodeMirror-selectedtext {
   border-bottom-right-radius: 0.4ex;
   margin: 0.3ex;
 }
-
-
-
 
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
@@ -2261,6 +2256,16 @@ table.pyret-row {
 .pyret-modal-option-message {
   vertical-align: middle;
 }
+
+.pyret-modal-text tt {
+  font-family: monospace;
+}
+
+.pyret-modal-text input {
+  min-width: 10em;
+  font-family: monospace;
+}
+
 /*
 .submit:hover,
 .submit:focus,
@@ -2332,6 +2337,11 @@ table.pyret-row {
   padding: 20px;
   display: flex;
   flex-direction: row-reverse;
+}
+
+.modal ul {
+  list-style-type: circle;
+  list-style-position: inside;
 }
 
 .stale.test-results .check-block-failed,
@@ -2457,3 +2467,51 @@ button.controller {
     clip: rect(1px, 1px, 1px, 1px);
 }
 
+
+.useline {
+  opacity: 0.5;
+  user-select: none;
+}
+
+.define-use {
+  cursor: pointer;
+  background-color: #1f9180;
+}
+
+.gutter-question-wrapper {
+  position: absolute;
+}
+
+/* https://codepen.io/c0un7z3r0/pen/LZWXEw */
+.gutter-question-wrapper:hover > .gutter-question-tooltip {
+  display: block;
+}
+
+.gutter-question-tooltip {
+  display: none;
+  position: absolute;
+  left: 3em;
+  top: 2em;
+  font-size: smaller;
+  color: #111;
+  font-family: sans-serif;
+  border-radius: 3px;
+  border-top-left-radius: 0px;
+  margin-top: -3px;
+  margin-left: 1px;
+  background-color: var(--menu-contents-bg);
+  box-shadow: 0px 1px 5px var(--shadow-color);
+  overflow:hidden;
+  min-width: 12em;
+  padding: 0.5em;
+}
+
+.gutter-question {
+  width: 1em;
+  cursor: pointer;
+  display: block;
+}
+
+.help-gutter {
+  width: 0em;
+}
