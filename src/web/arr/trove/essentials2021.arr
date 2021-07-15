@@ -1,4 +1,4 @@
-use context empty-namespace
+use context empty-context
 
 import lists as L
 import image as I 
