@@ -445,8 +445,15 @@ $(function() {
         .append($("<li>").append("You might use something like ", shared, " if one was provided as part of a course."));
       element.append(greeting);
       element.append($("<p>").append(list));
-      const useContext = $("<tt>use context </tt>");
-      const entry = $("<span>").append(useContext).append(input)
+      const useContext = $("<tt>use context</tt>").css({ 'flex-grow': '0', 'padding-right': '1em' });
+      const inputWrapper = $("<div>").append(input).css({ 'flex-grow': '1' });
+      const entry = $("<div>").css({
+        display: 'flex',
+        'flex-direction': 'row',
+        'justify-content': 'flex-start',
+        'align-items': 'baseline'
+      });
+      entry.append(useContext).append(inputWrapper);
       element.append(entry);
       return element;
     }
@@ -739,10 +746,11 @@ $(function() {
       var saveAsPrompt = new modalPrompt({
         title: "Save a copy",
         style: "text",
+        submitText: "Save",
+        narrow: true,
         options: [
           {
             message: "The name for the copy:",
-            submitText: "Save",
             defaultValue: name
           }
         ]
@@ -764,6 +772,7 @@ $(function() {
       var renamePrompt = new modalPrompt({
         title: "Rename this file",
         style: "text",
+        narrow: true,
         options: [
           {
             message: "The new name for the file:",
@@ -829,7 +838,7 @@ $(function() {
   }
 
   function updateEditorHeight() {
-    var toolbarHeight = document.getElementById('topTierUl').scrollHeight;
+    var toolbarHeight = document.getElementById('topTierUl').offsetHeight;
     // gets bumped to 67 on initial resize perturbation, but actual value is indeed 40
     if (toolbarHeight < 80) toolbarHeight = 40;
     toolbarHeight += 'px';

@@ -165,9 +165,7 @@ body.base16 {
   --loader-text:        var(--white);             /* text containing loading messages during page load */
 
   /* Scrollbars */
-  --scroll-bg:              var(--black-lighter-2);   /* scrollbar track background*/
-  --scroll-thumb:           var(--black-lighter-3);   /* scrollbar thumb */
-  --scroll-thumb-highlight: var(--black-lighter-4);   /* scrollbar thumb when hover */
+  --scrollbar-theme: dark;
 
   /* More granular control of check blocks */
   --check-success-text: var(--success-green);   /* text within successful check block */

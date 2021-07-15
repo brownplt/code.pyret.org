@@ -132,9 +132,7 @@ body.template {
   --loader-text: gray;              /* text containing loading messages during page load */
 
   /* Scrollbars */
-  --scroll-bg: gray;               /* scrollbar track background*/
-  --scroll-thumb: gray;            /* scrollbar thumb */
-  --scroll-thumb-highlight: gray;  /* scrollbar thumb when hover */
+  --scrollbar-theme: dark;
 
   /* More granular control of check blocks */
   --check-success-text: gray; /* text within successful check block */
