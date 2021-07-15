@@ -217,6 +217,7 @@ $(function() {
       return match !== null;
     }
 
+    let namespacemark = null;
     function setContextLine(newContextLine) {
       var hasNamespace = firstLineIsNamespace();
       if(!hasNamespace && namespacemark !== null) {
@@ -231,7 +232,6 @@ $(function() {
     }
 
     if(!options.simpleEditor) {
-      let namespacemark = null;
 
       const gutterQuestionWrapper = document.createElement("div");
       gutterQuestionWrapper.className = "gutter-question-wrapper";
