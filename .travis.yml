@@ -59,7 +59,7 @@ before_deploy:
 - heroku config:set --app pyret-horizon GIT_BRANCH=$GIT_REV
 install:
 - npm update # to update Pyret to the newest version
-- npm i --ignore-scripts
+- npm ci --ignore-scripts
 - make web
 - make deploy-cpo-main
 deploy:
