@@ -7,10 +7,6 @@ var OAuth2 = gapi.auth.OAuth2;
 function makeAuth(config) {
   var OAUTH_SCOPES = ["email",
                       "https://www.googleapis.com/auth/spreadsheets",
-                      // The `drive` scope allows us to open files
-                      // (particularly spreadsheets) made outside of
-                      // the Pyret ecosystem.
-                      "https://www.googleapis.com/auth/drive",
                       "https://www.googleapis.com/auth/drive.file",
                       "https://www.googleapis.com/auth/drive.install",
                       "https://www.googleapis.com/auth/drive.photos.readonly",
