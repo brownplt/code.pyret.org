@@ -19,7 +19,7 @@
     "body-parser": "^1.15.2",
     "bootstrap": "^4.3.1",
     "browserify": "^14.4.0",
-    "codemirror": "~5.36.0",
+    "codemirror": "~5.58.2",
     "colorspaces": "0.1.4",
     "cookie-parser": "^1.0.1",
     "cookie-session": "^1.0.1",
