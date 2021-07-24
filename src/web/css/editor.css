@@ -271,18 +271,102 @@ body {
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
 .CodeMirror div.CodeMirror-ruler.hidden { display: none; }
 .cm-s-default.CodeMirror { color: var(--default-text); }
-.cm-s-default .cm-comment { color: var(--comments); }
-.cm-s-default .cm-boolean { color: var(--booleans); }
-.cm-s-default .cm-builtin { color: var(--built-ins); }
-.cm-s-default .cm-function-name { color: var(--function-names); }
-.cm-s-default .cm-variable { color: var(--variables); }
-.cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
-.cm-s-default .cm-number { color: var(--numbers); }
-.cm-s-default .cm-roughnum { color: var(--rough-nums); }
-.cm-s-default .cm-bad-number { color: var(--bad-numbers); font-weight: bold; }
-.cm-s-default .cm-string { color: var(--strings); }
-.cm-s-default .cm-unterminated-string { color: var(--unterm-strings); font-weight: bold; }
-.cm-s-default .cm-type { color: var(--types); }
+.cm-s-default .cm-comment { 
+  color: var(--comments);
+  font-weight: var(--comments-font-weight);
+  font-style: var(--comments-font-style);
+  font-size: var(--comments-font-size);
+  text-decoration: var(--comments-text-decoration);
+}
+.cm-s-default .cm-boolean { 
+  color: var(--booleans);
+  font-weight: var(--booleans-font-weight);
+  font-style: var(--booleans-font-style);
+  font-size: var(--booleans-font-size);
+  text-decoration: var(--booleans-text-decoration);
+}
+.cm-s-default .cm-builtin { 
+  color: var(--built-ins);
+  font-weight: var(--built-ins-font-weight);
+  font-style: var(--built-ins-font-style);
+  font-size: var(--built-ins-font-size);
+  text-decoration: var(--built-ins-text-decoration);
+}
+.cm-s-default .cm-function-name { 
+  color: var(--function-names);
+  font-weight: var(--function-names-font-weight);
+  font-style: var(--function-names-font-style);
+  font-size: var(--function-names-font-size);
+  text-decoration: var(--function-names-text-decoration);
+}
+.cm-s-default .cm-variable { 
+  color: var(--variables);
+  font-weight: var(--variables-font-weight);
+  font-style: var(--variables-font-style);
+  font-size: var(--variables-font-size);
+  text-decoration: var(--variables-text-decoration);
+}
+.cm-s-default .cm-keyword { 
+  color: var(--keyword);
+  font-weight: var(--keyword-font-weight);
+  font-style: var(--keyword-font-style);
+  font-size: var(--keyword-font-size);
+  text-decoration: var(--keyword-text-decoration);
+}
+.cm-s-default .cm-number { 
+  color: var(--numbers);
+  font-weight: var(--numbers-font-weight);
+  font-style: var(--numbers-font-style);
+  font-size: var(--numbers-font-size);
+  text-decoration: var(--numbers-text-decoration);
+}
+.cm-s-default .cm-roughnum { 
+  color: var(--rough-nums);
+  font-weight: var(--rough-nums-font-weight);
+  font-style: var(--rough-nums-font-style);
+  font-size: var(--rough-nums-font-size);
+  text-decoration: var(--rough-nums-text-decoration);
+}
+.cm-s-default .cm-bad-number { 
+  color: var(--bad-numbers);
+  font-weight: var(--bad-numbers-font-weight);
+  font-style: var(--bad-numbers-font-style);
+  font-size: var(--bad-numbers-font-size);
+  text-decoration: var(--bad-numbers-text-decoration);
+}
+.cm-s-default .cm-string { 
+  color: var(--strings);
+  font-weight: var(--strings-font-weight);
+  font-style: var(--strings-font-style);
+  font-size: var(--strings-font-size);
+  text-decoration: var(--strings-text-decoration);
+}
+.cm-s-default .cm-unterminated-string { 
+  color: var(--unterm-strings);
+  font-weight: var(--unterm-strings-font-weight);
+  font-style: var(--unterm-strings-font-style);
+  font-size: var(--unterm-strings-font-size);
+  text-decoration: var(--unterm-strings-text-decoration);
+}
+.cm-s-default .cm-type { 
+  color: var(--types);
+  font-weight: var(--types-font-weight);
+  font-style: var(--types-font-style);
+  font-size: var(--types-font-size);
+  text-decoration: var(--types-text-decoration);
+}
+.rationalNumber {
+  color: var(--rationals);
+  font-weight: var(--rationals-font-weight);
+  font-style: var(--rationals-font-style);
+  font-size: var(--rationals-font-size);
+  text-decoration: var(--rationals-text-decoration);
+}
+
+span.rationalRepeat {
+  text-decoration: overline;
+}
+
 .cptteach-fixed { line-height: 1.5; background: var(--cptteach-bg); }
 
 div.CodeMirror-selected,
@@ -1168,14 +1252,6 @@ ul.inlineCollection > li > span.label {
 .test-reason, .nestedReason {
  padding-top: 0;
  color: var(--reason-text);
-}
-
-.rationalNumber {
- color: var(--rationals);
-}
-
-span.rationalRepeat {
-  text-decoration: overline;
 }
 
 .replRef {

@@ -10,6 +10,38 @@ body.template {
   --gray: #a6a6a6;
 }
 
+/*  Non-color font styling.
+    These properties set the non-color aspects of code styling, e.g. bold & italics. 
+
+    For the following values of TOKEN: 
+      keyword
+      comments
+      booleans
+      built-ins
+      function-names
+      types
+      variables
+      numbers
+      rough-nums
+      rationals
+      bad-numbers
+      unterm-strings
+      strings
+
+    The following variables are provided for setting their corresponding CSS
+    properties across themes:
+      --TOKEN-font-size
+      --TOKEN-font-weight
+      --TOKEN-font-style
+      --TOKEN-text-decoration
+    All of these are optional and will have no effect if not defined. */
+body.template {
+  /* Keywords, bad numbers, and unterminated strings are bold in most themes */
+  --keyword-font-weight: bold;
+  --bad-numbers-font-weight: bold;
+  --unterm-strings-font-weight: bold;
+}
+
 /*  Theme Variables (core)
     Color values that must be specified by *all* themes */
 body.template {

@@ -43,6 +43,13 @@ body.monokai {
   --blue-lighter: #baedf8;
 }
 
+/*  Non-color font styling. */
+body.monokai {
+  --keyword-font-weight: bold;
+  --bad-numbers-font-weight: bold;
+  --unterm-strings-font-weight: bold;
+}
+
 /*  Theme Variables (core)
     Color values that must be specified by *all* themes */
 body.monokai {

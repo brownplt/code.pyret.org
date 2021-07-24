@@ -4,6 +4,13 @@
     #                           Theme: default                           #
     ###################################################################### */
 
+/*  Non-color font styling. */
+body.default {
+  --keyword-font-weight: bold;
+  --bad-numbers-font-weight: bold;
+  --unterm-strings-font-weight: bold;
+}
+
 /*  Note: This theme, being the default, is slightly different from the 
     others. This is because it relies on default stylings of certain 
     elements which other themes may wish to override. As such, other
