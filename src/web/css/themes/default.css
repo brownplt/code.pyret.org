@@ -1,21 +1,8 @@
 
 /*  ######################################################################
-    #----------------------  Theme-specific colors ----------------------#
+    #----------------------  Theme-specific styles ----------------------#
     #                           Theme: default                           #
     ###################################################################### */
-
-/*  Non-color font styling. */
-body.default {
-  --keyword-font-weight: bold;
-  --bad-numbers-font-weight: bold;
-  --unterm-strings-font-weight: bold;
-}
-
-/*  Note: This theme, being the default, is slightly different from the 
-    others. This is because it relies on default stylings of certain 
-    elements which other themes may wish to override. As such, other
-    themes make use of an extra set of variables, which this one does
-    not need. */
 
 body.default {
 
@@ -35,6 +22,35 @@ body.default {
   --strings: forestgreen;     /* strings */
   --repl-print: #111;         /* result of print() in the REPL */
   --repl-output: #1f1180;     /* values displayed in the REPL */
+
+  /*  Non-color font styling.
+    These properties set the non-color aspects of code styling, e.g. bold & italics. 
+
+    For the following values of TOKEN: 
+      keyword
+      comments
+      booleans
+      built-ins
+      function-names
+      types
+      variables
+      numbers
+      rough-nums
+      rationals
+      bad-numbers
+      unterm-strings
+      strings
+
+    The following variables are provided for setting their corresponding CSS
+    properties across themes:
+      --TOKEN-font-size
+      --TOKEN-font-weight
+      --TOKEN-font-style
+      --TOKEN-text-decoration
+    All of these are optional and will have no effect if not defined. */
+  --keyword-font-weight: bold;
+  --bad-numbers-font-weight: bold;
+  --unterm-strings-font-weight: bold;
 
   /* Basic editor appearance */
   --default-text: black;  /* default text across editor */
@@ -117,5 +133,47 @@ body.default {
   --img-thumbnail-shadow: rgba(128,0,0,0.75);           /* box-shadow on hover over image thumbnail in REPL */
   --cm-in-repl-bg: hsl(0,0%,95%);                       /* bg on .repl .CodeMirror */
   --failed-test-gutter-marker: hsla(45, 90%, 50%, 0.5); /* CodeMirror gutter marker bg for failed test */
+
+  /* CodeMirror gutters/line numbers/ruler */
+  --gutter-bg: var(--background);     /* background of line number gutters */
+  --gutter-border: #ddd;            /* border between gutter & definitions window */
+  --line-numbers: #999;             /* line numbers in left gutter */
+  --line-ruler: rgb(49, 123, 207);  /* 100-char line ruler */
+
+  /* REPL */
+  --repl-text-output: var(--default-text);  /* text output in the REPL */
+  --repl-prompts: var(--default-text);      /* >>> prompt in the REPL */
+  --loader-bg: rgba(248, 248, 248, 0.8);  /* REPL background during page load (should be semi-transparent) */
+  --loader-text: var(--default-text);       /* text containing loading messages during page load */
+
+  /* Scrollbars */
+  --scrollbar-theme: light;
+
+  /* More granular control of check blocks */
+  --check-success-text: var(--default-text);  /* text within successful check block */
+  --check-fail-text: var(--default-text);;    /* text within failing check block */
+  --check-error-text: var(--default-text);;   /* text within erroring check block */
+
+  --check-fail-border: none;  /* border around failing check blocks */
+  --check-error-border: none; /* border around erroring check blocks */
+
+  /* Testing summaries */
+  --summary-pass-text: var(--default-text);  /* text saying "N TESTS FAILED" */
+  --summary-fail-text: var(--default-text);  /* text saying "N TESTS PASSED" */
+
+  /* darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    var(--default-text);
+  --dark-comments:        var(--comments); 
+  --dark-booleans:        var(--booleans);
+  --dark-built-ins:       var(--built-ins);
+  --dark-function-names:  var(--function-names);
+  --dark-variables:       var(--variables);
+  --dark-keyword:         var(--keyword);
+  --dark-numbers:         var(--numbers);
+  --dark-rough-nums:      var(--rough-nums);
+  --dark-bad-numbers:     var(--bad-numbers);
+  --dark-strings:         var(--strings);
+  --dark-unterm-strings:  var(--unterm-strings);
+  --dark-types:           var(--types);
 
 }

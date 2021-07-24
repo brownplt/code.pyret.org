@@ -2591,3 +2591,141 @@ button.controller {
 .help-gutter {
   width: 0em;
 }
+
+/* default text in the REPL */
+body .repl {
+  color: var(--default-text);
+}
+
+/* succeeding check block */
+body .check-block-success {
+  color: var(--check-success-text);
+}
+
+/* individual passing test within block */
+body .check-block-test.passing-test {
+  color: var(--check-success-text);
+}
+
+/* failing check block */
+body .check-block-failed {
+  color: var(--check-fail-text);
+  border: var(--check-fail-border);
+}
+
+/* individual failing test within block */
+body .check-block-test.failing-test {
+  color: var(--check-fail-text);
+}
+
+/* erroring check block */
+body .check-block-errored {
+  color: var(--check-error-text);
+  border: var(--check-error-border);
+}
+
+/* text output in the REPL */
+body .replTextOutput { color: var(--repl-text-output); }
+
+/* make sure rationals stay one color */
+body .rationalNumber { color: var(--rationals); }
+
+/* lefthand gutters */
+body .cm-s-default .CodeMirror-gutters {
+  background: var(--gutter-bg);
+  border-right: 1px solid var(--gutter-border);
+}
+
+/* line numbers */
+body .cm-s-default .CodeMirror-guttermarker,
+body .cm-s-default .CodeMirror-guttermarker-subtle,
+body .CodeMirror-linenumber {
+  color: var(--line-numbers);
+}
+
+/* >>> in the repl */
+body .repl-prompt,
+body .repl-echo::before,
+body .repl-prompt::before {
+  color: var(--repl-prompts);
+}
+
+/* div containing spinny Pyret and loading messages */
+body #loader {
+  background-color: var(--loader-bg);
+}
+
+/* pirate text on loader screen */
+body #loader > p {
+  color: var(--loader-text);
+}
+
+/* 100 character line ruler */
+body .CodeMirror div.CodeMirror-ruler {
+  border: 1px dashed var(--line-ruler) !important;
+  border-left-style: none !important;
+}
+
+/* scroll bar color */
+body .CodeMirror, body #REPL {
+  color-scheme: var(--scrollbar-theme); 
+}
+
+/* summaries for passed/failed tests at top */
+body .summary-bit.summary-passed { color: var(--summary-pass-text); }
+body .summary-bit.summary-failed { color: var(--summary-fail-text); }
+
+/*  Code appearing in a highlighted span that is *by default* highlighted,
+    but NOT blinking, spotlighted, or selected.
+    (dark themes darken this text for better contrast with light highlight bg) */
+body .CodeMirror 
+.bg-highlighted:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-default-text); }
+
+body .CodeMirror 
+.bg-highlighted.cm-comment:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-comments); }
+
+body .CodeMirror 
+.bg-highlighted.cm-boolean:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-booleans); }
+
+body .CodeMirror 
+.bg-highlighted.cm-builtin:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-built-ins); }
+
+body .CodeMirror 
+.bg-highlighted.cm-function-name:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-function-names); }
+
+body .CodeMirror 
+.bg-highlighted.cm-variable:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-variables); }
+
+body .CodeMirror 
+.bg-highlighted.cm-keyword:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-keyword); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-numbers); }
+
+body .CodeMirror 
+.bg-highlighted.cm-roughnum:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-rough-nums); }
+
+body .CodeMirror 
+.bg-highlighted.cm-bad-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-bad-numbers); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-strings); }
+
+body .CodeMirror 
+.bg-highlighted.cm-unterminated-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-unterm-strings); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-type:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-types); }
