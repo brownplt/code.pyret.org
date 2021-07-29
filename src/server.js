@@ -123,11 +123,24 @@ function start(config, onServerReady) {
 
   app.get("/login", function(req, res) {
     var redirect = req.param("redirect") || "/editor";
+    var scopesParam = req.param("scopes") === "full" ? "full" : "default";
+    var scopes = req.param("scopes") === "full" ? googleAuth.FULL_OAUTH_SCOPES : googleAuth.DEFAULT_OAUTH_SCOPES;
     if(!(req.session && req.session["user_id"])) {
-      res.redirect(auth.getAuthUrl(redirect));
+      req.session["scopes"] = scopes;
+      res.redirect(auth.getAuthUrl(redirect, scopes));
     }
     else {
-      res.redirect(redirect);
+      var oldscopes = req.session["scopes"];
+      console.log("Scopes: ", oldscopes, scopesParam);
+      // If the user was on the default (or had no param set), then trigger
+      // the auth page to upgrade them
+      if(scopesParam === "full" && oldscopes !== scopesParam) {
+        req.session["scopes"] = scopesParam;
+        res.redirect(auth.getAuthUrl(redirect, scopes));
+      }
+      else {
+        res.redirect(redirect);
+      }
     }
   });
 
