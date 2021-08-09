@@ -2242,6 +2242,7 @@ div.choiceContainer > button {
 
 th {
     background: var(--th-bg);
+    font-weight: var(--th-font-weight);
 }
 
 th, td {
@@ -2257,6 +2258,13 @@ th:last-child, td:last-child {
 }
 
 tr:nth-child(even){background-color: var(--table-even-rows-bg)}
+
+/* Borders on Pyret table cells */
+table.pyret-table th, 
+table.pyret-table td {
+  border-right: 1px var(--pyret-table-col-dividers) solid;
+  border-bottom: 1px var(--pyret-table-row-dividers) solid;
+}
 
 table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--shadow-color);
@@ -2613,6 +2621,11 @@ body .check-block-failed {
   border: var(--check-fail-border);
 }
 
+/* header inside failing check block */
+body .check-block-failed .check-block-header {
+  font-weight: var(--check-fail-header-font-weight);
+}
+
 /* individual failing test within block */
 body .check-block-test.failing-test {
   color: var(--check-fail-text);
@@ -2622,6 +2635,11 @@ body .check-block-test.failing-test {
 body .check-block-errored {
   color: var(--check-error-text);
   border: var(--check-error-border);
+}
+
+/* header inside erroring check block */
+body .check-block-errored .check-block-header {
+  font-weight: var(--check-error-header-font-weight);
 }
 
 /* text output in the REPL */

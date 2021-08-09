@@ -1,40 +1,65 @@
 
 /*  ######################################################################
     #----------------------  Theme-specific styles ----------------------#
-    #                           Theme: default                           #
+    #                      Theme: high-contrast-light                    #
     ###################################################################### */
 
-body.default {
+/*  Color Palette
+    (mapping of friendly names to colors, if needed) */
+body.high-contrast-light {
+  /* From: https://www.nature.com/articles/nmeth.1618 */
+  --orange: hsl(41, 100%, 45%);
+  --orange-darker-1: hsl(41, 100%, 35%);
+  --sky-blue: hsl(202, 77%, 63%);
+  --bluish-green: hsl(164, 100%, 31%);
+  --bluish-green-lighter-1: hsl(164, 100%, 45%);
+  --bluish-green-lighter-2: hsl(164, 100%, 95%);
+  --yellow: hsl(56, 85%, 60%);
+  --yellow-lighter-1: hsl(56, 85%, 75%);
+  --yellow-lighter-2: hsl(56, 85%, 95%);
+  --blue: hsl(202, 100%, 35%);
+  --vermillion: hsl(26, 100%, 42%);
+  --reddish-purple: hsl(327, 45%, 64%);
+  --error-red: hsl(332, 68%, 63%);
+}
+
+body.high-contrast-light {
 
   /* Syntax Highlighting */
   --keyword: black;           /* keywords */
-  --comments: #cd7054;        /* comments */
+  --comments: var(--orange-darker-1); /* comments */
   --booleans: darkred;        /* booleans */
-  --built-ins: #555;          /* built-ins */
+  --built-ins: black;          /* built-ins */
   --function-names: #374049;  /* function names */
-  --types: #374049;           /* types */
-  --variables: #4d5966;       /* variables */
+  --types: #374049;          /* types */
+  --variables: black;       /* variables */
   --numbers: navy;            /* exact nums */
   --rough-nums: blue;         /* rough nums */
   --rationals: #af1180;       /* rational numbers */
   --bad-numbers: red;         /* bad numbers */
   --unterm-strings: red;      /* unterminated strings */
-  --strings: forestgreen;     /* strings */
-  --repl-print: #111;         /* result of print() in the REPL */
+  --strings: var(--bluish-green);     /* strings */
+  --repl-print: black;         /* result of print() in the REPL */
   --repl-output: #1f1180;     /* values displayed in the REPL */
 
   /*  Non-color font styling. */
   --keyword-font-weight: bold;
   --bad-numbers-font-weight: bold;
   --unterm-strings-font-weight: bold;
+  --strings-text-decoration: underline dashed var(--strings);
+  --booleans-font-weight: bold;
+
+  --function-names-text-decoration: underline;
+  --types-font-weight: bold;
+  --comments-font-style: italic;
 
   /* Basic editor appearance */
   --default-text: black;  /* default text across editor */
-  --background: #f8f8f8;  /* default bg color of definitions/interactions */
+  --background: #ffffff;  /* default bg color of definitions/interactions */
   --cursor: #111;         /* cursor color */
 
   /* Regions/Selected Text */
-  --selected-text: #ccc;                      /* selected text in editor */
+  --selected-text: #d0d0d0;                      /* selected text in editor */
   --matching-brackets: rgb(90, 149, 217);     /* brackets around check:...end regions, etc. */
   --matching-region-bg: hsl(220, 100%, 95%);  /* bg on regions like check:...end, etc. */
   --nonmatching-bg: #fdc;                     /* bg on span.CodeMirror-nonmatchingbracket-region */
@@ -42,15 +67,15 @@ body.default {
   --nonmatching-brackets: #e11;               /* brackets that form a nonmatching region */
 
   /* Check Blocks */
-  --check-block-default-bg: #E1F5FE;    /* default bg on check blocks (usually invisible) */
-  --check-success-bg: #c5e1a5;          /* bg on passing check blocks */
-  --check-fail-bg: #FFECB3;             /* bg on failed check block */
-  --check-error-bg: hsl(0, 100%, 90%);  /* bg (& box-shadow) on erroring check block */
+  --check-block-default-bg: #E1F5FE;            /* default bg on check blocks (usually invisible) */
+  --check-success-bg: var(--bluish-green-lighter-1);  /* bg on passing check blocks */
+  --check-fail-bg: var(--yellow-lighter-1);                 /* bg on failed check block */
+  --check-error-bg: var(--error-red);             /* bg (& box-shadow) on erroring check block */
 
   /* Tests within check blocks */
-  --failing-test-header-bg: hsl(45, 100%, 85%);     /* bg of header within a focused failing test (contains "Test n: Failed") */
-  --failing-test-bg: hsl(45, 100%, 94%);            /* bg of failing test NOT in focus */
-  --passing-test-bg: hsl(90,  50%, 91%);            /* bg of passing test */
+  --failing-test-header-bg: var(--yellow-lighter-1);            /* bg of header within a focused failing test (contains "Test n: Failed") */
+  --failing-test-bg: var(--yellow-lighter-2);            /* bg of failing test NOT in focus */
+  --passing-test-bg: var(--bluish-green-lighter-2);   /* bg of passing test */
   --highlights-active-border: hsl(204, 100%, 74%);  /* border around errors/tests with highlights active */
   --highlights-active-bg: hsla(0,0%,100%,.9);       /* bg on check block errors/tests with highlights active */
   --empty-check-err-bg: rgba(255,255,255,0.4);      /* bg behind "Processing Result..." in check-block-error:empty */
@@ -70,9 +95,9 @@ body.default {
   /* Testing Summaries */
   --testing-summary: white;                       /* text color in testing summary */
   --testing-summary-bg: hsl(212, 62%, 50%);       /* bg on testing summary */
-  --summary-fail-bg: hsl(45, 100%, 85%);          /* bg of summary of failed tests */
-  --summary-pass-bg: hsl(88, 51%, 76%);           /* bg of summary of passed tests */
-  --summary-error-bg: hsla(0,100%,73%,1);         /* bg of announcement in summary that tests errored */
+  --summary-fail-bg: var(--yellow-lighter-1);                 /* bg of summary of failed tests */
+  --summary-pass-bg: var(--bluish-green-lighter-1);     /* bg of summary of passed tests */
+  --summary-error-bg: var(--error-red);             /* bg of announcement in summary that tests errored */
   --summary-err: white;                           /* announcement text that tests errored in testing summary */
   --summary-err-left-border: hsl(0, 100%, 100%);  /* vertical border left of error announcement in summary */
 
@@ -81,11 +106,10 @@ body.default {
   --table-bg: #eee;               /* bg on tables */
   --table-even-rows-bg: #f2f2f2;  /* bg on even rows in table */
   --th-bg: #ddd;                  /* bg on table headers */
-  --th-font-weight: normal;         /* font weight on table headers */
-  --table-col-dividers: white;    /* righthand borders separating generic table columns */
-  --pyret-table-col-dividers: white;  /* vertical borders between Pyret table columns */
-  --pyret-table-row-dividers: white;  /* horizontal borders between Pyret table row */
-
+  --th-font-weight: bold;           /* font weight on table headers */
+  --table-col-dividers: #404040;  /* righthand borders separating table columns */
+  --pyret-table-col-dividers: #404040;  /* vertical borders between Pyret table columns */
+  --pyret-table-row-dividers: #404040;  /* horizontal borders between Pyret table row */
 
   /* Spy Blocks */
   --spy-borders: #9DC5ED;                       /* borders on spy block */
@@ -131,13 +155,13 @@ body.default {
 
   /* More granular control of check blocks */
   --check-success-text: var(--default-text);  /* text within successful check block */
-  --check-fail-text: var(--default-text);    /* text within failing check block */
-  --check-fail-header-font-weight: normal;   /* font weight of header text in failing check */
-  --check-error-text: var(--default-text);   /* text within erroring check block */
-  --check-error-header-font-weight: normal;   /* font weight of header text in erroring check */
+  --check-fail-text: var(--default-text);     /* text within failing check block */
+  --check-fail-header-font-weight: bold;      /* font weight of header text in failing check */
+  --check-error-text: var(--default-text);    /* text within erroring check block */
+  --check-error-header-font-weight: bold;     /* font weight of header text in erroring check */
 
-  --check-fail-border: none;  /* border around failing check blocks */
-  --check-error-border: none; /* border around erroring check blocks */
+  --check-fail-border: 0.17em solid black;  /* border around failing check blocks */
+  --check-error-border: 0.17em solid black; /* border around erroring check blocks */
 
   /* Testing summaries */
   --summary-pass-text: var(--default-text);  /* text saying "N TESTS FAILED" */

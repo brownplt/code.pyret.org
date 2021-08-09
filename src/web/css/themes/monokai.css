@@ -120,7 +120,10 @@ body.monokai {
   --table-bg:           var(--black-lighter);     /* bg on tables */
   --table-even-rows-bg: var(--black-lighter-2);   /* bg on even rows in table */
   --th-bg:              var(--black);             /* bg on table headers */
+  --th-font-weight:     normal;                   /* font weight on table headers */
   --table-col-dividers: var(--black-lighter-3);   /* righthand borders separating table columns */
+  --pyret-table-col-dividers: var(--black-lighter-3);  /* vertical borders between Pyret table columns */
+  --pyret-table-row-dividers: var(--black-lighter-3);  /* horizontal borders between Pyret table row */
 
   /* Spy Blocks */
   --spy-borders:      var(--black-lighter-2);   /* borders on spy block */
@@ -167,7 +170,9 @@ body.monokai {
   /* More granular control of check blocks */
   --check-success-text: var(--success-green);   /* text within successful check block */
   --check-fail-text:    var(--failing-yellow);  /* text within failing check block */
+  --check-fail-header-font-weight: normal;      /* font weight of header text in failing check */
   --check-error-text:   var(--err-red);         /* text within erroring check block */
+  --check-error-header-font-weight: normal;     /* font weight of header text in erroring check */
   --check-fail-border:  0.17em solid var(--failing-yellow);  /* border around failing check blocks */
   --check-error-border: 0.17em solid var(--err-red);         /* border around erroring check blocks */
 
