@@ -119,7 +119,6 @@ window.CPO = {
 };
 $(function() {
   const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
-  const CONTEXT_FOR_EXISTING_FILES = "use context essentials2020\n";
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -253,7 +252,6 @@ $(function() {
       CM.getWrapperElement().onmousemove = function(e) {
         var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
         var markers = CM.findMarksAt(lineCh);
-        console.log(lineCh);
         if (markers.length === 0) {
           CM.clearGutter("help-gutter");
         }
@@ -266,11 +264,12 @@ $(function() {
       }
       CM.on("change", function(change) {
         function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
-        console.log(change.curOp.changeObjs, change.curOp.changeObjs.map(doesNotChangeFirstLine));
         if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
         var hasNamespace = firstLineIsNamespace();
-        if(!hasNamespace) { setContextLine(CONTEXT_FOR_EXISTING_FILES); }
-        namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        if(hasNamespace) {
+          if(namespacemark) { namespacemark.clear(); }
+          namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        }
       });
     }
     if (useLineNumbers) {
@@ -322,6 +321,11 @@ $(function() {
   });
 
   storageAPI = storageAPI.then(function(api) { return api.api; });
+  $("#fullConnectButton").click(function() {
+    // false => Don't do an immediate load (this will require login)
+    // true => Use the full set of scopes for this login
+    reauth(false, true);
+  });
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");
     $("#connectButton").attr("disabled", "disabled");

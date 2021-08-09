@@ -98,50 +98,11 @@
           <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
             aria-label="Pyret Menu">
             <li role="presentation">
-              <div id="ctrl-question" class="menuButton">
-                <a class="focusable" role="menuitem"
-                  aria-label="keyboard shortcuts"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
-                  tabindex="-1" href="javascript:void(0)"
-                  >Keyboard shortcuts, Ctrl-?</a>
-              </div>
-            </li>
-            <li role="presentation">
-              <div id="drive-view" class="loginOnly menuButton">
-                <a class="focusable" role="menuitem"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
-                  tabindex="-1" target="_blank" href="/">
-                  My Programs</a>
-              </div>
-            </li>
-            <li role="presentation">
               <div id="docs" class="menuButton">
                 <a class="focusable" role="menuitem"
                   aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" target="_blank" href="http://pyret.org/docs/{{{ CURRENT_PYRET_DOCS }}}">Documentation</a>
               </div>
-            </li>
-            <li role="presentation">
-              <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div>
-              </div>
-            </li>
-            <li role="presentation">
-              <div id="choose-context" class="menuButton">
-                <a class="focusable" role="menuitem"
-                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
-                  tabindex="-1" href="javascript:void(0)">Choose Context</a>
-              </div>
-            </li>
-            <li id="theme" role="presentation" style="white-space: nowrap;">
-              <label for="theme-select">Theme:</label>
-              <select id="theme-select">
-                <option value="default">Ensign (Default)</option>
-                <option value="base16">Base16</option>
-                <option value="material-darker">Material-darker</option>
-                <option value="monokai">Monokai</option>
-                <option value="panda">Panda</option>
-                <option value="high-contrast-light">High Contrast Light</option>
-              </select>
             </li>
             <li role="presentation">
               <div id="issues" class="menuButton">
@@ -155,6 +116,20 @@
                 <a class="focusable" role="menuitem"
                   aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   tabindex="-1" target="_blank" href="https://groups.google.com/forum/#!forum/pyret-discuss">Discuss Pyret</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="fullConnectButton" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Enable Full Google Access</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="choose-context" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)">Choose Context</a>
               </div>
             </li>
             <li role="presentation">
@@ -178,6 +153,49 @@
                 <a class="focusable" aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
                   role="menuitem" tabindex="-1" href="/logout">Log out</a>
               </div>
+            </li>
+          </ul>
+        </li>
+
+        <li role="presentation"
+          class="topTier" id="displaymenuli">
+          <div id="displaymenu" class="tooltip menu menuitemtitle" style="float:none" >
+            <button role="menuitem"
+                    id="displaymenubutton"
+                    aria-label="Display Menu"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-describedby="mhelp-menus mhelp-open-submenu mhelp-activate mhelp-escape"
+                    tabindex="-1"
+                    class="blueButton focusable">
+              <span>▾ View</span>
+            </button>
+          </div>
+          <ul id="viewmenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
+            aria-label="View Menu">
+            <li role="presentation">
+              <div id="ctrl-question" class="menuButton">
+                <a class="focusable" role="menuitem"
+                  aria-label="keyboard shortcuts"
+                  aria-describedby="mhelp-submenu mhelp-activate mhelp-escape-submenu"
+                  tabindex="-1" href="javascript:void(0)"
+                  >Keyboard shortcuts (Ctrl-?)</a>
+              </div>
+            </li>
+            <li role="presentation">
+              <div id="font"><div id="font-minus">-</div><div id="font-label">Font</div><div id="font-plus">+</div>
+              </div>
+            </li>
+            <li id="theme" role="presentation" style="white-space: nowrap;">
+              <label for="theme-select">Theme:</label>
+              <select id="theme-select">
+                <option value="default">Ensign (Default)</option>
+                <option value="base16">Base16</option>
+                <option value="material-darker">Material-darker</option>
+                <option value="monokai">Monokai</option>
+                <option value="panda">Panda</option>
+                <option value="high-contrast-light">High Contrast Light</option>
+              </select>
             </li>
           </ul>
         </li>
@@ -432,7 +450,6 @@ function handleGoogLoad() {
 }
 </script>
 <!-- Google API Loader (For picker) -->
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <!-- GAPI Client -->
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
 <script>console.log(window.performance.now())</script>

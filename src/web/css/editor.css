@@ -1026,6 +1026,9 @@ body.smallHeader .replContainer {
 #bonniemenuContents {
   min-width: 250px;
 }
+#viewmenuContents {
+  min-width: 250px;
+}
 #filemenuContents {
   min-width: 200px;
 }

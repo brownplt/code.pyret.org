@@ -40,17 +40,23 @@ var gwrap = window.gwrap = {
  * Reauthenticates the current session.
  * @param {boolean} immediate - Whether the user needs to log in with
  *        Google (if false, the user will receive a refreshed access token).
+ * @param {boolean} useFullScopes - Whether to include advanced scopes like
+ *        spreadsheets and photos.
  * @returns A promise which will resolve following the re-authentication.
  */
-function reauth(immediate) {
+function reauth(immediate, useFullScopes) {
   var d = Q.defer();
   if (!immediate) {
+    var path = "/login?redirect=" + encodeURIComponent("/close.html");
+    if(useFullScopes) {
+      path += "&scopes=full";
+    }
     // Need to do a login to get a cookie for this user; do it in a popup
-    var w = window.open("/login?redirect=" + encodeURIComponent("/close.html"));
+    var w = window.open(path);
     window.addEventListener('message', function(e) {
       // e.domain appears to not be defined in Firefox
       if ((e.domain || e.origin) === document.location.origin) {
-        d.resolve(reauth(true));
+        d.resolve(reauth(true, useFullScopes));
       } else {
         d.resolve(null);
       }
