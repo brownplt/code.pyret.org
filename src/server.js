@@ -327,7 +327,10 @@ function start(config, onServerReady) {
     res.render("editor.html", {
       BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
-      CSRF_TOKEN: req.csrfToken()
+      CSRF_TOKEN: req.csrfToken(),
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
     });
   });
 

@@ -95,8 +95,8 @@ var logger = (function(backend) {
                 , identifiers.windowID
                 , identifiers.sessionID
                 , identifiers.localID
-                , "{{GIT_REV}}"
-                , "{{GIT_BRANCH}}"];
+                , GIT_REV
+                , GIT_BRANCH];
     backend.log(name, obj);
   }
   
@@ -114,7 +114,7 @@ var logger = (function(backend) {
       return nowIsDetailed;
     }
   };
-})({{#LOG_URL}}new AJAXBackend("{{&LOG_URL}}"){{/LOG_URL}}{{^LOG_URL}}new DummyBackend(){{/LOG_URL}});
+})( LOG_URL ? new AJAXBackend(LOG_URL) : new DummyBackend() );
 
 
 CodeMirror.defineOption('logging', false, 

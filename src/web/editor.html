@@ -415,6 +415,14 @@
     </ul>
   </div>
 </div>
+
+
+<script>
+var LOG_URL = "{{ &LOG_URL }}";
+var GIT_REV = "{{ &GIT_REV }}";
+var GIT_BRANCH = "{{ &GIT_BRANCH }}";
+</script>
+
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -441,6 +449,7 @@
 <script src="/js/google-apis/picker.js"></script>
 <script src="/js/google-apis/sheets.js"></script>
 <script src="/js/authenticate-storage.js"></script>
+
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";
@@ -467,8 +476,6 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 });
 </script>
 
-<!-- <script type="text/javascript"
-        src="https://caja.appspot.com/caja.js"></script> -->
   </main>
 </body>
 </html>
