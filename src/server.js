@@ -105,7 +105,10 @@ function start(config, onServerReady) {
     res.render("index.html", {
       LEFT_LINK: content,
       GOOGLE_API_KEY: config.google.apiKey,
-      BASE_URL: config.baseUrl
+      BASE_URL: config.baseUrl,
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
     });
   });
 
