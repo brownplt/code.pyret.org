@@ -89,18 +89,6 @@ function start(config, onServerReady) {
     res.end();
   });
 
-  app.get("/js/log.js", function(req, res) {
-    res.set("Content-Type", "application/javascript");
-    res.render(__dirname + "/../build/web/js/log.js", {
-      LOG_URL: config.logURL,
-      GIT_REV : config.gitRev,
-      GIT_BRANCH: config.gitBranch
-    }, function(_, js) {
-      res.set("Content-Type", "application/javascript");
-      res.send(js);
-    });
-  });
-
   app.use(express.static(__dirname + "/../build/web/"));
 
   app.use(csrf());
