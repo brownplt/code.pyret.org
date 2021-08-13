@@ -1,0 +1,34 @@
+Notes on cpo-main.jarr.debug
+
+- Whole-file analysis tools:
+
+    -   [x] Chrome's tooling says 91% of the contents of the file are "used".
+
+        If this were normal js code, that would mean we actually do use it all. But Chrome is also automatically counting
+        all values, like inline strings that we end up execing, as if they were "used" code. So plausibly there is lots of
+        unused stuff in objects and 
+
+    -   [ ] JS tools to do dead code elimination
+
+        Probably not given the Chrome exec stats
+
+    -   [ ] JS tooling to minify, mangle identifiers, etc.
+
+        Probably not. The file is already gzipped (30mb->5mb) which should deal with duplication, long identifiers, etc.
+        across this much code.
+
+- Manual analysis:
+
+    -   [ ] Dependency tree of modules? (especially if they pull in node dependencies)
+        Can we at least impute chunks of the file to modules and then look at size?
+
+    -   [ ] Find chunks of metadata or unnecessary structure:
+
+        - !! `theMap` contents of modules 
+            - [x] Format all of these inline so we can understand them? (in elidable.txt)
+                - `names` array of string positions (not used?)
+                - `mappings` data in array is sourcemaps-encoded info
+                - compiled js functions also have a prefix that is mapping variables to source location
+                    - find this in Pyret compiled via "dummy variable" string that's inserted?
+            - 23%  of the file (of 30mb total) are taken up by sourcemaps and tracking source positions of variables
+            
