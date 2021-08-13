@@ -443,7 +443,7 @@ $(function() {
       const greeting = $("<p>");
       const shared = $("<tt>shared-gdrive(...)</tt>");
       const currentContextElt = $("<tt>" + currentContext + "</tt>");
-      greeting.append("Enter the context to use for the program, or choose “Close” to keep the current context of ", currentContextElt, ".");
+      greeting.append("Enter the context to use for the program, or choose “Cancel” to keep the current context of ", currentContextElt, ".");
       const essentials = $("<tt>essentials2021</tt>");
       const list = $("<ul>")
         .append($("<li>").append("The default is ", essentials, "."))
