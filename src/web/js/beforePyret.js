@@ -322,9 +322,10 @@ $(function() {
 
   storageAPI = storageAPI.then(function(api) { return api.api; });
   $("#fullConnectButton").click(function() {
-    // false => Don't do an immediate load (this will require login)
-    // true => Use the full set of scopes for this login
-    reauth(false, true);
+    reauth(
+      false,  // Don't do an immediate load (this will require login)
+      true    // Use the full set of scopes for this login
+    );
   });
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");

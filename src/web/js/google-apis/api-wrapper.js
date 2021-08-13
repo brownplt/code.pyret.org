@@ -52,7 +52,6 @@ function reauth(immediate, useFullScopes) {
       path += "&scopes=full";
     }
     // Need to do a login to get a cookie for this user; do it in a popup
-    var w = window.open(path);
     window.addEventListener('message', function(e) {
       // e.domain appears to not be defined in Firefox
       if ((e.domain || e.origin) === document.location.origin) {
@@ -61,6 +60,7 @@ function reauth(immediate, useFullScopes) {
         d.resolve(null);
       }
     });
+    window.open(path);
   } else {
     // The user is logged in, but needs an access token from our server
     var newToken = $.ajax("/getAccessToken", { method: "get", datatype: "json" });
