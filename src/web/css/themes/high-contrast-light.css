@@ -12,8 +12,8 @@ body.high-contrast-light {
   --orange-darker-1: hsl(41, 100%, 35%);
   --sky-blue: hsl(202, 77%, 63%);
   --bluish-green: hsl(164, 100%, 31%);
-  --bluish-green-lighter-1: hsl(164, 100%, 45%);
-  --bluish-green-lighter-2: hsl(164, 100%, 95%);
+  --success-blue: hsl(190, 92%, 54%);
+  --success-blue-lighter-1: hsl(190, 92%, 90%);
   --yellow: hsl(56, 85%, 60%);
   --yellow-lighter-1: hsl(56, 85%, 75%);
   --yellow-lighter-2: hsl(56, 85%, 95%);
@@ -48,7 +48,6 @@ body.high-contrast-light {
   --unterm-strings-font-weight: bold;
   --strings-text-decoration: underline dashed var(--strings);
   --booleans-font-weight: bold;
-
   --function-names-text-decoration: underline;
   --types-font-weight: bold;
   --comments-font-style: italic;
@@ -68,14 +67,14 @@ body.high-contrast-light {
 
   /* Check Blocks */
   --check-block-default-bg: #E1F5FE;            /* default bg on check blocks (usually invisible) */
-  --check-success-bg: var(--bluish-green-lighter-1);  /* bg on passing check blocks */
+  --check-success-bg: var(--success-blue);  /* bg on passing check blocks */
   --check-fail-bg: var(--yellow-lighter-1);                 /* bg on failed check block */
   --check-error-bg: var(--error-red);             /* bg (& box-shadow) on erroring check block */
 
   /* Tests within check blocks */
   --failing-test-header-bg: var(--yellow-lighter-1);            /* bg of header within a focused failing test (contains "Test n: Failed") */
   --failing-test-bg: var(--yellow-lighter-2);            /* bg of failing test NOT in focus */
-  --passing-test-bg: var(--bluish-green-lighter-2);   /* bg of passing test */
+  --passing-test-bg: var(--success-blue-lighter-1);   /* bg of passing test */
   --highlights-active-border: hsl(204, 100%, 74%);  /* border around errors/tests with highlights active */
   --highlights-active-bg: hsla(0,0%,100%,.9);       /* bg on check block errors/tests with highlights active */
   --empty-check-err-bg: rgba(255,255,255,0.4);      /* bg behind "Processing Result..." in check-block-error:empty */
@@ -96,7 +95,7 @@ body.high-contrast-light {
   --testing-summary: white;                       /* text color in testing summary */
   --testing-summary-bg: hsl(212, 62%, 50%);       /* bg on testing summary */
   --summary-fail-bg: var(--yellow-lighter-1);                 /* bg of summary of failed tests */
-  --summary-pass-bg: var(--bluish-green-lighter-1);     /* bg of summary of passed tests */
+  --summary-pass-bg: var(--success-blue);     /* bg of summary of passed tests */
   --summary-error-bg: var(--error-red);             /* bg of announcement in summary that tests errored */
   --summary-err: white;                           /* announcement text that tests errored in testing summary */
   --summary-err-left-border: hsl(0, 100%, 100%);  /* vertical border left of error announcement in summary */
