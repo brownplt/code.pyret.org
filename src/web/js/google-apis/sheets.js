@@ -746,6 +746,10 @@ function createSheetsAPI(immediate) {
      * Loads the spreadsheet with the given id
      */
     Spreadsheet.fromId = function(id) {
+      // NOTE(joe): The true as a second argument below drills pretty far down
+      // into api-wrapper.js to tell it to *disable* the user's credential if
+      // logged in. This is another instance of the issue at 
+      // https://github.com/brownplt/code.pyret.org/issues/255
       return spreadsheets.get({
         spreadsheetId: id,
         fields: SHEET_REQ_FIELDS

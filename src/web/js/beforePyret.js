@@ -322,9 +322,10 @@ $(function() {
 
   storageAPI = storageAPI.then(function(api) { return api.api; });
   $("#fullConnectButton").click(function() {
-    // false => Don't do an immediate load (this will require login)
-    // true => Use the full set of scopes for this login
-    reauth(false, true);
+    reauth(
+      false,  // Don't do an immediate load (this will require login)
+      true    // Use the full set of scopes for this login
+    );
   });
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");
@@ -442,7 +443,7 @@ $(function() {
       const greeting = $("<p>");
       const shared = $("<tt>shared-gdrive(...)</tt>");
       const currentContextElt = $("<tt>" + currentContext + "</tt>");
-      greeting.append("Enter the context to use for the program, or choose “Close” to keep the current context of ", currentContextElt, ".");
+      greeting.append("Enter the context to use for the program, or choose “Cancel” to keep the current context of ", currentContextElt, ".");
       const essentials = $("<tt>essentials2021</tt>");
       const list = $("<ul>")
         .append($("<li>").append("The default is ", essentials, "."))
@@ -1375,8 +1376,14 @@ $(function() {
   CPO.sayAndForget = sayAndForget;
   CPO.onRun = onRun;
   CPO.triggerOnRun = triggerOnRun;
+
+  /*
+  NOTE(joe): this can be re-enabled to work as an embeddable instance. Disabled
+  for current releases
+
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
+  */
 
 });

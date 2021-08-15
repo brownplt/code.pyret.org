@@ -124,9 +124,9 @@ function start(config, onServerReady) {
   app.get("/login", function(req, res) {
     var redirect = req.param("redirect") || "/editor";
     var scopesParam = req.param("scopes") === "full" ? "full" : "default";
-    var scopes = req.param("scopes") === "full" ? googleAuth.FULL_OAUTH_SCOPES : googleAuth.DEFAULT_OAUTH_SCOPES;
+    var scopes = scopesParam === "full" ? googleAuth.FULL_OAUTH_SCOPES : googleAuth.DEFAULT_OAUTH_SCOPES;
     if(!(req.session && req.session["user_id"])) {
-      req.session["scopes"] = scopes;
+      req.session["scopes"] = scopesParam;
       res.redirect(auth.getAuthUrl(redirect, scopes));
     }
     else {
