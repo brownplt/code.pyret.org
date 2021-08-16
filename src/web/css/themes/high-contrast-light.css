@@ -94,11 +94,11 @@ body.high-contrast-light {
   /* Testing Summaries */
   --testing-summary: white;                       /* text color in testing summary */
   --testing-summary-bg: hsl(212, 62%, 50%);       /* bg on testing summary */
-  --summary-fail-bg: var(--yellow-lighter-1);                 /* bg of summary of failed tests */
-  --summary-pass-bg: var(--success-blue);     /* bg of summary of passed tests */
+  --summary-fail-bg: var(--yellow-lighter-1);       /* bg of summary of failed tests */
+  --summary-pass-bg: var(--success-blue);           /* bg of summary of passed tests */
   --summary-error-bg: var(--error-red);             /* bg of announcement in summary that tests errored */
-  --summary-err: white;                           /* announcement text that tests errored in testing summary */
-  --summary-err-left-border: hsl(0, 100%, 100%);  /* vertical border left of error announcement in summary */
+  --summary-err: black;                           /* announcement text that tests errored in testing summary */
+  --summary-err-left-border: black;               /* vertical border left of error announcement in summary */
 
   /* Tables */
   --table-border: black;          /* border on tables */

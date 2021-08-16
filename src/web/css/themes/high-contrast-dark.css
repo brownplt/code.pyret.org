@@ -121,8 +121,8 @@ body.high-contrast-dark {
   --summary-fail-bg:          var(--black-lighter);     /* bg of summary of failed tests */
   --summary-pass-bg:          var(--black-lighter);     /* bg of summary of passed tests */
   --summary-error-bg:         var(--err-red);           /* bg of announcement in summary that tests errored */
-  --summary-err:              var(--white);             /* announcement text that tests errored in testing summary */
-  --summary-err-left-border:  var(--white);             /* vertical border left of error announcement in summary */
+  --summary-err:              var(--black);             /* announcement text that tests errored in testing summary */
+  --summary-err-left-border:  var(--black);             /* vertical border left of error announcement in summary */
 
   /* Tables */
   --table-border:       var(--white);             /* border on tables */
