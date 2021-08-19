@@ -106,7 +106,7 @@ describe("Load share urls for known starter files", function() {
   shares.forEach(function(share) {
     var timeout = share.timeout !== undefined ? share.timeout : 30000;
     if (share.skip) { return; }
-    it("should load the shared file at " + share.id + " (" + share.name + ")", function(done) {
+    xit("should load the shared file at " + share.id + " (" + share.name + ")", function(done) {
       this.timeout(timeout);
       var self = this;
       this.browser.get(this.base + "/editor#share=" + share.id);
