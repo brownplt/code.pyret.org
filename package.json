@@ -88,6 +88,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "chromedriver": "^90.0.0",
+    "escodegen": "^2.0.0",
     "selenium-webdriver": "^3.6.0",
     "webpack-cli": "^3.1.2"
   }
