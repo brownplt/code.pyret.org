@@ -60,7 +60,8 @@ window.flashMessage = function(message) {
 window.stickMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  $(".notificationArea").prepend(err);
+  var msg = $("<span>").addClass("active").text(message);
+  $(".notificationArea").prepend(msg);
   whiteToBlackNotification();
 };
 window.stickRichMessage = function(content) {
