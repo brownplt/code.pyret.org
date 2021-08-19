@@ -60,8 +60,14 @@ window.flashMessage = function(message) {
 window.stickMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<span>").addClass("active").text(message);
-  $(".notificationArea").prepend(err);
+  var msg = $("<span>").addClass("active").text(message);
+  $(".notificationArea").prepend(msg);
+  whiteToBlackNotification();
+};
+window.stickRichMessage = function(content) {
+  CPO.sayAndForget(content.text());
+  clearFlash();
+  $(".notificationArea").prepend($("<span>").addClass("active").append(content));
   whiteToBlackNotification();
 };
 window.mkWarningUpper = function(){return $("<div class='warning-upper'>");}
@@ -118,6 +124,7 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
+  const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -154,7 +161,7 @@ $(function() {
     var useFolding = !options.simpleEditor;
 
     var gutters = !options.simpleEditor ?
-      ["CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
+      ["help-gutter", "CodeMirror-linenumbers", "CodeMirror-foldgutter"] :
       [];
 
     function reindentAllLines(cm) {
@@ -209,6 +216,68 @@ $(function() {
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
 
+    function firstLineIsNamespace() {
+      const firstline = CM.getLine(0);
+      const match = firstline.match(/^use context.*/);
+      return match !== null;
+    }
+
+    let namespacemark = null;
+    function setContextLine(newContextLine) {
+      var hasNamespace = firstLineIsNamespace();
+      if(!hasNamespace && namespacemark !== null) {
+        namespacemark.clear();
+      }
+      if(!hasNamespace) {
+        CM.replaceRange(newContextLine, { line:0, ch: 0}, {line: 0, ch: 0});
+      }
+      else {
+        CM.replaceRange(newContextLine, { line:0, ch: 0}, {line: 1, ch: 0});
+      }
+    }
+
+    if(!options.simpleEditor) {
+
+      const gutterQuestionWrapper = document.createElement("div");
+      gutterQuestionWrapper.className = "gutter-question-wrapper";
+      const gutterTooltip = document.createElement("span");
+      gutterTooltip.className = "gutter-question-tooltip";
+      gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu. Most of the time you won't need to change this at all.";
+      const gutterQuestion = document.createElement("img");
+      gutterQuestion.src = "/img/question.png";
+      gutterQuestion.className = "gutter-question";
+      gutterQuestionWrapper.appendChild(gutterQuestion);
+      gutterQuestionWrapper.appendChild(gutterTooltip);
+      CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+
+      CM.getWrapperElement().onmouseleave = function(e) {
+        CM.clearGutter("help-gutter");
+      }
+
+      // NOTE(joe): This seems to be the best way to get a hover on a mark: https://github.com/codemirror/CodeMirror/issues/3529
+      CM.getWrapperElement().onmousemove = function(e) {
+        var lineCh = CM.coordsChar({ left: e.clientX, top: e.clientY });
+        var markers = CM.findMarksAt(lineCh);
+        if (markers.length === 0) {
+          CM.clearGutter("help-gutter");
+        }
+        if (lineCh.line === 0 && markers[0] === namespacemark) {
+          CM.setGutterMarker(0, "help-gutter", gutterQuestionWrapper);
+        }
+        else {
+          CM.clearGutter("help-gutter");
+        }
+      }
+      CM.on("change", function(change) {
+        function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
+        if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+        var hasNamespace = firstLineIsNamespace();
+        if(hasNamespace) {
+          if(namespacemark) { namespacemark.clear(); }
+          namespacemark = CM.markText({line: 0, ch: 0}, {line: 1, ch: 0}, { attributes: { useline: true }, className: "useline", atomic: true, inclusiveLeft: true, inclusiveRight: false });
+        }
+      });
+    }
     if (useLineNumbers) {
       CM.display.wrapper.appendChild(mkWarningUpper()[0]);
       CM.display.wrapper.appendChild(mkWarningLower()[0]);
@@ -218,6 +287,7 @@ $(function() {
 
     return {
       cm: CM,
+      setContextLine: setContextLine,
       refresh: function() { CM.refresh(); },
       run: function() {
         runFun(CM.getValue());
@@ -257,6 +327,12 @@ $(function() {
   });
 
   storageAPI = storageAPI.then(function(api) { return api.api; });
+  $("#fullConnectButton").click(function() {
+    reauth(
+      false,  // Don't do an immediate load (this will require login)
+      true    // Use the full set of scopes for this login
+    );
+  });
   $("#connectButton").click(function() {
     $("#connectButton").text("Connecting...");
     $("#connectButton").attr("disabled", "disabled");
@@ -309,7 +385,7 @@ $(function() {
       programLoad = api.getFileById(params["get"]["program"]);
       programLoad.then(function(p) { showShareContainer(p); });
     }
-    if(params["get"] && params["get"]["share"]) {
+    else if(params["get"] && params["get"]["share"]) {
       logger.log('shared-program-load',
         {
           id: params["get"]["share"]
@@ -329,6 +405,9 @@ $(function() {
           });
         });
       });
+    }
+    else {
+      programLoad = null;
     }
     if(programLoad) {
       programLoad.fail(function(err) {
@@ -364,6 +443,50 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  function showModal(currentContext) {
+    function drawElement(input) {
+      const element = $("<div>");
+      const greeting = $("<p>");
+      const shared = $("<tt>shared-gdrive(...)</tt>");
+      const currentContextElt = $("<tt>" + currentContext + "</tt>");
+      greeting.append("Enter the context to use for the program, or choose “Cancel” to keep the current context of ", currentContextElt, ".");
+      const essentials = $("<tt>essentials2021</tt>");
+      const list = $("<ul>")
+        .append($("<li>").append("The default is ", essentials, "."))
+        .append($("<li>").append("You might use something like ", shared, " if one was provided as part of a course."));
+      element.append(greeting);
+      element.append($("<p>").append(list));
+      const useContext = $("<tt>use context</tt>").css({ 'flex-grow': '0', 'padding-right': '1em' });
+      const inputWrapper = $("<div>").append(input).css({ 'flex-grow': '1' });
+      const entry = $("<div>").css({
+        display: 'flex',
+        'flex-direction': 'row',
+        'justify-content': 'flex-start',
+        'align-items': 'baseline'
+      });
+      entry.append(useContext).append(inputWrapper);
+      element.append(entry);
+      return element;
+    }
+    const namespaceResult = new modalPrompt({
+        title: "Choose a Context",
+        style: "text",
+        options: [
+          {
+            drawElement: drawElement,
+            submitText: "Change Namespace",
+            defaultValue: currentContext
+          }
+        ]
+      });
+    namespaceResult.show((result) => {
+      if(!result) { return; }
+      if(result.match(/^use context*/)) { result = result.slice("use context ".length); }
+      CPO.editor.setContextLine("use context " + result + "\n");
+    });
+  }
+  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0).slice("use context ".length)); });
+
   var TRUNCATE_LENGTH = 20;
 
   function truncateName(name) {
@@ -387,6 +510,9 @@ $(function() {
           window.stickMessage("You are viewing a shared program. Any changes you make will not be saved. You can use File -> Save a copy to save your own version with any edits you make.");
         }
         return prog.getContents();
+      }
+      else {
+        return CONTEXT_FOR_NEW_FILES;
       }
     });
   }
@@ -631,10 +757,11 @@ $(function() {
       var saveAsPrompt = new modalPrompt({
         title: "Save a copy",
         style: "text",
+        submitText: "Save",
+        narrow: true,
         options: [
           {
             message: "The name for the copy:",
-            submitText: "Save",
             defaultValue: name
           }
         ]
@@ -656,6 +783,7 @@ $(function() {
       var renamePrompt = new modalPrompt({
         title: "Rename this file",
         style: "text",
+        narrow: true,
         options: [
           {
             message: "The new name for the file:",
@@ -721,7 +849,7 @@ $(function() {
   }
 
   function updateEditorHeight() {
-    var toolbarHeight = document.getElementById('topTierUl').scrollHeight;
+    var toolbarHeight = document.getElementById('topTierUl').offsetHeight;
     // gets bumped to 67 on initial resize perturbation, but actual value is indeed 40
     if (toolbarHeight < 80) toolbarHeight = 40;
     toolbarHeight += 'px';
@@ -1062,6 +1190,9 @@ $(function() {
     initialGas: 100,
     scrollPastEnd: true,
   });
+  if(params["get"]["editorContents"] && !(params["get"]["program"] || params["get"]["share"])) {
+    CPO.editor.cm.setValue(params["get"]["editorContents"]);
+  }
   CPO.editor.cm.setOption("readOnly", "nocursor");
   CPO.editor.cm.setOption("longLines", new Map());
   function removeShortenedLine(lineHandle) {
@@ -1143,6 +1274,9 @@ $(function() {
 
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
+    if(c === "") {
+      c = CONTEXT_FOR_NEW_FILES;
+    }
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
@@ -1225,6 +1359,14 @@ $(function() {
 
   });
 
+  const onRunHandlers = [];
+  function onRun(handler) {
+    onRunHandlers.push(handler);
+  }
+  function triggerOnRun() {
+    onRunHandlers.forEach(h => h());
+  }
+
   programLoaded.fin(function() {
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
@@ -1238,5 +1380,25 @@ $(function() {
   CPO.cycleFocus = cycleFocus;
   CPO.say = say;
   CPO.sayAndForget = sayAndForget;
+  CPO.onRun = onRun;
+  CPO.triggerOnRun = triggerOnRun;
+
+  if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
+    const message = $("<span>");
+    const notes = $("<a target='_blank' style='color: white'>").attr("href", "https://www.pyret.org/release-notes/summer-2021.html").text("release notes");
+    message.append("Things may look a little different! Check out the ", notes, " for more details.");
+    window.stickRichMessage(message);
+    localSettings.setItem("sawSummer2021Message", "saw-summer-2021-message");
+  }
+
+
+  /*
+  NOTE(joe): this can be re-enabled to work as an embeddable instance. Disabled
+  for current releases
+
+  if(window.parent !== window) {
+    makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
+  }
+  */
 
 });

@@ -74,6 +74,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
         title: "Publish this file",
         style: "confirm",
         submitText: "Publish",
+        narrow: true,
         options: [
           {
             message: "This program has not been shared before.  Publishing it by clicking below will make a new copy of the file that you can share with anyone you like.  They will be able to see your code and run your program."
@@ -83,6 +84,9 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
       newShare.show().then(function(confirmed) {
         if(confirmed === true) {
           window.CPO.save().then(function(p) {
+            // TODO: this message may not be visible enough and there can be a
+            // lengthy delay between the first dialog closing and the next one
+            // opening. Might want to leave modal open with a spinner...
             window.stickMessage("Copying...");
             var copy = p.makeShareCopy();
             copy.fail(function(err) {
