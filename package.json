@@ -4,7 +4,7 @@
   "description": "A simple IDE for Pyret",
   "main": "index.js",
   "engines": {
-    "node": "12.x"
+    "node": "16.x"
   },
   "dependencies": {
     "acorn": "^7.3.1",
@@ -51,7 +51,7 @@
     "node-uuid": "^1.4.1",
     "popper.js": "^1.16.0",
     "pyret-codemirror-mode": "git://github.com/brownplt/pyret-codemirror-mode.git#master",
-    "pyret-lang": "git://github.com/brownplt/pyret-lang.git#horizon",
+    "pyret-lang": "git+https://github.com/brownplt/pyret-lang.git#master",
     "q": "~1.4.1",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
@@ -88,7 +88,7 @@
   "author": "Joe Politz",
   "license": "Apache-2.0",
   "devDependencies": {
-    "chromedriver": "^88.0.0",
+    "chromedriver": "^90.0.0",
     "selenium-webdriver": "^3.6.0",
     "webpack-cli": "^3.1.2"
   }

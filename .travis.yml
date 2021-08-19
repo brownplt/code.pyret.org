@@ -17,8 +17,8 @@ before_install:
 - nvm use stable
 - npm install -g heroku-cli
 install:
+- npm update # to update Pyret to the newest version
 - npm ci --ignore-scripts
-- npm update
 - make web
 - make deploy-cpo-main
 script:

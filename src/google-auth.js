@@ -2,19 +2,23 @@ var gapi = require('googleapis').google;
 var jwt = require('jwt-simple');
 var OAuth2 = gapi.auth.OAuth2;
 
-// Relevant README/docs at https://github.com/google/google-api-nodejs-client/
+var DEFAULT_OAUTH_SCOPES = [
+                    "email",
+                    "https://www.googleapis.com/auth/drive.file",
+                    "https://www.googleapis.com/auth/drive.install",
+                  ];
 
+var FULL_OAUTH_SCOPES = [
+                    "email",
+                    "https://www.googleapis.com/auth/spreadsheets",
+                    "https://www.googleapis.com/auth/drive.file",
+                    "https://www.googleapis.com/auth/drive.install",
+                    "https://www.googleapis.com/auth/drive.photos.readonly",
+                    "https://www.googleapis.com/auth/photos"
+                  ];
+
+// Relevant README/docs at https://github.com/google/google-api-nodejs-client/
 function makeAuth(config) {
-  var OAUTH_SCOPES = ["email",
-                      "https://www.googleapis.com/auth/spreadsheets",
-                      // The `drive` scope allows us to open files
-                      // (particularly spreadsheets) made outside of
-                      // the Pyret ecosystem.
-                      "https://www.googleapis.com/auth/drive",
-                      "https://www.googleapis.com/auth/drive.file",
-                      "https://www.googleapis.com/auth/drive.install",
-                      "https://www.googleapis.com/auth/drive.photos.readonly",
-                      "https://www.googleapis.com/auth/photos"];
   var oauth2Client =
       new OAuth2(
           config.google.clientId,
@@ -36,7 +40,7 @@ function makeAuth(config) {
         callback(null, tokens.access_token);
       });
     },
-    getAuthUrl: function(afterUrl) {
+    getAuthUrl: function(afterUrl, scopes) {
         return oauth2Client.generateAuthUrl({
         // Offline lets us handle refreshing access on our own (rather than
         // popping up a dialog every half hour)
@@ -46,7 +50,7 @@ function makeAuth(config) {
         // NOTE(joe): We do not use the drive scope on the server, but we ask
         // for it so that we don't have to do another popup on the client.
         // #notpola
-        scope: OAUTH_SCOPES.join(' '),
+        scope: scopes.join(' '),
         state: afterUrl
       });
     },
@@ -106,5 +110,7 @@ function makeAuth(config) {
 }
 
 module.exports = {
-  makeAuth: makeAuth
+  makeAuth: makeAuth,
+  DEFAULT_OAUTH_SCOPES: DEFAULT_OAUTH_SCOPES,
+  FULL_OAUTH_SCOPES: FULL_OAUTH_SCOPES
 };

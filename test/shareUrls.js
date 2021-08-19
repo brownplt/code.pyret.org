@@ -36,7 +36,7 @@ const shares = [
     expr: "animals-table.column('name')", modal: 0 },
   { id: "1VVz4l0P6GLwbcpYyAGYJuRgBxj69R52Z", name: "DataScience: Trust, but verify!",
     expr: "verify1", modal: 0 },
-  { id: "1Fm3bSkeWZ5f4VwZ24TtOkZ3Pu0CPkJT2", name: "DataScience: Table Methods Starter File (v1.5.1)",
+  { id: "1IIU2f7IlUkFmTCjQ39tgkmKTJDAjN2NI", name: "DataScience: Table Methods Starter File (v1.5.1)",
     expr: "animals-table", modal: 0 },
   { id: "1ymyvlI7RTtq8lHh4VH3x1N3WlcZB650j", name: "DataScience: Mood Generator Starter File",
     expr: "mood('happy')", modal: 0 },
@@ -85,7 +85,7 @@ const shares = [
   { id: "1DzB-KbgWFa20WzB0GDoC6phRItRHIye_", name: "Physics: U4 - Ball Sand Fan (background)",
     expr: "allfansand", modal: 0 },
   { id: "1cgCpS58z1OgEqR_UEWWrm-ohvu8v4wjU", name: "Physics: U4 - Millikan Oil Drop (background)",
-    expr: "F-ELEC(130, 5)", modal: 0 },
+    expr: "balanced-force-practicum-game", modal: 0 },
   
   { id: "1BuOf73aJDcsGGEUnIr5jL5BFAfRHlSLU", name: "Physics: U5 - Falling Coffee Filters (background)",
     expr: "filters", modal: 0 },
@@ -106,7 +106,7 @@ describe("Load share urls for known starter files", function() {
   shares.forEach(function(share) {
     var timeout = share.timeout !== undefined ? share.timeout : 30000;
     if (share.skip) { return; }
-    it("should load the shared file at " + share.id + " (" + share.name + ")", function(done) {
+    xit("should load the shared file at " + share.id + " (" + share.name + ")", function(done) {
       this.timeout(timeout);
       var self = this;
       this.browser.get(this.base + "/editor#share=" + share.id);

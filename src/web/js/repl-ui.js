@@ -116,6 +116,7 @@
               html.addClass('compile-error').appendTo(output);
               //updateItems?
               if (click) html.click();
+              scroll(output);
             }).done(function () {
               //updateItems(isMain);
               restarter.resume(runtime.nothing)
@@ -304,6 +305,7 @@
         CM.setValue("");
         CM.focus();
         CM.refresh();
+        scroll(output);
       }
       promptContainer.append(prompt);
 
@@ -655,7 +657,7 @@
             breakButton.attr("disabled", false);
             stopLi.attr('disabled', false);
             options.runButton.empty();
-            var text = $("<span>").text("Running...");
+            var text = $("<span>").text("  Running...");
             text.css({
               "vertical-align": "middle"
             });
@@ -899,7 +901,7 @@
         run: runner,
         initial: "",
         cmOptions: {
-          scrollPastEnd: true,
+          scrollPastEnd: false,
           extraKeys: CodeMirror.normalizeKeyMap({
             'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
             'Shift-Enter': "newlineAndIndent",
