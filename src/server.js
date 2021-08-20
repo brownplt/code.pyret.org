@@ -103,6 +103,7 @@ function start(config, onServerReady) {
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
     res.render("index.html", {
+      PYRET: process.env.PYRET,
       LEFT_LINK: content,
       GOOGLE_API_KEY: config.google.apiKey,
       BASE_URL: config.baseUrl,
@@ -315,6 +316,7 @@ function start(config, onServerReady) {
 
   app.get("/editor", function(req, res) {
     res.render("editor.html", {
+      PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
       CSRF_TOKEN: req.csrfToken(),

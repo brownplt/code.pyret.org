@@ -102,31 +102,32 @@ var logger = (function(backend) {
   };
 })( LOG_URL ? new AJAXBackend(LOG_URL) : new DummyBackend() );
 
-
-CodeMirror.defineOption('logging', false, 
-  function (cm, new_value) {
-    if (new_value != true)
-      return;
-    if(!cm.CPO_editorID)
-      cm.CPO_editorID = logger.guid();
-    logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
-    cm.on("change", function(cm, change) {
-      if(logger.isDetailed) {
-        change.CPO_editorID = cm.CPO_editorID;
-        logger.log('cm_change', change);
-      }
+if(window.CodeMirror) {
+  CodeMirror.defineOption('logging', false, 
+    function (cm, new_value) {
+      if (new_value != true)
+        return;
+      if(!cm.CPO_editorID)
+        cm.CPO_editorID = logger.guid();
+      logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
+      cm.on("change", function(cm, change) {
+        if(logger.isDetailed) {
+          change.CPO_editorID = cm.CPO_editorID;
+          logger.log('cm_change', change);
+        }
+      });
+      cm.on("focus", function(cm) {
+        if(logger.isDetailed) {
+          logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
+        }
+      });
+      cm.on("blur", function(cm) {
+        if(logger.isDetailed) {
+          logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
+        }
+      });
     });
-    cm.on("focus", function(cm) {
-      if(logger.isDetailed) {
-        logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
-      }
-    });
-    cm.on("blur", function(cm) {
-      if(logger.isDetailed) {
-        logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
-      }
-    });
-  });
+}
 
 // Log the loading of the logger (near the begining of page load)  
 logger.log('load');
