@@ -415,32 +415,19 @@
     </ul>
   </div>
 </div>
+
+
+<script>
+var LOG_URL = "{{ &LOG_URL }}";
+var GIT_REV = "{{ &GIT_REV }}";
+var GIT_BRANCH = "{{ &GIT_BRANCH }}";
+</script>
+
 <script src="/js/es6-shim.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-<script src="https://npmcdn.com/dexie@1.4.1/dist/dexie.min.js"></script>
-<script src="/js/q.js"></script>
-<script src="/js/loader.js"></script>
-<script src="/js/codemirror.js"></script>
-<script src="/js/rulers.js"></script>
-<script src="/js/scrollpastend.js"></script>
-<script src="/js/foldcode.js"></script>
-<script src="/js/foldgutter.js"></script>
-<script src="/js/mark-selection.js"></script>
-<script src="/js/runmode.js"></script>
-<script src="/js/pyret-mode.js"></script>
-<script src="/js/pyret-fold.js"></script>
-<script src="/js/matchkw.js"></script>
-<script src="/js/mousetrap.min.js"></script>
-<script src="/js/mousetrap-global-bind.min.js"></script>
+<script src="/js/editor-misc.min.js"></script>
 
-<script src="/js/log.js"></script>
-<script src="/js/share.js"></script>
-<script src="/js/google-apis/api-wrapper.js"></script>
-<script src="/js/google-apis/drive.js"></script>
-<script src="/js/google-apis/picker.js"></script>
-<script src="/js/google-apis/sheets.js"></script>
-<script src="/js/authenticate-storage.js"></script>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";
@@ -467,8 +454,6 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 });
 </script>
 
-<!-- <script type="text/javascript"
-        src="https://caja.appspot.com/caja.js"></script> -->
   </main>
 </body>
 </html>
