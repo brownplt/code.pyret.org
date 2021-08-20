@@ -60,8 +60,14 @@ window.flashMessage = function(message) {
 window.stickMessage = function(message) {
   CPO.sayAndForget(message);
   clearFlash();
-  var err = $("<span>").addClass("active").text(message);
-  $(".notificationArea").prepend(err);
+  var msg = $("<span>").addClass("active").text(message);
+  $(".notificationArea").prepend(msg);
+  whiteToBlackNotification();
+};
+window.stickRichMessage = function(content) {
+  CPO.sayAndForget(content.text());
+  clearFlash();
+  $(".notificationArea").prepend($("<span>").addClass("active").append(content));
   whiteToBlackNotification();
 };
 window.mkWarningUpper = function(){return $("<div class='warning-upper'>");}
@@ -1376,6 +1382,15 @@ $(function() {
   CPO.sayAndForget = sayAndForget;
   CPO.onRun = onRun;
   CPO.triggerOnRun = triggerOnRun;
+
+  if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
+    const message = $("<span>");
+    const notes = $("<a target='_blank' style='color: white'>").attr("href", "https://www.pyret.org/release-notes/summer-2021.html").text("release notes");
+    message.append("Things may look a little different! Check out the ", notes, " for more details.");
+    window.stickRichMessage(message);
+    localSettings.setItem("sawSummer2021Message", "saw-summer-2021-message");
+  }
+
 
   /*
   NOTE(joe): this can be re-enabled to work as an embeddable instance. Disabled

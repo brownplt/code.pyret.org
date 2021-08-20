@@ -122,7 +122,6 @@ function start(config, onServerReady) {
     }
     else {
       var oldscopes = req.session["scopes"];
-      console.log("Scopes: ", oldscopes, scopesParam);
       // If the user was on the default (or had no param set), then trigger
       // the auth page to upgrade them
       if(scopesParam === "full" && oldscopes !== scopesParam) {
