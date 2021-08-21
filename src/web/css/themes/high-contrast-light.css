@@ -28,13 +28,13 @@ body.high-contrast-light {
   /* Syntax Highlighting */
   --keyword: black;           /* keywords */
   --comments: var(--orange-darker-1); /* comments */
-  --booleans: darkred;        /* booleans */
+  --booleans: hsl(350, 100%, 55%);  /* booleans */
   --built-ins: black;          /* built-ins */
   --function-names: #374049;  /* function names */
   --types: #374049;          /* types */
   --variables: black;       /* variables */
-  --numbers: navy;            /* exact nums */
-  --rough-nums: blue;         /* rough nums */
+  --numbers: hsl(240, 100%, 39%);   /* exact nums */
+  --rough-nums: hsl(200, 80%, 40%); /* rough nums */
   --rationals: #af1180;       /* rational numbers */
   --bad-numbers: red;         /* bad numbers */
   --unterm-strings: red;      /* unterminated strings */
