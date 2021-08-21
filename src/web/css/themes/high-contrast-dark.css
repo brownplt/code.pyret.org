@@ -24,6 +24,7 @@ body.high-contrast-dark {
   --red-pink: hsl(350, 100%, 66%);
   --blue: hsl(221, 100%, 75%);
   --strong-blue: hsl(221, 100%, 70%);
+  --green-blue: hsl(162, 100%, 74%);
   --green: hsl(84, 66%, 73%);
 
   /* darkened syntax highlighting (highlights) */
@@ -57,8 +58,8 @@ body.high-contrast-dark {
   --function-names:   var(--white);         /* function names */
   --types:            var(--teal);          /* types */
   --variables:        var(--white);         /* variables */
-  --numbers:          hsl(240, 100%, 70%);/* exact nums */
-  --rough-nums:       hsl(200, 80%, 70%); /* rough nums */
+  --numbers:          var(--blue);          /* exact nums */
+  --rough-nums:       var(--green-blue);    /* rough nums */
   --rationals:        var(--blue);          /* rational numbers */
   --bad-numbers:      var(--red-pink);      /* bad numbers */
   --unterm-strings:   var(--red-pink);      /* unterminated strings */
