@@ -69,12 +69,12 @@ walk.simple(ast, {
     Property(node) {
         // FIXME: need to only run this on internal modules by inspecting module name.
 
-        if(node.key.value === "theModule" || node.key.name === "theModule") {
-            if(node.value.type === "Literal") {
-                let fnAst = acorn.parse(node.value.value);
-                node.value = fnAst;
-            }
-        }
+        // if(node.key.value === "theModule" || node.key.name === "theModule") {
+        //     if(node.value.type === "Literal") {
+        //         let fnAst = acorn.parse(node.value.value);
+        //         node.value = fnAst;
+        //     }
+        // }
         if(node.key.value === "theMap" || node.key.name === "theMap") {
             if(node.value.type === "Literal") {
                 node.value.value = "{}"
