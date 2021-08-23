@@ -1,6 +1,6 @@
 
 /*  ######################################################################
-    #----------------------  Theme-specific colors ----------------------#
+    #----------------------  Theme-specific styles ----------------------#
     #                           Theme: panda                             #
     ###################################################################### */
 
@@ -51,8 +51,6 @@ body.panda {
   --blue-lighter: #baedf8;
 }
 
-/*  Theme Variables (core)
-    Color values that must be specified by *all* themes */
 body.panda {
 
   /* Syntax Highlighting */
@@ -71,6 +69,11 @@ body.panda {
   --strings:          var(--cyan);            /* strings */
   --repl-print:       var(--white);           /* result of print() in the REPL */
   --repl-output:      #f2f2f2;                /* values displayed in the REPL */
+
+  /*  Non-color font styling. */
+  --keyword-font-weight: bold;
+  --bad-numbers-font-weight: bold;
+  --unterm-strings-font-weight: bold;
 
   /* Basic editor appearance */
   --default-text: var(--white);   /* default text across editor */
@@ -125,7 +128,10 @@ body.panda {
   --table-bg:           var(--black-lighter);     /* bg on tables */
   --table-even-rows-bg: var(--black-lighter-2);   /* bg on even rows in table */
   --th-bg:              var(--black-darker);      /* bg on table headers */
+  --th-font-weight:     normal;                   /* font weight on table headers */
   --table-col-dividers: var(--black-lighter-3);   /* righthand borders separating table columns */
+  --pyret-table-col-dividers: var(--black-lighter-3);  /* vertical borders between Pyret table columns */
+  --pyret-table-row-dividers: var(--black-lighter-3);  /* horizontal borders between Pyret table row */
 
   /* Spy Blocks */
   --spy-borders:      var(--black-lighter-2);   /* borders on spy block */
@@ -152,13 +158,7 @@ body.panda {
   /* Misc. */
   --img-thumbnail-shadow:       var(--black-lighter-2);   /* box-shadow on hover over image thumbnail in REPL */
   --cm-in-repl-bg:              var(--black-lighter);     /* bg on .repl .CodeMirror */
-  --failed-test-gutter-marker:  var(--black-darker-2);    /* CodeMirror gutter marker bg for failed test */
-
-}
-
-/*  Theme Variables (non-default)
-    Color values that only need to be specified by *non-default* themes */
-body.panda {
+  --failed-test-gutter-marker:  var(--failing-yellow);    /* CodeMirror gutter marker bg for failed test */
 
   /* CodeMirror gutters/line numbers/ruler */
   --gutter-bg:      var(--black);           /* background of line number gutters */
@@ -178,9 +178,11 @@ body.panda {
   /* More granular control of check blocks */
   --check-success-text: var(--success-green);   /* text within successful check block */
   --check-fail-text:    var(--failing-yellow);  /* text within failing check block */
+  --check-fail-header-font-weight: normal;      /* font weight of header text in failing check */
   --check-error-text:   var(--err-red);         /* text within erroring check block */
-  --check-fail-border:  var(--failing-yellow);  /* border around failing check blocks */
-  --check-error-border: var(--err-red);         /* border around erroring check blocks */
+  --check-error-header-font-weight: normal;     /* font weight of header text in erroring check */
+  --check-fail-border:  0.17em solid var(--failing-yellow);  /* border around failing check blocks */
+  --check-error-border: 0.17em solid var(--err-red);         /* border around erroring check blocks */
 
   /* Testing summaries */
   --summary-pass-text: var(--success-green);    /* text saying "N TESTS FAILED" */
