@@ -1268,9 +1268,9 @@ fun grouped-bar-chart-from-list(
     tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
     axis-top: max-positive-height, 
     axis-bottom: max-negative-height,
-    legends: legends ^ builtins.raw-array-from-list,
-    annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
-    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
+    legends: builtins.raw-array-from-list(legends),
+    annotations: list-to-table2(value-lists.map(_.map({(_): none}))),
+    intervals: list-to-table2(value-lists.map(_.map({(_): [raw-array: ]}))),
   } ^ multi-bar-chart-series
 
   data-series.make-axis(max-positive-height, max-negative-height)
@@ -1315,9 +1315,9 @@ fun stacked-bar-chart-from-list(
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
     tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
-    legends: legends ^ builtins.raw-array-from-list,
-    annotations: value-lists.map(_.map({(_): none})) ^ list-to-table2,
-    intervals: value-lists.map(_.map({(_): [raw-array: ]})) ^ list-to-table2,
+    legends: builtins.raw-array-from-list(legends),
+    annotations: list-to-table2(value-lists.map(_.map({(_): none}))),
+    intervals: list-to-table2(value-lists.map(_.map({(_): [raw-array: ]}))),
     is-stacked: 'absolute'
   } ^ multi-bar-chart-series
 
