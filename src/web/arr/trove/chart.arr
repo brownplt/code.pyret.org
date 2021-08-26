@@ -223,7 +223,10 @@ color-list-method = method(self, colors :: List<I.Color>):
   cases (List) colors: 
     | empty => self.constr()(self.obj.{colors: none})
     | link(_, _) => 
-      self.constr()(self.obj.{colors: some(colors ^ builtins.raw-array-from-list)})
+      block:
+        each({(c :: I.Color): c}, colors)
+        self.constr()(self.obj.{colors: some(colors ^ builtins.raw-array-from-list)})
+      end
   end
 end
 
@@ -469,18 +472,28 @@ annotations-method = method(self,
         + ", received "
         + num-to-string(given-length))
   end
-  for each3(expected from raw-array-to-list(self.obj.annotations),
-      given from annotations,
-      index from range(0, annotations.length())):
-    shadow expected-length = raw-array-length(expected)
-    shadow given-length = given.length()
-    when given-length <> expected-length:
-      raise("annotations: length mismatch on row "
-          + num-to-string(index)
-          + ". Expected "
-          + num-to-string(expected-length)
-          + ", received "
-          + num-to-string(given-length))
+  
+  block:
+    each({(l :: List<Option<String>>): 
+      each({(o :: Option<String>): 
+        cases (Option) o: 
+          | none => true
+          | some(s :: String) => true
+        end}, l)}, annotations) 
+    
+    for each3(expected from raw-array-to-list(self.obj.annotations),
+        given from annotations,
+        index from range(0, annotations.length())):
+      shadow expected-length = raw-array-length(expected)
+      shadow given-length = given.length()
+      when given-length <> expected-length:
+        raise("annotations: length mismatch on row "
+            + num-to-string(index)
+            + ". Expected "
+            + num-to-string(expected-length)
+            + ", received "
+            + num-to-string(given-length))
+      end
     end
   end
 
@@ -501,18 +514,23 @@ intervals-method = method(self, intervals :: List<List<List<Number>>>) block:
         + ", received "
         + num-to-string(given-length))
   end
-  for each3(expected from raw-array-to-list(self.obj.intervals),
-      given from intervals,
-      index from range(0, intervals.length())):
-    shadow expected-length = raw-array-length(expected)
-    shadow given-length = given.length()
-    when given-length <> expected-length:
-      raise("intervals: length mismatch on row "
-          + num-to-string(index)
-          + ". Expected "
-          + num-to-string(expected-length)
-          + ", received "
-          + num-to-string(given-length))
+  block:
+    each({(l :: List<List<Number>>): 
+      each({(l1 :: List<Number>): 
+        each({(n :: Number): true}, l1)}, l)}, intervals) 
+    for each3(expected from raw-array-to-list(self.obj.intervals),
+        given from intervals,
+        index from range(0, intervals.length())):
+      shadow expected-length = raw-array-length(expected)
+      shadow given-length = given.length()
+      when given-length <> expected-length:
+        raise("intervals: length mismatch on row "
+            + num-to-string(index)
+            + ". Expected "
+            + num-to-string(expected-length)
+            + ", received "
+            + num-to-string(given-length))
+      end
     end
   end
   raw-intervals = intervals.map(_.map(raw-array-from-list)) ^ list-to-table2
@@ -542,34 +560,39 @@ error-bars-method = method(self, errors :: List<List<List<Number>>>) block:
         + ", received "
         + num-to-string(given-length))
   end
-  for each3(expected from raw-array-to-list(self.obj.intervals),
-      given from errors,
-      index from range(0, errors.length())):
-    block:
-      shadow expected-length = raw-array-length(expected)
-      shadow given-length = given.length()
-      row-str = num-to-string(index)
-      when given-length <> expected-length:
-        raise("error-bars: length mismatch on row " + row-str
-            + ". Expected "
-            + num-to-string(expected-length)
-            + ", received "
-            + num-to-string(given-length))
-      end
-      for each2(pair from given, column from range(0, given.length())):
-        block:
-          col-str = num-to-string(column)
-          when pair.length() <> 2:
-            raise("error-bars: on row " + row-str + " column " + col-str
-                + ", 2 intervals must be given.")
-          end
-          when pair.get(0) > 0:
-            raise("error-bars: on row " + row-str + " column " + col-str
-                + ", first pair must be non-positive.")
-          end
-          when pair.get(1) < 0:
-            raise("error-bars: on row " + row-str + " column " + col-str
-                + ", second pair must be non-negative.")
+  block:
+    each({(l :: List<List<Number>>): 
+      each({(l1 :: List<Number>): 
+        each({(n :: Number): true}, l1)}, l)}, errors) 
+    for each3(expected from raw-array-to-list(self.obj.intervals),
+        given from errors,
+        index from range(0, errors.length())):
+      block:
+        shadow expected-length = raw-array-length(expected)
+        shadow given-length = given.length()
+        row-str = num-to-string(index)
+        when given-length <> expected-length:
+          raise("error-bars: length mismatch on row " + row-str
+              + ". Expected "
+              + num-to-string(expected-length)
+              + ", received "
+              + num-to-string(given-length))
+        end
+        for each2(pair from given, column from range(0, given.length())):
+          block:
+            col-str = num-to-string(column)
+            when pair.length() <> 2:
+              raise("error-bars: on row " + row-str + " column " + col-str
+                  + ", 2 intervals must be given.")
+            end
+            when pair.get(0) > 0:
+              raise("error-bars: on row " + row-str + " column " + col-str
+                  + ", first pair must be non-positive.")
+            end
+            when pair.get(1) < 0:
+              raise("error-bars: on row " + row-str + " column " + col-str
+                  + ", second pair must be non-negative.")
+            end
           end
         end
       end
@@ -599,23 +622,27 @@ single-error-bars-method = method(self, errors :: List<List<Number>>) block:
         + ", received "
         + num-to-string(given-length))
   end
-  for each3(expected from raw-array-to-list(self.obj.intervals),
-      given from errors,
-      index from range(0, errors.length())):
-    block:
-      row-str = num-to-string(index)
-      when given.length() <> 2:
-        raise("error-bars: on row " + row-str
-            + ", 2 intervals must be given (received "
-            + num-to-string(given.length()) + ").")
-      end
-      when given.get(0) > 0:
-        raise("error-bars: on row " + row-str
-            + ", first pair must be non-positive.")
-      end
-      when given.get(1) < 0:
-        raise("error-bars: on row " + row-str
-            + ", second pair must be non-negative.")
+  block:
+      each({(l :: List<Number>): 
+        each({(n :: Number): true}, l)}, errors) 
+    for each3(expected from raw-array-to-list(self.obj.intervals),
+        given from errors,
+        index from range(0, errors.length())):
+      block:
+        row-str = num-to-string(index)
+        when given.length() <> 2:
+          raise("error-bars: on row " + row-str
+              + ", 2 intervals must be given (received "
+              + num-to-string(given.length()) + ").")
+        end
+        when given.get(0) > 0:
+          raise("error-bars: on row " + row-str
+              + ", first pair must be non-positive.")
+        end
+        when given.get(1) < 0:
+          raise("error-bars: on row " + row-str
+              + ", second pair must be non-negative.")
+        end
       end
     end
   end

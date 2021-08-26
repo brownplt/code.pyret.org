@@ -28,6 +28,18 @@
   const cases = RUNTIME.ffi.cases;
 
   var IMAGE = get(IMAGELIB, "internal");
+  
+  // const c = function(name, ...argsAndAnns) {
+  //   RUNTIME.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
+  // };
+
+  // const ann = function(name, pred) {
+  //   return RUNTIME.makePrimitiveAnn(name, pred);
+  // };
+
+  // const annNumList = ann("List<Number>", function(x) {
+  //   return false;
+  // })
 
   google.charts.load('current', {'packages' : ['corechart']});
 
@@ -458,6 +470,12 @@
 
   /////////////////////////////////////////////////////////
   function barChart(globalOptions, rawData) {
+    // try {
+    //   c("bar-chart", get(rawData, 'colors'), annNumList);
+    // } catch (e) {
+    //     throw "Expected Color Type in colors method"
+    // }
+    
     // Variables and constants 
     const table = get(rawData, 'tab');
     const horizontal = get(rawData, 'horizontal');
@@ -615,7 +633,7 @@
         }
       }
     }
-    
+      
     return {
       data: data,
       options: options,
@@ -1118,7 +1136,13 @@ ${labelRow}`;
       }
 
       function setup(restarter) {
-        const tmp = f(globalOptions, rawData);
+        var tmp;
+        try {
+          tmp = f(globalOptions, rawData);
+        } catch (e) {
+          restarter.error(e);
+          return;
+        }
         tmp.chart = new tmp.chartType(root[0]);
         const options = {
           backgroundColor: {fill: 'transparent'},
