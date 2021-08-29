@@ -29,17 +29,17 @@
 
   var IMAGE = get(IMAGELIB, "internal");
   
-  // const c = function(name, ...argsAndAnns) {
-  //   RUNTIME.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
-  // };
+  const c = function(name, ...argsAndAnns) {
+    RUNTIME.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
+  };
 
-  // const ann = function(name, pred) {
-  //   return RUNTIME.makePrimitiveAnn(name, pred);
-  // };
+  const ann = function(name, pred) {
+    return RUNTIME.makePrimitiveAnn(name, pred);
+  };
 
-  // const annNumList = ann("List<Number>", function(x) {
-  //   return false;
-  // })
+  const annNumList = ann("List<Number>", function(x) {
+    return false;
+  })
 
   google.charts.load('current', {'packages' : ['corechart']});
 
@@ -470,12 +470,8 @@
 
   /////////////////////////////////////////////////////////
   function barChart(globalOptions, rawData) {
-    // try {
-    //   c("bar-chart", get(rawData, 'colors'), annNumList);
-    // } catch (e) {
-    //     throw "Expected Color Type in colors method"
-    // }
-    
+    // c("bar-chart", get(rawData, 'colors'), annNumList);
+
     // Variables and constants 
     const table = get(rawData, 'tab');
     const horizontal = get(rawData, 'horizontal');
@@ -1136,13 +1132,7 @@ ${labelRow}`;
       }
 
       function setup(restarter) {
-        var tmp;
-        try {
-          tmp = f(globalOptions, rawData);
-        } catch (e) {
-          restarter.error(e);
-          return;
-        }
+        var tmp = f(globalOptions, rawData);
         tmp.chart = new tmp.chartType(root[0]);
         const options = {
           backgroundColor: {fill: 'transparent'},
@@ -1165,11 +1155,16 @@ ${labelRow}`;
         // must append the overlay _after_ drawing to make the overlay appear
         // correctly
         root.append(overlay);
+        // return true;
       }
 
       return RUNTIME.pauseStack(restarter => {
         google.charts.setOnLoadCallback(() => {
-          setup(restarter);
+          try{
+            setup(restarter)
+          } catch (e) {
+            return restarter.error(e);
+          }
           RUNTIME.getParam('chart-port')({
             root: root[0],
             onExit: () => onExitRetry(() => result, restarter),
