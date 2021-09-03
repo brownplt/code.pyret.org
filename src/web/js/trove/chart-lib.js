@@ -29,18 +29,6 @@
 
   var IMAGE = get(IMAGELIB, "internal");
   
-  const c = function(name, ...argsAndAnns) {
-    RUNTIME.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
-  };
-
-  const ann = function(name, pred) {
-    return RUNTIME.makePrimitiveAnn(name, pred);
-  };
-
-  const annNumList = ann("List<Number>", function(x) {
-    return false;
-  })
-
   google.charts.load('current', {'packages' : ['corechart']});
 
   //////////////////////////////////////////////////////////////////////////////
@@ -200,7 +188,10 @@
    * colProperties:
    *   {type: 'string', role: 'style'}
    * colValues:
-   *   [[['red', 'black'], ['white', 'blue'], ['green', 'purple']], []]
+   *   [
+   *     [['red', 'black'], ['white', 'blue'], ['green', 'purple']],
+   *     []
+   *   ]
    * addNSpecialColumns will add 2 style columns after the first data column
    * and no columns after the second data column.
    * 
@@ -226,8 +217,11 @@
     }
     nDataCols = dataColNums.length;
     // Check column count
+    // Should never run -- Pyret checks all column counts properly
+    // This should be somewhat caught in the try-catch around setup(restarter),
+    // unless it's been moved
     colValues.forEach((row, rowN) => {
-        if (row.length !== nDataCols) {
+      if (row.length !== nDataCols) {
         throw new Error(`Incorrect column count in row ${rowN}.`
           + ` Expected ${nDataCols}, given ${row.length}.`);
       }
@@ -470,8 +464,6 @@
 
   /////////////////////////////////////////////////////////
   function barChart(globalOptions, rawData) {
-    // c("bar-chart", get(rawData, 'colors'), annNumList);
-
     // Variables and constants 
     const table = get(rawData, 'tab');
     const horizontal = get(rawData, 'horizontal');
