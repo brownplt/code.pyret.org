@@ -372,11 +372,11 @@ less-colors = [list: red, green, blue, orange, purple]
 more-colors = [list: red, green, blue, orange, purple, yellow, indigo, violet]
 
 check "Color Methods: Single Bars":
-  render-image(single-bars.default-color(red)) satisfies is-image
-  render-image(single-bars-neg.default-color(green)) satisfies is-image
-  render-image(single-bars-rep.default-color(violet)) satisfies is-image
-  render-image(single-bars-roughall.default-color(orange)) satisfies is-image
-  render-image(single-bars-roughsome.default-color(cyan)) satisfies is-image
+  render-image(single-bars.color(red)) satisfies is-image
+  render-image(single-bars-neg.color(green)) satisfies is-image
+  render-image(single-bars-rep.color(violet)) satisfies is-image
+  render-image(single-bars-roughall.color(orange)) satisfies is-image
+  render-image(single-bars-roughsome.color(cyan)) satisfies is-image
 
   render-image(single-bars.colors(empty)) satisfies is-image
   render-image(single-bars.colors(single-color)) satisfies is-image

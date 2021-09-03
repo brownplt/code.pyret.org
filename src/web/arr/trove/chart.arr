@@ -966,7 +966,7 @@ data DataSeries:
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
-    default-color: color-method, 
+    color: color-method, 
     colors: color-list-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
