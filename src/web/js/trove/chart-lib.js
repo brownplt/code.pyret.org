@@ -28,18 +28,40 @@
   const cases = RUNTIME.ffi.cases;
 
   var IMAGE = get(IMAGELIB, "internal");
-  
-  const c = function(name, ...argsAndAnns) {
-    RUNTIME.checkArgsInternalInline("image-untyped", name, ...argsAndAnns);
-  };
 
   const ann = function(name, pred) {
     return RUNTIME.makePrimitiveAnn(name, pred);
   };
 
-  const annNumList = ann("List<Number>", function(x) {
-    return false;
-  })
+  var checkListWith = function(checker) {
+    return function(val) {
+      if (!RUNTIME.ffi.isList(val)) return false;
+      var cur = val;
+      var gf = RUNTIME.getField;
+      while (RUNTIME.unwrap(RUNTIME.ffi.isLink(cur))) {
+        var f = gf(cur, "first");
+        if (!checker(f)) {
+          return false;
+        }
+        cur = gf(cur, "rest");
+      }
+      return true;
+    }
+  }
+
+  var checkOptionWith = function(checker) {
+    return function(val) {
+      if (!(RUNTIME.ffi.isNone(val) || RUNTIME.ffi.isSome(val))) return false;
+      var gf = RUNTIME.getField;
+      if (RUNTIME.unwrap(RUNTIME.ffi.isSome(val))) {
+        var f = gf(val, "value");
+        if (!checker(f)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
 
   google.charts.load('current', {'packages' : ['corechart']});
 
@@ -1183,18 +1205,24 @@ ${labelRow}`;
     });
   }
 
-  return RUNTIME.makeObject({
-    'provide-plus-types': RUNTIME.makeObject({
-      types: RUNTIME.makeObject({}),
-      values: RUNTIME.makeObject({
-        'pie-chart': makeFunction(pieChart),
-        'bar-chart': makeFunction(barChart),
-        'multi-bar-chart': makeFunction(multiBarChart),
-        'histogram': makeFunction(histogram),
-        'box-plot': makeFunction(boxPlot),
-        'plot': makeFunction(plot),
-      })
-    })
-  });
+  return RUNTIME.makeModuleReturn(
+    {
+      'pie-chart': makeFunction(pieChart),
+      'bar-chart': makeFunction(barChart),
+      'multi-bar-chart': makeFunction(multiBarChart),
+      'histogram': makeFunction(histogram),
+      'box-plot': makeFunction(boxPlot),
+      'plot': makeFunction(plot),
+    }, 
+    {
+      "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
+      "LoS": ann("List<String>", checkListWith(RUNTIME.isString)), 
+      "LoN": ann("List<Number>", checkListWith(RUNTIME.isNumber)),
+      "LoLoN": ann("List<List<Number>>", checkListWith(checkListWith(RUNTIME.isNumber))),
+      "LoLoLoN": ann("List<List<List<<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
+      "LoOoS": ann("List<Option<String>>", checkListWith(checkOptionWith(RUNTIME.isString))),
+      "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString))))
+    }
+  )
 }
 })

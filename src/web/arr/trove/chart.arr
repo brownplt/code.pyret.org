@@ -49,26 +49,6 @@ data AxisData:
   | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: RawArray<Pointer>)
 end
 
-fun is-all-strings(ss :: List<Any>) -> Boolean: ss.all(is-string) end
-fun is-all-numbers(ns :: List<Any>) -> Boolean: ns.all(is-number) end
-fun is-all-colors(cs :: List<Any>) -> Boolean: cs.all(C.is-Color) end
-fun is-all-list-of(ls :: List<Any>, typ :: (List<Any> -> Boolean)) -> Boolean: ls.all({(l): (is-link(l) or is-empty(l)) and typ(l)}) end
-fun is-all-list-of-numbers(ls :: List<Any>) -> Boolean: is-all-list-of(ls, is-all-numbers) end 
-fun is-all-list-of-list-of-numbers(ls :: List<Any>) -> Boolean: is-all-list-of(ls, is-all-list-of-numbers) end
-fun is-all-option-of(os :: List<Any>, typ :: (Option<Any> -> Boolean)) -> Boolean: os.all({(o): is-none(o) or (is-some(o) and typ(o.value))}) end
-fun is-all-option-of-strings(os :: List<Any>) -> Boolean: is-all-option-of(os, is-string) end 
-fun is-all-list-of-option-of-strings(ls :: List<Any>) -> Boolean: is-all-list-of(ls, is-all-option-of-strings) end
-
-type List-Of-Strings = List<String>%(is-all-strings)
-type List-Of-Numbers = List<Number>%(is-all-numbers)
-type List-Of-Colors = List<I.Color>%(is-all-colors)
-type List-Of-List-Of-Numbers = List<List<Number>>%(is-all-list-of-numbers)
-type List-Of-List-Of-List-Of-Numbers = List<List<List<Number>>>%(is-all-list-of-list-of-numbers)
-type List-Of-Option-Of-Strings = List<Option<String>>%(is-all-option-of-strings)
-type List-Of-List-Of-Option-Of-Strings = List<List<Option<String>>>%(is-all-list-of-option-of-strings)
-
-
-
 ################################################################################
 # HELPERS
 ################################################################################
@@ -183,7 +163,7 @@ where:
 |#
 end
 
-fun prep-axis(values :: List-Of-Numbers) -> {Number; Number}: 
+fun prep-axis(values :: P.LoN) -> {Number; Number}: 
   doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
 
   max-positive-height = fold(num-max, 0, values)
@@ -192,7 +172,7 @@ fun prep-axis(values :: List-Of-Numbers) -> {Number; Number}:
   {max-positive-height; max-negative-height}
 end
 
-fun multi-prep-axis(is-stacked :: String, value-lists :: List-Of-List-Of-Numbers) 
+fun multi-prep-axis(is-stacked :: String, value-lists :: P.LoLoN) 
   -> {Number; Number}: 
   doc: ``` 
        Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
@@ -239,7 +219,7 @@ color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{color: some(color)})
 end
 
-color-list-method = method(self, colors :: List-Of-Colors):
+color-list-method = method(self, colors :: P.LoC):
   cases (List) colors: 
     | empty => self.constr()(self.obj.{colors: none})
     | link(_, _) => 
@@ -359,8 +339,8 @@ default-multi-sort-method = method(self,
 end
 
 axis-pointer-method = method(self,
-    tickValues :: List-Of-Numbers, 
-    tickLabels :: List-Of-Strings) block: 
+    tickValues :: P.LoN, 
+    tickLabels :: P.LoS) block: 
 
   # Lengths of Lists
   TVLen = tickValues.length() 
@@ -482,7 +462,7 @@ stacking-type-method = method(self, stack-type :: String):
 end
 
 annotations-method = method(self,
-    annotations :: List-Of-List-Of-Option-Of-Strings) block:
+    annotations :: P.LoLoOoS) block:
   # Annotations should match previous lengths
   expected-length = raw-array-length(self.obj.annotations)
   given-length = annotations.length()
@@ -520,12 +500,12 @@ annotations-method = method(self,
   self.constr()(self.obj.{annotations: list-to-table2(annotations)})
 end
 
-single-annotations-method = method(self, annotations :: List-Of-Option-Of-Strings):
+single-annotations-method = method(self, annotations :: P.LoOoS):
   self.{annotations-method: annotations-method}
     .annotations-method(annotations.map(link(_, empty)))
 end
 
-intervals-method = method(self, intervals :: List-Of-List-Of-List-Of-Numbers) block:
+intervals-method = method(self, intervals :: P.LoLoLoN) block:
   expected-length = raw-array-length(self.obj.intervals)
   given-length = intervals.length()
   when given-length <> expected-length:
@@ -565,11 +545,11 @@ intervals-method = method(self, intervals :: List-Of-List-Of-List-Of-Numbers) bl
               num-min(curr-axis.axisBottom, interval-min))
 end
 
-single-intervals-method = method(self, intervals :: List-Of-List-Of-Numbers):
+single-intervals-method = method(self, intervals :: P.LoLoN):
   self.{intervals: intervals-method}.intervals(intervals.map(link(_, empty)))
 end
 
-error-bars-method = method(self, errors :: List-Of-List-Of-List-Of-Numbers) block:
+error-bars-method = method(self, errors :: P.LoLoLoN) block:
   doc: ```Given a list of one negative number and one positive number for every
        data point, set intervals to lower and upper error intervals.```
   expected-length = raw-array-length(self.obj.intervals)
@@ -630,7 +610,7 @@ error-bars-method = method(self, errors :: List-Of-List-Of-List-Of-Numbers) bloc
   self.intervals(intervals-at-end)
 end
 
-single-error-bars-method = method(self, errors :: List-Of-List-Of-Numbers) block:
+single-error-bars-method = method(self, errors :: P.LoLoN) block:
   doc: ```Given a list of pairs of one positive and one negative number
        corresponding to upper and lower bounds, produces a chart with error
        bars using the given bounds.```
@@ -1136,7 +1116,7 @@ fun function-plot-from-list(f :: PlottableFunction) -> DataSeries:
   } ^ function-plot-series
 end
 
-fun line-plot-from-list(xs :: List-Of-Numbers, ys :: List-Of-Numbers) -> DataSeries block:
+fun line-plot-from-list(xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('line-plot: xs and ys should have the same length')
   end
@@ -1147,7 +1127,7 @@ fun line-plot-from-list(xs :: List-Of-Numbers, ys :: List-Of-Numbers) -> DataSer
   } ^ line-plot-series
 end
 
-fun scatter-plot-from-list(xs :: List-Of-Numbers, ys :: List-Of-Numbers) -> DataSeries block:
+fun scatter-plot-from-list(xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('scatter-plot: xs and ys should have the same length')
   end
@@ -1159,9 +1139,9 @@ fun scatter-plot-from-list(xs :: List-Of-Numbers, ys :: List-Of-Numbers) -> Data
 end
 
 fun labeled-scatter-plot-from-list(
-  labels :: List-Of-Strings,
-  xs :: List-Of-Numbers,
-  ys :: List-Of-Numbers) -> DataSeries block:
+  labels :: P.LoS,
+  xs :: P.LoN,
+  ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('labeled-scatter-plot: xs and ys should have the same length')
   end
@@ -1178,8 +1158,8 @@ end
 
 fun image-scatter-plot-from-list(
   images :: List<IM.Image>,
-  xs :: List-Of-Numbers,
-  ys :: List-Of-Numbers) -> DataSeries block:
+  xs :: P.LoN,
+  ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('labeled-scatter-plot: xs and ys should have the same length')
   end
@@ -1195,9 +1175,9 @@ fun image-scatter-plot-from-list(
 end
 
 fun exploding-pie-chart-from-list(
-  labels :: List-Of-Strings,
-  values :: List-Of-Numbers,
-  offsets :: List-Of-Numbers
+  labels :: P.LoS,
+  values :: P.LoN,
+  offsets :: P.LoN
 ) -> DataSeries block:
   label-length = labels.length()
   value-length = values.length()
@@ -1224,7 +1204,7 @@ fun exploding-pie-chart-from-list(
   } ^ pie-chart-series
 end
 
-fun pie-chart-from-list(labels :: List-Of-Strings, values :: List-Of-Numbers) -> DataSeries block:
+fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of numbers
        and construct a pie chart
@@ -1244,7 +1224,7 @@ fun pie-chart-from-list(labels :: List-Of-Strings, values :: List-Of-Numbers) ->
   } ^ pie-chart-series
 end
 
-fun bar-chart-from-list(labels :: List-Of-Strings, values :: List-Of-Numbers) -> DataSeries block:
+fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of numbers
        and construct a bar chart
@@ -1280,9 +1260,9 @@ fun bar-chart-from-list(labels :: List-Of-Strings, values :: List-Of-Numbers) ->
 end
 
 fun grouped-bar-chart-from-list(
-  labels :: List-Of-Strings,
-  value-lists :: List-Of-List-Of-Numbers,
-  legends :: List-Of-Strings
+  labels :: P.LoS,
+  value-lists :: P.LoLoN,
+  legends :: P.LoS
 ) -> DataSeries block:
   doc: ```
        Produces a grouped bar chart where labels are bar group names, legends are bar names, 
@@ -1329,9 +1309,9 @@ fun grouped-bar-chart-from-list(
 end
 
 fun stacked-bar-chart-from-list(
-  labels :: List-Of-Strings,
-  value-lists :: List-Of-List-Of-Numbers,
-  legends :: List-Of-Strings
+  labels :: P.LoS,
+  value-lists :: P.LoLoN,
+  legends :: P.LoS
 ) -> DataSeries block:
   doc: ```
        Produces a stacked bar chart where labels are bar stack names, legends are bar names, 
@@ -1376,15 +1356,15 @@ fun stacked-bar-chart-from-list(
   data-series.make-axis(max-positive-height, max-negative-height)
 end
 
-fun box-plot-from-list(values :: List-Of-List-Of-Numbers) -> DataSeries:
+fun box-plot-from-list(values :: P.LoLoN) -> DataSeries:
   doc: "Consunum-maxme values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
   labeled-box-plot-from-list(labels, values)
 end
 
 fun labeled-box-plot-from-list(
-  labels :: List-Of-Strings,
-  values :: List-Of-List-Of-Numbers
+  labels :: P.LoS,
+  values :: P.LoLoN
 ) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of list of numbers
@@ -1445,7 +1425,7 @@ fun labeled-box-plot-from-list(
   } ^ box-plot-series
 end
 
-fun freq-bar-chart-from-list(label :: List-Of-Strings) -> DataSeries:
+fun freq-bar-chart-from-list(label :: P.LoS) -> DataSeries:
   dict = for fold(prev from [SD.string-dict: ], e from label):
     prev.set(e, prev.get(e).or-else(0) + 1)
   end
@@ -1460,7 +1440,7 @@ fun freq-bar-chart-from-list(label :: List-Of-Strings) -> DataSeries:
   bar-chart-from-list(ls.reverse(), vs.reverse())
 end
 
-fun histogram-from-list(values :: List-Of-Numbers) -> DataSeries block:
+fun histogram-from-list(values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume a list of numbers and construct a histogram
        ```
@@ -1470,7 +1450,7 @@ fun histogram-from-list(values :: List-Of-Numbers) -> DataSeries block:
   } ^ histogram-series
 end
 
-fun labeled-histogram-from-list(labels :: List-Of-Strings, values :: List-Of-Numbers) -> DataSeries block:
+fun labeled-histogram-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume a list of strings and a list of numbers and construct a histogram
        ```
