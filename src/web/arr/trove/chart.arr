@@ -287,6 +287,10 @@ sort-method = method(self,
   self.constr()(self.obj.{tab: sorted-table})
 end
 
+default-sort-method = method(self): 
+  self.sort-by({(a, b): a < b}, {(a, b): a == b})
+end
+
 label-sort-method = method(self, 
     cmp :: (String, String -> Boolean), 
     eq :: (String, String -> Boolean)): 
@@ -336,6 +340,10 @@ default-multi-sort-method = method(self,
   sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
   sorted-table = table-sorter(self.obj!tab, get-values, sum, cmp, eq)
   self.constr()(self.obj.{tab: sorted-table})
+end
+
+super-default-multi-sort-method = method(self): 
+  self.sort-by({(a, b): a < b}, {(a, b): a == b})
 end
 
 axis-pointer-method = method(self,
@@ -968,6 +976,7 @@ data DataSeries:
     is-single: true,
     color: color-method, 
     colors: color-list-method,
+    sort: default-sort-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
     add-pointers: axis-pointer-method,
@@ -986,6 +995,7 @@ data DataSeries:
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
+    sort: super-default-multi-sort-method,
     sort-by: default-multi-sort-method,
     sort-by-data: multi-sort-method, 
     sort-by-label: label-sort-method,
