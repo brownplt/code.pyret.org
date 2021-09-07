@@ -320,12 +320,17 @@ body {
   font-size: var(--numbers-font-size);
   text-decoration: var(--numbers-text-decoration);
 }
-.cm-s-default .cm-roughnum { 
+.cm-s-default .cm-roughnum, .cm-s-default .cm-roughnum-start { 
   color: var(--rough-nums);
   font-weight: var(--rough-nums-font-weight);
   font-style: var(--rough-nums-font-style);
   font-size: var(--rough-nums-font-size);
   text-decoration: var(--rough-nums-text-decoration);
+}
+.cm-s-default .cm-roughnum-start {
+  display: inline-block;
+  transform: rotate(-15deg) scale(1.5);
+  margin-right: 0.125em;
 }
 .cm-s-default .cm-bad-number { 
   color: var(--bad-numbers);
