@@ -555,6 +555,39 @@
         return makeImage(img.updatePinhole(img.getWidth() / 2, img.getHeight() / 2));
       });
 
+      f("put-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
+        checkArity(6, arguments, "put-image-align", false);
+        c("place-image-align",
+          maybeImg, annImage,
+          maybeX, annReal,
+          maybeY, annReal,
+          maybePlaceX, annPlaceX,
+          maybePlaceY, annPlaceY,
+          maybeBackground, annImageOrScene);
+        var img = unwrapImage(maybeImg);
+        var background = unwrapImageOrScene(maybeBackground);
+        var x = jsnums.toFixnum(maybeX);
+        var y = background.getHeight() - jsnums.toFixnum(maybeY); // FLIP THE Y COORDINATE HERE
+        var placeX = unwrapPlaceX(maybePlaceX);
+        var placeY = unwrapPlaceY(maybePlaceY);
+        if      (placeX == "left"  ) { x = x + img.getWidth()/2; }
+        else if (placeX == "right" ) { x = x - img.getWidth()/2; }
+        if      (placeY == "top"   ) { y = y + img.getHeight()/2; }
+        else if (placeY == "bottom") { y = y - img.getHeight()/2; }
+
+        if (image.isScene(background)) {
+          return makeImage(background.add(img, x, y));
+        } else {
+          var newScene = image.makeSceneImage(background.getWidth(),
+                                              background.getHeight(),
+                                              [],
+                                              false,
+                                              colorDb.get("transparent"));
+          newScene = newScene.add(background, background.getWidth()/2, background.getHeight()/2);
+          newScene = newScene.add(img, x, y);
+          return makeImage(newScene);
+        }
+      });
       f("place-image-align", function(maybeImg, maybeX, maybeY, maybePlaceX, maybePlaceY, maybeBackground) {
         checkArity(6, arguments, "place-image-align", false);
         c("place-image-align",

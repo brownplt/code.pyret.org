@@ -94,6 +94,7 @@
       "empty-scene": ["arrow", ["Number", "Number"], "Image"],
       "empty-color-scene": ["arrow", ["Number", "Number", "ColorString"], "Image"],
       "put-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
+      "put-image-align": ["arrow", ["Image", "Number", "Number", "XPlace", "YPlace", "Image"], "Image"],
       "translate": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "place-image": ["arrow", ["Image", "Number", "Number", "Image"], "Image"],
       "place-image-align": ["arrow", ["Image", "Number", "Number", "XPlace", "YPlace", "Image"], "Image"],
