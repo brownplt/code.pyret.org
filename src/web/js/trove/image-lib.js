@@ -545,14 +545,14 @@
         ctx.strokeStyle = colorString(this.color);
         ctx.stroke();
       }
-      ctx.beginPath();
-      var tx = ctx.getTransform();
-      ctx.setTransform(1, 0, 0, 0, 1, 0);
-      var pt = this.pinhole.matrixTransform(tx);
-      ctx.ellipse(pt.x, pt.y, 3, 3, 0, 0, Math.PI * 2.0);
-      ctx.closePath();
-      ctx.fillStyle = "red";
-      ctx.fill();
+      // ctx.beginPath();
+      // var tx = ctx.getTransform();
+      // ctx.setTransform(1, 0, 0, 0, 1, 0);
+      // var pt = this.pinhole.matrixTransform(tx);
+      // ctx.ellipse(pt.x, pt.y, 3, 3, 0, 0, Math.PI * 2.0);
+      // ctx.closePath();
+      // ctx.fillStyle = "red";
+      // ctx.fill();
       ctx.restore();
 
       
