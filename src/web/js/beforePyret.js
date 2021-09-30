@@ -1392,13 +1392,8 @@ $(function() {
   }
 
 
-  /*
-  NOTE(joe): this can be re-enabled to work as an embeddable instance. Disabled
-  for current releases
-
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
-  */
 
 });
