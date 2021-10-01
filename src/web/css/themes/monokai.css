@@ -116,7 +116,6 @@ body.monokai {
   --summary-err-left-border:  var(--white);             /* vertical border left of error announcement in summary */
 
   /* Tables */
-  --table-border:       var(--black-lighter-4);   /* border on tables */
   --table-bg:           var(--black-lighter);     /* bg on tables */
   --table-even-rows-bg: var(--black-lighter-2);   /* bg on even rows in table */
   --th-bg:              var(--black);             /* bg on table headers */

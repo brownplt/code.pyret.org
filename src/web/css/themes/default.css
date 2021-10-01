@@ -77,7 +77,6 @@ body.default {
   --summary-err-left-border: hsl(0, 100%, 100%);  /* vertical border left of error announcement in summary */
 
   /* Tables */
-  --table-border: black;          /* border on tables */
   --table-bg: #eee;               /* bg on tables */
   --table-even-rows-bg: #f2f2f2;  /* bg on even rows in table */
   --th-bg: #ddd;                  /* bg on table headers */
