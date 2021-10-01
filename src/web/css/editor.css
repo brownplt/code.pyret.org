@@ -2268,13 +2268,15 @@ table.pyret-table td {
   border-bottom: 1px var(--pyret-table-row-dividers) solid;
 }
 
+/* td/th that are in last column don't have right borders */
 table.pyret-table td:last-child,
 table.pyret-table th:last-child {
   border-right: none;
 }
 
-/* tds in the last row don't have bottom borders */
-table.pyret-table tr:last-child td {
+/* td/th in the last row don't have bottom borders */
+table.pyret-table tr:last-child td,
+table.pyret-table tr:last-child th {
   border-bottom: none;
 }
 
