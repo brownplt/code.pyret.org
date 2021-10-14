@@ -270,7 +270,7 @@ $(function() {
       }
       CM.on("change", function(change) {
         function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
-        if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+        if(change.curOp.changeObjs && change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
         var hasNamespace = firstLineIsNamespace();
         if(hasNamespace) {
           if(namespacemark) { namespacemark.clear(); }
@@ -512,7 +512,12 @@ $(function() {
         return prog.getContents();
       }
       else {
-        return CONTEXT_FOR_NEW_FILES;
+        if(params["get"]["editorContents"] && !(params["get"]["program"] || params["get"]["share"])) {
+          return params["get"]["editorContents"];
+        }
+        else {
+          return CONTEXT_FOR_NEW_FILES;
+        }
       }
     });
   }
@@ -1190,9 +1195,6 @@ $(function() {
     initialGas: 100,
     scrollPastEnd: true,
   });
-  if(params["get"]["editorContents"] && !(params["get"]["program"] || params["get"]["share"])) {
-    CPO.editor.cm.setValue(params["get"]["editorContents"]);
-  }
   CPO.editor.cm.setOption("readOnly", "nocursor");
   CPO.editor.cm.setOption("longLines", new Map());
   function removeShortenedLine(lineHandle) {
@@ -1391,9 +1393,7 @@ $(function() {
     localSettings.setItem("sawSummer2021Message", "saw-summer-2021-message");
   }
 
-
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
-
 });
