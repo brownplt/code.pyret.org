@@ -85,7 +85,7 @@ const shares = [
   { id: "1DzB-KbgWFa20WzB0GDoC6phRItRHIye_", name: "Physics: U4 - Ball Sand Fan (background)",
     expr: "allfansand", modal: 0 },
   { id: "1cgCpS58z1OgEqR_UEWWrm-ohvu8v4wjU", name: "Physics: U4 - Millikan Oil Drop (background)",
-    expr: "F-ELEC(130, 5)", modal: 0 },
+    expr: "balanced-force-practicum-game", modal: 0 },
   
   { id: "1BuOf73aJDcsGGEUnIr5jL5BFAfRHlSLU", name: "Physics: U5 - Falling Coffee Filters (background)",
     expr: "filters", modal: 0 },

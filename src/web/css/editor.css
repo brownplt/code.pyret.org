@@ -268,23 +268,105 @@ body {
   margin: 0;
   vertical-align: top;
 }
-.CodeMirror div.CodeMirror-cursors { z-index: 9500; }
 .CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
-.CodeMirror div.CodeMirror-ruler { z-index: 100; }
 .CodeMirror div.CodeMirror-ruler.hidden { display: none; }
 .cm-s-default.CodeMirror { color: var(--default-text); }
-.cm-s-default .cm-comment { color: var(--comments); }
-.cm-s-default .cm-boolean { color: var(--booleans); }
-.cm-s-default .cm-builtin { color: var(--built-ins); }
-.cm-s-default .cm-function-name { color: var(--function-names); }
-.cm-s-default .cm-variable { color: var(--variables); }
-.cm-s-default .cm-keyword { color: var(--keyword); font-weight: bold; }
-.cm-s-default .cm-number { color: var(--numbers); }
-.cm-s-default .cm-roughnum { color: var(--rough-nums); }
-.cm-s-default .cm-bad-number { color: var(--bad-numbers); font-weight: bold; }
-.cm-s-default .cm-string { color: var(--strings); }
-.cm-s-default .cm-unterminated-string { color: var(--unterm-strings); font-weight: bold; }
-.cm-s-default .cm-type { color: var(--types); }
+.cm-s-default .cm-comment { 
+  color: var(--comments);
+  font-weight: var(--comments-font-weight);
+  font-style: var(--comments-font-style);
+  font-size: var(--comments-font-size);
+  text-decoration: var(--comments-text-decoration);
+}
+.cm-s-default .cm-boolean { 
+  color: var(--booleans);
+  font-weight: var(--booleans-font-weight);
+  font-style: var(--booleans-font-style);
+  font-size: var(--booleans-font-size);
+  text-decoration: var(--booleans-text-decoration);
+}
+.cm-s-default .cm-builtin { 
+  color: var(--built-ins);
+  font-weight: var(--built-ins-font-weight);
+  font-style: var(--built-ins-font-style);
+  font-size: var(--built-ins-font-size);
+  text-decoration: var(--built-ins-text-decoration);
+}
+.cm-s-default .cm-function-name { 
+  color: var(--function-names);
+  font-weight: var(--function-names-font-weight);
+  font-style: var(--function-names-font-style);
+  font-size: var(--function-names-font-size);
+  text-decoration: var(--function-names-text-decoration);
+}
+.cm-s-default .cm-variable { 
+  color: var(--variables);
+  font-weight: var(--variables-font-weight);
+  font-style: var(--variables-font-style);
+  font-size: var(--variables-font-size);
+  text-decoration: var(--variables-text-decoration);
+}
+.cm-s-default .cm-keyword { 
+  color: var(--keyword);
+  font-weight: var(--keyword-font-weight);
+  font-style: var(--keyword-font-style);
+  font-size: var(--keyword-font-size);
+  text-decoration: var(--keyword-text-decoration);
+}
+.cm-s-default .cm-number { 
+  color: var(--numbers);
+  font-weight: var(--numbers-font-weight);
+  font-style: var(--numbers-font-style);
+  font-size: var(--numbers-font-size);
+  text-decoration: var(--numbers-text-decoration);
+}
+.cm-s-default .cm-roughnum { 
+  color: var(--rough-nums);
+  font-weight: var(--rough-nums-font-weight);
+  font-style: var(--rough-nums-font-style);
+  font-size: var(--rough-nums-font-size);
+  text-decoration: var(--rough-nums-text-decoration);
+}
+.cm-s-default .cm-bad-number { 
+  color: var(--bad-numbers);
+  font-weight: var(--bad-numbers-font-weight);
+  font-style: var(--bad-numbers-font-style);
+  font-size: var(--bad-numbers-font-size);
+  text-decoration: var(--bad-numbers-text-decoration);
+}
+.cm-s-default .cm-string { 
+  color: var(--strings);
+  font-weight: var(--strings-font-weight);
+  font-style: var(--strings-font-style);
+  font-size: var(--strings-font-size);
+  text-decoration: var(--strings-text-decoration);
+}
+.cm-s-default .cm-unterminated-string { 
+  color: var(--unterm-strings);
+  font-weight: var(--unterm-strings-font-weight);
+  font-style: var(--unterm-strings-font-style);
+  font-size: var(--unterm-strings-font-size);
+  text-decoration: var(--unterm-strings-text-decoration);
+}
+.cm-s-default .cm-type { 
+  color: var(--types);
+  font-weight: var(--types-font-weight);
+  font-style: var(--types-font-style);
+  font-size: var(--types-font-size);
+  text-decoration: var(--types-text-decoration);
+}
+.rationalNumber {
+  color: var(--rationals);
+  font-weight: var(--rationals-font-weight);
+  font-style: var(--rationals-font-style);
+  font-size: var(--rationals-font-size);
+  text-decoration: var(--rationals-text-decoration);
+}
+
+span.rationalRepeat {
+  text-decoration: overline;
+}
+
 .cptteach-fixed { line-height: 1.5; background: var(--cptteach-bg); }
 
 div.CodeMirror-selected,
@@ -316,9 +398,6 @@ span.CodeMirror-selectedtext {
   border-bottom-right-radius: 0.4ex;
   margin: 0.3ex;
 }
-
-
-
 
 div.CodeMirror span.CodeMirror-matchingbracket-region {
   position: relative;
@@ -947,6 +1026,9 @@ body.smallHeader .replContainer {
 #bonniemenuContents {
   min-width: 250px;
 }
+#viewmenuContents {
+  min-width: 250px;
+}
 #filemenuContents {
   min-width: 200px;
 }
@@ -1173,14 +1255,6 @@ ul.inlineCollection > li > span.label {
 .test-reason, .nestedReason {
  padding-top: 0;
  color: var(--reason-text);
-}
-
-.rationalNumber {
- color: var(--rationals);
-}
-
-span.rationalRepeat {
-  text-decoration: overline;
 }
 
 .replRef {
@@ -2096,17 +2170,59 @@ table {
 
 table.choiceContainer {
    border: 0px;
-   margin: 1em;
+   margin: 0px;
+   background: none;
+   border-radius: 4px;
 }
+
+table.choiceContainer tr {
+  background: none !important;
+}
+table.choiceContainer td {
+  border-bottom: 1px solid #ccc;
+}
+table.choiceContainer tr:last-child td {
+  border-bottom-width: 0px;
+}
+table.choiceContainer .pyret-modal-option-example {
+  padding-right: 0px;
+}
+.pyret-modal-option-example .CodeMirror {
+  border: none;
+  background: transparent;
+  font-size: 90%;
+}
+
+/* make whole cell area occupied by clickable label */
+.modal td.pyret-modal-option-message {
+  padding: 0px;
+}
+
+.pyret-modal-option-message label {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  font-weight: bold;
+  color: var(--run-hover);
+}
+
 div.choiceContainer {
    text-align: left;
+   margin-top: 16px;
 }
 div.choiceContainer input[type=text] {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: var(--font-stack);
   padding: 0.5em;
   font-size: 100%;
-  border: 1px solid #999;
-  border-radius: 2px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
 }
+
 div.choiceContainer .textLabel {
   margin-right: 1em;
 }
@@ -2129,6 +2245,7 @@ div.choiceContainer > button {
 
 th {
     background: var(--th-bg);
+    font-weight: var(--th-font-weight);
 }
 
 th, td {
@@ -2144,6 +2261,13 @@ th:last-child, td:last-child {
 }
 
 tr:nth-child(even){background-color: var(--table-even-rows-bg)}
+
+/* Borders on Pyret table cells */
+table.pyret-table th, 
+table.pyret-table td {
+  border-right: 1px var(--pyret-table-col-dividers) solid;
+  border-bottom: 1px var(--pyret-table-row-dividers) solid;
+}
 
 table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--shadow-color);
@@ -2194,7 +2318,7 @@ table.pyret-row {
 }
 
 .modal-content.narrow {
-  max-width: 500px;
+  max-width: 400px;
 }
 
 /* Add Animation */
@@ -2208,20 +2332,6 @@ table.pyret-row {
   to {top:0; opacity:1}
 }
 
-/* The Submit and Close Buttons */
-/*.modal .submit,
-.modal .close {
-  color: white;
-  font-size: 28px;
-  font-weight: bold;
-  padding: 10px 5px;
-}*/
-
-.modal table {
-  width: 90%;
-  margin: 0 5%;
-}
-
 .modal td {
   padding-top: 10px;
   padding-bottom: 10px;
@@ -2233,6 +2343,16 @@ table.pyret-row {
 .pyret-modal-option-message {
   vertical-align: middle;
 }
+
+.pyret-modal-text tt {
+  font-family: monospace;
+}
+
+.pyret-modal-text input {
+  min-width: 10em;
+  font-family: monospace;
+}
+
 /*
 .submit:hover,
 .submit:focus,
@@ -2301,9 +2421,14 @@ table.pyret-row {
 }
 
 .modal-footer {
-  padding: 2px 20px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: row-reverse;
+}
+
+.modal ul {
+  list-style-type: circle;
+  list-style-position: inside;
 }
 
 .stale.test-results .check-block-failed,
@@ -2429,3 +2554,199 @@ button.controller {
     clip: rect(1px, 1px, 1px, 1px);
 }
 
+
+.useline {
+  opacity: 0.5;
+  user-select: none;
+}
+
+.define-use {
+  cursor: pointer;
+  background-color: #1f9180;
+}
+
+.gutter-question-wrapper {
+  position: absolute;
+}
+
+/* https://codepen.io/c0un7z3r0/pen/LZWXEw */
+.gutter-question-wrapper:hover > .gutter-question-tooltip {
+  display: block;
+}
+
+.gutter-question-tooltip {
+  display: none;
+  position: absolute;
+  left: 3em;
+  top: 2em;
+  font-size: smaller;
+  color: #111;
+  font-family: sans-serif;
+  border-radius: 3px;
+  border-top-left-radius: 0px;
+  margin-top: -3px;
+  margin-left: 1px;
+  background-color: var(--menu-contents-bg);
+  box-shadow: 0px 1px 5px var(--shadow-color);
+  overflow:hidden;
+  min-width: 12em;
+  padding: 0.5em;
+}
+
+.gutter-question {
+  width: 1em;
+  cursor: pointer;
+  display: block;
+}
+
+.help-gutter {
+  width: 0em;
+}
+
+/* default text in the REPL */
+body .repl {
+  color: var(--default-text);
+}
+
+/* succeeding check block */
+body .check-block-success {
+  color: var(--check-success-text);
+}
+
+/* individual passing test within block */
+body .check-block-test.passing-test {
+  color: var(--check-success-text);
+}
+
+/* failing check block */
+body .check-block-failed {
+  color: var(--check-fail-text);
+  border: var(--check-fail-border);
+}
+
+/* header inside failing check block */
+body .check-block-failed .check-block-header {
+  font-weight: var(--check-fail-header-font-weight);
+}
+
+/* individual failing test within block */
+body .check-block-test.failing-test {
+  color: var(--check-fail-text);
+}
+
+/* erroring check block */
+body .check-block-errored {
+  color: var(--check-error-text);
+  border: var(--check-error-border);
+}
+
+/* header inside erroring check block */
+body .check-block-errored .check-block-header {
+  font-weight: var(--check-error-header-font-weight);
+}
+
+/* text output in the REPL */
+body .replTextOutput { color: var(--repl-text-output); }
+
+/* make sure rationals stay one color */
+body .rationalNumber { color: var(--rationals); }
+
+/* lefthand gutters */
+body .cm-s-default .CodeMirror-gutters {
+  background: var(--gutter-bg);
+  border-right: 1px solid var(--gutter-border);
+}
+
+/* line numbers */
+body .cm-s-default .CodeMirror-guttermarker,
+body .cm-s-default .CodeMirror-guttermarker-subtle,
+body .CodeMirror-linenumber {
+  color: var(--line-numbers);
+}
+
+/* >>> in the repl */
+body .repl-prompt,
+body .repl-echo::before,
+body .repl-prompt::before {
+  color: var(--repl-prompts);
+}
+
+/* div containing spinny Pyret and loading messages */
+body #loader {
+  background-color: var(--loader-bg);
+}
+
+/* pirate text on loader screen */
+body #loader > p {
+  color: var(--loader-text);
+}
+
+/* 100 character line ruler */
+body .CodeMirror div.CodeMirror-ruler {
+  border: 1px dashed var(--line-ruler) !important;
+  border-left-style: none !important;
+}
+
+/* scroll bar color */
+body .CodeMirror, body #REPL {
+  color-scheme: var(--scrollbar-theme); 
+}
+
+/* summaries for passed/failed tests at top */
+body .summary-bit.summary-passed { color: var(--summary-pass-text); }
+body .summary-bit.summary-failed { color: var(--summary-fail-text); }
+
+/*  Code appearing in a highlighted span that is *by default* highlighted,
+    but NOT blinking, spotlighted, or selected.
+    (dark themes darken this text for better contrast with light highlight bg) */
+body .CodeMirror 
+.bg-highlighted:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-default-text); }
+
+body .CodeMirror 
+.bg-highlighted.cm-comment:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-comments); }
+
+body .CodeMirror 
+.bg-highlighted.cm-boolean:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-booleans); }
+
+body .CodeMirror 
+.bg-highlighted.cm-builtin:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-built-ins); }
+
+body .CodeMirror 
+.bg-highlighted.cm-function-name:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-function-names); }
+
+body .CodeMirror 
+.bg-highlighted.cm-variable:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-variables); }
+
+body .CodeMirror 
+.bg-highlighted.cm-keyword:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-keyword); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-numbers); }
+
+body .CodeMirror 
+.bg-highlighted.cm-roughnum:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-rough-nums); }
+
+body .CodeMirror 
+.bg-highlighted.cm-bad-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-bad-numbers); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-strings); }
+
+body .CodeMirror 
+.bg-highlighted.cm-unterminated-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-unterm-strings); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-type:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-types); }

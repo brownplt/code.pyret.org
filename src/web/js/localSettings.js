@@ -61,6 +61,7 @@ window.localSettings = function() {
     setItem: function (key, value) {
       var oldValue = cache.get(key);
       set(key, value);
+      cache.set(key, value.toString());
       if(listeners.has(key)) {listeners.get(key)(oldValue, value.toString());}
     }
   };
