@@ -352,7 +352,6 @@ type PlotChartWindowObject = {
   y-axis :: String,
   x-min :: Option<Number>,
   x-max :: Option<Number>,
-  x-max :: Option<Number>,
   y-max :: Option<Number>,
   num-samples :: Number,
 }
