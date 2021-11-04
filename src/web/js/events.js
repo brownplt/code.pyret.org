@@ -20,7 +20,10 @@ function commSetup(config, messageCallback) {
 }
 
 function getCurrentState(config) {
-  return config.CPO.editor.cm.getValue();
+  return {
+    editorContents: config.CPO.editor.cm.getValue(),
+    interactionsSinceLastRun: []
+  };
 }
 
 function makeEvents(config) {
