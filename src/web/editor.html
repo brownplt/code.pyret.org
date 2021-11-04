@@ -449,6 +449,7 @@ function handleGoogLoad() {
 <script>
 var APP_BASE_URL = "{{{ BASE_URL }}}";
 var CSRF_TOKEN = "{{{ CSRF_TOKEN }}}";
+var POSTMESSAGE_ORIGIN = "{{{ POSTMESSAGE_ORIGIN }}}";
 $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   var a = document.createElement("a");
   a.href = options.url;

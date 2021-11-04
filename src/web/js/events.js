@@ -1,5 +1,5 @@
 let counter = 0;
-let targetOrigin = "*"; // TODO(joe): config?
+let targetOrigin = POSTMESSAGE_ORIGIN;
 function commSetup(config, messageCallback) {
   function sendEvent(data) {
     console.log("Sending from CPO ", event);

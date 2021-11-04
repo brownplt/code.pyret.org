@@ -322,7 +322,8 @@ function start(config, onServerReady) {
       CSRF_TOKEN: req.csrfToken(),
       LOG_URL: config.logURL,
       GIT_REV : config.gitRev,
-      GIT_BRANCH: config.gitBranch
+      GIT_BRANCH: config.gitBranch,
+      POSTMESSAGE_ORIGIN: process.env.POSTMESSAGE_ORIGIN
     });
   });
 
