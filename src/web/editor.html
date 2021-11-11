@@ -443,13 +443,15 @@ function handleGoogLoad() {
 <!-- Google API Loader (For picker) -->
 <!-- GAPI Client -->
 <script type="text/javascript" src="https://apis.google.com/js/client.js?onload=handleGoogLoad"></script>
-<script>console.log(window.performance.now())</script>
+<script>
+var POSTMESSAGE_ORIGIN = "{{{ POSTMESSAGE_ORIGIN }}}";
+console.log(window.performance.now());
+</script>
 <script src="js/events.js"></script>
 <script src="js/beforePyret.js"></script>
 <script>
 var APP_BASE_URL = "{{{ BASE_URL }}}";
 var CSRF_TOKEN = "{{{ CSRF_TOKEN }}}";
-var POSTMESSAGE_ORIGIN = "{{{ POSTMESSAGE_ORIGIN }}}";
 $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   var a = document.createElement("a");
   a.href = options.url;
