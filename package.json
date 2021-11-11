@@ -4,7 +4,7 @@
   "description": "A simple IDE for Pyret",
   "main": "index.js",
   "engines": {
-    "node": "16.x"
+    "node": "16.13.0"
   },
   "dependencies": {
     "acorn": "^7.3.1",
