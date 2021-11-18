@@ -19,10 +19,11 @@ function commSetup(config, messageCallback) {
   return { sendEvent };
 }
 
+let interactionsSinceLastRun = []
 function getCurrentState(config) {
   return {
     editorContents: config.CPO.editor.cm.getValue(),
-    interactionsSinceLastRun: []
+    interactionsSinceLastRun: interactionsSinceLastRun
   };
 }
 
@@ -46,8 +47,17 @@ function makeEvents(config) {
   });
 
   config.CPO.onRun(function() {
+    interactionsSinceLastRun = [];
     comm.sendEvent({
       type: "run",
+      currentState: getCurrentState(config)
+    });
+  });
+
+  config.CPO.onInteraction(function(interaction) {
+    interactionsSinceLastRun.push(interaction);
+    comm.sendEvent({
+      type: "runInteraction",
       currentState: getCurrentState(config)
     });
   });
@@ -62,7 +72,14 @@ function makeEvents(config) {
         editor.cm.replaceRange(message.change.text, message.change.from, message.change.to, thisAPI);
         break;
       case "run":
+        interactionsSinceLastRun = [];
         window.RUN_CODE(editor.cm.getValue()); // TODO(don't require editor here, abstract more)
+        break;
+      case "runInteraction":
+        interactionsSinceLastRun.push(src);
+        const interactions = message.currentState.interactionsSinceLastRun;
+        const src = interactions[interactions.length - 1]
+        window.RUN_INTERACTION(src);
         break;
     }
   }

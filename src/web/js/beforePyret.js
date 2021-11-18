@@ -1369,6 +1369,14 @@ $(function() {
     onRunHandlers.forEach(h => h());
   }
 
+  const onInteractionHandlers = [];
+  function onInteraction(handler) {
+    onInteractionHandlers.push(handler);
+  }
+  function triggerOnInteraction(interaction) {
+    onInteractionHandlers.forEach(h => h(interaction));
+  }
+
   programLoaded.fin(function() {
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
@@ -1384,6 +1392,8 @@ $(function() {
   CPO.sayAndForget = sayAndForget;
   CPO.onRun = onRun;
   CPO.triggerOnRun = triggerOnRun;
+  CPO.onInteraction = onInteraction;
+  CPO.triggerOnInteraction = triggerOnInteraction;
 
   if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
     const message = $("<span>");
