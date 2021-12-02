@@ -37,48 +37,55 @@ function makeEvents(config) {
   // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
   const thisAPI = "@ignore-this-api";
 
-  editor.cm.on("change", function(instance, change) {
-    if(change.origin === thisAPI) { return; }
+  editor.cm.on("change", function (instance, change) {
+    if (change.origin === thisAPI) {
+      return;
+    }
     comm.sendEvent({
       type: "change",
       change: change,
-      currentState: getCurrentState(config)
+      currentState: getCurrentState(config),
     });
   });
 
-  config.CPO.onRun(function() {
+  config.CPO.onRun(function () {
     interactionsSinceLastRun = [];
     comm.sendEvent({
       type: "run",
-      currentState: getCurrentState(config)
+      currentState: getCurrentState(config),
     });
   });
 
-  config.CPO.onInteraction(function(interaction) {
+  config.CPO.onInteraction(function (interaction) {
     interactionsSinceLastRun.push(interaction);
     comm.sendEvent({
       type: "runInteraction",
-      currentState: getCurrentState(config)
+      currentState: getCurrentState(config),
     });
   });
 
   function onmessage(message) {
     console.log("received: ", message);
-    switch(message.type) {
+    switch (message.type) {
       case "setContents":
         editor.cm.setValue(message.text);
         break;
       case "change":
-        editor.cm.replaceRange(message.change.text, message.change.from, message.change.to, thisAPI);
+        editor.cm.replaceRange(
+          message.change.text,
+          message.change.from,
+          message.change.to,
+          thisAPI
+        );
         break;
       case "run":
         interactionsSinceLastRun = [];
         window.RUN_CODE(editor.cm.getValue()); // TODO(don't require editor here, abstract more)
         break;
       case "runInteraction":
-        interactionsSinceLastRun.push(src);
         const interactions = message.currentState.interactionsSinceLastRun;
-        const src = interactions[interactions.length - 1]
+        const src = interactions[interactions.length - 1];
+        interactionsSinceLastRun.push(src);
         window.RUN_INTERACTION(src);
         break;
     }
