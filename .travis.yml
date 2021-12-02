@@ -46,8 +46,8 @@ services:
   - xvfb
 before_install:
 - . $HOME/.nvm/nvm.sh
-- nvm install stable
-- nvm use stable
+- nvm install 16.13.0
+- nvm use 16.13.0
 - npm install -g heroku-cli
 - npm install -g chromedriver
 - export CHROME_BIN=chromium-browser
