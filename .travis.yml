@@ -35,8 +35,8 @@ before_script:
 - sleep 3
 script:
 - sleep 3
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then heroku local:run node_modules/.bin/mocha; fi
-- if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then heroku local:run node_modules/.bin/mocha --grep modules --invert; fi
+#- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then heroku local:run node_modules/.bin/mocha; fi
+#- if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then heroku local:run node_modules/.bin/mocha --grep modules --invert; fi
 #addons:
 #  sauce_connect: true
 #- mocha --harmony
