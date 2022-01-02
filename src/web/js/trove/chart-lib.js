@@ -594,6 +594,7 @@
     if (colors_list.length < default_colors.length) {
       default_colors.splice(0, colors_list.length, ...colors_list);
       colors_list = default_colors;
+      colors_list = colors_list.slice(0, legends.length);
     }
 
     // Initializes the Columns of the data 
