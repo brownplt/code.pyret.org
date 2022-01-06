@@ -3,27 +3,37 @@ let targetOrigin = POSTMESSAGE_ORIGIN;
 function commSetup(config, messageCallback) {
   function sendEvent(data) {
     console.log("Sending from CPO ", event);
-    config.sendPort.postMessage({
-      protocol: 'pyret',
-      messageNumber: counter++,
-      timestamp: window.performance.now(),
-      data: data
-    }, targetOrigin);
+    config.sendPort.postMessage(
+      {
+        protocol: "pyret",
+        messageNumber: counter++,
+        timestamp: window.performance.now(),
+        data: data,
+      },
+      targetOrigin
+    );
   }
-  config.receivePort.onmessage = function(event) {
-    if(typeof event.data === 'string' && event.data.indexOf("setImmediate") === 0) { return; }
+  config.receivePort.onmessage = function (event) {
+    if (
+      typeof event.data === "string" &&
+      event.data.indexOf("setImmediate") === 0
+    ) {
+      return;
+    }
     console.log("Message received: ", event);
-    if(event.data.protocol !== 'pyret') { return; }
+    if (event.data.protocol !== "pyret") {
+      return;
+    }
     messageCallback(event.data.data);
   };
   return { sendEvent };
 }
 
-let interactionsSinceLastRun = []
+let interactionsSinceLastRun = [];
 function getCurrentState(config) {
   return {
     editorContents: config.CPO.editor.cm.getValue(),
-    interactionsSinceLastRun: interactionsSinceLastRun
+    interactionsSinceLastRun: interactionsSinceLastRun,
   };
 }
 
@@ -86,11 +96,20 @@ function makeEvents(config) {
         const interactions = message.currentState.interactionsSinceLastRun;
         const src = interactions[interactions.length - 1];
         interactionsSinceLastRun.push(src);
-        const dontFocus = (e) => { e.preventDefault(); e.stopPropagation(); };
-        $(window).on("focusin", dontFocus);
+        const dontFocus = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        };
+        // $(window.document).on("focusin", dontFocus);
+        $(".repl-prompt")
+          .find(".CodeMirror")[0]
+          .CodeMirror.setOption("readOnly", "nocursor");
         const result = window.RUN_INTERACTION(src);
         result.fin(() => {
-          $(window).off("focusin", dontFocus);
+          // $(window.document).off("focusin", dontFocus);
+          $(".repl-prompt")
+            .find(".CodeMirror")[0]
+            .CodeMirror.setOption("readOnly", false);
         });
         break;
     }
