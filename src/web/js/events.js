@@ -86,7 +86,12 @@ function makeEvents(config) {
         const interactions = message.currentState.interactionsSinceLastRun;
         const src = interactions[interactions.length - 1];
         interactionsSinceLastRun.push(src);
-        window.RUN_INTERACTION(src);
+        const dontFocus = (e) => { e.preventDefault(); e.stopPropagation(); };
+        $(window).on("focusin", dontFocus);
+        const result = window.RUN_INTERACTION(src);
+        result.fin(() => {
+          $(window).off("focusin", dontFocus);
+        });
         break;
     }
   }

@@ -857,7 +857,7 @@
         var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
-        doneRendering.fin(afterRun(false));
+        return doneRendering.fin(afterRun(false, uiOptions.synthetic));
       };
 
       var runner = function(code, synthetic) {
@@ -896,7 +896,7 @@
         var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
-        doneRendering.fin(afterRun(CM));
+        return doneRendering.fin(afterRun(CM, synthetic));
       };
 
       var CM = CPO.makeEditor(prompt, {

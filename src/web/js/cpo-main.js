@@ -337,7 +337,7 @@
         doRunAction(src, true);
       };
       window.RUN_INTERACTION = CPO.RUN_INTERACTION = function(src) {
-        replWidget.runner(src, true);
+        return replWidget.runner(src, true);
       };
 
       /*
