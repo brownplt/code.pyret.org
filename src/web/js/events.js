@@ -96,10 +96,6 @@ function makeEvents(config) {
         const interactions = message.currentState.interactionsSinceLastRun;
         const src = interactions[interactions.length - 1];
         interactionsSinceLastRun.push(src);
-        const dontFocus = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        };
         $(".repl-prompt")
           .find(".CodeMirror")[0]
           .CodeMirror.setOption("readOnly", "nocursor");
