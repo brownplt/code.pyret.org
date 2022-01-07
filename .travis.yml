@@ -1,7 +1,7 @@
 language: ruby
 sudo: required
 rvm:
-  - 2.2
+  - 2.6
 env:
   global:
   - TEST_LOC="sauce"
