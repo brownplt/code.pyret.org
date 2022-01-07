@@ -21,6 +21,8 @@ import either as E
 import string-dict as SD
 import valueskeleton as VS
 import statistics as ST
+import color as C
+import render-error-display as RED
 
 ################################################################################
 # CONSTANTS
@@ -31,12 +33,21 @@ FUNCTION-POINT-SIZE = 0.1
 DEFAULT-RANGE = {-10; 10}
 
 ################################################################################
-# TYPE SYNONYMS
+# DATA + TYPE SYNONYMS
 ################################################################################
 
 type PlottableFunction = (Number -> Number)
 type Posn = RawArray<Number>
 type TableIntern = RawArray<RawArray<Any>>
+data Pointer: 
+  | pointer(label :: String, value :: Number)
+end
+data SciNumber: 
+  | sci-notation(coeff :: Number, exponent :: Number, base :: Number)
+end
+data AxisData: 
+  | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: RawArray<Pointer>)
+end
 
 ################################################################################
 # HELPERS
@@ -75,11 +86,129 @@ fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
   map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
+fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
+  builtins.raw-array-from-list(table.map(builtins.raw-array-from-list))
+end
+
+fun table2-to-list<A>(table :: RawArray<RawArray<A>>) -> List<List<A>>:
+  raw-array-to-list(table).map(raw-array-to-list)
+end
+
 fun get-vs-from-img(s :: String, raw-img :: IM.Image) -> VS.ValueSkeleton:
   I.color(190, 190, 190, 0.75)
     ^ IM.text-font(s, 72, _, "", "modern", "normal", "bold", false)
     ^ IM.overlay-align("center", "bottom", _, raw-img)
     ^ VS.vs-value
+end
+
+fun table-sorter<A,B>(
+    t :: TableIntern, 
+    value-getter :: (RawArray -> A), 
+    scorer :: (A -> B), 
+    cmp :: (B, B -> Boolean), 
+    eq :: (B, B -> Boolean)): 
+  doc: ```
+       General Data Table Sorting Function:
+       Value-getter grabs the Column of the Data table you want to use to sort
+       Scorer Modifies the values in that Column to what you want to sort-by
+       ```
+  list-of-rows = t ^ raw-array-to-list
+
+  scored-values = 
+    map(
+      {(row): {row; row ^ value-getter ^ scorer}}, 
+      list-of-rows)
+
+  sorted-by-score = 
+    scored-values.sort-by(
+      {(row-score, oth-row-score): cmp(row-score.{1}, oth-row-score.{1})}, 
+      {(row-score, oth-row-score): eq(row-score.{1}, oth-row-score.{1})})
+
+  sorted-rows = map({(row-score): row-score.{0}}, sorted-by-score)
+  sorted-rows ^ builtins.raw-array-from-list
+end
+
+fun num-to-scientific(base :: Number) -> (Number -> SciNumber) block: 
+  doc: ```
+       Produces a function that takes a number and turns it into it's scientific representation. 
+       Calculates the resulting Coeff, Exponent where number = coeff * base ^ Exponent.
+       Currently only works with bases > 1.
+       ```
+  when base <= 1: 
+    raise("Num-to-scientific: Only defined on bases > 1")
+  end
+  
+  fun convert(n :: Number):
+    if num-is-rational(n) and (n == 0): sci-notation(0, 0, base)
+    else:
+      pow = num-floor(num-log(num-abs(n)) / num-log(base))
+      c = n / num-expt(base, pow)
+      sci-notation(c, pow, base)
+    end
+  end
+  convert
+#|
+where: 
+  num-to-scientific(10)(0) is sci-notation(0, 0, 10)
+  num-to-scientific(10)(3.214) is sci-notation(3.214, 0, 10)
+  num-to-scientific(10)(513) is sci-notation(5.13, 2, 10)
+  num-to-scientific(10)(-23) is sci-notation(-2.3, 1, 10)
+  num-to-scientific(10)(0.00123) is sci-notation(1.23, -3, 10)
+  num-to-scientific(10)(-0.0231) is sci-notation(-2.31, -2, 10)
+  num-to-scientific(2)(256) is sci-notation(1, 8, 2)
+  num-to-scientific(1) raises "Only defined on bases > 1"
+  num-to-scientific(0.32) raises "Only defined on bases > 1"
+  num-to-scientific(0) raises "Only defined on bases > 1"
+  num-to-scientific(-50) raises "Only defined on bases > 1"
+|#
+end
+
+fun prep-axis(values :: P.LoN) -> {Number; Number}: 
+  doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
+
+  max-positive-height = fold(num-max, 0, values)
+  max-negative-height = fold(num-min, 0, values)
+
+  {max-positive-height; max-negative-height}
+end
+
+fun multi-prep-axis(is-stacked :: String, value-lists :: P.LoLoN) 
+  -> {Number; Number}: 
+  doc: ``` 
+       Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
+       ```
+
+  ask:
+    | is-stacked == 'none' then: 
+      # Find the tallest bar in the entire group 
+      # We know that the value lists have at least one value since we check for that when initializing the value list data. 
+      positive-max-groups = map({(l): fold(num-max, l.first, l)}, value-lists)
+      negative-max-groups = map({(l): fold(num-min, l.first, l)}, value-lists)
+      max-positive-height = fold(num-max, 0, positive-max-groups)
+      max-negative-height = fold(num-min, 0, negative-max-groups)
+      {max-positive-height; max-negative-height}
+
+    | is-stacked == 'absolute' then: 
+      # Find height of stack using sum functions
+      sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+      positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
+      negative-only-sum = {(l :: List<Number>): sum(filter({(e): e <= 0}, l))}
+      positive-sums = map(positive-only-sum, value-lists)
+      negative-sums = map(negative-only-sum, value-lists)
+      max-positive-height = fold(num-max, 0, positive-sums)
+      max-negative-height = fold(num-min, 0, negative-sums)
+      {max-positive-height; max-negative-height}
+
+    | otherwise: 
+      has-pos = any({(l): any({(e): e > 0}, l)}, value-lists)
+      has-neg = any({(l): any({(e): e < 0}, l)}, value-lists)
+      ask: 
+        | has-pos and has-neg then: {1; -1}
+        | has-pos then: {1; 0}
+        | has-neg then: {0; -1}
+        | otherwise: {1; -1}
+      end
+  end
 end
 
 ################################################################################
@@ -88,6 +217,25 @@ end
 
 color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{color: some(color)})
+end
+
+color-list-method = method(self, colors :: P.LoC):
+  cases (List) colors: 
+    | empty => self.constr()(self.obj.{colors: none})
+    | link(_, _) => 
+      block:
+        each({(c :: I.Color): c}, colors)
+        self.constr()(self.obj.{colors: some(colors ^ builtins.raw-array-from-list)})
+      end
+  end
+end
+
+pointer-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{pointer-color: some(color)})
+end
+
+interval-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{default-interval-color: some(color)})
 end
 
 legend-method = method(self, legend :: String):
@@ -120,6 +268,401 @@ end
 
 y-max-method = method(self, y-max :: Number):
   self.constr()(self.obj.{y-max: some(y-max)})
+end
+
+sort-method = method(self, 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-value(row :: RawArray) -> Number: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in Number form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1)
+  end
+  
+  identity = {(x): x}
+  sorted-table = table-sorter(self.obj!tab, get-value, identity, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+default-sort-method = method(self): 
+  self.sort-by({(a, b): a < b}, {(a, b): a == b})
+end
+
+label-sort-method = method(self, 
+    cmp :: (String, String -> Boolean), 
+    eq :: (String, String -> Boolean)): 
+  
+  fun get-label(row :: RawArray) -> String: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in Number form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 0)
+  end
+  
+  identity = {(x): x}
+  sorted-table = table-sorter(self.obj!tab, get-label, identity, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+multi-sort-method = method(self, 
+    scorer :: (List<Number> -> Number), 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-values(row :: RawArray) -> List<Number>: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in List form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1) ^ raw-array-to-list
+  end
+  
+  sorted-table = table-sorter(self.obj!tab, get-values, scorer, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+default-multi-sort-method = method(self, 
+    cmp :: (Number, Number -> Boolean), 
+    eq :: (Number, Number -> Boolean)): 
+
+  fun get-values(row :: RawArray) -> List<Number>: 
+    doc:```
+        VALUE GETTER: Gets the values from the row of data in List form
+        ASSUMES the row of data is ordered by [LABEL, VALUES, OTHER]
+        ```
+    raw-array-get(row, 1) ^ raw-array-to-list
+  end
+  
+  sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
+  sorted-table = table-sorter(self.obj!tab, get-values, sum, cmp, eq)
+  self.constr()(self.obj.{tab: sorted-table})
+end
+
+super-default-multi-sort-method = method(self): 
+  self.sort-by({(a, b): a < b}, {(a, b): a == b})
+end
+
+axis-pointer-method = method(self,
+    tickValues :: P.LoN, 
+    tickLabels :: P.LoS) block: 
+
+  # Lengths of Lists
+  TVLen = tickValues.length() 
+  TLLen = tickLabels.length()
+  distinctTVLen = distinct(tickValues).length()
+
+  # Edge Case Error Checking
+  when not(distinctTVLen == TVLen): 
+    raise('add-pointers: pointers cannot overlap')
+  end
+  when not(TVLen == TLLen): 
+    raise('add-pointers: pointers values and names should have the same length')
+  end
+
+  ticks = fold2({(acc, e1, e2): link(pointer(e1, e2), acc)}, empty, tickLabels, tickValues)
+  self.constr()(self.obj.{pointers: some(distinct(ticks) ^ builtins.raw-array-from-list)})
+end
+
+make-axis-data-method = method(self,  pos-bar-height :: Number, neg-bar-height :: Number):
+  step-types = [list: 0, 0.2, 0.25, 0.5, 1, 2]
+
+  # Turn the numbers into Scientific Numbers
+  scientific-b10 = num-to-scientific(10)
+  pos-sci = scientific-b10(pos-bar-height)
+  neg-sci = scientific-b10(neg-bar-height)
+
+  # Calculate the step distance between gridlines
+  pos-step = step-types.filter({(n): n >= num-abs(pos-sci.coeff / 9)}).get(0) * num-expt(10, pos-sci.exponent)
+  neg-step = step-types.filter({(n): n >= num-abs(neg-sci.coeff / 9)}).get(0) * num-expt(10, neg-sci.exponent)
+  step = num-max(pos-step, neg-step)
+  step-sci = scientific-b10(step)
+
+  # Use step distance to calculate Axis Properties
+  name-tick = 
+    {(n): 
+      ask:
+      | (step-sci.coeff == 2.5) and (step-sci.exponent <= 0) then: 
+        pointer(num-to-string-digits(n, 2 - step-sci.exponent), n)
+      | step-sci.exponent < 0 then: 
+        pointer(num-to-string-digits(n, 1 - step-sci.exponent), n)
+      | otherwise: 
+        pointer(num-to-string(n), n)
+      end}
+
+  axisTop = num-max(0, step * num-ceiling(pos-bar-height / step))
+  axisBottom = num-min(0, step * num-floor(neg-bar-height / step))
+  pos-ticks = map(name-tick, range-by(0, axisTop + step, step))
+  neg-ticks = map(name-tick, range-by(0, axisBottom - step, -1 * step))
+  ticks = distinct(pos-ticks + neg-ticks) ^ builtins.raw-array-from-list
+  self.constr()(
+    self.obj.{axisdata: some(axis-data(axisTop, axisBottom, ticks))}
+    )
+end
+
+format-axis-data-method = method(self, format-func :: (Number -> String)):
+  cases (Option) self.obj!axisdata: 
+    | none => 
+      raise("Axis properties initialized improperly. Please report as a bug!")
+    | some(ad) => 
+      ad-tick-list = ad.ticks ^ raw-array-to-list
+      new-ticks = map({(p): pointer(format-func(p.value), p.value)}, ad-tick-list) ^ builtins.raw-array-from-list
+      self.constr()(self.obj.{axisdata: some(axis-data(ad.axisTop, ad.axisBottom, new-ticks))})
+  end
+end
+
+scale-method = method(self, scale-fun :: (Number -> Number)): 
+  exact-sf = {(n): n ^ scale-fun ^ num-to-rational}
+  list-of-rows = self.obj!tab ^ raw-array-to-list
+  scale-row = {(row): [raw-array: raw-array-get(row, 0), raw-array-get(row, 1) ^ exact-sf]}
+  scaled-tab = map(scale-row, list-of-rows) ^ builtins.raw-array-from-list
+  scaled-self = self.constr()(self.obj.{tab: scaled-tab})
+  scaled-values = map({(row): raw-array-get(row, 1) ^ exact-sf}, list-of-rows)
+  {max-positive-height; max-negative-height} = prep-axis(scaled-values)
+
+  scaled-self.make-axis(max-positive-height, max-negative-height)
+end
+
+multi-scale-method = method(self, scale-fun :: (Number -> Number)): 
+  exact-sf = {(n): n ^ scale-fun ^ num-to-rational}
+  list-of-rows = self.obj!tab ^ raw-array-to-list
+  get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
+  scale-row = {(row): [raw-array: raw-array-get(row, 0), map(exact-sf, row ^ get-values) ^ builtins.raw-array-from-list]}
+  scaled-tab = map(scale-row, list-of-rows) ^ builtins.raw-array-from-list
+  scaled-self = self.constr()(self.obj.{tab: scaled-tab})
+  scaled-values = map({(row): map(exact-sf, row ^ get-values)}, list-of-rows)
+  {max-positive-height; max-negative-height} = 
+    multi-prep-axis(scaled-self.obj!is-stacked, scaled-values)
+
+  scaled-self.make-axis(max-positive-height, max-negative-height)
+end
+
+stacking-type-method = method(self, stack-type :: String): 
+  get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
+  value-lists = map(get-values, self.obj!tab ^ raw-array-to-list)
+  ask: 
+    | stack-type == 'absolute' then: 
+      new-self = self.constr()(self.obj.{is-stacked: 'absolute'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('absolute', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+    | stack-type == 'relative' then: 
+      new-self = self.constr()(self.obj.{is-stacked: 'relative'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('relative', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+    | stack-type == 'percent' then:
+      new-self = self.constr()(self.obj.{is-stacked: 'percent'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('percent', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+              .format-axis({(n): num-to-string(n * 100) + "%"})
+    | stack-type == 'none' then: 
+      new-self = self.constr()(self.obj.{is-stacked: 'none'})
+      {max-positive-height; max-negative-height} = 
+        multi-prep-axis('none', value-lists)
+      new-self.make-axis(max-positive-height, max-negative-height)
+    | otherwise: raise('stacking-type: type must be absolute, relative, percent, or none')
+  end
+end
+
+annotations-method = method(self,
+    annotations :: P.LoLoOoS) block:
+  # Annotations should match previous lengths
+  expected-length = raw-array-length(self.obj.annotations)
+  given-length = annotations.length()
+  when given-length <> expected-length:
+    raise("annotations: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  
+  block:
+    each({(l :: List<Option<String>>): 
+      each({(o :: Option<String>): 
+        cases (Option) o: 
+          | none => true
+          | some(s :: String) => true
+        end}, l)}, annotations) 
+    
+    for each3(expected from raw-array-to-list(self.obj.annotations),
+        given from annotations,
+        index from range(0, annotations.length())):
+      shadow expected-length = raw-array-length(expected)
+      shadow given-length = given.length()
+      when given-length <> expected-length:
+        raise("annotations: length mismatch on row "
+            + num-to-string(index)
+            + ". Expected "
+            + num-to-string(expected-length)
+            + ", received "
+            + num-to-string(given-length))
+      end
+    end
+  end
+
+  self.constr()(self.obj.{annotations: list-to-table2(annotations)})
+end
+
+single-annotations-method = method(self, annotations :: P.LoOoS):
+  self.{annotations-method: annotations-method}
+    .annotations-method(annotations.map(link(_, empty)))
+end
+
+intervals-method = method(self, intervals :: P.LoLoLoN) block:
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = intervals.length()
+  when given-length <> expected-length:
+    raise("intervals: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  block:
+    each({(l :: List<List<Number>>): 
+      each({(l1 :: List<Number>): 
+        each({(n :: Number): true}, l1)}, l)}, intervals) 
+    for each3(expected from raw-array-to-list(self.obj.intervals),
+        given from intervals,
+        index from range(0, intervals.length())):
+      shadow expected-length = raw-array-length(expected)
+      shadow given-length = given.length()
+      when given-length <> expected-length:
+        raise("intervals: length mismatch on row "
+            + num-to-string(index)
+            + ". Expected "
+            + num-to-string(expected-length)
+            + ", received "
+            + num-to-string(given-length))
+      end
+    end
+  end
+  raw-intervals = intervals.map(_.map(raw-array-from-list)) ^ list-to-table2
+  flatten = {(lol): fold({(acc, elm): acc + elm}, empty, lol)}
+  curr-axis = self.obj!axisdata.value
+  interval-max = fold(num-max, 0, flatten(flatten(intervals)))
+  interval-min = fold(num-min, 0, flatten(flatten(intervals)))
+  self.constr()(
+    self.obj.{intervals: raw-intervals})
+            .make-axis(
+              num-max(curr-axis.axisTop, interval-max), 
+              num-min(curr-axis.axisBottom, interval-min))
+end
+
+single-intervals-method = method(self, intervals :: P.LoLoN):
+  self.{intervals: intervals-method}.intervals(intervals.map(link(_, empty)))
+end
+
+error-bars-method = method(self, errors :: P.LoLoLoN) block:
+  doc: ```Given a list of one negative number and one positive number for every
+       data point, set intervals to lower and upper error intervals.```
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = errors.length()
+  when given-length <> expected-length:
+    raise("error-bars: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  block:
+    each({(l :: List<List<Number>>): 
+      each({(l1 :: List<Number>): 
+        each({(n :: Number): true}, l1)}, l)}, errors) 
+    for each3(expected from raw-array-to-list(self.obj.intervals),
+        given from errors,
+        index from range(0, errors.length())):
+      block:
+        shadow expected-length = raw-array-length(expected)
+        shadow given-length = given.length()
+        row-str = num-to-string(index)
+        when given-length <> expected-length:
+          raise("error-bars: length mismatch on row " + row-str
+              + ". Expected "
+              + num-to-string(expected-length)
+              + ", received "
+              + num-to-string(given-length))
+        end
+        for each2(pair from given, column from range(0, given.length())):
+          block:
+            col-str = num-to-string(column)
+            when pair.length() <> 2:
+              raise("error-bars: on row " + row-str + " column " + col-str
+                  + ", 2 intervals must be given.")
+            end
+            when pair.get(0) > 0:
+              raise("error-bars: on row " + row-str + " column " + col-str
+                  + ", first pair must be non-positive.")
+            end
+            when pair.get(1) < 0:
+              raise("error-bars: on row " + row-str + " column " + col-str
+                  + ", second pair must be non-negative.")
+            end
+          end
+        end
+      end
+    end
+  end
+  # Defer to intervals-method
+  raw-table-data = raw-array-map(raw-array-get(_, 1), self.obj.tab)
+  table-data = table2-to-list(raw-table-data)
+  intervals-at-end = for map2(data-row from table-data,
+      error-row from errors):
+    for map2(data-col from data-row, error-bounds from error-row):
+      error-bounds.map(_ + data-col)
+    end
+  end
+  self.intervals(intervals-at-end)
+end
+
+single-error-bars-method = method(self, errors :: P.LoLoN) block:
+  doc: ```Given a list of pairs of one positive and one negative number
+       corresponding to upper and lower bounds, produces a chart with error
+       bars using the given bounds.```
+  expected-length = raw-array-length(self.obj.intervals)
+  given-length = errors.length()
+  when given-length <> expected-length:
+    raise("error-bars: input dimensions mismatch. Expected length "
+        + num-to-string(expected-length)
+        + ", received "
+        + num-to-string(given-length))
+  end
+  block:
+      each({(l :: List<Number>): 
+        each({(n :: Number): true}, l)}, errors)
+
+    for each3(expected from raw-array-to-list(self.obj.intervals),
+        given from errors,
+        index from range(0, errors.length())):
+      block:
+        row-str = num-to-string(index)
+        when given.length() <> 2:
+          raise("error-bars: on row " + row-str
+              + ", 2 intervals must be given (received "
+              + num-to-string(given.length()) + ").")
+        end
+        when given.get(0) > 0:
+          raise("error-bars: on row " + row-str
+              + ", first pair must be non-positive.")
+        end
+        when given.get(1) < 0:
+          raise("error-bars: on row " + row-str
+              + ", second pair must be non-negative.")
+        end
+      end
+    end
+  end
+  # Defer to intervals-method
+  raw-table-data = raw-array-map(raw-array-get(_, 1), self.obj.tab)
+  table-data = raw-array-to-list(raw-table-data)
+  intervals-at-end = for map2(data-val from table-data,
+      error from errors):
+    error.map(_ + data-val)
+  end
+  self.intervals(intervals-at-end)
 end
 
 min-method = method(self, min :: Number):
@@ -207,12 +750,51 @@ default-pie-chart-series = {}
 
 type BarChartSeries = {
   tab :: TableIntern,
-  legends :: RawArray<String>,
-  has-legend :: Boolean,
+  axisdata :: Option<AxisData>, 
+  color :: Option<I.Color>,
+  colors :: Option<RawArray<I.Color>>,
+  pointers :: Option<RawArray<Pointer>>, 
+  pointer-color :: Option<I.Color>, 
+  horizontal :: Boolean,
+  annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
+  default-interval-color :: Option<I.Color>
 }
 
-default-bar-chart-series = {}
+default-bar-chart-series = {
+  color: none,
+  colors: none,
+  pointers: none, 
+  pointer-color: none,
+  axisdata: none, 
+  horizontal: false, 
+  default-interval-color: none
+}
 
+type MultiBarChartSeries = { 
+  tab :: TableIntern,
+  axisdata :: Option<AxisData>,
+  legends :: RawArray<String>,
+  is-stacked :: String,
+  colors :: Option<RawArray<I.Color>>,
+  pointers :: Option<RawArray<Pointer>>, 
+  pointer-color :: Option<I.Color>, 
+  horizontal :: Boolean,
+  annotations :: RawArray<RawArray<Option<String>>>,
+  intervals :: RawArray<RawArray<RawArray<Number>>>,
+  default-interval-color :: Option<I.Color>
+}
+
+default-multi-bar-chart-series = {
+  is-stacked: 'none',
+  colors: some([raw-array: C.red, C.blue, C.green, C.orange, C.purple, C.black, C.brown]),
+  pointers: none, 
+  pointer-color: none,
+  axisdata: none, 
+  horizontal: false, 
+  default-interval-color: none
+}
+  
 type HistogramSeries = {
   tab :: TableIntern,
   bin-width :: Option<Number>,
@@ -395,7 +977,45 @@ data DataSeries:
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
+    color: color-method, 
+    colors: color-list-method,
+    sort: default-sort-method,
+    sort-by: sort-method,
+    sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method,
+    pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method, 
+    make-axis: make-axis-data-method, 
+    scale: scale-method, 
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
+    annotations: single-annotations-method,
+    intervals: single-intervals-method,
+    error-bars: single-error-bars-method,
+    interval-color: interval-color-method, 
     constr: {(): bar-chart-series},
+  | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
+    is-single: true,
+    colors: color-list-method,
+    sort: super-default-multi-sort-method,
+    sort-by: default-multi-sort-method,
+    sort-by-data: multi-sort-method, 
+    sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method, 
+    pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method,
+    make-axis: make-axis-data-method,
+    scale: multi-scale-method,
+    stacking-type: stacking-type-method, 
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
+    annotations: annotations-method,
+    intervals: intervals-method,
+    error-bars: error-bars-method,
+    interval-color: interval-color-method, 
+    constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
     is-single: true,
     constr: {(): box-plot-series},
@@ -425,7 +1045,11 @@ data DataSeries:
     end,
 sharing:
   method _output(self):
-    get-vs-from-img("DataSeries", render-chart(self).get-image())
+    cases (E.Either) run-task({(): get-vs-from-img("DataSeries", render-chart(self).get-image())}):
+      | left(y) => y
+      | right(err) => VS.vs-seq([list: VS.vs-str("Could not render this DataSeries because... \n"), 
+                                       VS.vs-str(RED.display-to-string(exn-unwrap(err).render-reason(), tostring, empty))])
+    end
   end
 end
 
@@ -507,7 +1131,7 @@ fun function-plot-from-list(f :: PlottableFunction) -> DataSeries:
   } ^ function-plot-series
 end
 
-fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries block:
+fun line-plot-from-list(xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('line-plot: xs and ys should have the same length')
   end
@@ -518,7 +1142,7 @@ fun line-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries bl
   } ^ line-plot-series
 end
 
-fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries block:
+fun scatter-plot-from-list(xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('scatter-plot: xs and ys should have the same length')
   end
@@ -530,9 +1154,9 @@ fun scatter-plot-from-list(xs :: List<Number>, ys :: List<Number>) -> DataSeries
 end
 
 fun labeled-scatter-plot-from-list(
-  labels :: List<String>,
-  xs :: List<Number>,
-  ys :: List<Number>) -> DataSeries block:
+  labels :: P.LoS,
+  xs :: P.LoN,
+  ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('labeled-scatter-plot: xs and ys should have the same length')
   end
@@ -549,8 +1173,8 @@ end
 
 fun image-scatter-plot-from-list(
   images :: List<IM.Image>,
-  xs :: List<Number>,
-  ys :: List<Number>) -> DataSeries block:
+  xs :: P.LoN,
+  ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('labeled-scatter-plot: xs and ys should have the same length')
   end
@@ -566,9 +1190,9 @@ fun image-scatter-plot-from-list(
 end
 
 fun exploding-pie-chart-from-list(
-  labels :: List<String>,
-  values :: List<Number>,
-  offsets :: List<Number>
+  labels :: P.LoS,
+  values :: P.LoN,
+  offsets :: P.LoN
 ) -> DataSeries block:
   label-length = labels.length()
   value-length = values.length()
@@ -595,7 +1219,7 @@ fun exploding-pie-chart-from-list(
   } ^ pie-chart-series
 end
 
-fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataSeries block:
+fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of numbers
        and construct a pie chart
@@ -615,61 +1239,147 @@ fun pie-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataS
   } ^ pie-chart-series
 end
 
-fun bar-chart-from-list(labels :: List<String>, values :: List<Number>) -> DataSeries block:
+fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of numbers
        and construct a bar chart
        ```
+  # Type Checking
+  values.each(check-num)
+  labels.each(check-string)
+
+  # Constants
   label-length = labels.length()
   value-length = values.length()
+  rational-values = map(num-to-rational, values)
+
+  # Edge Case Error Checking
+  when value-length == 0:
+    raise("bar-chart: can't have empty data")
+  end
   when label-length <> value-length:
     raise('bar-chart: labels and values should have the same length')
   end
-  values.each(check-num)
-  labels.each(check-string)
-  value-lists = values.map({(v): [list: v]})
-  default-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    legends: [raw-array: ''],
-    has-legend: false,
+
+  {max-positive-height; max-negative-height} = prep-axis(rational-values)
+
+  data-series = default-bar-chart-series.{
+    tab: to-table2(labels, rational-values),
+    axis-top: max-positive-height,
+    axis-bottom: max-negative-height,
+    annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
   } ^ bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
 fun grouped-bar-chart-from-list(
-  labels :: List<String>,
-  value-lists :: List<List<Number>>,
-  legends :: List<String>
+  labels :: P.LoS,
+  value-lists :: P.LoLoN,
+  legends :: P.LoS
 ) -> DataSeries block:
+  doc: ```
+       Produces a grouped bar chart where labels are bar group names, legends are bar names, 
+       and value-lists contains the data of each bar seperated into seperate groups 
+       ```
+  # Constants
   label-length = labels.length()
   value-length = value-lists.length()
-  when label-length == 0:
+  legend-length = legends.length() 
+  rational-values = value-lists.map({(row): map(num-to-rational, row)})
+
+  # Edge Case Error Checking 
+  when value-length == 0:
     raise("grouped-bar-chart: can't have empty data")
+  end
+  when legend-length == 0: 
+    raise("grouped-bar-chart: can't have empty legends")
   end
   when label-length <> value-length:
     raise('grouped-bar-chart: labels and values should have the same length')
   end
-  when legends.length() <> value-lists.first.length():
+  when any({(group): legend-length <> group.length()}, value-lists):
     raise('grouped-bar-chart: labels and legends should have the same length')
   end
+  
+  # Typechecking each input
   value-lists.each(_.each(check-num))
   labels.each(check-string)
   legends.each(check-string)
-  default-bar-chart-series.{
-    tab: to-table2(labels, value-lists.map(builtins.raw-array-from-list)),
-    legends: legends ^ builtins.raw-array-from-list,
-    has-legend: true,
-  } ^ bar-chart-series
+
+ {max-positive-height; max-negative-height} = multi-prep-axis('none', rational-values)
+
+  # Constructing the Data Series
+  data-series = default-multi-bar-chart-series.{
+    tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
+    axis-top: max-positive-height, 
+    axis-bottom: max-negative-height,
+    legends: builtins.raw-array-from-list(legends),
+    annotations: list-to-table2(value-lists.map(_.map({(_): none}))),
+    intervals: list-to-table2(value-lists.map(_.map({(_): [raw-array: ]}))),
+  } ^ multi-bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
 end
 
-fun box-plot-from-list(values :: List<List<Number>>) -> DataSeries:
-  doc: "Consume values, a list of list of numbers and construct a box chart"
+fun stacked-bar-chart-from-list(
+  labels :: P.LoS,
+  value-lists :: P.LoLoN,
+  legends :: P.LoS
+) -> DataSeries block:
+  doc: ```
+       Produces a stacked bar chart where labels are bar stack names, legends are bar names, 
+       and value-lists contains the data of each bar seperated into seperate stacks 
+       ```
+  # Constants
+  label-length = labels.length()
+  value-length = value-lists.length()
+  legend-length = legends.length() 
+  rational-values = value-lists.map({(row): map(num-to-rational, row)})
+
+  # Edge Case Error Checking 
+  when value-length == 0:
+    raise("stacked-bar-chart: can't have empty data")
+  end
+  when legend-length == 0: 
+    raise("stacked-bar-chart: can't have empty legends")
+  end
+  when label-length <> value-length:
+    raise('stacked-bar-chart: labels and values should have the same length')
+  end
+  when any({(stack): legend-length <> stack.length()}, value-lists):
+    raise('stacked-bar-chart: labels and legends should have the same length')
+  end
+  
+  # Typechecking the input 
+  value-lists.each(_.each(check-num))
+  labels.each(check-string)
+  legends.each(check-string)
+
+  {max-positive-height; max-negative-height} = multi-prep-axis('absolute', rational-values)
+
+  # Constructing the Data Series
+  data-series = default-multi-bar-chart-series.{
+    tab: to-table2(labels, rational-values.map(builtins.raw-array-from-list)),
+    legends: builtins.raw-array-from-list(legends),
+    annotations: list-to-table2(value-lists.map(_.map({(_): none}))),
+    intervals: list-to-table2(value-lists.map(_.map({(_): [raw-array: ]}))),
+    is-stacked: 'absolute'
+  } ^ multi-bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
+end
+
+fun box-plot-from-list(values :: P.LoLoN) -> DataSeries:
+  doc: "Consunum-maxme values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
   labeled-box-plot-from-list(labels, values)
 end
 
 fun labeled-box-plot-from-list(
-  labels :: List<String>,
-  values :: List<List<Number>>
+  labels :: P.LoS,
+  values :: P.LoLoN
 ) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of list of numbers
@@ -730,7 +1440,7 @@ fun labeled-box-plot-from-list(
   } ^ box-plot-series
 end
 
-fun freq-bar-chart-from-list(label :: List<String>) -> DataSeries:
+fun freq-bar-chart-from-list(label :: P.LoS) -> DataSeries:
   dict = for fold(prev from [SD.string-dict: ], e from label):
     prev.set(e, prev.get(e).or-else(0) + 1)
   end
@@ -745,7 +1455,7 @@ fun freq-bar-chart-from-list(label :: List<String>) -> DataSeries:
   bar-chart-from-list(ls.reverse(), vs.reverse())
 end
 
-fun histogram-from-list(values :: List<Number>) -> DataSeries block:
+fun histogram-from-list(values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume a list of numbers and construct a histogram
        ```
@@ -755,7 +1465,7 @@ fun histogram-from-list(values :: List<Number>) -> DataSeries block:
   } ^ histogram-series
 end
 
-fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) -> DataSeries block:
+fun labeled-histogram-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume a list of strings and a list of numbers and construct a histogram
        ```
@@ -824,6 +1534,13 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.bar-chart(self, obj)
         end
       } ^ bar-chart-window
+    | multi-bar-chart-series(obj) => 
+      default-bar-chart-window-object.{
+        method render(self):
+          _ = check-render-y-axis(self)
+          P.multi-bar-chart(self, obj)
+        end
+      } ^ bar-chart-window
     | box-plot-series(obj) =>
       default-box-plot-chart-window-object.{
         method render(self):
@@ -853,6 +1570,23 @@ where:
       [list: 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
       [list: 1, 1.2, 2, 3, 10, 3, 6, -1])) does-not-raise
   render-now(from-list.grouped-bar-chart(
+      [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
+      [list:
+        [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
+        [list: 2027307,3277946,1420518,2454721,7017731,5656528,2472223],
+        [list: 1208495,2141490,1058031,1999120,5355235,5120254,2607672],
+        [list: 1140516,1938695,925060,1607297,4782119,4746856,3187797],
+        [list: 894368,1558919,725973,1311479,3596343,3239173,1575308],
+        [list: 737462,1345341,679201,1203944,3157759,3414001,1910571]],
+      [list:
+        'Under 5 Years',
+        '5 to 13 Years',
+        '14 to 17 Years',
+        '18 to 24 Years',
+        '25 to 44 Years',
+        '45 to 64 Years',
+        '65 Years and Over'])) does-not-raise
+  render-now(from-list.stacked-bar-chart(
       [list: 'CA', 'TX', 'NY', 'FL', 'IL', 'PA'],
       [list:
         [list: 2704659,4499890,2159981,3853788,10604510,8819342,4114496],
@@ -1208,13 +1942,13 @@ from-list = {
   image-scatter-plot: image-scatter-plot-from-list,
   scatter-plot: scatter-plot-from-list,
   function-plot: function-plot-from-list,
-
   histogram: histogram-from-list,
   labeled-histogram: labeled-histogram-from-list,
   pie-chart: pie-chart-from-list,
   exploding-pie-chart: exploding-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
+  stacked-bar-chart: stacked-bar-chart-from-list,
   freq-bar-chart: freq-bar-chart-from-list,
   labeled-box-plot: labeled-box-plot-from-list,
   box-plot: box-plot-from-list,
