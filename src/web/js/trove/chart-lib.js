@@ -670,7 +670,7 @@
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
-      mutatorgraphs: [axesNameMutator, yAxisRangeMutator],
+      mutators: [axesNameMutator, yAxisRangeMutator],
     };
   }
 
@@ -1232,7 +1232,7 @@ ${labelRow}`;
       "LoS": ann("List<String>", checkListWith(RUNTIME.isString)), 
       "LoN": ann("List<Number>", checkListWith(RUNTIME.isNumber)),
       "LoLoN": ann("List<List<Number>>", checkListWith(checkListWith(RUNTIME.isNumber))),
-      "LoLoLoN": ann("List<List<List<<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
+      "LoLoLoN": ann("List<List<List<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
       "LoOoS": ann("List<Option<String>>", checkListWith(checkOptionWith(RUNTIME.isString))),
       "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString))))
     }

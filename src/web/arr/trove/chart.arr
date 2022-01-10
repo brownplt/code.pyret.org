@@ -48,6 +48,12 @@ end
 data AxisData: 
   | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: RawArray<Pointer>)
 end
+data StackType:
+  | absolute
+  | relative
+  | percent
+  | grouped
+end
 
 ################################################################################
 # HELPERS
@@ -172,14 +178,14 @@ fun prep-axis(values :: P.LoN) -> {Number; Number}:
   {max-positive-height; max-negative-height}
 end
 
-fun multi-prep-axis(is-stacked :: String, value-lists :: P.LoLoN) 
+fun multi-prep-axis(is-stacked :: StackType, value-lists :: P.LoLoN) 
   -> {Number; Number}: 
   doc: ``` 
        Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
        ```
 
   ask:
-    | is-stacked == 'none' then: 
+    | is-stacked == grouped then: 
       # Find the tallest bar in the entire group 
       # We know that the value lists have at least one value since we check for that when initializing the value list data. 
       positive-max-groups = map({(l): fold(num-max, l.first, l)}, value-lists)
@@ -188,7 +194,7 @@ fun multi-prep-axis(is-stacked :: String, value-lists :: P.LoLoN)
       max-negative-height = fold(num-min, 0, negative-max-groups)
       {max-positive-height; max-negative-height}
 
-    | is-stacked == 'absolute' then: 
+    | is-stacked == absolute then: 
       # Find height of stack using sum functions
       sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
       positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
@@ -440,30 +446,30 @@ multi-scale-method = method(self, scale-fun :: (Number -> Number)):
   scaled-self.make-axis(max-positive-height, max-negative-height)
 end
 
-stacking-type-method = method(self, stack-type :: String): 
+stacking-type-method = method(self, stack-type :: StackType): 
   get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
   value-lists = map(get-values, self.obj!tab ^ raw-array-to-list)
   ask: 
-    | stack-type == 'absolute' then: 
+    | stack-type == absolute then: 
       new-self = self.constr()(self.obj.{is-stacked: 'absolute'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('absolute', value-lists)
+        multi-prep-axis(absolute, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
-    | stack-type == 'relative' then: 
+    | stack-type == relative then: 
       new-self = self.constr()(self.obj.{is-stacked: 'relative'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('relative', value-lists)
+        multi-prep-axis(relative, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
-    | stack-type == 'percent' then:
+    | stack-type == percent then:
       new-self = self.constr()(self.obj.{is-stacked: 'percent'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('percent', value-lists)
+        multi-prep-axis(percent, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
               .format-axis({(n): num-to-string(n * 100) + "%"})
-    | stack-type == 'none' then: 
+    | stack-type == grouped then: 
       new-self = self.constr()(self.obj.{is-stacked: 'none'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('none', value-lists)
+        multi-prep-axis(grouped, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
     | otherwise: raise('stacking-type: type must be absolute, relative, percent, or none')
   end
@@ -1352,7 +1358,7 @@ fun stacked-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
-  {max-positive-height; max-negative-height} = multi-prep-axis('absolute', rational-values)
+  {max-positive-height; max-negative-height} = multi-prep-axis(absolute, rational-values)
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
