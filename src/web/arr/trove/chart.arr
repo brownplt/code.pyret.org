@@ -471,7 +471,7 @@ stacking-type-method = method(self, stack-type :: StackType):
       {max-positive-height; max-negative-height} = 
         multi-prep-axis(grouped, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
-    | otherwise: raise('stacking-type: type must be absolute, relative, percent, or none')
+    | otherwise: raise('stacking-type: type must be absolute, relative, percent, or grouped')
   end
 end
 
@@ -1309,7 +1309,7 @@ fun grouped-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
- {max-positive-height; max-negative-height} = multi-prep-axis('none', rational-values)
+ {max-positive-height; max-negative-height} = multi-prep-axis(grouped, rational-values)
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
