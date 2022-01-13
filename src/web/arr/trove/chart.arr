@@ -169,6 +169,17 @@ where:
 |#
 end
 
+fun string-to-stacktype(s :: String) -> StackType: 
+  doc: ```Converts ['none', 'absolute', relative', percent'] to their respective stacktype```
+  ask: 
+    | string-equal(s, 'none') then: grouped
+    | string-equal(s, 'absolute') then: absolute
+    | string-equal(s, 'percent') then: percent
+    | string-equal(s, 'relative') then: relative
+    | otherwise: raise('type must be absolute, relative, percent, or none')
+  end
+end
+
 fun prep-axis(values :: P.LoN) -> {Number; Number}: 
   doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
 
@@ -441,7 +452,7 @@ multi-scale-method = method(self, scale-fun :: (Number -> Number)):
   scaled-self = self.constr()(self.obj.{tab: scaled-tab})
   scaled-values = map({(row): map(exact-sf, row ^ get-values)}, list-of-rows)
   {max-positive-height; max-negative-height} = 
-    multi-prep-axis(scaled-self.obj!is-stacked, scaled-values)
+    multi-prep-axis(string-to-stacktype(scaled-self.obj!is-stacked), scaled-values)
 
   scaled-self.make-axis(max-positive-height, max-negative-height)
 end
