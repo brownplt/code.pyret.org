@@ -89,18 +89,6 @@ function start(config, onServerReady) {
     res.end();
   });
 
-  app.get("/js/log.js", function(req, res) {
-    res.set("Content-Type", "application/javascript");
-    res.render(__dirname + "/../build/web/js/log.js", {
-      LOG_URL: config.logURL,
-      GIT_REV : config.gitRev,
-      GIT_BRANCH: config.gitBranch
-    }, function(_, js) {
-      res.set("Content-Type", "application/javascript");
-      res.send(js);
-    });
-  });
-
   app.use(express.static(__dirname + "/../build/web/"));
 
   app.use(csrf());
@@ -115,19 +103,35 @@ function start(config, onServerReady) {
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
     res.render("index.html", {
+      PYRET: process.env.PYRET,
       LEFT_LINK: content,
       GOOGLE_API_KEY: config.google.apiKey,
-      BASE_URL: config.baseUrl
+      BASE_URL: config.baseUrl,
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
     });
   });
 
   app.get("/login", function(req, res) {
     var redirect = req.param("redirect") || "/editor";
+    var scopesParam = req.param("scopes") === "full" ? "full" : "default";
+    var scopes = scopesParam === "full" ? googleAuth.FULL_OAUTH_SCOPES : googleAuth.DEFAULT_OAUTH_SCOPES;
     if(!(req.session && req.session["user_id"])) {
-      res.redirect(auth.getAuthUrl(redirect));
+      req.session["scopes"] = scopesParam;
+      res.redirect(auth.getAuthUrl(redirect, scopes));
     }
     else {
-      res.redirect(redirect);
+      var oldscopes = req.session["scopes"];
+      // If the user was on the default (or had no param set), then trigger
+      // the auth page to upgrade them
+      if(scopesParam === "full" && oldscopes !== scopesParam) {
+        req.session["scopes"] = scopesParam;
+        res.redirect(auth.getAuthUrl(redirect, scopes));
+      }
+      else {
+        res.redirect(redirect);
+      }
     }
   });
 
@@ -312,9 +316,14 @@ function start(config, onServerReady) {
 
   app.get("/editor", function(req, res) {
     res.render("editor.html", {
+      PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
-      CSRF_TOKEN: req.csrfToken()
+      CSRF_TOKEN: req.csrfToken(),
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch,
+      POSTMESSAGE_ORIGIN: process.env.POSTMESSAGE_ORIGIN
     });
   });
 

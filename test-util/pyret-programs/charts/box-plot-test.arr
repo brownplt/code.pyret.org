@@ -30,7 +30,7 @@ img3 = modified-box-plot(test2, "pounds")
 
 check:
   img2 satisfies is-image
-  color-at-position(img2, 539, 265) is%(within-rel(0.02)) color(119, 119, 119, 1)
+  color-at-position(img2, 539, 265) is%(within-rel(0.02)) color(119, 119, 119, 0.4)
   img3 satisfies is-image
   color-at-position(img3, 539, 265) is color(129, 129, 129, 0.30196078431372548)
 end
