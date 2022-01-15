@@ -18,7 +18,6 @@
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
   'use strict';
-
   // Load google library via editor.html to avoid loading issues
 
   //const google = _google.google;
@@ -324,6 +323,27 @@
     addNSpecialColumns(table, colProperties, get(rawData, 'intervals'));
   }
 
+  function selectMultipleMutator(options, globalOptions, _) {
+    const multiple = get(globalOptions, 'multiple');
+    if (multiple) {
+      $.extend(options, {selectionMode: 'multiple'});
+    } else {
+      $.extend(options, {selectionMode: 'single'});
+    }
+  }
+
+  function backgroundMutator(options, globalOptions, _) {
+    const backgroundColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'backgroundColor'), {
+      none: function () {
+        return 'white';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+    $.extend(options, {backgroundColor: backgroundColor});
+  }
+
   function axesNameMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
@@ -401,6 +421,21 @@
 
   function pieChart(globalOptions, rawData) {
     const table = get(rawData, 'tab');
+    const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
+                            '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
+                            '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
+                            '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
+    var colors_list = get_colors_list(rawData);
+    if (colors_list.length < default_colors.length) {
+      default_colors.splice(0, colors_list.length, ...colors_list);
+      colors_list = default_colors;
+      colors_list = colors_list.slice(0, table.length);
+    }
+    const threeD = get(rawData, 'threeD');
+    const piehole = toFixnum(get(rawData, 'piehole'));
+    const startingAngle = toFixnum(get(rawData, 'startingAngle'));
+    const collapseThreshold = toFixnum(get(rawData, 'collapseThreshold'));
+
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Value');
@@ -408,10 +443,14 @@
     return {
       data: data,
       options: {
-        slices: table.map(row => ({offset: toFixnum(row[2])})),
+        slices: table.map((row, i) => ({colors: colors_list[i], offset: toFixnum(row[2])})),
         legend: {
           alignment: 'end'
-        }
+        },
+        is3D: threeD,
+        pieHole: piehole,
+        pieStartAngle: startingAngle,
+        sliceVisibilityThreshold: collapseThreshold,
       },
       chartType: google.visualization.PieChart,
       onExit: defaultImageReturn,
@@ -571,7 +610,7 @@
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator],
+      mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
     };
   }
 
@@ -670,7 +709,7 @@
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator],
+      mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
     };
   }
 
@@ -786,7 +825,7 @@
       options: options,
       chartType: chartType,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator],
+      mutators: [backgroundMutator, axesNameMutator],
     };
   }
 
@@ -862,7 +901,7 @@
       options: options,
       chartType: google.visualization.Histogram,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
+      mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
     };
   }
 
@@ -936,12 +975,84 @@ ${labelRow}`;
             lineWidth: 0,
             dataOpacity: hasImage ? 0 : 1,
           });
+        } else if (i - scatters.length < lines.length) {
+          $.extend(seriesOptions, {
+            pointSize: hasImage ? 0.1 : toFixnum(get(p, 'point-size')),
+            dataOpacity: hasImage ? 0 : 1,
+          });
         }
         return seriesOptions;
       }),
       legend: {position: 'bottom',},
-      crosshair: {trigger: 'selection'}
+      crosshair: {trigger: 'selection'},
     };
+
+    if (lines.length != 0) {
+      const curveType = get(lines[0], 'curved');
+      const lineWidth = toFixnum(get(lines[0], 'lineWidth'));
+
+      const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(lines[0], 'trendlineType'), {
+        none: function () {
+          return null;
+        },
+        some: function (type) {
+          return type;
+        }
+      });
+
+      const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(lines[0], 'trendlineColor'), {
+        none: function () {
+          return 'green';
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+      });
+
+      const trendlineWidth = toFixnum(get(lines[0], 'trendlineWidth'));
+      const trendlineOpacity = toFixnum(get(lines[0], 'trendlineOpacity'));
+      const trendlineDegree = toFixnum(get(lines[0], 'trendlineDegree'));
+      const dashedLine = get(lines[0], 'dashedLine');
+      const dashlineStyle = get(lines[0], 'dashlineStyle');
+      const pointSize = toFixnum(get(lines[0], 'point-size'));
+      
+
+      options['curveType'] = curveType;
+      options['lineWidth'] = lineWidth;
+      options['pointSize'] = pointSize;
+      
+      if (trendlineType != null) {
+        options['trendlines'] = {
+          0: {
+            type: trendlineType,
+            color: trendlineColor,
+            lineWidth: trendlineWidth,
+            opacity: trendlineOpacity,
+            showR2: true,
+            visibleInLegend: true
+          }
+        }
+      }
+      if (trendlineType == "polynomial") {
+        options['trendlines'][0]['degree'] = trendlineDegree;
+      }
+      if (dashedLine) {
+        options['lineDashStyle'] = dashlineStyle;
+      }
+    }
+    const pointshapeType = get(combined[0], 'pointshapeType');
+    const pointshapeSides = toFixnum(get(combined[0], 'pointshapeSides'));
+    const pointshapeDent = toFixnum(get(combined[0], 'pointshapeDent'));
+    const pointshapeRotation = toFixnum(get(combined[0], 'pointshapeRotation'));
+  
+    if (pointshapeType != 'circle') {
+      options['pointShape'] = {
+        type: 'star',
+        sides: pointshapeSides, 
+        dent: pointshapeDent,
+        rotation: pointshapeRotation,
+      }
+    }
 
     if (isTrue(get(globalOptions, 'interact'))) {
       $.extend(options, {
@@ -959,7 +1070,7 @@ ${labelRow}`;
       onExit: (restarter, result) => {
         let svg = result.chart.container.querySelector('svg');
         let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(svg_xml);
+        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
         imageReturn(
           dataURI,
           restarter,
@@ -968,7 +1079,9 @@ ${labelRow}`;
       mutators: [axesNameMutator,
                  yAxisRangeMutator,
                  xAxisRangeMutator,
-                 gridlinesMutator],
+                 gridlinesMutator,
+                 backgroundMutator, 
+                 selectMultipleMutator],
       overlay: (overlay, restarter, chart, container) => {
         overlay.css({
           width: '30%',

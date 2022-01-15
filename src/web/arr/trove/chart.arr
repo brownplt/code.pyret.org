@@ -54,6 +54,16 @@ data StackType:
   | percent
   | grouped
 end
+data TrendlineType:
+  | no-line
+  | linear
+  | exponential
+  | polynomial
+end
+data PointShape: 
+  | circleShape
+  | regularPolygon(sides :: NumInteger, dent :: Number)
+end
 
 ################################################################################
 # HELPERS
@@ -180,6 +190,16 @@ fun string-to-stacktype(s :: String) -> StackType:
   end
 end
 
+fun trendline-to-string(t :: TrendlineType) -> Option<String>:
+  doc: ```Converts [linear, exponential, polynomial] to their respective strings```
+  cases (TrendlineType) t: 
+    | no-line => none
+    | linear => some("linear")
+    | exponential => some("exponential")
+    | polynomial => some("polynomial")
+  end
+end
+
 fun prep-axis(values :: P.LoN) -> {Number; Number}: 
   doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
 
@@ -253,6 +273,101 @@ end
 
 interval-color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{default-interval-color: some(color)})
+end
+
+line-width-method = method(self, lineWidth :: Number):
+  self.constr()(self.obj.{lineWidth: lineWidth})
+end
+
+curve-method = method(self, curved :: Boolean):
+  if curved: self.constr()(self.obj.{curved: "function"})
+  else: self.constr()(self.obj.{curved: "none"})
+  end
+end
+
+labels-method = method(self, labels :: P.LoS): 
+  block:
+    when self.obj!ps.length() <> labels.length():
+      raise('scatter-plot: xs and labels should have the same length')
+    end
+    self.constr()(self.obj.{ps: map2({(arr, label): raw-array-set(arr, 2, label)}, self.obj!ps, labels)})
+  end
+end
+
+image-labels-method = method(self, images :: List<IM.Image>):
+  block:
+    when self.obj!ps.length() <> images.length():
+      raise('scatter-plot: xs and images should have the same length')
+    end
+    self.constr()(self.obj.{ps: map2({(arr, image): raw-array-set(arr, 3, image)}, self.obj!ps, images)})
+  end
+end
+
+explode-method = method(self, offsets :: P.LoN):
+  self.constr()(self.obj.{tab: raw-array-from-list(map2({(arr, image): raw-array-set(arr, 2, image)}, raw-array-to-list(self.obj!tab), offsets))})
+end
+
+threeD-method = method(self, threeD :: Boolean):
+  self.constr()(self.obj.{threeD: threeD})
+end
+
+piehole-method = method(self, piehole :: Number):
+  if (piehole < 0) or (piehole > 1): raise("piehole: Value must be between 0 and 1")
+  else: self.constr()(self.obj.{piehole: piehole})
+  end
+end
+
+starting-angle-method = method(self, startingAngle :: Number):
+  self.constr()(self.obj.{startingAngle: startingAngle})
+end
+
+collapse-threshold-method = method(self, collapseThreshold :: Number):
+  self.constr()(self.obj.{collapseThreshold: collapseThreshold})
+end
+
+trendline-type-method = method(self, trendlineType :: TrendlineType):
+  self.constr()(self.obj.{trendlineType: trendline-to-string(trendlineType)})
+end
+
+trendline-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{trendlineColor: some(color)})
+end
+
+trendline-width-method = method(self, lineWidth :: Number):
+  self.constr()(self.obj.{trendlineWidth: lineWidth})
+end
+
+trendline-opacity-method = method(self, opacity :: Number):
+  if (opacity < 0) or (opacity > 1): raise("Trendline opacity: Value must be between 0 and 1")
+  else: self.constr()(self.obj.{trendlineOpacity: opacity})
+  end
+end
+
+trendline-polynomial-degree-method = method(self, degree :: NumInteger):
+  self.constr()(self.obj.{trendlineDegree: degree})
+end
+
+dashed-line-method = method(self, dashed :: Boolean):
+  self.constr()(self.obj.{dashedLine: dashed})
+end
+
+dashed-line-style-method = method(self, dashed-line-style :: List<NumInteger>):
+  self.constr()(self.obj.{dashlineStyle: raw-array-from-list(dashed-line-style)})
+end
+
+pointshape-method = method(self, pointshape :: PointShape):
+  cases (PointShape) pointshape: 
+    | circleShape => self.constr()(self.obj.{pointshapeType: "circle"})
+    | regularPolygon(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: dent / 2})
+  end
+end
+
+select-multiple-method = method(self, multiple :: Boolean):
+  self.constr()(self.obj.{multiple: multiple})
+end
+
+background-color-method = method(self, color :: I.Color):
+  self.constr()(self.obj.{backgroundColor: some(color)})
 end
 
 legend-method = method(self, legend :: String):
@@ -761,9 +876,20 @@ default-box-plot-series = {
 
 type PieChartSeries = {
   tab :: TableIntern,
+  colors :: Option<RawArray<I.Color>>,
+  threeD :: Boolean,
+  piehole :: Number,
+  startingAngle :: Number,
+  collapseThreshold :: Number,
 }
 
-default-pie-chart-series = {}
+default-pie-chart-series = {
+  colors: none,
+  threeD: false,
+  piehole: 0,
+  startingAngle: 0,
+  collapseThreshold: 0,
+}
 
 type BarChartSeries = {
   tab :: TableIntern,
@@ -829,11 +955,39 @@ type LinePlotSeries = {
   ps :: List<Posn>,
   color :: Option<I.Color>,
   legend :: String,
+  curved :: String,
+  lineWidth :: Number,
+  trendlineType :: Option<String>,
+  trendlineColor :: Option<I.Color>,
+  trendlineWidth :: Number, 
+  trendlineOpacity :: Number, 
+  trendlineDegree :: NumInteger, 
+  dashedLine :: Boolean, 
+  dashlineStyle :: RawArray<NumInteger>, 
+  point-size :: Number, 
+  pointshapeType :: String, 
+  pointshapeSides :: NumInteger, 
+  pointshapeDent :: Number, 
+  pointshapeRotation :: Number,
 }
 
 default-line-plot-series = {
   color: none,
   legend: '',
+  curved: 'none',
+  lineWidth: 2,
+  trendlineType: none, 
+  trendlineColor: none, 
+  trendlineWidth: 3, 
+  trendlineOpacity: 0.3,
+  trendlineDegree: 3,  
+  dashedLine: false,
+  dashlineStyle: [raw-array: 2, 2],
+  point-size: 0, 
+  pointshapeType: 'circle', 
+  pointshapeSides: 5,
+  pointshapeDent: 0.5,
+  pointshapeRotation: 0,
 }
 
 type ScatterPlotSeries = {
@@ -841,12 +995,20 @@ type ScatterPlotSeries = {
   color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
+  pointshapeType :: String, 
+  pointshapeSides :: NumInteger, 
+  pointshapeDent :: Number, 
+  pointshapeRotation :: Number,
 }
 
 default-scatter-plot-series = {
   color: none,
   legend: '',
   point-size: 7,
+  pointshapeType: 'circle', 
+  pointshapeSides: 5,
+  pointshapeDent: 0.5,
+  pointshapeRotation: 0,
 }
 
 type FunctionPlotSeries = {
@@ -866,6 +1028,7 @@ type ChartWindowObject = {
   title :: String,
   width :: Number,
   height :: Number,
+  backgroundColor :: Option<I.Color>,
   render :: ( -> IM.Image)
 }
 
@@ -873,6 +1036,7 @@ default-chart-window-object :: ChartWindowObject = {
   title: '',
   width: 800,
   height: 600,
+  backgroundColor: none,
   method render(self): raise('unimplemented') end,
 }
 
@@ -880,6 +1044,7 @@ type BoxChartWindowObject = {
   title :: String,
   width :: Number,
   height :: Number,
+  backgroundColor :: Option<I.Color>,
   x-axis :: String,
   y-axis :: String,
   render :: ( -> IM.Image),
@@ -894,6 +1059,7 @@ type PieChartWindowObject = {
   title :: String,
   width :: Number,
   height :: Number,
+  backgroundColor :: Option<I.Color>,
   render :: ( -> IM.Image),
 }
 
@@ -903,6 +1069,7 @@ type BarChartWindowObject = {
   title :: String,
   width :: Number,
   height :: Number,
+  backgroundColor :: Option<I.Color>,
   render :: ( -> IM.Image),
   x-axis :: String,
   y-axis :: String,
@@ -921,6 +1088,7 @@ type HistogramChartWindowObject = {
   title :: String,
   width :: Number,
   height :: Number,
+  backgroundColor :: Option<I.Color>,
   render :: ( -> IM.Image),
   x-axis :: String,
   y-axis :: String,
@@ -942,6 +1110,7 @@ type PlotChartWindowObject = {
   title :: String,
   width :: Number,
   height :: Number,
+  backgroundColor :: Option<I.Color>,
   render :: ( -> IM.Image),
   x-axis :: String,
   y-axis :: String,
@@ -950,6 +1119,7 @@ type PlotChartWindowObject = {
   x-max :: Option<Number>,
   y-max :: Option<Number>,
   num-samples :: Number,
+  multiple :: Boolean, 
 }
 
 default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window-object.{
@@ -961,6 +1131,7 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
   y-min: none,
   y-max: none,
   num-samples: 1000,
+  multiple: false,
 }
 
 ################################################################################
@@ -973,11 +1144,30 @@ data DataSeries:
     constr: {(): line-plot-series},
     color: color-method,
     legend: legend-method,
+    curved: curve-method,
+    linewidth: line-width-method, 
+    trendline-type: trendline-type-method,
+    trendline-color: trendline-color-method,
+    trendline-width: trendline-width-method, 
+    trendline-opacity: trendline-opacity-method, 
+    trendline-degree: trendline-polynomial-degree-method, 
+    dashed-line: dashed-line-method, 
+    dashline-style: dashed-line-style-method,
+    point-shape: pointshape-method, 
+    labels: labels-method,
+    image-labels: image-labels-method,
+    method point-size(self, point-size :: Number):
+      self.constr()(self.obj.{point-size: point-size})
+    end,
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
     is-single: false,
     constr: {(): scatter-plot-series},
     color: color-method,
     legend: legend-method,
+    labels: labels-method,
+    image-labels: image-labels-method,
+    point-shape: pointshape-method, 
+    select-multiple: select-multiple-method,
     method point-size(self, point-size :: Number):
       scatter-plot-series(self.obj.{point-size: point-size})
     end,
@@ -988,6 +1178,12 @@ data DataSeries:
     legend: legend-method,
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
+    explode: explode-method,
+    colors: color-list-method,
+    threeD: threeD-method,
+    piehole: piehole-method,
+    rotate: starting-angle-method,
+    collapse-threshold: collapse-threshold-method,
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
@@ -1104,6 +1300,7 @@ data ChartWindow:
     x-max: x-max-method,
     y-min: y-min-method,
     y-max: y-max-method,
+    select-multiple: select-multiple-method,
     method num-samples(self, num-samples :: Number) block:
       when (num-samples <= 0) or (num-samples > 100000) or not(num-is-integer(num-samples)):
         raise('num-samples: value must be an ineger between 1 and 100000')
@@ -1111,6 +1308,7 @@ data ChartWindow:
       plot-chart-window(self.obj.{num-samples: num-samples})
     end,
 sharing:
+  background-color: background-color-method,
   method display(self):
     _ = check-chart-window(self.obj)
     self.obj.{interact: true}.render()
@@ -1150,7 +1348,35 @@ fun line-plot-from-list(xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
   xs.each(check-num)
   ys.each(check-num)
   default-line-plot-series.{
-    ps: map2({(x, y): [raw-array: x, y]}, xs, ys)
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), xs.map({(_): false}))
+  } ^ line-plot-series
+end
+
+fun labeled-line-plot-from-list(labels :: P.LoS, xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
+  when xs.length() <> ys.length():
+    raise('labeled-line-plot: xs and ys should have the same length')
+  end
+  when xs.length() <> labels.length():
+    raise('labeled-line-plot: xs and labels should have the same length')
+  end
+  xs.each(check-num)
+  ys.each(check-num)
+  default-line-plot-series.{
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, labels, xs.map({(_): false}))
+  } ^ line-plot-series
+end
+
+fun image-line-plot-from-list(images :: List<IM.Image>, xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
+  when xs.length() <> ys.length():
+    raise('image-line-plot: xs and ys should have the same length')
+  end
+  when xs.length() <> images.length():
+    raise('image-line-plot: xs and images should have the same length')
+  end
+  xs.each(check-num)
+  ys.each(check-num)
+  default-line-plot-series.{
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), images)
   } ^ line-plot-series
 end
 
@@ -1950,6 +2176,8 @@ end
 
 from-list = {
   line-plot: line-plot-from-list,
+  labeled-line-plot: labeled-line-plot-from-list,
+  image-line-plot: image-line-plot-from-list,
   labeled-scatter-plot: labeled-scatter-plot-from-list,
   image-scatter-plot: image-scatter-plot-from-list,
   scatter-plot: scatter-plot-from-list,
