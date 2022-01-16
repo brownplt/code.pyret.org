@@ -1269,7 +1269,7 @@ ${labelRow}`;
           // The only way to hijack marker events is to walk the DOM here
           // If Google changes the DOM, these lines will likely break
           const svgRoot = chart.container.querySelector('svg');
-          const markers = svgRoot.children[2].children[2].children;          
+          const markers = svgRoot.children[3].children[2].children;          
 
           const layout = chart.getChartLayoutInterface();
           // remove any labels that have previously been drawn
@@ -1426,10 +1426,12 @@ ${labelRow}`;
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
       "LoS": ann("List<String>", checkListWith(RUNTIME.isString)), 
       "LoN": ann("List<Number>", checkListWith(RUNTIME.isNumber)),
+      "LoI": ann("List<Image>", checkListWith(IMAGE.isImage)),
       "LoLoN": ann("List<List<Number>>", checkListWith(checkListWith(RUNTIME.isNumber))),
       "LoLoLoN": ann("List<List<List<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
       "LoOoS": ann("List<Option<String>>", checkListWith(checkOptionWith(RUNTIME.isString))),
-      "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString))))
+      "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString)))),
+      "LoNi": ann("List<NumInteger>", checkListWith(v => RUNTIME.isNumber(v) && RUNTIME.num_is_integer(v))),
     }
   )
 }

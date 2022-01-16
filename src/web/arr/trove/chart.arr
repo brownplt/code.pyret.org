@@ -54,15 +54,38 @@ data StackType:
   | percent
   | grouped
 end
+
+fun check-positive-degree(v :: Number) -> Nothing block: 
+  when v < 0: 
+    raise("degree: degree must be non-negative")
+  end
+  true
+end
+
 data TrendlineType:
   | no-line
   | linear
   | exponential
-  | polynomial(degree :: NumInteger)
+  | polynomial(degree :: NumInteger%(check-positive-degree))
 end
+
+fun check-positive-sides(v :: Number) -> Boolean block: 
+  when v < 0: 
+    raise("regularPolygon: number of sides must be non-negative")
+  end
+  true
+end
+
+fun check-positive-dent(v :: Number) -> Boolean block: 
+  when v < 0: 
+    raise("regularPolygon: dent must be non-negative")
+  end
+  true
+end
+
 data PointShape: 
   | circleShape
-  | regularPolygon(sides :: NumInteger, dent :: Number)
+  | regularPolygon(sides :: NumInteger%(check-positive-sides), dent :: Number%(check-positive-dent))
 end
 
 ################################################################################
@@ -238,6 +261,32 @@ fun multi-prep-axis(is-stacked :: StackType, value-lists :: P.LoLoN)
   end
 end
 
+fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
+    n = lst.length()
+    shadow lst = lst.sort()
+    median = ST.median(lst)
+    {first-quartile; third-quartile} = if num-modulo(n, 2) == 0:
+      splitted = lst.split-at(n / 2)
+      {ST.median(splitted.prefix); ST.median(splitted.suffix)}
+    else:
+      splitted = lst.split-at((n - 1) / 2)
+      {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
+    end
+    iqr = third-quartile - first-quartile
+    high-outliers = for filter(shadow n from lst):
+      n > (third-quartile + (1.5 * iqr))
+    end ^ builtins.raw-array-from-list
+    low-outliers = for filter(shadow n from lst):
+      n < (third-quartile - (1.5 * iqr))
+    end ^ builtins.raw-array-from-list
+    min-val = lst.first
+    max-val = lst.last()
+    low-whisker = lst.drop(raw-array-length(low-outliers)).get(0)
+    high-whisker = lst.get(n - raw-array-length(high-outliers) - 1)
+    [list: label, max-val, min-val, first-quartile, median, third-quartile, high-whisker, low-whisker, high-outliers, low-outliers]
+      ^ builtins.raw-array-from-list
+end
+
 ################################################################################
 # METHODS
 ################################################################################
@@ -265,7 +314,10 @@ interval-color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{default-interval-color: some(color)})
 end
 
-line-width-method = method(self, lineWidth :: Number):
+line-width-method = method(self, lineWidth :: Number) block:
+  when lineWidth < 0: 
+    raise("line-width: Line Width must be non-negative")
+  end
   self.constr()(self.obj.{lineWidth: lineWidth})
 end
 
@@ -278,27 +330,48 @@ end
 labels-method = method(self, labels :: P.LoS): 
   block:
     when self.obj!ps.length() <> labels.length():
-      raise('scatter-plot: xs and labels should have the same length')
+      raise('plot: xs and labels should have the same length')
     end
     self.constr()(self.obj.{ps: map2({(arr, label): raw-array-set(arr, 2, label)}, self.obj!ps, labels)})
   end
 end
 
-image-labels-method = method(self, images :: List<IM.Image>):
+image-labels-method = method(self, images :: P.LoI):
   block:
     when self.obj!ps.length() <> images.length():
-      raise('scatter-plot: xs and images should have the same length')
+      raise('plot: xs and images should have the same length')
     end
     self.constr()(self.obj.{ps: map2({(arr, image): raw-array-set(arr, 3, image)}, self.obj!ps, images)})
   end
 end
 
-explode-method = method(self, offsets :: P.LoN):
+explode-method = method(self, offsets :: P.LoN) block:
+  when raw-array-length(self.obj!tab) <> offsets.length():
+    raise('exploding-pie-chart: labels and offsets should have the same length')
+  end
+  for each(offset from offsets):
+    when (offset < 0) or (offset > 1):
+      raise('exploding-pie-chart: offset must be between 0 and 1')
+    end
+  end
   self.constr()(self.obj.{tab: raw-array-from-list(map2({(arr, offset): raw-array-set(arr, 2, offset)}, raw-array-to-list(self.obj!tab), offsets))})
 end
 
-histogram-label-method = method(self, labels :: P.LoS):
+histogram-label-method = method(self, labels :: P.LoS) block:
+    when raw-array-length(self.obj!tab) <> labels.length():
+      raise('histogram: xs and labels should have the same length')
+    end
   self.constr()(self.obj.{tab: raw-array-from-list(map2({(arr, label): raw-array-set(arr, 0, label)}, raw-array-to-list(self.obj!tab), labels))})
+end
+
+box-labels-method = method(self, labels :: P.LoS) block:
+  when labels.length() <> self.obj!values.length():
+    raise('labeled-box-plot: labels and values should have the same length')
+  end
+  when labels.length() == 0:
+    raise('labeled-box-plot: expect at least one box')
+  end
+  self.constr()(self.obj.{tab: map2(get-box-data, labels, self.obj!values) ^ builtins.raw-array-from-list,})
 end
 
 threeD-method = method(self, threeD :: Boolean):
@@ -315,7 +388,10 @@ starting-angle-method = method(self, startingAngle :: Number):
   self.constr()(self.obj.{startingAngle: startingAngle})
 end
 
-collapse-threshold-method = method(self, collapseThreshold :: Number):
+collapse-threshold-method = method(self, collapseThreshold :: Number) block:
+  when (collapseThreshold < 0) or (collapseThreshold > 1): 
+    raise("collapse-threshold: Threshold must be between 0 and 1")
+  end
   self.constr()(self.obj.{collapseThreshold: collapseThreshold})
 end
 
@@ -333,7 +409,10 @@ trendline-color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{trendlineColor: some(color)})
 end
 
-trendline-width-method = method(self, lineWidth :: Number):
+trendline-width-method = method(self, lineWidth :: Number) block:
+  when lineWidth < 0: 
+    raise("trendline-width: Trendline Width must be non-negative")
+  end
   self.constr()(self.obj.{trendlineWidth: lineWidth})
 end
 
@@ -347,8 +426,11 @@ dashed-line-method = method(self, dashed :: Boolean):
   self.constr()(self.obj.{dashedLine: dashed})
 end
 
-dashed-line-style-method = method(self, dashed-line-style :: List<NumInteger>):
-  self.constr()(self.obj.{dashlineStyle: raw-array-from-list(dashed-line-style)})
+dashed-line-style-method = method(self, dashed-line-style :: P.LoNi) block:
+  when any({(n): n < 0}, dashed-line-style):
+    raise("Dashed Line Style: Values must be non-negative")
+  end
+  self.constr()(self.obj.{dashedLine: true, dashlineStyle: raw-array-from-list(dashed-line-style)})
 end
 
 pointshape-method = method(self, pointshape :: PointShape):
@@ -366,7 +448,10 @@ background-color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{backgroundColor: some(color)})
 end
 
-background-border-method = method(self, border-size :: Number):
+background-border-method = method(self, border-size :: Number) block:
+  when border-size < 0: 
+    raise("border-size: Border Size must be non-negative")
+  end
   self.constr()(self.obj.{borderSize: border-size})
 end
 
@@ -387,15 +472,21 @@ gridlines-color-method = method(self, color ::  I.Color):
 end
 
 minor-gridlines-color-method = method(self, color ::  I.Color):
-  self.constr()(self.obj.{minorGridlineColor: some(color)})
+  self.constr()(self.obj.{show-minor-grid-lines: true, minorGridlineColor: some(color)})
 end
 
-gridlines-min-spacing-method = method(self, minspacing :: Option<Number>):
+gridlines-min-spacing-method = method(self, minspacing :: Number) block:
+  when minspacing < 0: 
+    raise("gridlines-minspacing: Min spacing must be non-negative")
+  end
   self.constr()(self.obj.{gridlineMinspacing: some(minspacing)})
 end
 
-minor-gridlines-min-spacing-method = method(self, minspacing :: Number):
-  self.constr()(self.obj.{minorGridlineMinspacing: minspacing})
+minor-gridlines-min-spacing-method = method(self, minspacing :: Number) block:
+  when minspacing < 0: 
+    raise("minor-gridlines-minspacing: Min spacing must be non-negative")
+  end
+  self.constr()(self.obj.{show-minor-grid-lines: true, minorGridlineMinspacing: minspacing})
 end
 
 x-axis-method = method(self, x-axis :: String):
@@ -1204,7 +1295,10 @@ data DataSeries:
     point-shape: pointshape-method, 
     labels: labels-method,
     image-labels: image-labels-method,
-    method point-size(self, point-size :: Number):
+    method point-size(self, point-size :: Number) block:
+      when point-size < 0: 
+        raise("point-size: Point Size must be non-negative")
+      end
       self.constr()(self.obj.{point-size: point-size})
     end,
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
@@ -1215,8 +1309,11 @@ data DataSeries:
     labels: labels-method,
     image-labels: image-labels-method,
     point-shape: pointshape-method, 
-    method point-size(self, point-size :: Number):
-      scatter-plot-series(self.obj.{point-size: point-size})
+    method point-size(self, point-size :: Number) block:
+      when point-size < 0: 
+        raise("point-size: Point Size must be non-negative")
+      end
+      self.constr()(self.obj.{point-size: point-size})
     end,
   | function-plot-series(obj :: FunctionPlotSeries) with:
     is-single: false,
@@ -1274,6 +1371,7 @@ data DataSeries:
     interval-color: interval-color-method, 
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
+    labels: box-labels-method,
     color: color-method, 
     is-single: true,
     constr: {(): box-plot-series},
@@ -1424,7 +1522,7 @@ fun labeled-line-plot-from-list(labels :: P.LoS, xs :: P.LoN, ys :: P.LoN) -> Da
   } ^ line-plot-series
 end
 
-fun image-line-plot-from-list(images :: List<IM.Image>, xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
+fun image-line-plot-from-list(images :: P.LoI, xs :: P.LoN, ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
     raise('image-line-plot: xs and ys should have the same length')
   end
@@ -1468,7 +1566,7 @@ fun labeled-scatter-plot-from-list(
 end
 
 fun image-scatter-plot-from-list(
-  images :: List<IM.Image>,
+  images :: P.LoI,
   xs :: P.LoN,
   ys :: P.LoN) -> DataSeries block:
   when xs.length() <> ys.length():
@@ -1668,7 +1766,7 @@ fun stacked-bar-chart-from-list(
 end
 
 fun box-plot-from-list(values :: P.LoLoN) -> DataSeries:
-  doc: "Consunum-maxme values, a list of list of numbers and construct a box chart"
+  doc: "Consume values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
   labeled-box-plot-from-list(labels, values)
 end
@@ -1705,34 +1803,10 @@ fun labeled-box-plot-from-list(
     num-max(lst.rest.foldl(num-min, lst.first), cur)
   end
 
-  fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
-    n = lst.length()
-    shadow lst = lst.sort()
-    median = ST.median(lst)
-    {first-quartile; third-quartile} = if num-modulo(n, 2) == 0:
-      splitted = lst.split-at(n / 2)
-      {ST.median(splitted.prefix); ST.median(splitted.suffix)}
-    else:
-      splitted = lst.split-at((n - 1) / 2)
-      {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
-    end
-    iqr = third-quartile - first-quartile
-    high-outliers = for filter(shadow n from lst):
-      n > (third-quartile + (1.5 * iqr))
-    end ^ builtins.raw-array-from-list
-    low-outliers = for filter(shadow n from lst):
-      n < (third-quartile - (1.5 * iqr))
-    end ^ builtins.raw-array-from-list
-    min-val = lst.first
-    max-val = lst.last()
-    low-whisker = lst.drop(raw-array-length(low-outliers)).get(0)
-    high-whisker = lst.get(n - raw-array-length(high-outliers) - 1)
-    [list: label, max-val, min-val, first-quartile, median, third-quartile, high-whisker, low-whisker, high-outliers, low-outliers]
-      ^ builtins.raw-array-from-list
-  end
   default-box-plot-series.{
     tab: map2(get-box-data, labels, values) ^ builtins.raw-array-from-list,
     height: num-ceiling(max-height + ((max-height - min-height) / 5)),
+    values: values,
   } ^ box-plot-series
 end
 
