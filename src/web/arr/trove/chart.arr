@@ -58,7 +58,7 @@ data TrendlineType:
   | no-line
   | linear
   | exponential
-  | polynomial
+  | polynomial(degree :: NumInteger)
 end
 data PointShape: 
   | circleShape
@@ -190,16 +190,6 @@ fun string-to-stacktype(s :: String) -> StackType:
   end
 end
 
-fun trendline-to-string(t :: TrendlineType) -> Option<String>:
-  doc: ```Converts [linear, exponential, polynomial] to their respective strings```
-  cases (TrendlineType) t: 
-    | no-line => none
-    | linear => some("linear")
-    | exponential => some("exponential")
-    | polynomial => some("polynomial")
-  end
-end
-
 fun prep-axis(values :: P.LoN) -> {Number; Number}: 
   doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
 
@@ -304,7 +294,11 @@ image-labels-method = method(self, images :: List<IM.Image>):
 end
 
 explode-method = method(self, offsets :: P.LoN):
-  self.constr()(self.obj.{tab: raw-array-from-list(map2({(arr, image): raw-array-set(arr, 2, image)}, raw-array-to-list(self.obj!tab), offsets))})
+  self.constr()(self.obj.{tab: raw-array-from-list(map2({(arr, offset): raw-array-set(arr, 2, offset)}, raw-array-to-list(self.obj!tab), offsets))})
+end
+
+histogram-label-method = method(self, labels :: P.LoS):
+  self.constr()(self.obj.{tab: raw-array-from-list(map2({(arr, label): raw-array-set(arr, 0, label)}, raw-array-to-list(self.obj!tab), labels))})
 end
 
 threeD-method = method(self, threeD :: Boolean):
@@ -326,7 +320,13 @@ collapse-threshold-method = method(self, collapseThreshold :: Number):
 end
 
 trendline-type-method = method(self, trendlineType :: TrendlineType):
-  self.constr()(self.obj.{trendlineType: trendline-to-string(trendlineType)})
+cases (TrendlineType) trendlineType: 
+    | no-line => self.constr()(self.obj.{trendlineType: none})
+    | linear => self.constr()(self.obj.{trendlineType: some("linear")})
+    | exponential => self.constr()(self.obj.{trendlineType: some("exponential")})
+    | polynomial(degree) => self.constr()(self.obj.{trendlineType: some("polynomial"), trendlineDegree: degree})
+  end
+  
 end
 
 trendline-color-method = method(self, color :: I.Color):
@@ -341,10 +341,6 @@ trendline-opacity-method = method(self, opacity :: Number):
   if (opacity < 0) or (opacity > 1): raise("Trendline opacity: Value must be between 0 and 1")
   else: self.constr()(self.obj.{trendlineOpacity: opacity})
   end
-end
-
-trendline-polynomial-degree-method = method(self, degree :: NumInteger):
-  self.constr()(self.obj.{trendlineDegree: degree})
 end
 
 dashed-line-method = method(self, dashed :: Boolean):
@@ -370,12 +366,36 @@ background-color-method = method(self, color :: I.Color):
   self.constr()(self.obj.{backgroundColor: some(color)})
 end
 
+background-border-method = method(self, border-size :: Number):
+  self.constr()(self.obj.{borderSize: border-size})
+end
+
+border-color-method = method(self, border-color :: I.Color):
+  self.constr()(self.obj.{borderColor: some(border-color)})
+end
+
 legend-method = method(self, legend :: String):
   self.constr()(self.obj.{legend: legend})
 end
 
 show-minor-grid-lines-method = method(self, is-showing :: Boolean):
   self.constr()(self.obj.{show-minor-grid-lines: is-showing})
+end
+
+gridlines-color-method = method(self, color ::  I.Color):
+  self.constr()(self.obj.{gridlineColor: some(color)})
+end
+
+minor-gridlines-color-method = method(self, color ::  I.Color):
+  self.constr()(self.obj.{minorGridlineColor: some(color)})
+end
+
+gridlines-min-spacing-method = method(self, minspacing :: Option<Number>):
+  self.constr()(self.obj.{gridlineMinspacing: some(minspacing)})
+end
+
+minor-gridlines-min-spacing-method = method(self, minspacing :: Number):
+  self.constr()(self.obj.{minorGridlineMinspacing: minspacing})
 end
 
 x-axis-method = method(self, x-axis :: String):
@@ -867,11 +887,13 @@ type BoxChartSeries = {
   tab :: TableIntern,
   height :: Number, 
   horizontal :: Boolean,
+  color :: Option<I.Color>,
 }
 
 default-box-plot-series = {
   horizontal: false,
   show-outliers: true,
+  color: none, 
 }
 
 type PieChartSeries = {
@@ -943,12 +965,14 @@ type HistogramSeries = {
   bin-width :: Option<Number>,
   max-num-bins :: Option<Number>,
   min-num-bins :: Option<Number>,
+  color :: Option<I.Color>,
 }
 
 default-histogram-series = {
   bin-width: none,
   max-num-bins: none,
   min-num-bins: none,
+  color: none, 
 }
 
 type LinePlotSeries = {
@@ -1029,6 +1053,8 @@ type ChartWindowObject = {
   width :: Number,
   height :: Number,
   backgroundColor :: Option<I.Color>,
+  borderSize :: Number, 
+  borderColor :: Option<I.Color>, 
   render :: ( -> IM.Image)
 }
 
@@ -1037,6 +1063,8 @@ default-chart-window-object :: ChartWindowObject = {
   width: 800,
   height: 600,
   backgroundColor: none,
+  borderSize: 0, 
+  borderColor: none, 
   method render(self): raise('unimplemented') end,
 }
 
@@ -1045,6 +1073,8 @@ type BoxChartWindowObject = {
   width :: Number,
   height :: Number,
   backgroundColor :: Option<I.Color>,
+  borderSize :: Number, 
+  borderColor :: Option<I.Color>, 
   x-axis :: String,
   y-axis :: String,
   min :: Option<Number>,
@@ -1064,6 +1094,8 @@ type PieChartWindowObject = {
   width :: Number,
   height :: Number,
   backgroundColor :: Option<I.Color>,
+  borderSize :: Number, 
+  borderColor :: Option<I.Color>, 
   render :: ( -> IM.Image),
 }
 
@@ -1074,6 +1106,8 @@ type BarChartWindowObject = {
   width :: Number,
   height :: Number,
   backgroundColor :: Option<I.Color>,
+  borderSize :: Number, 
+  borderColor :: Option<I.Color>, 
   render :: ( -> IM.Image),
   x-axis :: String,
   y-axis :: String,
@@ -1093,6 +1127,8 @@ type HistogramChartWindowObject = {
   width :: Number,
   height :: Number,
   backgroundColor :: Option<I.Color>,
+  borderSize :: Number, 
+  borderColor :: Option<I.Color>, 
   render :: ( -> IM.Image),
   x-axis :: String,
   y-axis :: String,
@@ -1115,7 +1151,13 @@ type PlotChartWindowObject = {
   width :: Number,
   height :: Number,
   backgroundColor :: Option<I.Color>,
+  borderSize :: Number, 
+  borderColor :: Option<I.Color>, 
   render :: ( -> IM.Image),
+  gridlineColor :: Option<I.Color>, 
+  gridlineMinspacing :: Option<Number>, 
+  minorGridlineColor :: Option<I.Color>, 
+  minorGridlineMinspacing :: Number, 
   x-axis :: String,
   y-axis :: String,
   x-min :: Option<Number>,
@@ -1135,6 +1177,10 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
   y-max: none,
   num-samples: 1000,
   multiple: false,
+  gridlineColor: none, 
+  gridlineMinspacing: none,
+  minorGridlineColor: none, 
+  minorGridlineMinspacing: 10, 
 }
 
 ################################################################################
@@ -1153,7 +1199,6 @@ data DataSeries:
     trendline-color: trendline-color-method,
     trendline-width: trendline-width-method, 
     trendline-opacity: trendline-opacity-method, 
-    trendline-degree: trendline-polynomial-degree-method, 
     dashed-line: dashed-line-method, 
     dashline-style: dashed-line-style-method,
     point-shape: pointshape-method, 
@@ -1170,7 +1215,6 @@ data DataSeries:
     labels: labels-method,
     image-labels: image-labels-method,
     point-shape: pointshape-method, 
-    select-multiple: select-multiple-method,
     method point-size(self, point-size :: Number):
       scatter-plot-series(self.obj.{point-size: point-size})
     end,
@@ -1230,6 +1274,7 @@ data DataSeries:
     interval-color: interval-color-method, 
     constr: {(): multi-bar-chart-series}
   | box-plot-series(obj :: BoxChartSeries) with:
+    color: color-method, 
     is-single: true,
     constr: {(): box-plot-series},
     method horizontal(self, h):
@@ -1239,6 +1284,8 @@ data DataSeries:
       self.constr()(self.obj.{show-outliers: show})
     end,
   | histogram-series(obj :: HistogramSeries) with:
+    labels: histogram-label-method,
+    color: color-method, 
     is-single: true,
     constr: {(): histogram-series},
     method bin-width(self, bin-width :: Number):
@@ -1298,7 +1345,11 @@ data ChartWindow:
     y-max: y-max-method,
   | plot-chart-window(obj :: PlotChartWindowObject) with:
     constr: {(): plot-chart-window},
-    show-minor-grid-lines: show-minor-grid-lines-method,
+    show-minor-gridlines: show-minor-grid-lines-method,
+    gridlines-color: gridlines-color-method, 
+    gridlines-minspacing: gridlines-min-spacing-method, 
+    minor-gridlines-color: minor-gridlines-color-method, 
+    minor-gridlines-minspacing: minor-gridlines-min-spacing-method, 
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     x-min: x-min-method,
@@ -1314,6 +1365,8 @@ data ChartWindow:
     end,
 sharing:
   background-color: background-color-method,
+  border-size: background-border-method, 
+  border-color: border-color-method,
   method display(self):
     _ = check-chart-window(self.obj)
     self.obj.{interact: true}.render()

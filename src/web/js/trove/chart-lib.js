@@ -341,9 +341,23 @@
         return convertColor(color);
       }
     });
-    $.extend(options, {backgroundColor: backgroundColor});
+    const borderColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'borderColor'), {
+      none: function () {
+        return '#666';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+    const borderSize = toFixnum(get(globalOptions, 'borderSize'))
+    $.extend(options, {
+      backgroundColor: {
+        fill: backgroundColor,
+        strokeWidth: borderSize,
+        stroke: borderColor,
+      }
+    });
   }
-
   function axesNameMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
@@ -355,11 +369,43 @@
   function gridlinesMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
-    hAxis.gridlines = {color: '#aaa'};
-    vAxis.gridlines = {color: '#aaa'};
+
+    const gridlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'gridlineColor'), {
+      none: function () {
+        return '#aaa';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+    const minorGridlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'minorGridlineColor'), {
+      none: function () {
+        return '#ddd';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+    const minorGridlineMinspacing = toFixnum(get(globalOptions, 'minorGridlineMinspacing'))
+
+    hAxis.gridlines = {color: gridlineColor};
+    vAxis.gridlines = {color: gridlineColor};
+
+    cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'gridlineMinspacing'), {
+      none: function () {
+        hAxis.gridlines.count = 5;
+      },
+      some: function (minspacing) {
+        hAxis.gridlines.minSpacing = toFixnum(minspacing);
+      }
+    });
+
+
     if (get(globalOptions, 'show-minor-grid-lines')) {
-      hAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
-      vAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
+      hAxis.minorGridlines = {color: minorGridlineColor, minSpacing: minorGridlineMinspacing};
+      vAxis.minorGridlines = {color: minorGridlineColor, minSpacing: minorGridlineMinspacing};
     } else {
       hAxis.minorGridlines = {count: 0};
       vAxis.minorGridlines = {count: 0};
@@ -723,16 +769,26 @@
     const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
 
+    const color = cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+      none: function () {
+        return "#777";
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+
     const intervalOptions = {
       lowNonOutlier: {
         style: 'bars',
         fillOpacity: 1,
-        color: '#777'
+        color: color
       },
       highNonOutlier: {
         style: 'bars',
         fillOpacity: 1,
-        color: '#777'
+        color: color
       }
     };
 
@@ -805,6 +861,7 @@
         barWidth: 0.25,
         boxWidth: 0.8,
         lineWidth: 2,
+        color: color,
         style: 'boxes'
       },
       interval: intervalOptions,
@@ -914,6 +971,13 @@
     }
     */
 
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+      none: function () {},
+      some: function (color) {
+        options.colors = [convertColor(color)];
+      }
+    });
+    
     return {
       data: data,
       options: options,
