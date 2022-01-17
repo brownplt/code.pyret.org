@@ -892,6 +892,7 @@
     const combined = scatters.concat(lines);
     const legends = [];
     let cnt = 1;
+    const legendEnabled = combined.length > 1;
     combined.forEach(p => {
       let legend = get(p, 'legend');
       if (legend === '') {
@@ -957,7 +958,7 @@ ${labelRow}`;
         }
         return seriesOptions;
       }),
-      legend: {position: 'bottom',},
+      legend: {position: legendEnabled ? 'bottom' : 'none'},
       crosshair: {trigger: 'selection'}
     };
 
