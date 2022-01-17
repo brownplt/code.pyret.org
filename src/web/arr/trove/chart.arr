@@ -77,8 +77,8 @@ fun check-positive-sides(v :: Number) -> Boolean block:
 end
 
 fun check-positive-dent(v :: Number) -> Boolean block: 
-  when v < 0: 
-    raise("regularPolygon: dent must be non-negative")
+  when v < -1: 
+    raise("regularPolygon: dent cannot be less than -1")
   end
   true
 end
@@ -436,7 +436,7 @@ end
 pointshape-method = method(self, pointshape :: PointShape):
   cases (PointShape) pointshape: 
     | circleShape => self.constr()(self.obj.{pointshapeType: "circle"})
-    | regularPolygon(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: dent / 2})
+    | regularPolygon(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: dent / 2 + 0.5})
   end
 end
 
