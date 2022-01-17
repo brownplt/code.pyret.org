@@ -55,7 +55,7 @@ data StackType:
   | grouped
 end
 
-fun check-positive-degree(v :: Number) -> Nothing block: 
+fun check-positive-degree(v :: Number) -> Boolean block: 
   when v < 0: 
     raise("degree: degree must be non-negative")
   end
@@ -63,7 +63,7 @@ fun check-positive-degree(v :: Number) -> Nothing block:
 end
 
 data TrendlineType:
-  | no-line
+  | no-trendline
   | linear
   | exponential
   | polynomial(degree :: NumInteger%(check-positive-degree))
@@ -71,21 +71,21 @@ end
 
 fun check-positive-sides(v :: Number) -> Boolean block: 
   when v < 0: 
-    raise("regularPolygon: number of sides must be non-negative")
+    raise("regular-polygon: number of sides must be non-negative")
   end
   true
 end
 
 fun check-positive-dent(v :: Number) -> Boolean block: 
   when v < -1: 
-    raise("regularPolygon: dent cannot be less than -1")
+    raise("regular-polygon: dent cannot be less than -1")
   end
   true
 end
 
 data PointShape: 
-  | circleShape
-  | regularPolygon(sides :: NumInteger%(check-positive-sides), dent :: Number%(check-positive-dent))
+  | circle-shape
+  | regular-polygon(sides :: NumInteger%(check-positive-sides), dent :: Number%(check-positive-dent))
 end
 
 ################################################################################
@@ -397,7 +397,7 @@ end
 
 trendline-type-method = method(self, trendlineType :: TrendlineType):
 cases (TrendlineType) trendlineType: 
-    | no-line => self.constr()(self.obj.{trendlineType: none})
+    | no-trendline => self.constr()(self.obj.{trendlineType: none})
     | linear => self.constr()(self.obj.{trendlineType: some("linear")})
     | exponential => self.constr()(self.obj.{trendlineType: some("exponential")})
     | polynomial(degree) => self.constr()(self.obj.{trendlineType: some("polynomial"), trendlineDegree: degree})
@@ -435,8 +435,8 @@ end
 
 pointshape-method = method(self, pointshape :: PointShape):
   cases (PointShape) pointshape: 
-    | circleShape => self.constr()(self.obj.{pointshapeType: "circle"})
-    | regularPolygon(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: dent / 2 + 0.5})
+    | circle-shape => self.constr()(self.obj.{pointshapeType: "circle"})
+    | regular-polygon(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: (dent / 2) + 0.5})
   end
 end
 
@@ -1590,6 +1590,11 @@ fun exploding-pie-chart-from-list(
 ) -> DataSeries block:
   label-length = labels.length()
   value-length = values.length()
+  for each(value from values):
+    when value < 0:
+      raise('exploding-pie-chart: values must be non-negative')
+    end
+  end
   when label-length <> value-length:
     raise('exploding-pie-chart: labels and values should have the same length')
   end
@@ -1620,6 +1625,11 @@ fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
        ```
   label-length = labels.length()
   value-length = values.length()
+  for each(value from values):
+    when value < 0:
+      raise('pie-chart: values must be non-negative')
+    end
+  end
   when label-length <> value-length:
     raise('pie-chart: labels and values should have the same length')
   end
