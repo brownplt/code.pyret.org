@@ -1426,7 +1426,7 @@ ${labelRow}`;
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
       "LoS": ann("List<String>", checkListWith(RUNTIME.isString)), 
       "LoN": ann("List<Number>", checkListWith(RUNTIME.isNumber)),
-      "LoI": ann("List<Image>", checkListWith(IMAGE.isImage)),
+      "LoI": ann("List<Image>", checkListWith(v => RUNTIME.isOpaque(v) && IMAGE.isImage(v.val))),
       "LoLoN": ann("List<List<Number>>", checkListWith(checkListWith(RUNTIME.isNumber))),
       "LoLoLoN": ann("List<List<List<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
       "LoOoS": ann("List<Option<String>>", checkListWith(checkOptionWith(RUNTIME.isString))),
