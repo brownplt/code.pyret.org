@@ -489,7 +489,7 @@
     return {
       data: data,
       options: {
-        slices: table.map((row, i) => ({colors: colors_list[i], offset: toFixnum(row[2])})),
+        slices: table.map((row, i) => ({color: colors_list[i], offset: toFixnum(row[2])})),
         legend: {
           alignment: 'end'
         },
@@ -1073,27 +1073,7 @@ ${labelRow}`;
       const curveType = get(lines[0], 'curved');
       const lineWidth = toFixnum(get(lines[0], 'lineWidth'));
 
-      const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(lines[0], 'trendlineType'), {
-        none: function () {
-          return null;
-        },
-        some: function (type) {
-          return type;
-        }
-      });
-
-      const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(lines[0], 'trendlineColor'), {
-        none: function () {
-          return 'green';
-        },
-        some: function (color) {
-          return convertColor(color);
-        }
-      });
-
-      const trendlineWidth = toFixnum(get(lines[0], 'trendlineWidth'));
-      const trendlineOpacity = toFixnum(get(lines[0], 'trendlineOpacity'));
-      const trendlineDegree = toFixnum(get(lines[0], 'trendlineDegree'));
+      
       const dashedLine = get(lines[0], 'dashedLine');
       const dashlineStyle = get(lines[0], 'dashlineStyle');
       const pointSize = toFixnum(get(lines[0], 'point-size'));
@@ -1103,35 +1083,59 @@ ${labelRow}`;
       options['lineWidth'] = lineWidth;
       options['pointSize'] = pointSize;
       
-      if (trendlineType != null) {
-        options['trendlines'] = {
-          0: {
-            type: trendlineType,
-            color: trendlineColor,
-            lineWidth: trendlineWidth,
-            opacity: trendlineOpacity,
-            showR2: true,
-            visibleInLegend: true
-          }
-        }
-      }
-      if (trendlineType == "polynomial") {
-        options['trendlines'][0]['degree'] = trendlineDegree;
-      }
       if (dashedLine) {
         options['lineDashStyle'] = dashlineStyle;
       }
     }
+    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineType'), {
+      none: function () {
+        return null;
+      },
+      some: function (type) {
+        return type;
+      }
+    });
+
+    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineColor'), {
+      none: function () {
+        return 'green';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+    const trendlineWidth = toFixnum(get(combined[0], 'trendlineWidth'));
+    const trendlineOpacity = toFixnum(get(combined[0], 'trendlineOpacity'));
+    const trendlineDegree = toFixnum(get(combined[0], 'trendlineDegree'));
+
+    if (trendlineType != null) {
+      options['trendlines'] = {
+        0: {
+          type: trendlineType,
+          color: trendlineColor,
+          lineWidth: trendlineWidth,
+          opacity: trendlineOpacity,
+          showR2: true,
+          visibleInLegend: true
+        }
+      }
+    }
+    if (trendlineType == "polynomial") {
+      options['trendlines'][0]['degree'] = trendlineDegree;
+    }
+
     const pointshapeType = get(combined[0], 'pointshapeType');
     const pointshapeSides = toFixnum(get(combined[0], 'pointshapeSides'));
     const pointshapeDent = toFixnum(get(combined[0], 'pointshapeDent'));
     const pointshapeRotation = toFixnum(get(combined[0], 'pointshapeRotation'));
+    const apothem = Math.cos(Math.PI / pointshapeSides)
   
     if (pointshapeType != 'circle') {
       options['pointShape'] = {
         type: 'star',
         sides: pointshapeSides, 
-        dent: pointshapeDent,
+        dent: (pointshapeDent + 1) * apothem + 0.01,
         rotation: pointshapeRotation,
       }
     }

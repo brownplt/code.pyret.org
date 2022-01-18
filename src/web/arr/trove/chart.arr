@@ -71,21 +71,21 @@ end
 
 fun check-positive-sides(v :: Number) -> Boolean block: 
   when v < 0: 
-    raise("regular-polygon: number of sides must be non-negative")
+    raise("regular-polygon-shape: number of sides must be non-negative")
   end
   true
 end
 
 fun check-positive-dent(v :: Number) -> Boolean block: 
   when v < -1: 
-    raise("regular-polygon: dent cannot be less than -1")
+    raise("regular-polygon-shape: dent cannot be less than -1")
   end
   true
 end
 
 data PointShape: 
   | circle-shape
-  | regular-polygon(sides :: NumInteger%(check-positive-sides), dent :: Number%(check-positive-dent))
+  | regular-polygon-shape(sides :: NumInteger%(check-positive-sides), dent :: Number%(check-positive-dent))
 end
 
 ################################################################################
@@ -436,7 +436,7 @@ end
 pointshape-method = method(self, pointshape :: PointShape):
   cases (PointShape) pointshape: 
     | circle-shape => self.constr()(self.obj.{pointshapeType: "circle"})
-    | regular-polygon(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: (dent / 2) + 0.5})
+    | regular-polygon-shape(sides, dent) => self.constr()(self.obj.{pointshapeType: "polygon", pointshapeSides: sides, pointshapeDent: dent})
   end
 end
 
@@ -1110,6 +1110,11 @@ type ScatterPlotSeries = {
   color :: Option<I.Color>,
   legend :: String,
   point-size :: Number,
+  trendlineType :: Option<String>,
+  trendlineColor :: Option<I.Color>,
+  trendlineWidth :: Number, 
+  trendlineOpacity :: Number, 
+  trendlineDegree :: NumInteger, 
   pointshapeType :: String, 
   pointshapeSides :: NumInteger, 
   pointshapeDent :: Number, 
@@ -1124,6 +1129,11 @@ default-scatter-plot-series = {
   pointshapeSides: 5,
   pointshapeDent: 0.5,
   pointshapeRotation: 0,
+  trendlineType: none, 
+  trendlineColor: none, 
+  trendlineWidth: 3, 
+  trendlineOpacity: 0.3,
+  trendlineDegree: 3,  
 }
 
 type FunctionPlotSeries = {
@@ -1302,6 +1312,10 @@ data DataSeries:
       self.constr()(self.obj.{point-size: point-size})
     end,
   | scatter-plot-series(obj :: ScatterPlotSeries) with:
+    trendline-type: trendline-type-method,
+    trendline-color: trendline-color-method,
+    trendline-width: trendline-width-method, 
+    trendline-opacity: trendline-opacity-method, 
     is-single: false,
     constr: {(): scatter-plot-series},
     color: color-method,
