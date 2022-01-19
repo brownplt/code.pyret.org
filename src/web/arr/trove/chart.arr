@@ -784,15 +784,13 @@ fun labeled-histogram-from-list(labels :: List<String>, values :: List<Number>) 
 end
 
 fun geochart-from-list(
-    region-labels :: List<String>,
-    values :: List<Number>) -> DataSeries block:
+    region-labels :: P.LoS,
+    values :: P.LoN) -> DataSeries block:
   region-length = region-labels.length()
   values-length = values.length()
   when region-length <> values-length:
     raise("geochart: region-labels and values should have the same length")
   end
-  values.each(check-num)
-  region-labels.each(check-string)
   default-geochart-series.{
     tab: to-table2(region-labels, values)
   } ^ geochart-series
