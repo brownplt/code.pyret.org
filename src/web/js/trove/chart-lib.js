@@ -335,7 +335,7 @@
   function backgroundMutator(options, globalOptions, _) {
     const backgroundColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'backgroundColor'), {
       none: function () {
-        return 'white';
+        return 'transparent';
       },
       some: function (color) {
         return convertColor(color);
@@ -500,6 +500,7 @@
       },
       chartType: google.visualization.PieChart,
       onExit: defaultImageReturn,
+      mutators: [backgroundMutator],
     };
   }
 
