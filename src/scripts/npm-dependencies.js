@@ -2,6 +2,11 @@
 // When building a web-standalone, browserify will parse this file
 // and produce a version which include each dependency that is required()
 //
+// Unfortunately some of these libraries have optional transitive dependencies
+// that are enormous and unused, so we need to prevent them from getting bundled.
+// See the browserify options in the Makefile, which currently prevent the 
+// crypto, buffer, and stylus libraries from being bundled, saving ~700kb.
+
 sexpr = require("s-expression");
 define("s-expression", [], function() {return sexpr;});
 

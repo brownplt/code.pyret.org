@@ -116,6 +116,7 @@
               html.addClass('compile-error').appendTo(output);
               //updateItems?
               if (click) html.click();
+              scroll(output);
             }).done(function () {
               //updateItems(isMain);
               restarter.resume(runtime.nothing)
@@ -304,6 +305,7 @@
         CM.setValue("");
         CM.focus();
         CM.refresh();
+        scroll(output);
       }
       promptContainer.append(prompt);
 
@@ -655,7 +657,7 @@
             breakButton.attr("disabled", false);
             stopLi.attr('disabled', false);
             options.runButton.empty();
-            var text = $("<span>").text("Running...");
+            var text = $("<span>").text("  Running...");
             text.css({
               "vertical-align": "middle"
             });
@@ -855,10 +857,13 @@
         var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, true, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
-        doneRendering.fin(afterRun(false));
+        return doneRendering.fin(afterRun(false, uiOptions.synthetic));
       };
 
-      var runner = function(code) {
+      var runner = function(code, synthetic) {
+        if(!synthetic) {
+          CPO.triggerOnInteraction(code);
+        }
         if(running) { return; }
         running = true;
         var thiscode = {code: code, erroroutput: false, start: false, end: false, dup: false};
@@ -891,7 +896,7 @@
         var doneRendering = startRendering.then(displayResult(output, runtime, repl.runtime, false, updateItems)).fail(function(err) {
           console.error("Error displaying result: ", err);
         });
-        doneRendering.fin(afterRun(CM));
+        return doneRendering.fin(afterRun(CM, synthetic));
       };
 
       var CM = CPO.makeEditor(prompt, {
@@ -899,9 +904,9 @@
         run: runner,
         initial: "",
         cmOptions: {
-          scrollPastEnd: true,
+          scrollPastEnd: false,
           extraKeys: CodeMirror.normalizeKeyMap({
-            'Enter': function(cm) { runner(cm.getValue(), {cm: cm}); },
+            'Enter': function(cm) { runner(cm.getValue()); },
             'Shift-Enter': "newlineAndIndent",
             'Tab': 'indentAuto',
             'Up': function(){ return history.prevItem(); },
@@ -962,6 +967,7 @@
         cm: CM,
         refresh: function() { CM.refresh(); },
         runCode: runMainCode,
+        runner: runner,
         focus: function() { CM.focus(); }
       };
     }

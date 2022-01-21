@@ -10,8 +10,8 @@ if (process.env.GOOGLE_CHROME_BINARY) {
   PATH_TO_CHROME = process.env.GOOGLE_CHROME_BINARY;
 }
 else {
-  console.log("The tester is guessing that you're on a Mac :-) You can set GOOGLE_CHROME_BINARY to the path to your Chrome install if this path isn't for your machine work");
   PATH_TO_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  console.log(`The tester is guessing that you're on a Mac and using ${PATH_TO_CHROME}. You can set GOOGLE_CHROME_BINARY to the path to your Chrome install if this path is not working.`);
 }
 
 let leave_open = process.env.LEAVE_OPEN === "true" || false;
@@ -83,10 +83,20 @@ function waitForPyretLoad(driver, timeout) {
   return driver.wait(function() { return pyretLoaded(driver); }, timeout);
 }
 
+function setCodemirror(driver, getCM, content) {
+  var escaped = escape(content);
+  driver.executeScript(`
+var CM = ${getCM};
+var first = CM.firstLine();
+var last = CM.lastLine();
+CM.replaceRange(unescape(\"${escaped}\"), {line: first, ch: 0}, {line: last + 1, ch: 0});
+`);
+  // driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(unescape(\""+ escaped + "\"));");
+}
+
 function setDefinitions(driver, code) {
   // http://stackoverflow.com/a/1145525 
-  var escaped = escape(code);
-  driver.executeScript("$(\".CodeMirror\")[0].CodeMirror.setValue(unescape(\""+ escaped + "\"));");
+  setCodemirror(driver, "$(\".CodeMirror\")[0].CodeMirror", code);
 }
 function evalDefinitions(driver, options) {
   if(options && options.typeCheck) {
@@ -101,6 +111,11 @@ function evalDefinitions(driver, options) {
 function waitForBreakButton(driver) {
   var breakButton = driver.findElement(webdriver.By.id('breakButton'));
   driver.wait(webdriver.until.elementIsDisabled(breakButton));
+}
+
+function waitForNoPrompt(driver) {
+  var livePrompt = driver.findElement(webdriver.By.className('prompt-container'));
+  return driver.wait(webdriver.until.elementIsNotVisible(livePrompt));
 }
 
 function evalDefinitionsAndWait(driver, options) {
@@ -132,7 +147,6 @@ function checkTableRendersCorrectly(code, driver, test, timeout) {
   var maybeTest = replOutput.findElements(webdriver.By.xpath('pre'));
   return maybeTest.then(function(elements) {
     if (elements.length > 0) {
-      console.log(Object.keys(elements[0]));
       elements[0].getAttribute("innerHTML")
         .then(function(testsStr) {
           try {
@@ -181,13 +195,21 @@ function loadAndRunPyret(code, driver, timeout) {
   setDefinitionsAndEval(driver, code);
 }
 
+function waitForEditorContent(driver) {
+  driver.wait(function() {
+    return driver.executeScript(
+      "return $('.replMain > .CodeMirror')[0].CodeMirror.getValue() !== ''"
+    );
+  });
+}
+
 function waitForWorldProgram(driver, timeout, worldTimeout) {
   driver.wait(function() {
     return driver
       .findElements(webdriver.By.className("ui-dialog-title")).then(
         function(elements) { return elements.length > 0; });
   }, timeout);
-  driver.sleep(worldTimeout); // make sure the big-bang can run for 5 seconds
+  driver.sleep(worldTimeout); // make sure the big-bang can run for worldTimeout ms
   driver.findElement(webdriver.By.className("ui-icon-closethick"))
     .click();
 }
@@ -274,10 +296,9 @@ function evalPyret(driver, toEval) {
   var replOutput = driver.findElement(webdriver.By.id("output"));
   var livePrompt = driver.findElement(webdriver.By.className('prompt-container'));
   driver.wait(webdriver.until.elementIsVisible(livePrompt));
-  var escaped = escape(toEval);
+  setCodemirror(driver, "$(\".repl-prompt > .CodeMirror\")[0].CodeMirror", toEval);
   driver.executeScript([
     "(function(cm){",
-    "cm.setValue(unescape(\"" + escaped + "\"));",
     "cm.options.extraKeys.Enter(cm);",
     "})",
     "($(\".repl-prompt > .CodeMirror\")[0].CodeMirror)"
@@ -297,13 +318,16 @@ function evalPyret(driver, toEval) {
 function evalPyretNoError(driver, toEval) {
   return evalPyret(driver, toEval).then(function(element) {
     return webdriver.promise
-      .all([element.getTagName(), element.getAttribute('class')])
+      .all([element.getTagName(), element.getAttribute('class'), element.getText()])
       .then(function(resp) {
-        var name = resp[0];
-        var clss = resp[1];
+        const name = resp[0];
+        const clss = resp[1];
+        const text = resp[2];
 
         if (!(clss === "echo-container" || clss === "trace")) {
-          throw new Error("Failed to run Pyret code: " + toEval);
+          const errorstring = "Failed to run Pyret code: " + toEval + "\n" + text;
+          console.error(errorstring);
+          throw new Error(errorstring);
         } else {
           return element.findElements(webdriver.By.css(".replOutput, .replTextOutput"));
         }
@@ -347,9 +371,9 @@ function testRunAndUseRepl(it, name, toEval, toRepl, options) {
         if(elts.length === 0 && tr[1] === "") {
           return true;
         }
-	else if(elts.length === 0 && tr[1] !== "") {
+        else if(elts.length === 0 && tr[1] !== "") {
           throw new Error("Expected repl text content " + tr[1] + " but got empty output for repl entry " + tr[0]);
-	}
+        }
         else {
           return elts[0].getText().then(function(t) {
             if(t.indexOf(tr[1]) !== -1) { return true; }
@@ -492,5 +516,7 @@ module.exports = {
   evalDefinitionsAndWait: evalDefinitionsAndWait,
   evalDefinitions: evalDefinitions,
   evalPyretNoError: evalPyretNoError,
-  waitForBreakButton: waitForBreakButton
+  waitForBreakButton: waitForBreakButton,
+  waitForNoPrompt: waitForNoPrompt,
+  waitForEditorContent: waitForEditorContent
 }

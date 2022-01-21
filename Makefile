@@ -18,7 +18,6 @@ CM=node_modules/codemirror
 PYRET_MODE=node_modules/pyret-codemirror-mode
 CPOMAIN=build/web/js/cpo-main.jarr
 CPOGZ=build/web/js/cpo-main.jarr.gz.js
-CPOIDEHOOKS=build/web/js/cpo-ide-hooks.jarr
 PHASEA=pyret/build/phaseA/pyret.jarr
 
 BUNDLED_DEPS=build/web/js/bundled-npm-deps.js
@@ -80,10 +79,15 @@ COPY_GIF := $(patsubst src/web/img/%.gif,build/web/img/%.gif,$(wildcard src/web/
 
 COPY_SVG := $(patsubst src/web/img/%.svg,build/web/img/%.svg,$(wildcard src/web/img/*.svg))
 
+COPY_PNG := $(patsubst src/web/img/%.png,build/web/img/%.png,$(wildcard src/web/img/*.png))
+
 build/web/img/%.gif: src/web/img/%.gif
 	cp $< $@
 
 build/web/img/%.svg: src/web/img/%.svg
+	cp $< $@
+
+build/web/img/%.png: src/web/img/%.png
 	cp $< $@
 
 COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.js))
@@ -94,6 +98,9 @@ build/web/js/%.js: src/web/js/%.js
 COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-apis/%.js,$(wildcard src/web/js/google-apis/*.js))
 
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
+	cp $< $@
+
+build/web/js/events.js: src/web/js/events.js
 	cp $< $@
 
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
@@ -159,23 +166,51 @@ build/web/js/mousetrap.min.js: node_modules/mousetrap/mousetrap.min.js
 build/web/js/mousetrap-global-bind.min.js: node_modules/mousetrap/plugins/global-bind/mousetrap-global-bind.min.js
 	cp $< $@
 
-MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
-          build/web/js/codemirror.js \
-					build/web/js/rulers.js \
-          build/web/js/mark-selection.js \
-          build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
-          build/web/js/seedrandom.js \
-          build/web/js/source-map.js \
-          build/web/js/pyret-fold.js \
-          build/web/js/scrollpastend.js \
-          build/web/js/matchkw.js \
-          build/web/js/foldcode.js \
-          build/web/js/foldgutter.js \
-          build/web/js/colorspaces.js \
-          build/web/js/es6-shim.js \
-          build/web/js/runmode.js \
-					build/web/js/mousetrap.min.js \
-					build/web/js/mousetrap-global-bind.min.js
+MISC_JS = build/web/js/q.js \
+	   build/web/js/url.js \
+	   build/web/js/require.js \
+	   build/web/js/codemirror.js \
+	   build/web/js/rulers.js \
+	   build/web/js/mark-selection.js \
+	   build/web/js/pyret-mode.js \
+	   build/web/js/s-expression-lib.js \
+	   build/web/js/seedrandom.js \
+	   build/web/js/source-map.js \
+	   build/web/js/pyret-fold.js \
+	   build/web/js/scrollpastend.js \
+	   build/web/js/matchkw.js \
+	   build/web/js/foldcode.js \
+	   build/web/js/foldgutter.js \
+	   build/web/js/colorspaces.js \
+	   build/web/js/es6-shim.js \
+	   build/web/js/runmode.js \
+	   build/web/js/mousetrap.min.js \
+	   build/web/js/mousetrap-global-bind.min.js
+
+EDITOR_MISC_JS = build/web/js/q.js \
+		  build/web/js/loader.js \
+		  build/web/js/codemirror.js \
+		  build/web/js/rulers.js \
+		  build/web/js/scrollpastend.js \
+		  build/web/js/foldcode.js \
+		  build/web/js/foldgutter.js \
+		  build/web/js/mark-selection.js \
+		  build/web/js/runmode.js \
+		  build/web/js/pyret-mode.js \
+		  build/web/js/pyret-fold.js \
+		  build/web/js/matchkw.js \
+		  build/web/js/mousetrap.min.js \
+		  build/web/js/mousetrap-global-bind.min.js \
+		  build/web/js/log.js \
+		  build/web/js/share.js \
+		  build/web/js/google-apis/api-wrapper.js \
+		  build/web/js/google-apis/drive.js \
+		  build/web/js/google-apis/picker.js \
+		  build/web/js/google-apis/sheets.js \
+		  build/web/js/authenticate-storage.js
+
+build/web/js/editor-misc.min.js: $(EDITOR_MISC_JS)
+	npm exec -- uglifyjs --compress -o $@ -- $^
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
@@ -226,15 +261,15 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) $(CPOIDEHOOKS)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
 	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
 
-deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOIDEHOOKS) $(CPOGZ)
+deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOGZ)
 
 TROVE_JS := src/web/js/trove/*.js
 TROVE_ARR := src/web/arr/trove/*.arr
@@ -246,7 +281,8 @@ libpyret:
 	$(MAKE) phaseA -C pyret/
 
 $(BUNDLED_DEPS): src/scripts/npm-dependencies.js
-	node_modules/.bin/browserify src/scripts/npm-dependencies.js -o $(BUNDLED_DEPS)
+	# Explicitly exclude crypto, buffer, and stylus, nested npm dependencies that aren't needed
+	node_modules/.bin/browserify src/scripts/npm-dependencies.js -x crypto -x buffer -x stylus -o $(BUNDLED_DEPS)
 
 $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
@@ -267,23 +303,8 @@ $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js sr
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
 # non-.js extension.
 $(CPOGZ): $(CPOMAIN)
-	gzip -c -f $(CPOMAIN) > $(CPOGZ)
-
-$(CPOIDEHOOKS): $(TROVE_JS) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-ide-hooks.arr $(PHASEA) $(BUNDLED_DEPS)
-	mkdir -p compiled/;
-	#cp pyret/build/phaseA/compiled/*.js ./compiled/
-	node pyret/build/phaseA/pyret.jarr \
-    --builtin-js-dir src/web/js/trove/ \
-    --builtin-js-dir pyret/src/js/trove/ \
-    -allow-builtin-overrides \
-    --builtin-arr-dir src/web/arr/trove/ \
-    --builtin-arr-dir pyret/src/arr/trove/ \
-    --require-config cpo-config.json \
-    --build-runnable src/web/arr/cpo-ide-hooks.arr \
-    --standalone-file cpo-standalone.js \
-    --compiled-dir ./compiled \
-    --deps-file $(BUNDLED_DEPS) \
-    --outfile $(CPOIDEHOOKS) -no-check-mode
+	npm exec -- uglifyjs --compress -o $(CPOMAIN).min -- $(CPOMAIN)
+	gzip -c -f $(CPOMAIN).min > $(CPOGZ)
 
 clean:
 	rm -rf build/
