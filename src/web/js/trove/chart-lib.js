@@ -13,7 +13,8 @@
       'multi-bar-chart': "tany",
       'histogram': "tany",
       'box-plot': "tany",
-      'plot': "tany"
+      'plot': "tany",
+      'geochart': "tany"
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
@@ -63,7 +64,7 @@
     }
   }
   
-  google.charts.load('current', {'packages' : ['corechart']});
+  google.charts.load('current', {'packages' : ['corechart', 'geochart']});
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -884,6 +885,26 @@
     };
   }
 
+  function geoChart(globalOptions, rawData) {
+      const table = get(rawData, 'tab');
+      const data = new google.visualization.DataTable();
+      const region = get(rawData, 'region');
+      data.addColumn('string', 'Region');
+      data.addColumn('number', "Value");
+      data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
+      console.log("test123");
+      console.log(region);
+      const options = {region: region};
+
+      return {
+          data: data,
+          options: options,
+          chartType: google.visualization.GeoChart,
+          onExit: defaultImageReturn,
+      };
+  }
+
+
   function plot(globalOptions, rawData) {
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
@@ -1245,6 +1266,7 @@ ${labelRow}`;
       'histogram': makeFunction(histogram),
       'box-plot': makeFunction(boxPlot),
       'plot': makeFunction(plot),
+      'geochart': makeFunction(geoChart),
     }, 
     {
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
