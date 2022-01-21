@@ -44,11 +44,7 @@
     "jwt-simple": "^0.5.3",
     "load-script": "^1.0.0",
     "lodash": "^4.17.19",
-<<<<<<< HEAD
-    "mocha": "^8.3.2",
-=======
     "mocha": "^8.3.0",
->>>>>>> e103a732a5ab4735393b8b7e6de8abc208f908a5
     "mousetrap": "^1.6.1",
     "mustache": "^2.2.1",
     "mustache-express": "^1.2.1",
