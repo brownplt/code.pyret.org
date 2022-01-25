@@ -603,8 +603,8 @@
     data.addColumn({type: 'string', role: 'style'});
 
     // Adds each row of bar data and bar_color data
-    table.forEach(function (row, idx) {
-      const bar_color = idx < colors_list_length ? colors_list[idx] : default_color;
+    table.forEach(function (row) {
+      const bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
     addAnnotations(data, rawData);

@@ -1682,7 +1682,7 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   {max-positive-height; max-negative-height} = prep-axis(rational-values)
 
   data-series = default-bar-chart-series.{
-    tab: to-table2(labels, rational-values),
+    tab: to-table3(labels, rational-values, range(0, labels.length())),
     axis-top: max-positive-height,
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
