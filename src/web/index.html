@@ -5,6 +5,7 @@
     <title>code.pyret.org</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="/img/pyret-icon.png">
+    <link rel="prefetch" href="{{&PYRET}}" as="script">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
     <!-- Used to w/Google for OAuth verification -->
@@ -12,10 +13,15 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-    <script src="/js/codemirror.js"></script>
     <script src="/js/q.js"></script>
     <script src="/js/require.js"></script>
+    
     <script>
+      // TODO: test these are the same as what was in old server version
+      var LOG_URL = "{{ &LOG_URL }}";
+      var GIT_REV = "{{ &GIT_REV }}";
+      var GIT_BRANCH = "{{ &GIT_BRANCH }}";
+      
       var apiKey = "{{{ GOOGLE_API_KEY }}}";
       var EDITOR_REDIRECT_URL = "{{{ BASE_URL }}}" + "/editor#program=";
     </script>

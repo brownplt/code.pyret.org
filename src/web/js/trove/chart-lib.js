@@ -675,8 +675,9 @@
   }
 
   function boxPlot(globalOptions, rawData) {
-    var table = get(rawData, 'tab');
+    let table = get(rawData, 'tab');
     const dimension = toFixnum(get(rawData, 'height'));
+    // TODO: are these two supposed to be on ChartWindow or DataSeries?
     const horizontal = get(rawData, 'horizontal');
     const showOutliers = get(rawData, 'show-outliers');
     const axisName = horizontal ? 'hAxis' : 'vAxis';
@@ -695,7 +696,6 @@
         color: '#777'
       }
     };
-
 
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Total');
@@ -769,18 +769,36 @@
         style: 'boxes'
       },
       interval: intervalOptions,
-      dataOpacity: 0
+      dataOpacity: 0,
     };
-    /* NOTE(Oak): manually set the max value to coincide with bar charts' height
+
+    /* NOTE(Oak): manually set the default max to coincide with bar charts' height
      * so that the bar charts are concealed (the automatic value from Google
      * is likely to screw this up)
      */
-    options[axisName] = {
+    const axisOpts = {
       maxValue: dimension,
       viewWindow: {
         max: dimension
-      },
+      },      
     };
+    /* NOTE(Emmanuel): if min and max are set, override these defaults
+     * 
+     */
+    cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'min'), {
+      none: function () {},
+      some: function (min) {
+          axisOpts.viewWindow.min = toFixnum(min);
+        }
+    });
+    cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'max'), {
+      none: function () {},
+      some: function (max) {
+          axisOpts.viewWindow.max = toFixnum(max);
+        }
+    });
+    options[axisName] = axisOpts;
+
     return {
       data: data,
       options: options,
@@ -874,6 +892,7 @@
     const combined = scatters.concat(lines);
     const legends = [];
     let cnt = 1;
+    const legendEnabled = combined.length > 1;
     combined.forEach(p => {
       let legend = get(p, 'legend');
       if (legend === '') {
@@ -939,7 +958,7 @@ ${labelRow}`;
         }
         return seriesOptions;
       }),
-      legend: {position: 'bottom',},
+      legend: {position: legendEnabled ? 'bottom' : 'none'},
       crosshair: {trigger: 'selection'}
     };
 

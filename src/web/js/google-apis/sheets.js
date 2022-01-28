@@ -165,7 +165,12 @@ function createSheetsAPI(immediate) {
         } else if (v.effectiveValue.boolValue !== undefined) {
           return { value: v.effectiveValue.boolValue, type: VALUE_TYPES.BOOL };
         } else if (v.effectiveValue.errorValue) {
-          errors.push("Google Sheets Error: " + v.effectiveValue.errorValue);
+          if(v.effectiveValue.errorValue.type === "N_A") {
+            errors.push("Google Sheets Error: there are #N/A values in the sheet, so it cannot be loaded correctly. The #N/A values must first be fixed before importing.");
+          }
+          else {
+            errors.push("Google Sheets Error: " + v.effectiveValue.errorValue);
+          }
           return { value: null, type: VALUE_TYPES.NONE };
         } else {
           return { value: v.formattedValue, type: VALUE_TYPES.STRING };
@@ -741,10 +746,14 @@ function createSheetsAPI(immediate) {
      * Loads the spreadsheet with the given id
      */
     Spreadsheet.fromId = function(id) {
+      // NOTE(joe): The true as a second argument below drills pretty far down
+      // into api-wrapper.js to tell it to *disable* the user's credential if
+      // logged in. This is another instance of the issue at 
+      // https://github.com/brownplt/code.pyret.org/issues/255
       return spreadsheets.get({
         spreadsheetId: id,
         fields: SHEET_REQ_FIELDS
-      }).then(function(data) { return new Spreadsheet(data); },
+      }, true).then(function(data) { return new Spreadsheet(data); },
               function(err) {
                 throw new SheetsError("No Spreadsheet with id \"" + id + "\" found");
               });
