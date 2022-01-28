@@ -401,6 +401,21 @@
 
   function pieChart(globalOptions, rawData) {
     const table = get(rawData, 'tab');
+    const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
+                            '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
+                            '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
+                            '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
+    var colors_list = get_colors_list(rawData);
+
+    if (colors_list.length < default_colors.length) {
+      default_colors.splice(0, colors_list.length, ...colors_list);
+      colors_list = default_colors;
+      colors_list = colors_list.slice(0, table.length);
+    }
+
+    const new_colors_list = table.map(row => colors_list[row[3]])
+    colors_list = new_colors_list
+
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Value');
@@ -408,7 +423,7 @@
     return {
       data: data,
       options: {
-        slices: table.map(row => ({offset: toFixnum(row[2])})),
+        slices: table.map((row, i) => ({color: colors_list[i], offset: toFixnum(row[2])})),
         legend: {
           alignment: 'end'
         }
@@ -518,7 +533,7 @@
 
     // Adds each row of bar data and bar_color data
     table.forEach(function (row, idx) {
-      const bar_color = idx < colors_list_length ? colors_list[idx] : default_color;
+      const bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
     addAnnotations(data, rawData);

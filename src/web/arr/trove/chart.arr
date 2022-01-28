@@ -92,6 +92,10 @@ fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
   map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
+fun to-table4(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>, ks :: List<Any>) -> TableIntern:
+  map4({(x, y, z, k): [raw-array: x, y, z, k]}, xs, ys, zs, ks) ^ builtins.raw-array-from-list
+end
+
 fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
   builtins.raw-array-from-list(table.map(builtins.raw-array-from-list))
 end
@@ -761,9 +765,12 @@ default-box-plot-series = {
 
 type PieChartSeries = {
   tab :: TableIntern,
+  colors :: Option<RawArray<I.Color>>,
 }
 
-default-pie-chart-series = {}
+default-pie-chart-series = {
+  colors: none,
+}
 
 type BarChartSeries = {
   tab :: TableIntern,
@@ -991,6 +998,10 @@ data DataSeries:
     legend: legend-method,
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
+    colors: color-list-method,
+    sort: default-sort-method,
+    sort-by: sort-method,
+    sort-by-label: label-sort-method,
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
@@ -1232,7 +1243,7 @@ fun exploding-pie-chart-from-list(
   offsets.each(check-num)
   labels.each(check-string)
   default-pie-chart-series.{
-    tab: to-table3(labels, values, offsets)
+    tab: to-table4(labels, values, offsets, range(0, labels.length()))
   } ^ pie-chart-series
 end
 
@@ -1252,7 +1263,7 @@ fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   values.each(check-num)
   labels.each(check-string)
   default-pie-chart-series.{
-    tab: to-table3(labels, values, labels.map({(_): 0}))
+    tab: to-table4(labels, values, labels.map({(_): 0}), range(0, labels.length()))
   } ^ pie-chart-series
 end
 
@@ -1281,7 +1292,7 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   {max-positive-height; max-negative-height} = prep-axis(rational-values)
 
   data-series = default-bar-chart-series.{
-    tab: to-table2(labels, rational-values),
+    tab: to-table3(labels, rational-values, range(0, labels.length())),
     axis-top: max-positive-height,
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
