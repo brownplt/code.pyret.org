@@ -472,11 +472,15 @@
                             '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
                             '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
     var colors_list = get_colors_list(rawData);
+
     if (colors_list.length < default_colors.length) {
       default_colors.splice(0, colors_list.length, ...colors_list);
       colors_list = default_colors;
       colors_list = colors_list.slice(0, table.length);
     }
+    const new_colors_list = table.map(row => colors_list[row[3]])
+    colors_list = new_colors_list
+    
     const threeD = get(rawData, 'threeD');
     const piehole = toFixnum(get(rawData, 'piehole'));
     const startingAngle = toFixnum(get(rawData, 'startingAngle'));
