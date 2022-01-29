@@ -85,15 +85,23 @@ sprintf = (lam():
 unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 fun to-table2(xs :: List<Any>, ys :: List<Any>) -> TableIntern:
-  map2({(x, y): [raw-array: x, y]}, xs, ys) ^ builtins.raw-array-from-list
+  map2(raw-array.make2, xs, ys) ^ builtins.raw-array-from-list
+end
+
+fun to-table2-n(xs :: List<Any>, ys :: List<Any>) -> TableIntern:
+  map2_n({(n, x, y): raw-array.make3(x, y, n)}, 0, xs, ys) ^ builtins.raw-array-from-list
 end
 
 fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
-  map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
+  map3(raw-array.make3, xs, ys, zs) ^ builtins.raw-array-from-list
+end
+
+fun to-table3-n(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
+  map3_n({(n, x, y, z): raw-array.make4(x, y, z, n)}, 0, xs, ys, zs) ^ builtins.raw-array-from-list
 end
 
 fun to-table4(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>, ks :: List<Any>) -> TableIntern:
-  map4({(x, y, z, k): [raw-array: x, y, z, k]}, xs, ys, zs, ks) ^ builtins.raw-array-from-list
+  map4(raw-array.make4, xs, ys, zs, ks) ^ builtins.raw-array-from-list
 end
 
 fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
@@ -193,14 +201,14 @@ fun prep-axis(values :: P.LoN) -> {Number; Number}:
   {max-positive-height; max-negative-height}
 end
 
-fun multi-prep-axis(is-stacked :: StackType, value-lists :: P.LoLoN) 
+fun multi-prep-axis(stack-type :: StackType, value-lists :: P.LoLoN) 
   -> {Number; Number}: 
   doc: ``` 
        Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
        ```
 
   ask:
-    | is-stacked == grouped then: 
+    | stack-type == grouped then: 
       # Find the tallest bar in the entire group 
       # We know that the value lists have at least one value since we check for that when initializing the value list data. 
       positive-max-groups = map({(l): fold(num-max, l.first, l)}, value-lists)
@@ -209,7 +217,7 @@ fun multi-prep-axis(is-stacked :: StackType, value-lists :: P.LoLoN)
       max-negative-height = fold(num-min, 0, negative-max-groups)
       {max-positive-height; max-negative-height}
 
-    | is-stacked == absolute then: 
+    | stack-type == absolute then: 
       # Find height of stack using sum functions
       sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
       positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
@@ -1243,7 +1251,7 @@ fun exploding-pie-chart-from-list(
   offsets.each(check-num)
   labels.each(check-string)
   default-pie-chart-series.{
-    tab: to-table4(labels, values, offsets, range(0, labels.length()))
+    tab: to-table3-n(labels, values, offsets)
   } ^ pie-chart-series
 end
 
@@ -1263,7 +1271,7 @@ fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   values.each(check-num)
   labels.each(check-string)
   default-pie-chart-series.{
-    tab: to-table4(labels, values, labels.map({(_): 0}), range(0, labels.length()))
+    tab: to-table3-n(labels, values, labels.map({(_): 0}))
   } ^ pie-chart-series
 end
 
@@ -1292,7 +1300,7 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   {max-positive-height; max-negative-height} = prep-axis(rational-values)
 
   data-series = default-bar-chart-series.{
-    tab: to-table3(labels, rational-values, range(0, labels.length())),
+    tab: to-table2-n(labels, rational-values),
     axis-top: max-positive-height,
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,

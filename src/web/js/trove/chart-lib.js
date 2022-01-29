@@ -399,12 +399,16 @@
 
   //////////////////////////////////////////////////////////////////////////////
 
-  function pieChart(globalOptions, rawData) {
-    const table = get(rawData, 'tab');
-    const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
+  // Default Google Chart Colors for sequential series (Like Multi Bar Charts and Pie Charts) from 
+  // http://there4.io/2012/05/02/google-chart-color-list/
+
+  const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
                             '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
                             '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
                             '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
+
+  function pieChart(globalOptions, rawData) {
+    const table = get(rawData, 'tab');
     var colors_list = get_colors_list(rawData);
 
     if (colors_list.length < default_colors.length) {
@@ -601,10 +605,6 @@
     const pointer_color = get_pointer_color(rawData);
     const axis = get_axis(rawData);
     const interval_color = get_interval_color(rawData); 
-    const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
-                            '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
-                            '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
-                            '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
     var colors_list = get_colors_list(rawData);
     if (colors_list.length < default_colors.length) {
       default_colors.splice(0, colors_list.length, ...colors_list);
