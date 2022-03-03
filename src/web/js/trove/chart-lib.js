@@ -10,6 +10,7 @@
     values: {
       'pie-chart': "tany",
       'bar-chart': "tany",
+      'multi-bar-chart': "tany",
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany"
@@ -28,6 +29,40 @@
 
   var IMAGE = get(IMAGELIB, "internal");
 
+  const ann = function(name, pred) {
+    return RUNTIME.makePrimitiveAnn(name, pred);
+  };
+
+  var checkListWith = function(checker) {
+    return function(val) {
+      if (!RUNTIME.ffi.isList(val)) return false;
+      var cur = val;
+      var gf = RUNTIME.getField;
+      while (RUNTIME.unwrap(RUNTIME.ffi.isLink(cur))) {
+        var f = gf(cur, "first");
+        if (!checker(f)) {
+          return false;
+        }
+        cur = gf(cur, "rest");
+      }
+      return true;
+    }
+  }
+
+  var checkOptionWith = function(checker) {
+    return function(val) {
+      if (!(RUNTIME.ffi.isNone(val) || RUNTIME.ffi.isSome(val))) return false;
+      var gf = RUNTIME.getField;
+      if (RUNTIME.unwrap(RUNTIME.ffi.isSome(val))) {
+        var f = gf(val, "value");
+        if (!checker(f)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+  
   google.charts.load('current', {'packages' : ['corechart']});
 
   //////////////////////////////////////////////////////////////////////////////
@@ -69,6 +104,11 @@
     }
     return rgb2hex(IMAGE.colorString(checkColor(v)));
   }
+
+  function convertPointer(p) {
+    return {v: toFixnum(get(p, 'value')) , f: get(p, 'label')}
+  }
+
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -174,6 +214,116 @@
 
   //////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Adds multiple columns with the given properties and values after data
+   * columns
+   * 
+   * For example, if given:
+   * colProperties:
+   *   {type: 'string', role: 'style'}
+   * colValues:
+   *   [
+   *     [['red', 'black'], ['white', 'blue'], ['green', 'purple']],
+   *     []
+   *   ]
+   * addNSpecialColumns will add 2 style columns after the first data column
+   * and no columns after the second data column.
+   * 
+   * The number of columns added after a particular data column do not have to
+   * agree. It is possible to add one special value on one row and two
+   * special values on another row.
+   * 
+   * https://jsfiddle.net/eyanje/u83kaf92/
+   * 
+   * @param {DataTable} table a table to expand
+   * @param {object} colProperties an object specifying column properties
+   * @param {Array<Array<*>>>} colValues rows of groups of values to insert
+   */
+  function addNSpecialColumns(table, colProperties, colValues) {
+    let dataColNums = [];
+    let nDataCols;
+    let groupWidths;
+    for (let i = 1; i < table.getNumberOfColumns(); i++) {
+      const role = table.getColumnRole(i);
+      if (role === '' || role === 'data') {
+        dataColNums.push(i);
+      }
+    }
+    nDataCols = dataColNums.length;
+    // Check column count
+    // Should never run -- Pyret checks all column counts properly
+    // This should be somewhat caught in the try-catch around setup(restarter),
+    // unless it's been moved
+    colValues.forEach((row, rowN) => {
+      if (row.length !== nDataCols) {
+        throw new Error(`Incorrect column count in row ${rowN}.`
+          + ` Expected ${nDataCols}, given ${row.length}.`);
+      }
+    });
+    // Tally columns needed for each group
+    groupWidths = dataColNums.map(() => 0);
+    colValues.forEach(row => {
+      row.forEach((group, groupN) => {
+        groupWidths[groupN] = Math.max(group.length, groupWidths[groupN]);
+      });
+    });
+    // Add columns in reverse order
+    for (let groupIndex = nDataCols - 1; groupIndex >= 0; groupIndex--) {
+      for (let i = 0; i < groupWidths[groupIndex]; i++) {
+        table.insertColumn(dataColNums[groupIndex] + 1, colProperties);
+      }
+    }
+    // Adjust dataColNums to match expanded table
+    let sum = 0;
+    dataColNums.forEach((dataColNum, i) => {
+        dataColNums[i] += sum;
+      sum += groupWidths[i];
+    });
+    // Add columns in reverse order to avoid extra calculations
+    colValues.forEach((row, rowN) => {
+        row.forEach((group, groupN) => {
+          group.forEach((val, i) => {
+          table.setValue(rowN, dataColNums[groupN] + i + 1, val);
+        });
+      })
+    });
+  }
+
+  /**
+   * Adds columns with the given properties and values after data columns
+   * 
+   * For example, you may use this function to add columns with properties
+   * {type: 'string', role: 'style'} and values
+   * [['red', 'black'] ['white', 'blue'], ['green', 'purple']], to add
+   * two style columns to a table with 3 rows and 2 columns.
+   * 
+   * @param {DataTable} table a table to expand
+   * @param {object} colProperties an object specifying column properties
+   * @param {Array<Array<*>>>} colValues rows of values to insert
+   */
+  function addSpecialColumns(table, colProperties, colValues) {
+    addNSpecialColumns(table, colProperties,
+      colValues.map(r => r.map(c => [c])));
+  }
+
+  function addAnnotations(table, rawData) {
+    const rawAnnotations = get(rawData, 'annotations').map(row =>
+      row.map(col =>
+        cases(RUNTIME.ffi.isOption, 'Option', col, {
+          none: function () {},
+          some: function (annotation) { return annotation; }
+        })
+      )
+    );
+    const colProperties = { type: 'string', role: 'annotation' };
+    addSpecialColumns(table, colProperties, rawAnnotations);
+  }
+
+  function addIntervals(table, rawData) {
+    const colProperties = {type: 'number', role: 'interval'};
+    addNSpecialColumns(table, colProperties, get(rawData, 'intervals'));
+  }
+
   function axesNameMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
@@ -268,23 +418,259 @@
     };
   }
 
+  //////////// Bar Chart Getter Functions /////////////////
+
+  function get_colors_list(rawData) {
+    // Sets up the color list [Each Bar Colored Individually]
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'colors'), {
+        none: function () {
+          return [];
+        },
+        some: function (colors) {
+          return colors.map(convertColor);
+        }
+    });
+  }
+
+  function get_default_color(rawData) { 
+    // Sets up the default color [Default Bar Color if not specified in color_list]
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+        none: function () {
+          return "";
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+    });
+  }
+
+  function get_pointers_list(rawData) {
+    // Sets up the pointers list [Coloring each group memeber/stack]
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointers'), {
+        none: function () {
+          return [];
+        },
+        some: function (pointers) {
+          return pointers.map(convertPointer);
+        }
+    });
+  }
+
+  function get_pointer_color(rawData) { 
+    // Sets up the pointer color
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'pointer-color'), {
+        none: function () {
+          return 'black';
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+    });
+  }
+
+  function get_axis(rawData) {
+    // Sets up the calculated axis properties/data
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'axisdata'), {
+        none: function () {
+          return undefined;
+        },
+        some: function (axisdata) {
+          return {
+            top : toFixnum(get(axisdata, 'axisTop')), 
+            bottom : toFixnum(get(axisdata, 'axisBottom')),
+            ticks : get(axisdata, 'ticks').map(convertPointer)
+          };
+        }
+    });
+  }
+
+  function get_interval_color(rawData) { 
+    // Sets up the default interval color
+    return cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'default-interval-color'), {
+        none: function () {
+          return 'black';
+        },
+        some: function (color) {
+          return convertColor(color);
+        }
+    });
+  }
+
+  /////////////////////////////////////////////////////////
   function barChart(globalOptions, rawData) {
+    // Variables and constants 
     const table = get(rawData, 'tab');
-    const legends = get(rawData, 'legends');
+    const horizontal = get(rawData, 'horizontal');
+    const axisloc = horizontal ? 'hAxes' : 'vAxes';
     const data = new google.visualization.DataTable();
+    const colors_list = get_colors_list(rawData);
+    const default_color = get_default_color(rawData);
+    const pointers_list = get_pointers_list(rawData);
+    const pointer_color = get_pointer_color(rawData);
+    const axis = get_axis(rawData);
+    const interval_color = get_interval_color(rawData); 
+    const colors_list_length = colors_list.length;
+
+    // Initializes the Columns of the data 
     data.addColumn('string', 'Label');
-    legends.forEach(legend => data.addColumn('number', legend));
-    data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+    data.addColumn('number', 'Values');
+    data.addColumn({type: 'string', role: 'style'});
+
+    // Adds each row of bar data and bar_color data
+    table.forEach(function (row, idx) {
+      const bar_color = idx < colors_list_length ? colors_list[idx] : default_color;
+      data.addRow([row[0], toFixnum(row[1]), bar_color]);
+    });
+    addAnnotations(data, rawData);
+    addIntervals(data, rawData);
+
+    let options = {
+        legend: {
+          position: 'none'
+        }, 
+        intervals: {
+          color : interval_color, 
+        }
+      };
+ 
+    options[axisloc] = { 
+      0: { 
+        viewWindow: { max: axis.top, min: axis.bottom }, 
+        ticks: axis.ticks
+      }
+    };
+    
+     /* NOTE(John & Edward, Dec 2020): 
+       Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
+       The Current Chart library necessitates that we assign at least one stack/bar to the 
+       second axis in order for it to show up, and we have to fix the min/max of each axis 
+       manually to make sure that both are consistent with each other rather than being relative 
+       to the data. There is also a problem: When the pointers are too close to each other, one or 
+       both of them disappear!
+    */
+    if (pointers_list.length > 0) {
+
+      // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
+      data.addColumn('number', 'Pointers');
+      options['series'] = { 1: { color: pointer_color, targetAxisIndex: 1 } };
+
+      // Update Options to include the new axis ticks consistent with the first axis
+      options[axisloc][1] = { 
+        viewWindow: { 
+          max: axis.top, 
+          min: axis.bottom
+        },
+        gridlines: { color: pointer_color },
+        ticks: pointers_list, 
+        textStyle: { color: pointer_color }
+      };
+    }
+
     return {
       data: data,
-      options: {
-        legend: {
-          position: isTrue(get(rawData, 'has-legend')) ? 'right' : 'none'
-        }
-      },
-      chartType: google.visualization.ColumnChart,
+      options: options,
+      chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [axesNameMutator, yAxisRangeMutator],
+    };
+  }
+
+  function multiBarChart(globalOptions, rawData) {
+    // Variables and Constants
+    const table = get(rawData, 'tab');
+    const legends = get(rawData, 'legends');
+    const horizontal = get(rawData, 'horizontal');
+    const axisloc = horizontal ? 'hAxes' : 'vAxes';
+    const data = new google.visualization.DataTable();
+    const pointers_list = get_pointers_list(rawData);
+    const pointer_color = get_pointer_color(rawData);
+    const axis = get_axis(rawData);
+    const interval_color = get_interval_color(rawData); 
+    const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
+                            '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
+                            '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
+                            '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
+    var colors_list = get_colors_list(rawData);
+    if (colors_list.length < default_colors.length) {
+      default_colors.splice(0, colors_list.length, ...colors_list);
+      colors_list = default_colors;
+      colors_list = colors_list.slice(0, legends.length);
+    }
+
+    // Initializes the Columns of the data 
+    data.addColumn('string', 'Label');
+    legends.forEach(legend => data.addColumn('number', legend));
+
+    // Adds each row of bar data
+    data.addRows(table.map(row => [row[0]].concat(row[1].map(n => toFixnum(n)))));
+    addAnnotations(data, rawData);
+    addIntervals(data, rawData);
+
+    let options = {
+      isStacked: get(rawData, 'is-stacked'),
+      series: colors_list.map(c => ({color: c, targetAxisIndex: 0})),
+      legend: {
+        position: horizontal ? 'right' : 'top', 
+        maxLines: data.getNumberOfColumns() - 1
+      }, 
+      intervals: { 
+        color : interval_color, 
+      }
+    };
+
+    
+    options[axisloc] = { 
+      0: { 
+        viewWindow: { max: axis.top, min: axis.bottom }, 
+        ticks: axis.ticks 
+      }
+    };
+         
+    /* NOTE(John & Edward, Dec 2020): 
+       Our goal for the part below was to add pointers (Specific Named Ticks) on another VAxis. 
+       The Current Chart library necessitates that we assign at least one stack/bar to the 
+       second axis in order for it to show up, and we have to fix the min/max of each axis 
+       manually to make sure that both are consistent with each other rather than being relative 
+       to the data. There is also a problem: When the pointers are too close to each other, one or 
+       both of them disappear!
+    */
+
+    if (pointers_list.length > 0) { 
+      colors_list = colors_list.slice(0, legends.length);
+      
+      // Add and Attach Empty Data Stack/bar to 2nd axis + Color it
+      data.addColumn('number', 'Pointers')
+
+      for (let i = 0; i < data.getNumberOfColumns() - 1; i++) {
+        if (options['series'][i] == null) {
+          options['series'][i] = {color: pointer_color, targetAxisIndex: 1};
+        }
+      }
+
+      // Update Options to include the new axis ticks consistent with the first axis
+      options[axisloc][1] = { 
+        viewWindow: { 
+          max: axis.top, 
+          min: axis.bottom
+        },
+        gridlines: { color: pointer_color },
+        ticks: pointers_list, 
+        textStyle: { color: pointer_color }
+      };
+    } else {
+      for (let i = 0; i < data.getNumberOfColumns() - 1; i++) {
+        if (options['series'][i] == null) {
+          options['series'][i] = {color: 'black', targetAxisIndex: 0};
+        }
+      }
+    }
+      
+    return {
+      data: data,
+      options: options,
+      chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
+      onExit: defaultImageReturn,
+      mutatorgraphs: [axesNameMutator, yAxisRangeMutator],
     };
   }
 
@@ -506,6 +892,7 @@
     const combined = scatters.concat(lines);
     const legends = [];
     let cnt = 1;
+    const legendEnabled = combined.length > 1;
     combined.forEach(p => {
       let legend = get(p, 'legend');
       if (legend === '') {
@@ -571,7 +958,7 @@ ${labelRow}`;
         }
         return seriesOptions;
       }),
-      legend: {position: 'bottom',},
+      legend: {position: legendEnabled ? 'bottom' : 'none'},
       crosshair: {trigger: 'selection'}
     };
 
@@ -799,7 +1186,7 @@ ${labelRow}`;
       }
 
       function setup(restarter) {
-        const tmp = f(globalOptions, rawData);
+        var tmp = f(globalOptions, rawData);
         tmp.chart = new tmp.chartType(root[0]);
         const options = {
           backgroundColor: {fill: 'transparent'},
@@ -822,11 +1209,16 @@ ${labelRow}`;
         // must append the overlay _after_ drawing to make the overlay appear
         // correctly
         root.append(overlay);
+        // return true;
       }
 
       return RUNTIME.pauseStack(restarter => {
         google.charts.setOnLoadCallback(() => {
-          setup(restarter);
+          try{
+            setup(restarter)
+          } catch (e) {
+            return restarter.error(e);
+          }
           RUNTIME.getParam('chart-port')({
             root: root[0],
             onExit: () => onExitRetry(() => result, restarter),
@@ -845,17 +1237,24 @@ ${labelRow}`;
     });
   }
 
-  return RUNTIME.makeObject({
-    'provide-plus-types': RUNTIME.makeObject({
-      types: RUNTIME.makeObject({}),
-      values: RUNTIME.makeObject({
-        'pie-chart': makeFunction(pieChart),
-        'bar-chart': makeFunction(barChart),
-        'histogram': makeFunction(histogram),
-        'box-plot': makeFunction(boxPlot),
-        'plot': makeFunction(plot),
-      })
-    })
-  });
+  return RUNTIME.makeModuleReturn(
+    {
+      'pie-chart': makeFunction(pieChart),
+      'bar-chart': makeFunction(barChart),
+      'multi-bar-chart': makeFunction(multiBarChart),
+      'histogram': makeFunction(histogram),
+      'box-plot': makeFunction(boxPlot),
+      'plot': makeFunction(plot),
+    }, 
+    {
+      "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
+      "LoS": ann("List<String>", checkListWith(RUNTIME.isString)), 
+      "LoN": ann("List<Number>", checkListWith(RUNTIME.isNumber)),
+      "LoLoN": ann("List<List<Number>>", checkListWith(checkListWith(RUNTIME.isNumber))),
+      "LoLoLoN": ann("List<List<List<<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
+      "LoOoS": ann("List<Option<String>>", checkListWith(checkOptionWith(RUNTIME.isString))),
+      "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString))))
+    }
+  )
 }
 })
