@@ -87,6 +87,10 @@ function makeEvents(config) {
           message.change.to,
           thisAPI
         );
+        if(config.CPO.editor.cm.getValue() !== message.currentState.editorContents) {
+          console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), message.currentState.editorContents)
+          editor.cm.setValue(message.currentState.editorContents);
+        }
         break;
       case "run":
         interactionsSinceLastRun = [];
