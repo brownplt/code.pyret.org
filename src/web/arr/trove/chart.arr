@@ -48,6 +48,12 @@ end
 data AxisData: 
   | axis-data(axisTop :: Number, axisBottom :: Number, ticks :: RawArray<Pointer>)
 end
+data StackType:
+  | absolute
+  | relative
+  | percent
+  | grouped
+end
 
 ################################################################################
 # HELPERS
@@ -79,11 +85,23 @@ sprintf = (lam():
 unsafe-equal = {(x :: Number, y :: Number): (x <= y) and (y <= x)}
 
 fun to-table2(xs :: List<Any>, ys :: List<Any>) -> TableIntern:
-  map2({(x, y): [raw-array: x, y]}, xs, ys) ^ builtins.raw-array-from-list
+  map2(raw-array.make2, xs, ys) ^ builtins.raw-array-from-list
+end
+
+fun to-table2-n(xs :: List<Any>, ys :: List<Any>) -> TableIntern:
+  map2_n({(n, x, y): raw-array.make3(x, y, n)}, 0, xs, ys) ^ builtins.raw-array-from-list
 end
 
 fun to-table3(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
-  map3({(x, y, z): [raw-array: x, y, z]}, xs, ys, zs) ^ builtins.raw-array-from-list
+  map3(raw-array.make3, xs, ys, zs) ^ builtins.raw-array-from-list
+end
+
+fun to-table3-n(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>) -> TableIntern:
+  map3_n({(n, x, y, z): raw-array.make4(x, y, z, n)}, 0, xs, ys, zs) ^ builtins.raw-array-from-list
+end
+
+fun to-table4(xs :: List<Any>, ys :: List<Any>, zs :: List<Any>, ks :: List<Any>) -> TableIntern:
+  map4(raw-array.make4, xs, ys, zs, ks) ^ builtins.raw-array-from-list
 end
 
 fun list-to-table2<A>(table :: List<List<A>>) -> RawArray<RawArray<A>>:
@@ -163,6 +181,17 @@ where:
 |#
 end
 
+fun string-to-stacktype(s :: String) -> StackType: 
+  doc: ```Converts ['none', 'absolute', relative', percent'] to their respective stacktype```
+  ask: 
+    | string-equal(s, 'none') then: grouped
+    | string-equal(s, 'absolute') then: absolute
+    | string-equal(s, 'percent') then: percent
+    | string-equal(s, 'relative') then: relative
+    | otherwise: raise('type must be absolute, relative, percent, or none')
+  end
+end
+
 fun prep-axis(values :: P.LoN) -> {Number; Number}: 
   doc: ``` Calculate the max axis (top) and min axis (bottom) values for bar-chart-series```
 
@@ -172,14 +201,14 @@ fun prep-axis(values :: P.LoN) -> {Number; Number}:
   {max-positive-height; max-negative-height}
 end
 
-fun multi-prep-axis(is-stacked :: String, value-lists :: P.LoLoN) 
+fun multi-prep-axis(stack-type :: StackType, value-lists :: P.LoLoN) 
   -> {Number; Number}: 
   doc: ``` 
        Calculate the max axis (top) and min axis (bottom) values for multi-bar-chart-series
        ```
 
   ask:
-    | is-stacked == 'none' then: 
+    | stack-type == grouped then: 
       # Find the tallest bar in the entire group 
       # We know that the value lists have at least one value since we check for that when initializing the value list data. 
       positive-max-groups = map({(l): fold(num-max, l.first, l)}, value-lists)
@@ -188,7 +217,7 @@ fun multi-prep-axis(is-stacked :: String, value-lists :: P.LoLoN)
       max-negative-height = fold(num-min, 0, negative-max-groups)
       {max-positive-height; max-negative-height}
 
-    | is-stacked == 'absolute' then: 
+    | stack-type == absolute then: 
       # Find height of stack using sum functions
       sum = {(l :: List<Number>): fold({(acc, elm): acc + elm}, 0, l)}
       positive-only-sum = {(l :: List<Number>): sum(filter({(e): e >= 0}, l))}
@@ -435,37 +464,37 @@ multi-scale-method = method(self, scale-fun :: (Number -> Number)):
   scaled-self = self.constr()(self.obj.{tab: scaled-tab})
   scaled-values = map({(row): map(exact-sf, row ^ get-values)}, list-of-rows)
   {max-positive-height; max-negative-height} = 
-    multi-prep-axis(scaled-self.obj!is-stacked, scaled-values)
+    multi-prep-axis(string-to-stacktype(scaled-self.obj!is-stacked), scaled-values)
 
   scaled-self.make-axis(max-positive-height, max-negative-height)
 end
 
-stacking-type-method = method(self, stack-type :: String): 
+stacking-type-method = method(self, stack-type :: StackType): 
   get-values = {(row): raw-array-get(row, 1) ^ raw-array-to-list}
   value-lists = map(get-values, self.obj!tab ^ raw-array-to-list)
   ask: 
-    | stack-type == 'absolute' then: 
+    | stack-type == absolute then: 
       new-self = self.constr()(self.obj.{is-stacked: 'absolute'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('absolute', value-lists)
+        multi-prep-axis(absolute, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
-    | stack-type == 'relative' then: 
+    | stack-type == relative then: 
       new-self = self.constr()(self.obj.{is-stacked: 'relative'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('relative', value-lists)
+        multi-prep-axis(relative, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
-    | stack-type == 'percent' then:
+    | stack-type == percent then:
       new-self = self.constr()(self.obj.{is-stacked: 'percent'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('percent', value-lists)
+        multi-prep-axis(percent, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
               .format-axis({(n): num-to-string(n * 100) + "%"})
-    | stack-type == 'none' then: 
+    | stack-type == grouped then: 
       new-self = self.constr()(self.obj.{is-stacked: 'none'})
       {max-positive-height; max-negative-height} = 
-        multi-prep-axis('none', value-lists)
+        multi-prep-axis(grouped, value-lists)
       new-self.make-axis(max-positive-height, max-negative-height)
-    | otherwise: raise('stacking-type: type must be absolute, relative, percent, or none')
+    | otherwise: raise('stacking-type: type must be absolute, relative, percent, or grouped')
   end
 end
 
@@ -744,9 +773,12 @@ default-box-plot-series = {
 
 type PieChartSeries = {
   tab :: TableIntern,
+  colors :: Option<RawArray<I.Color>>,
 }
 
-default-pie-chart-series = {}
+default-pie-chart-series = {
+  colors: none,
+}
 
 type BarChartSeries = {
   tab :: TableIntern,
@@ -974,6 +1006,10 @@ data DataSeries:
     legend: legend-method,
   | pie-chart-series(obj :: PieChartSeries) with:
     is-single: true,
+    colors: color-list-method,
+    sort: default-sort-method,
+    sort-by: sort-method,
+    sort-by-label: label-sort-method,
     constr: {(): pie-chart-series},
   | bar-chart-series(obj :: BarChartSeries) with:
     is-single: true,
@@ -1215,7 +1251,7 @@ fun exploding-pie-chart-from-list(
   offsets.each(check-num)
   labels.each(check-string)
   default-pie-chart-series.{
-    tab: to-table3(labels, values, offsets)
+    tab: to-table3-n(labels, values, offsets)
   } ^ pie-chart-series
 end
 
@@ -1235,7 +1271,7 @@ fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   values.each(check-num)
   labels.each(check-string)
   default-pie-chart-series.{
-    tab: to-table3(labels, values, labels.map({(_): 0}))
+    tab: to-table3-n(labels, values, labels.map({(_): 0}))
   } ^ pie-chart-series
 end
 
@@ -1264,7 +1300,7 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   {max-positive-height; max-negative-height} = prep-axis(rational-values)
 
   data-series = default-bar-chart-series.{
-    tab: to-table2(labels, rational-values),
+    tab: to-table2-n(labels, rational-values),
     axis-top: max-positive-height,
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
@@ -1308,7 +1344,7 @@ fun grouped-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
- {max-positive-height; max-negative-height} = multi-prep-axis('none', rational-values)
+ {max-positive-height; max-negative-height} = multi-prep-axis(grouped, rational-values)
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
@@ -1357,7 +1393,7 @@ fun stacked-bar-chart-from-list(
   labels.each(check-string)
   legends.each(check-string)
 
-  {max-positive-height; max-negative-height} = multi-prep-axis('absolute', rational-values)
+  {max-positive-height; max-negative-height} = multi-prep-axis(absolute, rational-values)
 
   # Constructing the Data Series
   data-series = default-multi-bar-chart-series.{
