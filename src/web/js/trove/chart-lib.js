@@ -1107,8 +1107,19 @@ ${labelRow}`;
           // HACK(Emmanuel): 
           // The only way to hijack marker events is to walk the DOM here
           // If Google changes the DOM, these lines will likely break
+          // NOTE(joe, April 2022): It sort of happened. When we made the legend
+          // sometimes not show (autohiding on single series), it shifted the
+          // index. So this would only work if .title() was set. Use
+          // legendEnabled to decided which index to look up.
+          // This is brittle and needs to be revisited
           const svgRoot = chart.container.querySelector('svg');
-          const markers = svgRoot.children[2].children[2].children;          
+          let markers;
+          if(legendEnabled) {
+            markers = svgRoot.children[2].children[2].children;
+          }
+          else {
+            markers = svgRoot.children[1].children[2].children;
+          }
 
           const layout = chart.getChartLayoutInterface();
           // remove any labels that have previously been drawn
