@@ -194,7 +194,7 @@ body.hideHeader #header {
 }
 
 body.smallHeader #header {
-  height: 25px;
+  height: 40px;
 }
 
 body.smallHeader #bonniemenu {
