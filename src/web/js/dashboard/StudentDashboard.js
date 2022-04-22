@@ -186,7 +186,7 @@ class StudentDashboard extends Component {
 
           <br/><br/>
 
-          <p>You can also check out <a href="http://papl.cs.brown.edu" aria-label="Pyret book">our book that uses Pyret</a> or <a href="http://www.bootstrapworld.org" aria-label="Bootstrap curricula">our curricula</a>.</p>
+          <p>You can also check out <a href="https://dcic-world.org/" aria-label="Pyret book">our book that uses Pyret</a> or <a href="http://www.bootstrapworld.org" aria-label="Bootstrap curricula">our curricula</a>.</p>
 
         </div>
         <div id='loading-spinner' className={this.state.signedIn === WAITING_FOR_SIGNIN ? '' : 'hidden'}>

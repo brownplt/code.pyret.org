@@ -336,6 +336,9 @@
       window.RUN_CODE = CPO.RUN_CODE = function(src) {
         doRunAction(src, true);
       };
+      window.RUN_INTERACTION = CPO.RUN_INTERACTION = function(src) {
+        return replWidget.runner(src, true);
+      };
 
       /*
       $("#runDropdown").click(function() {

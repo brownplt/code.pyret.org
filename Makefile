@@ -166,23 +166,51 @@ build/web/js/mousetrap.min.js: node_modules/mousetrap/mousetrap.min.js
 build/web/js/mousetrap-global-bind.min.js: node_modules/mousetrap/plugins/global-bind/mousetrap-global-bind.min.js
 	cp $< $@
 
-MISC_JS = build/web/js/q.js build/web/js/url.js build/web/js/require.js \
-          build/web/js/codemirror.js \
-					build/web/js/rulers.js \
-          build/web/js/mark-selection.js \
-          build/web/js/pyret-mode.js build/web/js/s-expression-lib.js \
-          build/web/js/seedrandom.js \
-          build/web/js/source-map.js \
-          build/web/js/pyret-fold.js \
-          build/web/js/scrollpastend.js \
-          build/web/js/matchkw.js \
-          build/web/js/foldcode.js \
-          build/web/js/foldgutter.js \
-          build/web/js/colorspaces.js \
-          build/web/js/es6-shim.js \
-          build/web/js/runmode.js \
-					build/web/js/mousetrap.min.js \
-					build/web/js/mousetrap-global-bind.min.js
+MISC_JS = build/web/js/q.js \
+	   build/web/js/url.js \
+	   build/web/js/require.js \
+	   build/web/js/codemirror.js \
+	   build/web/js/rulers.js \
+	   build/web/js/mark-selection.js \
+	   build/web/js/pyret-mode.js \
+	   build/web/js/s-expression-lib.js \
+	   build/web/js/seedrandom.js \
+	   build/web/js/source-map.js \
+	   build/web/js/pyret-fold.js \
+	   build/web/js/scrollpastend.js \
+	   build/web/js/matchkw.js \
+	   build/web/js/foldcode.js \
+	   build/web/js/foldgutter.js \
+	   build/web/js/colorspaces.js \
+	   build/web/js/es6-shim.js \
+	   build/web/js/runmode.js \
+	   build/web/js/mousetrap.min.js \
+	   build/web/js/mousetrap-global-bind.min.js
+
+EDITOR_MISC_JS = build/web/js/q.js \
+		  build/web/js/loader.js \
+		  build/web/js/codemirror.js \
+		  build/web/js/rulers.js \
+		  build/web/js/scrollpastend.js \
+		  build/web/js/foldcode.js \
+		  build/web/js/foldgutter.js \
+		  build/web/js/mark-selection.js \
+		  build/web/js/runmode.js \
+		  build/web/js/pyret-mode.js \
+		  build/web/js/pyret-fold.js \
+		  build/web/js/matchkw.js \
+		  build/web/js/mousetrap.min.js \
+		  build/web/js/mousetrap-global-bind.min.js \
+		  build/web/js/log.js \
+		  build/web/js/share.js \
+		  build/web/js/google-apis/api-wrapper.js \
+		  build/web/js/google-apis/drive.js \
+		  build/web/js/google-apis/picker.js \
+		  build/web/js/google-apis/sheets.js \
+		  build/web/js/authenticate-storage.js
+
+build/web/js/editor-misc.min.js: $(EDITOR_MISC_JS)
+	npm exec -- uglifyjs --compress -o $@ -- $^
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
@@ -233,9 +261,9 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ)
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS)
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret;
@@ -253,7 +281,8 @@ libpyret:
 	$(MAKE) phaseA -C pyret/
 
 $(BUNDLED_DEPS): src/scripts/npm-dependencies.js
-	node_modules/.bin/browserify src/scripts/npm-dependencies.js -o $(BUNDLED_DEPS)
+	# Explicitly exclude crypto, buffer, and stylus, nested npm dependencies that aren't needed
+	node_modules/.bin/browserify src/scripts/npm-dependencies.js -x crypto -x buffer -x stylus -o $(BUNDLED_DEPS)
 
 $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
@@ -274,7 +303,8 @@ $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js sr
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
 # non-.js extension.
 $(CPOGZ): $(CPOMAIN)
-	gzip -c -f $(CPOMAIN) > $(CPOGZ)
+	npm exec -- uglifyjs --compress -o $(CPOMAIN).min -- $(CPOMAIN)
+	gzip -c -f $(CPOMAIN).min > $(CPOGZ)
 
 clean:
 	rm -rf build/

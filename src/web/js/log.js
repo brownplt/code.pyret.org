@@ -18,20 +18,6 @@ var AJAXBackend = function (url) {
   }
 }
 
-var IndexedDBBackend = function() {
-  var db = new Dexie('CPO');
-
-  db.version(1).stores({
-    events: 'CPO_eventName, CPO_eventTime, CPO_windowID, CPO_localID, CPO_sessionID'
-  });
-
-  db.open();
-
-  this.log = function(obj) {
-    db.events.add(obj);
-  };
-};
-
 var logger = (function(backend) {
   var sessionStorage;
   var localStorage;
@@ -95,8 +81,8 @@ var logger = (function(backend) {
                 , identifiers.windowID
                 , identifiers.sessionID
                 , identifiers.localID
-                , "{{GIT_REV}}"
-                , "{{GIT_BRANCH}}"];
+                , GIT_REV
+                , GIT_BRANCH];
     backend.log(name, obj);
   }
   
@@ -114,33 +100,34 @@ var logger = (function(backend) {
       return nowIsDetailed;
     }
   };
-})({{#LOG_URL}}new AJAXBackend("{{&LOG_URL}}"){{/LOG_URL}}{{^LOG_URL}}new DummyBackend(){{/LOG_URL}});
+})( LOG_URL ? new AJAXBackend(LOG_URL) : new DummyBackend() );
 
-
-CodeMirror.defineOption('logging', false, 
-  function (cm, new_value) {
-    if (new_value != true)
-      return;
-    if(!cm.CPO_editorID)
-      cm.CPO_editorID = logger.guid();
-    logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
-    cm.on("change", function(cm, change) {
-      if(logger.isDetailed) {
-        change.CPO_editorID = cm.CPO_editorID;
-        logger.log('cm_change', change);
-      }
+if(window.CodeMirror) {
+  CodeMirror.defineOption('logging', false, 
+    function (cm, new_value) {
+      if (new_value != true)
+        return;
+      if(!cm.CPO_editorID)
+        cm.CPO_editorID = logger.guid();
+      logger.log('cm_init', {CPO_editorID: cm.CPO_editorID});
+      cm.on("change", function(cm, change) {
+        if(logger.isDetailed) {
+          change.CPO_editorID = cm.CPO_editorID;
+          logger.log('cm_change', change);
+        }
+      });
+      cm.on("focus", function(cm) {
+        if(logger.isDetailed) {
+          logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
+        }
+      });
+      cm.on("blur", function(cm) {
+        if(logger.isDetailed) {
+          logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
+        }
+      });
     });
-    cm.on("focus", function(cm) {
-      if(logger.isDetailed) {
-        logger.log('cm_focus', {CPO_editorID: cm.CPO_editorID});
-      }
-    });
-    cm.on("blur", function(cm) {
-      if(logger.isDetailed) {
-        logger.log('cm_blur',  {CPO_editorID: cm.CPO_editorID});
-      }
-    });
-  });
+}
 
 // Log the loading of the logger (near the begining of page load)  
 logger.log('load');
