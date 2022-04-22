@@ -1,13 +1,10 @@
-provide {
-  render-chart: render-chart,
-  render-charts: render-charts,
-  from-list: from-list,
-} end
-
-provide-types {
-  DataSeries :: DataSeries,
-  ChartWindow :: ChartWindow,
-}
+provide:
+  render-chart,
+  render-charts,
+  from-list,
+  type DataSeries,
+  type ChartWindow
+end
 
 import global as G
 import base as B
