@@ -869,7 +869,7 @@ body.hideHeader .replMain {
 }
 
 body.smallHeader .replMain {
-  padding-top: 25px;
+  padding-top: 40px;
 }
 
 .replContainer {
@@ -897,7 +897,7 @@ body.hideHeader .replContainer {
 }
 
 body.smallHeader .replContainer {
-  padding-top: 25px;
+  padding-top: 40px;
 }
 
 #main {
@@ -1685,7 +1685,7 @@ body.hideHeader #handle {
 }
 
 body.smallHeader #handle {
-  margin-top: 25px;
+  margin-top: 40px;
 }
 
 #runButton, #breakButton {
@@ -1816,7 +1816,7 @@ body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
 }
 
 body.smallHeader #run-dropdown-content {
-  top: 25px;
+  top: 40px;
   right: 63px;
 }
 
