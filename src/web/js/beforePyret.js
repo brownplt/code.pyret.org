@@ -270,7 +270,7 @@ $(function() {
       }
       CM.on("change", function(change) {
         function doesNotChangeFirstLine(c) { return c.from.line !== 0; }
-        if(change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
+        if(change.curOp.changeObjs && change.curOp.changeObjs.every(doesNotChangeFirstLine)) { return; }
         var hasNamespace = firstLineIsNamespace();
         if(hasNamespace) {
           if(namespacemark) { namespacemark.clear(); }
@@ -512,7 +512,12 @@ $(function() {
         return prog.getContents();
       }
       else {
-        return CONTEXT_FOR_NEW_FILES;
+        if(params["get"]["editorContents"] && !(params["get"]["program"] || params["get"]["share"])) {
+          return params["get"]["editorContents"];
+        }
+        else {
+          return CONTEXT_FOR_NEW_FILES;
+        }
       }
     });
   }
@@ -1190,9 +1195,6 @@ $(function() {
     initialGas: 100,
     scrollPastEnd: true,
   });
-  if(params["get"]["editorContents"] && !(params["get"]["program"] || params["get"]["share"])) {
-    CPO.editor.cm.setValue(params["get"]["editorContents"]);
-  }
   CPO.editor.cm.setOption("readOnly", "nocursor");
   CPO.editor.cm.setOption("longLines", new Map());
   function removeShortenedLine(lineHandle) {
@@ -1367,6 +1369,14 @@ $(function() {
     onRunHandlers.forEach(h => h());
   }
 
+  const onInteractionHandlers = [];
+  function onInteraction(handler) {
+    onInteractionHandlers.push(handler);
+  }
+  function triggerOnInteraction(interaction) {
+    onInteractionHandlers.forEach(h => h(interaction));
+  }
+
   programLoaded.fin(function() {
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
@@ -1382,6 +1392,8 @@ $(function() {
   CPO.sayAndForget = sayAndForget;
   CPO.onRun = onRun;
   CPO.triggerOnRun = triggerOnRun;
+  CPO.onInteraction = onInteraction;
+  CPO.triggerOnInteraction = triggerOnInteraction;
 
   if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
     const message = $("<span>");
@@ -1391,14 +1403,7 @@ $(function() {
     localSettings.setItem("sawSummer2021Message", "saw-summer-2021-message");
   }
 
-
-  /*
-  NOTE(joe): this can be re-enabled to work as an embeddable instance. Disabled
-  for current releases
-
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
-  */
-
 });

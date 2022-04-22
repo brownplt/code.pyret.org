@@ -1,7 +1,7 @@
 language: ruby
 sudo: required
 rvm:
-  - 2.2
+  - 2.6
 env:
   secure: "WH35CQjGMI//kzIT8ePQPiFiEUqN81bFZJdHvKMCELkU/paSEz0sPsJEECuV8T7f/Sy1OEjmGm+C1ywi+Arnq+W8mI08unjFdUtwzDM7uf1lV89+Q/hR5KkCy9w0uFWvIkP7fi1UxP7xjt6/7MO2a5bPepx6VFvzLATg9OPpXXh2jRUENxqXidtsCThzdahpaVTaBXIcaQc7Af7K7u6WJYlI1sTACOc67a5JZeqY8bJBJ9/4Qds14BDfUd+3F6I0PGl66RaSCPOAbBmZohWwAEtmznGB+kZGs7LH/pfRVuZ7oGnHZZh5M+6DkKJMzHkTX3CV8byeQ3JRgeqRCcvH5cfsFcDVgyt+FA1sc/VThtV0yZnHZFN3oGZz74G3oJio2CP6zj7gjuqjvY9qVyucfsj29lhw6qx6LES4lVQWfgtV5H/FLx42o9JWXPaIhdZuLGlc7D30yIKG7hiOQq3nFcgct2gm68jw5VbKr3EkAQO6fpStIOjQJH3cSnILbjzUqvyERUNnEtYSRbD9yC9i/rk02uTBj6y3zPrKxz90xdCaRAyUoTN/a5Iex6C1E3oRWAKMMOCzZR2sebE/dvKgf3TvoqimRNbbLvywUBOnxn53JeXN3uYTXX75Fh9pNxxq1j6dx83iOaMkHp1/gL0evgAxx4DrYXuaFtRy6qDcFFY="
 script:
@@ -13,8 +13,8 @@ services:
   - xvfb
 before_install:
 - . $HOME/.nvm/nvm.sh
-- nvm install stable
-- nvm use stable
+- nvm install 16.13.0
+- nvm use 16.13.0
 - npm install -g heroku-cli
 install:
 - npm update # to update Pyret to the newest version
@@ -31,6 +31,7 @@ before_deploy:
 - heroku config:set --app code-pyret-org GIT_BRANCH=$GIT_REV
 - heroku config:set --app code-pyret-org CURRENT_PYRET_RELEASE=$SHORT_COMMIT
 - heroku config:set --app code-pyret-org PYRET=https://d251z2akfyabv3.cloudfront.net/releases/$SHORT_COMMIT/cpo-main.jarr.gz.js
+- rvm $(travis_internal_ruby) --fuzzy do ruby -S gem install faraday -v 1.8.0 # https://travis-ci.community/t/heroku-deploy-fails-installing-dpl-heroku-encounters-faraday-error/12563/2
 deploy:
 - provider: s3
   access_key_id: AKIAJI5QOXMOMALYEG3Q

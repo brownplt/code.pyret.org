@@ -160,7 +160,7 @@
     aliases: {
       "Image": { tag: "name",
                  origin: { "import-type": "uri", uri: "builtin://image-lib" },
-                 name: "Image" }
+                 name: "Image" },
     }
   },
   theModule: function(runtime, namespace, uri, imageLib, makeImage, jsnums) {

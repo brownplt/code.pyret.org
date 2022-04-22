@@ -89,18 +89,6 @@ function start(config, onServerReady) {
     res.end();
   });
 
-  app.get("/js/log.js", function(req, res) {
-    res.set("Content-Type", "application/javascript");
-    res.render(__dirname + "/../build/web/js/log.js", {
-      LOG_URL: config.logURL,
-      GIT_REV : config.gitRev,
-      GIT_BRANCH: config.gitBranch
-    }, function(_, js) {
-      res.set("Content-Type", "application/javascript");
-      res.send(js);
-    });
-  });
-
   app.use(express.static(__dirname + "/../build/web/"));
 
   app.use(csrf());
@@ -115,9 +103,13 @@ function start(config, onServerReady) {
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
     res.render("index.html", {
+      PYRET: process.env.PYRET,
       LEFT_LINK: content,
       GOOGLE_API_KEY: config.google.apiKey,
-      BASE_URL: config.baseUrl
+      BASE_URL: config.baseUrl,
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch
     });
   });
 
@@ -324,9 +316,14 @@ function start(config, onServerReady) {
 
   app.get("/editor", function(req, res) {
     res.render("editor.html", {
+      PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
-      CSRF_TOKEN: req.csrfToken()
+      CSRF_TOKEN: req.csrfToken(),
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch,
+      POSTMESSAGE_ORIGIN: process.env.POSTMESSAGE_ORIGIN
     });
   });
 
