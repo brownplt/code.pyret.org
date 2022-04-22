@@ -3,6 +3,9 @@ include image
 include image-structs
 include tables
 
+# scatter-plot-series.image-labels(images :: List<Image>)
+
+
 # test for image-scatter-plot
 fun image-scatter-plot(t, f, xs, ys):
   if not(is-number(t.column(xs).get(0)) and is-number(t.column(ys).get(0))):
@@ -71,10 +74,13 @@ fun image-line-plot(t, f, xs, ys):
     raise("Cannot make a scatter plot, because the 'xs' and 'ys' columns must both contain numeric data")
   else:
     images = t.all-rows().map(f)
-    render-chart(from-list.image-line-plot(images, t.column(xs), t.column(ys)))
+    render-charts(
+      [list:
+        from-list.image-line-plot(images, t.column(xs), t.column(ys)).legend("first plot"),
+        from-list.image-line-plot(images, t.column(xs), t.column(ys))])
       .x-axis(xs)
       .y-axis(ys)
-      .get-image()
+      .display()
   end
 end
 
