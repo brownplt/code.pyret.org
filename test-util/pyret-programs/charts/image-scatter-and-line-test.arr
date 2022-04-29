@@ -80,7 +80,7 @@ fun image-line-plot(t, f, xs, ys):
         from-list.image-line-plot(images, t.column(xs), t.column(ys))])
       .x-axis(xs)
       .y-axis(ys)
-      .display()
+      .get-image()
   end
 end
 

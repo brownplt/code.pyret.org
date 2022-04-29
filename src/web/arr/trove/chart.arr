@@ -3,7 +3,10 @@ provide:
   render-charts,
   from-list,
   type DataSeries,
-  type ChartWindow
+  type ChartWindow,
+  data StackType,
+  data TrendlineType,
+  data PointShape
 end
 
 import global as G
