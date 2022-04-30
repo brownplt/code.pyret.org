@@ -18,7 +18,6 @@
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
   'use strict';
-
   // Load google library via editor.html to avoid loading issues
 
   //const google = _google.google;
@@ -324,6 +323,41 @@
     addNSpecialColumns(table, colProperties, get(rawData, 'intervals'));
   }
 
+  function selectMultipleMutator(options, globalOptions, _) {
+    const multiple = get(globalOptions, 'multiple');
+    if (multiple) {
+      $.extend(options, {selectionMode: 'multiple'});
+    } else {
+      $.extend(options, {selectionMode: 'single'});
+    }
+  }
+
+  function backgroundMutator(options, globalOptions, _) {
+    const backgroundColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'backgroundColor'), {
+      none: function () {
+        return 'transparent';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+    const borderColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'borderColor'), {
+      none: function () {
+        return '#666';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+    const borderSize = toFixnum(get(globalOptions, 'borderSize'))
+    $.extend(options, {
+      backgroundColor: {
+        fill: backgroundColor,
+        strokeWidth: borderSize,
+        stroke: borderColor,
+      }
+    });
+  }
   function axesNameMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
@@ -335,11 +369,43 @@
   function gridlinesMutator(options, globalOptions, _) {
     const hAxis = ('hAxis' in options) ? options.hAxis : {};
     const vAxis = ('vAxis' in options) ? options.vAxis : {};
-    hAxis.gridlines = {color: '#aaa'};
-    vAxis.gridlines = {color: '#aaa'};
+
+    const gridlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'gridlineColor'), {
+      none: function () {
+        return '#aaa';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+    const minorGridlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'minorGridlineColor'), {
+      none: function () {
+        return '#ddd';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+    const minorGridlineMinspacing = toFixnum(get(globalOptions, 'minorGridlineMinspacing'))
+
+    hAxis.gridlines = {color: gridlineColor};
+    vAxis.gridlines = {color: gridlineColor};
+
+    cases(RUNTIME.ffi.isOption, 'Option', get(globalOptions, 'gridlineMinspacing'), {
+      none: function () {
+        hAxis.gridlines.count = 5;
+      },
+      some: function (minspacing) {
+        hAxis.gridlines.minSpacing = toFixnum(minspacing);
+      }
+    });
+
+
     if (get(globalOptions, 'show-minor-grid-lines')) {
-      hAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
-      vAxis.minorGridlines = {color: '#ddd', minSpacing: 10};
+      hAxis.minorGridlines = {color: minorGridlineColor, minSpacing: minorGridlineMinspacing};
+      vAxis.minorGridlines = {color: minorGridlineColor, minSpacing: minorGridlineMinspacing};
     } else {
       hAxis.minorGridlines = {count: 0};
       vAxis.minorGridlines = {count: 0};
@@ -409,6 +475,10 @@
 
   function pieChart(globalOptions, rawData) {
     const table = get(rawData, 'tab');
+    const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
+                            '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
+                            '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
+                            '#E67300', '#8B0707', '#329262', '#5574A6', '#3B3EAC']
     var colors_list = get_colors_list(rawData);
 
     if (colors_list.length < default_colors.length) {
@@ -416,9 +486,13 @@
       colors_list = default_colors;
       colors_list = colors_list.slice(0, table.length);
     }
-
     const new_colors_list = table.map(row => colors_list[row[3]])
     colors_list = new_colors_list
+    
+    const threeD = get(rawData, 'threeD');
+    const piehole = toFixnum(get(rawData, 'piehole'));
+    const startingAngle = toFixnum(get(rawData, 'startingAngle'));
+    const collapseThreshold = toFixnum(get(rawData, 'collapseThreshold'));
 
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
@@ -430,10 +504,15 @@
         slices: table.map((row, i) => ({color: colors_list[i], offset: toFixnum(row[2])})),
         legend: {
           alignment: 'end'
-        }
+        },
+        is3D: threeD,
+        pieHole: piehole,
+        pieStartAngle: startingAngle,
+        sliceVisibilityThreshold: collapseThreshold,
       },
       chartType: google.visualization.PieChart,
       onExit: defaultImageReturn,
+      mutators: [backgroundMutator],
     };
   }
 
@@ -536,7 +615,7 @@
     data.addColumn({type: 'string', role: 'style'});
 
     // Adds each row of bar data and bar_color data
-    table.forEach(function (row, idx) {
+    table.forEach(function (row) {
       const bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
@@ -590,7 +669,7 @@
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator],
+      mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
     };
   }
 
@@ -685,7 +764,7 @@
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator],
+      mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
     };
   }
 
@@ -699,16 +778,26 @@
     const chartType = horizontal ? google.visualization.BarChart : google.visualization.ColumnChart;
     const data = new google.visualization.DataTable();
 
+    const color = cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+      none: function () {
+        return "#777";
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+
     const intervalOptions = {
       lowNonOutlier: {
         style: 'bars',
         fillOpacity: 1,
-        color: '#777'
+        color: color
       },
       highNonOutlier: {
         style: 'bars',
         fillOpacity: 1,
-        color: '#777'
+        color: color
       }
     };
 
@@ -781,6 +870,7 @@
         barWidth: 0.25,
         boxWidth: 0.8,
         lineWidth: 2,
+        color: color,
         style: 'boxes'
       },
       interval: intervalOptions,
@@ -819,7 +909,7 @@
       options: options,
       chartType: chartType,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator],
+      mutators: [backgroundMutator, axesNameMutator],
     };
   }
 
@@ -890,12 +980,19 @@
     }
     */
 
+    cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
+      none: function () {},
+      some: function (color) {
+        options.colors = [convertColor(color)];
+      }
+    });
+    
     return {
       data: data,
       options: options,
       chartType: google.visualization.Histogram,
       onExit: defaultImageReturn,
-      mutators: [axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
+      mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
     };
   }
 
@@ -970,12 +1067,88 @@ ${labelRow}`;
             lineWidth: 0,
             dataOpacity: hasImage ? 0 : 1,
           });
+        } else if (i - scatters.length < lines.length) {
+          $.extend(seriesOptions, {
+            pointSize: hasImage ? 0.1 : toFixnum(get(p, 'point-size')),
+            dataOpacity: hasImage ? 0 : 1,
+          });
         }
         return seriesOptions;
       }),
       legend: {position: legendEnabled ? 'bottom' : 'none'},
       crosshair: {trigger: 'selection'}
     };
+
+    if (lines.length != 0) {
+      const curveType = get(lines[0], 'curved');
+      const lineWidth = toFixnum(get(lines[0], 'lineWidth'));
+
+      
+      const dashedLine = get(lines[0], 'dashedLine');
+      const dashlineStyle = get(lines[0], 'dashlineStyle');
+      const pointSize = toFixnum(get(lines[0], 'point-size'));
+      
+
+      options['curveType'] = curveType;
+      options['lineWidth'] = lineWidth;
+      options['pointSize'] = pointSize;
+      
+      if (dashedLine) {
+        options['lineDashStyle'] = dashlineStyle;
+      }
+    }
+    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineType'), {
+      none: function () {
+        return null;
+      },
+      some: function (type) {
+        return type;
+      }
+    });
+
+    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineColor'), {
+      none: function () {
+        return 'green';
+      },
+      some: function (color) {
+        return convertColor(color);
+      }
+    });
+
+    const trendlineWidth = toFixnum(get(combined[0], 'trendlineWidth'));
+    const trendlineOpacity = toFixnum(get(combined[0], 'trendlineOpacity'));
+    const trendlineDegree = toFixnum(get(combined[0], 'trendlineDegree'));
+
+    if (trendlineType != null) {
+      options['trendlines'] = {
+        0: {
+          type: trendlineType,
+          color: trendlineColor,
+          lineWidth: trendlineWidth,
+          opacity: trendlineOpacity,
+          showR2: true,
+          visibleInLegend: true
+        }
+      }
+    }
+    if (trendlineType == "polynomial") {
+      options['trendlines'][0]['degree'] = trendlineDegree;
+    }
+
+    const pointshapeType = get(combined[0], 'pointshapeType');
+    const pointshapeSides = toFixnum(get(combined[0], 'pointshapeSides'));
+    const pointshapeDent = toFixnum(get(combined[0], 'pointshapeDent'));
+    const pointshapeRotation = toFixnum(get(combined[0], 'pointshapeRotation'));
+    const apothem = Math.cos(Math.PI / pointshapeSides)
+  
+    if (pointshapeType != 'circle') {
+      options['pointShape'] = {
+        type: 'star',
+        sides: pointshapeSides, 
+        dent: (pointshapeDent + 1) * apothem + 0.01,
+        rotation: pointshapeRotation,
+      }
+    }
 
     if (isTrue(get(globalOptions, 'interact'))) {
       $.extend(options, {
@@ -993,7 +1166,7 @@ ${labelRow}`;
       onExit: (restarter, result) => {
         let svg = result.chart.container.querySelector('svg');
         let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(svg_xml);
+        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
         imageReturn(
           dataURI,
           restarter,
@@ -1002,7 +1175,9 @@ ${labelRow}`;
       mutators: [axesNameMutator,
                  yAxisRangeMutator,
                  xAxisRangeMutator,
-                 gridlinesMutator],
+                 gridlinesMutator,
+                 backgroundMutator, 
+                 selectMultipleMutator],
       overlay: (overlay, restarter, chart, container) => {
         overlay.css({
           width: '30%',
@@ -1113,6 +1288,7 @@ ${labelRow}`;
           // legendEnabled to decided which index to look up.
           // This is brittle and needs to be revisited
           const svgRoot = chart.container.querySelector('svg');
+          // const markers = svgRoot.children[3].children[2].children; from sbcContinuation
           let markers;
           if(legendEnabled) {
             markers = svgRoot.children[2].children[2].children;
@@ -1276,10 +1452,12 @@ ${labelRow}`;
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
       "LoS": ann("List<String>", checkListWith(RUNTIME.isString)), 
       "LoN": ann("List<Number>", checkListWith(RUNTIME.isNumber)),
+      "LoI": ann("List<Image>", checkListWith(v => RUNTIME.isOpaque(v) && IMAGE.isImage(v.val))),
       "LoLoN": ann("List<List<Number>>", checkListWith(checkListWith(RUNTIME.isNumber))),
       "LoLoLoN": ann("List<List<List<Number>>>", checkListWith(checkListWith(checkListWith(RUNTIME.isNumber)))),
       "LoOoS": ann("List<Option<String>>", checkListWith(checkOptionWith(RUNTIME.isString))),
-      "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString))))
+      "LoLoOoS": ann("List<List<Option<String>>>", checkListWith(checkListWith(checkOptionWith(RUNTIME.isString)))),
+      "LoNi": ann("List<NumInteger>", checkListWith(v => RUNTIME.isNumber(v) && RUNTIME.num_is_integer(v))),
     }
   )
 }
