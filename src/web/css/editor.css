@@ -1096,25 +1096,14 @@ body.smallHeader .replContainer {
   background-color: var(--info-button-hover);
 }
 
-div#font{
-  min-width: 180px;
-  border: 1px solid var(--shadow-lighter);
-  border-left: 0px;
-  border-right: 0px;
-  background:var(--shadow-lighter);
-  padding: 0px;
+#font {
+  padding: 5px 30px;
+  display: flex;
+  justify-content: space-between;
 }
 
-div#font:hover{
-  background:var(--shadow-lighter);
-  box-shadow: none;
-}
-
-#font div{
-  margin:0;
-  padding: 10px 0px;
-  text-align:center;
-  display: inline-block;
+#font div,
+#font button {
   font-family:var(--ui-font-stack);
   -webkit-touch-callout: none;
   -webkit-user-select: none; /* Webkit */
@@ -1122,26 +1111,24 @@ div#font:hover{
   -ms-user-select: none;   /* IE 10  */
   -o-user-select: none;
   user-select: none;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
-#font-plus{
-  width: 20%;
-  cursor: pointer;
+#font #font-label {
+  flex: 1;
 }
 
-#font-minus{
-  width: 20%;
-  cursor: pointer;
+#font #font-plus,
+#font #font-minus {
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid var(--default-border);
+  border-radius: 4px;
+  text-align: center;
+  margin-left: 12px;
 }
 
-#font-label{
-  width: calc(60% - 2px);
-  cursor: default;
-  padding: 10px 5px;
-  border: 1px solid var(--shadow-lighter);
-  border-top:none;
-  border-bottom:none;
-}
 
 div#font-label:hover{
   background:none;
