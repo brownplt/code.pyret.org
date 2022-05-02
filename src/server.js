@@ -82,6 +82,7 @@ function start(config, onServerReady) {
   app.engine('html', mustache());
   app.engine('js', mustache());
   app.set('view engine', ['html', 'js']);
+  app.set('view cache', process.env.NODE_ENV !== 'development');
 
   app.get("/current-version", function(req, res) {
     res.status(200);
