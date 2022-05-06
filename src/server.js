@@ -320,6 +320,7 @@ function start(config, onServerReady) {
       PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
+      GOOGLE_APP_ID: config.google.appId,
       CSRF_TOKEN: req.csrfToken(),
       LOG_URL: config.logURL,
       GIT_REV : config.gitRev,
