@@ -3,43 +3,9 @@ sudo: required
 rvm:
   - 2.6
 env:
-  global:
-  - TEST_LOC="sauce"
-  - GOOGLE_CLIENT_ID=""
-  - GOOGLE_CLIENT_SECRET=""
-  - GOOGLE_CHROME_BINARY=/usr/bin/google-chrome-stable
-  - secure: "TYqxrQOzkzQcyfDfLz9fOklDjK+vkXg0Jzp8wTynenz8ZzLIac6UKH3DZza7KcQAdgNhhSYoekh05z+b2/EaYKvo+SNDDsfWEP2qjBCL6GxccDE8Ti6itt4orGZUT2XKd6FkDbXDq9j3lUfKlG78lIImGiZKL1UN2WnQozXxBpdp1C8c4V2UcXo70u26Ii/m9eTYGoQfUvVa57lqpA7dMsuVW6lffTmGAcL0pY9penE6+tv1B7pxzQ7wrl+eQh4qw423qCJCWHRKKHVtPqvSafh6E8/wJIc5OUXRvy1Uz6eM4oX6PWfs0Knrznh1fLtFaJSXzSEaDNzJesoInvDINsQ8HqM9dYv95Codbg0wh9QlW3ZFg8OL8gAG2i9dScGRMqtTjz+cRpIDP1ppDaWypMrvLCoRVV/WfufQQTqZeESAFvOU4fcihlwAGaadEa2D4SVY72GXxIuxox2fKjNtxfCggoZhUZJQUWUP/C7x/W1qbu2XrgxGYB0VpCUcpFAH7Zsl2P96WBfIvjHvxITTCEA86lyV6ZcdX/fhCVEPGabBz5Et5hHbH1jFV3T3qDJpMLmeLbhZSHVsUrnnsb0qkEGX3jgHF6WaCDgwiEAzmGS4/JKsW5MlZvAdd2gd+EEowqMCA9gXRyR8RZr2OyxrKs73U7GyH/lgpHeZURf6YAY="
-  - REDISCLOUD_URL=""
-  - BASE_URL=http://localhost:5000
-  - SESSION_SECRET=not-so-secret-for-testing
-  - USE_STANDALONE_PYRET=true
-  - PYRET="http://localhost:5000/js/cpo-main.jarr"
-  - CURRENT_PYRET_RELEASE=""
-  - PORT=5000
-  - SAUCE_TEST_TARGET="http://localhost:5000"
-  - SAUCE_USERNAME="pyret-lang"
-  - secure: e0vpQGmW0d69Ql72Mw6gsGsMxAKgt61ZNqsfQEtNlAGtx7CbTKe3xg8kF1ygwFVEB7GDmTaojTcSGbRwqqZ5GAa8dsTAkefhOtfCDV5KUjvXXbpo9J/8YLiZiIy7ksHyh1yhByvvWmZZpjmdxWwcH8gUqtpae3bGtz7rQX3jLf2v3OR5uVFt8vKRMSR9imCWmq6tpnu+GVoaCFOHjq3U7LS1h78R2LJz+MnTuCbDtYFlxp/sAyS7vSXssFScl6wqOsgH5PHlj+kaHhFWLhzsAzG1RoHftqqIeinXzDcYo8EC/c6O3hMf2KtHm/Hsh1dPR8GnE6WClxPw0xNbh10jVf7b1CXuzKGF8a1JlmtsVztiujsMswZGGLpTkqBvBAiuDsMOwKFNk7UrR5FA/0bVMMsluKxW/0UBzVPN9QyMKAs19ca1t/qT3abxYFyvXrDibKMLuS1uCCsZbwTkjkPwfWBzin8ohK2gLi+y24eQFSd27XWcmk+fJHfgJ458OgvczubK0CsyPAaJtCvRBYKvLQaEtkc4RkoM0yx6NhYYLCZqH1DRneam40rVSrVO41yT/PUnA5U64q16ptbn90Vgw/yKlp9OLtWKheBDTinwbst1kegbCSj4qZtORFLIQIUsZQN6SUm9tCACqFosDpRXAzURc2IOdsSUmtJEqvkijsc=
-  - secure: "E19TyEFE1iQSRrZI4w6ahWgFGEFZBiUgxn/Pqq5sQwHlMNpai+bVydDRVlcQ0NsrdPmyXY/4+29wMjsAHbSaiBuqgG5PbtpChJK7a+8583G6CrbkWdZgwkMDpqPQ2IBEWVYeybvl36wuXJ4HNCqImPODWvX1Wxzk5RCK/gM4PNu3OdmQm3+6O8y1N6r0Y/lnqeAxhaZ5wv01/6EE3I3rAbnFxnu0wIJ7AfNV64VRk+tqwYuM5fLXrl6yhelSwp9q5CLEwvvYknBkklHAXbvxc2qo8XfZb6Zb701NyGvFW86Acgo1dytqV+BNmxNj4FfnXj+rxi/SDpiKEifzj5UYLIAgAx/qbxWSHD8SHiOL1WMa7N3vN2Dh+O+9vCLDwtpzbC0kJqxVMei8buAR4pLReZO0OsmHGXDPApoqOdxvQ0Z2VtEWojIWaJSIl0gTaWKAPAE6GMT0zRQcmm6GPXmLpWGc/9MZKJ5lTXQloucRaStRhPYV4x2HNF4vVZmJ0RWQexAX4qsUiaVFs0jdnJTDvgyPWj+f7qJaaqNFfXz9TyP2N8LSjPdGBYfkWIbkv8dXjJCufXX29BbOD5Yq1NcRQxgTnQO1cvXs1/MJOrK8tCAQ/rZUqQakBMg71fhznOm2lejiiingfnq846C1v27KxZzFLnGIOfDUbMAgS1sbGUU="
-  - secure: "W74n+StLe0w+Lm6KNQN3lLzj4BFCy7vVSRCOQ3t5e3uSXDyLubqgRTXTXPoeypzcztbnMsd8Y57FyjJEaUydb2LPATEoJ9VbBy0ohXV/c3bucJSa4ZJxvb/8L62cepsZkRmoMl1HpW2kLWle50UdCLRqE0aGNHwM9FXfBAd279vmjmvPhFtGEiKkDek/ckroebG0n0xAox56ZmnuJM4boG3o0oUNjSE4U4W/RKMoApLJlUcEcdmWzJvOILeNvydFrHzQcSeHx6uH5LJg/N6RCHb++MI+BiUrAeGa0jm0YXFH0mdDmjCACAcRUzlyAGuadb2dAPcgKPV7xGyDJIn6+OD9dhwEGTGzyKr622fUcCa5+t4PERBFq7nYj7BU1CoqWUsYN6jArkH0ye7lA9usNZsHNXoykZkhpJYEoygYQg6mGnO0v0sRiUbv0BFQ4tN+l/ejvLfCiczjhuBgHlm7m0TUsH94dzeHFqGPlNGy75Rq9PM+0kxvN/TLY3udymKzpTJlbcaDvwQ37unBU2h7DpAYzscxyMcPbHo/F2lnmK/vlpSAsSjkdnpVp4Av+urn8G2eVJw+XnLWCQb4GIRsFzLfXOAPdhcQIZHfhiQTUXgFl+ahC2hEdC1sjho0yWWOHIhRoQ/5sLenB4hFTozxhbIKZTlyWI7FwuPnpWnhvAY="
-  - secure: "JiSCyCKzCOeH/tV2nYXcr1hnBoK/JsfelLTLvpuMNI9dSjUK2BbBF4NO+JBgoOLQGttG0Yc0rr1luOKmel+BcDCgoc0ubdqYnW7ETuGY1cW/oNspbzIGDHrGXVHOuloWRGf8CUbit7ROJiqrlzoBHFPF8kxMxz66BxVDRlNMEV8CxxjEGM5Kd7omDH5styMrUK5lePcLGWuhqsC8Hl7NClseE18dcazCmkOlZUlpBZ/5M2EGbNmvWtysusP+Sphzn6nRZieFY48SyQ+yut9zBYbLAGkl84pwTlF9tCF4GdoiFcqVWCByF7IwwZXH7OlxLuoib3r/MXi1OkX+hIeeFfGEidOgjXyW+U14PuHuluCKQo/0yT6Bl9AcRrCLH/ec35kXl0oVXNSb7VnNYVrA2nVpLdjTavX5xB4KGX8DE7nd+T9zhmfL1qequcl65EF0xKHnjWyUW2WMkE7WmNoTKPpdWwiA+yrQQYRIiTD4Y9Mc/OfRiUiLTSSl/RHL4fZQV36WUZJmMICwtjtEYJscYB/VFrk2YUsgGyWz9wM6UQgQUgjM+J5UArTFiaxTAtFEk6zWb7tUCwWhoHb17paa3HAdKQXH4/GKbc/ABh+HinHrzv9+3SCcBI7BDi2zbaz+lOrluVymKO+Tl0aBzN2j8em1fmIxbJ5IhiXKmnH1sRQ="
-  - secure: "wd5mhSmeQfzGB+XPHZVOGADb5dZ0lkPlOqZGW8F16LnKK8FiTXLDP123nrQyOLWE5kB86Me7lkuJg6vvRtCcYWl9xmEti4sqJNi5ChM3PlW8PoQJGD3UHlwml39N6K4ArzU22FgRPWgiCE78cm6WiXnx33zJrDmTKMoROCv0EMMbcRDye123kYMZ7QzasHj1IfcfG0vzxh4b6fvs55wBHJ675EcbWiZtJsrxhy4Fpy+wcYZFmegciUMWnaZg/Nj8P8P1NFgA/W43+h7mS2r7QC/VWS+4lslYaySlIKJe4qAsCaMtymVE0YaPtK57+rSOBDs3cmh61cB2pPy8BvAK+OLV/bnhyAe2tFvid+5TPnCUm9hHYgvTzrRkjcquJSxzOG8iHk+S3OlOIMwVVkU9jbz8It0K9XZY/ALXdd3uv7FymtE6qJBX5peveFABRv78TbTMoEjj/1cJhalCuJV72U4lD2swYZMrokzhJ116gZ6deE9ZG4ZlY5uoL/129g4/348uQ2d4aCkcGwarceLgBPguvBxXty/SsKVThg8blUugfqmugp2HVcYNbUVPpG05iyhOT/yS6mfYn3GO3GNL9IlME9mHoRBQYz1846B+Y4aWlkfaGy0tEvCXZnrsoPtcxMH4lSUroZA+usoutiIWgUDm457IheI563432nTJpic="
-  matrix:
-  - SAUCE_BROWSER="chrome"
-#  - SAUCE_BROWSER="firefox"
-#  - SAUCE_BROWSER="safari"
-#  - SAUCE_BROWSER="internet explorer"
-cache:
-  directories:
-    - node_modules
-before_script:
-- node src/run.js &
-- sleep 3
+  secure: "WH35CQjGMI//kzIT8ePQPiFiEUqN81bFZJdHvKMCELkU/paSEz0sPsJEECuV8T7f/Sy1OEjmGm+C1ywi+Arnq+W8mI08unjFdUtwzDM7uf1lV89+Q/hR5KkCy9w0uFWvIkP7fi1UxP7xjt6/7MO2a5bPepx6VFvzLATg9OPpXXh2jRUENxqXidtsCThzdahpaVTaBXIcaQc7Af7K7u6WJYlI1sTACOc67a5JZeqY8bJBJ9/4Qds14BDfUd+3F6I0PGl66RaSCPOAbBmZohWwAEtmznGB+kZGs7LH/pfRVuZ7oGnHZZh5M+6DkKJMzHkTX3CV8byeQ3JRgeqRCcvH5cfsFcDVgyt+FA1sc/VThtV0yZnHZFN3oGZz74G3oJio2CP6zj7gjuqjvY9qVyucfsj29lhw6qx6LES4lVQWfgtV5H/FLx42o9JWXPaIhdZuLGlc7D30yIKG7hiOQq3nFcgct2gm68jw5VbKr3EkAQO6fpStIOjQJH3cSnILbjzUqvyERUNnEtYSRbD9yC9i/rk02uTBj6y3zPrKxz90xdCaRAyUoTN/a5Iex6C1E3oRWAKMMOCzZR2sebE/dvKgf3TvoqimRNbbLvywUBOnxn53JeXN3uYTXX75Fh9pNxxq1j6dx83iOaMkHp1/gL0evgAxx4DrYXuaFtRy6qDcFFY="
 script:
-- sleep 3
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then heroku local:run node_modules/.bin/mocha; fi
-- if [ "$TRAVIS_PULL_REQUEST" = "true" ]; then heroku local:run node_modules/.bin/mocha --grep modules --invert; fi
-#addons:
-#  sauce_connect: true
+- echo "Skipping tests"
 #- mocha --harmony
 addons:
   chrome: stable
@@ -50,38 +16,40 @@ before_install:
 - nvm install 16.13.0
 - nvm use 16.13.0
 - npm install -g heroku-cli
-- npm install -g chromedriver
-- export CHROME_BIN=chromium-browser
-- export PATH=$PATH:node_modules/.bin/
-before_deploy:
-- export GIT_REV=`echo $TRAVIS_COMMIT`
-- export GIT_BRANCH=`echo $TRAVIS_BRANCH`
-- heroku config:set --app pyret-horizon GIT_REV=$GIT_REV
-- heroku config:set --app pyret-horizon GIT_BRANCH=$GIT_REV
-- rvm $(travis_internal_ruby) --fuzzy do ruby -S gem install faraday -v 1.8.0 # https://travis-ci.community/t/heroku-deploy-fails-installing-dpl-heroku-encounters-faraday-error/12563/2
 install:
 - npm update # to update Pyret to the newest version
 - npm ci --ignore-scripts
 - make web
 - make deploy-cpo-main
+script:
+- echo "No tests on deploy branch"
+before_deploy:
+- export SHORT_COMMIT=`echo $TRAVIS_COMMIT | cut -c1-7`
+- export GIT_REV=`echo $TRAVIS_COMMIT`
+- export GIT_BRANCH=`echo $TRAVIS_BRANCH`
+- heroku config:set --app code-pyret-org GIT_REV=$GIT_REV
+- heroku config:set --app code-pyret-org GIT_BRANCH=$GIT_REV
+- heroku config:set --app code-pyret-org CURRENT_PYRET_RELEASE=$SHORT_COMMIT
+- heroku config:set --app code-pyret-org PYRET=https://d251z2akfyabv3.cloudfront.net/releases/$SHORT_COMMIT/cpo-main.jarr.gz.js
+- rvm $(travis_internal_ruby) --fuzzy do ruby -S gem install faraday -v 1.8.0 # https://travis-ci.community/t/heroku-deploy-fails-installing-dpl-heroku-encounters-faraday-error/12563/2
 deploy:
-  - provider: s3
-    access_key_id: AKIAIFY44WM3LGA4OQSQ
-    secret_access_key:
-      secure: X50U/xTxW1OOBL5rQ6k764xAitKS77+NZfzAGgOKbk/0REUJEg3BHCYCqhr6/AtThh42HKBNNuG029Xu/0wQYOJq9JNWms61g25/1ig6HbeeaJbbpRLdRDWp59UAeB8tUQmPgI34DxREe2zcJJpNErepbkQ0XXx2tULF3HWBLD7PPOv4Ylb78bfhteIGKNX8+Ipag0gCGmJiTr9OPp6FCQh7kWzG1DBfT8t6gZJM9rhvE1y0Myv1OmcT2zs5ZCvd/uJWz7iiGjs4VvOJVTTFYs733B1NX3Inv3vlbgNny46JT7vT5M0RMgulb8ypkkzLham43yuQyn3eIGKVLd3AcTUtdNTB1TP4be50wT/FAoj195Ec1JAsO9LCKz79JPbUvoxdh9C+k+H0B0SHbL+VXqIhZGWLYq0GE/LZfBESYKAeNq/WfoNtfFXIv1VO0rgbX2FU/jxoM7uROagDhfeLBdmYhQVj3O4rXpcUDHcebBEycXlmC5zOaqmANZ37Pc3QIoR1is2+hkNzeP1/NV4huYOmJFlrD7dADKXIsh6vSyp6uZ49tabMfqSe9oKbl41Yc+uHEBm2vPXUF9vmm0SLOZScjFNyvd04EOXxTCBCww+qlFeIeHTyw9NgEIsOgUWUX44ZNZJATLnxCE9EZ+Sp5MHGDH7Wz5ceR5tZh68P7kw=
-    bucket: 'pyret-horizon'
-    local-dir: build/web/js
-    upload-dir: new-horizons
-    acl: public_read
-    skip_cleanup: true
-    detect_encoding: true
-    on:
-      repo: brownplt/code.pyret.org
-      branch: horizon
-  - provider: heroku
-    app: pyret-horizon
-    api_key:
-      secure: "S40lZzhfFnaBbSYTP1+1w/MkyPmsbUX2n/t1DSDBBi938PvE5ZjWHr+Ov7dgavpIDq+uxFazUH5tGSBkZHDAok1KwhUck1U6REQVpV7UCx1wJ0wNqrfEKIqFj2PqarBzTe+YMftHodQeQParhhqVwf0+qBJBZOeMXIUm6jUoTgV/uY7QPRLKHr3MR771kIffdGnzZSSFS+k2GYuQkdK8nIEFstBH8+r8nlcxc71Spw4ey62h3ybOxc2ilhLqw2E++cx89u7WF0XFisLv0iQzpuXAOkwpxe4YGX9pk3gnd3G4BzSU1baOgF35YD0QlyZ2xqB6bTu1GRPIL+dIgl1pauzJXS/DUywzrpINnN/TmW6j051V1as35F3EnjYxOxoFx7GfEleM/0sJLNkB0UKSm03hA9Y7zF194t2CBI+ebCpxgEO4e4hEUDaTfQkrLHBDWd/W4st8cblpizt+ozdnvi4d40x9y1+MB0o3lLw6U0qO/z98RS05bIBYxwLl1/dtUg4GjRe2gtbhOz9A1O+MDCDYono1eP8I4aIXFsYB2VqU6XCoxDLHKhnnec8930pxlyrWQmUTvOetnluZzGdxio/q0pOB2gnwjU7jFtMGT/yb85XDfXxCQZyD4dBArDdRmQhf3yjrRcyeLuCP+y7kiOfkVI38bOZf6lg1Z3K2YLM="
-    on:
-      repo: brownplt/code.pyret.org
-      branch: horizon
+- provider: s3
+  access_key_id: AKIAJI5QOXMOMALYEG3Q
+  secret_access_key:
+    secure: eNHYX/jlPW4ZWOhl3q2XzXaEG0RF3LyNmJ2VULnAocCKfgcSLvrAJalzXZ7wyK7WOBPN9liaLaams0Vq0WqabS09F7TQQYQG0yHx5L2bxkiUmJmMlpku0/Her1/6j+QH7YlLHjHmHF4HNJUgEpp/mwDF4x4/NdQ9H8wGdJSw3OwkE7+27Xg/5OmgKkDOJR/6d9y5Ha8PvVeEt1XC4OMtEn+Himao/X8GUVtrCmnyaACoyuIAS0aYkD5YdpXoluNJW3Iv/aqZOic5zrxx0XCfAneD/bQfCI0LneOICOjLxWkHttjFVTLfzJr4cCB1mFfAAh6fh0BipTVQZze3qp02ziKDJgYPD/Lo6pyuyG+ENwCS/s0jOywpTT4L0MdGUC50eNrrRFpQ5Fch6e2zvdWoj9/eB42VDijP8d+nguwRm/gt/z/6vo4jZaVGdlZaUr4Bx1ejX/30aiw+ezQjPoD2A7tAH7A9qygVAPmvJ7kvYOf+jLzhQUxkQna4lx2BdpirhX/QT8GLoei6LuZ/MQmy79jmlQnR7PUpeVwuN4DK0X5W/0774wPcFhETvr7IpF5DWdZlb8wqg8440abhD2sYBYqpmv9FehdEBSgyFvA2uxIZ7AcBICv47Lz9cvB6rjN1cjAUWRaSB9q54ej18l8o68OZUXe1TY5ek3c+Go2V88k=
+  bucket: pyret-releases
+  local-dir: build/release
+  upload-dir: releases
+  acl: public_read
+  skip_cleanup: true
+  detect_encoding: true
+  on:
+    repo: brownplt/code.pyret.org
+    branch: release
+- provider: heroku
+  app: code-pyret-org
+  api_key:
+    secure: "i0jl8FfQG+k/2tlaE5EWhkaSKAiOwBV2vo0u8Gcbhe6xWDDnwroxmD/m3lAZs7X/v6jtP1nGa8FHw6h4Ag3jqZdf7+AQihdVGi0/FZcOCB2Fi69VcAFG/XbD2lfsd6wuWf6PQcrGhRXNrlFuu97foAvmzYa34JFJndW9ONpni2RkfACU+kKoswBTTEJyCjtPW0JvlVu+2FCQeHYCFEv/al4hq7XSUJpIOKocPCxM4qcPGINQhj7Isu2v9v/f951gwHHlz2b06KsjXVlDfGtOc7z5pXJPXBVBSMcYFwrb14JPXTZgoRmmjpoeXyR4skFAHTgkFDtDWl/aNnaJNk4twl32vrXIH49O9PZHv/fcXgZ6Lk0iUPSM3HUsJI3aM1X4/slTLTTeuR5/bpw8d4UVdQiYgeK223Vc00BFuupJWwitJr59RH3tJdrZNpZ95LnkEubDB/QgHRUXHpmg8oIcP8t0eBXRbWwDzsWJLreP9gIUANNvHcFFUQVtsobBwCeuUL24raurXtFMsKP+L+FmsbwdMRSZMznRAzJtw2Tr1Ncp2UEjPn/XwmmnC4FIUZB1HxJPooMZTxg3OZJOKwQf6NWHNQ25yBhL0066SxbTYIskwJZtw00xSwWOQXbJOXalJy43EYEbjccTSCbKpdZrzWzsHlF8uVSyfwiWEoafeRo="
+  on:
+    repo: brownplt/code.pyret.org
+    branch: release
