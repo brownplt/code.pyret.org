@@ -474,9 +474,15 @@
         }
         editor.refresh();
         replWidget.refresh();
-        $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
+        updateFontSizeMenuText();
       }
-      $('#font-label').text("Font (" + $('#main').css("font-size") + ")");
+      function formatFontSizeMenuText(size) {
+        return "Font size: " + Math.round(parseFloat(size));
+      }
+      function updateFontSizeMenuText() {
+        $('#font-label').text(formatFontSizeMenuText($('#main').css("font-size")));
+      }
+      updateFontSizeMenuText();
 
       var curTheme = document.getElementById("theme-select").value;
       var themeSelect = $("#theme-select");
