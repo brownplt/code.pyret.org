@@ -82,6 +82,7 @@ function start(config, onServerReady) {
   app.engine('html', mustache());
   app.engine('js', mustache());
   app.set('view engine', ['html', 'js']);
+  app.set('view cache', process.env.NODE_ENV !== 'development');
 
   app.get("/current-version", function(req, res) {
     res.status(200);
@@ -319,6 +320,7 @@ function start(config, onServerReady) {
       PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
       GOOGLE_API_KEY: config.google.apiKey,
+      GOOGLE_APP_ID: config.google.appId,
       CSRF_TOKEN: req.csrfToken(),
       LOG_URL: config.logURL,
       GIT_REV : config.gitRev,
