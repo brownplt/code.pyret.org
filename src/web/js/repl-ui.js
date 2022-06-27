@@ -437,6 +437,8 @@
                 .addClass('ui-dialog-titlebar-close')
                 .css('left', left + 'px')
                 .click(fn)
+                .attr("title", "Save this chart")
+                .attr("alt", "Save this chart")
                 .appendTo(titlebar);
               return btn;
             }
