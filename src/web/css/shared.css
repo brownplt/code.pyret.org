@@ -171,7 +171,7 @@ body.hideDefinitions .replMain, body.hideDefinitions #handle {
 
 #loader p {
   position: relative;
-  top: 320px;
+  top: calc(30% + 30px);
   text-align: center;
   width: 100%;
 }
