@@ -36,6 +36,9 @@ selenium-test-local:
 selenium-test-sauce:
 	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
+anchor: pyret-anchor
+	mkdir -p build/web/anchor
+	cp -r pyret-anchor/ide/build/* build/web/anchor/
 
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
@@ -269,7 +272,11 @@ link-pyret:
 	ln -s node_modules/pyret-lang pyret;
 	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
 
-deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOGZ)
+pyret-anchor:
+	ln -s node_modules/pyret-lang-anchor pyret-anchor;
+	(cd node_modules/pyret-lang-anchor && npm i && $(MAKE) && npm run web && cd ide && npm run build);
+
+deploy-cpo-main: link-pyret anchor $(CPOMAIN) $(CPOGZ)
 
 TROVE_JS := src/web/js/trove/*.js
 TROVE_ARR := src/web/arr/trove/*.arr
