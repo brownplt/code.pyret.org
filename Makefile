@@ -36,6 +36,9 @@ selenium-test-local:
 selenium-test-sauce:
 	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
+anchor: pyret-anchor
+	mkdir -p build/web/anchor
+	cp -r pyret-anchor/ide/build/* build/web/anchor/
 
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
@@ -266,10 +269,24 @@ web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONT
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js
 
 link-pyret:
-	ln -s node_modules/pyret-lang pyret;
-	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
+	ln -s node_modules/pyret-lang pyret
+	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps)
 
-deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOGZ)
+pyret-anchor:
+	cd node_modules/pyret-lang-anchor && \
+	  npm i && $(MAKE) && \
+	  ln -sf ../../build/worker/runtime-files.json src/webworker/runtime-files.json && \
+	  ln -sf ../../src/webworker/backend.ts ide/src/backend.ts && \
+	  ln -sf ../../src/webworker/browserfs-setup.ts ide/src/browserfs-setup.ts && \
+	  ln -sf ../../src/webworker/control.ts ide/src/control.ts && \
+	  ln -sf ../../src/webworker/path.ts ide/src/path.ts && \
+	  ln -sf ../../src/webworker/runner.ts ide/src/runner.ts && \
+	  ln -sf ../../build/worker/runtime-files.json ide/src/runtime-files.json && \
+	  ln -sf ../../src/webworker/runtime-loader.ts ide/src/runtime-loader.ts && \
+	  npm run web && cd ide && npm i && npm run build
+	ln -s node_modules/pyret-lang-anchor pyret-anchor
+
+deploy-cpo-main: link-pyret anchor $(CPOMAIN) $(CPOGZ)
 
 TROVE_JS := src/web/js/trove/*.js
 TROVE_ARR := src/web/arr/trove/*.arr
