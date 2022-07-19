@@ -286,7 +286,7 @@ pyret-anchor:
 	  npm run web && cd ide && npm i && npm run build
 	ln -s node_modules/pyret-lang-anchor pyret-anchor
 
-deploy-cpo-main: link-pyret anchor $(CPOMAIN) $(CPOGZ)
+deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOGZ)
 
 TROVE_JS := src/web/js/trove/*.js
 TROVE_ARR := src/web/arr/trove/*.arr
