@@ -37,7 +37,6 @@ selenium-test-local:
 selenium-test-sauce:
 	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
-
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
 build/web/views/%.html: src/web/%.template.html
@@ -267,8 +266,8 @@ web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONT
 web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js
 
 link-pyret:
-	ln -s node_modules/pyret-lang pyret;
-	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps);
+	ln -s node_modules/pyret-lang pyret
+	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps)
 
 deploy-cpo-main: link-pyret $(CPOMAIN) cpo-main-release 
 
