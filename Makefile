@@ -36,10 +36,6 @@ selenium-test-local:
 selenium-test-sauce:
 	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
-anchor: pyret-anchor
-	mkdir -p build/web/anchor
-	cp -r pyret-anchor/ide/build/* build/web/anchor/
-
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
 build/web/views/%.html: src/web/%.template.html
@@ -271,20 +267,6 @@ web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(W
 link-pyret:
 	ln -s node_modules/pyret-lang pyret
 	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps)
-
-pyret-anchor:
-	cd node_modules/pyret-lang-anchor && \
-	  npm i && $(MAKE) && \
-	  ln -sf ../../build/worker/runtime-files.json src/webworker/runtime-files.json && \
-	  ln -sf ../../src/webworker/backend.ts ide/src/backend.ts && \
-	  ln -sf ../../src/webworker/browserfs-setup.ts ide/src/browserfs-setup.ts && \
-	  ln -sf ../../src/webworker/control.ts ide/src/control.ts && \
-	  ln -sf ../../src/webworker/path.ts ide/src/path.ts && \
-	  ln -sf ../../src/webworker/runner.ts ide/src/runner.ts && \
-	  ln -sf ../../build/worker/runtime-files.json ide/src/runtime-files.json && \
-	  ln -sf ../../src/webworker/runtime-loader.ts ide/src/runtime-loader.ts && \
-	  npm run web && cd ide && npm i && npm run build
-	ln -s node_modules/pyret-lang-anchor pyret-anchor
 
 deploy-cpo-main: link-pyret $(CPOMAIN) $(CPOGZ)
 
