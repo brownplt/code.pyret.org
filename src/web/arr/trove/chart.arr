@@ -282,7 +282,7 @@ fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
       {ST.median(splitted.prefix); ST.median(splitted.suffix)}
     else:
       splitted = lst.split-at((n - 1) / 2)
-      {ST.median(splitted.prefix); ST.median(splitted.suffix)}
+      {ST.median(splitted.prefix); ST.median(splitted.suffix.rest)}
     end
     iqr = third-quartile - first-quartile
     high-outliers = for filter(shadow n from lst):
