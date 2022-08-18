@@ -289,7 +289,7 @@ fun get-box-data(label :: String, lst :: List<Number>) -> RawArray:
       n > (third-quartile + (1.5 * iqr))
     end ^ builtins.raw-array-from-list
     low-outliers = for filter(shadow n from lst):
-      n < (third-quartile - (1.5 * iqr))
+      n < (first-quartile - (1.5 * iqr))
     end ^ builtins.raw-array-from-list
     min-val = lst.first
     max-val = lst.last()
