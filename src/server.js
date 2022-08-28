@@ -323,14 +323,14 @@ function start(config, onServerReady) {
         userClient.setCredentials({
           access_token: newToken
         });
-        const auth = new gapi.auth.GoogleAuth({keyFile: "./patch-test-16b444fb099e.json", scopes: ["https://www.googleapis.com/auth/drive"]});
+        const auth = new gapi.auth.GoogleAuth({scopes: "https://www.googleapis.com/auth/drive"})
+          .fromAPIKey(config.google.apiKey);
         const serverClient = gapi.drive({ version: "v3", auth });
         var drive = gapi.drive({ version: 'v3', auth: userClient });
         var parsed = url.parse(req.url, true);
-        var state = decodeURIComponent(parsed.query["state"]);
-        var programId = JSON.parse(state)["ids"][0];
+        var folderId = decodeURIComponent(parsed.query["folderId"]);
 
-        lookForProjectOrCopyStructure(serverClient, drive, programId).then(target => {
+        lookForProjectOrCopyStructure(serverClient, drive, folderId).then(target => {
           console.log("target: ", target);
           res.redirect(`/anchor?folder=${target.projectDir.id}`);
         }).catch((err) => {
@@ -385,6 +385,7 @@ function start(config, onServerReady) {
         .then(copyResult => {
           console.log("New directory: ", copyResult);
           serverDrive.files.list({
+            key: config.google.apiKey,
             q: `"${fileInfo.id}" in parents and not trashed`,
             fields: 'files(id, name, mimeType, modifiedTime, modifiedByMeTime, webContentLink, iconLink, thumbnailLink)',
           }).then(files => {
@@ -407,6 +408,7 @@ function start(config, onServerReady) {
         serverDrive.files.get({
           fileId: fileInfo.id,
           alt: 'media',
+          key: config.google.apiKey,
         }).then(fileContent => {
           clientDrive.files.create({
             requestBody: {
@@ -443,34 +445,32 @@ function start(config, onServerReady) {
   function lookForProjectOrCopyStructure(serverDrive, clientDrive, fileId) {
     return new Promise((resolve, reject) => {
       // The permissionID
-      serverDrive.about.get({ fields: ['user']}).then(serverDriveInfo => {
-        const email = serverDriveInfo.data.user.emailAddress;
-        clientDrive.files.list({
-          q: `properties has {key='${PROJECT_BACKREF}' and value='${fileId}'} and trashed=false`
-        }).then(files => {
-          console.log("Files with key result: ", files);
-          if(files.data.files.length === 0) {
-            return serverDrive.files.get({ fileId }).then((dirInfo) => {
-              return copyFileOrDir(serverDrive, clientDrive, false, dirInfo.data, email).then(copied => {
-                console.log("Made a full copy of the directory");
-                resolve({
-                  copied: true,
-                  projectDir: copied
-                });
+      clientDrive.files.list({
+        q: `properties has {key='${PROJECT_BACKREF}' and value='${fileId}'} and trashed=false`
+      }).then(files => {
+        console.log("Files with key result: ", files);
+        if(files.data.files.length === 0) {
+          console.log("About to get dir data: ", { fileId, key: config.google.apiKey });
+          return serverDrive.files.get({ fileId, key: config.google.apiKey }).then((dirInfo) => {
+            return copyFileOrDir(serverDrive, clientDrive, false, dirInfo.data).then(copied => {
+              console.log("made a full copy of the directory");
+              resolve({
+                copied: true,
+                projectDir: copied
               });
             });
-          }
-          else {
-            console.log("Directory existed, so not copying");
-            resolve({
-              copied: false,
-              projectDir: files.data.files[0]
-            });
-          }
-        })
-        .catch((err) => {
-          reject(err);
-        });
+          });
+        }
+        else {
+          console.log("Directory existed, so not copying");
+          resolve({
+            copied: false,
+            projectDir: files.data.files[0]
+          });
+        }
+      })
+      .catch((err) => {
+        reject(err);
       });
     });
   }
