@@ -156,6 +156,9 @@ build/web/js/foldcode.js: $(CM)/addon/fold/foldcode.js
 build/web/js/foldgutter.js: $(CM)/addon/fold/foldgutter.js
 	cp $< $@
 
+build/web/js/comment.js: $(CM)/addon/comment/comment.js
+	cp $< $@
+
 build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
 	cp $< $@
 
@@ -180,6 +183,7 @@ MISC_JS = build/web/js/q.js \
 	   build/web/js/matchkw.js \
 	   build/web/js/foldcode.js \
 	   build/web/js/foldgutter.js \
+	   build/web/js/comment.js \
 	   build/web/js/colorspaces.js \
 	   build/web/js/es6-shim.js \
 	   build/web/js/runmode.js \
@@ -193,6 +197,7 @@ EDITOR_MISC_JS = build/web/js/q.js \
 		  build/web/js/scrollpastend.js \
 		  build/web/js/foldcode.js \
 		  build/web/js/foldgutter.js \
+		  build/web/js/comment.js \
 		  build/web/js/mark-selection.js \
 		  build/web/js/runmode.js \
 		  build/web/js/pyret-mode.js \
