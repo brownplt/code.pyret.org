@@ -311,6 +311,33 @@ function start(config, onServerReady) {
     });
   });
 
+  app.get("/new-project", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        const userClient = new gapi.auth.OAuth2(
+            config.google.clientId,
+            config.google.clientSecret,
+            config.baseUrl + config.google.redirect
+          );
+        userClient.setCredentials({
+          access_token: newToken
+        });
+        var parsed = url.parse(req.url, true);
+        var projectName = decodeURIComponent(parsed.query["projectName"]);
+        var drive = gapi.drive({ version: 'v3', auth: userClient });
+        drive.files.create({
+          requestBody: {
+            name: projectName,
+            mimeType:  'application/vnd.google-apps.folder',
+          }
+        }).then((result) => {
+          res.redirect(`/anchor/?folder=${result.data.id}`);
+        });
+      });
+    });
+  });
+
   app.get("/project-from-template", function(req, res) {
     var u = requireLogin(req, res);
     u.then(function(user) {
