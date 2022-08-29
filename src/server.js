@@ -351,7 +351,7 @@ function start(config, onServerReady) {
           access_token: newToken
         });
         const auth = new gapi.auth.GoogleAuth({scopes: "https://www.googleapis.com/auth/drive"})
-          .fromAPIKey(config.google.apiKey);
+          .fromAPIKey(config.google.serverApiKey);
         const serverClient = gapi.drive({ version: "v3", auth });
         var drive = gapi.drive({ version: 'v3', auth: userClient });
         var parsed = url.parse(req.url, true);
@@ -412,7 +412,7 @@ function start(config, onServerReady) {
         .then(copyResult => {
           console.log("New directory: ", copyResult);
           serverDrive.files.list({
-            key: config.google.apiKey,
+            key: config.google.serverApiKey,
             q: `"${fileInfo.id}" in parents and not trashed`,
             fields: 'files(id, name, mimeType, modifiedTime, modifiedByMeTime, webContentLink, iconLink, thumbnailLink)',
           }).then(files => {
@@ -435,7 +435,7 @@ function start(config, onServerReady) {
         serverDrive.files.get({
           fileId: fileInfo.id,
           alt: 'media',
-          key: config.google.apiKey,
+          key: config.google.serverApiKey,
         }).then(fileContent => {
           clientDrive.files.create({
             requestBody: {
@@ -477,8 +477,7 @@ function start(config, onServerReady) {
       }).then(files => {
         console.log("Files with key result: ", files);
         if(files.data.files.length === 0) {
-          console.log("About to get dir data: ", { fileId, key: config.google.apiKey });
-          return serverDrive.files.get({ fileId, key: config.google.apiKey }).then((dirInfo) => {
+          return serverDrive.files.get({ fileId, key: config.google.serverApiKey }).then((dirInfo) => {
             return copyFileOrDir(serverDrive, clientDrive, false, dirInfo.data).then(copied => {
               console.log("made a full copy of the directory");
               resolve({
