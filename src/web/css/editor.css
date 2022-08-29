@@ -2149,7 +2149,6 @@ table {
     width: 100%;
     table-layout: auto;
     display: table!important;
-    border:1px var(--table-border) solid;
     border-radius:1em;
     overflow:hidden;
     background:var(--table-bg);
@@ -2254,6 +2253,18 @@ table.pyret-table th,
 table.pyret-table td {
   border-right: 1px var(--pyret-table-col-dividers) solid;
   border-bottom: 1px var(--pyret-table-row-dividers) solid;
+}
+
+/* td/th that are in last column don't have right borders */
+table.pyret-table td:last-child,
+table.pyret-table th:last-child {
+  border-right: none;
+}
+
+/* td/th in the last row don't have bottom borders */
+table.pyret-table tr:last-child td,
+table.pyret-table tr:last-child th {
+  border-bottom: none;
 }
 
 table.pyret-table thead {
