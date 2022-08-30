@@ -2,6 +2,8 @@ var Q = require("q");
 var gapi = require('googleapis').google; // https://github.com/googleapis/google-auth-library-nodejs/issues/355
 var path = require('path');
 var uuid = require('node-uuid');
+const { google } = require("googleapis");
+const { drive } = require("googleapis/build/src/apis/drive/index.js");
 
 var BACKREF_KEY = "originalProgram";
 
@@ -112,6 +114,10 @@ function start(config, onServerReady) {
       GIT_REV : config.gitRev,
       GIT_BRANCH: config.gitBranch
     });
+  });
+
+  app.get("/apiKey", function(req, res) {
+    res.send(config.google.apiKey);
   });
 
   app.get("/login", function(req, res) {
@@ -304,6 +310,196 @@ function start(config, onServerReady) {
       });
     });
   });
+
+  app.get("/new-project", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        const userClient = new gapi.auth.OAuth2(
+            config.google.clientId,
+            config.google.clientSecret,
+            config.baseUrl + config.google.redirect
+          );
+        userClient.setCredentials({
+          access_token: newToken
+        });
+        var parsed = url.parse(req.url, true);
+        var projectName = decodeURIComponent(parsed.query["projectName"]);
+        var drive = gapi.drive({ version: 'v3', auth: userClient });
+        drive.files.create({
+          requestBody: {
+            name: projectName,
+            mimeType:  'application/vnd.google-apps.folder',
+          }
+        }).then((result) => {
+          res.redirect(`/anchor/?folder=${result.data.id}`);
+        });
+      });
+    });
+  });
+
+  app.get("/project-from-template", function(req, res) {
+    var u = requireLogin(req, res);
+    u.then(function(user) {
+      auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        const userClient = new gapi.auth.OAuth2(
+            config.google.clientId,
+            config.google.clientSecret,
+            config.baseUrl + config.google.redirect
+          );
+        userClient.setCredentials({
+          access_token: newToken
+        });
+        const auth = new gapi.auth.GoogleAuth({scopes: "https://www.googleapis.com/auth/drive"})
+          .fromAPIKey(config.google.serverApiKey);
+        const serverClient = gapi.drive({ version: "v3", auth });
+        var drive = gapi.drive({ version: 'v3', auth: userClient });
+        var parsed = url.parse(req.url, true);
+        var folderId = decodeURIComponent(parsed.query["folderId"]);
+
+        lookForProjectOrCopyStructure(serverClient, drive, folderId).then(target => {
+          console.log("target: ", target);
+          res.redirect(`/anchor?folder=${target.projectDir.id}`);
+        }).catch((err) => {
+          console.error(err);
+          res.status(500).send("Error when copying or opening project from template: " + String(err));
+        });
+      });
+    });
+  });
+  
+  /*
+    The setup for creating a project like this is:
+
+    1. The project template is available to "anyone with the link" on Drive
+    2. The user visits a project template copy link, or opens the file with CPO
+
+    Because of Drive limitations, the Drive API *cannot see* public files when
+    authenticated with the user's credentials.
+
+    So, we make a folder on behalf of the user, share it with the service
+    account, then copy all the files into it using the service account, then
+    transfer ownership to the user and drop our permissions.
+
+    This avoids having to put e.g. the entire contents of every file (which in
+    the long-term may include images or data files) into [a] memory in the
+    server process or [b] the service account's Drive. The server of course has
+    temporary access to it, but that's just to the template.
+
+    */
+
+  var PROJECT_BACKREF = "originalProjectFile";
+
+  function copyFileOrDir(serverDrive, clientDrive, parentId, fileInfo, serverEmailAddress) {
+    let parents;
+    if(!parentId) { parents = []; }
+    else { parents = [parentId];  }
+    const properties = {
+      [PROJECT_BACKREF]: String(fileInfo.id),
+      [PROJECT_BACKREF + "Flag"]: "true"
+    };
+    // Note that we copy no matter what; both files and directories get copied
+    return new Promise((resolve, reject) => {
+      if(fileInfo.mimeType === 'application/vnd.google-apps.folder') {
+        clientDrive.files.create({
+          requestBody: {
+            name: fileInfo.name,
+            mimeType:  'application/vnd.google-apps.folder',
+            parents,
+            properties,
+          }
+        })
+        .then(copyResult => {
+          console.log("New directory: ", copyResult);
+          serverDrive.files.list({
+            key: config.google.serverApiKey,
+            q: `"${fileInfo.id}" in parents and not trashed`,
+            fields: 'files(id, name, mimeType, modifiedTime, modifiedByMeTime, webContentLink, iconLink, thumbnailLink)',
+          }).then(files => {
+            console.log("Directory contents: ", files);
+            // NOTE(joe): deliberately parallel
+            Promise.all(files.data.files.map(f => copyFileOrDir(serverDrive, clientDrive, copyResult.data.id, f, serverEmailAddress)))
+            .then(copiedFiles => {
+              resolve(copyResult.data);
+            })
+            .catch(err => {
+              console.error("Error copying directory contents: ", err);
+            })
+          });
+        });
+      }
+      else {
+        // Copy files using the *server* drive. This avoids streaming all the
+        // data for each file through the server. For now this will show up as
+        // being owned by the server.
+        serverDrive.files.get({
+          fileId: fileInfo.id,
+          alt: 'media',
+          key: config.google.serverApiKey,
+        }).then(fileContent => {
+          clientDrive.files.create({
+            requestBody: {
+              parents,
+              properties,
+              name: fileInfo.name
+            },
+            media: {
+              mimeType: fileInfo.mimeType,
+              body: fileContent.data
+            }
+          })
+          .then(copiedFile => {
+            console.log("File copied: ", copiedFile);
+            resolve(copiedFile.data);
+          })
+        })
+        .catch(err => { console.error("Error while copying: ", err)});
+      }
+
+    })
+  }
+
+  // Need to create the file in *their* drive because it requires an explicit
+  // user interaction to give away a file (this makes some sense because of
+  // quotas).
+  //
+  // So we have to create with clientDrive, give write permission to us, then 
+  // drop (maybe) our write permissions after copying everything. All
+  // directories should be made and then have perms updated (if
+  // necessary/they don't inherit)
+
+  // http://localhost:4999/project-from-template?state={%22ids%22:[%221NP2trCExDCdbUu17j9SGTQAFJOYddpOY%22],%22action%22:%22open%22,%22userId%22:%22106201725712570479817%22,%22resourceKeys%22:{}}
+  function lookForProjectOrCopyStructure(serverDrive, clientDrive, fileId) {
+    return new Promise((resolve, reject) => {
+      // The permissionID
+      clientDrive.files.list({
+        q: `properties has {key='${PROJECT_BACKREF}' and value='${fileId}'} and trashed=false`
+      }).then(files => {
+        console.log("Files with key result: ", files);
+        if(files.data.files.length === 0) {
+          return serverDrive.files.get({ fileId, key: config.google.serverApiKey }).then((dirInfo) => {
+            return copyFileOrDir(serverDrive, clientDrive, false, dirInfo.data).then(copied => {
+              console.log("made a full copy of the directory");
+              resolve({
+                copied: true,
+                projectDir: copied
+              });
+            });
+          });
+        }
+        else {
+          console.log("Directory existed, so not copying");
+          resolve({
+            copied: false,
+            projectDir: files.data.files[0]
+          });
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+    });
+  }
 
   app.get("/open-from-drive", function(req, res) {
     var u = requireLogin(req, res);
