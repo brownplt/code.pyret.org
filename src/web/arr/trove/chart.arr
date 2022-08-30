@@ -1159,6 +1159,15 @@ default-function-plot-series = {
   legend: '',
 }
 
+type GeoChartSeries = {
+  tab :: TableIntern,
+  region :: String,
+}
+
+default-geochart-series = {
+  region: "world",
+}
+
 ###########
 
 type ChartWindowObject = {
@@ -1296,6 +1305,15 @@ default-plot-chart-window-object :: PlotChartWindowObject = default-chart-window
   minorGridlineMinspacing: 10, 
 }
 
+type GeoChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  render :: ( -> IM.Image),
+}
+
+default-geo-chart-window-object :: GeoChartWindowObject = default-chart-window-object
+
 ################################################################################
 # DATA DEFINITIONS
 ################################################################################
@@ -1430,6 +1448,13 @@ data DataSeries:
         max-num-bins: some(num-bins)
       })
     end,
+  | geochart-series(obj :: GeoChartSeries) with:
+    is-single: true,
+    contr: {(): geochart-series},
+    method region(self, region :: String):
+        geochart-series(self.obj.{
+            region: region})
+    end
 sharing:
   method _output(self):
     cases (E.Either) run-task({(): get-vs-from-img("DataSeries", render-chart(self).get-image())}):
@@ -1490,6 +1515,8 @@ data ChartWindow:
       end
       plot-chart-window(self.obj.{num-samples: num-samples})
     end,
+  | geochart-window(obj :: GeoChartWindowObject) with:
+    constr: {(): geochart-window},
 sharing:
   background-color: background-color-method,
   border-size: background-border-method, 
@@ -1890,6 +1917,19 @@ fun labeled-histogram-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries 
   } ^ histogram-series
 end
 
+fun geochart-from-list(
+    region-labels :: P.LoS,
+    values :: P.LoN) -> DataSeries block:
+  region-length = region-labels.length()
+  values-length = values.length()
+  when region-length <> values-length:
+    raise("geochart: region-labels and values should have the same length")
+  end
+  default-geochart-series.{
+    tab: to-table2(region-labels, values)
+  } ^ geochart-series
+end
+
 ################################################################################
 # PLOTS
 ################################################################################
@@ -1965,6 +2005,11 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.histogram(self, obj)
         end
       } ^ histogram-chart-window
+    | geochart-series(obj) =>
+      default-geo-chart-window-object.{
+        method render(self):
+        P.geochart(self, obj) end
+      } ^ geochart-window
   end
 where:
   render-now = {(x): render-chart(x).get-image()}
@@ -2363,4 +2408,5 @@ from-list = {
   freq-bar-chart: freq-bar-chart-from-list,
   labeled-box-plot: labeled-box-plot-from-list,
   box-plot: box-plot-from-list,
+  geochart: geochart-from-list,
 }
