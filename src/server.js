@@ -315,6 +315,7 @@ function start(config, onServerReady) {
     var u = requireLogin(req, res);
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
         const userClient = new gapi.auth.OAuth2(
             config.google.clientId,
             config.google.clientSecret,
@@ -342,6 +343,7 @@ function start(config, onServerReady) {
     var u = requireLogin(req, res);
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        if(err) { res.send(err); res.end(); return; }
         const userClient = new gapi.auth.OAuth2(
             config.google.clientId,
             config.google.clientSecret,
