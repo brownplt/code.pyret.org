@@ -315,6 +315,12 @@ function start(config, onServerReady) {
     var u = requireLogin(req, res);
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        if(err) {
+          console.err("Failed login: ", err);
+          res.send("Login failed");
+          res.end();
+          return;
+        }
         const userClient = new gapi.auth.OAuth2(
             config.google.clientId,
             config.google.clientSecret,
@@ -332,7 +338,7 @@ function start(config, onServerReady) {
             mimeType:  'application/vnd.google-apps.folder',
           }
         }).then((result) => {
-          res.redirect(`/anchor/?folder=${result.data.id}`);
+          res.redirect(`/parley/?folder=${result.data.id}`);
         });
       });
     });
@@ -342,6 +348,12 @@ function start(config, onServerReady) {
     var u = requireLogin(req, res);
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
+        if(err) {
+          console.errror("Login failed: ", err);
+          res.send(err);
+          res.end();
+          return;
+        }
         const userClient = new gapi.auth.OAuth2(
             config.google.clientId,
             config.google.clientSecret,
@@ -359,7 +371,7 @@ function start(config, onServerReady) {
 
         lookForProjectOrCopyStructure(serverClient, drive, folderId).then(target => {
           console.log("target: ", target);
-          res.redirect(`/anchor?folder=${target.projectDir.id}`);
+          res.redirect(`/parley?folder=${target.projectDir.id}`);
         }).catch((err) => {
           console.error(err);
           res.status(500).send("Error when copying or opening project from template: " + String(err));
