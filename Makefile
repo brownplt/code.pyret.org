@@ -72,7 +72,16 @@ build/web/css/codemirror.css: $(CM)/lib/codemirror.css
 build/web/css/foldgutter.css: $(CM)/addon/fold/foldgutter.css
 	cp $< $@
 
-MISC_CSS = build/web/css/codemirror.css build/web/css/foldgutter.css
+build/web/css/dialog.css: $(CM)/addon/dialog/dialog.css
+	cp $< $@
+
+build/web/css/matchesonscrollbar.css: $(CM)/addon/search/matchesonscrollbar.css
+	cp $< $@
+
+MISC_CSS = build/web/css/codemirror.css \
+	build/web/css/foldgutter.css \
+	build/web/css/dialog.css \
+	build/web/css/matchesonscrollbar.css
 
 COPY_GIF := $(patsubst src/web/img/%.gif,build/web/img/%.gif,$(wildcard src/web/img/*.gif))
 
@@ -156,6 +165,27 @@ build/web/js/foldcode.js: $(CM)/addon/fold/foldcode.js
 build/web/js/foldgutter.js: $(CM)/addon/fold/foldgutter.js
 	cp $< $@
 
+build/web/js/comment.js: $(CM)/addon/comment/comment.js
+	cp $< $@
+
+build/web/js/dialog.js: $(CM)/addon/dialog/dialog.js
+	cp $< $@
+
+build/web/js/search.js: $(CM)/addon/search/search.js
+	cp $< $@
+
+build/web/js/searchcursor.js: $(CM)/addon/search/searchcursor.js
+	cp $< $@
+
+build/web/js/annotatescrollbar.js: $(CM)/addon/scroll/annotatescrollbar.js
+	cp $< $@
+
+build/web/js/matchesonscrollbar.js: $(CM)/addon/search/matchesonscrollbar.js
+	cp $< $@
+
+build/web/js/jump-to-line.js: $(CM)/addon/search/jump-to-line.js
+	cp $< $@
+
 build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
 	cp $< $@
 
@@ -180,6 +210,13 @@ MISC_JS = build/web/js/q.js \
 	   build/web/js/matchkw.js \
 	   build/web/js/foldcode.js \
 	   build/web/js/foldgutter.js \
+	   build/web/js/comment.js \
+	   build/web/js/dialog.js \
+	   build/web/js/search.js \
+	   build/web/js/searchcursor.js \
+	   build/web/js/annotatescrollbar.js \
+	   build/web/js/matchesonscrollbar.js \
+	   build/web/js/jump-to-line.js \
 	   build/web/js/colorspaces.js \
 	   build/web/js/es6-shim.js \
 	   build/web/js/runmode.js \
@@ -193,6 +230,13 @@ EDITOR_MISC_JS = build/web/js/q.js \
 		  build/web/js/scrollpastend.js \
 		  build/web/js/foldcode.js \
 		  build/web/js/foldgutter.js \
+		  build/web/js/comment.js \
+		  build/web/js/dialog.js \
+		  build/web/js/search.js \
+		  build/web/js/searchcursor.js \
+		  build/web/js/annotatescrollbar.js \
+		  build/web/js/matchesonscrollbar.js \
+		  build/web/js/jump-to-line.js \
 		  build/web/js/mark-selection.js \
 		  build/web/js/runmode.js \
 		  build/web/js/pyret-mode.js \

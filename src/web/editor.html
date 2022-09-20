@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" />
   <link rel="stylesheet" href="/css/codemirror.css" />
   <link rel="stylesheet" href="/css/foldgutter.css" />
+  <link rel="stylesheet" href="/css/dialog.css" />
+  <link rel="stylesheet" href="/css/matchesonscrollbar.css" />
   <link rel="stylesheet" href="/css/shared.css" />
   <link rel="stylesheet" href="/css/editor.css" />
   <link rel="stylesheet" href="/css/font-awesome.min.path-fixed.css" />
@@ -374,28 +376,34 @@
 <div id="handle" class="ui-resizable-handle ui-resizable-w"></div>
 </div>
 <div id="help-keys">
-  <p>Press ESC to close this help window</p>
+  <p><b>Press <kbd>Esc</kbd> to close this help window</b></p>
   <ul>
-    <li><b>Ctrl-?</b> - Show this help</li>
-    <li><b>Ctrl-s</b> - Save</li>
-    <li><b>Ctrl-m</b> - Toggle sizing of the editor window between 50% and last resize</li>
-    <li><b>F6, Shift-F6</b> - Cycle focus through regions</li>
-    <li><b>F7, Ctrl-Enter</b> - Run the definitions window</li>
-    <li><b>F11</b> - Insert image</li>
-    <li><b>Ctrl-Left</b> - Move cursor left by one word</li>
-    <li><b>Ctrl-Right</b> - Move cursor right by one word</li>
-    <li><b>Alt-Left</b> - If cursor is just before a right-parenthesis or <code>end</code>
+    <li><b><kbd>Ctrl</kbd>-<kbd>?</kbd></b> - Show this help</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>s</kbd></b> - Save</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>/</kbd> or <kbd>Cmd</kbd>-<kbd>/</kbd></b> - Toggle commenting</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>F</kbd> or <kbd>Cmd</kbd>-<kbd>F</kbd></b> - Find</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>G</kbd> or <kbd>Cmd</kbd>-<kbd>G</kbd></b> - Find next</li>
+    <li><b><kbd>Shift</kbd>-<kbd>Ctrl</kbd>-<kbd>G</kbd> or <kbd>Shift</kbd>-<kbd>Cmd</kbd>-<kbd>G</kbd></b> - Find previous</li>
+    <li><b><kbd>Shift</kbd>-<kbd>Ctrl</kbd>-<kbd>F</kbd> or <kbd>Cmd</kbd>-<kbd>Option</kbd>-<kbd>F</kbd></b> - Replace</li>
+    <li><b><kbd>Shift</kbd>-<kbd>Ctrl</kbd>-<kbd>R</kbd> or <kbd>Shift</kbd>-<kbd>Cmd</kbd>-<kbd>Option</kbd>-<kbd>F</kbd></b> - Replace all</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>M</kbd></b> - Toggle sizing of the editor window between 50% and last resize</li>
+    <li><b><kbd>F6</kbd>, <kbd>Shift</kbd>-<kbd>F6</kbd></b> - Cycle focus through regions</li>
+    <li><b><kbd>F7</kbd>, <kbd>Ctrl</kbd>-<kbd>Enter</kbd></b> - Run the definitions window</li>
+    <li><b><kbd>F11</kbd></b> - Insert image</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>Left</kbd></b> - Move cursor left by one word</li>
+    <li><b><kbd>Ctrl</kbd>-<kbd>Right</kbd></b> - Move cursor right by one word</li>
+    <li><b><kbd>Alt</kbd>-<kbd>Left</kbd></b> - If cursor is just before a right-parenthesis or <code>end</code>
     keyword, move cursor left to matching delimiter; otherwise move cursor left by one word</li>
-    <li><b>Alt-Right</b> - Like <b>Alt-Left</b>, but moving right.</li>
-    <li><b>Esc Left</b> - (two key sequence) synonym
-      for <b>Alt-Left</b>, in case Alt key is in use by browser</li>
-    <li><b>Esc Right</b> - (two key sequence) synonym for <b>Alt-Right</b>.</li>
+    <li><b><kbd>Alt</kbd>-<kbd>Right</kbd></b> - Like <b><kbd>Alt</kbd>-<kbd>Left</kbd></b>, but moving right.</li>
+    <li><b><kbd>Esc</kbd>-<kbd>Left</kbd></b> - (two key sequence) synonym
+      for <b><kbd>Alt</kbd>-<kbd>Left</kbd></b>, in case <b><kbd>Alt</kbd></b> key is in use by browser</li>
+    <li><b><kbd>Esc</kbd>-<kbd>Right</kbd></b> - (two key sequence) synonym for <b><kbd>Alt</kbd>-<kbd>Right</kbd></b>.</li>
   </ul>
-  <p><i>Toolbar region navigation</i></p>
+  <p><b>Toolbar region navigation</b></p>
   <ul>
-    <li><b>Esc</b> - Exit toolbar submenu (if open) or region</li>
-    <li><b>Left, Right</b> - Traverse toolbar top-level menu</li>
-    <li><b>Up, Down</b> - Traverse toolbar submenus</li>
+    <li><b><kbd>Esc</kbd></b> - Exit toolbar submenu (if open) or region</li>
+    <li><b><kbd>Left</kbd>, <kbd>Right</kbd></b> - Traverse toolbar top-level menu</li>
+    <li><b><kbd>Up</kbd>, <kbd>Down</kbd></b> - Traverse toolbar submenus</li>
   </ul>
 </div>
 <div id="doc-containment">
