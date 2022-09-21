@@ -1612,6 +1612,49 @@ fun image-scatter-plot-from-list(
   } ^ scatter-plot-series
 end
 
+fun image-bar-chart-from-list(
+  images :: P.LoI, 
+  labels :: P.LoS, 
+  values :: P.LoN) -> DataSeries block:
+
+  doc: ```
+       Consume images, labels, a list of string, and values, a list of numbers
+       and construct a bar chart using images as bars
+       ```
+
+  # Type Checking
+  images.each(check-image)
+  values.each(check-num)
+  labels.each(check-string)
+
+  # Constants
+  label-length = labels.length()
+  value-length = values.length()
+  rational-values = map(num-to-rational, values)
+
+
+  # Edge Case Error Checking
+  when value-length == 0:
+    raise("bar-chart: can't have empty data")
+  end
+  when label-length <> value-length:
+    raise('bar-chart: labels and values should have the same length')
+  end
+
+  {max-positive-height; max-negative-height} = prep-axis(rational-values)
+
+
+  data-series = default-bar-chart-series.{
+    tab: to-table3-n(labels, rational-values, images),
+    axis-top: max-positive-height,
+    axis-bottom: max-negative-height,
+    annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
+  } ^ bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
+end
+
 fun exploding-pie-chart-from-list(
   labels :: P.LoS,
   values :: P.LoN,
@@ -2358,6 +2401,7 @@ from-list = {
   pie-chart: pie-chart-from-list,
   exploding-pie-chart: exploding-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
+  image-bar-chart: image-bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   stacked-bar-chart: stacked-bar-chart-from-list,
   freq-bar-chart: freq-bar-chart-from-list,
