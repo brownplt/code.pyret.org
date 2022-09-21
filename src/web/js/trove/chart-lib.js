@@ -619,8 +619,7 @@
 
     // Adds each row of bar data and bar_color data
     table.forEach(function (row) {
-      console.log(row, colors_list);
-      let bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
+      const bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
     addAnnotations(data, rawData);
