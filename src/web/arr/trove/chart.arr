@@ -1715,6 +1715,32 @@ fun pie-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   } ^ pie-chart-series
 end
 
+fun image-pie-chart-from-list(images :: P.LoI, labels :: P.LoS, values :: P.LoN) -> DataSeries block:
+  doc: ```
+       Consume images, labels, a list of strings, and values, a list of numbers
+       and construct a pie chart sticking images into the slices
+       ```
+  label-length = labels.length()
+  value-length = values.length()
+  for each(value from values):
+    when value < 0:
+      raise('pie-chart: values must be non-negative')
+    end
+  end
+  when label-length <> value-length:
+    raise('pie-chart: labels and values should have the same length')
+  end
+  when label-length == 0:
+    raise('pie-chart: need at least one data')
+  end
+  images.each(check-image)
+  values.each(check-num)
+  labels.each(check-string)
+  default-pie-chart-series.{
+    tab: to-table4(labels, values, labels.map({(_): 0}), images)
+  } ^ pie-chart-series
+end
+
 fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of numbers
@@ -1930,6 +1956,20 @@ fun labeled-histogram-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries 
   labels.each(check-string)
   default-histogram-series.{
     tab: to-table2(labels, values),
+  } ^ histogram-series
+end
+
+fun image-histogram-from-list(images :: P.LoI, values :: P.LoN) -> DataSeries block:
+  doc: ```
+       Consume images and numbers, then construct a histogram matching those
+       images to the original histogram bricks
+       ```
+  # Type Checking
+  images.each(check-image)
+  values.each(check-num)
+
+  default-histogram-series.{
+    tab: to-table3(values.map({(_): ''}), values, images),
   } ^ histogram-series
 end
 
@@ -2398,8 +2438,10 @@ from-list = {
   function-plot: function-plot-from-list,
   histogram: histogram-from-list,
   labeled-histogram: labeled-histogram-from-list,
+  image-histogram: image-histogram-from-list,
   pie-chart: pie-chart-from-list,
   exploding-pie-chart: exploding-pie-chart-from-list,
+  image-pie-chart: image-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
   image-bar-chart: image-bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
