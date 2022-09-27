@@ -520,8 +520,8 @@
     const startingAngle = toFixnum(get(rawData, 'startingAngle'));
     const collapseThreshold = toFixnum(get(rawData, 'collapseThreshold'));
 
-    // ASSERT: if we're using custom images, there will be a 4th column
-    const hasImage = table[0].length == 4;
+    // ASSERT: if we're using custom images, the third column will be an object
+    const hasImage = typeof table[0][3] == 'object';
 
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
