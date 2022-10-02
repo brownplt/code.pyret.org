@@ -821,16 +821,6 @@ function start(config, onServerReady) {
     res.sendfile("build/web/embedditor.html");
   });
 
-  app.get("/my-programs", function(req, res) {
-    var u = requireLogin(req, res);
-    u.then(function(user) {
-      res.sendfile("build/web/my-programs.html");
-    });
-  });
-  app.get("/api-test", function(req, res) {
-    res.sendfile("build/web/api-play.html");
-  });
-
   app.get("/logout", function(req, res) {
     req.session = null;
     delete req.session;
