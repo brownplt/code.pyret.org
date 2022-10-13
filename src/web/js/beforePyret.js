@@ -183,6 +183,9 @@ $(function() {
       rulersMinCol = CODE_LINE_WIDTH;
     }
 
+    const mac = CodeMirror.keyMap.default === CodeMirror.keyMap.macDefault;
+    const modifier = mac ? "Cmd" : "Ctrl";
+
     var cmOptions = {
       extraKeys: CodeMirror.normalizeKeyMap({
         "Shift-Enter": function(cm) { runFun(cm.getValue()); },
@@ -194,7 +197,8 @@ $(function() {
         "Esc Right": "goForwardSexp",
         "Alt-Right": "goForwardSexp",
         "Ctrl-Left": "goBackwardToken",
-        "Ctrl-Right": "goForwardToken"
+        "Ctrl-Right": "goForwardToken",
+        [`${modifier}-/`]: "toggleComment",
       }),
       indentUnit: 2,
       tabSize: 2,
