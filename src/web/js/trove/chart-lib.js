@@ -614,9 +614,12 @@
     data.addColumn('number', 'Values');
     data.addColumn({type: 'string', role: 'style'});
 
+    // ASSERT: if we're using custom images, there will be a 4th column
+    const hasImage = table[0].length == 4;
+
     // Adds each row of bar data and bar_color data
     table.forEach(function (row) {
-      const bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
+      let bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
     addAnnotations(data, rawData);
@@ -628,6 +631,9 @@
         }, 
         intervals: {
           color : interval_color, 
+        },
+        series : {
+          0 : { dataOpacity : hasImage? 0 : 1.0 }
         }
       };
  
@@ -670,6 +676,45 @@
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
+      overlay: (overlay, restarter, chart, container) => {
+        if(!hasImage) return;
+
+        // if custom images are defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', function () {
+          // HACK(Emmanuel): 
+          // The only way to hijack rect events is to walk the DOM here
+          // If Google changes the DOM, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const rects = svgRoot.children[1].children[1].children[1].children;
+
+          // remove any labels that have previously been drawn
+          $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // for each bar, (1) render the SVGImage, (2) size it to match the bar, 
+          // (3) steal all the events, and (4) add it to the chart
+          table.forEach(function (row, i) {
+            const rect = rects[i];
+            rect.setAttribute('opacity', 0);
+            // make an image element for the img, from the SVG namespace
+            const imgDOM = row[2].val.toDomNode();
+            row[2].val.render(imgDOM.getContext('2d'), 0, 0);
+            let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+            imageElt.classList.add('__img_labels'); // tag for later garbage collection
+            imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+            // position it using the position of the corresponding rect
+            imageElt.setAttribute('preserveAspectRatio', 'none');
+            imageElt.setAttribute('x', rects[i].getAttribute('x'));
+            imageElt.setAttribute('y', rects[i].getAttribute('y'));
+            imageElt.setAttribute('width', rects[i].getAttribute('width'));
+            imageElt.setAttribute('height', rects[i].getAttribute('height'));
+            Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
+            svgRoot.appendChild(imageElt);
+            // hide the original rect
+            rects[i].setAttribute("fill", "transparent");
+          });
+        })
+      }
     };
   }
 
