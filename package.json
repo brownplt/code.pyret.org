@@ -4,7 +4,8 @@
   "description": "A simple IDE for Pyret",
   "main": "index.js",
   "engines": {
-    "npm": "3.x"
+    "npm": "3.x",
+    "node": "10.x"
   },
   "dependencies": {
     "babel-core": "^6.26.3",
