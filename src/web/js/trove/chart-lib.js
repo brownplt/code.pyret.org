@@ -543,15 +543,7 @@
         sliceVisibilityThreshold: collapseThreshold,
       },
       chartType: google.visualization.PieChart,
-      onExit: (restarter, result) => {
-        let svg = result.chart.container.querySelector('svg');
-        let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
-        imageReturn(
-          dataURI,
-          restarter,
-          RUNTIME.ffi.makeRight)
-      },
+      onExit: defaultImageReturn,
       mutators: [backgroundMutator],
       overlay: (overlay, restarter, chart, container) => {
         // If we don't have images, our work is done!
@@ -768,15 +760,7 @@
       data: data,
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
-      onExit: (restarter, result) => {
-        let svg = result.chart.container.querySelector('svg');
-        let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
-        imageReturn(
-          dataURI,
-          restarter,
-          RUNTIME.ffi.makeRight)
-      },
+      onExit: defaultImageReturn,
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
       overlay: (overlay, restarter, chart, container) => {
         if(!hasImage) return;
@@ -1127,15 +1111,7 @@
       data: data,
       options: options,
       chartType: google.visualization.Histogram,
-      onExit: (restarter, result) => {
-        let svg = result.chart.container.querySelector('svg');
-        let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
-        imageReturn(
-          dataURI,
-          restarter,
-          RUNTIME.ffi.makeRight)
-      },
+      onExit: defaultImageReturn,
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
       overlay: (overlay, restarter, chart, container) => {
         if(!hasImage) return;
@@ -1321,15 +1297,7 @@ ${labelRow}`;
       data: data,
       options: options,
       chartType: google.visualization.LineChart,
-      onExit: (restarter, result) => {
-        let svg = result.chart.container.querySelector('svg');
-        let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
-        imageReturn(
-          dataURI,
-          restarter,
-          RUNTIME.ffi.makeRight)
-      },
+      onExit: defaultImageReturn,
       mutators: [axesNameMutator,
                  yAxisRangeMutator,
                  xAxisRangeMutator,
@@ -1525,7 +1493,13 @@ ${labelRow}`;
     However, somehow this event is never triggered, so we will just call
     it here to guarantee that it will return.
     */
-    imageReturn(result.chart.getImageURI(), restarter, x => x);
+
+    // serialize the whole SVG element, in case of custom image overlays
+    // then pass the URI to imageReturn`
+    let svg = result.chart.container.querySelector('svg');
+    let svg_xml = (new XMLSerializer()).serializeToString(svg);
+    let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+    imageReturn(dataURI, restarter, x => x);
   }
 
   function makeFunction(f) {

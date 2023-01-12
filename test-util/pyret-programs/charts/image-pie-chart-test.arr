@@ -1,5 +1,6 @@
 include chart
 include image
+include image-structs
 include math
 
 fun f(r): star(50, "solid", "red") end
@@ -16,5 +17,5 @@ img = render-chart(series)
 
 check:
   img satisfies is-image
-  color-at-position(img, 610, 113) is red
+  color-at-position(img, 408, 252) is red
 end
