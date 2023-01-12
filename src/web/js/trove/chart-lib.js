@@ -543,7 +543,15 @@
         sliceVisibilityThreshold: collapseThreshold,
       },
       chartType: google.visualization.PieChart,
-      onExit: defaultImageReturn,
+      onExit: (restarter, result) => {
+        let svg = result.chart.container.querySelector('svg');
+        let svg_xml = (new XMLSerializer()).serializeToString(svg);
+        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+        imageReturn(
+          dataURI,
+          restarter,
+          RUNTIME.ffi.makeRight)
+      },
       mutators: [backgroundMutator],
       overlay: (overlay, restarter, chart, container) => {
         // If we don't have images, our work is done!
@@ -760,7 +768,15 @@
       data: data,
       options: options,
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
-      onExit: defaultImageReturn,
+      onExit: (restarter, result) => {
+        let svg = result.chart.container.querySelector('svg');
+        let svg_xml = (new XMLSerializer()).serializeToString(svg);
+        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+        imageReturn(
+          dataURI,
+          restarter,
+          RUNTIME.ffi.makeRight)
+      },
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
       overlay: (overlay, restarter, chart, container) => {
         if(!hasImage) return;
@@ -772,7 +788,26 @@
           // If Google changes the DOM for charts, these lines will likely break
           const svgRoot = chart.container.querySelector('svg');
           const rects = svgRoot.children[1].children[1].children[1].children;
-          replaceRectsWithImages(chart, rects, table);
+          $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // Render each rect above the old ones, using the image as a pattern
+          dataTable.forEach(function (row, i) {
+            const rect = rects[i];
+            // make an image element for the img, from the SVG namespace
+            const imgDOM = row[2].val.toDomNode();
+            row[2].val.render(imgDOM.getContext('2d'), 0, 0);
+            let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+            imageElt.classList.add('__img_labels'); // tag for later garbage collection
+            imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+            // position it using the position of the corresponding rect
+            imageElt.setAttribute('preserveAspectRatio', 'none');
+            imageElt.setAttribute('x', rects[i].getAttribute('x'));
+            imageElt.setAttribute('y', rects[i].getAttribute('y'));
+            imageElt.setAttribute('width', rects[i].getAttribute('width'));
+            imageElt.setAttribute('height', rects[i].getAttribute('height'));
+            Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
+            svgRoot.appendChild(imageElt);
+          });
         });
       }
     };
@@ -1092,7 +1127,15 @@
       data: data,
       options: options,
       chartType: google.visualization.Histogram,
-      onExit: defaultImageReturn,
+      onExit: (restarter, result) => {
+        let svg = result.chart.container.querySelector('svg');
+        let svg_xml = (new XMLSerializer()).serializeToString(svg);
+        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+        imageReturn(
+          dataURI,
+          restarter,
+          RUNTIME.ffi.makeRight)
+      },
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
       overlay: (overlay, restarter, chart, container) => {
         if(!hasImage) return;
