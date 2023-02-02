@@ -4,20 +4,18 @@ include image-structs
 include math
 
 fun f(r): star(50, "solid", "red") end
-count = [list: 1,3]
-labels = [list: "dog","cat"]
+values = [list: 1,3,4]
+labels = [list: "a","b","c"]
 
-series = from-list.image-bar-chart(
-  count.map(f),
+series = from-list.image-pie-chart(
+  values.map(f),
   labels,
-  count)
+  values)
   
 img = render-chart(series)
-  .y-axis("species")
-  .y-min(0)
   .get-image()
 
 check:
   img satisfies is-image
-  color-at-position(img, 504, 258) is red
+  color-at-position(img, 408, 252) is red
 end
