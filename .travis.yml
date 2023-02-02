@@ -51,7 +51,8 @@ before_install:
 - nvm install 16.13.0
 - nvm use 16.13.0
 - npm install -g heroku-cli
-- npm install -g chromedriver
+- chromium-browser --version
+- npm install -g chromedriver@`chromium-browser --version | cut -d "." -f 1 | cut -d " " -f 3`
 - export CHROME_BIN=chromium-browser
 - export PATH=$PATH:node_modules/.bin/
 before_deploy:
