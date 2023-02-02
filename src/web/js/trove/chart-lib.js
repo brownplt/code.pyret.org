@@ -1297,7 +1297,15 @@ ${labelRow}`;
       data: data,
       options: options,
       chartType: google.visualization.LineChart,
-      onExit: defaultImageReturn,
+      onExit: (restarter, result) => {
+              let svg = result.chart.container.querySelector('svg');
+              let svg_xml = (new XMLSerializer()).serializeToString(svg);
+              let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+              imageReturn(
+                dataURI,
+                restarter,
+                RUNTIME.ffi.makeRight)
+            },
       mutators: [axesNameMutator,
                  yAxisRangeMutator,
                  xAxisRangeMutator,
