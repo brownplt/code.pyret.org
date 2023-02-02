@@ -51,9 +51,7 @@ before_install:
 - nvm install 16.13.0
 - nvm use 16.13.0
 - npm install -g heroku-cli
-- chromium-browser --version
-- npm install -g chromedriver@`chromium-browser --version | cut -d "." -f 1 | cut -d " " -f 3`
-- export CHROME_BIN=chromium-browser
+- npm install -g chromedriver@`/usr/bin/google-chrome-stable --version | cut -d "." -f 1 | cut -d " " -f 3`
 - export PATH=$PATH:node_modules/.bin/
 before_deploy:
 - export GIT_REV=`echo $TRAVIS_COMMIT`
