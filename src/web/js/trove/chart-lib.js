@@ -775,7 +775,7 @@
           $('.__img_labels').each((idx, n) => $(n).remove());
 
           // Render each rect above the old ones, using the image as a pattern
-          dataTable.forEach(function (row, i) {
+          table.forEach(function (row, i) {
             const rect = rects[i];
             // make an image element for the img, from the SVG namespace
             const imgDOM = row[2].val.toDomNode();
