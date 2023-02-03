@@ -16,6 +16,7 @@ before_install:
 - nvm install 16.13.0
 - nvm use 16.13.0
 - npm install -g heroku-cli
+- export PATH=$PATH:node_modules/.bin/
 install:
 - npm update # to update Pyret to the newest version
 - npm ci --ignore-scripts

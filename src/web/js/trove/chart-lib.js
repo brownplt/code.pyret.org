@@ -61,6 +61,32 @@
       return true;
     }
   }
+
+  var replaceRectsWithImages = function(chart, rects, dataTable) {
+    const svgRoot = chart.container.querySelector('svg');
+    // remove any labels that have previously been drawn
+    $('.__img_labels').each((idx, n) => $(n).remove());
+
+    // Render each rect above the old ones, using the image as a pattern
+    dataTable.forEach(function (row, i) {
+      const rect = rects[i];
+      // make an image element for the img, from the SVG namespace
+      const imgDOM = row[2].val.toDomNode();
+      row[2].val.render(imgDOM.getContext('2d'), 0, 0);
+      let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+      imageElt.classList.add('__img_labels'); // tag for later garbage collection
+      imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+      // position it using the position of the corresponding rect
+      imageElt.setAttribute('preserveAspectRatio', 'none');
+      imageElt.setAttribute('x', rects[i].getAttribute('x'));
+      imageElt.setAttribute('y', rects[i].getAttribute('y'));
+      imageElt.setAttribute('width', rects[i].getAttribute('width'));
+      imageElt.setAttribute('height', rects[i].getAttribute('height'));
+      Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
+      svgRoot.appendChild(imageElt);
+    });
+
+  }
   
   google.charts.load('current', {'packages' : ['corechart']});
 
@@ -494,6 +520,9 @@
     const startingAngle = toFixnum(get(rawData, 'startingAngle'));
     const collapseThreshold = toFixnum(get(rawData, 'collapseThreshold'));
 
+    // ASSERT: if we're using custom images, the third column will be an object
+    const hasImage = typeof table[0][3] == 'object';
+
     const data = new google.visualization.DataTable();
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Value');
@@ -501,7 +530,10 @@
     return {
       data: data,
       options: {
-        slices: table.map((row, i) => ({color: colors_list[i], offset: toFixnum(row[2])})),
+        slices: table.map((row, i) => ({
+          color: hasImage? "transparent" : colors_list[i], 
+          offset: toFixnum(row[2])
+        })),
         legend: {
           alignment: 'end'
         },
@@ -513,7 +545,61 @@
       chartType: google.visualization.PieChart,
       onExit: defaultImageReturn,
       mutators: [backgroundMutator],
-    };
+      overlay: (overlay, restarter, chart, container) => {
+        // If we don't have images, our work is done!
+        if(!hasImage) { return; }
+        
+        // if custom images are defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', function () {
+          // HACK(Emmanuel): 
+          // The only way to hijack marker events is to walk the DOM here
+          // If Google changes the DOM, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const slices = [...svgRoot.children].slice(2, -1);
+          const defs = svgRoot.children[0];
+
+          // remove any labels that have previously been drawn
+          $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // Render each slice above the old ones, using the image as a pattern
+          table.forEach((row, i) => {
+
+            // render the image to an img tag
+            const imgDOM = row[3].val.toDomNode();
+            row[3].val.render(imgDOM.getContext('2d'), 0, 0);
+            
+            // make an SVGimage element from the img tag, and make it the size of the slice
+            const sliceBox = slices[i].getBoundingClientRect();
+            const imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+            imageElt.classList.add('__img_labels'); // tag for later garbage collection
+            imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+            imageElt.setAttribute('width',  Math.max(sliceBox.width, sliceBox.height));
+
+            // create a pattern from that image
+            const patternElt = document.createElementNS("http://www.w3.org/2000/svg", 'pattern');
+            patternElt.setAttribute(  'x',    0);
+            patternElt.setAttribute(  'y',    0);
+            patternElt.setAttribute('width',  1);
+            patternElt.setAttribute('height', 1);
+            patternElt.setAttribute( 'id',   'pic'+i);
+
+            // make a new slice, copy elements from the old slice, and fill with the pattern
+            const newSlice = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+            Object.assign(newSlice, slices[i]); // we should probably not steal *everything*...
+            newSlice.setAttribute(  'd',       slices[i].firstChild.getAttribute('d'));
+            newSlice.setAttribute( 'fill',         'url(#pic'+i+')');
+
+            // add the image to the pattern, the pattern to the defs, and the slice to the root
+            patternElt.appendChild(imageElt);
+            defs.append(patternElt);
+            const group = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+            group.appendChild(newSlice);
+            svgRoot.appendChild(group);
+          });
+        });
+      }
+    }
   }
 
   //////////// Bar Chart Getter Functions /////////////////
@@ -614,9 +700,12 @@
     data.addColumn('number', 'Values');
     data.addColumn({type: 'string', role: 'style'});
 
+    // ASSERT: if we're using custom images, there will be a 4th column
+    const hasImage = table[0].length == 4;
+
     // Adds each row of bar data and bar_color data
     table.forEach(function (row) {
-      const bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
+      let bar_color = row[2] !== undefined ? colors_list[row[2]] : default_color;
       data.addRow([row[0], toFixnum(row[1]), bar_color]);
     });
     addAnnotations(data, rawData);
@@ -628,6 +717,9 @@
         }, 
         intervals: {
           color : interval_color, 
+        },
+        series : { 
+          0 : { dataOpacity : hasImage? 0 : 1.0 } 
         }
       };
  
@@ -670,6 +762,38 @@
       chartType: horizontal ? google.visualization.BarChart : google.visualization.ColumnChart,
       onExit: defaultImageReturn,
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
+      overlay: (overlay, restarter, chart, container) => {
+        if(!hasImage) return;
+
+        // if custom images are defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', function () {
+          // HACK(Emmanuel): 
+          // If Google changes the DOM for charts, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const rects = svgRoot.children[1].children[1].children[1].children;
+          $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // Render each rect above the old ones, using the image as a pattern
+          table.forEach(function (row, i) {
+            const rect = rects[i];
+            // make an image element for the img, from the SVG namespace
+            const imgDOM = row[2].val.toDomNode();
+            row[2].val.render(imgDOM.getContext('2d'), 0, 0);
+            let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+            imageElt.classList.add('__img_labels'); // tag for later garbage collection
+            imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+            // position it using the position of the corresponding rect
+            imageElt.setAttribute('preserveAspectRatio', 'none');
+            imageElt.setAttribute('x', rects[i].getAttribute('x'));
+            imageElt.setAttribute('y', rects[i].getAttribute('y'));
+            imageElt.setAttribute('width', rects[i].getAttribute('width'));
+            imageElt.setAttribute('height', rects[i].getAttribute('height'));
+            Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
+            svgRoot.appendChild(imageElt);
+          });
+        });
+      }
     };
   }
 
@@ -934,8 +1058,17 @@
       return [row[0], valfix];
     }));
 
+    // ASSERT: if we're using custom images, there will be a 4th column
+    const hasImage = table[0].length == 3;
+
     // set legend to none because there's only one data set
-    const options = {legend: {position: 'none'}, histogram: {}};
+    const options = {
+      legend: {position: 'none'}, 
+      histogram: {},
+      series : {
+        0 : { dataOpacity : hasImage? 0 : 1.0 }
+      }
+    };
 
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'bin-width'), {
       none: function () {},
@@ -967,19 +1100,6 @@
       }
     });
 
-    /*
-    The main reason to use `x-min`, `x-max` is so that students can compare
-    different histogram agaisnt each other. Setting `x-min`, `x-max` on `hAxis`
-    is more accurate than setting it to `histogram`
-
-    const xMin = toFixnum(get(globalOptions, 'x-min'));
-    const xMax = toFixnum(get(globalOptions, 'x-max'));
-    if (xMin < xMax) {
-      options.histogram.minValue = xMin;
-      options.histogram.maxValue = xMax;
-    }
-    */
-
     cases(RUNTIME.ffi.isOption, 'Option', get(rawData, 'color'), {
       none: function () {},
       some: function (color) {
@@ -993,6 +1113,20 @@
       chartType: google.visualization.Histogram,
       onExit: defaultImageReturn,
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator, xAxisRangeMutator],
+      overlay: (overlay, restarter, chart, container) => {
+        if(!hasImage) return;
+
+        // if custom images are defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', function () {
+          // HACK(Emmanuel): 
+          // The only way to hijack rect events is to walk the DOM here
+          // If Google changes the DOM, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const rects = svgRoot.children[1].children[1].children[1].children;
+          replaceRectsWithImages(chart, rects, table);
+        })
+      }
     };
   }
 
@@ -1164,14 +1298,14 @@ ${labelRow}`;
       options: options,
       chartType: google.visualization.LineChart,
       onExit: (restarter, result) => {
-        let svg = result.chart.container.querySelector('svg');
-        let svg_xml = (new XMLSerializer()).serializeToString(svg);
-        let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
-        imageReturn(
-          dataURI,
-          restarter,
-          RUNTIME.ffi.makeRight)
-      },
+              let svg = result.chart.container.querySelector('svg');
+              let svg_xml = (new XMLSerializer()).serializeToString(svg);
+              let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+              imageReturn(
+                dataURI,
+                restarter,
+                RUNTIME.ffi.makeRight)
+            },
       mutators: [axesNameMutator,
                  yAxisRangeMutator,
                  xAxisRangeMutator,
@@ -1273,10 +1407,9 @@ ${labelRow}`;
             .append(redrawG);
         }
 
-        // If we don't have images, our work is done!
-        if(!hasImage) { return; }
+        if(!hasImage) { return; } // If we don't have images, our work is done!
         
-        // if custom images is defined, use the image at that location
+        // if custom images are defined, use the image at that location
         // and overlay it atop each dot
         google.visualization.events.addListener(chart, 'ready', function () {
           // HACK(Emmanuel): 
@@ -1292,8 +1425,7 @@ ${labelRow}`;
           let markers;
           if(legendEnabled) {
             markers = svgRoot.children[2].children[2].children;
-          }
-          else {
+          } else {
             markers = svgRoot.children[1].children[2].children;
           }
 
@@ -1369,7 +1501,13 @@ ${labelRow}`;
     However, somehow this event is never triggered, so we will just call
     it here to guarantee that it will return.
     */
-    imageReturn(result.chart.getImageURI(), restarter, x => x);
+
+    // serialize the whole SVG element, in case of custom image overlays
+    // then pass the URI to imageReturn`
+    let svg = result.chart.container.querySelector('svg');
+    let svg_xml = (new XMLSerializer()).serializeToString(svg);
+    let dataURI = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg_xml)));
+    imageReturn(dataURI, restarter, x => x);
   }
 
   function makeFunction(f) {
