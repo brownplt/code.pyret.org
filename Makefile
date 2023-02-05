@@ -113,6 +113,7 @@ build/web/js/events.js: src/web/js/events.js
 
 build/web/js/snap: src/web/js/snap
 	cp -r $< $@
+	rm -rf $@/.git*
 
 build/web/js/transpile.xml: src/web/js/transpile.xml
 	cp -r $< $@

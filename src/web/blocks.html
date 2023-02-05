@@ -500,7 +500,7 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     .attr("id", "world")
     .attr("width", 500)
     .attr("height", 300)
-    .attr("style", "position: absolute; z-index:100000; border: 1px solid black;");
+    .attr("style", "position: absolute; z-index:8900; border: 1px solid black;");
   $("#main").prepend(canvas);
   var ide = new IDE_Morph({
     path: 'js/snap',
@@ -515,8 +515,6 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     noRingify: true,
     noUserSettings: true
   });
-  // var buttons = document.querySelectorAll('input[name="pl"]');
-  // var code = document.getElementById('code');
   var loop = () => {
     requestAnimationFrame(loop);
     world.doOneCycle();
@@ -526,7 +524,19 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   ide.addMessageListener('update', txt => {
     console.log(txt);
     CPO.editor.cm.setValue(txt);
+    localStorage.setItem("snap-blocks-draft", ide.currentSprite.scriptsOnlyXML());
   });
+
+  // load saved draft from local storage into snap ide
+  const draft = localStorage.getItem("snap-blocks-draft");
+  if (draft != null) {
+    setTimeout(() => {
+      // TODO: figure out how to tell when the IDE is ready
+      // to have scripts loaded. Waiting an arbitrary amount
+      // of time is error prone.
+      ide.currentSprite.synchScriptsFrom(draft);
+    }, 500);
+  }
   requestAnimationFrame(loop);
 </script>
 
