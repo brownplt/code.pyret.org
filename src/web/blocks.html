@@ -502,6 +502,7 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     .attr("height", 300)
     .attr("style", "position: absolute; z-index:8900; border: 1px solid black;");
   $("#main").prepend(canvas);
+  var localStorageKey = "snap-blocks-draft"
   var ide = new IDE_Morph({
     path: 'js/snap',
     load: 'js/transpile.xml',
@@ -513,7 +514,14 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     noImports: true,
     noOwnBlocks: true,
     noRingify: true,
-    noUserSettings: true
+    noUserSettings: true,
+    onload: () => {
+      // load saved draft from local storage into snap ide
+      const draft = localStorage.getItem(localStorageKey);
+      if (draft != null) {
+        ide.currentSprite.synchScriptsFrom(draft);
+      }
+    }
   });
   var loop = () => {
     requestAnimationFrame(loop);
@@ -522,21 +530,9 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   world = new WorldMorph(document.getElementById('world'), false);
   ide.openIn(world);
   ide.addMessageListener('update', txt => {
-    console.log(txt);
     CPO.editor.cm.setValue(txt);
-    localStorage.setItem("snap-blocks-draft", ide.currentSprite.scriptsOnlyXML());
+    localStorage.setItem(localStorageKey, ide.currentSprite.scriptsOnlyXML());
   });
-
-  // load saved draft from local storage into snap ide
-  const draft = localStorage.getItem("snap-blocks-draft");
-  if (draft != null) {
-    setTimeout(() => {
-      // TODO: figure out how to tell when the IDE is ready
-      // to have scripts loaded. Waiting an arbitrary amount
-      // of time is error prone.
-      ide.currentSprite.synchScriptsFrom(draft);
-    }, 500);
-  }
   requestAnimationFrame(loop);
 </script>
 
