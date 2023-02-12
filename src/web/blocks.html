@@ -459,7 +459,7 @@ var POSTMESSAGE_ORIGIN = "{{{ POSTMESSAGE_ORIGIN }}}";
 console.log(window.performance.now());
 </script>
 <script src="js/events.js"></script>
-<script src="js/beforePyret.js"></script>
+<script src="js/beforeBlocks.js"></script>
 <script src="js/snap/src/morphic.js"></script>
 <script src="js/snap/src/symbols.js"></script>
 <script src="js/snap/src/widgets.js"></script>
@@ -503,7 +503,11 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     .attr("style", "position: absolute; z-index:8900; border: 1px solid black;");
   $("#main").prepend(canvas);
   var localStorageKey = "snap-blocks-draft"
-  var ide = new IDE_Morph({
+  var onBlocksIDELoaded;
+  CPO.blocksIDELoaded = new Promise((resolve) => {
+    onBlocksIDELoaded = resolve;
+  })
+  CPO.blocksIDE = new IDE_Morph({
     path: 'js/snap',
     load: 'js/transpile.xml',
     design: "flat",
@@ -516,11 +520,7 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     noRingify: true,
     noUserSettings: true,
     onload: () => {
-      // load saved draft from local storage into snap ide
-      const draft = localStorage.getItem(localStorageKey);
-      if (draft != null) {
-        ide.currentSprite.synchScriptsFrom(draft);
-      }
+      onBlocksIDELoaded(CPO.blocksIDE);
     }
   });
   var loop = () => {
@@ -528,10 +528,10 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     world.doOneCycle();
   };
   world = new WorldMorph(document.getElementById('world'), false);
-  ide.openIn(world);
-  ide.addMessageListener('update', txt => {
+  CPO.blocksIDE.openIn(world);
+  CPO.blocksIDE.addMessageListener('update', txt => {
     CPO.editor.cm.setValue(txt);
-    localStorage.setItem(localStorageKey, ide.currentSprite.scriptsOnlyXML());
+    localStorage.setItem(localStorageKey, CPO.blocksIDE.currentSprite.scriptsOnlyXML());
   });
   requestAnimationFrame(loop);
 </script>
