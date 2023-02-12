@@ -121,6 +121,9 @@ build/web/js/transpile.xml: src/web/js/transpile.xml
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
 	`npm bin`/webpack
 
+build/web/js/beforeBlocks.js: src/web/js/beforeBlocks.js
+	`npm bin`/webpack
+
 build/web/js/q.js: node_modules/q/q.js
 	cp $< $@
 

@@ -15,6 +15,7 @@ module.exports = {
   entry: {
     "js/dashboard/index": './src/web/js/dashboard/index.js',
     "js/beforePyret": './src/web/js/beforePyret.js',
+    "js/beforeBlocks": './src/web/js/beforeBlocks.js',
   },
   module: {
     rules: [
