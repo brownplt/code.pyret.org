@@ -61,32 +61,6 @@
       return true;
     }
   }
-
-  var replaceRectsWithImages = function(chart, rects, dataTable) {
-    const svgRoot = chart.container.querySelector('svg');
-    // remove any labels that have previously been drawn
-    $('.__img_labels').each((idx, n) => $(n).remove());
-
-    // Render each rect above the old ones, using the image as a pattern
-    dataTable.forEach(function (row, i) {
-      const rect = rects[i];
-      // make an image element for the img, from the SVG namespace
-      const imgDOM = row[2].val.toDomNode();
-      row[2].val.render(imgDOM.getContext('2d'), 0, 0);
-      let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
-      imageElt.classList.add('__img_labels'); // tag for later garbage collection
-      imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
-      // position it using the position of the corresponding rect
-      imageElt.setAttribute('preserveAspectRatio', 'none');
-      imageElt.setAttribute('x', rects[i].getAttribute('x'));
-      imageElt.setAttribute('y', rects[i].getAttribute('y'));
-      imageElt.setAttribute('width', rects[i].getAttribute('width'));
-      imageElt.setAttribute('height', rects[i].getAttribute('height'));
-      Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
-      svgRoot.appendChild(imageElt);
-    });
-
-  }
   
   google.charts.load('current', {'packages' : ['corechart']});
 
@@ -1123,8 +1097,34 @@
           // The only way to hijack rect events is to walk the DOM here
           // If Google changes the DOM, these lines will likely break
           const svgRoot = chart.container.querySelector('svg');
-          const rects = svgRoot.children[1].children[1].children[1].children;
-          replaceRectsWithImages(chart, rects, table);
+          const rectRoot = svgRoot.children[1].children[1].children[1];
+          const rects = rectRoot.children;
+
+          // remove any labels that have previously been drawn
+          $('.__img_labels').each((idx, n) => $(n).remove());
+
+          // sort the table in value-order, so the images are in the same
+          // order as the data used to draw the rects
+          table.sort((r1,r2) => (toFixnum(r1[1]) < toFixnum(r2[1]))? -1 : 0)
+
+          // walk the table and swap in the images for the rects
+          table.forEach(function (row, i) {
+            const rect = rects[i];
+            // make an image element for the img, from the SVG namespace
+            const imgDOM = row[2].val.toDomNode();
+            row[2].val.render(imgDOM.getContext('2d'), 0, 0);
+            let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+            imageElt.classList.add('__img_labels'); // tag for later garbage collection
+            imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
+            // position it using the position of the corresponding rect
+            imageElt.setAttribute('preserveAspectRatio', 'none');
+            imageElt.setAttribute('x', rects[i].getAttribute('x'));
+            imageElt.setAttribute('y', rects[i].getAttribute('y'));
+            imageElt.setAttribute('width', rects[i].getAttribute('width'));
+            imageElt.setAttribute('height', rects[i].getAttribute('height'));
+            Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
+            rectRoot.appendChild(imageElt);
+          });
         })
       }
     };
