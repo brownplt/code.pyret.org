@@ -111,7 +111,17 @@ build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 build/web/js/events.js: src/web/js/events.js
 	cp $< $@
 
+build/web/js/snap: src/web/js/snap
+	cp -r $< $@
+	rm -rf $@/.git*
+
+build/web/js/transpile.xml: src/web/js/transpile.xml
+	cp -r $< $@
+
 build/web/js/beforePyret.js: src/web/js/beforePyret.js
+	`npm bin`/webpack
+
+build/web/js/beforeBlocks.js: src/web/js/beforeBlocks.js
 	`npm bin`/webpack
 
 build/web/js/q.js: node_modules/q/q.js
@@ -304,9 +314,9 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml
 
 link-pyret:
 	ln -s node_modules/pyret-lang pyret

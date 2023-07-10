@@ -405,7 +405,7 @@ $(function() {
           var id = response.result.value;
           original.removeClass("hidden");
           original.click(function() {
-            window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+            window.open(window.APP_BASE_URL + "/blocks#program=" + id, "_blank");
           });
         });
       });
@@ -434,11 +434,11 @@ $(function() {
 
   $("#download a").click(function() {
     var downloadElt = $("#download a");
-    var contents = CPO.editor.cm.getValue();
+    var contents = CPO.blocksIDE.currentSprite.scriptsOnlyXML();
     var downloadBlob = window.URL.createObjectURL(new Blob([contents], {type: 'text/plain'}));
-    if(!filename) { filename = 'untitled_program.arr'; }
-    if(filename.indexOf(".arr") !== (filename.length - 4)) {
-      filename += ".arr";
+    if(!filename) { filename = 'untitled_program.xml'; }
+    if(filename.indexOf(".xml") !== (filename.length - 4)) {
+      filename += ".xml";
     }
     downloadElt.attr({
       download: filename,
@@ -684,7 +684,7 @@ $(function() {
   }
 
   function newEvent(e) {
-    window.open(window.APP_BASE_URL + "/editor");
+    window.open(window.APP_BASE_URL + "/blocks");
   }
 
   function saveEvent(e) {
@@ -724,7 +724,7 @@ $(function() {
       }
       if(create) {
         programToSave = storageAPI
-          .then(function(api) { return api.createFile(useName); })
+          .then(function(api) { return api.createFile(useName, {fileExtension: "xml"}); })
           .then(function(p) {
             // showShareContainer(p); TODO(joe): figure out where to put this
             history.pushState(null, null, "#program=" + p.getUniqueId());
@@ -742,7 +742,7 @@ $(function() {
             return null;
           }
           else {
-            return p.save(CPO.editor.cm.getValue(), false);
+            return p.save(CPO.blocksIDE.currentSprite.scriptsOnlyXML(), false);
           }
         }).then(function(p) {
           if(p !== null) {
@@ -1286,11 +1286,9 @@ $(function() {
 
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
-    if (c.startsWith("<scriptsonly")) {
-      // this is blocks file. Open it with /blocks
-      window.location.href = window.location.href.replace('editor', 'blocks');
-    }
-    CPO.editor.cm.setValue(c);
+    CPO.blocksIDELoaded.then(blocksIDE => {
+      blocksIDE.currentSprite.synchScriptsFrom(c);
+    })
     CPO.editor.cm.clearHistory();
   });
 

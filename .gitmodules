@@ -1,0 +1,4 @@
+[submodule "src/web/js/snap"]
+	path = src/web/js/snap
+	url = https://github.com/jmoenig/Snap.git
+	shallow = true
