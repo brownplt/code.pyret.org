@@ -25,6 +25,10 @@
   <style id="highlight-styles"></style>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
   <script src="/js/localSettings.js"></script>
+  <style>
+    /* Bump REPL and footer so they show up over the blocks palette  */
+    #REPL,#footer { z-index: 100000; }
+  </style>
 </head>
 <body class="default">
   <script>
@@ -498,9 +502,9 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   var canvas = $("<canvas>")
     .addClass("snapCanvas")
     .attr("id", "world")
-    .attr("width", 500)
-    .attr("height", 300)
-    .attr("style", "position: absolute; z-index:8900; border: 1px solid black;");
+    .attr("width", "10000")
+    .attr("height", "10000")
+    .attr("style", "position: absolute; z-index:100000; border: 1px solid black;");
   $("#main").prepend(canvas);
   var localStorageKey = "snap-blocks-draft"
   var onBlocksIDELoaded;
