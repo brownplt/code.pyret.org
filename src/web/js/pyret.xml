@@ -1,10 +1,17 @@
-<project app="Snap! 7, https://snap.berkeley.edu" name="pyret-transpiler" version="2">
+<project app="Snap! 7, https://snap.berkeley.edu" name="dummy" version="2">
     <notes>Block definitions for the Bootstrap subset of the Pyret programming language</notes>
     <thumbnail>data:image/png;base64,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</thumbnail>
     <scenes select="1">
-        <scene clickrun="false" name="pyret-transpiler" palette="single">
+        <scene clickrun="false" name="dummy" palette="single">
             <notes>Block definitions for the Bootstrap subset of the Pyret programming language</notes>
-            <hidden>forward turn turnLeft setHeading doFaceTowards gotoXY doGotoObject doGlide changeXPosition setXPosition changeYPosition setYPosition bounceOffEdge xPosition yPosition direction doSwitchToCostume doWearNextCostume getCostumeIdx doThinkFor doThink changeEffect setEffect clearEffects changeScale setScale getScale show hide goToLayer goBack playSound doPlaySoundUntilDone doStopAllSounds doRest doPlayNote doChangeTempo doSetTempo getTempo clear down up setColor changePenColorDimension setPenColorDimension changeSize setSize doStamp reportTouchingObject reportTouchingColor reportColorIsTouchingColor colorFiltered reportStackSize reportFrameCount doAsk reportLastAnswer getLastAnswer reportMouseX reportMouseY reportMouseDown reportKeyPressed reportRelationTo doResetTimer reportTimer getTimer reportAttributeOf reportURL reportGlobalFlag doSetGlobalFlag reportCONS reportCDR reportListContainsItem doDeleteFromList doInsertInList doReplaceInList reifyReporter reifyPredicate reportRound reportMonadic reportRandom reportLetter reportUnicode reportIsA reportIsIdentical receiveGo receiveKey receiveInteraction receiveMessage doBroadcast doBroadcastAndWait getLastMessage doWarp doWait doWaitUntil doForever doRepeat doUntil doStopThis fork evaluate doCallCC reportCallCC receiveOnClone createClone removeClone getPosition reportGetImageAttribute reportNewCostumeStretched reportNewCostume getEffect reportShown doPlaySoundAtRate reportGetSoundAttribute reportNewSoundFromSamples doSetInstrument changeVolume setVolume getVolume changePan setPan getPan playFreq stopFreq getPenDown getPenAttribute floodFill write reportPenTrailsAsCostume doPasteOn doCutFrom receiveCondition reportIfElse doTellTo reportAskFor newClone doPauseAll doSwitchToScene doDefineBlock doDeleteBlock doSetBlockAttribute reportBlockAttribute reportThisContext reportMousePosition reportAspect reportDate reportGet reportObject reportAudio reportVideo doSetVideoTransparency reportVariadicSum reportVariadicProduct reportPower reportTextSplit reportUnicodeAsLetter doDeleteAttr reportNumbers reportListIndex reportListIsEmpty reportMap reportKeep reportFindFirst reportCombine doForEach reportConcatenatedLists reportReshape reportCrossproduct doMapCodeOrHeader doMapValueCode doMapListCode reportMappedCode doRun reportPipe doHideVar reifyScript reportJoinWords receiveUserEdit doSayFor bubble doFor doIf doIfElse doReport reportStringSize doSetVar doChangeVar doShowVar doDeclareVariables reportNewList doAddToList reportListItem reportListAttribute</hidden>
+            <palette>
+                <category color="36,1,224,1" name="Numbers"/>
+                <category color="1,195,49,1" name="Strings"/>
+                <category color="175,21,255,1" name="Images"/>
+                <category color="235,1,42,1" name="Booleans"/>
+                <category color="31,30,31,1" name="Tables"/>
+            </palette>
+            <hidden>forward turn turnLeft setHeading doFaceTowards gotoXY doGotoObject doGlide changeXPosition setXPosition changeYPosition setYPosition bounceOffEdge xPosition yPosition direction doSwitchToCostume doWearNextCostume getCostumeIdx doThinkFor doThink changeEffect setEffect clearEffects changeScale setScale getScale show hide goToLayer goBack playSound doPlaySoundUntilDone doStopAllSounds doRest doPlayNote doChangeTempo doSetTempo getTempo clear down up setColor changePenColorDimension setPenColorDimension changeSize setSize doStamp reportTouchingObject reportTouchingColor reportColorIsTouchingColor colorFiltered reportStackSize reportFrameCount doAsk reportLastAnswer getLastAnswer reportMouseX reportMouseY reportMouseDown reportKeyPressed reportRelationTo doResetTimer reportTimer getTimer reportAttributeOf reportURL reportGlobalFlag doSetGlobalFlag reportCONS reportCDR reportListContainsItem doDeleteFromList doInsertInList doReplaceInList reifyReporter reifyPredicate reportRound reportMonadic reportRandom reportLetter reportUnicode reportIsA reportIsIdentical receiveGo receiveKey receiveInteraction receiveMessage doBroadcast doBroadcastAndWait getLastMessage doWarp doWait doWaitUntil doForever doRepeat doUntil doStopThis fork evaluate doCallCC reportCallCC receiveOnClone createClone removeClone getPosition reportGetImageAttribute reportNewCostumeStretched reportNewCostume getEffect reportShown doPlaySoundAtRate reportGetSoundAttribute reportNewSoundFromSamples doSetInstrument changeVolume setVolume getVolume changePan setPan getPan playFreq stopFreq getPenDown getPenAttribute floodFill write reportPenTrailsAsCostume doPasteOn doCutFrom receiveCondition reportIfElse doTellTo reportAskFor newClone doPauseAll doSwitchToScene doDefineBlock doDeleteBlock doSetBlockAttribute reportBlockAttribute reportThisContext reportMousePosition reportAspect reportDate reportGet reportObject reportAudio reportVideo doSetVideoTransparency reportVariadicSum reportVariadicProduct reportPower reportTextSplit reportUnicodeAsLetter doDeleteAttr reportNumbers reportListIndex reportListIsEmpty reportMap reportKeep reportFindFirst reportCombine doForEach reportConcatenatedLists reportReshape reportCrossproduct doMapCodeOrHeader doMapValueCode doMapListCode reportMappedCode doRun reportPipe doHideVar reifyScript reportJoinWords receiveUserEdit doSayFor bubble doFor doIf doIfElse doReport reportStringSize doSetVar doChangeVar doShowVar doDeclareVariables reportNewList doAddToList reportListItem reportListAttribute reportDifference reportQuotient reportModulus reportLessThan reportEquals reportGreaterThan reportAnd reportOr reportNot reportBoolean</hidden>
             <headers/>
             <code>
                 <string>&quot;&lt;#1&gt;&quot;</string>
@@ -50,6 +57,62 @@ else:
     &lt;#4&gt;</doFor>
             </code>
             <blocks>
+                <block-definition category="Numbers" s="( %&apos;a&apos; + %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="( %&apos;a&apos; - %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="( %&apos;a&apos; / %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="( %&apos;a&apos; * %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
                 <block-definition category="Numbers" s="num-sqrt %'n'" type="reporter">
                     <header/>
                     <code>num-sqrt(&lt;#1&gt;)</code>
@@ -90,7 +153,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Numbers" s="mean %'table' %'column'" type="reporter">
+                <block-definition category="Tables" s="mean %'table' %'column'" type="reporter">
                     <header/>
                     <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
@@ -104,7 +167,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Numbers" s="median %'table' %'column'" type="reporter">
+                <block-definition category="Tables" s="median %'table' %'column'" type="reporter">
                     <header/>
                     <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
@@ -118,7 +181,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Numbers" s="modes %'table' %'column'" type="reporter">
+                <block-definition category="Tables" s="modes %'table' %'column'" type="reporter">
                     <header/>
                     <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
@@ -159,7 +222,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Strings" s="string-repeat %'string' %'count'" type="predicate">
+                <block-definition category="Strings" s="string-repeat %'string' %'count'" type="reporter">
                     <header/>
                     <code>string-repeat(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
@@ -173,6 +236,130 @@ else:
                         </block>
                     </script>
                 </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; &lt; %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition><block-definition category="Booleans" s="( %&apos;a&apos; &lt;= %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; &gt; %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; &gt;= %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; == %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; &lt;&gt; %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n"></input>
+                        <input type="%n"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; and %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b"></input>
+                        <input type="%b"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="( %&apos;a&apos; or %&apos;b&apos; )" type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b"></input>
+                        <input type="%b"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="not %'expr' " type="reporter">
+                    <header/>
+                    <code></code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b"></input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l></l>
+                        </block>
+                    </script>
+                </block-definition>
                 <block-definition category="Images" s="star %'radius' %'mode' %'color'" type="reporter">
                     <header/>
                     <code>star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
@@ -180,7 +367,6 @@ else:
                     <inputs>
                         <input type="%n"/>
                         <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
                         <input type="%txt"/>
                     </inputs>
                     <script>
@@ -242,7 +428,6 @@ else:
                         <input type="%n"/>
                         <input type="%n"/>
                         <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
                         <input type="%txt"/>
                     </inputs>
                     <script>
@@ -259,7 +444,6 @@ else:
                         <input type="%n"/>
                         <input type="%n"/>
                         <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
                         <input type="%txt"/>
                     </inputs>
                     <script>
@@ -276,7 +460,6 @@ else:
                         <input type="%n"/>
                         <input type="%n"/>
                         <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
                         <input type="%txt"/>
                     </inputs>
                     <script>
@@ -294,7 +477,6 @@ else:
                         <input type="%n"/>
                         <input type="%n"/>
                         <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
                         <input type="%txt"/>
                     </inputs>
                     <script>
@@ -311,7 +493,6 @@ else:
                         <input type="%n"/>
                         <input type="%n"/>
                         <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
                         <input type="%txt"/>
                     </inputs>
                     <script>
@@ -384,7 +565,6 @@ else:
                     <translations/>
                     <inputs>
                         <input type="%s"/>
-                        <input type="%s"/>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -397,7 +577,6 @@ else:
                     <code>above(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%s"/>
                         <input type="%s"/>
                     </inputs>
                     <script>
@@ -412,7 +591,6 @@ else:
                     <translations/>
                     <inputs>
                         <input type="%s"/>
-                        <input type="%s"/>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -425,7 +603,6 @@ else:
                     <code>below(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%s"/>
                         <input type="%s"/>
                     </inputs>
                     <script>
@@ -787,35 +964,35 @@ else:
                     </script>
                 </block-definition>
             </blocks>
-            <stage codify="true" color="255,255,255,1" costume="0" height="360" hyperops="true" id="69" inheritance="true" lines="round" name="Stage" pan="0" penlog="false" sublistIDs="false" tempo="60" ternary="true" threadsafe="false" volume="100" width="480">
+            <stage codify="true" color="255,255,255,1" costume="0" height="360" hyperops="true" id="205" inheritance="true" lines="round" name="Stage" pan="0" penlog="false" sublistIDs="false" tempo="60" ternary="true" threadsafe="false" volume="100" width="480">
                 <pentrails>data:image/png;base64,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</pentrails>
                 <costumes>
-                    <list id="70" struct="atomic"/>
+                    <list id="206" struct="atomic"/>
                 </costumes>
                 <sounds>
-                    <list id="71" struct="atomic"/>
+                    <list id="207" struct="atomic"/>
                 </sounds>
                 <variables/>
                 <blocks/>
                 <scripts/>
                 <sprites select="2">
-                    <sprite color="80,80,80,1" costume="0" draggable="true" heading="90" hidden="true" id="76" idx="1" name="Alonzo" pan="0" pen="tip" rotation="1" scale="1" volume="100" x="-7.6852226720648105" y="-28.234817813765233">
+                    <sprite color="80,80,80,1" costume="0" draggable="true" heading="90" hidden="true" id="212" idx="1" name="Alonzo" pan="0" pen="tip" rotation="1" scale="1" volume="100" x="-7.6852226720648105" y="-28.234817813765233">
                         <costumes>
-                            <list id="77" struct="atomic"/>
+                            <list id="213" struct="atomic"/>
                         </costumes>
                         <sounds>
-                            <list id="78" struct="atomic"/>
+                            <list id="214" struct="atomic"/>
                         </sounds>
                         <blocks/>
                         <variables/>
                         <scripts/>
                     </sprite>
-                    <sprite color="0,173.4,90.168,1" costume="0" draggable="true" heading="90" hidden="true" id="82" idx="2" name="Sprite" pan="0" pen="tip" rotation="1" scale="1" volume="100" x="157" y="-156">
+                    <sprite color="0,173.4,90.168,1" costume="0" draggable="true" heading="90" hidden="true" id="218" idx="2" name="Sprite" pan="0" pen="tip" rotation="1" scale="1" volume="100" x="157" y="-156">
                         <costumes>
-                            <list id="83" struct="atomic"/>
+                            <list id="219" struct="atomic"/>
                         </costumes>
                         <sounds>
-                            <list id="84" struct="atomic"/>
+                            <list id="220" struct="atomic"/>
                         </sounds>
                         <blocks/>
                         <variables/>
