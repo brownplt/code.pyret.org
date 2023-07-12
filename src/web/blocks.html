@@ -28,6 +28,7 @@
   <style>
     /* Bump REPL and footer so they show up over the blocks palette  */
     #REPL,#footer { z-index: 100000; }
+    #REPL { padding-top: 0; top: 40px; }
   </style>
 </head>
 <body class="default">
@@ -509,10 +510,10 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   var ide = new IDE_Morph({
     path: 'js/snap',
     load: 'js/transpile.xml',
-    design: "flat",
+    design: "classic",
     border: 1,
     hideControls: true,
-    hideCategories: true,
+    hideCategories: false,
     noSprites: true,
     noImports: true,
     noOwnBlocks: true,
