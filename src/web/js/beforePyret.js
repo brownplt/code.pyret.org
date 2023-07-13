@@ -488,7 +488,6 @@ $(function() {
     const namespaceResult = new modalPrompt({
         title: "Choose a Context",
         style: "ctxDropdown",
-        // style: "text",
         options: [
           {
             drawElement: drawElement,

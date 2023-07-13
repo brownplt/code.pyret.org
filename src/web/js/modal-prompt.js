@@ -230,9 +230,6 @@ define("cpo/modal-prompt", ["q"], function(Q) {
 
     function createContextDropdown(option) {
       let whitelist = process.env.WHITELISTED_CTXS.split(", ");
-      // let dropdown_contents = whitelist.map(
-      //   (ctx) => (<li><a className="dropdown-item" href="#"><code>{ctx}</code></a></li>)
-      // );
 
       const modal_template = document.querySelector("#ctx-modal-template");
       const drop_template = document.querySelector("#dropdown-template");
@@ -243,6 +240,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
 
       const item_template = document.querySelector("#dropdown-menu-item-template");
 
+      // populate the options in the dropdown menu using a base template, and the list of whitelisted contexts
       const to_fill = $(".dropdown-menu", modal_clone);
       const dropdown_items = whitelist.map(ctx => {
         const item_clone = $(item_template.content.firstElementChild.cloneNode(true));
@@ -251,15 +249,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
         return item_clone;
       });
 
-      // console.log(dropdown_items);
       to_fill.append(dropdown_items);
-      // console.log(modal_clone);
-
-      // console.log(clone);
-      // console.log(drop_template);
-      // console.log($(".dropdown-toggle", clone)[0]);
-      // bindDropdown($(".dropdown-toggle", clone)[0]);
-
       bindDropdown(modal_clone);
 
       $("#whitelisted-radio", modal_clone).on("click", () => {
@@ -271,25 +261,9 @@ define("cpo/modal-prompt", ["q"], function(Q) {
         $(".dropdown", modal_clone).hide();
       });
       $(".dropdown-menu__link", modal_clone).on("click", (evt) => {
-        // console.log(evt.target);
-        // console.log($("code", evt.target));
         $("#current-whitelist-ctx", modal_clone).text(evt.target.innerText);
       });
       $("#current-whitelist-ctx", modal_clone).text(process.env.DEFAULT_CTX);
-
-
-      // $("#mo")
-      
-      // function value() {
-      //   var man = $("#manual-radio");
-      //   var pre = $("#whitelisted-radio");
-      //   // console.log(man[0].checked);
-      //   if (man[0].checked) {
-      //     return $("#ctx-input", modal_clone).val().trim();
-      //   } else {
-      //     return $("#current-whitelist-ctx", modal_clone).text().trim();
-      //   }
-      // }
 
       return modal_clone;
     }

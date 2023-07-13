@@ -154,7 +154,7 @@ class StudentDashboard extends Component {
         <a
           className="dropdown-menu__link"
           href={"/editor?ctx=" + ctx}>
-          <code>{ctx}</code>
+          in context <code>{ctx}</code>
         </a>
       </li>
     );
@@ -164,15 +164,18 @@ class StudentDashboard extends Component {
         <a
           className="dropdown-menu__link"
           href="/editor?ctx=_">
-          custom context
+          in custom context
         </a>
       </li>
     )
 
     let start_coding_contents = <React.Fragment>
       <div className="dropdown">
+        <a href="/editor"><button>
+          Open editor
+        </button></a>
         <button className="dropdown-toggle" data-dd-target="first" aria-label="Dropdown Menu">
-          <code id="current-whitelist-ctx">{process.env.DEFAULT_CTX}</code>
+          <code id="current-whitelist-ctx"></code>
         </button>
         <ul className="dropdown-menu" data-dd-path="first">
           {items}
@@ -215,6 +218,7 @@ class StudentDashboard extends Component {
 
           <div className={'left'}>
             {start_coding_contents}
+            <p><em>to start coding immediately</em></p>
           </div>
 
           <div className={'right'}>
