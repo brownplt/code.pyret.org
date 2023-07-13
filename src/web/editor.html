@@ -3,6 +3,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>code.pyret.org</title>
+
   <link rel="preload" href="{{&PYRET}}" as="script">
   <link rel="stylesheet" href="/css/reset.css" />
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
@@ -25,6 +26,9 @@
   <style id="highlight-styles"></style>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
   <script src="/js/localSettings.js"></script>
+
+  <link href="/css/dropdowns.css" rel="stylesheet" />
+
 </head>
 <body class="default">
   <script>
@@ -459,6 +463,7 @@ var POSTMESSAGE_ORIGIN = "{{{ POSTMESSAGE_ORIGIN }}}";
 console.log(window.performance.now());
 </script>
 <script src="js/events.js"></script>
+<script src="js/dropdowns.js"></script>
 <script src="js/beforePyret.js"></script>
 <script>
 var APP_BASE_URL = "{{{ BASE_URL }}}";
@@ -472,6 +477,59 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 });
 </script>
 
-  </main>
+
+<template id="ctx-modal-template">
+  <div>
+    <p>Enter the context to use for the program, or choose “Cancel” to keep the current context of <tt>essentials2021</tt>.</p>
+    <p><ul>
+      <li>The default is <tt>essentials2021</tt>.</li>
+      <li>You might use something like <tt>shared-gdrive(...)</tt> if one was provided as part of a course.</li>
+    </ul></p>
+    <div id="modal-dropdown-placeholder"></div>
+  </div>
+</template>
+
+
+<!--     
+    <div style="display: flex; flex-direction: row; justify-content: flex-start; align-items: baseline;">
+      <tt style="flex-grow: 0; padding-right: 1em;">use context</tt>
+      <div style="flex-grow: 1;"><input id="modal-prompt-text" type="text">
+      </div>
+    </div> -->
+
+
+<template id="dropdown-template"><form>
+
+  <div>
+    <input type="radio" id="whitelisted-radio" name="ctx-choice-type" value="whitelisted" checked>
+    <label for="whitelisted-radio">Choose from frequently-used contexts</label>
+  </div>
+
+  <div class="dropdown">
+    <button class="dropdown-toggle" data-dd-target="first" aria-label="Dropdown Menu">
+      <code id="current-whitelist-ctx"></code>
+    </button>
+    <ul class="dropdown-menu" data-dd-path="first"></ul>
+  </div>
+
+  <hr>
+
+  <div>
+    <input type="radio" id="manual-radio" name="ctx-choice-type" value="manual">
+    <label for="manual-radio">Input context manually</label>
+  </div>
+  <div id="manual-ctx-text-input" style="display:none">
+    <label for="ctx-input"><code>use context </code></label>
+    <input id="ctx-input" type="text">
+  </div>
+
+</form></template>
+
+<template id="dropdown-menu-item-template">
+  <li><a class="dropdown-menu__link" href="#1"><code></code></a></li>
+</template>
+
+
+</main>
 </body>
 </html>

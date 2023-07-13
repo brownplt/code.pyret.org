@@ -43,9 +43,9 @@ class StudentDashboard extends Component {
     });
   }
 
-  handleStartCodingClick = (event) => {
-    window.open("/editor", "_blank");
-  }
+  // handleStartCodingClick = (event) => {
+  //   window.open("/editor", "_blank");
+  // }
 
   handleSignInClick = (event) => {
     this.setState({signedIn: WAITING_FOR_SIGNIN});
@@ -146,6 +146,40 @@ class StudentDashboard extends Component {
   }
 
   render = () => {
+
+    let ctx_options = process.env.WHITELISTED_CTXS.split(", ");
+    
+    let items = ctx_options.map((ctx, i) =>
+      <li key={i}>
+        <a
+          className="dropdown-menu__link"
+          href={"/editor?ctx=" + ctx}>
+          <code>{ctx}</code>
+        </a>
+      </li>
+    );
+
+    items.push(
+      <li key={100}>
+        <a
+          className="dropdown-menu__link"
+          href="/editor?ctx=_">
+          custom context
+        </a>
+      </li>
+    )
+
+    let start_coding_contents = <React.Fragment>
+      <div className="dropdown">
+        <button className="dropdown-toggle" data-dd-target="first" aria-label="Dropdown Menu">
+          <code id="current-whitelist-ctx">{process.env.DEFAULT_CTX}</code>
+        </button>
+        <ul className="dropdown-menu" data-dd-path="first">
+          {items}
+        </ul>
+      </div>
+    </React.Fragment>;
+
     return (
       <div className='wrap'>
         <div id='header' className=''>
@@ -161,10 +195,15 @@ class StudentDashboard extends Component {
               <button className={'auth-button ' + (this.state.signedIn !== NOT_SIGNED_IN ? '' : 'hidden')} onClick={this.handleSignOutClick} id='signout-button' >Sign out</button>
             </div>
             <div className='button-wrapper right start'>
-              <button className={'start-button ' + (this.state.signedIn === SIGNED_IN ? '' : 'hidden')} onClick={this.handleStartCodingClick} id='start-button' >Open Editor</button>
+
+              <div id='start-button' className={'start-button ' + (this.state.signedIn === SIGNED_IN ? '' : 'hidden')} >
+                {start_coding_contents}
+              </div>
+
             </div>
           </div>
         </div>
+
         <div className={'main middle container ' + (this.state.signedIn === NOT_SIGNED_IN ? '' : 'hidden')}>
 
           <div className={'middle large-logo-container'} aria-label='Pyret'>
@@ -175,7 +214,7 @@ class StudentDashboard extends Component {
 
 
           <div className={'left'}>
-            <p><button onClick={this.handleStartCodingClick} id='start-button' >Open Editor</button></p><p><em>to start coding immediately</em></p>
+            {start_coding_contents}
           </div>
 
           <div className={'right'}>

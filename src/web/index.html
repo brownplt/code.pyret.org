@@ -34,11 +34,27 @@
     <!-- GAPI Client -->
     <script type="text/javascript" src="https://apis.google.com/js/client.js"></script>
 
+
+
+    <script src="js/dropdowns.js"></script>
+    <link href="/css/dropdowns.css" rel="stylesheet" />
+
   </head>
   <body>
+
+
     <main>
-    <div id="root"></div>
-    <script src="{{{ASSET_BASE_URL}}}/js/dashboard/index.js"></script>
+      <div id="root"></div>
+      <script src="{{{ASSET_BASE_URL}}}/js/dashboard/index.js"></script>
     </main>
+
+  
+    <!-- To control the behavior of the dropdown menu in the context modal. Specifically, this makes it
+    so that choosing "manual" from the dropdown makes the text input field appear, and otherwise disappear. -->
+    <!-- <script>
+      $(".dropdown-toggle").on("click", () => $("#manual-context").hide());
+      $("#dropdown-manual-choice").on("click", () => $("#manual-context").show());
+    </script> -->
+
   </body>
 </html>
