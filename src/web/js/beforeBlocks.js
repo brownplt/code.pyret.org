@@ -1287,7 +1287,7 @@ $(function() {
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.blocksIDELoaded.then(blocksIDE => {
-      blocksIDE.currentSprite.synchScriptsFrom(c);
+      //blocksIDE.currentSprite.synchScriptsFrom(c);
     })
     CPO.editor.cm.clearHistory();
   });
