@@ -62,8 +62,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%n">1</input>
+                        <input type="%n">2</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -76,8 +76,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%n">10</input>
+                        <input type="%n">5</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -90,8 +90,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%n">1</input>
+                        <input type="%n">3</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -104,8 +104,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%n">3</input>
+                        <input type="%n">4</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -118,7 +118,7 @@ else:
                     <code>num-sqrt(&lt;#1&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
+                        <input type="%n">16</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -131,7 +131,7 @@ else:
                     <code>num-sqr(&lt;#1&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
+                        <input type="%n">4</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -144,8 +144,8 @@ else:
                     <code>num-expt(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%n">2</input>
+                        <input type="%n">3</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -200,7 +200,7 @@ else:
                     <code>string-length(&lt;#1&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%txt"/>
+                        <input type="%txt">rainbow</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -213,8 +213,8 @@ else:
                     <code>string-contains(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%txt"/>
-                        <input type="%txt"/>
+                        <input type="%txt">cat</input>
+                        <input type="%txt">catfood</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -227,8 +227,8 @@ else:
                     <code>string-repeat(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%txt"/>
-                        <input type="%n"/>
+                        <input type="%txt">hello</input>
+                        <input type="%n">2</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -241,8 +241,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%s">1</input>
+                        <input type="%s">2</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -255,8 +255,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%s">3</input>
+                        <input type="%s">3</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -269,8 +269,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%s">a</input>
+                        <input type="%s">b</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -283,8 +283,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%s">a</input>
+                        <input type="%s">b</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -297,8 +297,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%s">a</input>
+                        <input type="%s">a</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -311,8 +311,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
+                        <input type="%s">a</input>
+                        <input type="%s">a</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -325,8 +325,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%b"/>
-                        <input type="%b"/>
+                        <input type="%b">true</input>
+                        <input type="%b">false</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -339,8 +339,8 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%b"/>
-                        <input type="%b"/>
+                        <input type="%b">true</input>
+                        <input type="%b">false</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -353,7 +353,7 @@ else:
                     <code/>
                     <translations/>
                     <inputs>
-                        <input type="%b"/>
+                        <input type="%b">true</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -366,10 +366,9 @@ else:
                     <code>star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">50</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">red</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -382,10 +381,10 @@ else:
                     <code>circle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">50</input>
+                        <input type="%txt">outline
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">yellow</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -398,10 +397,10 @@ else:
                     <code>square(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">50</input>
+                        <input type="%txt">solid
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">blue</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -414,10 +413,10 @@ else:
                     <code>triangle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">50</input>
+                        <input type="%txt">outline
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">green</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -430,11 +429,11 @@ else:
                     <code>ellipse(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">100</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">solid
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">purple</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -447,11 +446,11 @@ else:
                     <code>rhombus(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">50</input>
+                        <input type="%n">90</input>
+                        <input type="%txt">outline
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">orange</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -464,11 +463,11 @@ else:
                     <code>regular-polygon(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">6</input>
+                        <input type="%n">100</input>
+                        <input type="%txt">solid
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">pink</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -481,12 +480,12 @@ else:
                     <code>radial-star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;,&lt;#5&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">5</input>
+                        <input type="%n">100</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">outline
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">red</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -499,11 +498,11 @@ else:
                     <code>rectangle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%n"/>
-                        <input type="%n"/>
-                        <input type="%txt"><options>&quot;solid&quot;&#xD;&quot;outline&quot;</options></input>
-
-                        <input type="%txt"/>
+                        <input type="%n">150</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">solid
+                            <options>solid&#xD;outline</options></input>
+                        <input type="%txt">orange</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -516,9 +515,9 @@ else:
                     <code>text(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%txt"/>
-                        <input type="%n"/>
-                        <input type="%txt"/>
+                        <input type="%txt">hello!</input>
+                        <input type="%n">100</input>
+                        <input type="%txt">blue</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -526,13 +525,13 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Images" s="rotate %'img' %'degrees'" type="reporter">
+                <block-definition category="Images" s="rotate %'degrees' %'img'" type="reporter">
                     <header/>
                     <code>rotate(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
+                        <input type="%n">45</input>
                         <input type="%s"/>
-                        <input type="%n"/>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -540,13 +539,13 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Images" s="scale %'img' %'factor'" type="reporter">
+                <block-definition category="Images" s="scale %'factor' %'img'" type="reporter">
                     <header/>
                     <code>scale(&lt;#1&gt;,&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
+                        <input type="%n">2</input>
                         <input type="%s"/>
-                        <input type="%n"/>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -554,14 +553,14 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Images" s="scale-xy %'img' %'x-factor' %'y-factor'" type="reporter">
+                <block-definition category="Images" s="scale-xy %'x-factor' %'y-factor' %'img'" type="reporter">
                     <header/>
                     <code>scale-xy(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
                     <translations/>
                     <inputs>
+                        <input type="%n">2</input>
+                        <input type="%n">3</input>
                         <input type="%s"/>
-                        <input type="%n"/>
-                        <input type="%n"/>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -668,7 +667,7 @@ else:
                     <code>image-url(&lt;#1&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%txt"/>
+                        <input type="%txt">https://bootstrapworld.org/images/icon.png</input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -973,7 +972,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="other" helper="true" s="map to Pyret" type="command">
+                <block-definition category="other" s="map to Pyret" type="command">
                     <header/>
                     <code/>
                     <translations/>
@@ -1105,9 +1104,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%n &lt; %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%s &lt; %s">
+                                        <l>1</l>
+                                        <l>2</l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1120,9 +1119,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%n &lt;= %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%s &lt;= %s">
+                                        <l>3</l>
+                                        <l>3</l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1135,9 +1134,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%n &gt; %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%s &gt; %s">
+                                        <l>a</l>
+                                        <l>b</l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1150,9 +1149,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%n &gt;= %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%s &gt;= %s">
+                                        <l>a</l>
+                                        <l>b</l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1165,9 +1164,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%n == %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%s == %s">
+                                        <l>a</l>
+                                        <l>a</l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1180,9 +1179,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%n &lt;&gt; %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%s &lt;&gt; %s">
+                                        <l>a</l>
+                                        <l>a</l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1190,14 +1189,18 @@ end</l>
                             <l>
                                 <option>code</option>
                             </l>
-                            <l>(&lt;#1&gt; == &lt;#2&gt;)</l>
+                            <l>(&lt;#1&gt; &lt;&gt; &lt;#2&gt;)</l>
                         </block>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
                                     <custom-block s="%b and %b">
-                                        <l/>
-                                        <l/>
+                                        <l>
+                                            <bool>true</bool>
+                                        </l>
+                                        <l>
+                                            <bool>false</bool>
+                                        </l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1210,9 +1213,13 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="%b and %b">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="%b or %b">
+                                        <l>
+                                            <bool>true</bool>
+                                        </l>
+                                        <l>
+                                            <bool>false</bool>
+                                        </l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1226,7 +1233,9 @@ end</l>
                             <block s="reifyReporter">
                                 <autolambda>
                                     <custom-block s="not %b">
-                                        <l/>
+                                        <l>
+                                            <bool>true</bool>
+                                        </l>
                                     </custom-block>
                                 </autolambda>
                                 <list/>
@@ -1479,8 +1488,8 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="rotate %s %n">
-                                        <l/>
+                                    <custom-block s="rotate %n %s">
+                                        <l>45</l>
                                         <l/>
                                     </custom-block>
                                 </autolambda>
@@ -1494,8 +1503,8 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="scale %s %n">
-                                        <l/>
+                                    <custom-block s="scale %n %s">
+                                        <l>2</l>
                                         <l/>
                                     </custom-block>
                                 </autolambda>
@@ -1509,9 +1518,9 @@ end</l>
                         <block s="doMapCodeOrHeader">
                             <block s="reifyReporter">
                                 <autolambda>
-                                    <custom-block s="scale-xy %s %n %n">
-                                        <l/>
-                                        <l/>
+                                    <custom-block s="scale-xy %n %n %s">
+                                        <l>2</l>
+                                        <l>3</l>
                                         <l/>
                                     </custom-block>
                                 </autolambda>
