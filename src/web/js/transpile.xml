@@ -1,1 +1,2050 @@
-<project name="transpile" app="Snap! 7, https://snap.berkeley.edu" version="2"><notes>This project features a FizzBuzz script and a recursive factorial block that you can run and debug inside Snap! and also compile into various text-based programming languages:&#xD;&#xD;   * JavaScript&#xD;   * Smalltalk&#xD;   * Python&#xD;   * C&#xD;&#xD;Enjoy!&#xD;-Jens</notes><thumbnail>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAB4CAYAAAB1ovlvAAAAAXNSR0IArs4c6QAAAiVJREFUeF7t0sEJACAAAzHdf+gKLnGfdIHCkbttxxSIClwAo/JufwEAQUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrfOYAMpAUATPM7B5CBtACAaX7nADKQFgAwze8cQAbSAgCm+Z0DyEBaAMA0v3MAGUgLAJjmdw4gA2kBANP8zgFkIC0AYJrf+QOC496obByqTwAAAABJRU5ErkJggg==</thumbnail><scenes select="1"><scene name="transpile" palette="single" clickrun="false"><notes>This project features a FizzBuzz script and a recursive factorial block that you can run and debug inside Snap! and also compile into various text-based programming languages:&#xD;&#xD;   * JavaScript&#xD;   * Smalltalk&#xD;   * Python&#xD;   * C&#xD;&#xD;Enjoy!&#xD;-Jens</notes><hidden> forward turn turnLeft setHeading doFaceTowards gotoXY doGotoObject doGlide changeXPosition setXPosition changeYPosition setYPosition bounceOffEdge xPosition yPosition direction doSwitchToCostume doWearNextCostume getCostumeIdx doThinkFor doThink changeEffect setEffect clearEffects changeScale setScale getScale show hide goToLayer goBack playSound doPlaySoundUntilDone doStopAllSounds doRest doPlayNote doChangeTempo doSetTempo getTempo clear down up setColor changePenColorDimension setPenColorDimension changeSize setSize doStamp reportTouchingObject reportTouchingColor reportColorIsTouchingColor colorFiltered reportStackSize reportFrameCount doAsk reportLastAnswer getLastAnswer reportMouseX reportMouseY reportMouseDown reportKeyPressed reportRelationTo doResetTimer reportTimer getTimer reportAttributeOf reportURL reportGlobalFlag doSetGlobalFlag reportCONS reportCDR reportListContainsItem doDeleteFromList doInsertInList doReplaceInList reifyReporter reifyPredicate reportRound reportMonadic reportRandom reportLetter reportUnicode reportIsA reportIsIdentical receiveGo receiveKey receiveInteraction receiveMessage doBroadcast doBroadcastAndWait getLastMessage doWarp doWait doWaitUntil doForever doRepeat doUntil doStopThis fork evaluate doCallCC reportCallCC receiveOnClone createClone removeClone getPosition reportGetImageAttribute reportNewCostumeStretched reportNewCostume getEffect reportShown doPlaySoundAtRate reportGetSoundAttribute reportNewSoundFromSamples doSetInstrument changeVolume setVolume getVolume changePan setPan getPan playFreq stopFreq getPenDown getPenAttribute floodFill write reportPenTrailsAsCostume doPasteOn doCutFrom receiveCondition reportIfElse doTellTo reportAskFor newClone doPauseAll doSwitchToScene doDefineBlock doDeleteBlock doSetBlockAttribute reportBlockAttribute reportThisContext reportMousePosition reportAspect reportDate reportGet reportObject reportAudio reportVideo doSetVideoTransparency reportVariadicSum reportVariadicProduct reportPower reportTextSplit reportUnicodeAsLetter doDeleteAttr reportNumbers reportListIndex reportListIsEmpty reportMap reportKeep reportFindFirst reportCombine doForEach reportConcatenatedLists reportReshape reportCrossproduct doMapCodeOrHeader doMapValueCode doMapListCode reportMappedCode doRun reportPipe doHideVar reifyScript reportJoinWords receiveUserEdit</hidden><headers></headers><code><string>&quot;&lt;#1&gt;&quot;</string><tempvars_delim>,</tempvars_delim><delim>,</delim><doSayFor>print &lt;#1&gt;</doSayFor><bubble>print(&lt;#1&gt;)</bubble><doIf>if &lt;#1&gt;:&#xD;    &lt;#2&gt;</doIf><doIfElse>if &lt;#1&gt;:&#xD;    &lt;#2&gt;&#xD;else: &#xD;    &lt;#3&gt;</doIfElse><reportSum>(&lt;#1&gt; + &lt;#2&gt;)</reportSum><reportDifference>(&lt;#1&gt; - &lt;#2&gt;)</reportDifference><reportProduct>(&lt;#1&gt; * &lt;#2&gt;)</reportProduct><reportQuotient>(&lt;#1&gt; / &lt;#2&gt;)</reportQuotient><reportModulus>(&lt;#1&gt; % &lt;#2&gt;)</reportModulus><reportLessThan>(&lt;#1&gt; &lt; &lt;#2&gt;)</reportLessThan><reportEquals>(&lt;#1&gt; == &lt;#2&gt;)</reportEquals><reportGreaterThan>(&lt;#1&gt; &gt; &lt;#2&gt;)</reportGreaterThan><reportAnd>(&lt;#1&gt; &amp; &lt;#2&gt;)</reportAnd><reportOr>(&lt;#1&gt; | &lt;#2&gt;)</reportOr><reportNot>(!&lt;#1&gt;)</reportNot><reportTrue>True</reportTrue><reportFalse>False</reportFalse><reportJoinWords>(&lt;#1&gt;, &lt;#2&gt;)</reportJoinWords><reportStringSize>(&lt;#1&gt;.length)</reportStringSize><doSetVar>&lt;#1&gt; = &lt;#2&gt;</doSetVar><doChangeVar>&lt;#1&gt; += 1</doChangeVar><doShowVar>print &lt;#1&gt;</doShowVar><doDeclareVariables>#variables &lt;#1&gt;</doDeclareVariables><reportNewList>[&lt;#1&gt;]</reportNewList><reportListLength>len(&lt;#1&gt;)</reportListLength><reportListItem>&lt;#2&gt;[&lt;#1&gt; - 1]</reportListItem><doAddToList>&lt;#2&gt;.append(&lt;#1&gt;)</doAddToList><doReport>return &lt;#1&gt;</doReport><reportVariadicSum>(&lt;#1&gt; + &lt;#2&gt;)</reportVariadicSum><reportVariadicProduct>(&lt;#1&gt; * &lt;#2&gt;)</reportVariadicProduct><reportBoolean>&lt;#1&gt;</reportBoolean><reportListAttribute>len(&lt;#1&gt;)</reportListAttribute><doFor>for &lt;#1&gt; in range(&lt;#2&gt;, &lt;#3&gt;):&#xD;    &lt;#4&gt;</doFor></code><blocks><block-definition s="while %&apos;test&apos; %&apos;action&apos;" type="command" category="control"><header></header><code>while &lt;#1&gt;:&#xD;    &lt;#2&gt;&#xD;</code><translations></translations><inputs><input type="%boolUE"></input><input type="%ca"></input></inputs><script><block s="doIf"><block s="evaluate"><block var="test"/><list></list></block><script><block s="doRun"><block var="action"/><list></list></block><custom-block s="while %boolUE %ca"><block s="evaluate"><block var="test"/><list></list></block><block var="action"/></custom-block></script></block></script></block-definition><block-definition s="new List" type="reporter" category="lists"><header></header><code>[]</code><translations></translations><inputs></inputs><script><block s="doReport"><block s="reportNewList"><list></list></block></block></script></block-definition><block-definition s="is %&apos;thing&apos; a Number?" type="predicate" category="operators"><header></header><code>isinstance(&lt;#1&gt;, (int, long, float, complex))</code><translations></translations><inputs><input type="%s">5</input></inputs><script><block s="doReport"><block s="reportIsA"><block var="thing"/><l><option>number</option></l></block></block></script></block-definition><block-definition s="main %&apos;script&apos;" type="command" category="control"><header></header><code>&lt;#1&gt;</code><translations></translations><inputs><input type="%cs"></input></inputs><script><block s="doRun"><block var="script"/><list></list></block></script></block-definition><block-definition s="%&apos;num&apos; as text" type="reporter" category="operators"><header></header><code>str(&lt;#1&gt;)</code><translations></translations><inputs><input type="%n">5</input></inputs><script><block s="doReport"><block var="num"/></block></script></block-definition><block-definition s="map to JavaScript" type="command" category="other" helper="true"><header></header><code></code><translations></translations><inputs></inputs><script><block s="doMapValueCode"><l><option>String</option></l><l>&apos;&lt;#1&gt;&apos;</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>variables</option></l><l>,</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>collection</option></l><l>,</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSayFor"><l>Hello!</l><l>2</l></block></script><list></list></block><l><option>code</option></l><l>console.log(&lt;#1&gt;);</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="bubble"><l>Hello!</l></block></script><list></list></block><l><option>code</option></l><l>console.log(&lt;#1&gt;);</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="main %cs"><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIf"><l/><script></script></block></script><list></list></block><l><option>code</option></l><l>if (&lt;#1&gt;) {&#xD;    &lt;#2&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIfElse"><l/><script></script><script></script></block></script><list></list></block><l><option>code</option></l><l>if (&lt;#1&gt;) {&#xD;    &lt;#2&gt;&#xD;} else {&#xD;    &lt;#3&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doReport"><l></l></block></script><list></list></block><l><option>code</option></l><l>return &lt;#1&gt;;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="while %boolUE %ca"><l/><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>while (&lt;#1&gt;) {&#xD;    &lt;#2&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doFor"><l>i</l><l>1</l><l>10</l><script></script></block></script><list></list></block><l><option>code</option></l><l>for (var &lt;#1&gt; = &lt;#2&gt;; &lt;#1&gt; &lt;= &lt;#3&gt;; &lt;#1&gt; += 1) {&#xD;    &lt;#4&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n + %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; + &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportDifference"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; - &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n x %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; * &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportQuotient"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; / &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportModulus"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; % &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportLessThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &lt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportEquals"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; === &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportGreaterThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &gt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportAnd"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &amp;&amp; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportOr"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; || &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportNot"><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(!&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportBoolean"><l><bool>true</bool></l></block></autolambda><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="join %txt %txt"><l>hello</l><l>World</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; + &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportStringSize"><l>world</l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt;.length)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><custom-block s="is %s a Number?"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(typeof &lt;#1&gt; === &apos;number&apos;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n as text"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt;.toString())</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>function fact(n) {&#xD;    &lt;body&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>fact(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>function fib(n) {&#xD;    &lt;body&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>fib(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSetVar"><l></l><l>0</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; = &lt;#2&gt;;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doChangeVar"><l></l><l>1</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; += 1;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doShowVar"><l></l></block></script><list></list></block><l><option>code</option></l><l>console.log(&lt;#1&gt;);</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doHideVar"><l></l></block></script><list></list></block><l><option>code</option></l><l></l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doDeclareVariables"><list><l>a</l></list></block></script><list></list></block><l><option>code</option></l><l>var &lt;#1&gt;;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportNewList"><list></list></block></autolambda><list></list></block><l><option>code</option></l><l>[&lt;#1&gt;]</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="new List"></custom-block></autolambda><list></list></block><l><option>code</option></l><l>[]</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportListAttribute"><l><option>length</option></l><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt;.length)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportListItem"><l>1</l><l/></block></autolambda><list></list></block><l><option>code</option></l><l>&lt;#2&gt;[&lt;#1&gt; - 1]</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doAddToList"><l>thing</l><l/></block></script><list></list></block><l><option>code</option></l><l>&lt;#2&gt;.push(&lt;#1&gt;);</l></block></script></block-definition><block-definition s="map to Smalltalk" type="command" category="other" helper="true"><header></header><code></code><translations></translations><inputs></inputs><script><block s="doMapValueCode"><l><option>String</option></l><l>&apos;&lt;#1&gt;&apos;</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>variables</option></l><l> </l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>collection</option></l><l> </l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSayFor"><l>Hello!</l><l>2</l></block></script><list></list></block><l><option>code</option></l><l>Transcript&#xD;    show: &lt;#1&gt;;&#xD;    cr.</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="bubble"><l>Hello!</l></block></script><list></list></block><l><option>code</option></l><l>Transcript&#xD;    show: &lt;#1&gt;;&#xD;    cr.</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="main %cs"><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIf"><l/><script></script></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; ifTrue: [&#xD;    &lt;#2&gt;].</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIfElse"><l/><script></script><script></script></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt;&#xD;    ifTrue: [&#xD;        &lt;#2&gt;]&#xD;    ifFalse: [&#xD;        &lt;#3&gt;].</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doReport"><l></l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="while %boolUE %ca"><l/><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>[&lt;#1&gt;] whileTrue: [&#xD;    &lt;#2&gt;].</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doFor"><l>i</l><l>1</l><l>10</l><script></script></block></script><list></list></block><l><option>code</option></l><l>(&lt;#2&gt; to: &lt;#3&gt;) do: [:&lt;#1&gt; |&#xD;    &lt;#4&gt;].</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n + %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; + &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportDifference"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; - &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n x %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; * &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportQuotient"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; / &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportModulus"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; \\ &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportLessThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &lt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportEquals"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; = &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportGreaterThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &gt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportAnd"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; and: [&lt;#2&gt;])</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportOr"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; or: [&lt;#2&gt;])</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportNot"><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; not)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportBoolean"><l><bool>true</bool></l></block></autolambda><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="join %txt %txt"><l>hello</l><l>World</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt;, &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportStringSize"><l>world</l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; size)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><custom-block s="is %s a Number?"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; isNumber)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n as text"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; printString)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>| fact |&#xD;fact := [:n| &lt;body&gt;].</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(fact value: &lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>| fib |&#xD;fib := [:n | &lt;body&gt;].</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(fib value: &lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSetVar"><l></l><l>0</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; := &lt;#2&gt;.</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doChangeVar"><l></l><l>1</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; := &lt;#1&gt; + 1.</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doShowVar"><l></l></block></script><list></list></block><l><option>code</option></l><l>Transcript&#xD;    show: &lt;#1&gt;;&#xD;    cr.</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doHideVar"><l></l></block></script><list></list></block><l><option>code</option></l><l></l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doDeclareVariables"><list><l>a</l></list></block></script><list></list></block><l><option>code</option></l><l>| &lt;#1&gt; |</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportNewList"><list></list></block></autolambda><list></list></block><l><option>code</option></l><l>#(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="new List"></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(OrderedCollection new)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportListAttribute"><l><option>length</option></l><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; size)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportListItem"><l>1</l><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#2&gt; at: &lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doAddToList"><l>thing</l><l/></block></script><list></list></block><l><option>code</option></l><l>&lt;#2&gt; add: &lt;#1&gt;.</l></block></script></block-definition><block-definition s="map to Python" type="command" category="other" helper="true"><header></header><code></code><translations></translations><inputs></inputs><script><block s="doMapValueCode"><l><option>String</option></l><l>"&lt;#1&gt;"</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>variables</option></l><l>,</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>collection</option></l><l>,</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSayFor"><l>Hello!</l><l>2</l></block></script><list></list></block><l><option>code</option></l><l>print &lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="bubble"><l>Hello!</l></block></script><list></list></block><l><option>code</option></l><l>print &lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="main %cs"><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIf"><l/><script></script></block></script><list></list></block><l><option>code</option></l><l>if &lt;#1&gt;:&#xD;    &lt;#2&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIfElse"><l/><script></script><script></script></block></script><list></list></block><l><option>code</option></l><l>if &lt;#1&gt;:&#xD;    &lt;#2&gt;&#xD;else: &#xD;    &lt;#3&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doReport"><l></l></block></script><list></list></block><l><option>code</option></l><l>return &lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="while %boolUE %ca"><l/><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>while &lt;#1&gt;:&#xD;    &lt;#2&gt;&#xD;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doFor"><l>i</l><l>1</l><l>10</l><script></script></block></script><list></list></block><l><option>code</option></l><l>for &lt;#1&gt; in range(&lt;#2&gt;, &lt;#3&gt;):&#xD;    &lt;#4&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n + %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; + &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportDifference"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; - &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n x %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; * &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportQuotient"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; / &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportModulus"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; % &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportLessThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &lt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportEquals"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; == &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportGreaterThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &gt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportAnd"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &amp; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportOr"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; | &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportNot"><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(!&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportBoolean"><l><bool>true</bool></l></block></autolambda><list></list></block><l><option>code</option></l><l>&lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="join %txt %txt"><l>hello</l><l>World</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; + &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportStringSize"><l>world</l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt;.length)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><custom-block s="is %s a Number?"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>isinstance(&lt;#1&gt;, (int, long, float, complex))</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n as text"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>str(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>def fact(n):&#xD;    &lt;body&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>fact(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>def fib(n):&#xD;    &lt;body&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>fib(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSetVar"><l></l><l>0</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; = &lt;#2&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doChangeVar"><l></l><l>1</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; += 1</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doShowVar"><l></l></block></script><list></list></block><l><option>code</option></l><l>print &lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doHideVar"><l></l></block></script><list></list></block><l><option>code</option></l><l></l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doDeclareVariables"><list><l>a</l></list></block></script><list></list></block><l><option>code</option></l><l>#variables &lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportNewList"><list></list></block></autolambda><list></list></block><l><option>code</option></l><l>[&lt;#1&gt;]</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="new List"></custom-block></autolambda><list></list></block><l><option>code</option></l><l>[]</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportListAttribute"><l><option>length</option></l><l/></block></autolambda><list></list></block><l><option>code</option></l><l>len(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportListItem"><l>1</l><l/></block></autolambda><list></list></block><l><option>code</option></l><l>&lt;#2&gt;[&lt;#1&gt; - 1]</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doAddToList"><l>thing</l><l/></block></script><list></list></block><l><option>code</option></l><l>&lt;#2&gt;.append(&lt;#1&gt;)</l></block></script></block-definition><block-definition s="map to C" type="command" category="other" helper="true"><header></header><code></code><translations></translations><inputs></inputs><script><block s="doMapValueCode"><l><option>String</option></l><l>"&lt;#1&gt;"</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>variables</option></l><l>,</l></block><block s="doMapListCode"><l><option>delimiter</option></l><l><option>collection</option></l><l>,</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSayFor"><l>Hello!</l><l>2</l></block></script><list></list></block><l><option>code</option></l><l>printf(&lt;#1&gt;);&#xD;printf("\n");</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="bubble"><l>Hello!</l></block></script><list></list></block><l><option>code</option></l><l>printf(&lt;#1&gt;);&#xD;printf("\n");</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="main %cs"><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>#include &lt;stdio.h&gt;&#xD;int main()&#xD;{&#xD;    &lt;#1&gt;&#xD;    return(0);&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIf"><l/><script></script></block></script><list></list></block><l><option>code</option></l><l>if &lt;#1&gt;&#xD;{&#xD;    &lt;#2&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doIfElse"><l/><script></script><script></script></block></script><list></list></block><l><option>code</option></l><l>if &lt;#1&gt;&#xD;{&#xD;    &lt;#2&gt;&#xD;}&#xD;else &#xD;{&#xD;    &lt;#3&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doReport"><l></l></block></script><list></list></block><l><option>code</option></l><l>return &lt;#1&gt;;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><custom-block s="while %boolUE %ca"><l/><script></script></custom-block></script><list></list></block><l><option>code</option></l><l>while &lt;#1&gt;&#xD;{&#xD;    &lt;#2&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doFor"><l>i</l><l>1</l><l>10</l><script></script></block></script><list></list></block><l><option>code</option></l><l>int &lt;#1&gt;; for (&lt;#1&gt; = &lt;#2&gt;; &lt;#1&gt; &lt;= &lt;#3&gt;; &lt;#1&gt;++)&#xD;{&#xD;    &lt;#4&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n + %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; + &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportDifference"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; - &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n x %n"><l></l><l></l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; * &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportQuotient"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; / &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><block s="reportModulus"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; % &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportLessThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &lt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportEquals"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; == &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportGreaterThan"><l></l><l></l></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &gt; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportAnd"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; &amp;&amp; &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportOr"><l/><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(&lt;#1&gt; || &lt;#2&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyPredicate"><autolambda><block s="reportNot"><l/></block></autolambda><list></list></block><l><option>code</option></l><l>(!&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="%n as text"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>"%d", &lt;#1&gt;</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>int fact(int n)&#xD;{&#xD;    &lt;body&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="! %n"><l>5</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>fact(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>header</option></l><l>int fib(int n)&#xD;{&#xD;    &lt;body&gt;&#xD;}</l></block><block s="doMapCodeOrHeader"><block s="reifyReporter"><autolambda><custom-block s="fib %n"><l>7</l></custom-block></autolambda><list></list></block><l><option>code</option></l><l>fib(&lt;#1&gt;)</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doSetVar"><l></l><l>0</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt; = &lt;#2&gt;;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doChangeVar"><l></l><l>1</l></block></script><list></list></block><l><option>code</option></l><l>&lt;#1&gt;++;</l></block><block s="doMapCodeOrHeader"><block s="reifyScript"><script><block s="doDeclareVariables"><list><l>a</l></list></block></script><list></list></block><l><option>code</option></l><l>int &lt;#1&gt;;</l></block></script></block-definition><block-definition s="join %&apos;a&apos; %&apos;b&apos;" type="reporter" category="operators"><header></header><code>(&lt;#1&gt; + &lt;#2&gt;)</code><translations></translations><inputs><input type="%txt">hello</input><input type="%txt">World</input></inputs><script><block s="doReport"><block s="reportJoinWords"><list><block var="a"/><block var="b"/></list></block></block></script></block-definition><block-definition s="! %&apos;n&apos;" type="reporter" category="operators"><header>def fact(n):&#xD;    &lt;body&gt;</header><code>fact(&lt;#1&gt;)</code><translations></translations><inputs><input type="%n">5</input></inputs><script><block s="doIfElse"><block s="reportEquals"><block var="n"/><l>0</l></block><script><block s="doReport"><l>1</l></block></script><script><block s="doReport"><custom-block s="%n x %n"><block var="n"/><custom-block s="! %n"><block s="reportDifference"><block var="n"/><l>1</l></block></custom-block></custom-block></block></script></block></script></block-definition><block-definition s="fib %&apos;n&apos;" type="reporter" category="operators"><header>def fib(n):&#xD;    &lt;body&gt;</header><code>fib(&lt;#1&gt;)</code><translations></translations><inputs><input type="%n">7</input></inputs><script><block s="doIfElse"><block s="reportLessThan"><block var="n"/><l>2</l></block><script><block s="doReport"><block var="n"/></block></script><script><block s="doReport"><custom-block s="%n + %n"><custom-block s="fib %n"><block s="reportDifference"><block var="n"/><l>1</l></block></custom-block><custom-block s="fib %n"><block s="reportDifference"><block var="n"/><l>2</l></block></custom-block></custom-block></block></script></block></script></block-definition><block-definition s="%&apos;a&apos; + %&apos;b&apos;" type="reporter" category="operators"><header></header><code>(&lt;#1&gt; + &lt;#2&gt;)</code><translations></translations><inputs><input type="%n"></input><input type="%n"></input></inputs><script><block s="doReport"><block s="reportVariadicSum"><list><block var="a"/><block var="b"/></list></block></block></script></block-definition><block-definition s="%&apos;a&apos; x %&apos;b&apos;" type="reporter" category="operators"><header></header><code>(&lt;#1&gt; * &lt;#2&gt;)</code><translations></translations><inputs><input type="%n"></input><input type="%n"></input></inputs><script><block s="doReport"><block s="reportVariadicProduct"><list><block var="a"/><block var="b"/></list></block></block></script></block-definition></blocks><stage name="Stage" width="480" height="360" costume="0" color="255,255,255,1" tempo="60" threadsafe="false" penlog="false" volume="100" pan="0" lines="round" ternary="true" hyperops="true" codify="true" inheritance="true" sublistIDs="false" id="1831"><pentrails>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAAFoCAYAAACPNyggAAAAAXNSR0IArs4c6QAADoVJREFUeF7t1cEJAAAIxDDdf2m3sJ+4wEEQuuMIECBAgACBd4F9XzRIgAABAgQIjAB7AgIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECAiwHyBAgAABAoGAAAfoJgkQIECAgAD7AQIECBAgEAgIcIBukgABAgQICLAfIECAAAECgYAAB+gmCRAgQICAAPsBAgQIECAQCAhwgG6SAAECBAgIsB8gQIAAAQKBgAAH6CYJECBAgIAA+wECBAgQIBAICHCAbpIAAQIECByxcQFpoRMBzwAAAABJRU5ErkJggg==</pentrails><costumes><list struct="atomic" id="1832"></list></costumes><sounds><list struct="atomic" id="1833"></list></sounds><variables></variables><blocks></blocks><scripts><script x="20" y="20"><block s="receiveUserEdit"><l>Sprite</l><list></list></block><block s="doBroadcast"><l>changed</l><list></list></block></script><script x="20" y="94"><block s="receiveMessage"><l>changed</l><list></list></block><block s="doBroadcast"><l>update</l><list><l><option>all</option></l><block s="reportMappedCode"><block s="reportObject"><l>Sprite</l></block></block></list></block></script></scripts><sprites select="2"><sprite name="Alonzo" idx="1" x="-7.6852226720648105" y="-28.234817813765233" heading="90" scale="1" volume="100" pan="0" rotation="1" draggable="true" hidden="true" costume="1" color="80,80,80,1" pen="tip" id="1860"><costumes><list id="1861"><item><costume name="alonzo (vector)" center-x="47.5" center-y="61.5" image="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iOTVweCIgaGVpZ2h0PSIxMjNweCIgdmlld0JveD0iMCAwIDk1IDEyMyIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgOTUgMTIzIiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJJRDAuODMyMzgyOTczNzQ5MTkwNiIgdHJhbnNmb3JtPSJtYXRyaXgoMSwgMCwgMCwgMSwgMCwgMykiPg0KCTxwYXRoIGlkPSJSX0xlZyIgZmlsbD0iI0ZGQzkzRSIgc3Ryb2tlPSIjNjAzODEzIiBzdHJva2Utd2lkdGg9IjMiIGQ9Ik00Ny4zMTYsMTA0LjI1MWMwLTEuMjc2LDAuMzU4LTMuMTA5LDIuMzM4LTMuNTIzDQoJCWMyLjg1Ny0wLjU5OSw2LjEyNiwyLjI5Myw3LjAxNCwzLjE0NmMtMC4wNjUsMC4zMzgsMS4wNDcsNy4xNzMsMS4wNDcsNy43NjVjMCwyLjAwNC0wLjUzNSwyLjA4My0wLjc0MywyLjExNg0KCQljLTEuOTU2LDAuMjg0LTcuMTY5LTUuMTk3LTkuNTYyLTguMzg3QzQ3LjM3NiwxMDUuMTkzLDQ3LjMxNiwxMDQuODA5LDQ3LjMxNiwxMDQuMjUxTDQ3LjMxNiwxMDQuMjUxTDQ3LjMxNiwxMDQuMjUxeiIvPg0KCTxwYXRoIGlkPSJDZW50ZXJfTGVnIiBmaWxsPSIjRkZDOTNFIiBzdHJva2U9IiM2MDM4MTMiIHN0cm9rZS13aWR0aD0iNCIgZD0iTTM5LjM5NCwxMTMuODI3Yy0xLjQxOC0xLjUzOC0xLjYyMS01LjcwNy0xLjYyMS03LjQ4Mg0KCQljMC0wLjc1MiwwLjAzOS0xLjI1MywwLjA0MS0xLjI2OGwwLjAwMi0wLjAzOWMwLDAtMC4wMDQtMC4xNi0wLjAwNC0wLjIxOWMwLTMuMzQxLDMuMDc1LTQuNTAxLDMuNTk3LTQuNjc1DQoJCWMxLjc4MSwwLjAyMSw0Ljg1OCwwLjg2NCw1LjU5MywyLjEzNmMwLjA3NSwwLjEyOCwwLjE0NCwwLjI4OSwwLjE0NCwwLjQ5NWMwLDAuMTgxLTAuMDU0LDAuNC0wLjIwOCwwLjY2Ng0KCQljLTAuMDcxLDAuMTIxLTEuMzM1LDMuMTA5LTIuNDA1LDUuNGwtMC43NjUsMi4xMTljLTAuNTcyLDEuODUxLTEuNDczLDMuNzAzLTIuNDUyLDMuNzAzDQoJCUM0MC41NDIsMTE0LjY2NiwzOS45MTQsMTE0LjM5MiwzOS4zOTQsMTEzLjgyN0wzOS4zOTQsMTEzLjgyN0wzOS4zOTQsMTEzLjgyN3oiLz4NCgk8cGF0aCBpZD0iUl9Bcm0iIGZpbGw9IiNGRkM5M0UiIHN0cm9rZT0iIzYwMzgxMyIgc3Ryb2tlLXdpZHRoPSIzIiBkPSJNNzkuNTA1LDg5LjYxMWwtMS4zODMtMi40NA0KCQljLTEuNTE2LTIuNjM3LTMuMjY1LTUuMDUyLTQuODA3LTcuMTc3Yy0xLjk4My0yLjczOC0zLjcxLTUuNTcxLTQuMjgxLTcuNTcyYy0wLjIwNy0wLjcyMS0wLjEwNy0xLjQxLDAuMTg5LTEuNzkNCgkJYzAuMDI4LTAuMTAyLDAuMzI3LTAuMjY1LDAuNTM5LTAuMzA5YzIuNTQxLTAuNTUsMTMuMDYsNS40OTEsMTUuNjg1LDguNzE5YzMuODQ1LDQuNzI3LDUuMzgyLDExLjM1OCw0LjUyNCwxNC42OTkNCgkJYy0wLjM1MiwxLjM2NC0xLjEzOSwyLjMzMi0yLjI3OCwyLjc5M0M4NC43ODIsOTcuNzEsODIuODY3LDk1LjU4Niw3OS41MDUsODkuNjExTDc5LjUwNSw4OS42MTFMNzkuNTA1LDg5LjYxMXoiLz4NCgk8cGF0aCBpZD0iQm9keSIgZmlsbD0iI0ZGQzkzRSIgc3Ryb2tlPSIjNjAzODEzIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iDQoJCU0zOC4wOTcsNDMuMDA3YzAsMC0zLjExLTkuNjI5LTYuMDExLTEzLjU5OGMtMS43Mi0yLjc5LTQuMi02LjI2Ny03LjQ3Ny02LjA0OWMtNC4wNjcsMC4xMDYtNi4yODMsNC45ODQtMTAuMjk5LDYuNTQ1DQoJCWMtMi42MDIsMS4wMDMtOS40NjEsMi4zMTQtOC40MDYsMGMyLjgxMy01LjgxNCwxNC4wNC05LjA3OSwxNi44NDQtMTYuMzc5YzEuMjYzLTMuMzA1LTQuMjcyLTcuMjUyLTcuOTQxLTcuOTQyDQoJCWMtMi43NDUtMC41MDEtNC4wMzksNC4yMTctNi41NDUsNS42MTVjLTEuMTUxLDAuNjQzLTQuMzM5LDEuMzA1LTMuNzUzLDBDNi42MjksNi44MzYsOS4wNTIsMS4xNzIsMTMuODQ1LTAuNDk1DQoJCWMzLjYxNy0xLjI1NCw3LjU2MiwyLjQ3MywxMC4yOTksNS4xMTljOC40NjQsOC4xODUsMTUuNjE3LDE3LjkzOCwyMy4yNCwyNi42NWw0LjUxMSw1LjEzOWMwLDAsMy4yMjUsMy45NTYsNS42OTIsNi41NjYNCgkJYzAuMDQ0LDAuMDQ1LDIuMzc4LTAuMzE3LDMuOTg5LTEuNjU3YzEuMzE0LTEuMDk2LDEuMTQxLTIuMzIzLDEuNTU5LTQuOTAyYzAuMzg0LTIuMzcxLDAuODAyLTYuNjU5LDIuMDcyLTYuNjgxDQoJCWMxLjkxNi0wLjAyOSwzLjE3Niw3Ljg2OCwzLjY2NiwxMC43OTNsMC4yNzIsMS41NjVjMC42NDMsMy40NzksMy45OTksMTMuOTQsNC4xNDQsMTQuMzg0YzAuMDQ2LDAuMTA4LDAuMTIxLDAuMjQ5LDAuMTIxLDAuMjQ5DQoJCWwwLjAyNywwLjA1NmwwLjAzOCwwLjA0N2M1LjE4NSw2LjQyOSw5LjAzOCwxNC4yMjMsOS4wMzgsMjEuNTI0YzAsMTUuNDY0LTEzLjU1NSwyNi4zNDktMzEuNjk3LDI2LjM0OQ0KCQljLTMuMzY1LDAtNi42NTctMC40NzMtOS43ODMtMS4zOThsLTAuMTY4LTAuMDQ5YzAsMC00LjkwOC0wLjQxMi0xMS4xODYsNy44NGMtMS4yNiwxLjY1Ny0xLjE0NywzLjIwMS0yLjkyMiwyLjcyNg0KCQljLTAuNTkyLTAuMTU4LTEuMDI2LTAuNTkzLTEuMzgyLTEuMzgzYy0wLjg0OC0xLjg4NC0wLjIyMi02LjM0NywwLjgxNi05LjE5N2wwLjE2My0wLjQ0OGwtMC4zNzUtMC4yOTcNCgkJYy0wLjA5Mi0wLjA3My0xMC4yNzQtNy40OTMtMTEuMzAzLTE4LjEyNWMtMC44OTYtOS4yNjgsMy43ODUtMTQuNTQ1LDUuNzI4LTE3LjQ0NGwxLjExNy0xLjg1OA0KCQljMS40MDktMy40MjgtMS4yNDMtOC4xOTUtMy41ODMtMTIuNDAxYy0xLjM5Ny0yLjUxMS0zLjY1Mi02LjE3Ni0zLjE0My03LjAzOGMwLjU2NS0wLjk1NCwyLjU4NSwwLjA2Miw0LjYyNSwxLjAzNA0KCQljMS42NTQsMC43OTEsMy4yNDUsMS45MDgsNC4zNSwxLjE3MWMxLjE0OS0wLjc2NSwwLjM5Ni0yLjY4Ni0wLjY0OS01LjM0NmMtMC45ODItMi40OTgtMi44NDEtNi40NDMtMi4xMjctOC4wNzINCgkJYzAuMTk3LTAuNDQ3LDAuNTQyLTAuNzYyLDEuMDU1LTAuOTYxYzEuODk3LTAuNzM0LDQuNjA5LDIuNDYxLDYuODA1LDQuOTYxQzMxLjUzMiw0MS40NjksMzQuNTcsNDQuOTI3LDM4LjA5Nyw0My4wMDcNCgkJTDM4LjA5Nyw0My4wMDdMMzguMDk3LDQzLjAwN3oiLz4NCgk8ZyBpZD0iTF9FeWUiPg0KCQk8cGF0aCBpZD0iV2hpdGVfMV8iIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MS4yMjgsNzkuNDg5YzAsMi43ODksMi4yNjMsNS4wNSw1LjA1NCw1LjA1YzIuNzkxLDAsNS4wNTEtMi4yNjEsNS4wNTEtNS4wNQ0KCQkJYzAtMi43OTEtMi4yNjEtNS4wNTYtNS4wNTEtNS4wNTZDNDMuNDksNzQuNDM2LDQxLjIyOCw3Ni42OTgsNDEuMjI4LDc5LjQ4OUw0MS4yMjgsNzkuNDg5TDQxLjIyOCw3OS40ODl6Ii8+DQoJCTxwYXRoIGlkPSJQdXBpbF8xXyIgZmlsbD0iIzYwMzgxMyIgZD0iTTQ2Ljk2MSw3NS43OTZjMC45ODEsMCwxLjg3LDAuMzk4LDIuNTEzLDEuMDQzYzAuNjQ1LDAuNjQzLDEuMDQyLDEuNTMyLDEuMDQyLDIuNTEzDQoJCQljMCwwLjk4MS0wLjM5NywxLjg3LTEuMDQyLDIuNTE0Yy0wLjY0NCwwLjY0NC0xLjUzMiwxLjA0Mi0yLjUxMywxLjA0MnMtMS44Ny0wLjM5OC0yLjUxMy0xLjA0Mg0KCQkJYy0wLjY0NS0wLjY0NC0xLjA0Mi0xLjUzMi0xLjA0Mi0yLjUxNGMwLTAuOTgsMC4zOTgtMS44NywxLjA0Mi0yLjUxM0M0NS4wOTIsNzYuMTk0LDQ1Ljk4LDc1Ljc5Niw0Ni45NjEsNzUuNzk2TDQ2Ljk2MSw3NS43OTZ6Ig0KCQkJLz4NCgk8L2c+DQoJPGcgaWQ9IlJfRXllIj4NCgkJPHBhdGggaWQ9IldoaXRlIiBmaWxsPSIjRkZGRkZGIiBkPSJNNjUuNTY4LDc5LjQ4OWMwLDIuNzg5LDIuMjYyLDUuMDUsNS4wNTQsNS4wNWMyLjc4OCwwLDUuMDUyLTIuMjYxLDUuMDUyLTUuMDUNCgkJCWMwLTIuNzkxLTIuMjYyLTUuMDU2LTUuMDUyLTUuMDU2QzY3LjgzLDc0LjQzNiw2NS41NjgsNzYuNjk4LDY1LjU2OCw3OS40ODlMNjUuNTY4LDc5LjQ4OUw2NS41NjgsNzkuNDg5eiIvPg0KCQk8cGF0aCBpZD0iUHVwaWwiIGZpbGw9IiM2MDM4MTMiIGQ9Ik02Ny43NDUsNzkuMzUyYzAsMS45NjQsMS41OSwzLjU1NSwzLjU1NiwzLjU1NWMxLjk2MywwLDMuNTU2LTEuNTksMy41NTYtMy41NTUNCgkJCWMwLTEuOTYyLTEuNTkzLTMuNTU2LTMuNTU2LTMuNTU2QzY5LjMzNSw3NS43OTYsNjcuNzQ1LDc3LjM4OSw2Ny43NDUsNzkuMzUyTDY3Ljc0NSw3OS4zNTJMNjcuNzQ1LDc5LjM1MnoiLz4NCgk8L2c+DQoJPHBhdGggaWQ9IkxfQXJtIiBmaWxsPSIjRkZDOTNFIiBzdHJva2U9IiM2MDM4MTMiIHN0cm9rZS13aWR0aD0iMyIgZD0iTTYuMzQxLDk4Ljk5NGMtMS4wMzYtMC42NjEtMS42MzMtMS43NTMtMS43MjktMy4xNjENCgkJYy0wLjIzNC0zLjQ0NSwyLjQ5Mi05LjY4Miw3LjEzNC0xMy42MjZjMy4xNy0yLjY5NCwxNC42MTctNi43MDcsMTcuMDE0LTUuNzAzYzAuMTk4LDAuMDgzLDAuNDYzLDAuMjk3LDAuNDcyLDAuNDA0DQoJCWMwLjIyNCwwLjQyNywwLjE5NCwxLjExOS0wLjE0LDEuNzkxYy0wLjkyNywxLjg2NC0zLjE0Miw0LjMzNS01LjU5NCw2LjY2Yy0xLjkwNiwxLjgxNC00LjA2NSwzLjg2My02LjAzNSw2LjE4MWwtMS44MDcsMi4xNDENCgkJQzExLjI1OSw5OC45NDMsOC45ODYsMTAwLjY4NSw2LjM0MSw5OC45OTRMNi4zNDEsOTguOTk0TDYuMzQxLDk4Ljk5NHoiLz4NCgk8cGF0aCBpZD0iTW91dGgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzYwMzgxMyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik02My4xNDgsOTUuMzkxDQoJCWMwLDAtNC41OTksMC4wMDQtNy44MTktMi43NTYiLz4NCjwvZz4NCjwvc3ZnPg0K" id="1862"/></item></list></costumes><sounds><list struct="atomic" id="1863"></list></sounds><blocks></blocks><variables></variables><scripts><comment x="20" y="10" w="408" collapsed="false">drag any example script into this ring:</comment><script x="20" y="64"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><comment x="20" y="105" w="408" collapsed="false">FizzBuzz scripts for any language mapping:</comment><script x="20" y="159"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><script x="20" y="200"><custom-block s="main %cs"><script><block s="doFor"><l>i</l><l>1</l><l>20</l><script><block s="doIfElse"><block s="reportAnd"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>5</l></block><l>0</l></block><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>3</l></block><l>0</l></block></block><script><block s="doSayFor"><l>FizzBuzz</l><l>0.5</l></block></script><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>3</l></block><l>0</l></block><script><block s="doSayFor"><l>Fizz</l><l>0.5</l></block></script><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>5</l></block><l>0</l></block><script><block s="doSayFor"><l>Buzz</l><l>0.5</l></block></script><script><block s="doSayFor"><custom-block s="%n as text"><block var="i"/></custom-block><l>0.5</l></block></script></block></script></block></script></block></script></block></script><comment w="80" collapsed="false">a FizzBuzz version that compiles to any mappings in this project: JavaScript, Python, Smalltalk and C</comment></custom-block></script><script x="20" y="539.5"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><script x="20" y="580.5"><custom-block s="main %cs"><script><block s="doDeclareVariables"><list><l>i</l></list></block><block s="doSetVar"><l>i</l><l>1</l></block><custom-block s="while %boolUE %ca"><block s="reportLessThan"><block var="i"/><l>100</l></block><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>3</l></block><l>0</l></block><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>5</l></block><l>0</l></block><script><block s="doSayFor"><l>FizzBuzz</l><l>0.5</l></block></script><script><block s="doSayFor"><l>Fizz</l><l>0.5</l></block></script></block></script><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>5</l></block><l>0</l></block><script><block s="doSayFor"><l>Buzz</l><l>0.5</l></block></script><script><block s="doSayFor"><custom-block s="%n as text"><block var="i"/></custom-block><l>0.5</l></block></script></block></script></block><block s="doChangeVar"><l>i</l><l>1</l></block></script></custom-block></script><comment w="80" collapsed="false">another, slightly different variant of FizzBuzz, which also compiles to any language mapping in this project</comment></custom-block></script><comment x="20" y="985.8333333333328" w="408" collapsed="false">recursive factorial script with function header for any language mapping:</comment><script x="20" y="1039.8333333333326"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><script x="20" y="1080.8333333333326"><custom-block s="main %cs"><script><block s="doFor"><l>i</l><l>1</l><l>10</l><script><block s="doSayFor"><custom-block s="%n as text"><custom-block s="! %n"><block var="i"/></custom-block></custom-block><l>0.5</l></block></script></block></script></custom-block></script><script x="20" y="1190.3333333333326"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><script x="20" y="1231.3333333333326"><custom-block s="main %cs"><script><block s="doFor"><l>i</l><l>1</l><l>20</l><script><block s="doSayFor"><custom-block s="%n as text"><custom-block s="fib %n"><block var="i"/></custom-block></custom-block><l>0.5</l></block></script></block></script></custom-block></script><comment x="20" y="1340.8333333333326" w="408" collapsed="false">other example scripts for any language except C:</comment><script x="20" y="1394.8333333333326"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><script x="20" y="1435.8333333333326"><block s="doDeclareVariables"><list><l>data</l><l>i</l><l>result</l></list><comment w="80" collapsed="false">filter a list for numbers. Try this example in any language mapping except C</comment></block><block s="doSetVar"><l>data</l><block s="reportNewList"><list><l>1</l><l>2</l><l>foo</l><l>4</l><l>bar</l><l>6</l><l>7</l><block s="reportNewList"><list><l>garply</l><block s="reportBoolean"><l><bool>false</bool></l></block><l>42</l></list></block><l>qux</l><l>10</l></list></block></block><block s="doSetVar"><l>result</l><custom-block s="new List"></custom-block></block><block s="doSetVar"><l>i</l><l>0</l></block><custom-block s="while %boolUE %ca"><block s="reportLessThan"><block var="i"/><block s="reportListAttribute"><l><option>length</option></l><block var="data"/></block></block><script><block s="doChangeVar"><l>i</l><l>1</l></block><block s="doIf"><custom-block s="is %s a Number?"><block s="reportListItem"><block var="i"/><block var="data"/></block></custom-block><script><block s="doAddToList"><block s="reportListItem"><block var="i"/><block var="data"/></block><block var="result"/></block></script></block></script></custom-block><block s="bubble"><custom-block s="%n as text"><block var="result"/></custom-block></block></script><script x="20" y="1724.166666666666"><block s="doSetVar"><l>script</l><block s="reifyScript"><script></script><list></list></block></block></script><script x="20" y="1765.166666666666"><block s="doFor"><l>i</l><l>1</l><l>5</l><script><block s="doFor"><l>k</l><l>1</l><l>5</l><script><block s="doSayFor"><custom-block s="join %txt %txt"><custom-block s="%n as text"><block var="i"/></custom-block><custom-block s="%n as text"><block var="k"/></custom-block></custom-block><l>0.5</l></block></script></block></script><comment w="80" collapsed="false">nested FOR block example. Try this one for any language mapping except C</comment></block></script><comment x="20" y="1882.666666666666" w="408" collapsed="false">try the current script by executing it:</comment><script x="20" y="1936.6666666666658"><block s="doHideVar"><l>code</l></block><block s="doHideVar"><l>script</l></block><block s="doRun"><block var="script"/><list></list></block></script><comment x="20" y="2020.499999999999" w="408" collapsed="false">convert to various textual languages. Use the watcher&apos;s context menu to export:</comment><script x="20" y="2074.499999999999"><block s="doHideVar"><l>code</l><comment w="90" collapsed="true">Snap!</comment></block><block s="doShowVar"><l>script</l></block></script><script x="20" y="2136.499999999999"><block s="receiveMessage"><l>JavaScript</l><list></list></block><custom-block s="map to JavaScript"><comment w="80" collapsed="true">JavaScript</comment></custom-block><block s="doSetVar"><l>grammar</l><l>JavaScript</l></block><block s="doBroadcast"><l>changed</l><list></list></block><block s="doHideVar"><l>script</l></block><block s="doShowVar"><l>code</l></block><block s="doSetVar"><l>code</l><block s="reportMappedCode"><block var="script"/></block></block></script><script x="20" y="2320.166666666666"><block s="receiveMessage"><l>Smalltalk</l><list></list></block><custom-block s="map to Smalltalk"><comment w="90" collapsed="true">Smalltalk</comment></custom-block><block s="doSetVar"><l>grammar</l><l>Smalltalk</l></block><block s="doBroadcast"><l>changed</l><list></list></block><block s="doHideVar"><l>script</l></block><block s="doShowVar"><l>code</l></block><block s="doSetVar"><l>code</l><block s="reportMappedCode"><block var="script"/></block></block></script><script x="20" y="2503.833333333333"><block s="receiveMessage"><l>Python</l><list></list></block><custom-block s="map to Python"><comment w="90" collapsed="true">Python</comment></custom-block><block s="doSetVar"><l>grammar</l><l>Python</l></block><block s="doBroadcast"><l>changed</l><list></list></block><block s="doHideVar"><l>script</l></block><block s="doShowVar"><l>code</l></block><block s="doSetVar"><l>code</l><block s="reportMappedCode"><block var="script"/></block></block></script><script x="20" y="2687.4999999999995"><block s="receiveMessage"><l>C</l><list></list></block><custom-block s="map to C"><comment w="90" collapsed="true">C</comment></custom-block><block s="doSetVar"><l>grammar</l><l>C</l></block><block s="doBroadcast"><l>changed</l><list></list></block><block s="doHideVar"><l>script</l></block><block s="doShowVar"><l>code</l></block><block s="doSetVar"><l>code</l><block s="reportMappedCode"><block var="script"/></block></block></script></scripts></sprite><sprite name="Sprite" idx="2" x="157" y="-156" heading="90" scale="1" volume="100" pan="0" rotation="1" draggable="true" hidden="true" costume="0" color="0,173.4,90.168,1" pen="tip" id="2273"><costumes><list struct="atomic" id="2274"></list></costumes><sounds><list struct="atomic" id="2275"></list></sounds><blocks></blocks><variables></variables><scripts></scripts></sprite><watcher var="script" style="normal" x="1.5" y="1" color="243,118,29" hidden="true"/></sprites></stage><variables><variable name="code" hidden="true"><l>for i in range(1, 20):&#xD;    if (((i % 5) == 0) &amp; ((i % 3) == 0)):&#xD;        print "FizzBuzz"&#xD;    else: &#xD;        if ((i % 3) == 0):&#xD;            print "Fizz"&#xD;        else: &#xD;            if ((i % 5) == 0):&#xD;                print "Buzz"&#xD;            else: &#xD;                print str(i)</l></variable><variable name="script" hidden="true"><context id="2281"><inputs></inputs><variables></variables><script><custom-block s="main %cs"><script><block s="doFor"><l>i</l><l>1</l><l>20</l><script><block s="doIfElse"><block s="reportAnd"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>5</l></block><l>0</l></block><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>3</l></block><l>0</l></block></block><script><block s="doSayFor"><l>FizzBuzz</l><l>0.5</l></block></script><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>3</l></block><l>0</l></block><script><block s="doSayFor"><l>Fizz</l><l>0.5</l></block></script><script><block s="doIfElse"><block s="reportEquals"><block s="reportModulus"><block var="i"/><l>5</l></block><l>0</l></block><script><block s="doSayFor"><l>Buzz</l><l>0.5</l></block></script><script><block s="doSayFor"><custom-block s="%n as text"><block var="i"/></custom-block><l>0.5</l></block></script></block></script></block></script></block></script></block></script><comment w="80" collapsed="false">a FizzBuzz version that compiles to any mappings in this project: JavaScript, Python, Smalltalk and C</comment></custom-block></script><receiver><ref id="1860"></ref></receiver><origin><ref id="1860"></ref></origin><context id="2352"><inputs></inputs><variables></variables><receiver><ref id="1860"></ref></receiver><origin><ref id="1860"></ref></origin></context></context></variable><variable name="grammar" hidden="true"><l>Python</l></variable></variables></scene></scenes></project>
+<project app="Snap! 8.2, https://snap.berkeley.edu" name="Pyret Blocks" version="2">
+    <notes>Block definitions for the Bootstrap subset of the Pyret programming language</notes>
+    <thumbnail>data:image/png;base64,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</thumbnail>
+    <scenes select="1">
+        <scene clickrun="false" name="Pyret Blocks" palette="single">
+            <notes>Block definitions for the Bootstrap subset of the Pyret programming language</notes>
+            <palette>
+                <category color="36,1,224,1" name="Numbers"/>
+                <category color="1,195,49,1" name="Strings"/>
+                <category color="175,21,255,1" name="Images"/>
+                <category color="235,1,42,1" name="Booleans"/>
+                <category color="31,30,31,1" name="Tables"/>
+            </palette>
+            <hidden>forward turn turnLeft setHeading doFaceTowards gotoXY doGotoObject doGlide changeXPosition setXPosition changeYPosition setYPosition bounceOffEdge xPosition yPosition direction doSwitchToCostume doWearNextCostume getCostumeIdx doThinkFor doThink changeEffect setEffect clearEffects changeScale setScale getScale show hide goToLayer goBack playSound doPlaySoundUntilDone doStopAllSounds doRest doPlayNote doChangeTempo doSetTempo getTempo clear down up setColor changePenColorDimension setPenColorDimension changeSize setSize doStamp reportTouchingObject reportTouchingColor reportColorIsTouchingColor colorFiltered reportStackSize reportFrameCount doAsk reportLastAnswer getLastAnswer reportMouseX reportMouseY reportMouseDown reportKeyPressed reportRelationTo doResetTimer reportTimer getTimer reportAttributeOf reportURL reportGlobalFlag doSetGlobalFlag reportCONS reportCDR reportListContainsItem doDeleteFromList doInsertInList doReplaceInList reifyReporter reifyPredicate reportRound reportMonadic reportRandom reportLetter reportUnicode reportIsA reportVariadicIsIdentical receiveGo receiveKey receiveInteraction receiveMessage doBroadcast doBroadcastAndWait getLastMessage doWarp doWait doWaitUntil doForever doRepeat doUntil doStopThis fork evaluate doCallCC reportCallCC receiveOnClone createClone removeClone getPosition reportGetImageAttribute reportNewCostumeStretched reportNewCostume getEffect reportShown doPlaySoundAtRate reportGetSoundAttribute reportNewSoundFromSamples doSetInstrument changeVolume setVolume getVolume changePan setPan getPan playFreq stopFreq getPenDown getPenAttribute floodFill write reportPenTrailsAsCostume doPasteOn doCutFrom receiveCondition reportIfElse doTellTo reportAskFor newClone doPauseAll doSwitchToScene doDefineBlock doDeleteBlock doSetBlockAttribute reportBlockAttribute reportThisContext reportMousePosition reportAspect reportDate reportGet reportObject reportAudio reportVideo doSetVideoTransparency reportVariadicSum reportVariadicProduct reportPower reportTextSplit reportUnicodeAsLetter doDeleteAttr reportNumbers reportListIndex reportListIsEmpty reportMap reportKeep reportFindFirst reportCombine doForEach reportConcatenatedLists reportReshape reportCrossproduct doMapCodeOrHeader doMapValueCode doMapListCode reportMappedCode doRun reportPipe doHideVar reifyScript reportJoinWords receiveUserEdit doSayFor bubble doFor doIf doIfElse doReport reportStringSize doSetVar doChangeVar doShowVar doDeclareVariables reportNewList doAddToList reportListItem reportListAttribute reportDifference reportQuotient reportModulus reportVariadicLessThan reportVariadicEquals reportVariadicGreaterThan reportVariadicAnd reportVariadicOr reportNot reportBoolean reportJSFunction reportLessThan reportEquals reportGreaterThan reportAnd reportOr reportIsIdentical</hidden>
+            <headers/>
+            <code>
+                <string>&quot;&lt;#1&gt;&quot;</string>
+                <tempvars_delim>,</tempvars_delim>
+                <delim>,</delim>
+                <doSayFor>print &lt;#1&gt;</doSayFor>
+                <bubble>print(&lt;#1&gt;)</bubble>
+                <doIf>if &lt;#1&gt;:
+    &lt;#2&gt;</doIf>
+                <doIfElse>if &lt;#1&gt;:
+    &lt;#2&gt;
+else: 
+    &lt;#3&gt;</doIfElse>
+                <reportSum>(&lt;#1&gt; + &lt;#2&gt;)</reportSum>
+                <reportDifference>(&lt;#1&gt; - &lt;#2&gt;)</reportDifference>
+                <reportProduct>(&lt;#1&gt; * &lt;#2&gt;)</reportProduct>
+                <reportQuotient>(&lt;#1&gt; / &lt;#2&gt;)</reportQuotient>
+                <reportModulus>(&lt;#1&gt; % &lt;#2&gt;)</reportModulus>
+                <reportLessThan>(&lt;#1&gt; &lt; &lt;#2&gt;)</reportLessThan>
+                <reportEquals>(&lt;#1&gt; == &lt;#2&gt;)</reportEquals>
+                <reportGreaterThan>(&lt;#1&gt; &gt; &lt;#2&gt;)</reportGreaterThan>
+                <reportAnd>(&lt;#1&gt; &amp; &lt;#2&gt;)</reportAnd>
+                <reportOr>(&lt;#1&gt; | &lt;#2&gt;)</reportOr>
+                <reportNot>(!&lt;#1&gt;)</reportNot>
+                <reportTrue>True</reportTrue>
+                <reportFalse>False</reportFalse>
+                <reportJoinWords>(&lt;#1&gt;, &lt;#2&gt;)</reportJoinWords>
+                <reportStringSize>(&lt;#1&gt;.length)</reportStringSize>
+                <doSetVar>&lt;#1&gt; = &lt;#2&gt;</doSetVar>
+                <doChangeVar>&lt;#1&gt; += 1</doChangeVar>
+                <doShowVar>print &lt;#1&gt;</doShowVar>
+                <doDeclareVariables>#variables &lt;#1&gt;</doDeclareVariables>
+                <reportNewList>[&lt;#1&gt;]</reportNewList>
+                <reportListLength>len(&lt;#1&gt;)</reportListLength>
+                <reportListItem>&lt;#2&gt;[&lt;#1&gt; - 1]</reportListItem>
+                <doAddToList>&lt;#2&gt;.append(&lt;#1&gt;)</doAddToList>
+                <doReport>return &lt;#1&gt;</doReport>
+                <reportVariadicSum>(&lt;#1&gt; + &lt;#2&gt;)</reportVariadicSum>
+                <reportVariadicProduct>(&lt;#1&gt; * &lt;#2&gt;)</reportVariadicProduct>
+                <reportBoolean>&lt;#1&gt;</reportBoolean>
+                <reportListAttribute>len(&lt;#1&gt;)</reportListAttribute>
+                <doFor>for &lt;#1&gt; in range(&lt;#2&gt;, &lt;#3&gt;):
+    &lt;#4&gt;</doFor>
+            </code>
+            <blocks>
+                <block-definition category="Numbers" s="%'a' + %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">1</input>
+                        <input type="%n">2</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="%'a' - %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">10</input>
+                        <input type="%n">5</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="%'a' / %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">1</input>
+                        <input type="%n">3</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="%'a' * %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">3</input>
+                        <input type="%n">4</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="num-sqrt %'n'" type="reporter">
+                    <header/>
+                    <code>num-sqrt(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">16</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="num-sqr %'n'" type="reporter">
+                    <header/>
+                    <code>num-sqr(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">4</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="num-expt %'base' %'power'" type="reporter">
+                    <header/>
+                    <code>num-expt(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">2</input>
+                        <input type="%n">3</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="mean %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="median %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="modes %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Strings" s="string-length %'str'" type="reporter">
+                    <header/>
+                    <code>string-length(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">rainbow</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Strings" s="string-contains %'haystack' %'needle'" type="predicate">
+                    <header/>
+                    <code>string-contains(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">cat</input>
+                        <input type="%txt">catfood</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Strings" s="string-repeat %'string' %'count'" type="reporter">
+                    <header/>
+                    <code>string-repeat(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">hello</input>
+                        <input type="%n">2</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &lt; %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">1</input>
+                        <input type="%s">2</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &lt;= %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">3</input>
+                        <input type="%s">3</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &gt; %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">b</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &gt;= %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">b</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' == %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">a</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &lt;&gt; %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">a</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' and %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                        <input type="%b">false</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' or %'b'" type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                        <input type="%b">false</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="not %'expr' " type="reporter">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="star %'radius' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">red</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="circle %'radius' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>circle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">yellow</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="square %'side' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>square(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">blue</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="triangle %'side' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>triangle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">green</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="ellipse %'width' %'height' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>ellipse(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">100</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">purple</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="rhombus %'side' %'angle' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>rhombus(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%n">90</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">orange</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="regular-polygon %'side' %'num-sides' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>regular-polygon(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">6</input>
+                        <input type="%n">100</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">pink</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="radial-star %'points' %'inner-radius' %'outer-radius' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>radial-star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;,&lt;#5&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">5</input>
+                        <input type="%n">100</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">red</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="rectangle %'width' %'height' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>rectangle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">150</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">orange</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="text %'string' %'font-size' %'color'" type="reporter">
+                    <header/>
+                    <code>text(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">hello!</input>
+                        <input type="%n">100</input>
+                        <input type="%txt">blue</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="rotate %'degrees' %'img'" type="reporter">
+                    <header/>
+                    <code>rotate(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">45</input>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="scale %'factor' %'img'" type="reporter">
+                    <header/>
+                    <code>scale(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">2</input>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="scale-xy %'x-factor' %'y-factor' %'img'" type="reporter">
+                    <header/>
+                    <code>scale-xy(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">2</input>
+                        <input type="%n">3</input>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="overlay %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>overlay(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="above %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>above(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="beside %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>beside(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="below %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>below(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="flip-horizontal %'img'" type="reporter">
+                    <header/>
+                    <code>flip-horizontal(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="flip-vertical %'img'" type="reporter">
+                    <header/>
+                    <code>flip-horizontal(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="put-image %'top-img' %'x' %'y' %'bottom-img'" type="reporter">
+                    <header/>
+                    <code>put-image(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%n"/>
+                        <input type="%n"/>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="image-url %'url'" type="reporter">
+                    <header/>
+                    <code>image-url(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">https://bootstrapworld.org/images/icon.png</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="bar-chart %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>bar-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-bar-chart %'table' %'column' %'f'" type="reporter">
+                    <header/>
+                    <code>image-bar-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="pie-chart %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>pie-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-pie-chart %'table' %'column' %'f'" type="reporter">
+                    <header/>
+                    <code>pie-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="stacked-bar-chart %'table' %'group' %'subgroup'" type="reporter">
+                    <header/>
+                    <code>stacked-bar-chart(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="multi-bar-chart %'table' %'group' %'subgroup'" type="reporter">
+                    <header/>
+                    <code>multi-bar-chart(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="box-plot %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>box-plot(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="modified-box-plot %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>modified-box-plot(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="histogram %'table' %'labels' %'values' %'bin-width'" type="reporter">
+                    <header/>
+                    <code>histogram(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%n"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-histogram %'table' %'values' %'bin-width' %'f'" type="reporter">
+                    <header/>
+                    <code>image-histogram(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="scatter-plot %'table' %'labels' %'x-values' %'y-values'" type="reporter">
+                    <header/>
+                    <code>scatter-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-scatter-plot %'table' %'x-values' %'y-values' %'f'" type="reporter">
+                    <header/>
+                    <code>scatter-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="lr-plot %'table' %'labels' %'x-values' %'y-values'" type="reporter">
+                    <header/>
+                    <code>lr-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-lr-plot %'table' %'x-values' %'y-values' %'f'" type="reporter">
+                    <header/>
+                    <code>image-lr-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="count %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>count(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="row-n %'table' %'index'" type="reporter">
+                    <header/>
+                    <code>row-n(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%n"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="sort %'table' %'column' %'ascending?'" type="reporter">
+                    <header/>
+                    <code>sort(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%b"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="random-rows %'table' %'num-rows'" type="reporter">
+                    <header/>
+                    <code>random-rows(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%n"/>
+                        <input type="%b"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="filter %'table' %'test'" type="reporter">
+                    <header/>
+                    <code>filter(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%predRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="build-column %'table' %'label' %'test'" type="reporter">
+                    <header/>
+                    <code>build-column(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%predRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="other" s="map to Pyret" type="command">
+                    <header/>
+                    <code/>
+                    <translations/>
+                    <inputs/>
+                    <script>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyScript">
+                                <script>
+                                    <block s="doIfElse">
+                                        <l/>
+                                        <script/>
+                                        <script/>
+                                    </block>
+                                </script>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>if &lt;#1&gt;:
+    &lt;#2&amp;gt ;
+else: 
+    &lt;#3&gt;
+end</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="num-sqrt %n">
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>num-sqrt(&lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%n + %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; + &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%n - %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; - &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%n * %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; * &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%n / %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; / &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="num-sqr %n">
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>num-sqr(&lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="num-expt %n %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>num-expt(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%s &lt; %s">
+                                        <l>1</l>
+                                        <l>2</l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; &lt; &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%s &lt;= %s">
+                                        <l>3</l>
+                                        <l>3</l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; &lt;= &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%s &gt; %s">
+                                        <l>a</l>
+                                        <l>b</l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; &gt; &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%s &gt;= %s">
+                                        <l>a</l>
+                                        <l>b</l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; &gt;= &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%s == %s">
+                                        <l>a</l>
+                                        <l>a</l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; == &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%s &lt;&gt; %s">
+                                        <l>a</l>
+                                        <l>a</l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; &lt;&gt; &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%b and %b">
+                                        <l>
+                                            <bool>true</bool>
+                                        </l>
+                                        <l>
+                                            <bool>false</bool>
+                                        </l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; and &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="%b or %b">
+                                        <l>
+                                            <bool>true</bool>
+                                        </l>
+                                        <l>
+                                            <bool>false</bool>
+                                        </l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(&lt;#1&gt; or &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="not %b">
+                                        <l>
+                                            <bool>true</bool>
+                                        </l>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>(not &lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="mean %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>mean(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="median %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>median(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="modes %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>modes(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="string-length %txt">
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>string-length(&lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="string-repeat %txt %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>string-repeat(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="star %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>star(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="circle %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>circle(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="square %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>square(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="triangle %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>triangle(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="ellipse %n %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>ellipse(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="rhombus %n %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>rhombus(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="regular-polygon %n %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>regular-polygon(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="radial-star %n %n %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>radial-star(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="rectangle %n %n %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>rectangle(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="text %txt %n %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>text(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="rotate %n %s">
+                                        <l>45</l>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>rotate(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="scale %n %s">
+                                        <l>2</l>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>scale(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="scale-xy %n %n %s">
+                                        <l>2</l>
+                                        <l>3</l>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>scale-xy(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="overlay %s %s">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>overlay(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="above %s %s">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>above(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="beside %s %s">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>beside(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="below %s %s">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>below(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="flip-horizontal %s">
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>flip-horizontal(&lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="flip-vertical %s">
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>flip-vertical(&lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="put-image %s %n %n %s">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>put-image(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="image-url %txt">
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>image-url(&lt;#1&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="bar-chart %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>bar-chart(&lt;#1&gt;. &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="image-pie-chart %s %txt %repRing">
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>image-pie-chart(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="pie-chart %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>pie-chart(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="image-bar-chart %s %txt %repRing">
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l/>
+                            <l>image-bar-chart(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="stacked-bar-chart %s %txt %s">
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>stacked-bar-chart(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="multi-bar-chart %s %txt %s">
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>multi-bar-chart(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="box-plot %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>box-plot(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="modified-box-plot %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>modified-box-plot(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="histogram %s %txt %txt %n">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>histogram(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="image-histogram %s %txt %txt %repRing">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>image-histogram(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="scatter-plot %s %txt %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>scatter-plot(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="image-scatter-plot %s %txt %txt %repRing">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>image-scatter-plot(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="lr-plot %s %txt %txt %txt">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>lr-plot(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="image-lr-plot %s %txt %txt %repRing">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyReporter">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>image-lr-plot(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;, &lt;#4&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="count %s %txt">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>county(&lt;1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="row-n %s %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>row-n(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="sort %s %txt %b">
+                                        <l/>
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>sort(&lt;#1&gt;, &lt;#2&gt;, &lt;#3&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="random-rows %s %n">
+                                        <l/>
+                                        <l/>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>random-rows(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="filter %s %predRing">
+                                        <l/>
+                                        <block s="reifyPredicate">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>filter(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                        <block s="doMapCodeOrHeader">
+                            <block s="reifyReporter">
+                                <autolambda>
+                                    <custom-block s="build-column %s %txt %predRing">
+                                        <l/>
+                                        <l/>
+                                        <block s="reifyPredicate">
+                                            <script/>
+                                            <list/>
+                                        </block>
+                                    </custom-block>
+                                </autolambda>
+                                <list/>
+                            </block>
+                            <l>
+                                <option>code</option>
+                            </l>
+                            <l>build-column(&lt;#1&gt;, &lt;#2&gt;)</l>
+                        </block>
+                    </script>
+                </block-definition>
+            </blocks>
+            <stage codify="true" color="255,255,255,1" costume="0" height="360" hyperops="true" id="1082" inheritance="true" lines="round" name="Stage" pan="0" penlog="false" sublistIDs="false" tempo="60" ternary="true" threadsafe="false" volume="100" width="480">
+                <pentrails>data:image/png;base64,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</pentrails>
+                <costumes>
+                    <list id="1083" struct="atomic"/>
+                </costumes>
+                <sounds>
+                    <list id="1084" struct="atomic"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveUserEdit">
+                            <l>Sprite</l>
+                            <list/>
+                        </block>
+                        <block s="doBroadcast">
+                            <l>changed</l>
+                            <list/>
+                        </block>
+                    </script>
+                    <script x="20" y="94">
+                        <block s="receiveMessage">
+                            <l>changed</l>
+                            <list/>
+                        </block>
+                        <block s="doBroadcast">
+                            <l>update</l>
+                            <list>
+                                <l>
+                                    <option>all</option>
+                                </l>
+                                <block s="reportMappedCode">
+                                    <block s="reportObject">
+                                        <l>Sprite</l>
+                                    </block>
+                                </block>
+                            </list>
+                        </block>
+                    </script>
+                </scripts>
+                <sprites select="1">
+                    <sprite color="0,173.4,90.168,1" costume="0" draggable="true" heading="90" hidden="true" id="1111" idx="1" name="Sprite" pan="0" pen="tip" rotation="1" scale="1" volume="100" x="157" y="-156">
+                        <costumes>
+                            <list id="1112" struct="atomic"/>
+                        </costumes>
+                        <sounds>
+                            <list id="1113" struct="atomic"/>
+                        </sounds>
+                        <blocks/>
+                        <variables/>
+                        <scripts/>
+                    </sprite>
+                    <watcher color="243,118,29" hidden="true" style="normal" var="script" x="1.5" y="1"/>
+                </sprites>
+            </stage>
+            <variables/>
+        </scene>
+    </scenes>
+</project>
