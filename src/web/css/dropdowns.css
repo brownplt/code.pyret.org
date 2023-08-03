@@ -1,8 +1,12 @@
-/* Taken from https://www.cssscript.com/minimal-accessible-dropdown-menu/ */
+/* Adapted from https://www.cssscript.com/minimal-accessible-dropdown-menu/ */
 
 .dropdown {
 	position: relative;
 	display: inline-block;
+}
+
+.dropdown li {
+	list-style-type: none;
 }
 
 .dropdown-toggle::after {

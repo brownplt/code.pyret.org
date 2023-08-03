@@ -175,7 +175,6 @@ class StudentDashboard extends Component {
           Open editor
         </button></a>
         <button className="dropdown-toggle" data-dd-target="first" aria-label="Dropdown Menu">
-          <code id="current-whitelist-ctx"></code>
         </button>
         <ul className="dropdown-menu" data-dd-path="first">
           {items}
