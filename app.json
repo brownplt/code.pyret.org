@@ -81,12 +81,6 @@
     },
     "USE_STANDALONE_PYRET": {
       "required": true
-    },
-    "WHITELISTED_CTXS": {
-      "required": true
-    },
-    "DEFAULT_CTX": {
-      "required": true
     }
   },
   "formation": {

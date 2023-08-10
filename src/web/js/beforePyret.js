@@ -124,19 +124,7 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
-
-  let CONTEXT_FOR_NEW_FILES = "use context " + process.env.DEFAULT_CTX + "\n";
-  let pop_ctx_modal = false;
-  let whitelist = process.env.WHITELISTED_CTXS.split(", ");
-  let cur_url = new URL(document.location.href);
-  let parms = cur_url.searchParams;
-
-  if (whitelist.includes(parms.get("ctx"))) {
-    CONTEXT_FOR_NEW_FILES = "use context " + parms.get("ctx") + "\n";
-  } else if (parms.get("ctx") === "_") {
-    pop_ctx_modal = true;
-  }
-
+  const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -484,10 +472,9 @@ $(function() {
       element.append(entry);
       return element;
     }
-
     const namespaceResult = new modalPrompt({
         title: "Choose a Context",
-        style: "ctxDropdown",
+        style: "text",
         options: [
           {
             drawElement: drawElement,
@@ -1423,9 +1410,4 @@ $(function() {
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
-
-
-  if (pop_ctx_modal) {
-    $('#choose-context').trigger('click');
-  } 
 });
