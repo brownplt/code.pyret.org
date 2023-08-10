@@ -26,7 +26,7 @@ define("cpo/modal-prompt", ["q"], function(Q) {
   // Allows asynchronous requesting of prompts
   var promptQueue = Q();
   var styles = [
-    "radio", "tiles", "text", "copyText", "confirm"
+    "radio", "tiles", "text", "copyText", "confirm", "ctxDropdown"
   ];
 
   window.modals = [];
@@ -61,6 +61,8 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     } else if (this.options.style === "copyText") {
       this.elts = $("<div>").addClass("choiceContainer");
     } else if (this.options.style === "confirm") {
+      this.elts = $("<div>").addClass("choiceContainer");
+    } else if (this.options.style === "ctxDropdown") {
       this.elts = $("<div>").addClass("choiceContainer");
     } else {
       this.elts = $($.parseHTML("<div></div>")).addClass("choiceContainer");
@@ -226,6 +228,46 @@ define("cpo/modal-prompt", ["q"], function(Q) {
       return $("<p>").text(option.message);
     }
 
+    function createContextDropdown(option) {
+      let whitelist = process.env.WHITELISTED_CTXS.split(", ");
+
+      const modal_template = document.querySelector("#ctx-modal-template");
+      const drop_template = document.querySelector("#dropdown-template");
+      const drop_clone = drop_template.content.firstElementChild.cloneNode(true);
+      const modal_clone = modal_template.content.firstElementChild.cloneNode(true);
+
+      $("#modal-dropdown-placeholder", modal_clone).append(drop_clone);
+
+      const item_template = document.querySelector("#dropdown-menu-item-template");
+
+      // populate the options in the dropdown menu using a base template, and the list of whitelisted contexts
+      const to_fill = $(".dropdown-menu", modal_clone);
+      const dropdown_items = whitelist.map(ctx => {
+        const item_clone = $(item_template.content.firstElementChild.cloneNode(true));
+        const item_code = $("a code", item_clone);
+        item_code.text(ctx);
+        return item_clone;
+      });
+
+      to_fill.append(dropdown_items);
+      bindDropdown(modal_clone);
+
+      $("#whitelisted-radio", modal_clone).on("click", () => {
+        $("#manual-ctx-text-input", modal_clone).hide();
+        $(".dropdown", modal_clone).show();
+      });
+      $("#manual-radio", modal_clone).on("click", () => {
+        $("#manual-ctx-text-input", modal_clone).show();
+        $(".dropdown", modal_clone).hide();
+      });
+      $(".dropdown-menu__link", modal_clone).on("click", (evt) => {
+        $("#current-whitelist-ctx", modal_clone).text(evt.target.innerText);
+      });
+      $("#current-whitelist-ctx", modal_clone).text(process.env.DEFAULT_CTX);
+
+      return modal_clone;
+    }
+
     var that = this;
 
     function createElt(option, i) {
@@ -244,6 +286,9 @@ define("cpo/modal-prompt", ["q"], function(Q) {
       else if(that.options.style === "confirm") {
         return createConfirmElt(option);
       }
+      else if(that.options.style === "ctxDropdown"){
+        return createContextDropdown(option);
+      }
     }
 
     var optionElts;
@@ -255,7 +300,11 @@ define("cpo/modal-prompt", ["q"], function(Q) {
 //    } else {
 //      optionElts = this.compiledElts;
 //    }
-    $("input[type='radio']", optionElts[0]).attr('checked', true);
+
+    // Really not sure why this line was here, but I don't want my choice of "checked" overridden for ctxDropdown
+    if (this.options.style !== "ctxDropdown") {
+      $("input[type='radio']", optionElts[0]).attr('checked', true);
+    }
     this.elts.append(optionElts);
     $(".modal-body", this.modal).empty().append(this.elts);
   };
@@ -286,6 +335,15 @@ define("cpo/modal-prompt", ["q"], function(Q) {
     }
     else if(this.options.style === "confirm") {
       var retval = true;
+    }
+    else if(this.options.style === "ctxDropdown") {
+      var retval;
+
+      if ($("#manual-radio").prop("checked")) {
+        retval = $("#ctx-input").val().trim();
+      } else {
+        retval = $("#current-whitelist-ctx").text().trim();
+      }
     }
     else {
       var retval = true; // Just return true if they clicked submit

@@ -1,0 +1,61 @@
+/* Adapted from https://www.cssscript.com/minimal-accessible-dropdown-menu/ */
+
+.dropdown {
+	position: relative;
+	display: inline-block;
+}
+
+.dropdown li {
+	list-style-type: none;
+}
+
+.dropdown-toggle::after {
+	content: '';
+	display: inline-block;
+	margin-left: 5px;
+	vertical-align: 3px;
+	border-top: 4px solid;
+	border-right: 4px solid transparent;
+	border-left: 4px solid transparent;
+}
+
+.dropdown-menu {
+	position: absolute;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+
+	top: 100%;
+	left: 0;
+	z-index: 999;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 4px;
+	background-color: #fff;
+	min-width: 100%;
+	padding: 10px 0;
+}
+
+.dropdown-menu--active {
+	opacity: 1;
+	visibility: visible; 
+}
+
+.dropdown-menu__link {
+	display: block;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	padding: 7px 10px;
+	background-color: transparent;
+	border: none;
+	text-decoration: none;
+	color: black;
+}
+
+.dropdown-menu__link--active {
+	background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.dropdown-menu__link:hover {
+	background-color: rgba(0, 0, 0, 0.05);
+}
