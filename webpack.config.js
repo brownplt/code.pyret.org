@@ -48,8 +48,6 @@ module.exports = {
       'process.env.PYRET_BACKUP': JSON.stringify(process.env.PYRET_BACKUP),
       'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL),
       'process.env.CURRENT_PYRET_RELEASE': JSON.stringify(process.env.CURRENT_PYRET_RELEASE),
-      'process.env.WHITELISTED_CTXS': JSON.stringify(process.env.WHITELISTED_CTXS),
-      'process.env.DEFAULT_CTX': JSON.stringify(process.env.DEFAULT_CTX),
     }),
   ],
   optimization: { minimize: IS_PRODUCTION },
