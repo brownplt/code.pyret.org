@@ -513,11 +513,11 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   function onEditorResize() {
     canvas.attr("width", replMain.width())
           .attr("height", replMain.height());
-    CPO.blocksIDE.changed();
-    CPO.blocksIDE.bounds = new Rectangle(0, 0, replMain.width(), replMain.height());
+    CPO.blocksIDE.setWidth(replMain.width());
+    CPO.blocksIDE.setHeight(replMain.height());
     CPO.blocksIDE.rerender();
-    world.changed();
-    world.bounds = new Rectangle(0, 0, replMain.width(), replMain.height());
+    world.setWidth(replMain.width());
+    world.setHeight(replMain.height());
     world.rerender();
   }
   var r = new ResizeObserver(onEditorResize);
