@@ -742,7 +742,7 @@ $(function() {
             return null;
           }
           else {
-            return p.save(CPO.blocksIDE.currentSprite.scriptsOnlyXML(), false);
+            return p.save(CPO.blocksIDE.getProjectXML(), false);
           }
         }).then(function(p) {
           if(p !== null) {
@@ -1287,7 +1287,7 @@ $(function() {
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
     CPO.blocksIDELoaded.then(blocksIDE => {
-      //blocksIDE.currentSprite.synchScriptsFrom(c);
+      CPO.blocksIDE.loadProjectXML(c);
     })
     CPO.editor.cm.clearHistory();
   });
