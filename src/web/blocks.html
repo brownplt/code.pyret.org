@@ -505,7 +505,7 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     .attr("id", "world")
     .attr("width", "10000")
     .attr("height", "10000")
-    .attr("style", "position: absolute; z-index:100000; border: 1px solid black;");
+    .attr("style", "position: absolute; left: 0; right: 0; z-index:8500; border: 1px solid black;");
   $("#main").prepend(canvas);
   var localStorageKey = "snap-blocks-draft"
   var onBlocksIDELoaded;
@@ -535,6 +535,7 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   world = new WorldMorph(document.getElementById('world'), false);
   CPO.blocksIDE.openIn(world);
   CPO.blocksIDE.addMessageListener('update', txt => {
+    console.log('current source\n', txt);
     CPO.editor.cm.setValue(txt);
     localStorage.setItem(localStorageKey, CPO.blocksIDE.currentSprite.scriptsOnlyXML());
   });
