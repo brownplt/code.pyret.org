@@ -1175,11 +1175,7 @@ $(function() {
   // shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
 
-  var codeContainer = $("<div>").addClass("replMain");
-  codeContainer.attr("role", "region").
-    attr("aria-label", "Definitions");
-    //attr("tabIndex", "-1");
-  $("#main").prepend(codeContainer);
+  var codeContainer = $(".replMain")
 
 
   if(params["get"]["hideDefinitions"]) {

@@ -363,6 +363,7 @@
 <div id="toolbar"></div>
 <div id="loader"><p>Raising the masts...</p></div>
 <div id="main">
+<div class="replMain" role="region" aria-label="Definitions"> </div>
 <!-- MODAL PROMPT (Adapted from W3Schools' example) -->
 <div id="promptModal" class="modal">
   <div class="modal-content">
@@ -500,13 +501,27 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
 });
 </script>
 <script>
+  var replMain = $(".replMain");
   var canvas = $("<canvas>")
     .addClass("snapCanvas")
     .attr("id", "world")
-    .attr("width", "10000")
-    .attr("height", "10000")
-    .attr("style", "position: absolute; left: 0; right: 0; z-index:8500; border: 1px solid black;");
-  $("#main").prepend(canvas);
+    .attr("width", replMain.width())
+    .attr("height", replMain.height())
+    .attr("style", " position: absolute; left: 0; right: 0; z-index:8500; border: 1px solid black;");
+  replMain.prepend(canvas);
+  // Found docs here: https://github.com/jmoenig/morphic.js/blob/master/morphic.txt
+  function onEditorResize() {
+    canvas.attr("width", replMain.width())
+          .attr("height", replMain.height());
+    CPO.blocksIDE.changed();
+    CPO.blocksIDE.bounds = new Rectangle(0, 0, replMain.width(), replMain.height());
+    CPO.blocksIDE.rerender();
+    world.changed();
+    world.bounds = new Rectangle(0, 0, replMain.width(), replMain.height());
+    world.rerender();
+  }
+  var r = new ResizeObserver(onEditorResize);
+  r.observe(replMain[0]);
   var localStorageKey = "snap-blocks-draft"
   var onBlocksIDELoaded;
   CPO.blocksIDELoaded = new Promise((resolve) => {
