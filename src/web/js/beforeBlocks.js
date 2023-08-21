@@ -1274,17 +1274,24 @@ $(function() {
     }
   });
 
+  const defaultContextPlusSpace = new RegExp(CONTEXT_FOR_NEW_FILES + "\\s*");
+
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-    if(c === "") {
-      c = CONTEXT_FOR_NEW_FILES;
+    if(c === "" || c.match(defaultContextPlusSpace) !== null) {
+      console.log("Got a plain text file: ", c);
+      return;
+      // TODO(joe): figure out how to programmatically insert context
+      // Could report an error like the below, but that's wrong for the new
+      // file case when things truly are empty.
+      //window.stickError("Tried to load a plain Pyret file in blocks mode.");
     }
 
-    // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
-    // in which undo can revert the program back to empty
     CPO.blocksIDELoaded.then(blocksIDE => {
       CPO.blocksIDE.loadProjectXML(c);
     })
+    // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
+    // in which undo can revert the program back to empty
     CPO.editor.cm.clearHistory();
   });
 
