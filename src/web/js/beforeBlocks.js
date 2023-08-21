@@ -1284,12 +1284,9 @@ $(function() {
       c = CONTEXT_FOR_NEW_FILES;
     }
     else if(c.match(looksLikeUseContext) !== null) {
-      console.log("Got a plain text file: ", c);
+      window.stickError("Tried to load a plain Pyret file in blocks mode.");
+      console.error("Got a plain text file: ", c);
       return;
-      // TODO(joe): figure out how to programmatically insert context
-      // Could report an error like the below, but that's wrong for the new
-      // file case when things truly are empty.
-      //window.stickError("Tried to load a plain Pyret file in blocks mode.");
     }
 
     CPO.blocksIDELoaded.then(blocksIDE => {
