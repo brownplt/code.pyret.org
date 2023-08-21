@@ -124,7 +124,7 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
-  const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
+  const CONTEXT_FOR_NEW_FILES = '<scriptsonly app="Snap! 9.0, https://snap.berkeley.edu" version="2"><script x="0" y="0"><custom-block s="use context essentials2021"></custom-block></script></scriptsonly>';
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -742,7 +742,9 @@ $(function() {
             return null;
           }
           else {
-            return p.save(CPO.blocksIDE.getProjectXML(), false);
+            let toSave = CPO.blocksIDE.getSpriteScriptsXML();
+            console.log("Saving " , toSave);
+            return p.save(toSave, false);
           }
         }).then(function(p) {
           if(p !== null) {
@@ -1274,11 +1276,14 @@ $(function() {
     }
   });
 
-  const defaultContextPlusSpace = new RegExp(CONTEXT_FOR_NEW_FILES + "\\s*");
+  const looksLikeUseContext = new RegExp("^use context.*");
 
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-    if(c === "" || c.match(defaultContextPlusSpace) !== null) {
+    if(c === "") { 
+      c = CONTEXT_FOR_NEW_FILES;
+    }
+    else if(c.match(looksLikeUseContext) !== null) {
       console.log("Got a plain text file: ", c);
       return;
       // TODO(joe): figure out how to programmatically insert context
@@ -1288,7 +1293,7 @@ $(function() {
     }
 
     CPO.blocksIDELoaded.then(blocksIDE => {
-      CPO.blocksIDE.loadProjectXML(c);
+      CPO.blocksIDE.loadSpriteScriptsXML(c);
     })
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
