@@ -674,7 +674,7 @@ else:
                 </block-definition>
                 <block-definition category="Images" s="flip-horizontal %'img'" type="reporter">
                     <header/>
-                    <code>flip-horizontal(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <code>flip-horizontal(&lt;#1&gt;)</code>
                     <translations/>
                     <inputs>
                         <input type="%s"/>
@@ -687,7 +687,7 @@ else:
                 </block-definition>
                 <block-definition category="Images" s="flip-vertical %'img'" type="reporter">
                     <header/>
-                    <code>flip-horizontal(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <code>flip-vertical(&lt;#1&gt;)</code>
                     <translations/>
                     <inputs>
                         <input type="%s"/>
