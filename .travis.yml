@@ -62,6 +62,8 @@ before_deploy:
 install:
 - npm update # to update Pyret to the newest version
 - npm ci --ignore-scripts
+- git submodule init
+- git submodule update
 - make web
 - make deploy-cpo-main
 deploy:
