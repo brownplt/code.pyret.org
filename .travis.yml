@@ -60,10 +60,10 @@ before_deploy:
 - heroku config:set --app pyret-horizon GIT_BRANCH=$GIT_REV
 - rvm $(travis_internal_ruby) --fuzzy do ruby -S gem install faraday -v 1.8.0 # https://travis-ci.community/t/heroku-deploy-fails-installing-dpl-heroku-encounters-faraday-error/12563/2
 install:
-- npm update # to update Pyret to the newest version
-- npm ci --ignore-scripts
 - git submodule init
 - git submodule update
+- npm update # to update Pyret to the newest version
+- npm ci --ignore-scripts
 - make web
 - make deploy-cpo-main
 deploy:
