@@ -124,7 +124,7 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
-  const CONTEXT_FOR_NEW_FILES = "use context essentials2021\n";
+  const CONTEXT_FOR_NEW_FILES = '<scriptsonly app="Snap! 9.0, https://snap.berkeley.edu" version="2"><script x="0" y="0"><custom-block s="use context essentials2021"></custom-block></script></scriptsonly>';
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -405,7 +405,7 @@ $(function() {
           var id = response.result.value;
           original.removeClass("hidden");
           original.click(function() {
-            window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+            window.open(window.APP_BASE_URL + "/blocks#program=" + id, "_blank");
           });
         });
       });
@@ -434,11 +434,11 @@ $(function() {
 
   $("#download a").click(function() {
     var downloadElt = $("#download a");
-    var contents = CPO.editor.cm.getValue();
+    var contents = CPO.blocksIDE.currentSprite.scriptsOnlyXML();
     var downloadBlob = window.URL.createObjectURL(new Blob([contents], {type: 'text/plain'}));
-    if(!filename) { filename = 'untitled_program.arr'; }
-    if(filename.indexOf(".arr") !== (filename.length - 4)) {
-      filename += ".arr";
+    if(!filename) { filename = 'untitled_program.xml'; }
+    if(filename.indexOf(".xml") !== (filename.length - 4)) {
+      filename += ".xml";
     }
     downloadElt.attr({
       download: filename,
@@ -684,7 +684,7 @@ $(function() {
   }
 
   function newEvent(e) {
-    window.open(window.APP_BASE_URL + "/editor");
+    window.open(window.APP_BASE_URL + "/blocks");
   }
 
   function saveEvent(e) {
@@ -724,7 +724,7 @@ $(function() {
       }
       if(create) {
         programToSave = storageAPI
-          .then(function(api) { return api.createFile(useName); })
+          .then(function(api) { return api.createFile(useName, {fileExtension: "xml"}); })
           .then(function(p) {
             // showShareContainer(p); TODO(joe): figure out where to put this
             history.pushState(null, null, "#program=" + p.getUniqueId());
@@ -742,7 +742,9 @@ $(function() {
             return null;
           }
           else {
-            return p.save(CPO.editor.cm.getValue(), false);
+            let toSave = CPO.blocksIDE.getSpriteScriptsXML();
+            console.log("Saving " , toSave);
+            return p.save(toSave, false);
           }
         }).then(function(p) {
           if(p !== null) {
@@ -1175,11 +1177,7 @@ $(function() {
   // shareAPI.makeHoverMenu($("#bonniemenu"), $("#bonniemenuContents"), false, function(){});
 
 
-  var codeContainer = $("<div>").addClass("replMain");
-  codeContainer.attr("role", "region").
-    attr("aria-label", "Definitions");
-    //attr("tabIndex", "-1");
-  $("#main").prepend(codeContainer);
+  var codeContainer = $(".replMain")
 
 
   if(params["get"]["hideDefinitions"]) {
@@ -1278,19 +1276,24 @@ $(function() {
     }
   });
 
+  const looksLikeUseContext = new RegExp("^use context.*");
+
   programLoaded.then(function(c) {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
-    if(c === "") {
+    if(c === "") { 
       c = CONTEXT_FOR_NEW_FILES;
     }
+    else if(c.match(looksLikeUseContext) !== null) {
+      window.stickError("Tried to load a plain Pyret file in blocks mode.");
+      console.error("Got a plain text file: ", c);
+      return;
+    }
 
+    CPO.blocksIDELoaded.then(blocksIDE => {
+      CPO.blocksIDE.loadSpriteScriptsXML(c);
+    })
     // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
     // in which undo can revert the program back to empty
-    if (c.startsWith("<scriptsonly")) {
-      // this is blocks file. Open it with /blocks
-      window.location.href = window.location.href.replace('editor', 'blocks');
-    }
-    CPO.editor.cm.setValue(c);
     CPO.editor.cm.clearHistory();
   });
 

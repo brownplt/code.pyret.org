@@ -537,6 +537,20 @@ function start(config, onServerReady) {
     });
   });
 
+  app.get("/blocks", function(req, res) {
+    res.render("blocks.html", {
+      PYRET: process.env.PYRET,
+      BASE_URL: config.baseUrl,
+      GOOGLE_API_KEY: config.google.apiKey,
+      GOOGLE_APP_ID: config.google.appId,
+      CSRF_TOKEN: req.csrfToken(),
+      LOG_URL: config.logURL,
+      GIT_REV : config.gitRev,
+      GIT_BRANCH: config.gitBranch,
+      POSTMESSAGE_ORIGIN: process.env.POSTMESSAGE_ORIGIN
+    });
+  });
+
   app.get(/\/ide(\/.*)?$/, function(req, res) {
     res.render(
       path.resolve(__dirname, "web", "ide.html"),
