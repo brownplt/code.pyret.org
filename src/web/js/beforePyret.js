@@ -1284,12 +1284,12 @@ $(function() {
       c = CONTEXT_FOR_NEW_FILES;
     }
 
-    // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
-    // in which undo can revert the program back to empty
     if (c.startsWith("<scriptsonly")) {
       // this is blocks file. Open it with /blocks
       window.location.href = window.location.href.replace('editor', 'blocks');
     }
+    // NOTE(joe): Clearing history to address https://github.com/brownplt/pyret-lang/issues/386,
+    // in which undo can revert the program back to empty
     CPO.editor.cm.setValue(c);
     CPO.editor.cm.clearHistory();
   });
