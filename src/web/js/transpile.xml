@@ -184,7 +184,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
-                <block-definition category="Functions" s="apply %'name' ( %'arg' )" type="reporter">
+                <block-definition category="Functions" s="%'name' ( %'arg' )" type="reporter">
                     <header/>
                     <code>&lt;#1&gt;(&lt;#2&gt;)</code>
                     <translations/>
