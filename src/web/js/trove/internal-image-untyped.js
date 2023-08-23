@@ -108,7 +108,9 @@
       "reflect-x": ["arrow", ["Image"], "Image"],
       "reflect-y": ["arrow", ["Image"], "Image"],
       "frame": ["arrow", ["Image"], "Image"],
+      "color-frame": ["arrow", ["ColorString", "Image"], "Image"],
       "draw-pinhole": ["arrow", ["Image"], "Image"],
+      "color-pinhole": ["arrow", ["ColorString", "Image"], "Image"],
       "crop": ["arrow", ["Number", "Number", "Number", "Number", "Image"], "Image"],
       "line": ["arrow", ["Number", "Number", "ColorString"], "Image"],
       "add-line": ["arrow", ["Image", "Number", "Number", "Number", "Number", "ColorString"], "Image"],
@@ -157,8 +159,6 @@
     var ffi = runtime.ffi;
 
     var isString = runtime.isString;
-
-    console.log("From untyped: ", imageLib);
 
     var image = runtime.getField(imageLib, "internal");
     var colorDb = image.colorDb;
@@ -223,7 +223,7 @@
       if (!runtime.ffi.isList(val)) return false;
       var cur = val;
       var gf = runtime.getField;
-      while (runtime.unwrap(ffi.isLink(cur))) {
+      while (ffi.isLink(cur)) {
         var f = gf(cur, "first");
         if (!checkImagePred(f)) return false;
         cur = gf(cur, "rest");
@@ -350,19 +350,19 @@
 
     f("is-image-color", function(maybeColor) {
       checkArity(1, arguments, "image", false);
-      return runtime.wrap(image.isColorOrColorString(maybeColor));
+      return image.isColorOrColorString(maybeColor);
     });
     f("is-mode", function(maybeMode) {
       checkArity(1, arguments, "is-mode", false);
-      return runtime.wrap(isMode(maybeMode));
+      return isMode(maybeMode);
     });
     f("is-x-place", function(maybeXPlace) {
       checkArity(1, arguments, "is-x-place", false);
-      return runtime.wrap(isPlaceX(maybeXPlace));
+      return isPlaceX(maybeXPlace);
     });
     f("is-y-place", function(maybeYPlace) {
       checkArity(1, arguments, "is-y-place", false);
-      return runtime.wrap(isPlaceY(maybeYPlace));
+      return isPlaceY(maybeYPlace);
     });
 
 

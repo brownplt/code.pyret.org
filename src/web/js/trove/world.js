@@ -499,7 +499,11 @@
               ctx.fillStyle = "rgba(255,255,255,1)";
               ctx.fillRect(0, 0, width, height);
               ctx.restore();
-              theImage.render(ctx, 0, 0);
+              ctx.save();
+              ctx.translate(theImage.getWidth() / 2, theImage.getHeight() / 2);
+              ctx.translate(- theImage.getCenterX(), - theImage.getCenterY());
+              theImage.render(ctx);
+              ctx.restore();
               success([toplevelNode, reusableCanvasNode]);
             });
       };

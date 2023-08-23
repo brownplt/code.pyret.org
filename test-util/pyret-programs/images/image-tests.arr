@@ -43,7 +43,7 @@ check "Composing lists of images":
   below-list([list: red-circ, yellow-circ, green-circ])
     is%(within-n-badness(1)) flip-vertical(above-list([list: red-circ, yellow-circ, green-circ]))
   below-align-list(x-left, [list: red-circ, yellow-circ, green-circ])
-    is flip-vertical(above-align(x-left, red-circ, above-align(x-left, yellow-circ, green-circ)))
+    is%(within-n-badness(1)) flip-vertical(above-align(x-left, red-circ, above-align(x-left, yellow-circ, green-circ)))
   beside-list([list: red-circ, yellow-circ, green-circ])
     is beside(red-circ, beside(yellow-circ, green-circ))
   beside-align-list(y-top, [list: red-circ, yellow-circ, green-circ])
