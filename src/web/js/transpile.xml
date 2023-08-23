@@ -66,7 +66,7 @@ else:
                 </block-definition>
                 <block-definition category="other" s="use context shared-gdrive %'name' %'id'" type="reporter">
                     <header/>
-                    <code>shared-gdrive(&lt;#1&gt;, &lt;#2&gt;)</code>
+                    <code>use context shared-gdrive(&lt;#1&gt;, &lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
                         <input type="%txt"/>
@@ -720,6 +720,36 @@ else:
                     <translations/>
                     <inputs>
                         <input type="%txt">https://bootstrapworld.org/images/icon.png</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="load-spreadsheet %'link'" type="reporter">
+                    <header/>
+                    <code>load-spreadsheet(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">Google Sheet URL</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="load-table from %'sheet' tab of %'spreadsheet' $nl naming columns: %'columns'" type="reporter">
+                    <header/>
+                    <code>load-table: &lt;#3&gt;
+              source: &lt;#2&gt;.sheet-by-name(&lt;#1&gt;, true)
+            end</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%s"/>
+                        <input type="%mult%txt"/>
                     </inputs>
                     <script>
                         <block s="doReport">
