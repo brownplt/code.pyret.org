@@ -1039,6 +1039,27 @@ default-bar-chart-series = {
   default-interval-color: none
 }
 
+type IntervalChartSeries = {
+  tab :: TableIntern,
+  axisdata :: Option<AxisData>,
+  color :: Option<I.Color>,
+  colors :: Option<RawArray<I.Color>>,
+  pointers :: Option<RawArray<Pointer>>,
+  pointer-color :: Option<I.Color>,
+  horizontal :: Boolean,
+  default-interval-color :: Option<I.Color>
+}
+
+default-interval-chart-series = {
+  color: none,
+  colors: none,
+  pointers: none,
+  pointer-color: none,
+  axisdata: none,
+  horizontal: false,
+  default-interval-color: none,
+}
+
 type MultiBarChartSeries = { 
   tab :: TableIntern,
   axisdata :: Option<AxisData>,
@@ -1235,6 +1256,27 @@ default-bar-chart-window-object :: BarChartWindowObject = default-chart-window-o
   y-max: none,
 }
 
+type IntervalChartWindowObject = {
+  title :: String,
+  width :: Number,
+  height :: Number,
+  backgroundColor :: Option<I.Color>,
+  borderSize :: Number,
+  borderColor :: Option<I.Color>,
+  render :: ( -> IM.Image),
+  x-axis :: String,
+  y-axis :: String,
+  y-min :: Option<Number>,
+  y-max :: Option<Number>,
+}
+
+default-interval-chart-window-object :: IntervalChartWindowObject = default-chart-window-object.{
+  x-axis: '',
+  y-axis: '',
+  y-min: none,
+  y-max: none,
+}
+
 type HistogramChartWindowObject = {
   title :: String,
   width :: Number,
@@ -1378,6 +1420,26 @@ data DataSeries:
     error-bars: single-error-bars-method,
     interval-color: interval-color-method, 
     constr: {(): bar-chart-series},
+  | interval-chart-series(obj :: IntervalChartSeries) with:
+    is-single: false,
+    color: color-method,
+    colors: color-list-method,
+    sort: default-sort-method,
+    sort-by: sort-method,
+    sort-by-label: label-sort-method,
+    add-pointers: axis-pointer-method,
+    pointer-color: pointer-color-method,
+    format-axis: format-axis-data-method,
+    make-axis: make-axis-data-method,
+    scale: scale-method,
+    method horizontal(self, b :: Boolean):
+      self.constr()(self.obj.{horizontal: b})
+    end,
+    annotations: single-annotations-method,
+    intervals: single-intervals-method,
+    error-bars: single-error-bars-method,
+    interval-color: interval-color-method,
+    constr: {(): interval-chart-series},
   | multi-bar-chart-series(obj :: MultiBarChartSeries) with: 
     is-single: true,
     colors: color-list-method,
@@ -1459,6 +1521,12 @@ data ChartWindow:
     max: max-method,
   | bar-chart-window(obj :: BarChartWindowObject) with:
     constr: {(): bar-chart-window},
+    x-axis: x-axis-method,
+    y-axis: y-axis-method,
+    y-min: y-min-method,
+    y-max: y-max-method,
+  | interval-chart-window(obj :: IntervalChartWindowObject) with:
+    constr: {(): interval-chart-window},
     x-axis: x-axis-method,
     y-axis: y-axis-method,
     y-min: y-min-method,
@@ -1873,6 +1941,38 @@ fun stacked-bar-chart-from-list(
   data-series.make-axis(max-positive-height, max-negative-height)
 end
 
+fun residual-chart-from-list(
+  xs :: P.LoN,
+  ys :: P.LoN,
+  residuals :: P.LoN
+) -> DataSeries block:
+  doc: ```
+       Consumes a list of x's, a list of y's, and a list of residuals
+       and constructs an line plot with stick intervals pointing
+       from each y to the corresponding residual
+       ```
+  xs-length = xs.length()
+  ys-length = ys.length()
+  residuals-length = residuals.length()
+  when xs-length <> ys-length:
+    raise('residual-chart: xs and ys should have the same length')
+  end
+  when xs-length <> residuals-length:
+    raise('residual-chart: residuals should have the same length as xs and ys')
+  end
+  when xs-length == 0:
+    raise('residual-chart: need at least one datum')
+  end
+  xs.each(check-num)
+  ys.each(check-num)
+  residuals.each(check-num)
+
+  residual-strings = map(num-to-string, residuals)
+  default-interval-chart-series.{
+    tab: to-table3-n(xs, ys, residuals), #new
+  } ^ interval-chart-series
+end
+
 fun box-plot-from-list(values :: P.LoLoN) -> DataSeries:
   doc: "Consume values, a list of list of numbers and construct a box chart"
   labels = for map_n(i from 1, _ from values): [sprintf: 'Box ', i] end
@@ -2026,6 +2126,13 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.bar-chart(self, obj)
         end
       } ^ bar-chart-window
+    | interval-chart-series(obj) =>
+      default-interval-chart-window-object.{
+        method render(self):
+          _ = check-render-y-axis(self)
+          P.interval-chart(self, obj)
+        end
+      } ^ interval-chart-window
     | multi-bar-chart-series(obj) => 
       default-bar-chart-window-object.{
         method render(self):
@@ -2449,4 +2556,5 @@ from-list = {
   freq-bar-chart: freq-bar-chart-from-list,
   labeled-box-plot: labeled-box-plot-from-list,
   box-plot: box-plot-from-list,
+  residual-chart: residual-chart-from-list,
 }

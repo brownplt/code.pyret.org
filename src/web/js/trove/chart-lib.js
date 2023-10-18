@@ -13,7 +13,8 @@
       'multi-bar-chart': "tany",
       'histogram': "tany",
       'box-plot': "tany",
-      'plot': "tany"
+      'plot': "tany",
+      'interval-chart': "tany",
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
@@ -769,6 +770,35 @@
         });
       }
     };
+  }
+
+  function intervalChart(globalOptions, rawData) {
+    const table = get(rawData, 'tab');
+    const data = new google.visualization.DataTable();
+    data.addColumn('number', 'x');
+    data.addColumn('number', 'values');
+    data.addColumn({id: 'i0', type: 'number', role: 'interval'});
+    data.addColumn({id: 'i1', type: 'number', role: 'interval'});
+
+    data.addRows(table.map(row => [row[0], row[1], row[1], row[2]]));
+
+    const options = {
+      curveType: 'function',
+      lineWidth: 2,
+      intervals: { style:'sticks', lineWidth: 2,  },
+      interval: {
+       'i0': { 'color': 'red', 'style':'bars', 'barWidth':0, 'lineWidth':1, 'pointSize':0, 'fillOpacity':1 },
+       'i1': { 'color': '#E49307', 'style':'bars', 'barWidth':0, 'lineWidth':4, 'pointSize':5, 'fillOpacity':1 },
+      },
+    };
+
+    return {
+      data: data,
+      options: options,
+      chartType: google.visualization.LineChart,
+      onExit: defaultImageReturn,
+    }
+
   }
 
   function multiBarChart(globalOptions, rawData) {
@@ -1585,6 +1615,7 @@ ${labelRow}`;
       'histogram': makeFunction(histogram),
       'box-plot': makeFunction(boxPlot),
       'plot': makeFunction(plot),
+      'interval-chart': makeFunction(intervalChart),
     }, 
     {
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
