@@ -510,11 +510,11 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     canvas.css({ "width": replMain.width(), "height": replMain.height() });
     canvas.attr("width", replMain.width());
     canvas.attr("height", replMain.height());
-    CPO.blocksIDE.setWidth(replMain.width());
-    CPO.blocksIDE.setHeight(replMain.height());
     world.setWidth(replMain.width());
     world.setHeight(replMain.height());
     world.rerender();
+    CPO.blocksIDE.setWidth(replMain.width());
+    CPO.blocksIDE.setHeight(replMain.height());
     CPO.blocksIDE.rerender();
   }
   var r = new ResizeObserver(onEditorResize);
