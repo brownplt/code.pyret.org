@@ -506,17 +506,20 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   replMain.prepend(canvas);
   // Found docs here: https://github.com/jmoenig/morphic.js/blob/master/morphic.txt
   function onEditorResize() {
-    canvas.attr("width", replMain.width())
-          .attr("height", replMain.height());
+    console.log(replMain, replMain[0]);
+    canvas.css({ "width": replMain.width(), "height": replMain.height() });
+    canvas.attr("width", replMain.width());
+    canvas.attr("height", replMain.height());
     CPO.blocksIDE.setWidth(replMain.width());
     CPO.blocksIDE.setHeight(replMain.height());
-    CPO.blocksIDE.rerender();
     world.setWidth(replMain.width());
     world.setHeight(replMain.height());
     world.rerender();
+    CPO.blocksIDE.rerender();
   }
   var r = new ResizeObserver(onEditorResize);
   r.observe(replMain[0]);
+  console.log(replMain, replMain[0]);
   var localStorageKey = "snap-blocks-draft"
   var onBlocksIDELoaded;
   CPO.blocksIDELoaded = new Promise((resolve) => {

@@ -313,8 +313,6 @@
     function withRepl(repl) {
       var runButton = $("#runButton");
 
-      var docmain = document.getElementById('main');
-      var docreplMain = docmain.getElementsByClassName('replMain');
       var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
