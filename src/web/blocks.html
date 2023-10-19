@@ -504,6 +504,18 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     .attr("height", replMain.height())
     .attr("style", " position: absolute; left: 0; right: 0; z-index:8500; border: 1px solid black;");
   replMain.prepend(canvas);
+  // https://stackoverflow.com/questions/69469814/how-can-i-throttle-a-resizeobserver
+  // but also completed by copilot
+  function debounce(f, delay) {
+    var timeout;
+    return function() {
+      var args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(function() {
+        f.apply(null, args);
+      }, delay);
+    };
+  }
   // Found docs here: https://github.com/jmoenig/morphic.js/blob/master/morphic.txt
   function onEditorResize() {
     canvas.css({ "width": replMain.width(), "height": replMain.height() });
@@ -511,12 +523,11 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     canvas.attr("height", replMain.height());
     world.setWidth(replMain.width());
     world.setHeight(replMain.height());
-    world.rerender();
     CPO.blocksIDE.setWidth(replMain.width());
     CPO.blocksIDE.setHeight(replMain.height());
     CPO.blocksIDE.rerender();
   }
-  var r = new ResizeObserver(onEditorResize);
+  var r = new ResizeObserver(debounce(onEditorResize, 10));
   r.observe(replMain[0]);
   var localStorageKey = "snap-blocks-draft"
   var onBlocksIDELoaded;
