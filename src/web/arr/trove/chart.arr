@@ -1966,10 +1966,10 @@ fun residual-chart-from-list(
   xs.each(check-num)
   ys.each(check-num)
   residuals.each(check-num)
+  yprimes = map2(lam(y, offset): y + offset end, ys, residuals)
 
-  residual-strings = map(num-to-string, residuals)
   default-interval-chart-series.{
-    tab: to-table3-n(xs, ys, residuals), #new
+    tab: to-table3-n(xs, ys, yprimes), #new
   } ^ interval-chart-series
 end
 
