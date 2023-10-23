@@ -1051,10 +1051,10 @@ type IntervalChartSeries = {
 }
 
 default-interval-chart-series = {
-  color: none,
+  color: some(C.red),
   colors: none,
   pointers: none,
-  pointer-color: none,
+  pointer-color: some(C.color(228, 147, 7, 1)),
   axisdata: none,
   horizontal: false,
   default-interval-color: none,

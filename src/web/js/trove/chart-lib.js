@@ -780,6 +780,10 @@
     data.addColumn({id: 'i0', type: 'number', role: 'interval'});
     data.addColumn({id: 'i1', type: 'number', role: 'interval'});
 
+    const color = get_default_color(rawData);
+
+    const pointer_color = get_pointer_color(rawData);
+
     data.addRows(table.map(row => [row[0], row[1], row[1], row[2]]));
 
     const options = {
@@ -787,8 +791,8 @@
       lineWidth: 2,
       intervals: { style:'sticks', lineWidth: 2,  },
       interval: {
-       'i0': { 'color': 'red', 'style':'bars', 'barWidth':0, 'lineWidth':1, 'pointSize':0, 'fillOpacity':1 },
-       'i1': { 'color': '#E49307', 'style':'bars', 'barWidth':0, 'lineWidth':4, 'pointSize':5, 'fillOpacity':1 },
+       'i0': { 'color': color, 'style':'bars', 'barWidth':0, 'lineWidth':1, 'pointSize':0, 'fillOpacity':1 },
+       'i1': { 'color': pointer_color, 'style':'bars', 'barWidth':0, 'lineWidth':4, 'pointSize':5, 'fillOpacity':1 },
       },
     };
 
