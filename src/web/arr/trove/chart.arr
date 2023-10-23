@@ -1046,6 +1046,8 @@ type IntervalChartSeries = {
   colors :: Option<RawArray<I.Color>>,
   pointers :: Option<RawArray<Pointer>>,
   pointer-color :: Option<I.Color>,
+  point-size :: Number,
+  lineWidth :: Number,
   horizontal :: Boolean,
   default-interval-color :: Option<I.Color>
 }
@@ -1055,6 +1057,8 @@ default-interval-chart-series = {
   colors: none,
   pointers: none,
   pointer-color: some(C.color(228, 147, 7, 1)),
+  point-size: 4,
+  lineWidth: 1,
   axisdata: none,
   horizontal: false,
   default-interval-color: none,

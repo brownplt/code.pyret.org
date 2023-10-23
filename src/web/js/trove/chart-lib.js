@@ -784,15 +784,21 @@
 
     const pointer_color = get_pointer_color(rawData);
 
+    const point_size = get(rawData, 'point-size');
+
+    const lineWidth = get(rawData, 'lineWidth');
+
     data.addRows(table.map(row => [row[0], row[1], row[1], row[2]]));
 
     const options = {
       curveType: 'function',
-      lineWidth: 2,
+      lineWidth: 0,
       intervals: { style:'sticks', lineWidth: 2,  },
       interval: {
-       'i0': { 'color': color, 'style':'bars', 'barWidth':0, 'lineWidth':1, 'pointSize':0, 'fillOpacity':1 },
-       'i1': { 'color': pointer_color, 'style':'bars', 'barWidth':0, 'lineWidth':4, 'pointSize':5, 'fillOpacity':1 },
+        'i0': { 'color': color, 'style': 'bars', 'barWidth': 0, 'lineWidth': lineWidth,
+          'pointSize': 0, 'fillOpacity': 1 },
+        'i1': { 'color': pointer_color, 'style': 'bars', 'barWidth': 0, 'lineWidth': 4,
+          'pointSize': point_size, 'fillOpacity': 1 },
       },
     };
 
