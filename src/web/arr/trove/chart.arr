@@ -1043,7 +1043,6 @@ type IntervalChartSeries = {
   tab :: TableIntern,
   axisdata :: Option<AxisData>,
   color :: Option<I.Color>,
-  colors :: Option<RawArray<I.Color>>,
   pointers :: Option<RawArray<Pointer>>,
   pointer-color :: Option<I.Color>,
   point-size :: Number,
@@ -1054,7 +1053,6 @@ type IntervalChartSeries = {
 
 default-interval-chart-series = {
   color: some(C.red),
-  colors: none,
   pointers: none,
   pointer-color: some(C.color(228, 147, 7, 1)),
   point-size: 4,
@@ -1945,32 +1943,32 @@ fun stacked-bar-chart-from-list(
   data-series.make-axis(max-positive-height, max-negative-height)
 end
 
-fun residual-chart-from-list(
+fun interval-chart-from-list(
   xs :: P.LoN,
   ys :: P.LoN,
-  residuals :: P.LoN
+  deltas :: P.LoN
 ) -> DataSeries block:
   doc: ```
-       Consumes a list of x's, a list of y's, and a list of residuals
+       Consumes a list of x's, a list of y's, and a list of deltas
        and constructs an line plot with stick intervals pointing
-       from each y to the corresponding residual
+       from each y to the corresponding delta
        ```
   xs-length = xs.length()
   ys-length = ys.length()
-  residuals-length = residuals.length()
+  deltas-length = deltas.length()
   when xs-length <> ys-length:
-    raise('residual-chart: xs and ys should have the same length')
+    raise('interval-chart: xs and ys should have the same length')
   end
-  when xs-length <> residuals-length:
-    raise('residual-chart: residuals should have the same length as xs and ys')
+  when xs-length <> deltas-length:
+    raise('interval-chart: deltas should have the same length as xs and ys')
   end
   when xs-length == 0:
-    raise('residual-chart: need at least one datum')
+    raise('interval-chart: need at least one datum')
   end
   xs.each(check-num)
   ys.each(check-num)
-  residuals.each(check-num)
-  yprimes = map2(lam(y, offset): y + offset end, ys, residuals)
+  deltas.each(check-num)
+  yprimes = map2(lam(y, delta): y + delta end, ys, deltas)
 
   default-interval-chart-series.{
     tab: to-table3-n(xs, ys, yprimes), #new
@@ -2560,5 +2558,5 @@ from-list = {
   freq-bar-chart: freq-bar-chart-from-list,
   labeled-box-plot: labeled-box-plot-from-list,
   box-plot: box-plot-from-list,
-  residual-chart: residual-chart-from-list,
+  interval-chart: interval-chart-from-list,
 }
