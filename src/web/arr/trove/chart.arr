@@ -1434,6 +1434,13 @@ data DataSeries:
     format-axis: format-axis-data-method,
     make-axis: make-axis-data-method,
     scale: scale-method,
+    lineWidth: line-width-method,
+    method point-size(self, point-size :: Number) block:
+      when point-size < 0:
+        raise("point-size: Point Size must be non-negative")
+      end
+      self.constr()(self.obj.{point-size: point-size})
+    end,
     method horizontal(self, b :: Boolean):
       self.constr()(self.obj.{horizontal: b})
     end,
