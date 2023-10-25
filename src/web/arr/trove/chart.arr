@@ -333,6 +333,13 @@ line-width-method = method(self, lineWidth :: Number) block:
   self.constr()(self.obj.{lineWidth: lineWidth})
 end
 
+style-method = method(self, style :: String) block:
+  when not(string-equal(style, "sticks")) and not(string-equal(style, "bars")):
+    raise("style: must be either sticks or bars")
+  end
+  self.constr()(self.obj.{style: style})
+end
+
 curve-method = method(self, curved :: Boolean):
   if curved: self.constr()(self.obj.{curved: "function"})
   else: self.constr()(self.obj.{curved: "none"})
@@ -1047,6 +1054,7 @@ type IntervalChartSeries = {
   pointer-color :: Option<I.Color>,
   point-size :: Number,
   lineWidth :: Number,
+  style :: String,
   horizontal :: Boolean,
   default-interval-color :: Option<I.Color>
 }
@@ -1059,6 +1067,7 @@ default-interval-chart-series = {
   lineWidth: 1,
   axisdata: none,
   horizontal: false,
+  style: "bars",
   default-interval-color: none,
 }
 
@@ -1435,6 +1444,7 @@ data DataSeries:
     make-axis: make-axis-data-method,
     scale: scale-method,
     lineWidth: line-width-method,
+    style: style-method,
     method point-size(self, point-size :: Number) block:
       when point-size < 0:
         raise("point-size: Point Size must be non-negative")

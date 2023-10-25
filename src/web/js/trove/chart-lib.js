@@ -780,13 +780,13 @@
     data.addColumn({id: 'i0', type: 'number', role: 'interval'});
     data.addColumn({id: 'i1', type: 'number', role: 'interval'});
 
-    const color = get_default_color(rawData);
+    const style = get(rawData, 'style');
 
-    const pointer_color = get_pointer_color(rawData);
+    const stickColor = get_default_color(rawData);
+    const stickWidth = get(rawData, 'lineWidth');
 
-    const point_size = get(rawData, 'point-size');
-
-    const lineWidth = get(rawData, 'lineWidth');
+    const pointColor = get_pointer_color(rawData);
+    const pointSize = get(rawData, 'point-size');
 
     data.addRows(table.map(row => [row[0], row[1], row[1], row[2]]));
 
@@ -795,10 +795,22 @@
       lineWidth: 0,
       intervals: { style:'sticks', lineWidth: 2,  },
       interval: {
-        'i0': { 'color': color, 'style': 'bars', 'barWidth': 0, 'lineWidth': lineWidth,
-          'pointSize': 0, 'fillOpacity': 1 },
-        'i1': { 'color': pointer_color, 'style': 'bars', 'barWidth': 0, 'lineWidth': 4,
-          'pointSize': point_size, 'fillOpacity': 1 },
+        'i0': {
+          'style': style,
+          'color': stickColor,
+          'lineWidth': stickWidth,
+          'barWidth': 0,
+          'pointSize': 0,
+          'fillOpacity': 1,
+        },
+        'i1': {
+          'style': style,
+          'color': pointColor,
+          'pointSize': pointSize,
+          'barWidth': 0,
+          'lineWidth': 4,
+          'fillOpacity': 1,
+        },
       },
     };
 
