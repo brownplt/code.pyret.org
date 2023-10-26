@@ -334,7 +334,7 @@ line-width-method = method(self, lineWidth :: Number) block:
 end
 
 style-method = method(self, style :: String) block:
-  when not(string-equal(style, "sticks")) and not(string-equal(style, "bars")):
+  when not(string-equal(style, "sticks")) and not(string-equal(style, "bars")) and not(string-equal(style, "boxes")):
     raise("style: must be either sticks or bars")
   end
   self.constr()(self.obj.{style: style})

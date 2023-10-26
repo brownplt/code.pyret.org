@@ -788,6 +788,8 @@
     const pointColor = get_pointer_color(rawData);
     const pointSize = get(rawData, 'point-size');
 
+    const fillOpacity = (style == 'boxes') ? 0 : 1;
+
     data.addRows(table.map(row => [row[0], row[1], row[1], row[2]]));
 
     const options = {
@@ -801,7 +803,7 @@
           'lineWidth': stickWidth,
           'barWidth': 0,
           'pointSize': 0,
-          'fillOpacity': 1,
+          'fillOpacity': fillOpacity,
         },
         'i1': {
           'style': style,
@@ -809,7 +811,7 @@
           'pointSize': pointSize,
           'barWidth': 0,
           'lineWidth': 4,
-          'fillOpacity': 1,
+          'fillOpacity': fillOpacity,
         },
       },
     };
