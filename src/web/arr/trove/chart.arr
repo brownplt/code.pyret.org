@@ -335,7 +335,7 @@ end
 
 style-method = method(self, style :: String) block:
   when not(string-equal(style, "sticks")) and not(string-equal(style, "bars")) and not(string-equal(style, "boxes")):
-    raise("style: must be either sticks or bars")
+    raise("style: must be either sticks, bars, or boxes")
   end
   self.constr()(self.obj.{style: style})
 end
