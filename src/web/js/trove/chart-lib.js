@@ -783,14 +783,19 @@
     const style = get(rawData, 'style');
 
     const stickColor = get_default_color(rawData);
-    const stickWidth = get(rawData, 'lineWidth');
+    const stickWidth = toFixnum(get(rawData, 'lineWidth'));
 
     const pointColor = get_pointer_color(rawData);
-    const pointSize = get(rawData, 'point-size');
+    const pointSize = toFixnum(get(rawData, 'point-size'));
 
     const fillOpacity = (style == 'boxes') ? 0 : 1;
 
-    data.addRows(table.map(row => [row[0], row[1], row[1], row[2]]));
+    data.addRows(table.map(row => [
+      toFixnum(row[0]),
+      toFixnum(row[1]),
+      toFixnum(row[1]),
+      toFixnum(row[2]),
+    ]));
 
     const options = {
       curveType: 'function',
