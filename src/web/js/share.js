@@ -124,7 +124,7 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
             text: importCode
           },
           {
-            message: "You can also click Update below to copy the current version to the published version, or click Close to exit this window."
+            message: "You can also click Update below to copy the current version to the published version, or click Cancel to exit this window."
           }
         ]
       });
@@ -179,71 +179,6 @@ window.makeShareAPI = function makeShareAPI(pyretVersion) {
     else {
       return "M";
     }
-  }
-
-  function autoHighlightBox(text) {
-    var textBox = $("<input type='text'>").addClass("auto-highlight");
-    textBox.attr("size", text.length);
-    textBox.attr("editable", false);
-    textBox.on("focus", function() { $(this).select(); });
-    textBox.on("mouseup", function() { $(this).select(); });
-    textBox.val(text);
-    return textBox;
-  }
-
-  function getLanguage() {
-    if(typeof navigator !== "undefined") {
-      return navigator.language || "en-US"; // Biased towards USA
-    }
-    else {
-      return "en-US";
-    }
-  }
-
-  var dateOptions = {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric"
-  };
-
-  function drawShareRow(f) {
-    var container = $("<div>").addClass("sharebox");
-    var shareUrl = makeShareUrl(f.getUniqueId());
-    var displayDate = new Date(f.getModifiedTime()).toLocaleString(getLanguage, dateOptions);
-    var hoverDate = String(new Date(f.getModifiedTime()));
-    container.append($("<label>").text(displayDate).attr("alt", hoverDate));
-    var shareLink = $("<a href='javascript:void()'>").text("(Share Link)").addClass("copy-link");
-    var importLink = $("<a href='javascript:void()'>").text("(Import Code)").addClass("copy-link");
-    container.append(shareLink);
-    container.append(importLink);
-    function showCopyText(title, text) {
-      var linkDiv = $("<div>").css({"z-index": 15000});
-      linkDiv.dialog({
-        title: title,
-        modal: true,
-			  overlay : { opacity: 0.5, background: 'black'},
-        width : "70%",
-        height : "auto",
-        closeOnEscape : true
-      });
-      var box = autoHighlightBox(text);
-      linkDiv.append(box);
-      box.focus();
-    }
-    shareLink.click(function() {
-      showCopyText("Copy Share Link", shareUrl);
-    });
-
-    var importLetter = getImportLetter(f.getName()[0]);
-    var importCode = "import shared-gdrive(\"" + f.getName() +
-        "\", \"" + f.getUniqueId() + "\") as " + importLetter;
-    importLink.click(function() {
-      showCopyText("Copy Import Code", importCode);
-    });
-    return container;
   }
 
   return {
