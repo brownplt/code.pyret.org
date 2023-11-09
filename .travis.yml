@@ -18,6 +18,8 @@ before_install:
 - npm install -g heroku-cli
 - export PATH=$PATH:node_modules/.bin/
 install:
+- git submodule init
+- git submodule update
 - npm update # to update Pyret to the newest version
 - npm ci --ignore-scripts
 - make web
