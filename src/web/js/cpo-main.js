@@ -313,18 +313,6 @@
     function withRepl(repl) {
       var runButton = $("#runButton");
 
-      var docmain = document.getElementById('main');
-      var docreplMain = docmain.getElementsByClassName('replMain');
-      if (docreplMain.length === 0) {
-
-      var codeContainer = $("<div>").addClass("replMain");
-      codeContainer.attr("role", "region").
-        attr("aria-label", "Definitions").
-        attr("tabindex", "-1");
-      $("#main").prepend(codeContainer);
-
-      }
-
       var replWidget =
           replUI.makeRepl(replContainer, repl, runtime, {
             breakButton: $("#breakButton"),
