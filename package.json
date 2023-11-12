@@ -23,7 +23,7 @@
     "colorspaces": "0.1.4",
     "cookie-parser": "^1.0.1",
     "cookie-session": "^1.0.1",
-    "css-loader": "^3.4.0",
+    "css-loader": "^6.8.1",
     "csurf": "^1.1.0",
     "d3": "~3",
     "d3-tip": "git://github.com/sorawee/d3-tip.git",
