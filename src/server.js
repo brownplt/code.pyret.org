@@ -4,10 +4,6 @@ var path = require('path');
 var uuid = require('node-uuid');
 const { google } = require("googleapis");
 const { drive } = require("googleapis/build/src/apis/drive/index.js");
-const fs = require('fs');
-
-const https = require('https');
-https.globalAgent.options.ca = fs.readFileSync('node_modules/node_extra_ca_certs_mozilla_bundle/ca_bundle/ca_intermediate_root_bundle.pem');
 
 var BACKREF_KEY = "originalProgram";
 
@@ -21,6 +17,7 @@ function start(config, onServerReady) {
   var request = require('request');
   var mustache = require('mustache-express');
   var url = require('url');
+  var fs = require('fs');
 
   function loggedIn(req) {
     var session = req.session;
