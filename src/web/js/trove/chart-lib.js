@@ -14,7 +14,6 @@
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany",
-      'interval-chart': "tany",
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
@@ -772,63 +771,6 @@
     };
   }
 
-  function intervalChart(globalOptions, rawData) {
-    const table = get(rawData, 'tab');
-    const data = new google.visualization.DataTable();
-    data.addColumn('number', 'x');
-    data.addColumn('number', 'values');
-    data.addColumn({id: 'i0', type: 'number', role: 'interval'});
-    data.addColumn({id: 'i1', type: 'number', role: 'interval'});
-
-    const style = get(rawData, 'style');
-
-    const stickColor = get_default_color(rawData);
-    const stickWidth = toFixnum(get(rawData, 'lineWidth'));
-
-    const pointColor = get_pointer_color(rawData);
-    const pointSize = toFixnum(get(rawData, 'point-size'));
-
-    const fillOpacity = (style == 'boxes') ? 0 : 1;
-
-    data.addRows(table.map(row => [
-      toFixnum(row[0]),
-      toFixnum(row[1]),
-      toFixnum(row[1]),
-      toFixnum(row[2]),
-    ]));
-
-    const options = {
-      curveType: 'function',
-      lineWidth: 0,
-      intervals: { style:'sticks', lineWidth: 2,  },
-      interval: {
-        'i0': {
-          'style': style,
-          'color': stickColor,
-          'lineWidth': stickWidth,
-          'barWidth': 0,
-          'pointSize': 0,
-          'fillOpacity': fillOpacity,
-        },
-        'i1': {
-          'style': style,
-          'color': pointColor,
-          'pointSize': pointSize,
-          'barWidth': 0,
-          'lineWidth': 4,
-          'fillOpacity': fillOpacity,
-        },
-      },
-    };
-
-    return {
-      data: data,
-      options: options,
-      chartType: google.visualization.LineChart,
-      onExit: defaultImageReturn,
-    }
-
-  }
 
   function multiBarChart(globalOptions, rawData) {
     // Variables and Constants
@@ -1192,13 +1134,16 @@
   function plot(globalOptions, rawData) {
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
+    const intervals = get(rawData, 'intervals');
     const data = new google.visualization.DataTable();
     data.addColumn('number', 'X');
     const combined = scatters.concat(lines);
+    console.log('combined is ', JSON.stringify(combined));
+    const combined2 = combined.concat(intervals);
     const legends = [];
     let cnt = 1;
     const legendEnabled = combined.length > 1;
-    combined.forEach(p => {
+    combined.forEach((p, i) => {
       let legend = get(p, 'legend');
       if (legend === '') {
         legend = `Plot ${cnt}`;
@@ -1237,12 +1182,49 @@ ${labelRow}`;
       }));
     });
 
+    let intervalStyle,
+      intervalStickColor,
+      intervalStickWidth,
+      intervalPointColor,
+      intervalPointSize,
+      intervalFillOpacity;
+
+    intervals.forEach((p, i) => {
+      console.log('interval p is ', JSON.stringify(p));
+      const table = get(p, 'tab');
+      console.log('interval p.tab is ', JSON.stringify(table));
+      data.addColumn('number', 'x');
+      data.addColumn('number', 'values');
+      data.addColumn({id: 'i0', type: 'number', role: 'interval'});
+      data.addColumn({id: 'i1', type: 'number', role: 'interval'});
+      intervalStyle = get(p, 'style');
+      console.log('interval p.style is ', JSON.stringify(intervalStyle));
+      intervalStickColor = get_default_color(p);
+      console.log('interval p.stickColor is' , JSON.stringify(intervalStickColor));
+      intervalStickWidth = toFixnum(get(p, 'stick-width'));
+      console.log('interval p.stickWidth is' , JSON.stringify(intervalStickWidth));
+      intervalPointColor = get_pointer_color(p);
+      console.log('interval p.pointColor is' , JSON.stringify(intervalPointColor));
+      intervalPointSize = toFixnum(get(p, 'point-size'));
+      console.log('interval p.pointSize is' , JSON.stringify(intervalPointSize));
+      intervalFillOpacity = (intervalStyle == 'boxes') ? 0 : 1;
+      data.addRows(table.map(row => [
+        toFixnum(row[0]),
+        toFixnum(row[2]),
+        toFixnum(row[2]), //?
+        toFixnum(row[1]), //correct
+        toFixnum(row[2]), //correct
+      ]));
+
+    });
+
+
     // ASSERT: if we're using custom images, *every* series will have idx 3 defined
     const hasImage = combined.every(p => get(p, 'ps').filter(p => p[3]).length > 0);
 
     const options = {
       tooltip: {isHtml: true},
-      series: combined.map((p, i) => {
+      series: combined2.map((p, i) => {
         
         // scatters and then lines
         const seriesOptions = {};
@@ -1264,6 +1246,11 @@ ${labelRow}`;
           $.extend(seriesOptions, {
             pointSize: hasImage ? 0.1 : toFixnum(get(p, 'point-size')),
             dataOpacity: hasImage ? 0 : 1,
+          });
+        } else if (i - scatters.length - lines.length < intervals.length) {
+          $.extend(seriesOptions, {
+            pointSize: 0,
+            dataOpacity: 0,
           });
         }
         return seriesOptions;
@@ -1290,7 +1277,36 @@ ${labelRow}`;
         options['lineDashStyle'] = dashlineStyle;
       }
     }
-    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineType'), {
+
+    if (intervals.length != 0) {
+      options['curveType'] = 'function';
+      options['lineWidth'] = 0;
+      options['intervals'] = {
+        style: 'sticks',
+        lineWidth: 2,
+      };
+      options['interval'] = {
+          'i0': {
+            'style': intervalStyle,
+            'color': intervalStickColor,
+            'lineWidth': intervalStickWidth,
+            'barWidth': 0,
+            'pointSize': 0,
+            'fillOpacity': intervalFillOpacity,
+          },
+          'i1': {
+            'style': intervalStyle,
+            'color': intervalPointColor,
+            'pointSize': intervalPointSize,
+            'barWidth': 0,
+            'lineWidth': 4,
+            'fillOpacity': intervalFillOpacity,
+          },
+      };
+    }
+
+
+    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(combined2[0], 'trendlineType'), {
       none: function () {
         return null;
       },
@@ -1299,7 +1315,7 @@ ${labelRow}`;
       }
     });
 
-    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineColor'), {
+    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(combined2[0], 'trendlineColor'), {
       none: function () {
         return 'green';
       },
@@ -1308,9 +1324,9 @@ ${labelRow}`;
       }
     });
 
-    const trendlineWidth = toFixnum(get(combined[0], 'trendlineWidth'));
-    const trendlineOpacity = toFixnum(get(combined[0], 'trendlineOpacity'));
-    const trendlineDegree = toFixnum(get(combined[0], 'trendlineDegree'));
+    const trendlineWidth = toFixnum(get(combined2[0], 'trendlineWidth'));
+    const trendlineOpacity = toFixnum(get(combined2[0], 'trendlineOpacity'));
+    const trendlineDegree = toFixnum(get(combined2[0], 'trendlineDegree'));
 
     if (trendlineType != null) {
       options['trendlines'] = {
@@ -1328,10 +1344,10 @@ ${labelRow}`;
       options['trendlines'][0]['degree'] = trendlineDegree;
     }
 
-    const pointshapeType = get(combined[0], 'pointshapeType');
-    const pointshapeSides = toFixnum(get(combined[0], 'pointshapeSides'));
-    const pointshapeDent = toFixnum(get(combined[0], 'pointshapeDent'));
-    const pointshapeRotation = toFixnum(get(combined[0], 'pointshapeRotation'));
+    const pointshapeType = get(combined2[0], 'pointshapeType');
+    const pointshapeSides = toFixnum(get(combined2[0], 'pointshapeSides'));
+    const pointshapeDent = toFixnum(get(combined2[0], 'pointshapeDent'));
+    const pointshapeRotation = toFixnum(get(combined2[0], 'pointshapeRotation'));
     const apothem = Math.cos(Math.PI / pointshapeSides)
   
     if (pointshapeType != 'circle') {
@@ -1644,7 +1660,6 @@ ${labelRow}`;
       'histogram': makeFunction(histogram),
       'box-plot': makeFunction(boxPlot),
       'plot': makeFunction(plot),
-      'interval-chart': makeFunction(intervalChart),
     }, 
     {
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),

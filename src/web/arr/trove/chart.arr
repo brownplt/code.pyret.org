@@ -1046,31 +1046,6 @@ default-bar-chart-series = {
   default-interval-color: none
 }
 
-type IntervalChartSeries = {
-  tab :: TableIntern,
-  axisdata :: Option<AxisData>,
-  color :: Option<I.Color>,
-  pointers :: Option<RawArray<Pointer>>,
-  pointer-color :: Option<I.Color>,
-  point-size :: Number,
-  lineWidth :: Number,
-  style :: String,
-  horizontal :: Boolean,
-  default-interval-color :: Option<I.Color>
-}
-
-default-interval-chart-series = {
-  color: some(C.red),
-  pointers: none,
-  pointer-color: some(C.color(228, 147, 7, 1)),
-  point-size: 4,
-  lineWidth: 1,
-  axisdata: none,
-  horizontal: false,
-  style: "bars",
-  default-interval-color: none,
-}
-
 type MultiBarChartSeries = { 
   tab :: TableIntern,
   axisdata :: Option<AxisData>,
@@ -1178,6 +1153,58 @@ default-scatter-plot-series = {
   trendlineWidth: 3, 
   trendlineOpacity: 0.3,
   trendlineDegree: 3,  
+}
+
+type IntervalChartSeries = {
+  tab :: TableIntern,
+  axisdata :: Option<AxisData>,
+  color :: Option<I.Color>,
+  pointers :: Option<RawArray<Pointer>>,
+  pointer-color :: Option<I.Color>,
+  point-size :: Number,
+  lineWidth :: Number,
+  stick-width :: Number,
+  style :: String,
+  horizontal :: Boolean,
+  default-interval-color :: Option<I.Color>,
+  #
+  ps :: List<Posn>,
+  legend :: String,
+  trendlineType :: Option<String>,
+  trendlineColor :: Option<I.Color>,
+  trendlineWidth :: Number,
+  trendlineOpacity :: Number,
+  trendlineDegree :: NumInteger,
+  # curved :: String,
+  # dashedLine :: Boolean,
+  # dashlineStyle :: RawArray<NumInteger>,
+  pointshapeType :: String,
+  pointshapeSides :: NumInteger,
+  pointshapeDent :: Number,
+  pointshapeRotation :: Number,
+}
+
+default-interval-chart-series = {
+  color: some(C.red),
+  pointers: none,
+  pointer-color: some(C.color(228, 147, 7, 1)),
+  point-size: 4,
+  lineWidth: 0,
+  stick-width: 1,
+  axisdata: none,
+  horizontal: false,
+  style: "bars",
+  default-interval-color: none,
+  legend: '',
+  trendlineType: none,
+  trendlineColor: none,
+  trendlineWidth: 3,
+  trendlineOpacity: 0.3,
+  trendlineDegree: 3,
+  pointshapeType: 'circle',
+  pointshapeSides: 5,
+  pointshapeDent: 0.5,
+  pointshapeRotation: 0,
 }
 
 type FunctionPlotSeries = {
@@ -1445,6 +1472,7 @@ data DataSeries:
     scale: scale-method,
     lineWidth: line-width-method,
     style: style-method,
+    trendline-type: trendline-type-method,
     method point-size(self, point-size :: Number) block:
       when point-size < 0:
         raise("point-size: Point Size must be non-negative")
@@ -1986,9 +2014,16 @@ fun interval-chart-from-list(
   ys.each(check-num)
   deltas.each(check-num)
   yprimes = map2(lam(y, delta): y + delta end, ys, deltas)
+  ys_farthest = map2(lam(y, yprime):
+      if (y < 0) and (yprime < 0) and (yprime < y): yprime
+      else if (y > 0) and (yprime > 0) and (yprime > y): yprime
+      else: y
+      end
+    end, ys, yprimes)
 
   default-interval-chart-series.{
     tab: to-table3-n(xs, ys, yprimes), #new
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys_farthest, xs.map({(_): ''}), xs.map({(_): false})),
   } ^ interval-chart-series
 end
 
@@ -2134,6 +2169,7 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
     | line-plot-series(_) => render-charts([list: s])
     | function-plot-series(_) => render-charts([list: s])
     | scatter-plot-series(_) => render-charts([list: s])
+    | interval-chart-series(_) => render-charts([list: s])
     | pie-chart-series(obj) =>
       default-pie-chart-window-object.{
         method render(self): P.pie-chart(self, obj) end
@@ -2145,13 +2181,6 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.bar-chart(self, obj)
         end
       } ^ bar-chart-window
-    | interval-chart-series(obj) =>
-      default-interval-chart-window-object.{
-        method render(self):
-          _ = check-render-y-axis(self)
-          P.interval-chart(self, obj)
-        end
-      } ^ interval-chart-window
     | multi-bar-chart-series(obj) => 
       default-bar-chart-window-object.{
         method render(self):
@@ -2455,7 +2484,9 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
   is-show-samples = is-link(function-plots)
   shadow partitioned = partition(is-line-plot-series, partitioned.is-false)
   line-plots = partitioned.is-true.map(_.obj)
-  scatter-plots = partitioned.is-false.map(_.obj)
+  shadow partitioned = partition(is-scatter-plot-series, partitioned.is-false)
+  scatter-plots = partitioned.is-true.map(_.obj)
+  interval-plots = partitioned.is-false.map(_.obj)
 
   default-plot-chart-window-object.{
     method render(self):
@@ -2468,7 +2499,8 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
       _ = check-render-y-axis(self)
 
       bbox = for map(plot-pts from line-plots.map(_.ps) +
-                                   scatter-plots.map(_.ps)):
+                                   scatter-plots.map(_.ps) +
+                                   interval-plots.map(_.ps)):
         for filter(pt from plot-pts):
           cases (Option) self.x-min:
             | none => true
@@ -2522,7 +2554,11 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
           ps-to-arr(p.{ps: line-plot-edge-cut(p.ps, self)})
         end ^ reverse ^ builtins.raw-array-from-list
 
-        ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr})
+        intervals-arr = for map(p from interval-plots):
+          ps-to-arr(p.{ps: p.ps.filter(in-bound-xy(_, self))})
+        end ^ reverse ^ builtins.raw-array-from-list
+
+        ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr, intervals: intervals-arr})
         cases (E.Either<Any, IM.Image>) ret:
           | left(new-self) => helper(new-self, none)
           | right(image) => image
