@@ -1135,11 +1135,11 @@
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
     const intervals = get(rawData, 'intervals');
+    const minIntervalIndex = scatters.length + lines.length;
     const data = new google.visualization.DataTable();
     data.addColumn('number', 'X');
-    const combined = scatters.concat(lines);
-    console.log('combined is ', JSON.stringify(combined));
-    const combined2 = combined.concat(intervals);
+    const combined = scatters.concat(lines).concat(intervals);
+    console.log('combined is', combined);
     const legends = [];
     let cnt = 1;
     const legendEnabled = combined.length > 1;
@@ -1152,71 +1152,68 @@
       legends.push(legend);
       data.addColumn('number', legend);
       data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
-    });
-
-    combined.forEach((p, i) => {
-      /*
-      x | n n n | y | n n n n n n n n n n n n
-            i         combined.length - i - 1
-      */
-      const prefix = new Array(2 * i).fill(null);
-      const suffix = new Array(2 * (combined.length - i - 1)).fill(null);
-      const rowTemplate = [0].concat(prefix).concat([null, null]).concat(suffix);
-      data.addRows(get(p, 'ps').map(row => {
-        const currentRow = rowTemplate.slice();
-        if (row.length != 0) {
-          currentRow[0] = toFixnum(row[0]);
-          currentRow[2*i + 1] = toFixnum(row[1]);
-          let labelRow = null;
-          if (row.length >= 3 && row[2] !== '') {
-            labelRow = `<p>label: <b>${row[2]}</b></p>`;
-          } else {
-            labelRow = '';
-          }
-          currentRow[2*i + 2] = `<p>${legends[i]}</p>
-<p>x: <b>${currentRow[0]}</b></p>
-<p>y: <b>${currentRow[2*i + 1]}</b></p>
-${labelRow}`;
-        }
-        return currentRow;
-      }));
-    });
-
-    let intervalStyle,
-      intervalStickColor,
-      intervalStickWidth,
-      intervalPointColor,
-      intervalPointSize,
-      intervalFillOpacity;
-
-    intervals.forEach((p, i) => {
-      console.log('interval p is ', JSON.stringify(p));
-      const table = get(p, 'tab');
-      console.log('interval p.tab is ', JSON.stringify(table));
-      data.addColumn('number', 'x');
-      data.addColumn('number', 'values');
       data.addColumn({id: 'i0', type: 'number', role: 'interval'});
       data.addColumn({id: 'i1', type: 'number', role: 'interval'});
-      intervalStyle = get(p, 'style');
-      console.log('interval p.style is ', JSON.stringify(intervalStyle));
-      intervalStickColor = get_default_color(p);
-      console.log('interval p.stickColor is' , JSON.stringify(intervalStickColor));
-      intervalStickWidth = toFixnum(get(p, 'stick-width'));
-      console.log('interval p.stickWidth is' , JSON.stringify(intervalStickWidth));
-      intervalPointColor = get_pointer_color(p);
-      console.log('interval p.pointColor is' , JSON.stringify(intervalPointColor));
-      intervalPointSize = toFixnum(get(p, 'point-size'));
-      console.log('interval p.pointSize is' , JSON.stringify(intervalPointSize));
-      intervalFillOpacity = (intervalStyle == 'boxes') ? 0 : 1;
-      data.addRows(table.map(row => [
-        toFixnum(row[0]),
-        toFixnum(row[2]),
-        toFixnum(row[2]), //?
-        toFixnum(row[1]), //correct
-        toFixnum(row[2]), //correct
-      ]));
-
     });
+
+    console.log('legends is', legends);
+    console.log('data I is', data);
+
+    combined.forEach((p, i) => {
+      console.log('Ncols is', combined.length * 4);
+      const rowTemplate = new Array(combined.length * 4 + 1).fill(null);
+      const intervalP = (i >= minIntervalIndex);
+      console.log('rOwTemplate is', rowTemplate);
+      if (!intervalP) {
+        data.addRows(get(p, 'ps').map(row => {
+          // console.log('this row is', row);
+          const currentRow = rowTemplate.slice();
+          if (row.length != 0) {
+            currentRow[0] = toFixnum(row[0]);
+            currentRow[4*i + 1] = toFixnum(row[1]);
+            let labelRow = null;
+            if (row.length >= 3 && row[2] !== '') {
+              labelRow = `<p>label: <b>${row[2]}</b></p>`;
+            } else {
+              labelRow = '';
+            }
+            currentRow[4*i + 2] = `<p>${legends[i]}</p>
+<p>x: <b>${currentRow[0]}</b></p>
+<p>y: <b>${currentRow[4*i + 1]}</b></p>
+              ${labelRow}`;
+            // currentRow[4*i + 3] = 0;
+            // currentRow[4*i + 4] = 0;
+          }
+          return currentRow;
+        }));
+      } else {
+        data.addRows(get(p, 'tab').map(row => {
+          const currentRow = rowTemplate.slice();
+          if (row.length != 0) {
+            currentRow[0] = toFixnum(row[0]);
+            currentRow[4*i + 1] = toFixnum(row[1]);
+            let labelRow = null;
+            if (row.length >= 3 && row[2] !== '') {
+              labelRow = `<p>label: <b>${row[2]}</b></p>`;
+            } else {
+              labelRow = '';
+            }
+            currentRow[4*i + 2] = `<p>${legends[i]}</p>
+<p>x: <b>${currentRow[0]}</b></p>
+<p>y: <b>${currentRow[4*i + 1]}</b></p>
+              ${labelRow}`;
+            currentRow[4*i + 3] = row[1];
+            currentRow[4*i + 4] = row[2];
+          }
+          return currentRow;
+        }));
+      };
+    });
+
+
+    console.log('row setting done');
+
+
 
 
     // ASSERT: if we're using custom images, *every* series will have idx 3 defined
@@ -1224,7 +1221,7 @@ ${labelRow}`;
 
     const options = {
       tooltip: {isHtml: true},
-      series: combined2.map((p, i) => {
+      series: combined.map((p, i) => {
         
         // scatters and then lines
         const seriesOptions = {};
@@ -1248,9 +1245,43 @@ ${labelRow}`;
             dataOpacity: hasImage ? 0 : 1,
           });
         } else if (i - scatters.length - lines.length < intervals.length) {
+
+          let intervalStyle = get(p, 'style');
+          let intervalStickColor = get_default_color(p);
+          let intervalStickWidth = toFixnum(get(p, 'stick-width'));
+          let intervalFillOpacity = ((intervalStyle == 'boxes') ? 0 : 1);
+          let intervalPointColor = get_pointer_color(p);
+          let intervalPointSize = toFixnum(get(p, 'point-size'));
+
           $.extend(seriesOptions, {
-            pointSize: 0,
-            dataOpacity: 0,
+            pointSize: intervalPointSize,
+            dataOpacity: 1,
+
+            curveType: 'function',
+            lineWidth: 0,
+            intervals: { 
+              style: 'sticks',
+              lineWidth: 2,
+            },
+            interval: {
+              'i0': {
+                'style': intervalStyle,
+                  'color': intervalStickColor,
+                  'lineWidth': intervalStickWidth,
+                  'barWidth': 0,
+                  'pointSize': 0,
+                  'fillOpacity': intervalFillOpacity,
+              },
+                'i1': {
+                  'style': intervalStyle,
+                    'color': intervalPointColor,
+                    'pointSize': intervalPointSize,
+                    'barWidth': 0,
+                    'lineWidth': 4,
+                    'fillOpacity': intervalFillOpacity,
+                },
+            }
+
           });
         }
         return seriesOptions;
@@ -1260,13 +1291,15 @@ ${labelRow}`;
     };
 
     if (lines.length != 0) {
-      const curveType = get(lines[0], 'curved');
-      const lineWidth = toFixnum(get(lines[0], 'lineWidth'));
+      console.log('setting line options');
+      const line0 = lines[0];
+      const curveType = get(line0, 'curved');
+      const lineWidth = toFixnum(get(line0, 'lineWidth'));
 
       
-      const dashedLine = get(lines[0], 'dashedLine');
-      const dashlineStyle = get(lines[0], 'dashlineStyle');
-      const pointSize = toFixnum(get(lines[0], 'point-size'));
+      const dashedLine = get(line0, 'dashedLine');
+      const dashlineStyle = get(line0, 'dashlineStyle');
+      const pointSize = toFixnum(get(line0, 'point-size'));
       
 
       options['curveType'] = curveType;
@@ -1279,12 +1312,21 @@ ${labelRow}`;
     }
 
     if (intervals.length != 0) {
+      console.log('setting interval options');
+      const interval0 = intervals[0];
       options['curveType'] = 'function';
       options['lineWidth'] = 0;
       options['intervals'] = {
         style: 'sticks',
         lineWidth: 2,
       };
+      let intervalStyle = get(interval0, 'style');
+      let intervalStickColor = get_default_color(interval0);
+      let intervalStickWidth = toFixnum(get(interval0, 'stick-width'));
+      let intervalFillOpacity = (intervalStyle == 'boxes') ? 0 : 1;
+      let intervalPointColor = get_pointer_color(interval0);
+      let intervalPointSize = toFixnum(get(interval0, 'point-size'));
+
       options['interval'] = {
           'i0': {
             'style': intervalStyle,
@@ -1303,10 +1345,14 @@ ${labelRow}`;
             'fillOpacity': intervalFillOpacity,
           },
       };
+
+      console.log('interval options are', options);
     }
 
 
-    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(combined2[0], 'trendlineType'), {
+    const ser0 = combined[0];
+
+    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(ser0, 'trendlineType'), {
       none: function () {
         return null;
       },
@@ -1315,7 +1361,7 @@ ${labelRow}`;
       }
     });
 
-    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(combined2[0], 'trendlineColor'), {
+    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(ser0, 'trendlineColor'), {
       none: function () {
         return 'green';
       },
@@ -1324,9 +1370,9 @@ ${labelRow}`;
       }
     });
 
-    const trendlineWidth = toFixnum(get(combined2[0], 'trendlineWidth'));
-    const trendlineOpacity = toFixnum(get(combined2[0], 'trendlineOpacity'));
-    const trendlineDegree = toFixnum(get(combined2[0], 'trendlineDegree'));
+    const trendlineWidth = toFixnum(get(ser0, 'trendlineWidth'));
+    const trendlineOpacity = toFixnum(get(ser0, 'trendlineOpacity'));
+    const trendlineDegree = toFixnum(get(ser0, 'trendlineDegree'));
 
     if (trendlineType != null) {
       options['trendlines'] = {
@@ -1344,10 +1390,10 @@ ${labelRow}`;
       options['trendlines'][0]['degree'] = trendlineDegree;
     }
 
-    const pointshapeType = get(combined2[0], 'pointshapeType');
-    const pointshapeSides = toFixnum(get(combined2[0], 'pointshapeSides'));
-    const pointshapeDent = toFixnum(get(combined2[0], 'pointshapeDent'));
-    const pointshapeRotation = toFixnum(get(combined2[0], 'pointshapeRotation'));
+    const pointshapeType = get(ser0, 'pointshapeType');
+    const pointshapeSides = toFixnum(get(ser0, 'pointshapeSides'));
+    const pointshapeDent = toFixnum(get(ser0, 'pointshapeDent'));
+    const pointshapeRotation = toFixnum(get(ser0, 'pointshapeRotation'));
     const apothem = Math.cos(Math.PI / pointshapeSides)
   
     if (pointshapeType != 'circle') {
