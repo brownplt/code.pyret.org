@@ -1139,7 +1139,7 @@
     const data = new google.visualization.DataTable();
     data.addColumn('number', 'X');
     const combined = scatters.concat(lines).concat(intervals);
-    console.log('combined is', combined);
+    // console.log('combined is', combined);
     const legends = [];
     let cnt = 1;
     const legendEnabled = combined.length > 1;
@@ -1156,14 +1156,14 @@
       data.addColumn({id: 'i1', type: 'number', role: 'interval'});
     });
 
-    console.log('legends is', legends);
-    console.log('data I is', data);
+    // console.log('legends is', legends);
+    // console.log('data I is', data);
 
     combined.forEach((p, i) => {
-      console.log('Ncols is', combined.length * 4);
+      // console.log('Ncols is', combined.length * 4);
       const rowTemplate = new Array(combined.length * 4 + 1).fill(null);
       const intervalP = (i >= minIntervalIndex);
-      console.log('rOwTemplate is', rowTemplate);
+      // console.log('rowTemplate is', rowTemplate);
       if (!intervalP) {
         data.addRows(get(p, 'ps').map(row => {
           // console.log('this row is', row);
@@ -1210,11 +1210,7 @@
       };
     });
 
-
-    console.log('row setting done');
-
-
-
+    // console.log('row setting done');
 
     // ASSERT: if we're using custom images, *every* series will have idx 3 defined
     const hasImage = combined.every(p => get(p, 'ps').filter(p => p[3]).length > 0);
@@ -1291,7 +1287,7 @@
     };
 
     if (lines.length != 0) {
-      console.log('setting line options');
+      // console.log('setting line options');
       const line0 = lines[0];
       const curveType = get(line0, 'curved');
       const lineWidth = toFixnum(get(line0, 'lineWidth'));
@@ -1310,45 +1306,6 @@
         options['lineDashStyle'] = dashlineStyle;
       }
     }
-
-    if (intervals.length != 0) {
-      console.log('setting interval options');
-      const interval0 = intervals[0];
-      options['curveType'] = 'function';
-      options['lineWidth'] = 0;
-      options['intervals'] = {
-        style: 'sticks',
-        lineWidth: 2,
-      };
-      let intervalStyle = get(interval0, 'style');
-      let intervalStickColor = get_default_color(interval0);
-      let intervalStickWidth = toFixnum(get(interval0, 'stick-width'));
-      let intervalFillOpacity = (intervalStyle == 'boxes') ? 0 : 1;
-      let intervalPointColor = get_pointer_color(interval0);
-      let intervalPointSize = toFixnum(get(interval0, 'point-size'));
-
-      options['interval'] = {
-          'i0': {
-            'style': intervalStyle,
-            'color': intervalStickColor,
-            'lineWidth': intervalStickWidth,
-            'barWidth': 0,
-            'pointSize': 0,
-            'fillOpacity': intervalFillOpacity,
-          },
-          'i1': {
-            'style': intervalStyle,
-            'color': intervalPointColor,
-            'pointSize': intervalPointSize,
-            'barWidth': 0,
-            'lineWidth': 4,
-            'fillOpacity': intervalFillOpacity,
-          },
-      };
-
-      console.log('interval options are', options);
-    }
-
 
     const ser0 = combined[0];
 

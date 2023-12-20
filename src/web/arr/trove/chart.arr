@@ -2013,7 +2013,7 @@ fun interval-chart-from-list(
   xs.each(check-num)
   ys.each(check-num)
   deltas.each(check-num)
-  yprimes = map2(lam(y, delta): y + delta end, ys, deltas)
+  yprimes = map2(lam(y, delta): y - delta end, ys, deltas)
   ys_farthest = map2(lam(y, yprime):
       if (y < 0) and (yprime < 0) and (yprime < y): yprime
       else if (y > 0) and (yprime > 0) and (yprime > y): yprime
