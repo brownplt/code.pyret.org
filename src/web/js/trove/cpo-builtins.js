@@ -15,7 +15,9 @@
     { "import-type": "builtin", "name": "constants" },
     { "import-type": "builtin", "name": "empty-context" },
     { "import-type": "builtin", "name": "essentials2020" },
-    { "import-type": "builtin", "name": "essentials2021" }
+    { "import-type": "builtin", "name": "essentials2021" },
+    { "import-type": "builtin", "name": "essentials2024" },
+    { "import-type": "builtin", "name": "starter2024" }
   ],
   provides: {},
   nativeRequires: [],

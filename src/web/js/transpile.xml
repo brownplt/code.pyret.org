@@ -58,9 +58,9 @@ else:
     &lt;#4&gt;</doFor>
             </code>
             <blocks>
-                <block-definition category="other" s="use context essentials2021" type="command">
+                <block-definition category="other" s="use context starter2024" type="command">
                     <header/>
-                    <code>use context essentials2021</code>
+                    <code>use context starter2024</code>
                     <translations/>
                     <inputs/>
                 </block-definition>

@@ -124,7 +124,7 @@ window.CPO = {
   documents : new Documents()
 };
 $(function() {
-  const CONTEXT_FOR_NEW_FILES = '<scriptsonly app="Snap! 9.0, https://snap.berkeley.edu" version="2"><script x="0" y="0"><custom-block s="use context essentials2021"></custom-block></script></scriptsonly>';
+  const CONTEXT_FOR_NEW_FILES = '<scriptsonly app="Snap! 9.0, https://snap.berkeley.edu" version="2"><script x="0" y="0"><custom-block s="use context starter2024"></custom-block></script></scriptsonly>';
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -454,7 +454,7 @@ $(function() {
       const shared = $("<tt>shared-gdrive(...)</tt>");
       const currentContextElt = $("<tt>" + currentContext + "</tt>");
       greeting.append("Enter the context to use for the program, or choose “Cancel” to keep the current context of ", currentContextElt, ".");
-      const essentials = $("<tt>essentials2021</tt>");
+      const essentials = $("<tt>starter2024</tt>");
       const list = $("<ul>")
         .append($("<li>").append("The default is ", essentials, "."))
         .append($("<li>").append("You might use something like ", shared, " if one was provided as part of a course."));
