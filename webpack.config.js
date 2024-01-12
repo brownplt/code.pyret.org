@@ -6,6 +6,7 @@ var IS_PRODUCTION = process.env.NODE_ENV == 'production';
 var SRC_DIRECTORY = path.resolve(__dirname, 'src');
 
 module.exports = {
+  mode: IS_PRODUCTION ? 'production' : 'development',
   output: {
     path: path.resolve(__dirname, "build", "web"),
     filename: "[name].js",
