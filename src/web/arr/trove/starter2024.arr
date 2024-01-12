@@ -291,7 +291,8 @@ provide from O:
 end
 
 provide from C:
-  PI
+  PI,
+  E
 end
 
 provide from G:
