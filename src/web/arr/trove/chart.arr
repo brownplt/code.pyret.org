@@ -972,6 +972,29 @@ fun get-bounding-box(ps :: List<Posn>) -> BoundingBox:
   end
 end
 
+fun get-list-of-bounding-boxes(list-of-plots, self, other-accessor) -> List<BoundingBox>:
+  for map(plot-pts from list-of-plots):
+    for filter(pt from plot-pts):
+      cases (Option) self.x-min:
+        | none => true
+        | some(v) => fst(pt) >= v
+      end and
+      cases (Option) self.x-max:
+        | none => true
+        | some(v) => fst(pt) <= v
+      end and
+      cases (Option) self.y-min:
+        | none => true
+        | some(v) => accessor(pt) >= v
+      end and
+      cases (Option) self.y-max:
+        | none => true
+        | some(v) => other-accessor(pt) <= v
+      end
+    end ^ get-bounding-box
+  end
+end
+
 fun merge-bounding-box(bs :: List<BoundingBox>) -> BoundingBox:
   for fold(prev from default-bounding-box, e from bs):
     ask:
@@ -2495,73 +2518,15 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
       _ = check-render-x-axis(self)
       _ = check-render-y-axis(self)
 
-      bbox-1 = for map(plot-pts from line-plots.map(_.ps) +
-                                     scatter-plots.map(_.ps)):
-        for filter(pt from plot-pts):
-          cases (Option) self.x-min:
-            | none => true
-            | some(v) => fst(pt) >= v
-          end and
-          cases (Option) self.x-max:
-            | none => true
-            | some(v) => fst(pt) <= v
-          end and
-          cases (Option) self.y-min:
-            | none => true
-            | some(v) => snd(pt) >= v
-          end and
-          cases (Option) self.y-max:
-            | none => true
-            | some(v) => snd(pt) <= v
-          end
-        end ^ get-bounding-box
-      end ^ merge-bounding-box
+      bboxes-ls = get-list-of-bounding-boxes(line-plots.map(_.ps) + scatter-plots.map(_.ps), self, snd)
 
       i-xyy = interval-plots.map(_.bothys) # list of list of xyy arrays
 
-      bboxes-i-1 = for map(plot-pts from i-xyy):
-        for filter(pt from plot-pts):
-          cases (Option) self.x-min:
-            | none => true
-            | some(v) => fst(pt) >= v
-          end and
-          cases (Option) self.x-max:
-            | none => true
-            | some(v) => fst(pt) <= v
-          end and
-          cases (Option) self.y-min:
-            | none => true
-            | some(v) => snd(pt) >= v
-          end and
-          cases (Option) self.y-max:
-            | none => true
-            | some(v) => snd(pt) <= v
-          end
-        end ^ get-bounding-box
-      end
+      bboxes-i-1 = get-list-of-bounding-boxes(i-xyy, self, snd)
          
-      bboxes-i-2 = for map(plot-pts from i-xyy):
-        for filter(pt from plot-pts):
-          cases (Option) self.x-min:
-            | none => true
-            | some(v) => fst(pt) >= v
-          end and
-          cases (Option) self.x-max:
-            | none => true
-            | some(v) => fst(pt) <= v
-          end and
-          cases (Option) self.y-min:
-            | none => true
-            | some(v) => thd(pt) >= v
-          end and
-          cases (Option) self.y-max:
-            | none => true
-            | some(v) => thd(pt) <= v
-          end
-        end ^ get-bounding-box
-      end
+      bboxes-i-2 = get-list-of-bounding-boxes(i-xyy, self, thd)
 
-      bbox = link(bbox-1, bboxes-i-1.append(bboxes-i-1)) ^ merge-bounding-box
+      bbox = (bboxes-ls.append(bboxes-i-1).append(bboxs-i-2)) ^ merge-bounding-box
 
       {x-min; x-max} = bound-result-to-bounds(
         get-bound-result(self.x-min, bbox, _.x-min),
