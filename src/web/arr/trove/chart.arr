@@ -985,7 +985,7 @@ fun get-list-of-bounding-boxes(list-of-plots, self, other-accessor) -> List<Boun
       end and
       cases (Option) self.y-min:
         | none => true
-        | some(v) => accessor(pt) >= v
+        | some(v) => other-accessor(pt) >= v
       end and
       cases (Option) self.y-max:
         | none => true
@@ -1487,6 +1487,7 @@ data DataSeries:
     is-single: false,
     color: color-method,
     colors: color-list-method,
+    legend: legend-method,
     sort: default-sort-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
@@ -2526,7 +2527,7 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
          
       bboxes-i-2 = get-list-of-bounding-boxes(i-xyy, self, thd)
 
-      bbox = (bboxes-ls.append(bboxes-i-1).append(bboxs-i-2)) ^ merge-bounding-box
+      bbox = (bboxes-ls.append(bboxes-i-1).append(bboxes-i-2)) ^ merge-bounding-box
 
       {x-min; x-max} = bound-result-to-bounds(
         get-bound-result(self.x-min, bbox, _.x-min),
