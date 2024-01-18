@@ -98,6 +98,7 @@ fun check-image(v :: IM.Image) -> Nothing: nothing end
 
 fst = raw-array-get(_, 0)
 snd = raw-array-get(_, 1)
+thd = raw-array-get(_, 2)
 posn = {(x :: Number, y :: Number): [raw-array: x, y]}
 
 sprintf = (lam():
@@ -971,6 +972,29 @@ fun get-bounding-box(ps :: List<Posn>) -> BoundingBox:
   end
 end
 
+fun get-list-of-bounding-boxes(list-of-plots, self, other-accessor) -> List<BoundingBox>:
+  for map(plot-pts from list-of-plots):
+    for filter(pt from plot-pts):
+      cases (Option) self.x-min:
+        | none => true
+        | some(v) => fst(pt) >= v
+      end and
+      cases (Option) self.x-max:
+        | none => true
+        | some(v) => fst(pt) <= v
+      end and
+      cases (Option) self.y-min:
+        | none => true
+        | some(v) => other-accessor(pt) >= v
+      end and
+      cases (Option) self.y-max:
+        | none => true
+        | some(v) => other-accessor(pt) <= v
+      end
+    end ^ get-bounding-box
+  end
+end
+
 fun merge-bounding-box(bs :: List<BoundingBox>) -> BoundingBox:
   for fold(prev from default-bounding-box, e from bs):
     ask:
@@ -1168,6 +1192,7 @@ type IntervalChartSeries = {
   horizontal :: Boolean,
   default-interval-color :: Option<I.Color>,
   #
+  bothys :: List<Posn>,
   ps :: List<Posn>,
   legend :: String,
   trendlineType :: Option<String>,
@@ -1462,6 +1487,7 @@ data DataSeries:
     is-single: false,
     color: color-method,
     colors: color-list-method,
+    legend: legend-method,
     sort: default-sort-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
@@ -2014,16 +2040,11 @@ fun interval-chart-from-list(
   ys.each(check-num)
   deltas.each(check-num)
   yprimes = map2(lam(y, delta): y - delta end, ys, deltas)
-  ys_farthest = map2(lam(y, yprime):
-      if (y < 0) and (yprime < 0) and (yprime < y): yprime
-      else if (y > 0) and (yprime > 0) and (yprime > y): yprime
-      else: y
-      end
-    end, ys, yprimes)
 
   default-interval-chart-series.{
     tab: to-table3-n(xs, ys, yprimes), #new
-    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys_farthest, xs.map({(_): ''}), xs.map({(_): false})),
+    bothys: map3({(x, y, yp): [raw-array: x, y, yp]}, xs, ys, yprimes),
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), xs.map({(_): false})),
   } ^ interval-chart-series
 end
 
@@ -2498,28 +2519,15 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
       _ = check-render-x-axis(self)
       _ = check-render-y-axis(self)
 
-      bbox = for map(plot-pts from line-plots.map(_.ps) +
-                                   scatter-plots.map(_.ps) +
-                                   interval-plots.map(_.ps)):
-        for filter(pt from plot-pts):
-          cases (Option) self.x-min:
-            | none => true
-            | some(v) => fst(pt) >= v
-          end and
-          cases (Option) self.x-max:
-            | none => true
-            | some(v) => fst(pt) <= v
-          end and
-          cases (Option) self.y-min:
-            | none => true
-            | some(v) => snd(pt) >= v
-          end and
-          cases (Option) self.y-max:
-            | none => true
-            | some(v) => snd(pt) <= v
-          end
-        end ^ get-bounding-box
-      end ^ merge-bounding-box
+      bboxes-ls = get-list-of-bounding-boxes(line-plots.map(_.ps) + scatter-plots.map(_.ps), self, snd)
+
+      i-xyy = interval-plots.map(_.bothys) # list of list of xyy arrays
+
+      bboxes-i-1 = get-list-of-bounding-boxes(i-xyy, self, snd)
+         
+      bboxes-i-2 = get-list-of-bounding-boxes(i-xyy, self, thd)
+
+      bbox = (bboxes-ls.append(bboxes-i-1).append(bboxes-i-2)) ^ merge-bounding-box
 
       {x-min; x-max} = bound-result-to-bounds(
         get-bound-result(self.x-min, bbox, _.x-min),
