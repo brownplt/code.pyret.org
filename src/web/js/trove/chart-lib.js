@@ -1139,7 +1139,6 @@
     const data = new google.visualization.DataTable();
     data.addColumn('number', 'X');
     const combined = scatters.concat(lines).concat(intervals);
-    // console.log('combined is', combined);
     const legends = [];
     let cnt = 1;
     const legendEnabled = combined.length > 1;
@@ -1156,17 +1155,30 @@
       data.addColumn({id: 'i1', type: 'number', role: 'interval'});
     });
 
-    // console.log('legends is', legends);
-    // console.log('data I is', data);
-
     combined.forEach((p, i) => {
-      // console.log('Ncols is', combined.length * 4);
+      /* 
+
+      combined.length = number of charts (regardless of kind).
+      total length of a row = 1 + 4 × (combined.length).
+      a row looks like:
+
+      x | aaaa aaaa aaaa | yyyy | bbbb bbbb bbbb
+
+      each chart contributes as many rows as it has x-y mappings.
+      each such row has first column = x and 
+      a 4-tuple y₁y₂y₃y₄ in the appropriately staggered y-slots, where:
+      y₁ = y
+      y₂ = label
+      y₃ = y (again, only for interval charts)
+      y₄ = y-predicted (only for interval charts)
+
+      all other slots in a row are null.
+      */
+
       const rowTemplate = new Array(combined.length * 4 + 1).fill(null);
       const intervalP = (i >= minIntervalIndex);
-      // console.log('rowTemplate is', rowTemplate);
       if (!intervalP) {
         data.addRows(get(p, 'ps').map(row => {
-          // console.log('this row is', row);
           const currentRow = rowTemplate.slice();
           if (row.length != 0) {
             currentRow[0] = toFixnum(row[0]);
@@ -1181,36 +1193,32 @@
 <p>x: <b>${currentRow[0]}</b></p>
 <p>y: <b>${currentRow[4*i + 1]}</b></p>
               ${labelRow}`;
-            // currentRow[4*i + 3] = 0;
-            // currentRow[4*i + 4] = 0;
+            // leave currentRow[4*i + 3] and [4*i + 4] null
           }
           return currentRow;
         }));
-      } else {
+      } else { // i.e., interval chart
         data.addRows(get(p, 'tab').map(row => {
           const currentRow = rowTemplate.slice();
           if (row.length != 0) {
-            currentRow[0] = toFixnum(row[0]);
-            currentRow[4*i + 1] = toFixnum(row[1]);
-            let labelRow = null;
-            if (row.length >= 3 && row[2] !== '') {
-              labelRow = `<p>label: <b>${row[2]}</b></p>`;
-            } else {
-              labelRow = '';
-            }
+            const r0 = toFixnum(row[0]);
+            const r1 = toFixnum(row[1]);
+            const r2 = toFixnum(row[2]);
+
+            currentRow[0] = r0;
+            currentRow[4*i + 1] = r1;
+            const labelRow = `<p>label: <b>${r2}</b></p>`;
             currentRow[4*i + 2] = `<p>${legends[i]}</p>
-<p>x: <b>${currentRow[0]}</b></p>
-<p>y: <b>${currentRow[4*i + 1]}</b></p>
-              ${labelRow}`;
-            currentRow[4*i + 3] = row[1];
-            currentRow[4*i + 4] = row[2];
+<p>x: <b>${r0}</b></p>
+<p>y: <b>${r1}</b></p>
+<p>y': <b>${r2}</b></p>`;
+            currentRow[4*i + 3] = r1;
+            currentRow[4*i + 4] = r2;
           }
           return currentRow;
         }));
       };
     });
-
-    // console.log('row setting done');
 
     // ASSERT: if we're using custom images, *every* series will have idx 3 defined
     const hasImage = combined.every(p => get(p, 'ps').filter(p => p[3]).length > 0);
@@ -1287,7 +1295,6 @@
     };
 
     if (lines.length != 0) {
-      // console.log('setting line options');
       const line0 = lines[0];
       const curveType = get(line0, 'curved');
       const lineWidth = toFixnum(get(line0, 'lineWidth'));
