@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "A simple IDE for Pyret",
   "main": "index.js",
-  "engines": {
-    "node": "16.13.0"
-  },
   "dependencies": {
     "@babel/core": "^7.23.7",
     "@babel/plugin-proposal-decorators": "^7.23.7",
