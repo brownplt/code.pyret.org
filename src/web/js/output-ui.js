@@ -1070,6 +1070,12 @@
                 });
               });
               anchor.on("mouseenter", function () {
+                // FIXME: experimental first test of Blocks highlighting
+                if(positions.length > 0 && CPO.blocksIDE) {
+                  CPO.blocksIDE.flashSpriteScripts(
+                    positions[0].from.line + 1, // CPO is 0-based, Snap is 1-based
+                    positions[0].to.line + 1);
+                }
                 logger.log("highlight_anchor_mouseenter",
                   { error_id: context, anchor_id: id });
                 window.requestAnimationFrame(function() {
