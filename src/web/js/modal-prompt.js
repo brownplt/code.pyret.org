@@ -111,6 +111,12 @@ define("cpo/modal-prompt", ["q"], function(Q) {
       this.submitButton.show();
     }
     this.closeButton.click(this.onClose.bind(this));
+    this.modal.keypress(function(e) {
+      if(e.which == 13) {
+        this.submitButton.click();
+        return false;
+      }
+    }.bind(this));
     this.submitButton.click(this.onSubmit.bind(this));
     var docClick = (function(e) {
       // If the prompt is active and the background is clicked,
