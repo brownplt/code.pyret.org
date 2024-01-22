@@ -41,6 +41,14 @@
       return converter([74, a, b]);
     }
 
+    // Snap wants colors specified as "r,g,b(,a)" where each is [0-255]
+    var snapConverter = $.colorspaces.converter('CIELAB', 'sRGB')
+    function hueToSnapColor(hue) {
+      var a = 40*Math.cos(hue);
+      var b = 40*Math.sin(hue)
+      return snapConverter([74, a, b]).map(x => Math.floor(x * 255)).join(",")
+    }
+
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
 
@@ -1079,9 +1087,12 @@
                   // Blocks editor case
                   if(CPO.blocksIDE) {
                     if(positions.length > 0) {
+                      var snapColor = hueToSnapColor(color);
                       CPO.blocksIDE.flashSpriteScripts(
                         positions[0].from.line + 1, // CPO is 0-based, Snap is 1-based
-                        positions[0].to.line + 1);
+                        positions[0].to.line + 1,
+                        undefined,
+                        snapColor);
                     }
                   } else {
                     if (positions[0] !== undefined)
