@@ -36,10 +36,21 @@ ser-some-ys-all-ress-rough = from-list.interval-chart(xs, some-ys-rough, all-res
 
 ser-all-ys-all-ress-rough = from-list.interval-chart(xs, all-ys-rough, all-ress-rough)
 
+# Other types of charts
+
+fn = lam(x): (x * x) - 1 end
+
+scatter-ser = from-list.scatter-plot(xs, ys)
+fn-ser = from-list.function-plot(fn)
+
 # Helper function
 
 fun render-image(series):
   render-chart(series).get-image()
+end
+
+fun render-composite-image(list-of-series):
+  render-charts(list-of-series).get-image()
 end
 
 # Actual testing
@@ -98,4 +109,13 @@ check "Exceptions":
   from-list.interval-chart(empty, empty, empty) raises "need at least one datum"
   from-list.interval-chart(xs, too-few-ys, ress) raises "xs and ys should have the same length"
   from-list.interval-chart(xs, ys, too-few-ress) raises "deltas should have the same length as xs and ys"
+end
+
+check "Render multiple charts":
+  render-composite-image([list: ser-no-rough]) satisfies is-image
+  render-composite-image([list: ser-no-rough, scatter-ser]) satisfies is-image
+  render-composite-image([list: ser-no-rough, fn-ser]) satisfies is-image
+  render-composite-image([list: scatter-ser, fn-ser]) satisfies is-image
+  render-composite-image([list: ser-no-rough, scatter-ser, fn-ser]) satisfies is-image
+  render-composite-image([list: ]) raises "need at least one series to plot"
 end

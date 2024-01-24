@@ -228,7 +228,7 @@ class StudentDashboard extends Component {
         </div>
         <div className='footer middle'>
           <p className='right'>
-            <a target="_blank" href="https://www.pyret.org">pyret.org</a> | <a target="_blank" href="/privacy/">Privacy</a> | <a target="_blank" href="https://www.github.com/brownplt/code.pyret.org">Software</a></p>
+            <a target="_blank" href="https://www.pyret.org">pyret.org</a> | <a target="_blank" href="https://pyret.org/cpo-faq/">Privacy</a> | <a target="_blank" href="https://www.github.com/brownplt/code.pyret.org">Software</a></p>
         </div>
 
       </div>

@@ -6,6 +6,7 @@ var IS_PRODUCTION = process.env.NODE_ENV == 'production';
 var SRC_DIRECTORY = path.resolve(__dirname, 'src');
 
 module.exports = {
+  mode: IS_PRODUCTION ? 'production' : 'development',
   output: {
     path: path.resolve(__dirname, "build", "web"),
     filename: "[name].js",
@@ -19,18 +20,15 @@ module.exports = {
   },
   module: {
     rules: [
-      {test: /\.css$/, loaders: ["style-loader", "css-loader"]},
-      {test:/.png|.jpg|.jpeg|.gif|.svg/, loader: "url-loader?limit=10000"},
+      {test: /\.css$/, use: ["style-loader", "css-loader"]},
+      {test:/.png|.jpg|.jpeg|.gif|.svg/, use: "url-loader?limit=10000"},
       {
         test: /\.js$/,
         enforce: "pre",
         include: [
           SRC_DIRECTORY,
         ],
-        loader: "babel-loader",
-        query: {
-          cacheDirectory: true
-        }
+        loader: "babel-loader"
       }]
   },
   resolve: {

@@ -98,6 +98,7 @@ fun check-image(v :: IM.Image) -> Nothing: nothing end
 
 fst = raw-array-get(_, 0)
 snd = raw-array-get(_, 1)
+thd = raw-array-get(_, 2)
 posn = {(x :: Number, y :: Number): [raw-array: x, y]}
 
 sprintf = (lam():
@@ -971,6 +972,29 @@ fun get-bounding-box(ps :: List<Posn>) -> BoundingBox:
   end
 end
 
+fun get-list-of-bounding-boxes(list-of-plots, self, other-accessor) -> List<BoundingBox>:
+  for map(plot-pts from list-of-plots):
+    for filter(pt from plot-pts):
+      cases (Option) self.x-min:
+        | none => true
+        | some(v) => fst(pt) >= v
+      end and
+      cases (Option) self.x-max:
+        | none => true
+        | some(v) => fst(pt) <= v
+      end and
+      cases (Option) self.y-min:
+        | none => true
+        | some(v) => other-accessor(pt) >= v
+      end and
+      cases (Option) self.y-max:
+        | none => true
+        | some(v) => other-accessor(pt) <= v
+      end
+    end ^ get-bounding-box
+  end
+end
+
 fun merge-bounding-box(bs :: List<BoundingBox>) -> BoundingBox:
   for fold(prev from default-bounding-box, e from bs):
     ask:
@@ -1044,31 +1068,6 @@ default-bar-chart-series = {
   axisdata: none, 
   horizontal: false, 
   default-interval-color: none
-}
-
-type IntervalChartSeries = {
-  tab :: TableIntern,
-  axisdata :: Option<AxisData>,
-  color :: Option<I.Color>,
-  pointers :: Option<RawArray<Pointer>>,
-  pointer-color :: Option<I.Color>,
-  point-size :: Number,
-  lineWidth :: Number,
-  style :: String,
-  horizontal :: Boolean,
-  default-interval-color :: Option<I.Color>
-}
-
-default-interval-chart-series = {
-  color: some(C.red),
-  pointers: none,
-  pointer-color: some(C.color(228, 147, 7, 1)),
-  point-size: 4,
-  lineWidth: 1,
-  axisdata: none,
-  horizontal: false,
-  style: "bars",
-  default-interval-color: none,
 }
 
 type MultiBarChartSeries = { 
@@ -1178,6 +1177,59 @@ default-scatter-plot-series = {
   trendlineWidth: 3, 
   trendlineOpacity: 0.3,
   trendlineDegree: 3,  
+}
+
+type IntervalChartSeries = {
+  tab :: TableIntern,
+  axisdata :: Option<AxisData>,
+  color :: Option<I.Color>,
+  pointers :: Option<RawArray<Pointer>>,
+  pointer-color :: Option<I.Color>,
+  point-size :: Number,
+  lineWidth :: Number,
+  stick-width :: Number,
+  style :: String,
+  horizontal :: Boolean,
+  default-interval-color :: Option<I.Color>,
+  #
+  bothys :: List<Posn>,
+  ps :: List<Posn>,
+  legend :: String,
+  trendlineType :: Option<String>,
+  trendlineColor :: Option<I.Color>,
+  trendlineWidth :: Number,
+  trendlineOpacity :: Number,
+  trendlineDegree :: NumInteger,
+  # curved :: String,
+  # dashedLine :: Boolean,
+  # dashlineStyle :: RawArray<NumInteger>,
+  pointshapeType :: String,
+  pointshapeSides :: NumInteger,
+  pointshapeDent :: Number,
+  pointshapeRotation :: Number,
+}
+
+default-interval-chart-series = {
+  color: some(C.red),
+  pointers: none,
+  pointer-color: some(C.color(228, 147, 7, 1)),
+  point-size: 4,
+  lineWidth: 0,
+  stick-width: 1,
+  axisdata: none,
+  horizontal: false,
+  style: "bars",
+  default-interval-color: none,
+  legend: '',
+  trendlineType: none,
+  trendlineColor: none,
+  trendlineWidth: 3,
+  trendlineOpacity: 0.3,
+  trendlineDegree: 3,
+  pointshapeType: 'circle',
+  pointshapeSides: 5,
+  pointshapeDent: 0.5,
+  pointshapeRotation: 0,
 }
 
 type FunctionPlotSeries = {
@@ -1435,6 +1487,7 @@ data DataSeries:
     is-single: false,
     color: color-method,
     colors: color-list-method,
+    legend: legend-method,
     sort: default-sort-method,
     sort-by: sort-method,
     sort-by-label: label-sort-method,
@@ -1445,6 +1498,7 @@ data DataSeries:
     scale: scale-method,
     lineWidth: line-width-method,
     style: style-method,
+    trendline-type: trendline-type-method,
     method point-size(self, point-size :: Number) block:
       when point-size < 0:
         raise("point-size: Point Size must be non-negative")
@@ -1985,10 +2039,12 @@ fun interval-chart-from-list(
   xs.each(check-num)
   ys.each(check-num)
   deltas.each(check-num)
-  yprimes = map2(lam(y, delta): y + delta end, ys, deltas)
+  yprimes = map2(lam(y, delta): y - delta end, ys, deltas)
 
   default-interval-chart-series.{
     tab: to-table3-n(xs, ys, yprimes), #new
+    bothys: map3({(x, y, yp): [raw-array: x, y, yp]}, xs, ys, yprimes),
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]}, xs, ys, xs.map({(_): ''}), xs.map({(_): false})),
   } ^ interval-chart-series
 end
 
@@ -2134,6 +2190,7 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
     | line-plot-series(_) => render-charts([list: s])
     | function-plot-series(_) => render-charts([list: s])
     | scatter-plot-series(_) => render-charts([list: s])
+    | interval-chart-series(_) => render-charts([list: s])
     | pie-chart-series(obj) =>
       default-pie-chart-window-object.{
         method render(self): P.pie-chart(self, obj) end
@@ -2145,13 +2202,6 @@ fun render-chart(s :: DataSeries) -> ChartWindow:
           P.bar-chart(self, obj)
         end
       } ^ bar-chart-window
-    | interval-chart-series(obj) =>
-      default-interval-chart-window-object.{
-        method render(self):
-          _ = check-render-y-axis(self)
-          P.interval-chart(self, obj)
-        end
-      } ^ interval-chart-window
     | multi-bar-chart-series(obj) => 
       default-bar-chart-window-object.{
         method render(self):
@@ -2455,7 +2505,9 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
   is-show-samples = is-link(function-plots)
   shadow partitioned = partition(is-line-plot-series, partitioned.is-false)
   line-plots = partitioned.is-true.map(_.obj)
-  scatter-plots = partitioned.is-false.map(_.obj)
+  shadow partitioned = partition(is-scatter-plot-series, partitioned.is-false)
+  scatter-plots = partitioned.is-true.map(_.obj)
+  interval-plots = partitioned.is-false.map(_.obj)
 
   default-plot-chart-window-object.{
     method render(self):
@@ -2467,27 +2519,15 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
       _ = check-render-x-axis(self)
       _ = check-render-y-axis(self)
 
-      bbox = for map(plot-pts from line-plots.map(_.ps) +
-                                   scatter-plots.map(_.ps)):
-        for filter(pt from plot-pts):
-          cases (Option) self.x-min:
-            | none => true
-            | some(v) => fst(pt) >= v
-          end and
-          cases (Option) self.x-max:
-            | none => true
-            | some(v) => fst(pt) <= v
-          end and
-          cases (Option) self.y-min:
-            | none => true
-            | some(v) => snd(pt) >= v
-          end and
-          cases (Option) self.y-max:
-            | none => true
-            | some(v) => snd(pt) <= v
-          end
-        end ^ get-bounding-box
-      end ^ merge-bounding-box
+      bboxes-ls = get-list-of-bounding-boxes(line-plots.map(_.ps) + scatter-plots.map(_.ps), self, snd)
+
+      i-xyy = interval-plots.map(_.bothys) # list of list of xyy arrays
+
+      bboxes-i-1 = get-list-of-bounding-boxes(i-xyy, self, snd)
+         
+      bboxes-i-2 = get-list-of-bounding-boxes(i-xyy, self, thd)
+
+      bbox = (bboxes-ls.append(bboxes-i-1).append(bboxes-i-2)) ^ merge-bounding-box
 
       {x-min; x-max} = bound-result-to-bounds(
         get-bound-result(self.x-min, bbox, _.x-min),
@@ -2522,7 +2562,11 @@ fun render-charts(lst :: List<DataSeries>) -> ChartWindow:
           ps-to-arr(p.{ps: line-plot-edge-cut(p.ps, self)})
         end ^ reverse ^ builtins.raw-array-from-list
 
-        ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr})
+        intervals-arr = for map(p from interval-plots):
+          ps-to-arr(p.{ps: p.ps.filter(in-bound-xy(_, self))})
+        end ^ reverse ^ builtins.raw-array-from-list
+
+        ret = P.plot(self, {scatters: scatters-arr, lines: lines-arr, intervals: intervals-arr})
         cases (E.Either<Any, IM.Image>) ret:
           | left(new-self) => helper(new-self, none)
           | right(image) => image

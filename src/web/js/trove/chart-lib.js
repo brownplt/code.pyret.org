@@ -14,7 +14,6 @@
       'histogram': "tany",
       'box-plot': "tany",
       'plot': "tany",
-      'interval-chart': "tany",
     }
   },
   theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
@@ -772,63 +771,6 @@
     };
   }
 
-  function intervalChart(globalOptions, rawData) {
-    const table = get(rawData, 'tab');
-    const data = new google.visualization.DataTable();
-    data.addColumn('number', 'x');
-    data.addColumn('number', 'values');
-    data.addColumn({id: 'i0', type: 'number', role: 'interval'});
-    data.addColumn({id: 'i1', type: 'number', role: 'interval'});
-
-    const style = get(rawData, 'style');
-
-    const stickColor = get_default_color(rawData);
-    const stickWidth = toFixnum(get(rawData, 'lineWidth'));
-
-    const pointColor = get_pointer_color(rawData);
-    const pointSize = toFixnum(get(rawData, 'point-size'));
-
-    const fillOpacity = (style == 'boxes') ? 0 : 1;
-
-    data.addRows(table.map(row => [
-      toFixnum(row[0]),
-      toFixnum(row[1]),
-      toFixnum(row[1]),
-      toFixnum(row[2]),
-    ]));
-
-    const options = {
-      curveType: 'function',
-      lineWidth: 0,
-      intervals: { style:'sticks', lineWidth: 2,  },
-      interval: {
-        'i0': {
-          'style': style,
-          'color': stickColor,
-          'lineWidth': stickWidth,
-          'barWidth': 0,
-          'pointSize': 0,
-          'fillOpacity': fillOpacity,
-        },
-        'i1': {
-          'style': style,
-          'color': pointColor,
-          'pointSize': pointSize,
-          'barWidth': 0,
-          'lineWidth': 4,
-          'fillOpacity': fillOpacity,
-        },
-      },
-    };
-
-    return {
-      data: data,
-      options: options,
-      chartType: google.visualization.LineChart,
-      onExit: defaultImageReturn,
-    }
-
-  }
 
   function multiBarChart(globalOptions, rawData) {
     // Variables and Constants
@@ -1192,13 +1134,15 @@
   function plot(globalOptions, rawData) {
     const scatters = get(rawData, 'scatters');
     const lines = get(rawData, 'lines');
+    const intervals = get(rawData, 'intervals');
+    const minIntervalIndex = scatters.length + lines.length;
     const data = new google.visualization.DataTable();
     data.addColumn('number', 'X');
-    const combined = scatters.concat(lines);
+    const combined = scatters.concat(lines).concat(intervals);
     const legends = [];
     let cnt = 1;
     const legendEnabled = combined.length > 1;
-    combined.forEach(p => {
+    combined.forEach((p, i) => {
       let legend = get(p, 'legend');
       if (legend === '') {
         legend = `Plot ${cnt}`;
@@ -1207,34 +1151,73 @@
       legends.push(legend);
       data.addColumn('number', legend);
       data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
+      data.addColumn({id: 'i0', type: 'number', role: 'interval'});
+      data.addColumn({id: 'i1', type: 'number', role: 'interval'});
     });
 
     combined.forEach((p, i) => {
-      /*
-      x | n n n | y | n n n n n n n n n n n n
-            i         combined.length - i - 1
+      /* 
+
+      combined.length = number of charts (regardless of kind).
+      total length of a row = 1 + 4 × (combined.length).
+      a row looks like:
+
+      x | aaaa aaaa aaaa | yyyy | bbbb bbbb bbbb
+
+      each chart contributes as many rows as it has x-y mappings.
+      each such row has first column = x and 
+      a 4-tuple y₁y₂y₃y₄ in the appropriately staggered y-slots, where:
+      y₁ = y
+      y₂ = label
+      y₃ = y (again, only for interval charts)
+      y₄ = y-predicted (only for interval charts)
+
+      all other slots in a row are null.
       */
-      const prefix = new Array(2 * i).fill(null);
-      const suffix = new Array(2 * (combined.length - i - 1)).fill(null);
-      const rowTemplate = [0].concat(prefix).concat([null, null]).concat(suffix);
-      data.addRows(get(p, 'ps').map(row => {
-        const currentRow = rowTemplate.slice();
-        if (row.length != 0) {
-          currentRow[0] = toFixnum(row[0]);
-          currentRow[2*i + 1] = toFixnum(row[1]);
-          let labelRow = null;
-          if (row.length >= 3 && row[2] !== '') {
-            labelRow = `<p>label: <b>${row[2]}</b></p>`;
-          } else {
-            labelRow = '';
-          }
-          currentRow[2*i + 2] = `<p>${legends[i]}</p>
+
+      const rowTemplate = new Array(combined.length * 4 + 1).fill(null);
+      const intervalP = (i >= minIntervalIndex);
+      if (!intervalP) {
+        data.addRows(get(p, 'ps').map(row => {
+          const currentRow = rowTemplate.slice();
+          if (row.length != 0) {
+            currentRow[0] = toFixnum(row[0]);
+            currentRow[4*i + 1] = toFixnum(row[1]);
+            let labelRow = null;
+            if (row.length >= 3 && row[2] !== '') {
+              labelRow = `<p>label: <b>${row[2]}</b></p>`;
+            } else {
+              labelRow = '';
+            }
+            currentRow[4*i + 2] = `<p>${legends[i]}</p>
 <p>x: <b>${currentRow[0]}</b></p>
-<p>y: <b>${currentRow[2*i + 1]}</b></p>
-${labelRow}`;
-        }
-        return currentRow;
-      }));
+<p>y: <b>${currentRow[4*i + 1]}</b></p>
+              ${labelRow}`;
+            // leave currentRow[4*i + 3] and [4*i + 4] null
+          }
+          return currentRow;
+        }));
+      } else { // i.e., interval chart
+        data.addRows(get(p, 'tab').map(row => {
+          const currentRow = rowTemplate.slice();
+          if (row.length != 0) {
+            const r0 = toFixnum(row[0]);
+            const r1 = toFixnum(row[1]);
+            const r2 = toFixnum(row[2]);
+
+            currentRow[0] = r0;
+            currentRow[4*i + 1] = r1;
+            const labelRow = `<p>label: <b>${r2}</b></p>`;
+            currentRow[4*i + 2] = `<p>${legends[i]}</p>
+<p>x: <b>${r0}</b></p>
+<p>y: <b>${r1}</b></p>
+<p>y': <b>${r2}</b></p>`;
+            currentRow[4*i + 3] = r1;
+            currentRow[4*i + 4] = r2;
+          }
+          return currentRow;
+        }));
+      };
     });
 
     // ASSERT: if we're using custom images, *every* series will have idx 3 defined
@@ -1265,6 +1248,45 @@ ${labelRow}`;
             pointSize: hasImage ? 0.1 : toFixnum(get(p, 'point-size')),
             dataOpacity: hasImage ? 0 : 1,
           });
+        } else if (i - scatters.length - lines.length < intervals.length) {
+
+          let intervalStyle = get(p, 'style');
+          let intervalStickColor = get_default_color(p);
+          let intervalStickWidth = toFixnum(get(p, 'stick-width'));
+          let intervalFillOpacity = ((intervalStyle == 'boxes') ? 0 : 1);
+          let intervalPointColor = get_pointer_color(p);
+          let intervalPointSize = toFixnum(get(p, 'point-size'));
+
+          $.extend(seriesOptions, {
+            pointSize: intervalPointSize,
+            dataOpacity: 1,
+
+            curveType: 'function',
+            lineWidth: 0,
+            intervals: { 
+              style: 'sticks',
+              lineWidth: 2,
+            },
+            interval: {
+              'i0': {
+                'style': intervalStyle,
+                  'color': intervalStickColor,
+                  'lineWidth': intervalStickWidth,
+                  'barWidth': 0,
+                  'pointSize': 0,
+                  'fillOpacity': intervalFillOpacity,
+              },
+                'i1': {
+                  'style': intervalStyle,
+                    'color': intervalPointColor,
+                    'pointSize': intervalPointSize,
+                    'barWidth': 0,
+                    'lineWidth': 4,
+                    'fillOpacity': intervalFillOpacity,
+                },
+            }
+
+          });
         }
         return seriesOptions;
       }),
@@ -1273,13 +1295,14 @@ ${labelRow}`;
     };
 
     if (lines.length != 0) {
-      const curveType = get(lines[0], 'curved');
-      const lineWidth = toFixnum(get(lines[0], 'lineWidth'));
+      const line0 = lines[0];
+      const curveType = get(line0, 'curved');
+      const lineWidth = toFixnum(get(line0, 'lineWidth'));
 
       
-      const dashedLine = get(lines[0], 'dashedLine');
-      const dashlineStyle = get(lines[0], 'dashlineStyle');
-      const pointSize = toFixnum(get(lines[0], 'point-size'));
+      const dashedLine = get(line0, 'dashedLine');
+      const dashlineStyle = get(line0, 'dashlineStyle');
+      const pointSize = toFixnum(get(line0, 'point-size'));
       
 
       options['curveType'] = curveType;
@@ -1290,7 +1313,10 @@ ${labelRow}`;
         options['lineDashStyle'] = dashlineStyle;
       }
     }
-    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineType'), {
+
+    const ser0 = combined[0];
+
+    const trendlineType = cases(RUNTIME.ffi.isOption, 'Option', get(ser0, 'trendlineType'), {
       none: function () {
         return null;
       },
@@ -1299,7 +1325,7 @@ ${labelRow}`;
       }
     });
 
-    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(combined[0], 'trendlineColor'), {
+    const trendlineColor = cases(RUNTIME.ffi.isOption, 'Option', get(ser0, 'trendlineColor'), {
       none: function () {
         return 'green';
       },
@@ -1308,9 +1334,9 @@ ${labelRow}`;
       }
     });
 
-    const trendlineWidth = toFixnum(get(combined[0], 'trendlineWidth'));
-    const trendlineOpacity = toFixnum(get(combined[0], 'trendlineOpacity'));
-    const trendlineDegree = toFixnum(get(combined[0], 'trendlineDegree'));
+    const trendlineWidth = toFixnum(get(ser0, 'trendlineWidth'));
+    const trendlineOpacity = toFixnum(get(ser0, 'trendlineOpacity'));
+    const trendlineDegree = toFixnum(get(ser0, 'trendlineDegree'));
 
     if (trendlineType != null) {
       options['trendlines'] = {
@@ -1328,10 +1354,10 @@ ${labelRow}`;
       options['trendlines'][0]['degree'] = trendlineDegree;
     }
 
-    const pointshapeType = get(combined[0], 'pointshapeType');
-    const pointshapeSides = toFixnum(get(combined[0], 'pointshapeSides'));
-    const pointshapeDent = toFixnum(get(combined[0], 'pointshapeDent'));
-    const pointshapeRotation = toFixnum(get(combined[0], 'pointshapeRotation'));
+    const pointshapeType = get(ser0, 'pointshapeType');
+    const pointshapeSides = toFixnum(get(ser0, 'pointshapeSides'));
+    const pointshapeDent = toFixnum(get(ser0, 'pointshapeDent'));
+    const pointshapeRotation = toFixnum(get(ser0, 'pointshapeRotation'));
     const apothem = Math.cos(Math.PI / pointshapeSides)
   
     if (pointshapeType != 'circle') {
@@ -1644,7 +1670,6 @@ ${labelRow}`;
       'histogram': makeFunction(histogram),
       'box-plot': makeFunction(boxPlot),
       'plot': makeFunction(plot),
-      'interval-chart': makeFunction(intervalChart),
     }, 
     {
       "LoC": ann("List<Color>", checkListWith(IMAGE.isColorOrColorString)),
