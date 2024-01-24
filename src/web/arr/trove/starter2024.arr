@@ -1,11 +1,13 @@
 use context empty-context
 
 import lists as L
-import image as I 
+import image as I
 import arrays as A
 import option as O
 import constants as C
-import global as G 
+import global as G
+
+provide: negate end
 
 provide from L:
   all,
@@ -220,7 +222,6 @@ provide from I:
   star-sized,
   text,
   text-font,
-  translate,
   triangle,
   triangle-aas,
   triangle-asa,
@@ -499,3 +500,5 @@ provide from G:
   data String,
   data Table
 end
+
+fun negate(n :: Number) -> Number: n * -1 end
