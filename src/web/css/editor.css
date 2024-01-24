@@ -477,6 +477,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
 
 div.trace {
   overflow-x: auto;
+  padding-top: 1px;
 }
 div.trace.error {
    background-color: var(--trace-err-bg);
