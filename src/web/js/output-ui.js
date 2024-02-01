@@ -1042,6 +1042,12 @@
               var color = hue;
               var anchor = $("<a>").append(helpContents).addClass("highlight");
               var locsArray = ffi.toArray(locs);
+              console.log({
+                message: "Getting source location in `highlight`",
+                srcloc,
+                locsArray,
+                documents
+              })
               var positions = locsArray
                   .map(function(loc){
                     return Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
@@ -1088,11 +1094,17 @@
                   if(CPO.blocksIDE) {
                     if(positions.length > 0) {
                       var snapColor = hueToSnapColor(color);
-                      CPO.blocksIDE.flashSpriteScripts(
-                        positions[0].from.line + 1, // CPO is 0-based, Snap is 1-based
-                        positions[0].to.line + 1,
+                      console.log(positions[0].from);
+                      console.log(positions[0].to);
+                      CPO.blocksIDE.flashSpriteScriptAt(
+                        locsArray[0].dict['start-char'] + 1,
                         undefined,
                         snapColor);
+                      console.log({
+                        message: 'flash sprite position',
+                        index: locsArray[0].dict['start-char'] + 1,
+                        snapColor
+                      })
                     }
                   } else {
                     if (positions[0] !== undefined)
