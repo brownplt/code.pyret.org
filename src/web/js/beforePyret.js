@@ -793,6 +793,7 @@ $(function() {
         title: "Rename this file",
         style: "text",
         narrow: true,
+        submitText: "Rename",
         options: [
           {
             message: "The new name for the file:",

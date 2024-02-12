@@ -2379,7 +2379,7 @@ table.pyret-row {
 .modal .close{
   border: 1px solid #ccc;
   background: white;
-  color: #999;
+  color: var(--run-bg);
   margin-right: 16px;
 }
 
