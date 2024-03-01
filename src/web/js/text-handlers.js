@@ -13,7 +13,8 @@
                             [/\u201C/g, "\""],
                             [/\u2019/g, "\'"],
                             [/\u2018/g, "\'"],
-                            [/\u2026/g, "..."]], changeObj, cm);
+                            [/\u2026/g, "..."],
+                            [/\u200b/g, ""]], changeObj, cm);
       var endash = change([[/\u2013/g, "-"]], changeObj, cm);
       if (curlyq && endash) {
         autoCorrectUndo("Curly Quotes and Invalid Dash (en dash) converted", originalText, changeObj.from, cm);
