@@ -80,7 +80,23 @@ else:
                     <translations />
                     <inputs>
                         <input type="%upvar">name</input>
-                        <input type="%n">val</input>
+                        <input type="%s">val</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l />
+                        </block>
+                    </script>
+                </block-definition>
+
+                <block-definition category="Maps" s="%'name' [ %'arg' ]"
+                    type="reporter">
+                    <header />
+                    <code>&lt;#1&gt;[&lt;#2&gt;]</code>
+                    <translations />
+                    <inputs>
+                        <input type="%var">map</input>
+                        <input type="%s">key</input>
                     </inputs>
                     <script>
                         <block s="doReport">
