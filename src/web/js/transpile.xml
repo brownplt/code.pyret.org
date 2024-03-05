@@ -73,6 +73,21 @@ else:
                         <input type="%txt"/>
                     </inputs>
                 </block-definition>
+
+                <block-definition category="Variables" s="%'a' = %'b'" type="reporter">
+                    <header />
+                    <code>&lt;#1&gt; = &lt;#2&gt;</code>
+                    <translations />
+                    <inputs>
+                        <input type="%upvar">name</input>
+                        <input type="%n">val</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l />
+                        </block>
+                    </script>
+                </block-definition>
                 <block-definition category="Numbers" s="%'a' + %'b'" type="reporter">
                     <header/>
                     <code>(&lt;#1&gt; + &lt;#2&gt;)</code>
@@ -101,6 +116,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
+                
                 <block-definition category="Numbers" s="%'a' / %'b'" type="reporter">
                     <header/>
                     <code>(&lt;#1&gt; / &lt;#2&gt;)</code>
