@@ -73,6 +73,37 @@ else:
                         <input type="%txt"/>
                     </inputs>
                 </block-definition>
+
+                <block-definition category="Variables" s="%'a' = %'b'" type="reporter">
+                    <header />
+                    <code>&lt;#1&gt; = &lt;#2&gt;</code>
+                    <translations />
+                    <inputs>
+                        <input type="%upvar">name</input>
+                        <input type="%s">val</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l />
+                        </block>
+                    </script>
+                </block-definition>
+
+                <block-definition category="Maps" s="%'name' [ %'arg' ]"
+                    type="reporter">
+                    <header />
+                    <code>&lt;#1&gt;[&lt;#2&gt;]</code>
+                    <translations />
+                    <inputs>
+                        <input type="%var">map</input>
+                        <input type="%s">key</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l />
+                        </block>
+                    </script>
+                </block-definition>
                 <block-definition category="Numbers" s="%'a' + %'b'" type="reporter">
                     <header/>
                     <code>(&lt;#1&gt; + &lt;#2&gt;)</code>
@@ -101,6 +132,7 @@ else:
                         </block>
                     </script>
                 </block-definition>
+                
                 <block-definition category="Numbers" s="%'a' / %'b'" type="reporter">
                     <header/>
                     <code>(&lt;#1&gt; / &lt;#2&gt;)</code>
@@ -175,7 +207,7 @@ else:
                     <translations/>
                     <inputs>
                         <input type="%upvar"></input>
-                        <input type="%upvar"></input>
+                        <input type="%mult%upvar"></input>
                         <input type="%s"></input>
                     </inputs>
                     <script>
@@ -189,8 +221,8 @@ else:
                     <code>&lt;#1&gt;(&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%upvar"></input>
-                        <input type="%s"></input>
+                        <input type="%txt"></input>
+                        <input type="%mult%s"></input>
                     </inputs>
                     <script>
                         <block s="doReport">
@@ -749,7 +781,7 @@ else:
                     <inputs>
                         <input type="%s"/>
                         <input type="%s"/>
-                        <input type="%mult%txt"/>
+                        <input type="%mult%upvar"/>
                     </inputs>
                     <script>
                         <block s="doReport">
