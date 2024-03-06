@@ -207,7 +207,7 @@ else:
                     <translations/>
                     <inputs>
                         <input type="%upvar"></input>
-                        <input type="%upvar"></input>
+                        <input type="%mult%upvar"></input>
                         <input type="%s"></input>
                     </inputs>
                     <script>
@@ -221,8 +221,8 @@ else:
                     <code>&lt;#1&gt;(&lt;#2&gt;)</code>
                     <translations/>
                     <inputs>
-                        <input type="%upvar"></input>
-                        <input type="%s"></input>
+                        <input type="%txt"></input>
+                        <input type="%mult%s"></input>
                     </inputs>
                     <script>
                         <block s="doReport">
