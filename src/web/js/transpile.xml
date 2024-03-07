@@ -953,7 +953,7 @@ else:
                 </block-definition>
                 <block-definition category="Tables" s="image-scatter-plot %'table' %'x-values' %'y-values' %'f'" type="reporter">
                     <header/>
-                    <code>scatter-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <code>image-scatter-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
                     <translations/>
                     <inputs>
                         <input type="%s"/>
