@@ -6,12 +6,20 @@ provide-types *
 import global as _
 import base as _
 
+fun zero-to-255(n :: Number) -> Boolean:
+  (n >= 0) and (n <= 255)
+end
+
+fun zero-to-one(a :: Number) -> Boolean:
+  (a >= 0) and (a <= 1)
+end
+
 data Color:
   | color(
-      red :: Number,
-      green :: Number,
-      blue :: Number,
-      alpha :: Number)
+      red :: Number%(zero-to-255),
+      green :: Number%(zero-to-255),
+      blue :: Number%(zero-to-255),
+      alpha :: Number%(zero-to-one))
 end
 
 orange = color(255, 165, 0, 1)
