@@ -447,6 +447,8 @@ $(function() {
     $("#download").append(downloadElt);
   });
 
+  const CONTEXT_PREFIX = "use context ";
+
   function showModal(currentContext) {
     function drawElement(input) {
       const element = $("<div>");
@@ -485,11 +487,18 @@ $(function() {
       });
     namespaceResult.show((result) => {
       if(!result) { return; }
-      if(result.match(/^use context*/)) { result = result.slice("use context ".length); }
-      CPO.editor.setContextLine("use context " + result + "\n");
+      if(result.startsWith(CONTEXT_PREFIX)) { result = result.slice(CONTEXT_PREFIX.length); }
+      CPO.editor.setContextLine(CONTEXT_PREFIX + result + "\n");
     });
   }
-  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0).slice("use context ".length)); });
+  $("#choose-context").on("click", function() {
+    let currentContext = "";
+    let firstLine = CPO.editor.cm.getLine(0);
+    if(firstLine.startsWith(CONTEXT_PREFIX)) {
+      currentContext = firstLine.slice(CONTEXT_PREFIX.length);
+    }
+    showModal(currentContext);
+  });
 
   var TRUNCATE_LENGTH = 20;
 
