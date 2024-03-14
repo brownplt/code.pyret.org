@@ -164,12 +164,6 @@ define("cpo/gdrive-locators", [], function() {
     // Shared GDrive locators require a refresh to be re-fetched
     var sharedLocatorCache = {};
     function makeSharedGDriveLocator(filename, id) {
-      function checkFileResponse(file, filename, restarter) {
-        var actualName = file.getName();
-        if(actualName !== filename) {
-          restarter.error(runtime.ffi.makeMessageException("Expected file with id " + id + " to have name " + filename + ", but its name was " + actualName));
-        }
-      }
       function contentRequestFailure(failure) {
         return "Could not load file with name " + filename;
       }
@@ -192,8 +186,6 @@ define("cpo/gdrive-locators", [], function() {
           restarter.error(runtime.ffi.makeMessageException(fileRequestFailure(failure, filename)));
         });
         var fileP = filesP.then(function(file) {
-          checkFileResponse(file, filename, restarter);
-          // checkFileResponse throws if there's an error
           return file;
         });
         var contentsP = Q.all([fileP, fileP.then(function(file) {
