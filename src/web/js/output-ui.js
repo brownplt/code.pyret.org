@@ -1090,25 +1090,18 @@
                   logger.log("highlight_anchor_hover",
                     { error_id: context, anchor_id: id });
 
-                  // Blocks editor case
-                  if(CPO.blocksIDE) {
-                    if(positions.length > 0) {
+                  if (positions[0] !== undefined) {
+                    if(CPO.blocksIDE) {
+                      // Blocks editor case
                       var snapColor = hueToSnapColor(color);
-                      console.log(positions[0].from);
-                      console.log(positions[0].to);
                       CPO.blocksIDE.flashSpriteScriptAt(
                         locsArray[0].dict['start-char'] + 1,
                         undefined,
                         snapColor);
-                      console.log({
-                        message: 'flash sprite position',
-                        index: locsArray[0].dict['start-char'] + 1,
-                        snapColor
-                      })
-                    }
-                  } else {
-                    if (positions[0] !== undefined)
+                    } else {
+                      // Non-Blocks editor
                       positions[0].hint();
+                    }
                   }
                   emphasize(color);
                 });
