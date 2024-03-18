@@ -1042,12 +1042,6 @@
               var color = hue;
               var anchor = $("<a>").append(helpContents).addClass("highlight");
               var locsArray = ffi.toArray(locs);
-              console.log({
-                message: "Getting source location in `highlight`",
-                srcloc,
-                locsArray,
-                documents
-              })
               var positions = locsArray
                   .map(function(loc){
                     return Position.fromPyretSrcloc(runtime, srcloc, loc, documents);
