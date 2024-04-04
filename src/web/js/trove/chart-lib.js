@@ -475,7 +475,6 @@
 
   function pieChart(globalOptions, rawData) {
     const table = get(rawData, 'tab');
-    console.log(table)
     const default_colors = ['#3366CC', '#DC3912', '#FF9900', '#109618', '#990099',
                             '#3B3EAC', '#0099C6', '#DD4477', '#66AA00', '#B82E2E',
                             '#316395', '#994499', '#22AA99', '#AAAA11', '#6633CC',
@@ -534,7 +533,7 @@
           const svgRoot = chart.container.querySelector('svg');
 
           // The order of SVG slices is *not* the order of the rows in the table!!
-          // 2 slices: drawn in reverse order
+          // 1 or 2 slices: drawn in reverse order
           // >2 slices: the first row in the table is the 
           let slices;
           if(table.length <= 2) {
