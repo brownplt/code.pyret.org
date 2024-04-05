@@ -533,13 +533,14 @@
           const svgRoot = chart.container.querySelector('svg');
 
           // The order of SVG slices is *not* the order of the rows in the table!!
-          // 1 or 2 slices: drawn in reverse order
-          // >2 slices: the first row in the table is the 
+          //   - 1 or 2 slices: drawn in reverse order
+          //   - More than 2 slices: the first row in the table is the first SVG 
+          //       slice, but the rest are in reverse order
           let slices;
           if(table.length <= 2) {
-            slices = [...svgRoot.children].slice(2, -1).reverse();
+            slices = Array.prototype.slice.call(svgRoot.children, 2, -1).reverse();
           } else {
-            slices = [...svgRoot.children].slice(3, -1).reverse();
+            slices = Array.prototype.slice.call(svgRoot.children, 3, -1).reverse();
             slices.unshift(svgRoot.children[2]);
           }
           const defs = svgRoot.children[0];
