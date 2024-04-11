@@ -226,7 +226,8 @@ replaceArgs`
         beside(acc,
           overlay-align(${"xPinhole"}, ${"yPinhole"}, 
             draw-pinhole(circle(50 / num-sqrt(2), ${"outline"}, ${"black"})), 
-            draw-pinhole(rotate(((row * 10) + col) * 12, triangle-sas(50, 90, 50, ${"outline"}, ${"green"})))))
+            draw-pinhole(rotate(((row * 10) + col) * 12, 
+              center-pinhole(triangle-sas(50, 90, 50, ${"outline"}, ${"green"}))))))
       end,
       acc)
   end`],

@@ -1526,7 +1526,10 @@
               const xPos = layout.getXLocation(data.getValue(i, 0));
               const yPos = layout.getYLocation(data.getValue(i, 1));
               const imgDOM = p[3].val.toDomNode();
-              p[3].val.render(imgDOM.getContext('2d'), 0, 0);
+              const ctx = imgDOM.getContext('2d');
+              ctx.translate(p[3].val.getWidth() / 2, p[3].val.getHeight() / 2);
+              ctx.translate(-p[3].val.getCenterX(), -p[3].val.getCenterY());
+              p[3].val.render(ctx);
               // make an image element from the SVG namespace
               let imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
               imageElt.classList.add('__img_labels'); // tag for later garbage collection

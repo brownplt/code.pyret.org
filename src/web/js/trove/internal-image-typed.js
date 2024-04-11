@@ -118,7 +118,9 @@
       "reflect-x": ["arrow", ["Image"], "Image"],
       "reflect-y": ["arrow", ["Image"], "Image"],
       "frame": ["arrow", ["Image"], "Image"],
+      "color-frame": ["arrow", ["Color", "Image"], "Image"],
       "draw-pinhole": ["arrow", ["Image"], "Image"],
+      "color-pinhole": ["arrow", ["Color", "Image"], "Image"],
       "crop": ["arrow", ["Number", "Number", "Number", "Number", "Image"], "Image"],
       "line": ["arrow", ["Number", "Number", "Color"], "Image"],
       "add-line": ["arrow", ["Image", "Number", "Number", "Number", "Number", "Color"], "Image"],
@@ -166,8 +168,6 @@
   theModule: function(runtime, namespace, uri, imageLib, makeImage, jsnums) {
     var ffi = runtime.ffi;
 
-    console.log("From typed: ", imageLib);
-
     var image = runtime.getField(imageLib, "internal");
     var colorDb = image.colorDb;
 
@@ -203,7 +203,7 @@
       if (!runtime.ffi.isList(val)) return false;
       var cur = val;
       var gf = runtime.getField;
-      while (runtime.unwrap(ffi.isLink(cur))) {
+      while (ffi.isLink(cur)) {
         var f = gf(cur, "first");
         if (!checkImagePred(f)) return false;
         cur = gf(cur, "rest");
@@ -314,7 +314,7 @@
         if (!runtime.ffi.isList(val)) return false;
         var cur = val;
         var gf = runtime.getField;
-        while (runtime.unwrap(ffi.isLink(cur))) {
+        while (ffi.isLink(cur)) {
           var f = gf(cur, "first");
           if (!image.isColor(f)) return false;
           cur = gf(cur, "rest");
@@ -327,7 +327,7 @@
         var cur = val;
         var gf = runtime.getField;
         var count = 0;
-        while (runtime.unwrap(ffi.isLink(cur))) {
+        while (ffi.isLink(cur)) {
           var f = gf(cur, "first");
           if (!image.isPoint(f)) return false;
           cur = gf(cur, "rest");
