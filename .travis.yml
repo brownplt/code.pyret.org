@@ -5,9 +5,9 @@ rvm:
 env:
   global:
   - TEST_LOC="sauce"
+  - GOOGLE_CHROME_BINARY="./chrome-linux64/chrome"
   - GOOGLE_CLIENT_ID=""
   - GOOGLE_CLIENT_SECRET=""
-  - GOOGLE_CHROME_BINARY=/usr/bin/google-chrome-stable
   - secure: "TYqxrQOzkzQcyfDfLz9fOklDjK+vkXg0Jzp8wTynenz8ZzLIac6UKH3DZza7KcQAdgNhhSYoekh05z+b2/EaYKvo+SNDDsfWEP2qjBCL6GxccDE8Ti6itt4orGZUT2XKd6FkDbXDq9j3lUfKlG78lIImGiZKL1UN2WnQozXxBpdp1C8c4V2UcXo70u26Ii/m9eTYGoQfUvVa57lqpA7dMsuVW6lffTmGAcL0pY9penE6+tv1B7pxzQ7wrl+eQh4qw423qCJCWHRKKHVtPqvSafh6E8/wJIc5OUXRvy1Uz6eM4oX6PWfs0Knrznh1fLtFaJSXzSEaDNzJesoInvDINsQ8HqM9dYv95Codbg0wh9QlW3ZFg8OL8gAG2i9dScGRMqtTjz+cRpIDP1ppDaWypMrvLCoRVV/WfufQQTqZeESAFvOU4fcihlwAGaadEa2D4SVY72GXxIuxox2fKjNtxfCggoZhUZJQUWUP/C7x/W1qbu2XrgxGYB0VpCUcpFAH7Zsl2P96WBfIvjHvxITTCEA86lyV6ZcdX/fhCVEPGabBz5Et5hHbH1jFV3T3qDJpMLmeLbhZSHVsUrnnsb0qkEGX3jgHF6WaCDgwiEAzmGS4/JKsW5MlZvAdd2gd+EEowqMCA9gXRyR8RZr2OyxrKs73U7GyH/lgpHeZURf6YAY="
   - REDISCLOUD_URL=""
   - BASE_URL=http://localhost:5000
@@ -51,7 +51,10 @@ before_install:
 - nvm install 16.13.0
 - nvm use 16.13.0
 - npm install -g heroku-cli
-- npm install -g chromedriver@`/usr/bin/google-chrome-stable --version | cut -d "." -f 1 | cut -d " " -f 3`
+- curl https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.78/linux64/chrome-linux64.zip -o chrome-linux64.zip
+- curl https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.78/linux64/chromedriver-linux64.zip -o chromedriver-linux64.zip
+- unzip chrome-linux64.zip
+- npm install -g chromedriver --chromedriver_filepath chromedriver-linux64.zip
 - export PATH=$PATH:node_modules/.bin/
 before_deploy:
 - export GIT_REV=`echo $TRAVIS_COMMIT`
