@@ -25,6 +25,8 @@ Then you can run
 ```
 $ npm run local-install
 $ ln -s node_modules/pyret-lang pyret
+$ git submodule init
+$ git submodule update
 $ npm run build
 ```
 

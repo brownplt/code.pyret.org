@@ -501,6 +501,7 @@
     data.addColumn('string', 'Label');
     data.addColumn('number', 'Value');
     data.addRows(table.map(row => [row[0], toFixnum(row[1])]));
+
     return {
       data: data,
       options: {
@@ -530,21 +531,35 @@
           // The only way to hijack marker events is to walk the DOM here
           // If Google changes the DOM, these lines will likely break
           const svgRoot = chart.container.querySelector('svg');
-          const slices = [...svgRoot.children].slice(2, -1);
+
+          // The order of SVG slices is *not* the order of the rows in the table!!
+          //   - 1 or 2 slices: drawn in reverse order
+          //   - More than 2 slices: the first row in the table is the first SVG 
+          //       slice, but the rest are in reverse order
+          let slices;
+          if(table.length <= 2) {
+            slices = Array.prototype.slice.call(svgRoot.children, 2, -1).reverse();
+          } else {
+            slices = Array.prototype.slice.call(svgRoot.children, 3, -1).reverse();
+            slices.unshift(svgRoot.children[2]);
+          }
           const defs = svgRoot.children[0];
+          const legendImgs = svgRoot.children[1].querySelectorAll('g[column-id]');
 
           // remove any labels that have previously been drawn
           $('.__img_labels').each((idx, n) => $(n).remove());
 
-          // Render each slice above the old ones, using the image as a pattern
-          table.forEach((row, i) => {
-
+          // Render each slice under the old ones, using the image as a pattern
+          table.forEach((row, i) => {            
+            const oldDot = legendImgs[i].querySelector('circle');
+            const oldSlice = slices[i];
+            
             // render the image to an img tag
             const imgDOM = row[3].val.toDomNode();
             row[3].val.render(imgDOM.getContext('2d'), 0, 0);
             
             // make an SVGimage element from the img tag, and make it the size of the slice
-            const sliceBox = slices[i].getBoundingClientRect();
+            const sliceBox = oldSlice.getBoundingClientRect();
             const imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
             imageElt.classList.add('__img_labels'); // tag for later garbage collection
             imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
@@ -560,16 +575,25 @@
 
             // make a new slice, copy elements from the old slice, and fill with the pattern
             const newSlice = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-            Object.assign(newSlice, slices[i]); // we should probably not steal *everything*...
-            newSlice.setAttribute(  'd',       slices[i].firstChild.getAttribute('d'));
+            Object.assign(newSlice, oldSlice); // we should probably not steal *everything*...
+            newSlice.setAttribute(  'd',       oldSlice.firstChild.getAttribute('d'));
             newSlice.setAttribute( 'fill',         'url(#pic'+i+')');
 
-            // add the image to the pattern, the pattern to the defs, and the slice to the root
+            // add the image to the pattern and the pattern to the defs
             patternElt.appendChild(imageElt);
             defs.append(patternElt);
-            const group = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-            group.appendChild(newSlice);
-            svgRoot.appendChild(group);
+
+            // insert the new slice before the now-transparent old slice
+            oldSlice.parentNode.insertBefore(newSlice, oldSlice)
+            
+            // make a new dot, then set size and position of dot to replace the old dot
+            const newDot = imageElt.cloneNode(true);
+            const radius = oldDot.r.animVal.value;
+            newDot.setAttribute('x',       oldDot.cx.animVal.value - radius);
+            newDot.setAttribute('y',       oldDot.cy.animVal.value - radius);
+            newDot.setAttribute('width',   radius * 2);
+            newDot.setAttribute('height',  radius * 2);
+            oldDot.parentNode.replaceChild(newDot, oldDot);
           });
         });
       }

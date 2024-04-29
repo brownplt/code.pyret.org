@@ -2129,6 +2129,9 @@ body.smallHeader #run-dropdown-content {
   transition: .1s background-color linear .3s;
   background-color: var(--surrounding-check-spotlight-bg);
 }
+#main.spotlight .replOutput {
+  opacity: 0.5;
+}
 
 .stacktrace > div .CodeMirror-vscrollbar {
   display:none!important;
@@ -2379,7 +2382,7 @@ table.pyret-row {
 .modal .close{
   border: 1px solid #ccc;
   background: white;
-  color: #999;
+  color: var(--run-bg);
   margin-right: 16px;
 }
 

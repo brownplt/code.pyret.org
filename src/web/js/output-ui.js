@@ -41,6 +41,14 @@
       return converter([74, a, b]);
     }
 
+    // Snap wants colors specified as "r,g,b(,a)" where each is [0-255]
+    var snapConverter = $.colorspaces.converter('CIELAB', 'sRGB')
+    function hueToSnapColor(hue) {
+      var a = 40*Math.cos(hue);
+      var b = 40*Math.sin(hue)
+      return snapConverter([74, a, b]).map(x => Math.floor(x * 255)).join(",")
+    }
+
     var goldenAngle = 2.39996322972865332;
     var lastHue = 0;
 
@@ -1075,8 +1083,20 @@
                 window.requestAnimationFrame(function() {
                   logger.log("highlight_anchor_hover",
                     { error_id: context, anchor_id: id });
-                  if (positions[0] !== undefined)
-                    positions[0].hint();
+
+                  if (positions[0] !== undefined) {
+                    if(CPO.blocksIDE) {
+                      // Blocks editor case
+                      var snapColor = hueToSnapColor(color);
+                      CPO.blocksIDE.flashSpriteScriptAt(
+                        locsArray[0].dict['start-char'] + 1,
+                        undefined,
+                        snapColor);
+                    } else {
+                      // Non-Blocks editor
+                      positions[0].hint();
+                    }
+                  }
                   emphasize(color);
                 });
               });
@@ -1084,7 +1104,14 @@
                 logger.log("highlight_anchor_mouseleave",
                   { error_id: context, anchor_id: id });
                 window.requestAnimationFrame(function() {
-                  unhintLoc();
+                  // Blocks editor case
+                  if(CPO.blocksIDE) {
+                    if(positions.length > 0) {
+                      CPO.blocksIDE.unflashSpriteScripts();
+                    }
+                  } else {
+                    unhintLoc();
+                  }
                   demphasize(color);
                 });
               });
