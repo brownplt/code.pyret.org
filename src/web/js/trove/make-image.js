@@ -1110,9 +1110,22 @@
           image.makeRhombusImage(length, angle, mode, color));
       });
 
+      f("trim-image", function(maybeImage) {
+        checkArity(1, arguments, "trim-image", false);
+        c1("trim-image", maybeImage, annImage);
+        var img = unwrapImage(maybeImage);
+        var canvas = image.trimImageToCanvas(img);
+        if (canvas.width === 0 || canvas.height === 0) {
+          return makeImage(
+            image.makeRectangleImage(canvas.width, canvas.height, "solid", colorDb.get("transparent")));
+        }
+        return makeImage(
+          image.makeImageDataImage(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height)));
+      });
+
       f("image-to-color-list", function(maybeImage) {
         checkArity(1, arguments, "image-to-color-list", false);
-        c1("image-width", maybeImage, annImage);
+        c1("image-to-color-list", maybeImage, annImage);
         var img = unwrapImage(maybeImage);
         return image.imageToColorList(img);
       });
@@ -1142,7 +1155,6 @@
         checkArity(1, arguments, "image-pinhole-x", false);
         c1("image-pinhole-x", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        debugger
         return runtime.wrap(img.getPinholeX());
       });
 
@@ -1150,7 +1162,6 @@
         checkArity(1, arguments, "image-pinhole-y", false);
         c1("image-pinhole-y", maybeImg, annImage);
         var img = unwrapImage(maybeImg);
-        debugger
         return runtime.wrap(img.getPinholeY());
       });
 
@@ -1188,6 +1199,9 @@
         }
         var pinholeX = jsnums.toFixnum(maybePinholeX);
         var pinholeY = jsnums.toFixnum(maybePinholeY);
+        if (width === 0 || height === 0) {
+          return makeImage(image.makeRectangleImage(width, height, "solid", colorDb.get("transparent")));
+        }
         return makeImage(image.colorListToImage(loc, width, height, pinholeX, pinholeY));
       });
 

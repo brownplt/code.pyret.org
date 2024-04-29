@@ -134,6 +134,7 @@
       "radial-star": ["arrow", ["Number", "Number", "Number", "FillMode", "ColorString"], "Image"],
       "star-polygon": ["arrow", ["Number", "Number", "Number", "FillMode", "ColorString"], "Image"],
       "rhombus": ["arrow", ["Number", "Number", "FillMode", "ColorString"], "Image"],
+      "trim-image": ["arrow", ["Image"], "Image"],
       "image-to-color-list": ["arrow", ["Image"], "LoC"],
       "color-list-to-image": ["arrow", ["LoC", "Number", "Number", "Number", "Number"], "Image"],
       "color-at-position": ["arrow", ["Image", "Number", "Number"], "Color"],
