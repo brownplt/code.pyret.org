@@ -2161,6 +2161,7 @@ table {
     display: table!important;
     border:1px var(--table-border) solid;
     border-radius:1em;
+    border-collapse: separate;
     overflow:hidden;
     background:var(--table-bg);
 }
