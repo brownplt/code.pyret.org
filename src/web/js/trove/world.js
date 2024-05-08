@@ -533,13 +533,13 @@
     DefaultDrawingOutput.prototype.toRawHandler = function(toplevelNode) {
       var that = this;
       var worldFunction = function(world, success) {
-        var textNode = jQuery("<pre>");
+        var hostNode = document.createElement("div");
         return runtime.safeCall(function() {
-          return runtime.toReprJS(world, runtime.ReprMethods._torepr);
-        }, function(str) {
-          textNode.text(str);
+          return runtime.toReprJS(world, runtime.ReprMethods['$cpo']);
+        }, function(jNode) {
+          $(hostNode).append(jNode);
           success([toplevelNode,
-                   rawJsworld.node_to_tree(textNode[0])]);
+                   rawJsworld.node_to_tree(hostNode)]);
         }, "default-drawing:toRepr");
       };
       var cssFunction = function(w, success) { success([]); }
