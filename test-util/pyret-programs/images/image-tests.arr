@@ -146,14 +146,14 @@ check "color-lists":
 end
 
 check "trimming":
-  sqr = square(40, "solid", red)
+  sqr = square(40, mode-solid, red)
   image-width(sqr) is 40
   trim-image(sqr) satisfies is-image
   image-width(trim-image(sqr)) is 40
   image-height(sqr) is 40
   image-height(trim-image(sqr)) is 40
 
-  blank = rectangle(40, 20, "solid", "transparent")
+  blank = rectangle(40, 20, mode-solid, transparent)
   image-width(blank) is 40
   trim-image(blank) satisfies is-image
   image-width(trim-image(blank)) is 0

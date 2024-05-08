@@ -238,7 +238,7 @@ function checkAllTestsPassed(driver, name, timeout) {
     driver.wait(function () {
       return isElementPresent(driver, webdriver.By.className("check-results-done-rendering"));
     }, 20000);
-    return response.findElements(webdriver.By.className("check-block-failed"));
+    return response.findElements(webdriver.By.css(".check-block-failed, .check-block-errored"));
   });
   return checkBlocks.then(function(cbs) {
     return replOutput.findElements(contains("Looks shipshape")).then(function(shipshapes) {
@@ -249,7 +249,7 @@ function checkAllTestsPassed(driver, name, timeout) {
           return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
             return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
               return tests.length === 0
-                ? Q.all(Array(specs[i].length).fill("Passed"))
+                ? Q.all([cb.getText()])
                 : Q.all(tests.map(function(t) { return t.getText(); }));
             });
           });
