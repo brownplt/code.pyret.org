@@ -793,6 +793,74 @@
     };
 
     //////////////////////////////////////////////////////////////////////
+    // trimImageToCanvas : Image -> canvas
+    // Given a Pyret image, render it into a Canvas element whose size
+    // is the tightest bounding box of non-transparent pixels in the image,
+    // and return the canvas.
+
+    function trimImageToCanvas(image) {
+      var tempCanvas = makeCanvas(Math.round(image.width), Math.round(image.height));
+      var ctx = tempCanvas.getContext('2d');
+      image.render(ctx);
+      return trimCanvas(tempCanvas);
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    // trimCanvas : canvas -> canvas
+    // Given a Canvas, create a new Canvas whose size
+    // is the tightest bounding box of non-transparent pixels in the source,
+    // copy the image into the new canvas, and return that new canvas.
+
+    function trimCanvas(canvas) {
+      function rowBlank(imageData, width, y) {
+        for (var x = 0; x < width; ++x) {
+          if (imageData.data[y * width * 4 + x * 4 + 3] !== 0) return false;
+        }
+        return true;
+      }
+
+      function columnBlank(imageData, width, x, top, bottom) {
+        for (var y = top; y < bottom; ++y) {
+          if (imageData.data[y * width * 4 + x * 4 + 3] !== 0) return false;
+        }
+        return true;
+      }
+
+      if (canvas.width === 0 || canvas.height === 0) {
+        var blank = canvas.ownerDocument.createElement("canvas");
+        blank.width = 0;
+        blank.height = 0;
+        return blank;
+      }
+        
+      var ctx = canvas.getContext("2d");
+      var width = canvas.width;
+      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var top = 0, bottom = imageData.height, left = 0, right = imageData.width;
+
+      while (top < bottom && rowBlank(imageData, width, top)) ++top;
+      while (bottom - 1 > top && rowBlank(imageData, width, bottom - 1)) --bottom;
+      if (top >= bottom) {
+        var blank = canvas.ownerDocument.createElement("canvas");
+        blank.width = 0;
+        blank.height = 0;
+        return blank;
+      }
+      while (left < right && columnBlank(imageData, width, left, top, bottom)) ++left;
+      while (right - 1 > left && columnBlank(imageData, width, right - 1, top, bottom)) --right;
+
+      var trimmed = ctx.getImageData(left, top, right - left, bottom - top);
+      var copy = canvas.ownerDocument.createElement("canvas");
+      var copyCtx = copy.getContext("2d");
+      copy.width = trimmed.width;
+      copy.height = trimmed.height;
+      copyCtx.putImageData(trimmed, 0, 0);
+
+      return copy;
+    }
+
+
+    //////////////////////////////////////////////////////////////////////
     // OverlayImage: Image1, XPlace1, YPlace1, OffsetX, OffsetY, Image2, XPlace2, YPlace2 -> Image
     // Creates an image that overlays img1 on top of the
     // other image img2, by aligning the given (x/y)-place of img1
@@ -1903,7 +1971,8 @@
         colorAtPosition: colorAtPosition,
         imageToColorList: imageToColorList,
         colorListToImage: colorListToImage,
-
+        trimCanvas: trimCanvas,
+        trimImageToCanvas: trimImageToCanvas,
 
         isImage: isImage,
         isScene: isScene,

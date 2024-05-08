@@ -141,6 +141,27 @@ check "color-lists":
 
   color-list-to-bitmap([list: red, green, blue], 2, 2) raises ""
   color-list-to-bitmap([list: red, green, blue, black], 2, 2) satisfies is-image
+
+  color-list-to-image([list: ], 0, 0, 0, 0) does-not-raise
+end
+
+check "trimming":
+  sqr = square(40, "solid", red)
+  image-width(sqr) is 40
+  trim-image(sqr) satisfies is-image
+  image-width(trim-image(sqr)) is 40
+  image-height(sqr) is 40
+  image-height(trim-image(sqr)) is 40
+
+  blank = rectangle(40, 20, "solid", "transparent")
+  image-width(blank) is 40
+  trim-image(blank) satisfies is-image
+  image-width(trim-image(blank)) is 0
+  image-height(blank) is 20
+  image-height(trim-image(blank)) is 0
+
+  trim-image(trim-image(blank)) satisfies is-image
+
 end
 
 check "properties":
