@@ -125,6 +125,8 @@ window.CPO = {
 };
 $(function() {
   const CONTEXT_FOR_NEW_FILES = "use context starter2024\n";
+  const CONTEXT_PREFIX = /^use context\s+/;
+
   function merge(obj, extension) {
     var newobj = {};
     Object.keys(obj).forEach(function(k) {
@@ -222,7 +224,7 @@ $(function() {
 
     function firstLineIsNamespace() {
       const firstline = CM.getLine(0);
-      const match = firstline.match(/^use context.*/);
+      const match = firstline.match(CONTEXT_PREFIX);
       return match !== null;
     }
 
@@ -485,11 +487,14 @@ $(function() {
       });
     namespaceResult.show((result) => {
       if(!result) { return; }
-      if(result.match(/^use context*/)) { result = result.slice("use context ".length); }
-      CPO.editor.setContextLine("use context " + result + "\n");
+      CPO.editor.setContextLine("use context " + result.trim() + "\n");
     });
   }
-  $("#choose-context").on("click", function() { showModal(CPO.editor.cm.getLine(0).slice("use context ".length)); });
+  $("#choose-context").on("click", function() {
+    const firstLine = CPO.editor.cm.getLine(0);
+    const contextLen = firstLine.match(CONTEXT_PREFIX);
+    showModal(contextLen === null ? "" : firstLine.slice(contextLen[0].length));
+  });
 
   var TRUNCATE_LENGTH = 20;
 
