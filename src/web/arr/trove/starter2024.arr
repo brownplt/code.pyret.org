@@ -427,6 +427,8 @@ provide from G:
   string-from-code-point,
   string-from-code-points,
   string-index-of,
+  string-find-index,
+  string-get-index,
   string-is-number,
   string-isnumber,
   string-length,

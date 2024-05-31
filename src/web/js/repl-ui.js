@@ -25,7 +25,8 @@
     },
     { "import-type": "builtin",
       name: "load-lib"
-    }
+    },
+    { "import-type": "builtin", "name": "image-lib" }
   ],
   nativeRequires: [
     "pyret-base/js/runtime-util"
@@ -34,7 +35,7 @@
   theModule: function(runtime, _, uri,
                       checkUI, outputUI, errorUI,
                       textHandlers, replHistory,
-                      worldLib, loadLib,
+                      worldLib, loadLib, imageLib,
                       util) {
     var ffi = runtime.ffi;
 
@@ -314,7 +315,7 @@
           CM.focus();
         }
       });
-
+      
       function maybeShowOutputPending() {
         outputPendingHidden = false;
         setTimeout(function() {
@@ -449,8 +450,17 @@
                 savedOptions = options;
                 return $.extend({}, options, {chartArea: null});
               });
+              const img = document.createElement('img');
+              img.src = args.getImageURI();
+              const temp = document.createElement('canvas');
+              temp.width = img.width;
+              temp.height = img.height;
+              const ctx = temp.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              const image = runtime.getField(imageLib, "internal");
+              const trimmed = image.trimCanvas(temp);
               const download = document.createElement('a');
-              download.href = args.getImageURI();
+              download.href = trimmed.toDataURL();
               download.download = 'chart.png';
               // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
               function fireEvent(obj, evt){
