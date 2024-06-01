@@ -3,13 +3,19 @@ var webdriver = require("selenium-webdriver");
 var fs = require("fs");
 var Q = require("q");
 const chromedriver = require('chromedriver');
+const chrome = require('selenium-webdriver/chrome');
 
 let PATH_TO_CHROME;
-// Used by Travis
-if (process.env.GOOGLE_CHROME_BINARY) {
+
+if (process.env.CHROMEDRIVER_BINARY) {
+  // Note(Ben): Use `env CHROMDRIVER_BINARY=/snap/bin/chromium.chromedriver npm run mocha`
+  // Based on https://stackoverflow.com/a/53971573
+  chrome.setDefaultService(new chrome.ServiceBuilder(process.env.CHROMEDRIVER_BINARY).build());
+} else if (process.env.GOOGLE_CHROME_BINARY) {
+  // Used by Travis
   PATH_TO_CHROME = process.env.GOOGLE_CHROME_BINARY;
 }
-else {
+else if (process.platform === 'darwin') {
   PATH_TO_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
   console.log(`The tester is guessing that you're on a Mac and using ${PATH_TO_CHROME}. You can set GOOGLE_CHROME_BINARY to the path to your Chrome install if this path is not working.`);
 }
@@ -17,7 +23,7 @@ else {
 let leave_open = process.env.LEAVE_OPEN === "true" || false;
 
 let args = process.env.SHOW_BROWSER ? [] : [
-  '--headless',
+  '--headless'
 ];
 if(!process.env.SHOW_BROWSER) {
   console.log("Running Chrome headless. You can set SHOW_BROWSER=true to see what's going on");
@@ -25,10 +31,11 @@ if(!process.env.SHOW_BROWSER) {
 
 // Working from https://developers.google.com/web/updates/2017/04/headless-chrome#drivers
 const chromeCapabilities = webdriver.Capabilities.chrome();
-chromeCapabilities.set('chromeOptions', {
-  binary: PATH_TO_CHROME,
-  'args': args
-});
+const options = { args };
+if (PATH_TO_CHROME !== undefined) {
+  options.binary = PATH_TO_CHROME;
+}
+chromeCapabilities.set('chromeOptions', options);
 
 
 function teardown() {
@@ -238,7 +245,7 @@ function checkAllTestsPassed(driver, name, timeout) {
     driver.wait(function () {
       return isElementPresent(driver, webdriver.By.className("check-results-done-rendering"));
     }, 20000);
-    return response.findElements(webdriver.By.className("check-block-failed"));
+    return response.findElements(webdriver.By.css(".check-block-failed, .check-block-errored"));
   });
   return checkBlocks.then(function(cbs) {
     return replOutput.findElements(contains("Looks shipshape")).then(function(shipshapes) {
@@ -249,7 +256,7 @@ function checkAllTestsPassed(driver, name, timeout) {
           return cb.findElement(webdriver.By.className("check-block-header")).click().then(function(_) {
             return cb.findElements(webdriver.By.className("check-block-test")).then(function(tests) {
               return tests.length === 0
-                ? Q.all(Array(specs[i].length).fill("Passed"))
+                ? Q.all([cb.getText()])
                 : Q.all(tests.map(function(t) { return t.getText(); }));
             });
           });

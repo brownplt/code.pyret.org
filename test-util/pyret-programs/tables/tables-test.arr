@@ -44,6 +44,6 @@ print-tests([list:
     tc('t-complex', 2, 2, 'pixels-2')])
 
 # make sure that raw-rows render and don't crash
-[T.raw-row: {1; "a"}, {2; "b"}]
+[T.raw-row: {"a"; 1}, {"b"; 2}]
 
 
