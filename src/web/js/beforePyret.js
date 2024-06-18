@@ -1391,6 +1391,14 @@ $(function() {
     onInteractionHandlers.forEach(h => h(interaction));
   }
 
+  const onLoadHandlers = [];
+  function onLoad(handler) {
+    onLoadHandlers.push(handler);
+  }
+  function triggerOnLoad() {
+    onLoadHandlers.forEach(h => h());
+  }
+
   programLoaded.fin(function() {
     CPO.editor.focus();
     CPO.editor.cm.setOption("readOnly", false);
@@ -1405,9 +1413,11 @@ $(function() {
   CPO.say = say;
   CPO.sayAndForget = sayAndForget;
   CPO.onRun = onRun;
+  CPO.onLoad = onLoad;
   CPO.triggerOnRun = triggerOnRun;
   CPO.onInteraction = onInteraction;
   CPO.triggerOnInteraction = triggerOnInteraction;
+  CPO.triggerOnLoad = triggerOnLoad;
 
   if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
     const message = $("<span>");
@@ -1417,7 +1427,9 @@ $(function() {
     localSettings.setItem("sawSummer2021Message", "saw-summer-2021-message");
   }
 
-  if(window.parent !== window) {
-    makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
+  let initialState = params["get"]["initialState"];
+
+  if(window.parent !== window || process.env.NODE_ENV === "development") {
+    makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
   }
 });

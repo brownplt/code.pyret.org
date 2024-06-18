@@ -157,7 +157,9 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/post-load-hooks", "pyret-base
         $("#runDropdown").attr("disabled", false);
         clearInterval($("#loader").data("intervalID"));
         $("#loader").hide();
+        CPO.triggerOnLoad();
         CPO.say('Pyret loaded and ready.');
+        
         console.log("REPL ready.");
       });
     }

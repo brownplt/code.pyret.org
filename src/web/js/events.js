@@ -42,6 +42,18 @@ function makeEvents(config) {
   const onRun = config.CPO.onRun;
   const RUN_CODE = config.CPO.RUN_CODE;
 
+  config.CPO.onLoad(async function () {
+    interactionsSinceLastRun = [];
+    if(config.initialState === "") { return; }
+    const initialState = JSON.parse(config.initialState);
+    editor.cm.setValue(initialState.editorContents);
+    const runComplete = await window.RUN_CODE(editor.cm.getValue());
+    const interactions = initialState.interactionsSinceLastRun;
+    for(let i = 0; i < interactions.length; i += 1) {
+      await runInteraction(interactions[i]);
+    }
+  });
+
   const comm = commSetup(config, onmessage);
 
   // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
@@ -74,6 +86,19 @@ function makeEvents(config) {
     });
   });
 
+  function runInteraction(src) {
+    interactionsSinceLastRun.push(src);
+    $(".repl-prompt")
+      .find(".CodeMirror")[0]
+      .CodeMirror.setOption("readOnly", "nocursor");
+    const result = window.RUN_INTERACTION(src);
+    return result.fin(() => {
+      $(".repl-prompt")
+        .find(".CodeMirror")[0]
+        .CodeMirror.setOption("readOnly", false);
+    });
+  }
+
   function onmessage(message) {
     console.log("received: ", message);
     switch (message.type) {
@@ -99,16 +124,7 @@ function makeEvents(config) {
       case "runInteraction":
         const interactions = message.currentState.interactionsSinceLastRun;
         const src = interactions[interactions.length - 1];
-        interactionsSinceLastRun.push(src);
-        $(".repl-prompt")
-          .find(".CodeMirror")[0]
-          .CodeMirror.setOption("readOnly", "nocursor");
-        const result = window.RUN_INTERACTION(src);
-        result.fin(() => {
-          $(".repl-prompt")
-            .find(".CodeMirror")[0]
-            .CodeMirror.setOption("readOnly", false);
-        });
+        runInteraction(src);
         break;
     }
   }
