@@ -58,7 +58,7 @@
     "seedrandom": "~2.3.10",
     "sha.js": "^2.4.11",
     "source-map": "^0.5.7",
-    "style-loader": "0.13.1",
+    "style-loader": "0.13.2",
     "supervisor": "^0.11.0",
     "url-loader": "^0.6.2",
     "url.js": "^1.0.3",
