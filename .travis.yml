@@ -1,4 +1,5 @@
 language: ruby
+dist: jammy
 sudo: required
 rvm:
   - 2.6
