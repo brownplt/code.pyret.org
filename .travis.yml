@@ -46,8 +46,8 @@ services:
   - xvfb
 before_install:
 - . $HOME/.nvm/nvm.sh
-- nvm install 16.13.0
-- nvm use 16.13.0
+- nvm install node
+- nvm use node
 - export CHROME_VERSION=`curl https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE `
 - curl https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chrome-linux64.zip -o chrome-linux64.zip
 - curl https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip -o chromedriver-linux64.zip
