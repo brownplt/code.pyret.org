@@ -11,7 +11,6 @@ env:
   - REDISCLOUD_URL=""
   - BASE_URL=http://localhost:5000
   - SESSION_SECRET=not-so-secret-for-testing
-  - USE_STANDALONE_PYRET=true
   - PYRET="http://localhost:5000/js/cpo-main.jarr"
   - CURRENT_PYRET_RELEASE=""
   - PORT=5000
