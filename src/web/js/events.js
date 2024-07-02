@@ -1,4 +1,4 @@
-let counter = 0;
+let messageCounter = 0;
 let targetOrigin = POSTMESSAGE_ORIGIN;
 function commSetup(config, messageCallback) {
   function sendEvent(data) {
@@ -6,7 +6,7 @@ function commSetup(config, messageCallback) {
     config.sendPort.postMessage(
       {
         protocol: "pyret",
-        messageNumber: counter++,
+        messageNumber: ++messageCounter,
         timestamp: window.performance.now(),
         data: data,
       },
@@ -34,17 +34,16 @@ function getCurrentState(config) {
   return {
     editorContents: config.CPO.editor.cm.getValue(),
     interactionsSinceLastRun: interactionsSinceLastRun,
+    messageNumber: messageCounter
   };
 }
 
 function makeEvents(config) {
   const editor = config.CPO.editor;
-  const onRun = config.CPO.onRun;
-  const RUN_CODE = config.CPO.RUN_CODE;
 
-  async function reset(initialState) {
+  async function reset(state) {
     interactionsSinceLastRun = [];
-    state = JSON.parse(initialState);
+    messageCounter = state.messageNumber;
     editor.cm.setValue(state.editorContents);
     const runComplete = await window.RUN_CODE(editor.cm.getValue());
     const interactions = state.interactionsSinceLastRun;
@@ -106,10 +105,17 @@ function makeEvents(config) {
 
   function onmessage(message) {
     console.log("received: ", message);
+    if(message.type === "reset") {
+      reset(JSON.parse(message.state));
+      return;
+    }
+    if(message.currentState.messageNumber !== messageCounter + 1) {
+      console.log("Messages received in a strange order: ", message, messageCounter, getCurrentState(config));
+      reset(message.currentState);
+      return;
+    }
+    messageCounter = message.currentState.messageNumber;
     switch (message.type) {
-      case "reset":
-        reset(message.state);
-        break;
       case "setContents":
         editor.cm.setValue(message.text);
         break;
