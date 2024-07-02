@@ -42,16 +42,21 @@ function makeEvents(config) {
   const onRun = config.CPO.onRun;
   const RUN_CODE = config.CPO.RUN_CODE;
 
-  config.CPO.onLoad(async function () {
+  async function reset(initialState) {
     interactionsSinceLastRun = [];
-    if(config.initialState === "") { return; }
-    const initialState = JSON.parse(config.initialState);
-    editor.cm.setValue(initialState.editorContents);
+    state = JSON.parse(initialState);
+    editor.cm.setValue(state.editorContents);
     const runComplete = await window.RUN_CODE(editor.cm.getValue());
-    const interactions = initialState.interactionsSinceLastRun;
+    const interactions = state.interactionsSinceLastRun;
     for(let i = 0; i < interactions.length; i += 1) {
       await runInteraction(interactions[i]);
     }
+  }
+
+  config.CPO.onLoad(async function () {
+    comm.sendEvent({
+      type: "pyret-init"
+    });
   });
 
   const comm = commSetup(config, onmessage);
@@ -102,6 +107,9 @@ function makeEvents(config) {
   function onmessage(message) {
     console.log("received: ", message);
     switch (message.type) {
+      case "reset":
+        reset(message.state);
+        break;
       case "setContents":
         editor.cm.setValue(message.text);
         break;
