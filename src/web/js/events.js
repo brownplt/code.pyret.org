@@ -30,10 +30,15 @@ function commSetup(config, messageCallback) {
 }
 
 let interactionsSinceLastRun = [];
+// Sometimes there are interleavings of edits with running, so the currently-shown
+// definitions isn't the one used for running the program.
+// `false` indicates that the program has not been run yet
+let definitionsAtLastRun = false;
 function getCurrentState(config) {
   return {
     editorContents: config.CPO.editor.cm.getValue(),
-    interactionsSinceLastRun: interactionsSinceLastRun,
+    definitionsAtLastRun,
+    interactionsSinceLastRun,
     messageNumber: messageCounter
   };
 }
@@ -44,8 +49,10 @@ function makeEvents(config) {
   async function reset(state) {
     interactionsSinceLastRun = [];
     messageCounter = state.messageNumber;
+    if(state.definitionsAtLastRun && state.definitionsAtLastRun !== state.currentState) {
+      await window.RUN_CODE(state.definitionsAtLastRun);
+    }
     editor.cm.setValue(state.editorContents);
-    const runComplete = await window.RUN_CODE(editor.cm.getValue());
     const interactions = state.interactionsSinceLastRun;
     for(let i = 0; i < interactions.length; i += 1) {
       await runInteraction(interactions[i]);
@@ -76,6 +83,7 @@ function makeEvents(config) {
 
   config.CPO.onRun(function () {
     interactionsSinceLastRun = [];
+    definitionsAtLastRun = getCurrentState(config).editorContents;
     comm.sendEvent({
       type: "run",
       currentState: getCurrentState(config),
@@ -133,7 +141,10 @@ function makeEvents(config) {
         break;
       case "run":
         interactionsSinceLastRun = [];
-        window.RUN_CODE(editor.cm.getValue()); // TODO(don't require editor here, abstract more)
+        const code = message.currentState.editorContents
+        editor.cm.setValue(code);
+        definitionsAtLastRun = code;
+        window.RUN_CODE(code);
         break;
       case "runInteraction":
         const interactions = message.currentState.interactionsSinceLastRun;
