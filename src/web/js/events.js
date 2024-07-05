@@ -1,14 +1,21 @@
 let messageCounter = 0;
 let targetOrigin = POSTMESSAGE_ORIGIN;
+let RECEIVED_RESET = false;
 function commSetup(config, messageCallback) {
   function sendEvent(data) {
-    console.log("Sending from CPO ", event);
+    if(!RECEIVED_RESET && data.type !== "pyret-init") {
+      console.log("Pyret skipping a message synthesized before initialization via 'reset':", data, getCurrentState(config));
+      return;
+    }
+    messageCounter += 1;
+    const state = { ...getCurrentState(config), messageNumber: messageCounter };
+    console.log("Sending from CPO ", data, state);
     config.sendPort.postMessage(
       {
         protocol: "pyret",
-        messageNumber: ++messageCounter,
         timestamp: window.performance.now(),
         data: data,
+        state
       },
       targetOrigin
     );
@@ -20,11 +27,11 @@ function commSetup(config, messageCallback) {
     ) {
       return;
     }
-    console.log("Message received: ", event);
     if (event.data.protocol !== "pyret") {
       return;
     }
-    messageCallback(event.data.data);
+    console.log("Message received: ", event);
+    messageCallback(event.data.data, event.data.state);
   };
   return { sendEvent };
 }
@@ -38,8 +45,7 @@ function getCurrentState(config) {
   return {
     editorContents: config.CPO.editor.cm.getValue(),
     definitionsAtLastRun,
-    interactionsSinceLastRun,
-    messageNumber: messageCounter
+    interactionsSinceLastRun
   };
 }
 
@@ -49,14 +55,15 @@ function makeEvents(config) {
   async function reset(state) {
     interactionsSinceLastRun = [];
     messageCounter = state.messageNumber;
-    if(state.definitionsAtLastRun && state.definitionsAtLastRun !== state.currentState) {
+    definitionsAtLastRun = state.definitionsAtLastRun;
+    if(typeof state.definitionsAtLastRun === 'string') {
       await window.RUN_CODE(state.definitionsAtLastRun);
     }
-    editor.cm.setValue(state.editorContents);
     const interactions = state.interactionsSinceLastRun;
     for(let i = 0; i < interactions.length; i += 1) {
       await runInteraction(interactions[i]);
     }
+    editorUpdate(state.editorContents);
   }
 
   config.CPO.onLoad(async function () {
@@ -66,6 +73,15 @@ function makeEvents(config) {
   });
 
   const comm = commSetup(config, onmessage);
+
+  function editorUpdate(newCode) {
+    editor.cm.replaceRange(
+      newCode,
+      { line: 0, ch: 0},
+      { line: editor.cm.lastLine(), ch: 99999 },
+      thisAPI
+    );
+  }
 
   // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
   const thisAPI = "@ignore-this-api";
@@ -77,7 +93,6 @@ function makeEvents(config) {
     comm.sendEvent({
       type: "change",
       change: change,
-      currentState: getCurrentState(config),
     });
   });
 
@@ -85,16 +100,14 @@ function makeEvents(config) {
     interactionsSinceLastRun = [];
     definitionsAtLastRun = getCurrentState(config).editorContents;
     comm.sendEvent({
-      type: "run",
-      currentState: getCurrentState(config),
+      type: "run"
     });
   });
 
   config.CPO.onInteraction(function (interaction) {
     interactionsSinceLastRun.push(interaction);
     comm.sendEvent({
-      type: "runInteraction",
-      currentState: getCurrentState(config),
+      type: "runInteraction"
     });
   });
 
@@ -111,21 +124,32 @@ function makeEvents(config) {
     });
   }
 
-  function onmessage(message) {
-    console.log("received: ", message);
+  function onmessage(message, state) {
+    console.log("Pyret received an onmessage: ", message);
     if(message.type === "reset") {
-      reset(JSON.parse(message.state));
+      console.log("Got explicit reset: ", getCurrentState(config), message);
+      RECEIVED_RESET = true;
+      const state = JSON.parse(message.state);
+      if(!state.editorContents) {
+        console.log("Skipping reset with empty state", message);
+        return;
+      }
+      reset(state);
       return;
     }
-    if(message.currentState.messageNumber !== messageCounter + 1) {
+
+    if(state.messageNumber !== messageCounter + 1) {
       console.log("Messages received in a strange order: ", message, messageCounter, getCurrentState(config));
-      reset(message.currentState);
+      reset(state);
       return;
     }
-    messageCounter = message.currentState.messageNumber;
+    else {
+      messageCounter += 1;
+    }
+    
     switch (message.type) {
       case "setContents":
-        editor.cm.setValue(message.text);
+        editorUpdate(message.text);
         break;
       case "change":
         editor.cm.replaceRange(
@@ -134,20 +158,20 @@ function makeEvents(config) {
           message.change.to,
           thisAPI
         );
-        if(config.CPO.editor.cm.getValue() !== message.currentState.editorContents) {
-          console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), message.currentState.editorContents)
-          editor.cm.setValue(message.currentState.editorContents);
+        if(config.CPO.editor.cm.getValue() !== state.editorContents) {
+          console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), state.editorContents)
+          editorUpdate(state.editorContents);
         }
         break;
       case "run":
         interactionsSinceLastRun = [];
-        const code = message.currentState.editorContents
-        editor.cm.setValue(code);
+        const code = state.editorContents
+        editorUpdate(code);
         definitionsAtLastRun = code;
         window.RUN_CODE(code);
         break;
       case "runInteraction":
-        const interactions = message.currentState.interactionsSinceLastRun;
+        const interactions = state.interactionsSinceLastRun;
         const src = interactions[interactions.length - 1];
         runInteraction(src);
         break;
