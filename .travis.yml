@@ -59,7 +59,7 @@ before_deploy:
 - export GIT_BRANCH=`echo $TRAVIS_BRANCH`
 - heroku config:set --app pyret-horizon GIT_REV=$GIT_REV
 - heroku config:set --app pyret-horizon GIT_BRANCH=$GIT_REV
-- gem install faraday -v 2.8.1
+- gem install faraday -v 3.0.2
 - gem install faraday-net_http -v 3.0.2
 install:
 - git submodule init
