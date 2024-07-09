@@ -30,7 +30,6 @@ function commSetup(config, messageCallback) {
     if (event.data.protocol !== "pyret") {
       return;
     }
-    console.log("Message received: ", event);
     messageCallback(event.data.data, event.data.state);
   };
   return { sendEvent };
@@ -87,7 +86,7 @@ function makeEvents(config) {
   const thisAPI = "@ignore-this-api";
 
   editor.cm.on("change", function (instance, change) {
-    if (change.origin === thisAPI) {
+    if (change.origin === thisAPI || change.origin === "setValue") {
       return;
     }
     comm.sendEvent({
@@ -124,16 +123,22 @@ function makeEvents(config) {
     });
   }
 
+  const initialState = {
+    editorContents: "use context starter2024",
+    interactionsSinceLastRun: [],
+    definitionsAtLastRun: false
+  };
+
   function onmessage(message, state) {
     console.log("Pyret received an onmessage: ", message);
     if(message.type === "reset") {
-      console.log("Got explicit reset: ", getCurrentState(config), message);
+      console.log("Got explicit reset: ", message, "current state", getCurrentState(config));
       RECEIVED_RESET = true;
-      const state = JSON.parse(message.state);
-      if(!state.editorContents) {
-        console.log("Skipping reset with empty state", message);
+      if(message.state === "") {
+        reset(initialState);
         return;
       }
+      const state = JSON.parse(message.state);
       reset(state);
       return;
     }
