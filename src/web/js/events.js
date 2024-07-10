@@ -44,12 +44,14 @@ function getCurrentState(config) {
   return {
     editorContents: config.CPO.editor.cm.getValue(),
     definitionsAtLastRun,
-    interactionsSinceLastRun
+    interactionsSinceLastRun,
+    replContents: config.CPO.replWidget.cm.getValue()
   };
 }
 
 function makeEvents(config) {
   const editor = config.CPO.editor;
+  const replCM = function() { return config.CPO.replWidget.cm; }
 
   async function reset(state) {
     interactionsSinceLastRun = [];
@@ -63,9 +65,19 @@ function makeEvents(config) {
       await runInteraction(interactions[i]);
     }
     editorUpdate(state.editorContents);
+    replUpdate(state.replContents);
   }
 
   config.CPO.onLoad(async function () {
+    replCM().on("change", function (instance, change) {
+      if (change.origin === thisAPI || change.origin === "setValue") {
+        return;
+      }
+      comm.sendEvent({
+        type: "changeRepl",
+        change: change,
+      });
+    });
     comm.sendEvent({
       type: "pyret-init"
     });
@@ -80,6 +92,17 @@ function makeEvents(config) {
       { line: editor.cm.lastLine(), ch: 99999 },
       thisAPI
     );
+    editor.cm.refresh();
+  }
+
+  function replUpdate(newCode) {
+    replCM().replaceRange(
+      newCode,
+      { line: 0, ch: 0},
+      { line: replCM().lastLine(), ch: 99999 },
+      thisAPI
+    );
+    replCM().refresh();
   }
 
   // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
@@ -94,6 +117,8 @@ function makeEvents(config) {
       change: change,
     });
   });
+
+
 
   config.CPO.onRun(function () {
     interactionsSinceLastRun = [];
@@ -126,7 +151,8 @@ function makeEvents(config) {
   const initialState = {
     editorContents: "use context starter2024",
     interactionsSinceLastRun: [],
-    definitionsAtLastRun: false
+    definitionsAtLastRun: false,
+    replContents: ""
   };
 
   function onmessage(message, state) {
@@ -144,7 +170,7 @@ function makeEvents(config) {
     }
 
     if(state.messageNumber !== messageCounter + 1) {
-      console.log("Messages received in a strange order: ", message, messageCounter, getCurrentState(config));
+      console.log("Messages received in a strange order: ", message, state, messageCounter, getCurrentState(config));
       reset(state);
       return;
     }
@@ -166,6 +192,18 @@ function makeEvents(config) {
         if(config.CPO.editor.cm.getValue() !== state.editorContents) {
           console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), state.editorContents)
           editorUpdate(state.editorContents);
+        }
+        break;
+      case "changeRepl":
+        replCM().replaceRange(
+          message.change.text,
+          message.change.from,
+          message.change.to,
+          thisAPI
+        );
+        if(replCM().getValue() !== state.replContents) {
+          console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), state.editorContents)
+          replUpdate(state.replContents);
         }
         break;
       case "run":

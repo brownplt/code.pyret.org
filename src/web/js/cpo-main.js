@@ -327,6 +327,7 @@
       window.RUN_INTERACTION = CPO.RUN_INTERACTION = function(src) {
         return replWidget.runner(src, true);
       };
+      window.replWidget = CPO.replWidget = replWidget;
 
       /*
       $("#runDropdown").click(function() {
