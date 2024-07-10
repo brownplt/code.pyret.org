@@ -202,7 +202,7 @@ function makeEvents(config) {
           thisAPI
         );
         if(replCM().getValue() !== state.replContents) {
-          console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), state.editorContents)
+          console.log("Editor contents disagreed with message state, synchronizing.", replCM().getValue(), state.replContents)
           replUpdate(state.replContents);
         }
         break;
