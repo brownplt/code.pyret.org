@@ -149,7 +149,7 @@ function makeEvents(config) {
   }
 
   const initialState = {
-    editorContents: "use context starter2024",
+    editorContents: "use context starter2024\n\n",
     interactionsSinceLastRun: [],
     definitionsAtLastRun: false,
     replContents: ""
