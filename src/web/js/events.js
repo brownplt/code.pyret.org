@@ -1,3 +1,4 @@
+
 let messageCounter = 0;
 let targetOrigin = POSTMESSAGE_ORIGIN;
 let RECEIVED_RESET = false;
@@ -155,6 +156,23 @@ function makeEvents(config) {
     replContents: ""
   };
 
+  function resetFromShare(link) {
+    var initialParams = url.parse(link); // https://code.pyret.org/editor#share=2390485
+    // initialParams = "share=2390485"
+    var params = url.parse("/?" + initialParams["hash"]);
+    if(params["get"]["share"]) {
+      const toLoad = CPO.storageAPI.then((api) => {
+        return api.getSharedFileById(params["get"]["share"]);
+      });
+      CPO.loadProgram(toLoad).then((text) => {
+        editorUpdate(text);
+      })
+      .catch((e) => {
+        console.error("Error loading initial state from share link: ", e, link);
+      });
+    }
+  }
+
   function onmessage(message, state) {
     console.log("Pyret received an onmessage: ", message);
     if(message.type === "reset") {
@@ -162,6 +180,11 @@ function makeEvents(config) {
       RECEIVED_RESET = true;
       if(message.state === "") {
         reset(initialState);
+        return;
+      }
+      // This means we got a CPO link as the initial state.
+      if(message.state.startsWith(APP_BASE_URL)) {
+        resetFromShare(message.state);
         return;
       }
       const state = JSON.parse(message.state);

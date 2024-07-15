@@ -1,8 +1,11 @@
 /* global $ jQuery CPO CodeMirror storageAPI Q createProgramCollectionAPI makeShareAPI */
 
+var originalPageLoad = Date.now();
+console.log("originalPageLoad: ", originalPageLoad);
+
 var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
 
-var url = require('url.js');
+var url = window.url = require('url.js');
 var modalPrompt = require('./modal-prompt.js');
 window.modalPrompt = modalPrompt;
 
@@ -1308,6 +1311,8 @@ $(function() {
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
   });
 
+  console.log("About to load Pyret: ", originalPageLoad, Date.now());
+
   var pyretLoad = document.createElement('script');
   console.log(process.env.PYRET);
   pyretLoad.src = process.env.PYRET;
@@ -1413,6 +1418,7 @@ $(function() {
   CPO.updateName = updateName;
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
+  CPO.storageAPI = storageAPI;
   CPO.cycleFocus = cycleFocus;
   CPO.say = say;
   CPO.sayAndForget = sayAndForget;
