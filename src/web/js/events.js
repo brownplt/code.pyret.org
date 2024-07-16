@@ -3,7 +3,7 @@ let messageCounter = 0;
 let targetOrigin = POSTMESSAGE_ORIGIN;
 let RECEIVED_RESET = false;
 function commSetup(config, messageCallback) {
-  function sendEvent(data) {
+  function sendEvent(data, description) {
     if(!RECEIVED_RESET && data.type !== "pyret-init") {
       console.log("Pyret skipping a message synthesized before initialization via 'reset':", data, getCurrentState(config));
       return;
@@ -16,7 +16,8 @@ function commSetup(config, messageCallback) {
         protocol: "pyret",
         timestamp: window.performance.now(),
         data: data,
-        state
+        state,
+        description
       },
       targetOrigin
     );
@@ -77,7 +78,7 @@ function makeEvents(config) {
       comm.sendEvent({
         type: "changeRepl",
         change: change,
-      });
+      }, "Edited the last interaction.");
     });
     comm.sendEvent({
       type: "pyret-init"
@@ -116,7 +117,7 @@ function makeEvents(config) {
     comm.sendEvent({
       type: "change",
       change: change,
-    });
+    }, "Made a change to the program.");
   });
 
 
@@ -126,14 +127,14 @@ function makeEvents(config) {
     definitionsAtLastRun = getCurrentState(config).editorContents;
     comm.sendEvent({
       type: "run"
-    });
+    }, "Ran the program.");
   });
 
   config.CPO.onInteraction(function (interaction) {
     interactionsSinceLastRun.push(interaction);
     comm.sendEvent({
       type: "runInteraction"
-    });
+    }, `Ran the last interaction, ${interaction}.`);
   });
 
   function runInteraction(src) {
