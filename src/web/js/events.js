@@ -104,7 +104,7 @@ function makeEvents(config) {
       { line: replCM().lastLine(), ch: 99999 },
       thisAPI
     );
-    replCM().refresh();
+    window.setTimeout(() => replCM().refresh(), 100);
   }
 
   // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
@@ -130,6 +130,15 @@ function makeEvents(config) {
     }, "Ran the program.");
   });
 
+  async function runProgram(state) {
+    interactionsSinceLastRun = [];
+    const code = state.editorContents
+    editorUpdate(code);
+    definitionsAtLastRun = code;
+    await window.RUN_CODE(code);
+    replCM().display.input.blur()
+  }
+
   config.CPO.onInteraction(function (interaction) {
     interactionsSinceLastRun.push(interaction);
     comm.sendEvent({
@@ -147,6 +156,7 @@ function makeEvents(config) {
       $(".repl-prompt")
         .find(".CodeMirror")[0]
         .CodeMirror.setOption("readOnly", false);
+      replCM().display.input.blur()
     });
   }
 
@@ -231,11 +241,7 @@ function makeEvents(config) {
         }
         break;
       case "run":
-        interactionsSinceLastRun = [];
-        const code = state.editorContents
-        editorUpdate(code);
-        definitionsAtLastRun = code;
-        window.RUN_CODE(code);
+        runProgram(state);
         break;
       case "runInteraction":
         const interactions = state.interactionsSinceLastRun;
