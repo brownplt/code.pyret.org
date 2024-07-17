@@ -179,6 +179,7 @@ function start(config, onServerReady) {
   }
 
   app.get("/downloadImg", function(req, response) {
+    console.log(req);
     var parsed = url.parse(req.url);
     var googleLink = decodeURIComponent(parsed.query.slice(0));
     var googleParsed = url.parse(googleLink);
@@ -763,96 +764,105 @@ function start(config, onServerReady) {
     return ret.promise;
   }
 
-  app.get("/shared-program-contents", function(req, res) {
-    if(config.sharedFetchServer) {
-      const requestURL = `${config.sharedFetchServer}/shared-program-contents?sharedProgramId=${req.query.sharedProgramId}`;
-      const response = request({url: requestURL});
-      response.pipe(res);
-      return;
-    }
-
-    var contents = getSharedContents(req.query.sharedProgramId);
-    contents.fail(function(err) {
-      res.status(400);
-      res.send("Unable to fetch shared file");
-      res.end();
-    });
-    contents.then(function(response) {
-      if(!response.headers['content-type'] === "text/plain") {
-        res.status(400);
-        res.send("Expected a text file, but got: " + response.headers["content-type"]);
-        res.end();
-      }
-      else {
-        response
-          .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedProgramId}"`)
-          .pipe(res);
-      }
-    });
-  });
-
-  app.get("/shared-image-contents", function(req, res) {
-    if(config.sharedFetchServer) {
-      const requestURL = `${config.sharedFetchServer}/shared-image-contents?sharedImageId=${req.query.sharedImageId}`;
-      const response = request({url: requestURL});
-      response.pipe(res);
-      return;
-    }
-
-    var contents = getSharedContents(req.query.sharedImageId);
-    contents.then(function(response) {
-      response
-        .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedImageId}"`)
-        .pipe(res);
-    })
-    .fail(function(err) {
-      res.status(400);
-      res.send("Could not access shared file, or shared file was not an image.");
-      res.end();
-    });
-  });
-
-  app.get("/shared-file", function(req, res) {
     // NOTE(joe): this is a hack for making share URLs work on another server.
     // The config variable here shouldn't be set to the same URL as the deployment
     // URL (since this will just make self request). But since Google credentials
     // lock in files to a particular server, and we want share links from CPO
     // to work on our testing or other deployments, we need this.
+  function sharedFallback(url) {
+    var ret = Q.defer();
     if(config.sharedFetchServer) {
-      const requestURL = `${config.sharedFetchServer}/shared-file?sharedProgramId=${req.query.sharedProgramId}`;
-      const response = request({url: requestURL});
-      response.pipe(res);
-      return;
+      let response = request({url: url});
+      response.on("error", (error) => { ret.reject(error); });
+      response.on("response", (resp) => ret.resolve(response));
+    }
+    else  {
+      ret.reject("No fallback server configured");
     }
 
-    var sharedProgramId = req.query.sharedProgramId;
-    var both = fileAndToken(sharedProgramId);
-    both.fail(function(err) {
-      console.error(err);
-      res.status(404).send("No share information found for " + sharedProgramId);
-      res.end();
-    });
-    both.then(function(both) {
-      var prog = both[0];
-      var refreshToken = both[1];
-      auth.refreshAccess(refreshToken, function(err, newToken) {
-        if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
-        else {
-          var drive = getDriveClient(newToken, 'v2');
-          drive.files.get({fileId: sharedProgramId}, function(err, response) {
-            if(err) { res.status(400).send("Couldn't access shared file " + sharedProgramId); }
-            else {
-              res.send({
-                id: response.data.id,
-                modifiedDate: response.data.modifiedDate,
-                title: response.data.title,
-                selfLink: response.data.selfLink
-              });
-              res.status(200);
-              res.end();
-            }
-          });
+    return ret.promise;
+  }
+
+  app.get("/shared-program-contents", function(req, res) {
+    const requestURL = `${config.sharedFetchServer}/shared-program-contents?sharedProgramId=${req.query.sharedProgramId}`;
+    const shared = sharedFallback(requestURL);
+    shared.then((resp) => resp.pipe(res));
+    shared.fail(() => {
+      var contents = getSharedContents(req.query.sharedProgramId);
+      contents.fail(function(err) {
+        res.status(400);
+        res.send("Unable to fetch shared file");
+        res.end();
+      });
+      contents.then(function(response) {
+        if(!response.headers['content-type'] === "text/plain") {
+          res.status(400);
+          res.send("Expected a text file, but got: " + response.headers["content-type"]);
+          res.end();
         }
+        else {
+          response
+            .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedProgramId}"`)
+            .pipe(res);
+        }
+      });  
+    });
+
+  });
+
+  app.get("/shared-image-contents", function(req, res) {
+    const requestURL = `${config.sharedFetchServer}/shared-image-contents?sharedProgramId=${req.query.sharedProgramId}`;
+    const shared = sharedFallback(requestURL);
+    shared.then((resp) => resp.pipe(res));
+    shared.fail(() => {
+      var contents = getSharedContents(req.query.sharedImageId);
+      contents.then(function(response) {
+        response
+          .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedImageId}"`)
+          .pipe(res);
+      })
+      .fail(function(err) {
+        res.status(400);
+        res.send("Could not access shared file, or shared file was not an image.");
+        res.end();
+      });
+    });
+  });
+
+  app.get("/shared-file", function(req, res) {
+    const requestURL = `${config.sharedFetchServer}/shared-file?sharedProgramId=${req.query.sharedProgramId}`;
+    const shared = sharedFallback(requestURL);
+    shared.then((resp) => resp.pipe(res));
+    shared.fail(() => {
+      var sharedProgramId = req.query.sharedProgramId;
+      var both = fileAndToken(sharedProgramId);
+      both.fail(function(err) {
+        console.error(err);
+        res.status(404).send("No share information found for " + sharedProgramId);
+        res.end();
+      });
+      both.then(function(both) {
+        var prog = both[0];
+        var refreshToken = both[1];
+        auth.refreshAccess(refreshToken, function(err, newToken) {
+          if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
+          else {
+            var drive = getDriveClient(newToken, 'v2');
+            drive.files.get({fileId: sharedProgramId}, function(err, response) {
+              if(err) { res.status(400).send("Couldn't access shared file " + sharedProgramId); }
+              else {
+                res.send({
+                  id: response.data.id,
+                  modifiedDate: response.data.modifiedDate,
+                  title: response.data.title,
+                  selfLink: response.data.selfLink
+                });
+                res.status(200);
+                res.end();
+              }
+            });
+          }
+        });
       });
     });
   });
