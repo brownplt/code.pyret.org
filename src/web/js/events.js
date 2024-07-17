@@ -163,7 +163,7 @@ function makeEvents(config) {
   const initialState = {
     editorContents: "use context starter2024\n\n",
     interactionsSinceLastRun: [],
-    definitionsAtLastRun: false,
+    definitionsAtLastRun: "use context starter2024\n\n",
     replContents: ""
   };
 
@@ -198,8 +198,15 @@ function makeEvents(config) {
         resetFromShare(message.state);
         return;
       }
-      const state = JSON.parse(message.state);
-      reset(state);
+      try {
+        const state = JSON.parse(message.state);
+        reset(state);
+      }
+      catch(e) {
+        console.error("Parse error in initial state, using default initial state");
+        reset(initialState);
+        return;
+      }
       return;
     }
 
