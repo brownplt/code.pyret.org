@@ -764,6 +764,13 @@ function start(config, onServerReady) {
   }
 
   app.get("/shared-program-contents", function(req, res) {
+    if(config.sharedFetchServer) {
+      const requestURL = `${config.sharedFetchServer}/shared-program-contents?sharedProgramId=${req.query.sharedProgramId}`;
+      const response = request({url: requestURL});
+      response.pipe(res);
+      return;
+    }
+
     var contents = getSharedContents(req.query.sharedProgramId);
     contents.fail(function(err) {
       res.status(400);
@@ -785,6 +792,13 @@ function start(config, onServerReady) {
   });
 
   app.get("/shared-image-contents", function(req, res) {
+    if(config.sharedFetchServer) {
+      const requestURL = `${config.sharedFetchServer}/shared-image-contents?sharedImageId=${req.query.sharedImageId}`;
+      const response = request({url: requestURL});
+      response.pipe(res);
+      return;
+    }
+
     var contents = getSharedContents(req.query.sharedImageId);
     contents.then(function(response) {
       response
@@ -799,6 +813,18 @@ function start(config, onServerReady) {
   });
 
   app.get("/shared-file", function(req, res) {
+    // NOTE(joe): this is a hack for making share URLs work on another server.
+    // The config variable here shouldn't be set to the same URL as the deployment
+    // URL (since this will just make self request). But since Google credentials
+    // lock in files to a particular server, and we want share links from CPO
+    // to work on our testing or other deployments, we need this.
+    if(config.sharedFetchServer) {
+      const requestURL = `${config.sharedFetchServer}/shared-file?sharedProgramId=${req.query.sharedProgramId}`;
+      const response = request({url: requestURL});
+      response.pipe(res);
+      return;
+    }
+
     var sharedProgramId = req.query.sharedProgramId;
     var both = fileAndToken(sharedProgramId);
     both.fail(function(err) {

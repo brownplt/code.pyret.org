@@ -37,7 +37,8 @@ var res = Q.fcall(function(db) {
       redirect: "/oauth2callback"
     },
     version: process.env["CURRENT_PYRET_RELEASE"],
-    pyret: process.env["PYRET"]
+    pyret: process.env["PYRET"],
+    sharedFetchServer: process.env["SHARED_FETCH_SERVER"]
   }, function(app) {
     console.log("Server ready.");
   });
