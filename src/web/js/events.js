@@ -1,15 +1,21 @@
-
 let messageCounter = 0;
 let targetOrigin = POSTMESSAGE_ORIGIN;
 let RECEIVED_RESET = false;
-function commSetup(config, messageCallback) {
-  function sendEvent(data, description) {
+function commSetup(config, messageCallback, gainControl, loseControl) {
+  // state is optional; if not provided we use getCurrentState to fill it
+  //   we make it optional because sometimes getCurrentState() is a little racy
+  //   for example onInteraction triggers before the interaction is complete and
+  //   can still see the just-run repl contents instead of empty repl contents
+  function sendEvent(data, description, state) {
     if(!RECEIVED_RESET && data.type !== "pyret-init") {
       console.log("Pyret skipping a message synthesized before initialization via 'reset':", data, getCurrentState(config));
       return;
     }
     messageCounter += 1;
-    const state = { ...getCurrentState(config), messageNumber: messageCounter };
+    if(!state) {
+      state = getCurrentState(config)
+    }
+    state.messageNumber = messageCounter;
     console.log("Sending from CPO ", data, state);
     config.sendPort.postMessage(
       {
@@ -29,6 +35,14 @@ function commSetup(config, messageCallback) {
     ) {
       return;
     }
+    if (event.data.type === "loseControl") {
+      loseControl(config);
+      return;
+    }
+    else if (event.data.type === "gainControl") {
+      gainControl(config);
+      return;
+    }
     if (event.data.protocol !== "pyret") {
       return;
     }
@@ -36,6 +50,8 @@ function commSetup(config, messageCallback) {
   };
   return { sendEvent };
 }
+
+
 
 let interactionsSinceLastRun = [];
 // Sometimes there are interleavings of edits with running, so the currently-shown
@@ -47,13 +63,43 @@ function getCurrentState(config) {
     editorContents: config.CPO.editor.cm.getValue(),
     definitionsAtLastRun,
     interactionsSinceLastRun,
-    replContents: config.CPO.replWidget.cm.getValue()
+    replContents: config.replCM().getValue()
   };
 }
 
 function makeEvents(config) {
   const editor = config.CPO.editor;
   const replCM = function() { return config.CPO.replWidget.cm; }
+  config.replCM = replCM;
+
+  var runButton = $("#runButton");
+  var runDropdown = $("#runDropdown");
+  var breakButton = $("#breakButton");
+  function sendControlWarning() {
+    comm.sendEvent({
+      type: "illegal-action"
+    }, "Tried to interact while not in control.");
+  }
+  function loseControl(config) {
+    config.CPO.editor.cm.setOption('readOnly', 'nocursor');
+    config.CPO.replWidget.cm.setOption('readOnly', 'nocursor');
+    config.CPO.editor.cm.getWrapperElement().addEventListener('click', sendControlWarning);
+    config.replCM().getWrapperElement().addEventListener("click", sendControlWarning);
+    runButton.hide();
+    runDropdown.hide();
+    breakButton.hide();
+  }
+  function gainControl(config) {
+    config.CPO.editor.cm.setOption('readOnly', false);
+    config.CPO.replWidget.cm.setOption('readOnly', false);
+    config.CPO.editor.cm.getWrapperElement().removeEventListener('click', sendControlWarning);
+    config.replCM().getWrapperElement().removeEventListener("click", sendControlWarning);
+
+    runButton.show();
+    runDropdown.show();
+    breakButton.show();
+  }
+  
 
   async function reset(state) {
     interactionsSinceLastRun = [];
@@ -83,9 +129,11 @@ function makeEvents(config) {
     comm.sendEvent({
       type: "pyret-init"
     });
+    // Assume we always start not in control
+    loseControl(config);
   });
 
-  const comm = commSetup(config, onmessage);
+  const comm = commSetup(config, onmessage, gainControl, loseControl);
 
   function editorUpdate(newCode) {
     editor.cm.replaceRange(
@@ -104,7 +152,10 @@ function makeEvents(config) {
       { line: replCM().lastLine(), ch: 99999 },
       thisAPI
     );
-    window.setTimeout(() => replCM().refresh(), 100);
+    window.setTimeout(() => {
+      replCM().refresh();
+      replCM().setOption("readOnly", "nocursor");
+    }, 100);
   }
 
   // Thanks internet! https://github.com/codemirror/CodeMirror/issues/3691
@@ -136,14 +187,18 @@ function makeEvents(config) {
     editorUpdate(code);
     definitionsAtLastRun = code;
     await window.RUN_CODE(code);
-    replCM().display.input.blur()
+    replCM().display.input.blur();
+    replCM().setOption("readOnly", "noCursor");
   }
 
   config.CPO.onInteraction(function (interaction) {
     interactionsSinceLastRun.push(interaction);
+    // When we get this event, the repl may or may not have been cleared,
+    // so we explicitly pass it as the empty string.
+    const state = { ...getCurrentState(config), replContents: "" };
     comm.sendEvent({
       type: "runInteraction"
-    }, `Ran the last interaction, ${interaction}.`);
+    }, `Ran the last interaction, ${interaction}.`, state);
   });
 
   function runInteraction(src) {
@@ -154,8 +209,8 @@ function makeEvents(config) {
     const result = window.RUN_INTERACTION(src);
     return result.fin(() => {
       $(".repl-prompt")
-        .find(".CodeMirror")[0]
-        .CodeMirror.setOption("readOnly", false);
+      .find(".CodeMirror")[0]
+      .CodeMirror.setOption("readOnly", "nocursor");
       replCM().display.input.blur()
     });
   }
