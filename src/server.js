@@ -330,7 +330,11 @@ function start(config, onServerReady) {
           access_token: newToken
         });
         var parsed = url.parse(req.url, true);
-        var projectName = decodeURIComponent(parsed.query["projectName"]);
+        var named = parsed.query["projectName"];
+        var projectName = 'new-project';
+        if(named) {
+          projectName = named;
+        }
         var drive = gapi.drive({ version: 'v3', auth: userClient });
         drive.files.create({
           requestBody: {
