@@ -228,7 +228,7 @@ function makeEvents(config) {
       interactionsSinceLastRun = [];
       const ran = window.RUN_CODE("");
       const toLoad = ran.then(() => {
-        CPO.storageAPI.then((api) => {
+        return CPO.storageAPI.then((api) => {
           return api.getSharedFileById(params["get"]["share"]);
         });
       });
