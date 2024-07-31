@@ -129,8 +129,6 @@ function makeEvents(config) {
     comm.sendEvent({
       type: "pyret-init"
     });
-    // Assume we always start not in control
-    loseControl(config);
   });
 
   const comm = commSetup(config, onmessage, gainControl, loseControl);
@@ -170,8 +168,6 @@ function makeEvents(config) {
       change: change,
     }, "Made a change to the program.");
   });
-
-
 
   config.CPO.onRun(function () {
     interactionsSinceLastRun = [];
