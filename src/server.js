@@ -316,7 +316,7 @@ function start(config, onServerReady) {
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
         if(err) {
-          console.err("Failed login: ", err);
+          console.error("Failed login: ", err);
           res.send("Login failed");
           res.end();
           return;
