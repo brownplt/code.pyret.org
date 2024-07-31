@@ -223,8 +223,14 @@ function makeEvents(config) {
     // initialParams = "share=2390485"
     var params = url.parse("/?" + initialParams["hash"]);
     if(params["get"]["share"]) {
-      const toLoad = CPO.storageAPI.then((api) => {
-        return api.getSharedFileById(params["get"]["share"]);
+      editorUpdate("");
+      definitionsAtLastRun = "";
+      interactionsSinceLastRun = [];
+      const ran = window.RUN_CODE("");
+      const toLoad = ran.then(() => {
+        CPO.storageAPI.then((api) => {
+          return api.getSharedFileById(params["get"]["share"]);
+        });
       });
       CPO.loadProgram(toLoad).then((text) => {
         editorUpdate(text);
