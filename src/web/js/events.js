@@ -2,6 +2,19 @@ let messageCounter = 0;
 let targetOrigin = POSTMESSAGE_ORIGIN;
 let RECEIVED_RESET = false;
 function commSetup(config, messageCallback, gainControl, loseControl) {
+  const callbacks = {};
+  let callbackCounter = 0;
+
+  function sendRpc(data, callback) {
+    callbackCounter += 1;
+    const callbackId = `${callbackCounter}-${data.module}-${data.method}`
+    callbacks[callbackId] = callback;
+    config.sendPort.postMessage({
+      protocol: "pyret-rpc",
+      data: { ...data, callbackId }
+    });
+  }
+
   // state is optional; if not provided we use getCurrentState to fill it
   //   we make it optional because sometimes getCurrentState() is a little racy
   //   for example onInteraction triggers before the interaction is complete and
@@ -28,6 +41,8 @@ function commSetup(config, messageCallback, gainControl, loseControl) {
       targetOrigin
     );
   }
+
+
   config.receivePort.onmessage = function (event) {
     if (
       typeof event.data === "string" &&
@@ -43,12 +58,24 @@ function commSetup(config, messageCallback, gainControl, loseControl) {
       gainControl(config);
       return;
     }
+    if (event.data.protocol === "pyret-rpc") {
+      if(!callbacks[event.data.data.callbackId]) {
+        console.error("No callback for ", event.data.data.callbackId, event, callbacks);
+        return;
+      }
+      else {
+        const callback = callbacks[event.data.data.callbackId];
+        delete callbacks[event.data.data.callbackId];
+        callback(event.data.data.result);
+      }
+      return;
+    }
     if (event.data.protocol !== "pyret") {
       return;
     }
     messageCallback(event.data.data, event.data.state);
   };
-  return { sendEvent };
+  return { sendEvent, sendRpc };
 }
 
 
@@ -311,6 +338,13 @@ function makeEvents(config) {
         const src = interactions[interactions.length - 1];
         runInteraction(src);
         break;
+    }
+  }
+
+  return {
+    sendRpc: (module, method, args, callback) => {
+      const data = { module, method, args }
+      comm.sendRpc(data, callback);
     }
   }
 }

@@ -1440,7 +1440,7 @@ $(function() {
   let initialState = params["get"]["initialState"];
 
   if (typeof acquireVsCodeApi === "function") {
-    makeEvents({
+    window.MESSAGES = makeEvents({
       CPO: CPO,
       sendPort: acquireVsCodeApi(),
       receivePort: window,
@@ -1448,6 +1448,6 @@ $(function() {
     });
   }
   else if((window.parent && (window.parent !== window)) || process.env.NODE_ENV === "development") {
-    makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
+    window.MESSAGES = makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
   }
 });
