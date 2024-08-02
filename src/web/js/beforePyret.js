@@ -1409,14 +1409,6 @@ $(function() {
   CPO.onInteraction = onInteraction;
   CPO.triggerOnInteraction = triggerOnInteraction;
 
-  if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
-    const message = $("<span>");
-    const notes = $("<a target='_blank' style='color: white'>").attr("href", "https://www.pyret.org/release-notes/summer-2021.html").text("release notes");
-    message.append("Things may look a little different! Check out the ", notes, " for more details.");
-    window.stickRichMessage(message);
-    localSettings.setItem("sawSummer2021Message", "saw-summer-2021-message");
-  }
-
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
