@@ -259,7 +259,7 @@ function start(config, onServerReady) {
         return auth.refreshAccess(u.refresh_token, function(err, newToken) {
           if(err) {
             console.error(err);
-            res.status = 403;
+            res.status(403);
             res.send("Access token fetch failure");
             res.end();
             return;
