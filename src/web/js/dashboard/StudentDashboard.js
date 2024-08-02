@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import GoogleAPI from './GoogleAPI.js';
-import {CLIENT_ID, FILE_EXT, APP_NAME, API_KEY} from './config.js';
+import {FILE_EXT, APP_NAME} from './config.js';
 import File from './File';
 
 const NOT_SIGNED_IN = 1;
