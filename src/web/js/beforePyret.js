@@ -1314,8 +1314,8 @@ $(function() {
   console.log("About to load Pyret: ", originalPageLoad, Date.now());
 
   var pyretLoad = document.createElement('script');
-  console.log(process.env.PYRET);
-  pyretLoad.src = process.env.PYRET;
+  console.log(window.PYRET);
+  pyretLoad.src = window.PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
 
@@ -1439,7 +1439,15 @@ $(function() {
 
   let initialState = params["get"]["initialState"];
 
-  if(window.parent !== window || process.env.NODE_ENV === "development") {
+  if (typeof acquireVsCodeApi === "function") {
+    makeEvents({
+      CPO: CPO,
+      sendPort: acquireVsCodeApi(),
+      receivePort: window,
+      initialState
+    });
+  }
+  else if((window.parent && (window.parent !== window)) || process.env.NODE_ENV === "development") {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
   }
 });
