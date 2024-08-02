@@ -258,7 +258,13 @@ function start(config, onServerReady) {
           return null;
         }
         return auth.refreshAccess(u.refresh_token, function(err, newToken) {
-          if(err) { res.send(err); res.end(); return; }
+          if(err) {
+            console.error(err);
+            res.status(403);
+            res.send("Access token fetch failure");
+            res.end();
+            return;
+          }
           else {
             res.send({ access_token: newToken, user_id: req.session["user_id"] });
             res.end();
@@ -317,7 +323,7 @@ function start(config, onServerReady) {
     u.then(function(user) {
       auth.refreshAccess(user.refresh_token, function(err, newToken) {
         if(err) {
-          console.err("Failed login: ", err);
+          console.error("Failed login: ", err);
           res.send("Login failed");
           res.end();
           return;
@@ -331,7 +337,11 @@ function start(config, onServerReady) {
           access_token: newToken
         });
         var parsed = url.parse(req.url, true);
-        var projectName = decodeURIComponent(parsed.query["projectName"]);
+        var named = parsed.query["projectName"];
+        var projectName = 'new-project';
+        if(named) {
+          projectName = named;
+        }
         var drive = gapi.drive({ version: 'v3', auth: userClient });
         drive.files.create({
           requestBody: {

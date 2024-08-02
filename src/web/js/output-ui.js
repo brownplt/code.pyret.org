@@ -1647,16 +1647,16 @@
           //console.log('ariaT=', ariaText);
           container[0].ariaText = ariaText;
           container[0].setAttribute('aria-label', ariaText);
-          container.append(val1); }
-        else if (runtime.ffi.isVSStr(val)) {
+          container.append(val1); 
+        } else if (runtime.ffi.isVSStr(val)) {
           //console.log('helper ii', val);
           var val1 = runtime.unwrap(runtime.getField(val, "s"));
           ariaText = val1;
           //console.log('ariaT=', ariaText);
           container[0].ariaText = ariaText;
           container[0].setAttribute('aria-label', ariaText);
-          container.append($("<span>").text(val1)); }
-        else if (runtime.ffi.isVSCollection(val)) {
+          container.append($("<span>").text(val1)); 
+        } else if (runtime.ffi.isVSCollection(val)) {
           //console.log('helper iii');
           var name = runtime.unwrap(runtime.getField(val, "name"));
           container.addClass("replToggle");
@@ -1728,7 +1728,25 @@
           }
 
           container.append(table);
-
+        } else if (runtime.ffi.isVSMatrix(val)) {
+          var table = document.createElement("table");
+          table.className = "pyret-table pyret-matrix";
+          var rows = runtime.getField(val, "rows");
+          var cols = runtime.getField(val, "cols");
+          var items = runtime.getField(val, "items");
+          var tbody = document.createElement("tbody");
+          table.appendChild(tbody);
+          var i = 0;
+          for (var row = 0; row < rows; row++) {
+            var tr = document.createElement("tr");
+            for (var col = 0; col < cols; col++) {
+              var datum = document.createElement("td");
+              helper($(datum), items[i++], values);
+              tr.appendChild(datum);
+            }
+            tbody.appendChild(tr);
+          }
+          container.append(table);
         } else if (runtime.ffi.isVSTable(val)) {
           //console.log('helper vii; TABLE is', val, ' , container is', container);
           ariaText = 'table with ';
