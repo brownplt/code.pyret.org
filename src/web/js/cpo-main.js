@@ -42,6 +42,7 @@
   ],
   nativeRequires: [
     "cpo/gdrive-locators",
+    "cpo/file-locator",
     "cpo/http-imports",
     "cpo/cpo-builtin-modules",
     "cpo/modal-prompt",
@@ -55,7 +56,7 @@
   theModule: function(runtime, namespace, uri,
                       compileLib, compileStructs, pyRepl, cpo, replUI, textHandlers,
                       parsePyret, runtimeLib, loadLib, builtinModules, cpoBuiltins,
-                      gdriveLocators, http, cpoModules, _modalPrompt,
+                      gdriveLocators, fileLocator, http, cpoModules, _modalPrompt,
                       rtLib) {
 
 
@@ -103,6 +104,7 @@
     var gtf = function(m, f) { return gf(m, "types")[f]; };
 
     var constructors = gdriveLocators.makeLocatorConstructors(storageAPI, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
+    var fileLocator = fileLocator.makeFileLocatorConstructor(window.MESSAGES.sendRpc, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
 
     // NOTE(joe): In order to yield control quickly, this doesn't pause the
     // stack in order to save.  It simply sends the save requests and
@@ -150,6 +152,14 @@
             else if (protocol === "gdrive-js") {
               return "gdrive-js://" + arr[1];
             }
+            else if (protocol === "file") {
+              return runtime.pauseStack((restarter) => {
+                const realpath = window.MESSAGES.sendRpc('path', 'resolve', [arr[0]]);
+                realpath.then((realpath) => {
+                  restarter.resume(`file://${realpath}`);
+                });
+              });
+            }
             else {
               console.error("Unknown import: ", dependency);
               return protocol + "://" + arr.join(":");
@@ -190,6 +200,9 @@
                 }
                 else if (protocol === "gdrive-js") {
                   return constructors.makeGDriveJSLocator(arr[0], arr[1]);
+                }
+                else if (protocol === "file") {
+                  return fileLocator.makeFileLocator(arr[0]);
                 }
                 /*
                 else if (protocol === "js-http") {
