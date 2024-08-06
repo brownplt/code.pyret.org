@@ -876,7 +876,7 @@
         if(!synthetic) {
           CPO.triggerOnInteraction(code);
         }
-        if(running) { return; }
+        if(running) { console.log("Skipping a run because a run is happening already: ", code, synthetic); return; }
         running = true;
         var thiscode = {code: code, erroroutput: false, start: false, end: false, dup: false};
         history.addToHistory(thiscode);
@@ -980,7 +980,8 @@
         refresh: function() { CM.refresh(); },
         runCode: runMainCode,
         runner: runner,
-        focus: function() { CM.focus(); }
+        focus: function() { CM.focus(); },
+        stop: onBreak
       };
     }
 

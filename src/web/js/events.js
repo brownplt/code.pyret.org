@@ -195,6 +195,8 @@ function makeEvents(config) {
     }, "Made a change to the program.");
   });
 
+  let lastRun;
+
   config.CPO.onRun(function () {
     interactionsSinceLastRun = [];
     definitionsAtLastRun = getCurrentState(config).editorContents;
@@ -204,11 +206,19 @@ function makeEvents(config) {
   });
 
   async function runProgram(state) {
+    try {
+      config.CPO.replWidget.stop();
+    }
+    catch(e) {
+      console.log("runProgram caught as expected? ", e);
+    }
+    await lastRun;
     interactionsSinceLastRun = [];
     const code = state.editorContents
     editorUpdate(code);
     definitionsAtLastRun = code;
-    await window.RUN_CODE(code);
+    lastRun = window.RUN_CODE(code);
+    await lastRun;
     replCM().display.input.blur();
     replCM().setOption("readOnly", "noCursor");
   }
@@ -223,13 +233,20 @@ function makeEvents(config) {
     }, `Ran the last interaction, ${interaction}.`, state);
   });
 
-  function runInteraction(src) {
+  async function runInteraction(src) {
+    try {
+      config.CPO.replWidget.stop();
+    }
+    catch(e) {
+      console.log("Failed as expected? ", e);
+    }
+    await lastRun;
     interactionsSinceLastRun.push(src);
     $(".repl-prompt")
       .find(".CodeMirror")[0]
       .CodeMirror.setOption("readOnly", "nocursor");
-    const result = window.RUN_INTERACTION(src);
-    return result.fin(() => {
+    lastRun = window.RUN_INTERACTION(src);
+    return lastRun.fin(() => {
       $(".repl-prompt")
       .find(".CodeMirror")[0]
       .CodeMirror.setOption("readOnly", "nocursor");
