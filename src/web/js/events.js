@@ -78,7 +78,13 @@ function commSetup(config, messageCallback, gainControl, loseControl) {
   return { sendEvent, sendRpc };
 }
 
-
+/**
+ * Every message goes on the queue *except* for run.
+ * 
+ * Run empties the queue, stops the program, sets the current state, and runs the program
+ * 
+ */
+let messageQueue = [];
 
 let interactionsSinceLastRun = [];
 // Sometimes there are interleavings of edits with running, so the currently-shown
@@ -133,6 +139,7 @@ function makeEvents(config) {
     messageCounter = state.messageNumber;
     definitionsAtLastRun = state.definitionsAtLastRun;
     if(typeof state.definitionsAtLastRun === 'string') {
+      editorUpdate(state.definitionsAtLastRun);
       await window.RUN_CODE(state.definitionsAtLastRun);
     }
     const interactions = state.interactionsSinceLastRun;
@@ -195,8 +202,6 @@ function makeEvents(config) {
     }, "Made a change to the program.");
   });
 
-  let lastRun;
-
   config.CPO.onRun(function () {
     interactionsSinceLastRun = [];
     definitionsAtLastRun = getCurrentState(config).editorContents;
@@ -205,20 +210,13 @@ function makeEvents(config) {
     }, "Ran the program.");
   });
 
+
   async function runProgram(state) {
-    try {
-      config.CPO.replWidget.stop();
-    }
-    catch(e) {
-      console.log("runProgram caught as expected? ", e);
-    }
-    await lastRun;
     interactionsSinceLastRun = [];
     const code = state.editorContents
     editorUpdate(code);
     definitionsAtLastRun = code;
-    lastRun = window.RUN_CODE(code);
-    await lastRun;
+    await window.RUN_CODE(code);
     replCM().display.input.blur();
     replCM().setOption("readOnly", "noCursor");
   }
@@ -234,24 +232,20 @@ function makeEvents(config) {
   });
 
   async function runInteraction(src) {
-    try {
-      config.CPO.replWidget.stop();
-    }
-    catch(e) {
-      console.log("Failed as expected? ", e);
-    }
-    await lastRun;
     interactionsSinceLastRun.push(src);
     $(".repl-prompt")
       .find(".CodeMirror")[0]
       .CodeMirror.setOption("readOnly", "nocursor");
-    lastRun = window.RUN_INTERACTION(src);
-    return lastRun.fin(() => {
-      $(".repl-prompt")
+    await window.RUN_INTERACTION(src);
+
+    // We do this again because the CPO infrastructure
+    // explicitly re-enables the prompt at the end of
+    // RUN_INTERACTION, but we don't want that here!
+    $(".repl-prompt")
       .find(".CodeMirror")[0]
       .CodeMirror.setOption("readOnly", "nocursor");
-      replCM().display.input.blur()
-    });
+    replCM().display.input.blur();
+
   }
 
   const initialState = {
@@ -284,76 +278,119 @@ function makeEvents(config) {
     }
   }
 
+  async function resetMessage(message, state) {
+    console.log("Got explicit reset: ", message, "current state", getCurrentState(config));
+    RECEIVED_RESET = true;
+    
+    if(message.state === "") {
+      return reset(initialState);
+    }
+    // This means we got a CPO link as the initial state.
+    if((typeof APP_BASE_URL === 'string' && APP_BASE_URL !== "" && message.state.startsWith(APP_BASE_URL)) || message.state.startsWith("https://code.pyret.org")) {
+      return resetFromShare(message.state);
+    }
+    try {
+      const state = JSON.parse(message.state);
+      return reset(state);
+    }
+    catch(e) {
+      console.error("Parse error in initial state, using default initial state");
+      return reset(initialState);
+    }
+  }
+
+  let pending = false;
+  function nextMessage() {
+    if(messageQueue.length === 0 ) { return; }
+    if(!pending) {
+      const { process } = messageQueue.pop();
+      pending = process();
+      pending.finally(() => {
+        pending = false;
+        nextMessage();
+      });
+    }
+  }
+  function addMessage(message) {
+    messageQueue.unshift(message);
+    nextMessage();
+  }
   function onmessage(message, state) {
-    console.log("Pyret received an onmessage: ", message);
     if(message.type === "reset") {
-      console.log("Got explicit reset: ", message, "current state", getCurrentState(config));
-      RECEIVED_RESET = true;
-      if(message.state === "") {
-        reset(initialState);
-        return;
-      }
-      // This means we got a CPO link as the initial state.
-      if((typeof APP_BASE_URL === 'string' && APP_BASE_URL !== "" && message.state.startsWith(APP_BASE_URL)) || message.state.startsWith("https://code.pyret.org")) {
-        resetFromShare(message.state);
-        return;
-      }
-      try {
-        const state = JSON.parse(message.state);
-        reset(state);
-      }
-      catch(e) {
-        console.error("Parse error in initial state, using default initial state");
-        reset(initialState);
-        return;
-      }
+      addMessage({
+        process: async () => { return resetMessage(message, state); }
+      });
       return;
     }
-
     if(state.messageNumber !== messageCounter + 1) {
       console.log("Messages received in a strange order: ", message, state, messageCounter, getCurrentState(config));
-      reset(state);
+      addMessage({
+        process: async () => { return resetMessage(message, state); }
+      });
       return;
     }
     else {
       messageCounter += 1;
     }
-    
+
+
     switch (message.type) {
+      // Run events are special; they re-synchronize all clients and empty the pending queue.
+      // This makes it so clicking “run” will bring everyone back together, terminate their games, etc.
+      // Other cases should never reset the messageQueue
+      case "run":
+        messageQueue = [];
+        try {
+          config.CPO.replWidget.stop();
+        }
+        catch(e) {
+          console.log("runProgram caught as expected? ", e);
+        }    
+        addMessage({ process: async () => { return runProgram(state); } });
+        break;
       case "setContents":
-        editorUpdate(message.text);
+        addMessage({ process: async () => { return editorUpdate(message.text); } });
         break;
       case "change":
-        editor.cm.replaceRange(
-          message.change.text,
-          message.change.from,
-          message.change.to,
-          thisAPI
-        );
-        if(config.CPO.editor.cm.getValue() !== state.editorContents) {
-          console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), state.editorContents)
-          editorUpdate(state.editorContents);
-        }
+        addMessage({
+          process: async () => {
+            editor.cm.replaceRange(
+              message.change.text,
+              message.change.from,
+              message.change.to,
+              thisAPI
+            );
+            if(config.CPO.editor.cm.getValue() !== state.editorContents) {
+              console.log("Editor contents disagreed with message state, synchronizing.", config.CPO.editor.cm.getValue(), state.editorContents)
+              editorUpdate(state.editorContents);
+            }
+          }
+        })
         break;
       case "changeRepl":
-        replCM().replaceRange(
-          message.change.text,
-          message.change.from,
-          message.change.to,
-          thisAPI
-        );
-        if(replCM().getValue() !== state.replContents) {
-          console.log("Editor contents disagreed with message state, synchronizing.", replCM().getValue(), state.replContents)
-          replUpdate(state.replContents);
-        }
-        break;
-      case "run":
-        runProgram(state);
+        addMessage({
+          process: async () => {
+            replCM().replaceRange(
+              message.change.text,
+              message.change.from,
+              message.change.to,
+              thisAPI
+            );
+            if(replCM().getValue() !== state.replContents) {
+              console.log("REPL contents disagreed with message state, synchronizing.", replCM().getValue(), state.replContents)
+              replUpdate(state.replContents);
+            }    
+          }
+        });
         break;
       case "runInteraction":
-        const interactions = state.interactionsSinceLastRun;
-        const src = interactions[interactions.length - 1];
-        runInteraction(src);
+        addMessage({
+          process: async () => {
+            const interactions = state.interactionsSinceLastRun;
+            const src = interactions[interactions.length - 1];
+            return runInteraction(src);
+          }
+        });
         break;
     }
   }

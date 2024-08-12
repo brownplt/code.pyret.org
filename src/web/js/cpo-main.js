@@ -333,12 +333,22 @@
             runDropdown: $('#runDropdown')
           });
 
-      // NOTE(joe): assigned on window for debuggability
-      window.RUN_CODE = CPO.RUN_CODE = function(src) {
-        return doRunAction(src, true);
+      // NOTE(joe): assigned on window for embedding API in events.js, and for debugging
+      // NOTE(joe): Some of the CPO internals use Q promises. The withResolvers pattern
+      // promotes these to real JS promises that will work with e.g. async functions.
+      window.RUN_CODE = CPO.RUN_CODE = async function(src) {
+        const result = doRunAction(src, true);
+        const { promise, resolve, reject } = Promise.withResolvers();
+        result.then(resolve);
+        result.catch(reject);
+        return promise;
       };
-      window.RUN_INTERACTION = CPO.RUN_INTERACTION = function(src) {
-        return replWidget.runner(src, true);
+      window.RUN_INTERACTION = CPO.RUN_INTERACTION = async function(src) {
+        const result = replWidget.runner(src, true);
+        const { promise, resolve, reject } = Promise.withResolvers();
+        result.then(resolve);
+        result.catch(reject);
+        return promise;
       };
       window.replWidget = CPO.replWidget = replWidget;
 
