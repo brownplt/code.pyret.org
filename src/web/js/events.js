@@ -325,7 +325,7 @@ function makeEvents(config) {
     if(state.messageNumber !== messageCounter + 1) {
       console.log("Messages received in a strange order: ", message, state, messageCounter, getCurrentState(config));
       addMessage({
-        process: async () => { return resetMessage(message, state); }
+        process: async () => { return reset(state); }
       });
       return;
     }
