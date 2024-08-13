@@ -396,11 +396,9 @@ function makeEvents(config) {
   }
 
   return {
-    sendRpc: (module, method, args) => {
-      const { promise, resolve, reject } = Promise.withResolvers();
+    sendRpc: (module, method, args, callback) => {
       const data = { module, method, args }
-      comm.sendRpc(data, resolve);
-      return promise;
+      comm.sendRpc(data, callback);
     }
   }
 }
