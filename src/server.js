@@ -179,7 +179,6 @@ function start(config, onServerReady) {
   }
 
   app.get("/downloadImg", function(req, response) {
-    console.log(req);
     var parsed = url.parse(req.url);
     var googleLink = decodeURIComponent(parsed.query.slice(0));
     var googleParsed = url.parse(googleLink);
@@ -381,7 +380,6 @@ function start(config, onServerReady) {
         var folderId = decodeURIComponent(parsed.query["folderId"]);
 
         lookForProjectOrCopyStructure(serverClient, drive, folderId).then(target => {
-          console.log("target: ", target);
           res.redirect(`/parley?folder=${target.projectDir.id}`);
         }).catch((err) => {
           console.error(err);
@@ -433,13 +431,11 @@ function start(config, onServerReady) {
           }
         })
         .then(copyResult => {
-          console.log("New directory: ", copyResult);
           serverDrive.files.list({
             key: config.google.serverApiKey,
             q: `"${fileInfo.id}" in parents and not trashed`,
             fields: 'files(id, name, mimeType, modifiedTime, modifiedByMeTime, webContentLink, iconLink, thumbnailLink)',
           }).then(files => {
-            console.log("Directory contents: ", files);
             // NOTE(joe): deliberately parallel
             Promise.all(files.data.files.map(f => copyFileOrDir(serverDrive, clientDrive, copyResult.data.id, f, serverEmailAddress)))
             .then(copiedFiles => {
@@ -472,7 +468,6 @@ function start(config, onServerReady) {
             }
           })
           .then(copiedFile => {
-            console.log("File copied: ", copiedFile);
             resolve(copiedFile.data);
           })
         })
@@ -498,11 +493,9 @@ function start(config, onServerReady) {
       clientDrive.files.list({
         q: `properties has {key='${PROJECT_BACKREF}' and value='${fileId}'} and trashed=false`
       }).then(files => {
-        console.log("Files with key result: ", files);
         if(files.data.files.length === 0) {
           return serverDrive.files.get({ fileId, key: config.google.serverApiKey }).then((dirInfo) => {
             return copyFileOrDir(serverDrive, clientDrive, false, dirInfo.data).then(copied => {
-              console.log("made a full copy of the directory");
               resolve({
                 copied: true,
                 projectDir: copied
@@ -511,7 +504,6 @@ function start(config, onServerReady) {
           });
         }
         else {
-          console.log("Directory existed, so not copying");
           resolve({
             copied: false,
             projectDir: files.data.files[0]
