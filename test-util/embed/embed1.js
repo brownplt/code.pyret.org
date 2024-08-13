@@ -12,6 +12,7 @@ window.addEventListener('message', function(message) {
 
 window.addEventListener('load', function() {
   const frame = document.createElement("iframe");
+  frame.id = "embed1";
   frame.src = "http://localhost:4999/editor#controlled=true";
   frame.style = "width: 100%; height: 100%";
   const container = document.getElementById("container");
