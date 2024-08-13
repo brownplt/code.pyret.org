@@ -22,7 +22,7 @@ window.addEventListener('message', function(message) {
 function addFrame(id) {
   const frame = document.createElement("iframe");
   frame.id = id;
-  frame.src = "http://localhost:4999/editor#controlled=true";
+  frame.src = `${window.BASE_URL}/editor#controlled=true`;
   frame.style = "width: 100%; height: 49%";
   const container = document.getElementById("container");
   container.appendChild(frame);
