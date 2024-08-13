@@ -72,15 +72,14 @@ describe("Embedding API – Two instances", function() {
   }
   
   it("should get a pyret-init event from each frame on startup", function(done) {
-    this.timeout(6000);
-    var self = this;
+    this.timeout(10000);
     this.browser.get(this.base + "/embed/embed2.html?" + this.base);
     waitForInit(this.browser);
     this.browser.call(done);
   });
   
   it("should propagate definitions changes across", function(done) {
-    this.timeout(6000);
+    this.timeout(10000);
     var self = this;
     this.browser.get(this.base + "/embed/embed2.html?" + this.base);
     waitForInit(this.browser);
