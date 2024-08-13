@@ -1304,6 +1304,18 @@ $(function() {
       CPO.editor.cm.setValue(c);
       CPO.editor.cm.clearHistory();
     }
+    else {
+      const hideWhenControlled = [
+        "#fullConnectButton",
+        "#logging",
+        "#logout"
+      ];
+      const removeWhenControlled = [
+        "#connectButtonli",
+      ];
+      hideWhenControlled.forEach(s => $(s).hide());
+      removeWhenControlled.forEach(s => $(s).remove());
+    }
 
   });
 
