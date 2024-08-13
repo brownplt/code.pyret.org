@@ -18,6 +18,8 @@ describe("Basic page loads", function() {
   it("should load the editor", function(done) {
     this.timeout(80000);
     var self = this;
+    self.browser.executeScript("");
+    
     this.browser.get(this.base + "/editor");
     this.browser.wait(function() { return tester.pyretLoaded(self.browser); });
     this.browser.call(done);
