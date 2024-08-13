@@ -15,9 +15,13 @@ function sendReset(frame, state) {
     protocol: 'pyret'
   });
 }
+function directPostMessage(frame, message) {
+  frame.contentWindow.postMessage(message);
+}
 
 function makeEmbedAPI(frame) {
   return {
-    sendReset: (state) => sendReset(frame, state)
+    sendReset: (state) => sendReset(frame, state),
+    postMessage: (message) => directPostMessage(frame, message)
   }
 }
