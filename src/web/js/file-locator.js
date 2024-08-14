@@ -70,11 +70,12 @@ define("cpo/file-locator", [], function() {
     function makeFileLocator(path) {
       return runtime.pauseStack((restarter) => {
         const realpath = sendRpc('path', 'resolve', [path]);
-        const uri = realpath.then(rp => `file://${realpath}`)
+        const uri = realpath.then(rp => `file://${rp}`)
         let ast;
         uri.then(function(uri) { 
 
           function getModule(self) {
+            if (ast) { return ast; }
             return runtime.pauseStack(function(restarter) {
               const contents = sendRpc('fs', 'readFileSync', [path]);
               contents.then(contents => {
