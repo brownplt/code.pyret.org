@@ -133,8 +133,8 @@ function makeEvents(config) {
     breakButton.show();
   }
   
-
   async function reset(state) {
+    stop();
     interactionsSinceLastRun = [];
     messageCounter = state.messageNumber;
     definitionsAtLastRun = state.definitionsAtLastRun;
@@ -299,6 +299,16 @@ function makeEvents(config) {
     }
   }
 
+  function stop() {
+    try {
+      config.CPO.replWidget.stop();
+    }
+    catch(e) {
+      console.log("runProgram caught as expected? ", e);
+    }    
+
+  }
+
   let pending = false;
   function nextMessage() {
     if(messageQueue.length === 0 ) { return; }
@@ -340,12 +350,7 @@ function makeEvents(config) {
       // Other cases should never reset the messageQueue
       case "run":
         messageQueue = [];
-        try {
-          config.CPO.replWidget.stop();
-        }
-        catch(e) {
-          console.log("runProgram caught as expected? ", e);
-        }    
+        stop();
         addMessage({ process: async () => { return runProgram(state); } });
         break;
       case "setContents":
