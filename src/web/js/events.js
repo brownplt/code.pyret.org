@@ -134,7 +134,6 @@ function makeEvents(config) {
   }
   
   async function reset(state) {
-    stop();
     interactionsSinceLastRun = [];
     messageCounter = state.messageNumber;
     definitionsAtLastRun = state.definitionsAtLastRun;
@@ -282,7 +281,7 @@ function makeEvents(config) {
     console.log("Got explicit reset: ", message, "current state", getCurrentState(config));
     RECEIVED_RESET = true;
     
-    if(message.state === "") {
+    if(message.state === "") {      
       return reset(initialState);
     }
     // This means we got a CPO link as the initial state.
@@ -327,6 +326,8 @@ function makeEvents(config) {
   }
   function onmessage(message, state) {
     if(message.type === "reset") {
+      messageQueue = [];
+      stop();
       addMessage({
         process: async () => { return resetMessage(message, state); }
       });
@@ -334,6 +335,8 @@ function makeEvents(config) {
     }
     if(state.messageNumber !== messageCounter + 1) {
       console.log("Messages received in a strange order: ", message, state, messageCounter, getCurrentState(config));
+      messageQueue = [];
+      stop();
       addMessage({
         process: async () => { return reset(state); }
       });
