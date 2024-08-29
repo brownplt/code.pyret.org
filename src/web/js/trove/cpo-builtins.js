@@ -20,7 +20,8 @@
     { "import-type": "builtin", "name": "essentials2020" },
     { "import-type": "builtin", "name": "essentials2021" },
     { "import-type": "builtin", "name": "essentials2024" },
-    { "import-type": "builtin", "name": "starter2024" }
+    { "import-type": "builtin", "name": "starter2024" },
+    { "import-type": "builtin", "name": "dcic2024" }
   ],
   provides: {},
   nativeRequires: [],
