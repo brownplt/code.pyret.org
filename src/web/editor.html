@@ -29,6 +29,7 @@
 <body class="default">
   <script>
     var themeOnLoad = localSettings.getItem('theme') || 'default';
+    var keybindOnLoad = localSettings.getItem('keybind') || 'default';
     document.body.classList.remove("default");
     document.body.classList.add(themeOnLoad);
     var params = {};
@@ -64,6 +65,7 @@
     }
     window.addEventListener('load', function() {
       document.getElementById('theme-select').value = themeOnLoad;
+      document.getElementById('keybind-select').value = keybindOnLoad;
     }, { once: true });
   </script>
   <main>
@@ -203,6 +205,13 @@
                 <option value="panda">Panda</option>
                 <option value="high-contrast-light">High Contrast Light</option>
                 <option value="high-contrast-dark">High Contrast Dark</option>
+              </select>
+            </li>
+            <li id="keybinds" role="presentation" style="white-space: nowrap;">
+              <label for="keybind-select">Key bindings:</label>
+              <select id="keybind-select">
+                <option value="default">Default</option>
+                <option value="vim">Vim</option>
               </select>
             </li>
           </ul>

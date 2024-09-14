@@ -188,20 +188,24 @@ $(function() {
     const mac = CodeMirror.keyMap.default === CodeMirror.keyMap.macDefault;
     const modifier = mac ? "Cmd" : "Ctrl";
 
-    var cmOptions = {
-      extraKeys: CodeMirror.normalizeKeyMap({
+    defaultKeyMap = CodeMirror.normalizeKeyMap({
         "Shift-Enter": function(cm) { runFun(cm.getValue()); },
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
         "Tab": "indentAuto",
         "Ctrl-I": reindentAllLines,
-        "Esc Left": "goBackwardSexp",
         "Alt-Left": "goBackwardSexp",
-        "Esc Right": "goForwardSexp",
         "Alt-Right": "goForwardSexp",
         "Ctrl-Left": "goBackwardToken",
         "Ctrl-Right": "goForwardToken",
         [`${modifier}-/`]: "toggleComment",
-      }),
+    });
+    CPO.noVimKeyMap = CodeMirror.normalizeKeyMap({
+        "Esc Left": "goBackwardSexp",
+        "Esc Right": "goForwardSexp",
+    });
+
+    var cmOptions = {
+      extraKeys: defaultKeyMap,
       indentUnit: 2,
       tabSize: 2,
       viewportMargin: Infinity,
@@ -221,6 +225,8 @@ $(function() {
     cmOptions = merge(cmOptions, options.cmOptions || {});
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
+    // we do this separately so we can more easily add and remove it for vim mode
+    CM.addKeyMap(CPO.noVimKeyMap);
 
     function firstLineIsNamespace() {
       const firstline = CM.getLine(0);
