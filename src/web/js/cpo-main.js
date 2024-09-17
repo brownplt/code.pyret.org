@@ -205,8 +205,8 @@
                   return constructors.makeGDriveJSLocator(arr[0], arr[1]);
                 }
                 else if (protocol === "file" && window.MESSAGES) {
-                  var fileLocator = fileLocator.makeFileLocatorConstructor(window.MESSAGES.sendRpc, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
-                  return fileLocator.makeFileLocator(arr[0]);
+                  var fileLocatorConstructor = fileLocator.makeFileLocatorConstructor(window.MESSAGES.sendRpc, runtime, compileLib, compileStructs, parsePyret, builtinModules, cpo);
+                  return fileLocatorConstructor.makeFileLocator(arr[0]);
                 }
                 /*
                 else if (protocol === "js-http") {
