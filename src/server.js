@@ -835,7 +835,8 @@ function start(config, onServerReady) {
     const requestURL = `${config.sharedFetchServer}/shared-file?sharedProgramId=${req.query.sharedProgramId}`;
     const shared = sharedFallback(requestURL);
     shared.then((resp) => resp.pipe(res));
-    shared.fail(() => {
+    shared.fail((e) => {
+      console.error("Fallback failed: ", e);
       var sharedProgramId = req.query.sharedProgramId;
       var both = fileAndToken(sharedProgramId);
       both.fail(function(err) {

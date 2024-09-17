@@ -12,7 +12,7 @@ function commSetup(config, messageCallback, gainControl, loseControl) {
     config.sendPort.postMessage({
       protocol: "pyret-rpc",
       data: { ...data, callbackId }
-    });
+    }, '*');
   }
 
   // state is optional; if not provided we use getCurrentState to fill it
