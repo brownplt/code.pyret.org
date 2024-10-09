@@ -700,6 +700,7 @@
 
     // ASSERT: if we're using custom images, there will be a 4th column
     const hasImage = table[0].length == 4;
+    const dotChartP = get(rawData, 'dot-chart');
 
     // Adds each row of bar data and bar_color data
     table.forEach(function (row) {
@@ -717,7 +718,7 @@
           color : interval_color, 
         },
         series : { 
-          0 : { dataOpacity : hasImage? 0 : 1.0 } 
+          0 : { dataOpacity : (hasImage || dotChartP)? 0 : 1.0 }
         }
       };
  
@@ -761,10 +762,13 @@
       onExit: defaultImageReturn,
       mutators: [backgroundMutator, axesNameMutator, yAxisRangeMutator],
       overlay: (overlay, restarter, chart, container) => {
-        if(!hasImage) return;
+
+        if (!hasImage && !dotChartP) return;
 
         // if custom images are defined, use the image at that location
         // and overlay it atop each dot
+
+
         google.visualization.events.addListener(chart, 'ready', function () {
           // HACK(Emmanuel): 
           // If Google changes the DOM for charts, these lines will likely break
@@ -772,6 +776,7 @@
           const rects = svgRoot.children[1].children[1].children[1].children;
           $('.__img_labels').each((idx, n) => $(n).remove());
 
+          if (hasImage) {
           // Render each rect above the old ones, using the image as a pattern
           table.forEach(function (row, i) {
             const rect = rects[i];
@@ -790,7 +795,41 @@
             Object.assign(imageElt, rects[i]); // we should probably not steal *everything*...
             svgRoot.appendChild(imageElt);
           });
+          }
+
+          if (dotChartP) {
+          table.forEach(function (row, i) {
+            // console.log('row', i, '=', row);
+            const rect = rects[i];
+            // console.log('rect', i, '=', rect);
+            const num_elts = row[1];
+            const rect_x = Number(rect.getAttribute('x'));
+            const rect_y = Number(rect.getAttribute('y'));
+            const rect_height = Number(rect.getAttribute('height'));
+            const unit_height = rect_height/num_elts;
+            const rect_width = Number(rect.getAttribute('width'));
+            const rect_fill = rect.getAttribute('fill');
+            const rect_fill_opacity = Number(rect.getAttribute('fill-opacity'));
+            const rect_stroke = rect.getAttribute('stroke');
+            const rect_stroke_width = Number(rect.getAttribute('stroke-width'));
+            for (let j = 0; j < num_elts; j++) {
+              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              circle.classList.add('__img_labels');
+              circle.setAttribute('r', rect_width/8);
+              circle.setAttribute('cx', rect_x + rect_width/2);
+              circle.setAttribute('cy', rect_y + (num_elts - j - 0.5)*unit_height);
+              circle.setAttribute('fill', rect_fill);
+              // circle.setAttribute('fill-opacity', rect_fill_opacity);
+              // circle.setAttribute('stroke', rect_stroke);
+              // circle.setAttribute('stroke-width', rect_stroke_width);
+              // console.log('adding circle elt', i, j, '=', circle);
+              svgRoot.appendChild(circle);
+            }
+          });
+          }
+
         });
+
       }
     };
   }

@@ -1067,6 +1067,7 @@ default-bar-chart-series = {
   pointer-color: none,
   axisdata: none, 
   horizontal: false, 
+  dot-chart: false,
   default-interval-color: none
 }
 
@@ -1917,6 +1918,42 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   data-series.make-axis(max-positive-height, max-negative-height)
 end
 
+fun dot-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
+  doc: ```
+       Consume labels, a list of string, and values, a list of numbers
+       and construct a dot chart
+       ```
+  # Type Checking
+  values.each(check-num)
+  labels.each(check-string)
+
+  # Constants
+  label-length = labels.length()
+  value-length = values.length()
+  rational-values = map(num-to-rational, values)
+
+  # Edge Case Error Checking
+  when value-length == 0:
+    raise("dot-chart: can't have empty data")
+  end
+  when label-length <> value-length:
+    raise('dot-chart: labels and values should have the same length')
+  end
+
+  {max-positive-height; max-negative-height} = prep-axis(rational-values)
+
+  data-series = default-bar-chart-series.{
+    tab: to-table2-n(labels, rational-values),
+    dot-chart: true,
+    axis-top: max-positive-height,
+    axis-bottom: max-negative-height,
+    annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
+  } ^ bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
+end
+
 fun grouped-bar-chart-from-list(
   labels :: P.LoS,
   value-lists :: P.LoLoN,
@@ -2613,6 +2650,7 @@ from-list = {
   exploding-pie-chart: exploding-pie-chart-from-list,
   image-pie-chart: image-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
+  dot-chart: dot-chart-from-list,
   image-bar-chart: image-bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   stacked-bar-chart: stacked-bar-chart-from-list,
