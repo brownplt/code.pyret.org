@@ -809,9 +809,10 @@
             const unit_height = rect_height/num_elts;
             const rect_width = Number(rect.getAttribute('width'));
             const rect_fill = rect.getAttribute('fill');
-            const rect_fill_opacity = Number(rect.getAttribute('fill-opacity'));
-            const rect_stroke = rect.getAttribute('stroke');
-            const rect_stroke_width = Number(rect.getAttribute('stroke-width'));
+            // const rect_fill_opacity = Number(rect.getAttribute('fill-opacity'));
+            // const rect_stroke = rect.getAttribute('stroke');
+            // const rect_stroke_width = Number(rect.getAttribute('stroke-width'));
+            rect.setAttribute('stroke-width', 0);
             for (let j = 0; j < num_elts; j++) {
               const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
               circle.classList.add('__img_labels');
