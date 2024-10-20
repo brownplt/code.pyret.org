@@ -498,6 +498,36 @@
       localSettings.change("theme", function(_, newTheme) {
         applyTheme(newTheme);
       });
+
+      var curKeybind = document.getElementById("keybind-select").value;
+      var keybindSelect = $("#keybind-select");
+
+      function applyKeybind(keybinding) {
+        var cm = CPO.editor.cm;
+        cm.state.keyMaps = [];
+        if (keybinding !== 'vim') {
+          cm.addKeyMap(CPO.noVimKeyMap, true);
+        }
+        curKeybind = keybinding;
+        cm.setOption('keyMap', curKeybind);
+      }
+
+      if (localSettings.getItem('keybind') !== null) {
+        applyKeybind(localSettings.getItem('keybind'));
+      } else {
+        localSettings.setItem('keybind', curKeybind);
+      }
+
+      $("#keybinds").change(function(e) {
+        var value = e.target.value;
+        applyKeybind(value);
+
+        localSettings.setItem("keybind", curKeybind);
+      });
+
+      localSettings.change("keybind", function(_, newKeybinds) {
+        applyKeybind(newKeybinds);
+      });
       
       $('.notificationArea').click(function() {$('.notificationArea span').fadeOut(1000);});
 
