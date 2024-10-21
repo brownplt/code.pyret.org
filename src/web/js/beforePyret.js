@@ -200,7 +200,7 @@ $(function() {
         "Alt-Right": "goForwardSexp",
         "Ctrl-Left": "goBackwardToken",
         "Ctrl-Right": "goForwardToken",
-        [`${modifier}-/`]: "toggleComment",
+        [`${modifier}-/`]: function (cm) { cm.toggleComment({ "lineComment": "#" }); },
       }),
       indentUnit: 2,
       tabSize: 2,
