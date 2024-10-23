@@ -1918,6 +1918,21 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   data-series.make-axis(max-positive-height, max-negative-height)
 end
 
+fun num-dot-chart-from-list(labels :: P.LoN, values :: P.LoN) -> DataSeries block:
+  doc: ```
+       Consume labels, a list of numbers, and values, a list of numbers
+       and construct a dot chart
+       ```
+  labels.each(check-num)
+  num-dot-chart-args = map2(lam(x-elt, y-elt): [list: x-elt, y-elt] end, 
+                            labels, values)
+    .sort-by({(x-list, y-list): x-list.get(0) < y-list.get(0)},
+             {(x-list, y-list): x-list.get(0) == y-list.get(0)})
+  dot-chart-from-list(map(lam(x-list): num-to-string(x-list.get(0)) end,
+                          num-dot-chart-args),
+                      map(lam(x-list): x-list.get(1) end, num-dot-chart-args))
+end
+
 fun dot-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
   doc: ```
        Consume labels, a list of string, and values, a list of numbers
@@ -2651,6 +2666,7 @@ from-list = {
   image-pie-chart: image-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
   dot-chart: dot-chart-from-list,
+  num-dot-chart: num-dot-chart-from-list,
   image-bar-chart: image-bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   stacked-bar-chart: stacked-bar-chart-from-list,
