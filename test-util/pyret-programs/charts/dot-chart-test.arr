@@ -55,4 +55,9 @@ check:
   n-zoo-manual satisfies is-image
   n-zoo-fewer satisfies is-image
   n-zoo-more satisfies is-image
+
+  color-at-position(zoo-rainbow, 208, 340) is C.red
+  color-at-position(zoo-rainbow, 322, 340) is C.orange
+  color-at-position(zoo-rainbow, 439, 340) is C.yellow
+  color-at-position(zoo-rainbow, 558, 340) is C.green
 end
