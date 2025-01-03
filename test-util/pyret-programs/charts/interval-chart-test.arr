@@ -1,4 +1,4 @@
-include color
+import color as C
 include chart
 include image
 
@@ -66,13 +66,13 @@ check "Different kinds of numbers":
 end
 
 check "Colors":
-  render-image(ser-no-rough.color(violet)) satisfies is-image
-  render-image(ser-some-ys-rough.color(indigo)) satisfies is-image
-  render-image(ser-some-ress-rough.color(blue)) satisfies is-image
-  render-image(ser-some-ys-some-ress-rough.color(green)) satisfies is-image
-  render-image(ser-all-ys-some-ress-rough.color(yellow)) satisfies is-image
-  render-image(ser-some-ys-all-ress-rough.color(orange)) satisfies is-image
-  render-image(ser-all-ys-all-ress-rough.color(red)) satisfies is-image
+  render-image(ser-no-rough.color(C.violet)) satisfies is-image
+  render-image(ser-some-ys-rough.color(C.indigo)) satisfies is-image
+  render-image(ser-some-ress-rough.color(C.blue)) satisfies is-image
+  render-image(ser-some-ys-some-ress-rough.color(C.green)) satisfies is-image
+  render-image(ser-all-ys-some-ress-rough.color(C.yellow)) satisfies is-image
+  render-image(ser-some-ys-all-ress-rough.color(C.orange)) satisfies is-image
+  render-image(ser-all-ys-all-ress-rough.color(C.red)) satisfies is-image
 end
 
 check "Different point sizes":
@@ -96,13 +96,13 @@ check "Different line widths":
 end
 
 check "Mix and match":
-  render-image(ser-no-rough.color(purple).point-size(10)) satisfies is-image
-  render-image(ser-some-ys-rough.color(green).lineWidth(2)) satisfies is-image
+  render-image(ser-no-rough.color(C.purple).point-size(10)) satisfies is-image
+  render-image(ser-some-ys-rough.color(C.green).lineWidth(2)) satisfies is-image
   render-image(ser-some-ress-rough.point-size(20).lineWidth(3)) satisfies is-image
-  render-image(ser-some-ys-some-ress-rough.color(blue).point-size(15).lineWidth(5)) satisfies is-image
-  render-image(ser-all-ys-some-ress-rough.color(orange).lineWidth(3).point-size(9)) satisfies is-image
-  render-image(ser-some-ys-all-ress-rough.lineWidth(2).point-size(2).color(indigo)) satisfies is-image
-  render-image(ser-all-ys-all-ress-rough.lineWidth(3.3).color(yellow).point-size(~2.718281828)) satisfies is-image
+  render-image(ser-some-ys-some-ress-rough.color(C.blue).point-size(15).lineWidth(5)) satisfies is-image
+  render-image(ser-all-ys-some-ress-rough.color(C.orange).lineWidth(3).point-size(9)) satisfies is-image
+  render-image(ser-some-ys-all-ress-rough.lineWidth(2).point-size(2).color(C.indigo)) satisfies is-image
+  render-image(ser-all-ys-all-ress-rough.lineWidth(3.3).color(C.yellow).point-size(~2.718281828)) satisfies is-image
 end
 
 check "Exceptions":

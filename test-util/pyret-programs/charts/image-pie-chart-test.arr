@@ -1,4 +1,5 @@
-include color
+# include color
+import color as C
 include chart
 include image
 
@@ -20,10 +21,10 @@ top = image-height(img)
 ################################
 
 check "Checking image-pie-chart":
-  color-at-position(img, 339, top - 334) is red
-  color-at-position(img, 293, top - 179) is blue
-  color-at-position(img, 212, top - 215) is green
-  color-at-position(img, 216, top - 264) is pink
-  color-at-position(img, 245, top - 317) is orange
+  color-at-position(img, 339, top - 334) is C.red
+  color-at-position(img, 293, top - 179) is C.blue
+  color-at-position(img, 212, top - 215) is C.green
+  color-at-position(img, 216, top - 264) is C.pink
+  color-at-position(img, 245, top - 317) is C.orange
 end
 

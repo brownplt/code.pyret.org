@@ -1057,7 +1057,8 @@ type BarChartSeries = {
   horizontal :: Boolean,
   annotations :: RawArray<RawArray<Option<String>>>,
   intervals :: RawArray<RawArray<RawArray<Number>>>,
-  default-interval-color :: Option<I.Color>
+  default-interval-color :: Option<I.Color>,
+  dot-chart :: Boolean,
 }
 
 default-bar-chart-series = {
@@ -1067,7 +1068,8 @@ default-bar-chart-series = {
   pointer-color: none,
   axisdata: none, 
   horizontal: false, 
-  default-interval-color: none
+  default-interval-color: none,
+  dot-chart: false,
 }
 
 type MultiBarChartSeries = { 
@@ -1127,6 +1129,7 @@ type LinePlotSeries = {
   pointshapeSides :: NumInteger, 
   pointshapeDent :: Number, 
   pointshapeRotation :: Number,
+  dot-chart :: Boolean,
 }
 
 default-line-plot-series = {
@@ -1146,6 +1149,7 @@ default-line-plot-series = {
   pointshapeSides: 5,
   pointshapeDent: 0.5,
   pointshapeRotation: 0,
+  dot-chart: false,
 }
 
 type ScatterPlotSeries = {
@@ -1162,6 +1166,7 @@ type ScatterPlotSeries = {
   pointshapeSides :: NumInteger, 
   pointshapeDent :: Number, 
   pointshapeRotation :: Number,
+  dot-chart :: Boolean,
 }
 
 default-scatter-plot-series = {
@@ -1177,6 +1182,7 @@ default-scatter-plot-series = {
   trendlineWidth: 3, 
   trendlineOpacity: 0.3,
   trendlineDegree: 3,  
+  dot-chart: false
 }
 
 type IntervalChartSeries = {
@@ -1191,9 +1197,6 @@ type IntervalChartSeries = {
   style :: String,
   horizontal :: Boolean,
   default-interval-color :: Option<I.Color>,
-  #
-  bothys :: List<Posn>,
-  ps :: List<Posn>,
   legend :: String,
   trendlineType :: Option<String>,
   trendlineColor :: Option<I.Color>,
@@ -1207,6 +1210,9 @@ type IntervalChartSeries = {
   pointshapeSides :: NumInteger,
   pointshapeDent :: Number,
   pointshapeRotation :: Number,
+  bothys :: List<Posn>,
+  ps :: List<Posn>,
+  dot-chart :: Boolean,
 }
 
 default-interval-chart-series = {
@@ -1230,6 +1236,7 @@ default-interval-chart-series = {
   pointshapeSides: 5,
   pointshapeDent: 0.5,
   pointshapeRotation: 0,
+  dot-chart: false,
 }
 
 type FunctionPlotSeries = {
@@ -1908,6 +1915,92 @@ fun bar-chart-from-list(labels :: P.LoS, values :: P.LoN) -> DataSeries block:
 
   data-series = default-bar-chart-series.{
     tab: to-table2-n(labels, rational-values),
+    axis-top: max-positive-height,
+    axis-bottom: max-negative-height,
+    annotations: values.map({(_): [list: none]}) ^ list-to-table2,
+    intervals: values.map({(_): [list: [raw-array: ]]}) ^ list-to-table2,
+  } ^ bar-chart-series
+
+  data-series.make-axis(max-positive-height, max-negative-height)
+end
+
+fun num-dot-chart-from-list(x-values :: P.LoN) -> DataSeries block:
+  doc: ```
+       Consume a (possibly repeating, unordered) list of numbers
+       and construct a dot chart
+       ```
+  x-values.each(check-num)
+  when x-values.length() == 0:
+    raise("num-dot-chart: can't have empty data")
+  end
+  scatter-plot-ys = x-values.map(lam(_): 0 end)
+  default-scatter-plot-series.{
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]},
+      x-values, scatter-plot-ys,
+      x-values.map({(_): ''}), x-values.map({(_): false})),
+    dot-chart: true
+  } ^ scatter-plot-series
+end
+
+fun labeled-num-dot-chart-from-list(labels :: P.LoS, x-values :: P.LoN) -> DataSeries block:
+  doc: ```
+       Consume unordered, possibly-repeating lists of labels and numbers, 
+       and construct a dot chart
+       ```
+  x-values.each(check-num)
+  when x-values.length() == 0:
+    raise("num-dot-chart: can't have empty data")
+  end
+  labels.each(check-string)
+  when labels.length() <> x-values.length():
+    raise("num-dot-chart: the lists of numbers and labels must have the same length")
+  end
+  scatter-plot-ys = x-values.map(lam(_): 0 end)
+  default-scatter-plot-series.{
+    ps: map4({(x, y, z, img): [raw-array: x, y, z, img]},
+      x-values, scatter-plot-ys, labels,
+      x-values.map({(_): false})),
+    dot-chart: true
+  } ^ scatter-plot-series
+end
+
+fun dot-chart-from-list(input-labels :: P.LoS) -> DataSeries block:
+  doc: ```
+       Consume a list of string-values and construct a dot chart
+       ```
+
+  # Edge Case Error Checking
+  when input-labels.length() == 0:
+    raise("dot-chart: can't have empty data")
+  end
+
+  # Type Checking
+  input-labels.each(check-string)
+
+  # Walk through the (sorted) values, creating lists of labels and counts
+  unique-counts = foldl(
+    lam(acc, elt):
+      labels = acc.{0}
+      counts = acc.{1}
+      if labels.member(elt):
+        {labels; counts.set(0, counts.get(0) + 1)}
+      else:
+        {link(elt, labels); link(1, counts)}
+      end
+    end,
+    {[list: ]; [list: ]},
+    input-labels.sort())
+
+  labels = unique-counts.{0}
+  values = unique-counts.{1}
+  rational-values = map(num-to-rational, values)
+
+  # set the vAxis values, and create the data series
+  {max-positive-height; max-negative-height} = prep-axis(rational-values)
+
+  data-series = default-bar-chart-series.{
+    tab: to-table2-n(labels, rational-values),
+    dot-chart: true,
     axis-top: max-positive-height,
     axis-bottom: max-negative-height,
     annotations: values.map({(_): [list: none]}) ^ list-to-table2,
@@ -2613,6 +2706,9 @@ from-list = {
   exploding-pie-chart: exploding-pie-chart-from-list,
   image-pie-chart: image-pie-chart-from-list,
   bar-chart: bar-chart-from-list,
+  dot-chart: dot-chart-from-list,
+  num-dot-chart: num-dot-chart-from-list,
+  labeled-num-dot-chart: labeled-num-dot-chart-from-list,
   image-bar-chart: image-bar-chart-from-list,
   grouped-bar-chart: grouped-bar-chart-from-list,
   stacked-bar-chart: stacked-bar-chart-from-list,

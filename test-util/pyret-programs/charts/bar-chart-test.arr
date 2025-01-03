@@ -1,4 +1,4 @@
-include color
+import color as C
 include chart
 include image
 
@@ -360,23 +360,23 @@ end
 # COLOR METHOD TESTS 
 ######################
 
-single-color = [list: red]
-rainbow-colors = [list: red, orange, yellow, green, blue, indigo, violet]
+single-color = [list: C.red]
+rainbow-colors = [list: C.red, C.orange, C.yellow, C.green, C.blue, C.indigo, C.violet]
 manual-colors = 
   [list: 
-    color(51, 72, 252, 0.57), color(195, 180, 104, 0.87), 
-    color(115, 23, 159, 0.24), color(144, 12, 138, 0.13), 
-    color(31, 132, 224, 0.83), color(166, 16, 72, 0.59), 
-    color(58, 193, 241, 0.98)]
-less-colors = [list: red, green, blue, orange, purple]
-more-colors = [list: red, green, blue, orange, purple, yellow, indigo, violet]
+    C.color(51, 72, 252, 0.57), C.color(195, 180, 104, 0.87),
+    C.color(115, 23, 159, 0.24), C.color(144, 12, 138, 0.13),
+    C.color(31, 132, 224, 0.83), C.color(166, 16, 72, 0.59),
+    C.color(58, 193, 241, 0.98)]
+less-colors = [list: C.red, C.green, C.blue, C.orange, C.purple]
+more-colors = [list: C.red, C.green, C.blue, C.orange, C.purple, C.yellow, C.indigo, C.violet]
 
 check "Color Methods: Single Bars":
-  render-image(single-bars.color(red)) satisfies is-image
-  render-image(single-bars-neg.color(green)) satisfies is-image
-  render-image(single-bars-rep.color(violet)) satisfies is-image
-  render-image(single-bars-roughall.color(orange)) satisfies is-image
-  render-image(single-bars-roughsome.color(cyan)) satisfies is-image
+  render-image(single-bars.color(C.red)) satisfies is-image
+  render-image(single-bars-neg.color(C.green)) satisfies is-image
+  render-image(single-bars-rep.color(C.violet)) satisfies is-image
+  render-image(single-bars-roughall.color(C.orange)) satisfies is-image
+  render-image(single-bars-roughsome.color(C.cyan)) satisfies is-image
 
   render-image(single-bars.colors(empty)) satisfies is-image
   render-image(single-bars.colors(single-color)) satisfies is-image
@@ -585,23 +585,23 @@ check "Pointer Method: Single Bars":
 
   render-image(
     single-bars.add-pointers([list: 6, 7], [list: "median", "mean + 1"])
-               .pointer-color(red)) 
+               .pointer-color(C.red))
     satisfies is-image
   render-image(
     single-bars-neg.add-pointers([list: 3, 1, -2, -5], [list: "a", "b", "c", "d"])
-                   .pointer-color(green)) 
+                   .pointer-color(C.green))
     satisfies is-image
   render-image(
     single-bars-rep.add-pointers([list: 3, 5], [list: 'tres', 'cinco'])
-                   .pointer-color(cyan)) 
+                   .pointer-color(C.cyan))
     satisfies is-image
   render-image(
     single-bars-roughall.add-pointers([list: 11, 1, -5], [list: "a", "c", "d"])
-                        .pointer-color(magenta))
+                        .pointer-color(C.magenta))
     satisfies is-image
   render-image(
     single-bars-roughsome.add-pointers([list: 40, 5], [list: 'cuarenta', 'cinco'])
-                         .pointer-color(orange))
+                         .pointer-color(C.orange))
     satisfies is-image
 
   render-image(single-bars.add-pointers(empty, [list: "base"]))
@@ -671,28 +671,28 @@ check "Pointer Methods: Grouped Bars":
   render-image(
     grouped-bars.add-pointers([list: 1874094, 41417373 / 14], 
                               [list: "median (All Bars)", "mean (All Bars)"])
-               .pointer-color(red)) 
+               .pointer-color(C.red))
     satisfies is-image
   render-image(
     grouped-bars-neg.add-pointers([list: 0.3, 0, -1.5, -3], 
                                   [list: "a", "b", "c", "d"])
-                   .pointer-color(magenta)) 
+                   .pointer-color(C.magenta))
     satisfies is-image
   render-image(
     grouped-bars-rep.add-pointers([list: 3.5, 9], [list: "Decimal", "Almost Max"])
-                   .pointer-color(yellow)) 
+                   .pointer-color(C.yellow))
     satisfies is-image
   render-image(
     grouped-bars-repgroups.add-pointers([list: 6, 9], [list: "~Mid", "~Max"])
-                          .pointer-color(orange)) 
+                          .pointer-color(C.orange))
     satisfies is-image
   render-image(
     grouped-bars-roughall.add-pointers([list: 11, 1, -5], [list: "a", "c", "d"])
-                        .pointer-color(red))
+                        .pointer-color(C.red))
     satisfies is-image
   render-image(
     grouped-bars-roughsome.add-pointers([list: 3, 5], [list: 'tres', 'cinco'])
-                         .pointer-color(cyan))
+                         .pointer-color(C.cyan))
     satisfies is-image
 
   render-image(grouped-bars.add-pointers(empty, [list: "base"]))
@@ -765,27 +765,27 @@ check "Pointers Methods: Stacked Bars":
 
   render-image(
     stacked-bars.add-pointers([list: 18409317.5, 20708686.5], [list: "median", "mean"])
-                .pointer-color(red)) 
+                .pointer-color(C.red))
     satisfies is-image
   render-image(
     stacked-bars-neg.add-pointers([list: 1.3, 0, -1.5, -3], [list: "a", "b", "c", "d"])
-                    .pointer-color(magenta)) 
+                    .pointer-color(C.magenta))
     satisfies is-image
   render-image(
     stacked-bars-rep.add-pointers([list: 3.5, 59], [list: "Decimal", "Almost Max"])
-                    .pointer-color(yellow)) 
+                    .pointer-color(C.yellow))
     satisfies is-image
   render-image(
     stacked-bars-repstacks.add-pointers([list: 31, 59], [list: "Almost Middle", "Almost Max"])
-                          .pointer-color(orange)) 
+                          .pointer-color(C.orange))
     satisfies is-image
   render-image(
     stacked-bars-roughall.add-pointers([list: 11, 1, -5], [list: "a", "c", "d"])
-                        .pointer-color(red))
+                        .pointer-color(C.red))
     satisfies is-image
   render-image(
     stacked-bars-roughsome.add-pointers([list: 3, 5], [list: 'tres', 'cinco'])
-                         .pointer-color(cyan))
+                         .pointer-color(C.cyan))
     satisfies is-image
 
   render-image(stacked-bars.add-pointers(empty, [list: "base"]))
@@ -1062,7 +1062,7 @@ check "Intervals: Single Bars":
     satisfies is-image
   render-image(single-bars.intervals([list: [list: 9, 11],
       [list: 1, 2, 3, 4, 5], [list: -1, -2], empty, empty, empty, empty])
-      .interval-color(orange))
+      .interval-color(C.orange))
     satisfies is-image
 end
 
@@ -1086,9 +1086,9 @@ check "Intervals: Multiple Bars":
   render-image(stacked-small-data.intervals(intervals)) satisfies is-image
   render-image(grouped-small-data.intervals(intervals)) satisfies is-image
 
-  render-image(stacked-small-data.intervals(intervals).interval-color(red)) 
+  render-image(stacked-small-data.intervals(intervals).interval-color(C.red))
     satisfies is-image
-  render-image(grouped-small-data.intervals(intervals).interval-color(green)) 
+  render-image(grouped-small-data.intervals(intervals).interval-color(C.green))
     satisfies is-image
 end
 
@@ -1103,7 +1103,7 @@ check "Error bars: Single Bars":
     satisfies is-image
   render-image(single-bars.error-bars([list: [list: -1, 1], [list: -1, 1],
       [list: -1, 2], [list: -1, 1], [list: -1, 1], [list: -1, 1],
-      [list: -1, 1]]).interval-color(purple))
+      [list: -1, 1]]).interval-color(C.purple))
     satisfies is-image
 end
 
@@ -1127,8 +1127,8 @@ check "Error bars: Multiple Bars":
   render-image(stacked-small-data.error-bars(error-amounts)) satisfies is-image
   render-image(grouped-small-data.error-bars(error-amounts)) satisfies is-image
 
-  render-image(stacked-small-data.error-bars(error-amounts).interval-color(red)) 
+  render-image(stacked-small-data.error-bars(error-amounts).interval-color(C.red))
     satisfies is-image
-  render-image(grouped-small-data.error-bars(error-amounts).interval-color(green)) 
+  render-image(grouped-small-data.error-bars(error-amounts).interval-color(C.green))
     satisfies is-image
 end

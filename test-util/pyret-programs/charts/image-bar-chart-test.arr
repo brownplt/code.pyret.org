@@ -1,6 +1,7 @@
 include chart
 include image
-include image-structs
+import color as C
+# include image-structs  # color tan clashes with starter2024's trig tan
 include math
 
 fun f(r): star(50, "solid", "red") end
@@ -19,5 +20,5 @@ img = render-chart(series)
 
 check:
   img satisfies is-image
-  color-at-position(img, 504, 258) is red
+  color-at-position(img, 504, 258) is C.red
 end
