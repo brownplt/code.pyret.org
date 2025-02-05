@@ -73,7 +73,9 @@ function start(config, onServerReady) {
 
   app.use(cookieSession({
     secret: config.sessionSecret,
-    key: "code.pyret.org"
+    key: "code.pyret.org",
+
+    sameSite: 'lax'
   }));
   app.use(cookieParser());
 
@@ -527,6 +529,8 @@ function start(config, onServerReady) {
   });
 
   app.get("/editor", function(req, res) {
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    res.set("Cross-Origin-Embedder-Policy", "require-corp");
     res.render("editor.html", {
       PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
@@ -771,7 +775,12 @@ function start(config, onServerReady) {
     // URL (since this will just make self request). But since Google credentials
     // lock in files to a particular server, and we want share links from CPO
     // to work on our testing or other deployments, we need this.
-  function sharedFallback(url) {
+    // If set, we first try to fetch from the indicated shared server (usually
+    // this will be code.pyret.org).
+    // This in fact doesn't matter *that* much for embedding clients that embed
+    // code.pyret.org directly. However, for *other* deployments, or test
+    // deployments, or development copies, it saves a ton of headaches.
+  function sharedPrefetch(url) {
     var ret = Q.defer();
     if(config.sharedFetchServer) {
       let response = request({url: url});
@@ -787,7 +796,7 @@ function start(config, onServerReady) {
 
   app.get("/shared-program-contents", function(req, res) {
     const requestURL = `${config.sharedFetchServer}/shared-program-contents?sharedProgramId=${req.query.sharedProgramId}`;
-    const shared = sharedFallback(requestURL);
+    const shared = sharedPrefetch(requestURL);
     shared.then((resp) => resp.pipe(res));
     shared.fail(() => {
       var contents = getSharedContents(req.query.sharedProgramId);
@@ -813,8 +822,8 @@ function start(config, onServerReady) {
   });
 
   app.get("/shared-image-contents", function(req, res) {
-    const requestURL = `${config.sharedFetchServer}/shared-image-contents?sharedProgramId=${req.query.sharedProgramId}`;
-    const shared = sharedFallback(requestURL);
+    const requestURL = `${config.sharedFetchServer}/shared-image-contents?sharedImageId=${req.query.sharedImageId}`;
+    const shared = sharedPrefetch(requestURL);
     shared.then((resp) => resp.pipe(res));
     shared.fail(() => {
       var contents = getSharedContents(req.query.sharedImageId);
@@ -833,7 +842,7 @@ function start(config, onServerReady) {
 
   app.get("/shared-file", function(req, res) {
     const requestURL = `${config.sharedFetchServer}/shared-file?sharedProgramId=${req.query.sharedProgramId}`;
-    const shared = sharedFallback(requestURL);
+    const shared = sharedPrefetch(requestURL);
     shared.then((resp) => resp.pipe(res));
     shared.fail((e) => {
       console.error("Fallback failed: ", e);

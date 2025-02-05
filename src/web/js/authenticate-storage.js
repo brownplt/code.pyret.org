@@ -5,7 +5,6 @@ window.storageAPI = storageAPIDeferred.promise;
 window.sheetsAPI = sheetsAPIDeferred.promise;
 
 window.handleClientLoad = function handleClientLoad(apiKey) {
-  debugger;
   if(!gapi || !gapi.client) {
     storageAPIDeferred.reject("no gapi.client");
     sheetsAPIDeferred.reject("no gapi.client");

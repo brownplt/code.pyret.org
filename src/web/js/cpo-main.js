@@ -391,7 +391,7 @@
       */
       function doRunAction(src, synthetic) {
         if(!synthetic) {
-          CPO.triggerOnRun();
+          CPO.events.triggerOnRun();
         }
         editor.cm.operation(function() {
           editor.cm.clearGutter("test-marker-gutter");

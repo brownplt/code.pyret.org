@@ -79,7 +79,7 @@ body.default {
   /* Tables */
   --table-border: black;          /* border on tables */
   --table-bg: #eee;               /* bg on tables */
-  --table-even-rows-bg: #f2f2f2;  /* bg on even rows in table */
+  --table-even-rows-bg: #f6f6f6;  /* bg on even rows in table */
   --th-bg: #ddd;                  /* bg on table headers */
   --th-font-weight: normal;         /* font weight on table headers */
   --table-col-dividers: white;    /* righthand borders separating generic table columns */

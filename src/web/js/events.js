@@ -105,6 +105,8 @@ function makeEvents(config) {
   const replCM = function() { return config.CPO.replWidget.cm; }
   config.replCM = replCM;
 
+  config.inControl = false;
+
   var runButton = $("#runButton");
   var runDropdown = $("#runDropdown");
   var breakButton = $("#breakButton");
@@ -114,6 +116,7 @@ function makeEvents(config) {
     }, "Tried to interact while not in control.");
   }
   function loseControl(config) {
+    config.inControl = false;
     config.CPO.editor.cm.setOption('readOnly', 'nocursor');
     config.CPO.replWidget.cm.setOption('readOnly', 'nocursor');
     config.CPO.editor.cm.getWrapperElement().addEventListener('click', sendControlWarning);
@@ -123,6 +126,7 @@ function makeEvents(config) {
     breakButton.hide();
   }
   function gainControl(config) {
+    config.inControl = true;
     config.CPO.editor.cm.setOption('readOnly', false);
     config.CPO.replWidget.cm.setOption('readOnly', false);
     config.CPO.editor.cm.getWrapperElement().removeEventListener('click', sendControlWarning);
@@ -141,6 +145,9 @@ function makeEvents(config) {
       editorUpdate(state.definitionsAtLastRun);
       await window.RUN_CODE(state.definitionsAtLastRun);
     }
+    else if (state.definitionsAtLastRun === false) {
+      await window.RUN_CODE("");
+    }
     const interactions = state.interactionsSinceLastRun;
     for(let i = 0; i < interactions.length; i += 1) {
       await runInteraction(interactions[i]);
@@ -149,7 +156,7 @@ function makeEvents(config) {
     replUpdate(state.replContents);
   }
 
-  config.CPO.onLoad(async function () {
+  config.CPO.events.onLoad(async function () {
     replCM().on("change", function (instance, change) {
       if (change.origin === thisAPI || change.origin === "setValue") {
         return;
@@ -162,6 +169,16 @@ function makeEvents(config) {
     comm.sendEvent({
       type: "pyret-init"
     });
+    if(config.initialState) {
+      addMessage({
+        process: async () => {
+          const result = await resetMessage({ state: config.initialState }, config.initialState);
+          gainControl(config);
+          return result;
+        }
+      });
+    }
+
   });
 
   const comm = commSetup(config, onmessage, gainControl, loseControl);
@@ -185,6 +202,9 @@ function makeEvents(config) {
     );
     window.setTimeout(() => {
       replCM().refresh();
+      if(config.inControl) {
+        replCM().focus();
+      }
     }, 100);
   }
 
@@ -201,7 +221,7 @@ function makeEvents(config) {
     }, "Made a change to the program.");
   });
 
-  config.CPO.onRun(function () {
+  config.CPO.events.onRun(function () {
     interactionsSinceLastRun = [];
     definitionsAtLastRun = getCurrentState(config).editorContents;
     comm.sendEvent({
@@ -216,11 +236,13 @@ function makeEvents(config) {
     editorUpdate(code);
     definitionsAtLastRun = code;
     await window.RUN_CODE(code);
-    replCM().display.input.blur();
-    replCM().setOption("readOnly", "noCursor");
+    if(!config.inControl) {
+      replCM().display.input.blur();
+      replCM().setOption("readOnly", "noCursor");
+    }
   }
 
-  config.CPO.onInteraction(function (interaction) {
+  config.CPO.events.onInteraction(function (interaction) {
     interactionsSinceLastRun.push(interaction);
     // When we get this event, the repl may or may not have been cleared,
     // so we explicitly pass it as the empty string.
@@ -232,19 +254,22 @@ function makeEvents(config) {
 
   async function runInteraction(src) {
     interactionsSinceLastRun.push(src);
-    $(".repl-prompt")
-      .find(".CodeMirror")[0]
-      .CodeMirror.setOption("readOnly", "nocursor");
+    if(!config.inControl) {
+      $(".repl-prompt")
+        .find(".CodeMirror")[0]
+        .CodeMirror.setOption("readOnly", "nocursor");
+    }
     await window.RUN_INTERACTION(src);
 
     // We do this again because the CPO infrastructure
     // explicitly re-enables the prompt at the end of
     // RUN_INTERACTION, but we don't want that here!
-    $(".repl-prompt")
-      .find(".CodeMirror")[0]
-      .CodeMirror.setOption("readOnly", "nocursor");
-    replCM().display.input.blur();
-
+    if(!config.inControl) {
+      $(".repl-prompt")
+        .find(".CodeMirror")[0]
+        .CodeMirror.setOption("readOnly", "nocursor");
+      replCM().display.input.blur();
+    }
   }
 
   const initialState = {
@@ -384,10 +409,24 @@ function makeEvents(config) {
               message.change.to,
               thisAPI
             );
+          }
+        });
+        // These need to be separate messages to ensure that replCM() processes
+        // before asking it to refresh
+        addMessage({
+          process: async () => {
+            replCM().refresh();
+            if(config.inControl) {
+              replCM().focus();
+            }
+          }
+        });
+        addMessage({
+          process: async() => {
             if(replCM().getValue() !== state.replContents) {
               console.log("REPL contents disagreed with message state, synchronizing.", replCM().getValue(), state.replContents)
               replUpdate(state.replContents);
-            }    
+            }
           }
         });
         break;

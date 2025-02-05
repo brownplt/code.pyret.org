@@ -874,7 +874,7 @@
 
       var runner = function(code, synthetic) {
         if(!synthetic) {
-          CPO.triggerOnInteraction(code);
+          CPO.events.triggerOnInteraction(code);
         }
         if(running) { console.log("Skipping a run because a run is happening already: ", code, synthetic); return; }
         running = true;

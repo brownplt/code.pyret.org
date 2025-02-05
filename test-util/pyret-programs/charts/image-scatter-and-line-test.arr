@@ -1,6 +1,7 @@
 include chart
 include image
-include image-structs
+import color as C
+# include image-structs
 include tables
 
 # scatter-plot-series.image-labels(images :: List<Image>)
@@ -40,14 +41,14 @@ img = image-scatter-plot(test, lam(r): circle(string-length(r["name"]), "solid",
 
 check:
   img satisfies is-image
-  color-at-position(img, 610, 113) is red
+  color-at-position(img, 610, 113) is C.red
 end
 
 img2 = image-scatter-plot-series(test, lam(r): circle(string-length(r["name"]), "solid", "red") end, "x", "y" )
 
 check:
   img2 satisfies is-image
-  color-at-position(img2, 610, 113) is red
+  color-at-position(img2, 610, 113) is C.red
 end
 
 fun image-line-plot-series(t, f, xs, ys):
@@ -66,7 +67,7 @@ img3 = image-line-plot-series(test, lam(r): circle(string-length(r["name"]), "so
 
 check:
   img3 satisfies is-image
-  color-at-position(img3, 610, 113) is red
+  color-at-position(img3, 610, 113) is C.red
 end
 
 fun image-line-plot(t, f, xs, ys):
@@ -88,5 +89,5 @@ img4 = image-line-plot(test, lam(r): circle(string-length(r["name"]), "solid", "
 
 check:
   img4 satisfies is-image
-  color-at-position(img4, 610, 113) is red
+  color-at-position(img4, 610, 113) is C.red
 end
