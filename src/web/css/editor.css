@@ -1583,7 +1583,8 @@ code div {
 .ui-widget-content{
   background: none;
 }
-.ui-widget-content svg text { white-space: pre; }
+
+.whitespace-pre { white-space: pre; }
 
 /* From internet: http://stackoverflow.com/questions/5663137/jquery-modal-dialog-is-hidden-by-overlay-div-if-dialogs-parent-has-fixed-positi */
 .ui-widget-overlay{

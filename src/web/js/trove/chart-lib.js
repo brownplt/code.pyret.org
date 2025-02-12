@@ -1275,7 +1275,8 @@ ${labelRow}`;
             currentRow[4*i + 2] = `<p>${legends[i]}</p>
 <p>x: <b>${r0}</b></p>
 <p>y: <b>${r1}</b></p>
-<p>y': <b>${r2}</b></p>`;
+<p>ŷ: <b>${r2}</b></p>
+<p>y - ŷ: <b>${r1 - r2}</b></p>`;
             currentRow[4*i + 3] = r1;
             currentRow[4*i + 4] = r2;
           }
@@ -1307,7 +1308,8 @@ ${labelRow}`;
     // ASSERT: if we're using custom images, *every* series will have idx 3 defined
     const hasImage = combined.every(p => get(p, 'ps').filter(p => p[3]).length > 0);
     const dotChartP = combined.some(p => get(p, 'dot-chart'));
-    const replaceDefaultSVG = (hasImage || dotChartP);
+    const intervalP = intervals.length > 0;
+    const replaceDefaultSVG = (hasImage || dotChartP || intervalP);
 
     const options = {
       tooltip: {isHtml: true},
@@ -1542,8 +1544,9 @@ ${labelRow}`;
                  selectMultipleMutator,
                  dotPlotAxesMutator],
       overlay: (overlay, restarter, chart, container) => {
+
         if(!dotChartP) {
-        overlay.css({
+          overlay.css({
           width: '30%',
           position: 'absolute',
           right: '0px',
@@ -1639,10 +1642,20 @@ ${labelRow}`;
         }
 
         if (!replaceDefaultSVG) { return; } // If we don't have images, our work is done!
-        
+
+        // if a title exists which contains __TITLE__, apply a special class
+        console.log('checking title');
+        var chartTitle = $('svg text').filter(':contains("__TITLE__")');
+        console.log(chartTitle)
+        if(chartTitle) {
+          console.log('setting class');
+          chartTitle.attr('class', 'whitespace-pre');
+        }
+                
         // if custom images are defined, use the image at that location
         // and overlay it atop each dot
         google.visualization.events.addListener(chart, 'ready', function () {
+
           // HACK(Emmanuel): 
           // The only way to hijack marker events is to walk the DOM here
           // If Google changes the DOM, these lines will likely break
@@ -1662,6 +1675,12 @@ ${labelRow}`;
           } else {
             markers = svgRoot.children[1].children[2].children;
           }
+
+          if(intervalP) {
+            console.log('this is an intervalChart');
+            chart.setSelection([{row:0,column:1}]);
+          }
+
           if (hasImage) {
 
             // for each point, (1) find the x,y location, (2) render the SVGImage,
@@ -1733,8 +1752,8 @@ ${labelRow}`;
               Object.assign(circleElt, circle); // we should probably not steal *everything*...
               svgRoot.appendChild(circleElt);
             });
-
           }
+
         });
       },
     };
