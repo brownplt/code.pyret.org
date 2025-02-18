@@ -1385,7 +1385,6 @@ $(function() {
 
   $(pyretLoad).on("error", function(e) {
     logFailureAndManualFetch(process.env.PYRET, e);
-    console.log(process.env);
     pyretLoad2.src = process.env.PYRET_BACKUP;
     pyretLoad2.type = "text/javascript";
     document.body.appendChild(pyretLoad2);

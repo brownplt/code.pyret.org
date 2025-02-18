@@ -48,7 +48,7 @@
     "node-uuid": "^1.4.8",
     "popper.js": "^1.16.1",
     "pyret-codemirror-mode": "github:brownplt/pyret-codemirror-mode#master",
-    "pyret-lang": "github:brownplt/pyret-lang#horizon",
+    "pyret-lang": "github:brownplt/pyret-lang#cnd-staging",
     "q": "~1.4.1",
     "react": "^15.7.0",
     "react-dom": "^15.7.0",

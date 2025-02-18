@@ -1638,6 +1638,11 @@
         $(this).toggleClass("collection");
         $(this).toggleClass("inlineCollection");
       }
+      const thisContext = "cpo";
+      function isInRendererContext(val) {
+        var renderers = runtime.getField(val, "renderers");
+        return runtime.hasField(renderers, thisContext);
+      }
       function helper(container, val, values, wantCommaAtEnd) {
         var ariaText;
         if (runtime.ffi.isVSValue(val)) {
@@ -1692,6 +1697,16 @@
             helper(container, items[i], values, (i + 1 < items.length));
           }
           container.append($("<span>").text(")"));
+        } else if (runtime.ffi.isVSConstrRender(val) && isInRendererContext(val)) {
+          //console.log('helper iv');
+          var items = runtime.ffi.toArray(runtime.getField(val, "args"));
+          for (var i = 0; i < items.length; i++) {
+            helper(container, items[i], values, (i + 1 < items.length));
+          }
+          const elements = container.contents().get();
+          container.empty();
+          const result = runtime.getField(runtime.getField(val, "renderers"), "cpo").app(elements);
+          container.append(result);
         } else if (runtime.ffi.isVSSeq(val)) {
           //console.log('helper v');
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));
