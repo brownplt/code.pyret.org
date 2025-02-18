@@ -1643,7 +1643,7 @@
         var renderers = runtime.getField(val, "renderers");
         return runtime.hasField(renderers, thisContext);
       }
-      function helper(container, val, values, wantCommaAtEnd) {
+      function helper(container, val, values, wantCommaAtEnd, renderedValues) {
         var ariaText;
         if (runtime.ffi.isVSValue(val)) {
           //console.log('helper i', val);
@@ -1698,13 +1698,18 @@
           }
           container.append($("<span>").text(")"));
         } else if (runtime.ffi.isVSConstrRender(val) && isInRendererContext(val)) {
-          //console.log('helper iv');
+          // TODO:
+          // - Fallthrough for isInRendererContext being false to just use vsconstr
+          // - Safely calling CPO here: are we on a CPO stack? (YES: we are within a runThunk that's running toReprJS)
+          // - Make a JS rendered that's nice and expose some JS combinators
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
+          var currentContainer;
+          const elements = [];
           for (var i = 0; i < items.length; i++) {
-            helper(container, items[i], values, (i + 1 < items.length));
+            currentContainer = $("<span>").addClass("replOutput");
+            elements.push(currentContainer[0]);
+            helper(currentContainer, items[i], values, false);
           }
-          const elements = container.contents().get();
-          container.empty();
           const result = runtime.getField(runtime.getField(val, "renderers"), "cpo").app(elements);
           container.append(result);
         } else if (runtime.ffi.isVSSeq(val)) {
