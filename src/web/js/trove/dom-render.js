@@ -8,7 +8,7 @@
     },
     theModule: function(runtime, namespace, uri) {
         function styled(nodes, style) {
-            const container = document.createElementByTagName("div");
+            const container = document.createElement("div");
             for(let i = 0; i < nodes.length; i += 1) {
                 container.appendChild(nodes[i]);
             }
