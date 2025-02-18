@@ -111,7 +111,7 @@ build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 build/web/js/events.js: src/web/js/events.js
 	cp $< $@
 
-build/web/js/snap: src/web/js/snap
+build/web/js/snap: node_modules/snap
 	mkdir -p build/web/js/snap
 	cp -r $</src build/web/js/snap
 	cp -r $</pyret build/web/js/snap
