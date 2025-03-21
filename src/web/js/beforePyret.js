@@ -1343,6 +1343,7 @@ $(function() {
   console.log(window.PYRET);
   pyretLoad.src = window.PYRET;
   pyretLoad.type = "text/javascript";
+  pyretLoad.setAttribute("crossorigin", "anonymous");
   document.body.appendChild(pyretLoad);
 
   var pyretLoad2 = document.createElement('script');
