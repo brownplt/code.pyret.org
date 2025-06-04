@@ -1689,7 +1689,7 @@
             ul.each(makeInline);
             e.stopPropagation();
           });
-        } else if (runtime.ffi.isVSConstr(val)) {
+        } else if (runtime.ffi.isVSConstr(val) || (runtime.ffi.isVSConstrRender(val) && !isInRendererContext(val))) {
           //console.log('helper iv');
           container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
@@ -1697,11 +1697,12 @@
             helper(container, items[i], values, (i + 1 < items.length));
           }
           container.append($("<span>").text(")"));
-        } else if (runtime.ffi.isVSConstrRender(val) && isInRendererContext(val)) {
+        } else if (runtime.ffi.isVSConstrRender(val)) {
           // TODO:
           // - Fallthrough for isInRendererContext being false to just use vsconstr
           // - Safely calling CPO here: are we on a CPO stack? (YES: we are within a runThunk that's running toReprJS)
           // - Make a JS rendered that's nice and expose some JS combinators
+
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
           var currentContainer;
           const elements = [];
