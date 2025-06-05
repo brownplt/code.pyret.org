@@ -75,7 +75,10 @@ define("lockfile", [], function () { return {}; });
 
 define("websocket", [], function () { return {}; });
 
-// [SP]: TOD): This is where we would pull in an npm package.
+// [SP]: TODO: This is where we would pull in an npm package.
 // So publish the npm package w/ the standalone JS for cnd-lib.
 // define("cnd-lib", [], function () { return {}; });
 // Then this is importable as a native dependency in dom-render.js
+
+cndjs = require("cnd-js");
+define("cnd-js", [], function () { return cndjs; });
