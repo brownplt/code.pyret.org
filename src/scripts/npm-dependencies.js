@@ -81,4 +81,4 @@ define("websocket", [], function () { return {}; });
 // Then this is importable as a native dependency in dom-render.js
 
 cndjs = require("cnd-js");
-define("cnd-js", [], function () { return cndjs; });
+define("cndjs", [], function () { return cndjs; });
