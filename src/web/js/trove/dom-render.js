@@ -13,9 +13,10 @@
         // things work.
         function styled(nodes, style) {
 
+ 
             console.log("CnDJS", cndjs);
 
-
+            console.log("CnDJS is empty object?", Object.keys(cndjs).length === 0);
 
             const container = document.createElement("div");
             for(let i = 0; i < nodes.length; i += 1) {
