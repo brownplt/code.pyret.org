@@ -21,6 +21,7 @@ define("seedrandom", [], function() {return seedrandom;});
 csv = require("fast-csv");
 define("fast-csv", [], function() {return csv;});
 
+
 sourcemap = require("source-map");
 define("source-map", [], function () { return sourcemap; });
 
@@ -82,3 +83,6 @@ define("websocket", [], function () { return {}; });
 
 cndjs = require("cnd-js");
 define("cndjs", [], function () { return cndjs; });
+
+console.log("NPM dependencies loaded, CNDJS", cndjs, Object.keys(cndjs).length === 0);
+cndjs['ahhh'] = "sameobj";
