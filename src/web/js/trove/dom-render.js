@@ -1,33 +1,24 @@
 ({
     requires: [],
-    nativeRequires: ["cndjs"],
+    nativeRequires: ["smtidy"],
     provides: {
         values: {
             styled: ["arrow", [["RawArray", "Any"], "String"], "Any"],
             layout: ["arrow", [["RawArray", "Any"], "Any"], "Any"] // Ideally this should be an Object of some kind, and then a Promise (or resolution of a Promise).
         }
     },
-    theModule: function(runtime, namespace, uri, cndjs) { // TODO: Is this the right way to get cndjs? I'm currently just getting an empty object.
+    theModule: function(runtime, namespace, uri, smtidy) { // TODO: Is this the right way to get cndjs? I'm currently just getting an empty object.
+
+
+
 
         // TODO: Write a variant of this to make 
         // things work.
         function styled(nodes, style) {
 
- 
-            console.log("CnDJS", cndjs);
+            console.log(window.MiniZinc);
+            console.log("SMTIDY", smtidy);
 
-            console.log("CnDJS is empty object?", Object.keys(cndjs).length === 0);
-
-            const container = document.createElement("div");
-            for(let i = 0; i < nodes.length; i += 1) {
-                container.appendChild(nodes[i]);
-            }
-            
-            let x =  cndjs.arrangeElements(nodes, [],[],[]).then((arranged) => {
-                console.log("Arranged elements", arranged);
-                return arranged;
-            });
-            console.log("x", x);
 
 
             container.style = style;
@@ -36,16 +27,27 @@
 
         // TODO: THis asynchronous behavior may not be 
         // a Pyret pattern, and may break things?
-        async function layout(nodes, spec) {
+        function layout(nodes, spec) {
 
-            // This is a placeholder for where we would actually put together the 
-            // specification.
-            console.log("Layout spec", spec);
+            console.log("spec", spec);
+            const model = new window.MiniZinc.Model();
 
+            const container = document.createElement("div");
+            container.innerText = "Loading...";
 
-            let x = await cndjs.arrangeElements(nodes, [],[],[]);
-            console.log("Arranged elements", x);
-            return cndjs.getRenderers("dom")(x);
+            smtidy.solveLayout(model, nodes, [], [], [])
+                .then((result) => {
+                    console.log("Result of smtidy.solveLayout", result);
+                    let renderer = smtidy.getRenderers()["cpo"];
+                    let domGrid = renderer(result.grid, result.groupData);
+                    container.innerHTML = ""; // Clear the container
+                    container.appendChild(domGrid);
+                })
+                .catch((err) => {
+                    container.innerText = "Error: " + (err && err.message ? err.message : err);
+                });
+
+            return container;
         }
 
 

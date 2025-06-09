@@ -81,8 +81,6 @@ define("websocket", [], function () { return {}; });
 // define("cnd-lib", [], function () { return {}; });
 // Then this is importable as a native dependency in dom-render.js
 
-cndjs = require("cnd-js");
-define("cndjs", [], function () { return cndjs; });
-
-console.log("NPM dependencies loaded, CNDJS", cndjs, Object.keys(cndjs).length === 0);
-cndjs['ahhh'] = "sameobj";
+smtidy = require("smtidy");
+define("smtidy", [], function () { return smtidy; });
+console.log("smtidy", smtidy);
