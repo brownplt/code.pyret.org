@@ -29,6 +29,28 @@
         // a Pyret pattern, and may break things?
         function layout(nodes, spec) {
 
+            // A passed in record might look like this:
+            /*
+
+                    {
+                        "dict": {
+                            "c": "left",
+                            "v": [
+                                {
+                                    "ariaText": "4"
+                                },
+                                {
+                                    "ariaText": "5"
+                                }
+                            ]
+                        },
+                        "brands": {
+                            "brandCount": 0
+                        }
+                    }
+
+            */
+
             console.log("spec", spec);
             const model = new window.MiniZinc.Model();
 
