@@ -16,10 +16,14 @@
         // things work.
         function styled(nodes, style) {
 
+            const container = document.createElement("div");
             console.log(window.MiniZinc);
             console.log("SMTIDY", smtidy);
 
-
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                container.appendChild(node);
+            }
 
             container.style = style;
             return container;
@@ -51,13 +55,33 @@
 
             */
 
-            console.log("spec", spec);
+            let spec_record = spec && spec.dict ? spec.dict : null;
+            // We should do all the necessary validation and conversion
+            // to SMTidy's expected format here.
+
+            
+            console.log("Spec Record", spec_record);
+
+             
+
+            let orientationConstraints = [];
+            let groupConstraints = [];
+            let cyclicConstraints = [];
+
+            // Let's construct a group.
+            let ag = smtidy.constraints.group("groupname", nodes, []);
+            groupConstraints.push(ag);
+
+            let orientationC = smtidy.constraints.left(nodes[0], nodes[1]);
+            orientationConstraints.push(orientationC);
+
+
             const model = new window.MiniZinc.Model();
 
             const container = document.createElement("div");
             container.innerText = "Loading...";
 
-            smtidy.solveLayout(model, nodes, [], [], [])
+            smtidy.solveLayout(model, nodes, orientationConstraints, groupConstraints, cyclicConstraints)
                 .then((result) => {
                     console.log("Result of smtidy.solveLayout", result);
                     let renderer = smtidy.getRenderers()["cpo"];
