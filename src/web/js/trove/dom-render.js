@@ -79,8 +79,8 @@
                     // Create a left constraint for the first two nodes.
                     if (constrainedNodes.length >= 2) {
                         let leftConstraint = smtidy.constraints.left(
-                            nodes[constrainedNodes[0]],
-                            nodes[constrainedNodes[1]]
+                            constrainedNodes[0],
+                            constrainedNodes[1]
                         );
                         orientationConstraints.push(leftConstraint);
                     }
@@ -88,8 +88,8 @@
                     // Create a right constraint for the first two nodes.
                     if (constrainedNodes.length >= 2) {
                         let rightConstraint = smtidy.constraints.right(
-                            nodes[constrainedNodes[0]],
-                            nodes[constrainedNodes[1]]
+                            constrainedNodes[0],
+                            constrainedNodes[1]
                         );
                         orientationConstraints.push(rightConstraint);
                     }
@@ -98,8 +98,8 @@
                     // Create an above constraint for the first two nodes.
                     if (constrainedNodes.length >= 2) {
                         let aboveConstraint = smtidy.constraints.above(
-                            nodes[constrainedNodes[0]],
-                            nodes[constrainedNodes[1]]
+                            constrainedNodes[0],
+                            constrainedNodes[1]
                         );
                         orientationConstraints.push(aboveConstraint);
                     }
@@ -108,18 +108,18 @@
                     // Create a below constraint for the first two nodes.
                     if (constrainedNodes.length >= 2) {
                         let belowConstraint = smtidy.constraints.below(
-                            nodes[constrainedNodes[0]],
-                            nodes[constrainedNodes[1]]
+                            constrainedconstrainedNodes[0],
+                            constrainedconstrainedNodes[1]
                         );
                         orientationConstraints.push(belowConstraint);
                     }
                 }
                 else if (constraintType === "clockwise") {
-                    let clockwiseConstraint = smtidy.constraints.clockwise(nodes);
+                    let clockwiseConstraint = smtidy.constraints.clockwise(constrainedNodes);
                     cyclicConstraints.push(clockwiseConstraint);
                 }
                 else if (constraintType === "counterClockwise") {
-                    let counterclockwiseConstraint = smtidy.constraints.counterClockwise(nodes);
+                    let counterclockwiseConstraint = smtidy.constraints.counterClockwise(constrainedNodes);
                     cyclicConstraints.push(counterclockwiseConstraint);
                 }
                 else if (constraintType === "group") {

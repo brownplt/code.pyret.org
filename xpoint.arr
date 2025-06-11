@@ -27,11 +27,21 @@ sharing:
 end
 
 
-# Every node is red or black
 data RBNod:
   | Black(value, left, right)
   | Red(value, left, right)
-  | Leaf(value) 
+  | Leaf(value)
+sharing:
+  method _output(self):
+    cases (RBNod) self:
+      | Black(v, l, r) =>
+          VS.vs-constr-render("Black", [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)], {cli: render, cpo: render-dom})
+      | Red(v, l, r) =>
+          VS.vs-constr-render("Red", [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)], {cli: render, cpo: render-dom})
+      | Leaf(v) =>
+          VS.vs-constr-render("Leaf", [list: VS.vs-value(v)], {cli: render, cpo: render-dom})
+    end
+  end
 end
 
 rbt = Black( 5, Black( 1, Red( 2, Red( 1, Leaf(0), Leaf(0)), Leaf(0)), Leaf(0)), Red( 6, Leaf(0), Leaf(0)))
