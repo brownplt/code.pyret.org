@@ -1,4 +1,3 @@
-
 import valueskeleton as VS
 import dom-render as DR
 
@@ -35,11 +34,30 @@ sharing:
   method _output(self):
     cases (RBNod) self:
       | Black(v, l, r) =>
-          VS.vs-constr-render("Black", [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)], {cli: render, cpo: render-dom})
+          DR.layout(
+            [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)],
+            [list:
+              {c: "left", es: [list: self, l]},
+              {c: "below", es: [list: self, l]},
+              {c: "right", es: [list: self, r]},
+              {c: "below", es: [list: self, r]}
+            ]
+          )
       | Red(v, l, r) =>
-          VS.vs-constr-render("Red", [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)], {cli: render, cpo: render-dom})
+          DR.layout(
+            [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)],
+            [list:
+              {c: "left", es: [list: self, l]},
+              {c: "below", es: [list: self, l]},
+              {c: "right", es: [list: self, r]},
+              {c: "below", es: [list: self, r]}
+            ]
+          )
       | Leaf(v) =>
-          VS.vs-constr-render("Leaf", [list: VS.vs-value(v)], {cli: render, cpo: render-dom})
+          DR.layout(
+            [list: VS.vs-value(v)],
+            [list:]
+          )
     end
   end
 end
