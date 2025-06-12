@@ -3,7 +3,8 @@
     { "import-type": "builtin", "name": "image-lib" },
     { "import-type": "builtin", "name": "world-lib" },
     { "import-type": "builtin", "name": "valueskeleton" },
-    { "import-type": "builtin", "name": "reactors" }
+    { "import-type": "builtin", "name": "reactors" },
+    { "import-type": "builtin", "name": "reactor-events" },
   ],
   nativeRequires: ["pyret-base/js/js-numbers"],
   provides: {
@@ -52,7 +53,7 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, reactorEvents, jsnums) {
     var imageLibrary = runtime.getField(imageLibraryLib, "internal");
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
@@ -153,7 +154,7 @@
       });
     }
 
-    function bigBangFromDict(init, dict, tracer) {
+    function bigBangFromDict(init, dict, tracer, connector) {
       var handlers = [];
       function add(k, constr) {
         if(dict.hasOwnProperty(k)) {
@@ -174,6 +175,11 @@
           handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], DEFAULT_TICK_DELAY * 1000)));
         }
       }
+
+      if (dict.hasOwnProperty["on-recieve-send"]) {
+        handlers.push(runtime.makeOpaque(new OnRecieveSend(dict["on-recieve-send"], connector)));
+      }
+
       add("on-mouse", OnMouse);
       add("on-key", OnKey);
       add("on-raw-key", OnRawKey);
@@ -293,7 +299,7 @@
     // NOTE(joe):  This expects there to be no active run for runtime
     // (it should be paused).  The run gets paused by pauseStack() in the
     // call to bigBang, so these runs will all be fresh
-    var adaptWorldFunction = function(worldFunction) {
+    var adaptWorldFunction = function(worldFunction, connector) {
       return function() {
         // Consumes any number of arguments.
         var success = arguments[arguments.length - 1];
@@ -312,7 +318,13 @@
                     { sync: false },
                     function(result) {
                       if(runtime.isSuccessResult(result)) {
-                        success(result.result);
+                        runtime.ffi.cases(runtime.getField(reactorEvents, "is-SendingHandlerResult"), "SendingHandlerResult", result.result, {
+                          update: success,
+                          send(newState, toSend) {
+                            runtime.getField(connector, "handle-message-return").app(toSend);
+                            success(newState);
+                          }
+                        });
                       }
                       else {
                         return rawJsworld.shutdown({errorShutdown: result.exn});
@@ -463,6 +475,22 @@
           worldFunction(w, x, y, type, success);
         });
     };
+
+    class OnRecieveSend extends WorldConfigOption {
+      constructor(handler, connector) {
+        super("on-recieve-send");
+        this.handler = handler;
+        this.connector = connector;
+      }
+
+      toRawHandler(topLevelNode) {
+        const worldFunction = adaptWorldFunction(this.handler, this.connector);
+        return rawJsworld.on_message(
+          (w, message, success) =>
+            worldFunction(w, message, success)
+        );
+      }
+    }
 
 
 
