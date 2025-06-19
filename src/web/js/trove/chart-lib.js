@@ -550,47 +550,54 @@
       overlay: (overlay, restarter, chart, container) => {
         // If we don't have images, our work is done!
         if(!hasImage) { return; }
-        
-        // if custom images are defined, use the image at that location
-        // and overlay it atop each dot
-        google.visualization.events.addListener(chart, 'ready', function () {
-          // HACK(Emmanuel): 
-          // The only way to hijack marker events is to walk the DOM here
-          // If Google changes the DOM, these lines will likely break
-          const svgRoot = chart.container.querySelector('svg');
+        const svgRoot = chart.container.querySelector('svg');
 
-          // The order of SVG slices is *not* the order of the rows in the table!!
-          //   - 1 or 2 slices: drawn in reverse order
-          //   - More than 2 slices: the first row in the table is the first SVG 
-          //       slice, but the rest are in reverse order
-          let slices;
-          if(table.length <= 2) {
-            slices = Array.prototype.slice.call(svgRoot.children, 2, -1).reverse();
-          } else {
-            slices = Array.prototype.slice.call(svgRoot.children, 3, -1).reverse();
-            slices.unshift(svgRoot.children[2]);
-          }
-          const defs = svgRoot.children[0];
-          const legendImgs = svgRoot.children[1].querySelectorAll('g[column-id]');
+        function customDraw() {
 
           // remove any labels that have previously been drawn
           $('.__img_labels').each((idx, n) => $(n).remove());
 
-          // Render each slice under the old ones, using the image as a pattern
-          table.forEach((row, i) => {            
-            const oldDot = legendImgs[i].querySelector('circle');
-            const oldSlice = slices[i];
-            
-            // render the image to an img tag
+          // HACK(Emmanuel):
+          // The only way to hijack marker events is to walk the DOM here
+          // If Google changes the DOM, these lines will likely break
+          const svgRoot = chart.container.querySelector('svg');
+          const defs = svgRoot.children[0];   // invisible defs group
+          const slices = [...svgRoot.children].slice(2, -1); // skip defs, legend & empty last elt
+
+          // As we walk through the rows, keep track of what % of the total
+          // we've seen AND how many slices we've walked clockwise
+          const total = table.reduce((acc, row) => row[1]+acc, 0);
+          let pctProcessed = 0;
+          let clockwiseSlices = 0;
+
+          // Walk through the table row by row, and the pie clockwise from 12pm
+          // For each row, find the DOM node for the corresponding slice
+          // Render a new, decorated slice under the old one using the image as a pattern
+          table.forEach((row, i) => {
+            pctProcessed += (row[1] / total); // update how much of the pie we've walked
+
+            // Find the associated DOM node for the slice
+            // if we've walked <50%, the nodes are in CW order
+            // if we've walked >=50%, the node CCW. Jump to the last slice and count backwards
+            let oldSlice;
+            if(pctProcessed < .50) {
+              oldSlice = slices[i];
+              clockwiseSlices++;
+            } else {
+              oldSlice = slices[(slices.length-1) - (i - clockwiseSlices)];
+            }
+
+            // Render the image, and convert to a dataURL.
             const imgDOM = row[3].val.toDomNode();
             row[3].val.render(imgDOM.getContext('2d'), 0, 0);
-            
-            // make an SVGimage element from the img tag, and make it the size of the slice
-            const sliceBox = oldSlice.getBoundingClientRect();
+            const imgURL = imgDOM.toDataURL()
+
+            // Make an SVGimage element (same size as slice) from the imgURL
+            const {width, height} = oldSlice.getBoundingClientRect();
             const imageElt = document.createElementNS("http://www.w3.org/2000/svg", 'image');
+            imageElt.setAttributeNS(null, 'href', imgURL);
+            imageElt.setAttribute('width',  Math.max(width, height));
             imageElt.classList.add('__img_labels'); // tag for later garbage collection
-            imageElt.setAttributeNS(null, 'href', imgDOM.toDataURL());
-            imageElt.setAttribute('width',  Math.max(sliceBox.width, sliceBox.height));
 
             // create a pattern from that image
             const patternElt = document.createElementNS("http://www.w3.org/2000/svg", 'pattern');
@@ -599,30 +606,45 @@
             patternElt.setAttribute('width',  1);
             patternElt.setAttribute('height', 1);
             patternElt.setAttribute( 'id',   'pic'+i);
+            patternElt.classList.add('__img_labels'); // tag for later garbage collection
+
+            // and add it to the (invisible) defs element
+            patternElt.appendChild(imageElt);
+            defs.append(patternElt);
 
             // make a new slice, copy elements from the old slice, and fill with the pattern
             const newSlice = document.createElementNS("http://www.w3.org/2000/svg", 'path');
             Object.assign(newSlice, oldSlice); // we should probably not steal *everything*...
             newSlice.setAttribute(  'd',       oldSlice.firstChild.getAttribute('d'));
             newSlice.setAttribute( 'fill',         'url(#pic'+i+')');
-
-            // add the image to the pattern and the pattern to the defs
-            patternElt.appendChild(imageElt);
-            defs.append(patternElt);
+            newSlice.classList.add('__img_labels'); // tag for later garbage collection
 
             // insert the new slice before the now-transparent old slice
             oldSlice.parentNode.insertBefore(newSlice, oldSlice)
-            
-            // make a new dot, then set size and position of dot to replace the old dot
-            const newDot = imageElt.cloneNode(true);
-            const radius = oldDot.r.animVal.value;
-            newDot.setAttribute('x',       oldDot.cx.animVal.value - radius);
-            newDot.setAttribute('y',       oldDot.cy.animVal.value - radius);
-            newDot.setAttribute('width',   radius * 2);
-            newDot.setAttribute('height',  radius * 2);
-            oldDot.parentNode.replaceChild(newDot, oldDot);
           });
-        });
+
+          // After 100ms, check if each row is represented in the legend, and needs redrawing
+          const delayedDrawLegend = () => setTimeout(() => {
+            console.log('drawing legend');
+            const legend = svgRoot.children[1]; // legend group
+            const legendEntries = [...legend.querySelectorAll('g[column-id]')];
+            table.forEach((row, i) => {
+              const entry = legendEntries.find(e => e.getAttribute('column-id') == row[0]);
+              if(entry) {
+                const oldDot = entry.querySelector('circle');
+                oldDot.setAttribute( 'fill', 'url(#pic'+i+')');
+              }
+            })
+            legend.addEventListener("click", delayedDrawLegend)
+          }, 100);
+
+          // force the legend to draw, the first time around
+          delayedDrawLegend();
+        }
+
+        // if custom images are defined, use the image at that location
+        // and overlay it atop each dot
+        google.visualization.events.addListener(chart, 'ready', customDraw);
       }
     }
   }
