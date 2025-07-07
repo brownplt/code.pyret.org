@@ -17,6 +17,27 @@ fun render-dom(args):
 
 end
 
+fun render-dom-bt(args):
+  # args is always [list: val-v, val-l, val-r] for Black/Red, [list: val-v] for Leaf
+  if (raw-array-length(args) == 3):
+    val-v = args[0]
+    val-l = args[1]
+    val-r = args[2]
+    DR.layout(
+      args,
+      [list:
+        {c: "left", es: [list: val-v, val-l]},
+        {c: "below", es: [list: val-v, val-l]},
+        {c: "right", es: [list: val-v, val-r]},
+        {c: "below", es: [list: val-v, val-r]}
+      ]
+    )
+  else:
+    # Leaf case: just one node, no constraints
+    DR.layout(args, [list:])
+  end
+end
+
 data xPoint:
   | xpoint(x, y)
 sharing:
@@ -34,29 +55,22 @@ sharing:
   method _output(self):
     cases (RBNod) self:
       | Black(v, l, r) =>
-          DR.layout(
+          VS.vs-constr-render(
+            "Black",
             [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)],
-            [list:
-              {c: "left", es: [list: self, l]},
-              {c: "below", es: [list: self, l]},
-              {c: "right", es: [list: self, r]},
-              {c: "below", es: [list: self, r]}
-            ]
+            { cli: render, cpo: render-dom-bt }
           )
       | Red(v, l, r) =>
-          DR.layout(
+          VS.vs-constr-render(
+            "Red",
             [list: VS.vs-value(v), VS.vs-value(l), VS.vs-value(r)],
-            [list:
-              {c: "left", es: [list: self, l]},
-              {c: "below", es: [list: self, l]},
-              {c: "right", es: [list: self, r]},
-              {c: "below", es: [list: self, r]}
-            ]
+            { cli: render, cpo: render-dom-bt }
           )
       | Leaf(v) =>
-          DR.layout(
+          VS.vs-constr-render(
+            "Leaf",
             [list: VS.vs-value(v)],
-            [list:]
+            { cli: render, cpo: render-dom-bt }
           )
     end
   end
