@@ -62,31 +62,57 @@
             return { atoms, relations };
         }
 
-
-
-
-
-
-
         function genlayout(dataInstance, cndSpec) {
-
             const container = document.createElement("div");
 
             console.log("CnD Core", window.CndCore);
-            //console.log("CnD Spec", cndSpec);
-            //console.log("Data Instance", dataInstance);
 
             const idatainst = pyretADTToGraph(dataInstance);
             console.log("Extracted IData", idatainst);
 
+            // Dump this to JSON string
+            const jsonData = JSON.stringify(idatainst, null, 2);
 
+            // Create a CnDCore data instance
+            const cndDataInstance = window.CndCore.JSonDataInstance(jsonData);
 
+            const evaluationContext = {
+                sourceData: cndDataInstance
+            };
 
-            // Data Instance -> IDataINstance
+            const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
+            evaluator.initialize(evaluationContext);
 
-            // Now we use the CnDCore to create a svg element
-            // Attach it as a child of the container, and return it.
+            const layoutSpec = CndCore.parseLayoutSpec(cndSpec);
 
+            const ENABLE_ALIGNMENT_EDGES = true;
+            const instanceNumber = 0;
+            const layoutInstance = new CndCore.LayoutInstance(
+                layoutSpec,
+                evaluator,
+                instanceNumber,
+                ENABLE_ALIGNMENT_EDGES
+            );
+
+            // No projection support for now.
+            const projections = {};
+            const layoutResult = layoutInstance.generateLayout(dataInstance, projections);
+
+            // Create the custom element using CnDCore
+            const graphElement = document.createElement("webcola-cnd-graph");
+            graphElement.setAttribute("width", "800");
+            graphElement.setAttribute("height", "600");
+
+            // Attach the layout result to the custom element
+            //graphElement.layoutResult = layoutResult;
+
+            // Render the layout using the custom element's method
+            graphElement.renderLayout(layoutResult).then(() => {
+                console.log("Layout rendered successfully");
+                container.appendChild(graphElement);
+            }).catch((error) => {
+                console.error("Error rendering layout:", error);
+            });
 
 
             return container;
