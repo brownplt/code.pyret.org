@@ -143,6 +143,16 @@ COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-api
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 	cp $< $@
 
+# Copy JS files from cndeps/vendor directory
+COPY_CND_VENDOR := src/web/js/cndeps/vendor/*.js
+build/web/js/cndeps/vendor:
+	npx cpx "$(COPY_CND_VENDOR)" build/web/js/cndeps/vendor
+
+# Copy JS files from cndeps/browser directory
+COPY_CND_BROWSER := src/web/js/cndeps/browser/*.js
+build/web/js/cndeps/browser:
+	npx cpx "$(COPY_CND_BROWSER)" build/web/js/cndeps/browser
+
 build/web/js/events.js: src/web/js/events.js
 	cp $< $@
 
@@ -363,9 +373,9 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBIMAGES) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_LIB_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_LIB_JS) $(COPY_LIB_IMAGES) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml build/web/editor.html build/web/editor.embed.html 
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBIMAGES) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_LIB_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_LIB_JS) $(COPY_LIB_IMAGES) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(COPY_CND_VENDOR) $(COPY_CND_BROWSER) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml build/web/editor.html build/web/editor.embed.html 
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBIMAGES) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_LIB_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_LIB_JS) $(COPY_LIB_IMAGES) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml build/web/editor.html build/web/editor.embed.html
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBIMAGES) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_LIB_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_LIB_JS) $(COPY_LIB_IMAGES) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(COPY_CND_VENDOR) $(COPY_CND_BROWSER) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml build/web/editor.html build/web/editor.embed.html
 
 link-pyret:
 	ln -s $(PYRET) pyret
