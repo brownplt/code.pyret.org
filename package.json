@@ -21,7 +21,7 @@
     "cookie-session": "^1.4.0",
     "css-loader": "^3.6.0",
     "csurf": "^1.11.0",
-    "d3": "^3.5.17",
+    "d3": "^4.13.00",
     "d3-tip": "github:sorawee/d3-tip",
     "dotenv": "^2.0.0",
     "es6-shim": "0.35.0",
