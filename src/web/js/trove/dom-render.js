@@ -1,156 +1,84 @@
 ({
     requires: [],
-    nativeRequires: ["smtidy"],
+    nativeRequires: [],
     provides: {
         values: {
-            styled: ["arrow", [["RawArray", "Any"], "String"], "Any"],
-            layout: ["arrow", [["RawArray", "Any"], "Any"], "Any"] // Ideally this should be an Object of some kind, and then a Promise (or resolution of a Promise).
+            genlayout: ["arrow", [["RawArray", "Any"], "String"], "Any"],
         }
     },
-    theModule: function (runtime, namespace, uri, smtidy) { // TODO: Is this the right way to get cndjs? I'm currently just getting an empty object.
+    theModule: function (runtime, namespace, uri) {
 
 
-        // TODO: Write a variant of this to make 
-        // things work.
-        function styled(nodes, style) {
-
+        function genlayout(v, cndSpec) {
             const container = document.createElement("div");
-            console.log(window.MiniZinc);
-            console.log("SMTIDY", smtidy);
 
-            for (let i = 0; i < nodes.length; i++) {
-                const node = nodes[i];
-                container.appendChild(node);
-            }
+            // HACK. We should not be doing this, but the 
+            // correct D3 version is KEY.
+            const script = document.createElement("script");
+                script.src = "/js/cndeps/vendor/d3.v4.min.js";
+                script.onload = () => {
+                console.log("D3 loaded successfully");
+                window.d3 = window.d3 || {}; // Ensure `window.d3` is set
+                };
+                script.onerror = () => {
+                console.error("Failed to load D3");
+                };
+                document.head.appendChild(script);
 
-            container.style = style;
-            return container;
-        }
+            console.log("CnD Core", window.CndCore);
+            console.log("Pyret Value", v);
 
-        // TODO: THis asynchronous behavior may not be 
-        // a Pyret pattern, and may break things?
-        function layout(nodes, spec) {
+            // Create a CnDCore data instance
+            const dataInstance = new window.CndCore.PyretDataInstance(v);
 
-
-            let { orientationConstraints, groupConstraints, cyclicConstraints } = pyretRecordListToConstraints(spec);
-
-            const model = new window.MiniZinc.Model();
-
-            const container = document.createElement("div");
-            container.innerText = "Loading...";
-
-            smtidy.solveLayout(model, nodes, orientationConstraints, groupConstraints, cyclicConstraints)
-                .then((result) => {
-                    console.log("Result of smtidy.solveLayout", result);
-                    let renderer = smtidy.getRenderers()["cpo"];
-                    let domGrid = renderer(result.grid, result.groupData);
-                    container.innerHTML = ""; // Clear the container
-                    container.appendChild(domGrid);
-                })
-                .catch((err) => {
-                    container.innerText = "Error: " + (err && err.message ? err.message : err);
-                });
-
-            return container;
-        }
-
-
-
-
-
-        function pyretRecordListToConstraints(recordList) {
-
-            let orientationConstraints = [];
-            let groupConstraints = [];
-            let cyclicConstraints = [];
-            const CONSTRAINT_TYPE_KEY = "c";
-            const CONSTRAINED_NODES_KEY = "es";
-
-
-            let current = recordList?.dict?.first;
-            while (current) {
-
-                let current_constraint = current && current.dict ? current.dict : null;
-
-                let constraintType = current_constraint[CONSTRAINT_TYPE_KEY];
-                let constrainedNodes = current_constraint[CONSTRAINED_NODES_KEY] || [];
-
-                if (constraintType === "left") {
-                    // Create a left constraint for the first two nodes.
-                    if (constrainedNodes.length >= 2) {
-                        let leftConstraint = smtidy.constraints.left(
-                            constrainedNodes[0],
-                            constrainedNodes[1]
-                        );
-                        orientationConstraints.push(leftConstraint);
-                    }
-                } else if (constraintType === "right") {
-                    // Create a right constraint for the first two nodes.
-                    if (constrainedNodes.length >= 2) {
-                        let rightConstraint = smtidy.constraints.right(
-                            constrainedNodes[0],
-                            constrainedNodes[1]
-                        );
-                        orientationConstraints.push(rightConstraint);
-                    }
-                }
-                else if (constraintType === "above") {
-                    // Create an above constraint for the first two nodes.
-                    if (constrainedNodes.length >= 2) {
-                        let aboveConstraint = smtidy.constraints.above(
-                            constrainedNodes[0],
-                            constrainedNodes[1]
-                        );
-                        orientationConstraints.push(aboveConstraint);
-                    }
-                }
-                else if (constraintType === "below") {
-                    // Create a below constraint for the first two nodes.
-                    if (constrainedNodes.length >= 2) {
-                        let belowConstraint = smtidy.constraints.below(
-                            constrainedconstrainedNodes[0],
-                            constrainedconstrainedNodes[1]
-                        );
-                        orientationConstraints.push(belowConstraint);
-                    }
-                }
-                else if (constraintType === "clockwise") {
-                    let clockwiseConstraint = smtidy.constraints.clockwise(constrainedNodes);
-                    cyclicConstraints.push(clockwiseConstraint);
-                }
-                else if (constraintType === "counterClockwise") {
-                    let counterclockwiseConstraint = smtidy.constraints.counterClockwise(constrainedNodes);
-                    cyclicConstraints.push(counterclockwiseConstraint);
-                }
-                else if (constraintType === "group") {
-                    // Create a group constraint for the specified nodes.
-                    let groupName = spec_record["group-name"] || "default-group";
-                    let groupConstraint = smtidy.constraints.group(groupName, constrainedNodes, []);
-                    groupConstraints.push(groupConstraint);
-                }
-                else {
-                    console.warn("Unknown constraint type:", constraintType);
-                }
-
-                current = current.rest || null;
-            }
-
-            console.log("Orientation Constraints:", orientationConstraints);
-            console.log("Group Constraints:", groupConstraints);
-            console.log("Cyclic Constraints:", cyclicConstraints);
-
-            return {
-                orientationConstraints: orientationConstraints,
-                groupConstraints: groupConstraints,
-                cyclicConstraints: cyclicConstraints
+            const evaluationContext = {
+                sourceData: dataInstance
             };
+
+            const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
+            evaluator.initialize(evaluationContext);
+
+            const layoutSpec = CndCore.parseLayoutSpec(cndSpec);
+
+            const ENABLE_ALIGNMENT_EDGES = true;
+            const instanceNumber = 0;
+            const layoutInstance = new CndCore.LayoutInstance(
+                layoutSpec,
+                evaluator,
+                instanceNumber,
+                ENABLE_ALIGNMENT_EDGES
+            );
+
+            // No projection support for now.
+            const projections = {};
+            const layoutResult = layoutInstance.generateLayout(dataInstance, projections);
+            const currentInstanceLayout = layoutResult.layout;
+
+            // Create the custom element using CnDCore
+            const graphElement = document.createElement("webcola-cnd-graph");
+            graphElement.setAttribute("width", "800");
+            graphElement.setAttribute("height", "600");
+
+            // Attach the layout result to the custom element
+            //graphElement.layoutResult = layoutResult;
+
+            // Render the layout using the custom element's method
+            graphElement.renderLayout(currentInstanceLayout).then(() => {
+                console.log("Layout rendered successfully");
+                container.appendChild(graphElement);
+            }).catch((error) => {
+                console.error("Error rendering layout:", error);
+            });
+
+
+            return container;
         }
+
 
 
 
         return runtime.makeModuleReturn({
-            styled: runtime.makeFunction(styled),
-            layout: runtime.makeFunction(layout)
+            genlayout: runtime.makeFunction(genlayout)
         }, {});
     }
 })
