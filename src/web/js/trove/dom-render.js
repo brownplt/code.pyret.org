@@ -12,21 +12,12 @@
         function genlayout(v, cndSpec) {
             const container = document.createElement("div");
 
-            // HACK. We should not be doing this, but the 
-            // correct D3 version is KEY.
-            // const script = document.createElement("script");
-            //     script.src = "https://d3js.org/d3.v4.min.js";
-            //     script.onload = () => {
-            //     console.log("D3 loaded successfully");
-            //     window.d3 = window.d3 || {}; // Ensure `window.d3` is set
-            //     };
-            //     script.onerror = () => {
-            //     console.error("Failed to load D3");
-            //     };
-            //     document.head.appendChild(script);
 
             console.log("CnD Core", window.CndCore);
             console.log("Pyret Value", v);
+
+            // TODO: It would be nice if we could *ALSO* show the Pyret value
+            // in the standard Pyret way, but this is a start.
 
             // Create a CnDCore data instance
             const dataInstance = new window.CndCore.PyretDataInstance(v);

@@ -8,10 +8,6 @@ fun render(args):
   end
 end
 
-fun render-dom(a):
-  a[0]
-end
-
 
 
 

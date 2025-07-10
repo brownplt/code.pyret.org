@@ -13,8 +13,6 @@ fun render-dom(args):
   # Perhaps we'd bundle the spec here.
   DR.layout(args, [list: {c:"left", es:args}]) # Eventually, collect the various constraints here.
 
-  
-
 end
 
 fun render-dom-bt(args):
