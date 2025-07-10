@@ -16,9 +16,6 @@
             console.log("CnD Core", window.CndCore);
             console.log("Pyret Value", v);
 
-            // TODO: It would be nice if we could *ALSO* show the Pyret value
-            // in the standard Pyret way, but this is a start.
-
             // Create a CnDCore data instance
             const dataInstance = new window.CndCore.PyretDataInstance(v);
 
@@ -28,6 +25,11 @@
 
             const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
             evaluator.initialize(evaluationContext);
+
+            // This should, eventually, 
+            // update LIVE.
+            const r = dataInstance.reify();
+            console.log("Reified Data Instance:", r);
 
             const layoutSpec = CndCore.parseLayoutSpec(cndSpec);
 
@@ -40,27 +42,26 @@
                 ENABLE_ALIGNMENT_EDGES
             );
 
-            // No projection support for now.
             const projections = {};
             const layoutResult = layoutInstance.generateLayout(dataInstance, projections);
             const currentInstanceLayout = layoutResult.layout;
 
-            // Create the custom element using CnDCore
+            // Create string view
+            const stringView = document.createElement("pre");
+            stringView.textContent = String(r);
+            stringView.style.marginBottom = "10px";
+
+            // Create graph element
             const graphElement = document.createElement("webcola-cnd-graph");
             graphElement.setAttribute("width", "800");
             graphElement.setAttribute("height", "600");
 
-            // Attach the layout result to the custom element
-            //graphElement.layoutResult = layoutResult;
+            // Render the layout
+            graphElement.renderLayout(currentInstanceLayout);
 
-            // Render the layout using the custom element's method
-            graphElement.renderLayout(currentInstanceLayout).then(() => {
-                console.log("Layout rendered successfully");
-                container.appendChild(graphElement);
-            }).catch((error) => {
-                console.error("Error rendering layout:", error);
-            });
-
+            // Add both elements to container
+            container.appendChild(stringView);
+            container.appendChild(graphElement);
 
             return container;
         }
