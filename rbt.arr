@@ -17,7 +17,30 @@ data RBNod:
   | Leaf(value)
  sharing:
     method _output(self):
-    x = DR.genlayout( self, "")
+    cndspec = ```
+constraints:
+  - orientation:
+      selector: right
+      directions:
+        - right
+        - below
+  - orientation:
+      directions:
+        - left
+        - below
+      selector: left
+directives:
+  - attribute:
+      field: value
+  - atomColor:
+      selector: Black
+      value: black
+  - atomColor:
+      selector: Red
+      value: '#fa0000'
+  - flag: hideDisconnected
+              ```
+    x = DR.genlayout( self, cndspec)
     VS.vs-constr-render("RBNod", [list: ], { cli: render, cpo: lam(a): x end })
     end
 end
