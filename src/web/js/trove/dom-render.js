@@ -56,14 +56,14 @@
                     // After rendering, set the layout result on the graph element
                     // Now mount React components
                     // console.log("Mounting React components");
-                    // if (window.mountErrorMessageModal) {
-                    //     console.log("Mounting Error Message Modal");
-                    //     window.mountErrorMessageModal(errorDiv.id);
-                    // }
-                    if (window.mountCndLayoutInterface) {
-                        console.log("Mounting CnD Layout Interface");
-                        window.mountCndLayoutInterface(reactMountDiv.id);
+                    if (window.mountErrorMessageModal) {
+                        console.log("Mounting Error Message Modal");
+                        window.mountErrorMessageModal(errorDiv.id);
                     }
+                    // if (window.mountCndLayoutInterface) {
+                    //     console.log("Mounting CnD Layout Interface");
+                    //     window.mountCndLayoutInterface(reactMountDiv.id);
+                    // }
                 });
 
                 // Add all elements to container
