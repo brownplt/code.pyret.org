@@ -356,6 +356,9 @@
       };
       window.replWidget = CPO.replWidget = replWidget;
 
+      // SP : Exposing repl for use. Is this a great idea? Probably not.
+      window.__internalRepl = repl;
+
       /*
       $("#runDropdown").click(function() {
         $("#run-dropdown-content").toggle();

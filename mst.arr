@@ -62,7 +62,7 @@ directives:
 
               ```
     x = DR.genlayout( self, cndspec)
-    VS.vs-constr-render("RBNod", [list: ], { cli: lam(a) : x end, cpo: lam(a): x end })
+    VS.vs-constr-render("G", [list: ], { cli: lam(a) : x end, cpo: lam(a): x end })
     end
     
 end

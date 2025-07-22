@@ -8,6 +8,19 @@
     },
     theModule: function (runtime, namespace, uri) {
 
+        /**
+         * 
+         * TODO HERE:
+         * - Should we have different commands for output vs input?
+         * - For example, input could be a command like `genlayout` that takes a Pyret value and a layout spec,
+         * and when interaction with the Input component ends (say with a button click), returns the value of from
+         * calling re-ify on the data instance to the REPL? This would be very slick.
+         * 
+         */
+
+
+
+
         function genlayout(v, cndSpec) {
             const container = document.createElement("div");
 
@@ -20,6 +33,24 @@
             const reactMountDiv = document.createElement("div");
             reactMountDiv.id = "cnd-react-mount-" + Math.random().toString(36).slice(2);
             container.appendChild(reactMountDiv); // <-- Attach to DOM first
+
+
+            // Create Pyret terminal mount point
+            const pyretTerminalDiv = document.createElement("div");
+            pyretTerminalDiv.id = "pyret-terminal-mount-" + Math.random().toString(36).slice(2);
+            container.appendChild(pyretTerminalDiv);
+
+            // IF we have access to the CnD internal REPL, we should also pass it to the layout interface.
+            // __internalRepl.run("edge(\"1\", \"b\", 3)", "interactions://test").then(result => {
+            //     if (__internalRepl.runtime.isSuccessResult(result)) {
+            //         console.log(result.result); // The raw Pyret JS value
+            //     } else {
+            //         console.error(result.exn);
+            //     }
+            // });
+            // It is saved as window.__internalRepl.
+            window.pyretREPLInternal = window.__internalRepl;
+
 
 
 
@@ -55,15 +86,24 @@
                 graphElement.renderLayout(currentInstanceLayout).then(() => {
                     // After rendering, set the layout result on the graph element
                     // Now mount React components
-                    // console.log("Mounting React components");
                     if (window.mountErrorMessageModal) {
                         console.log("Mounting Error Message Modal");
                         window.mountErrorMessageModal(errorDiv.id);
                     }
-                    // if (window.mountCndLayoutInterface) {
-                    //     console.log("Mounting CnD Layout Interface");
-                    //     window.mountCndLayoutInterface(reactMountDiv.id);
-                    // }
+
+                    if (window.__internalRepl && window.React && window.ReactDOM) {
+                        console.log("Mounting Pyret Terminal");
+                        const PyretReplInterface = window.CndCore.PyretReplInterface; // Assuming it's exposed via CndCore
+                        window.ReactDOM.render(
+                            window.React.createElement(PyretReplInterface, {
+                                externalEvaluator: window.__internalRepl,
+                                onChange: (instance) => console.log("Instance changed:", instance),
+                            }),
+                            pyretTerminalDiv
+                        );
+                    } else {
+                        console.error("React, ReactDOM, or __internalRepl is not available");
+                    }
                 });
 
                 // Add all elements to container
@@ -71,6 +111,7 @@
                 container.appendChild(stringView);
                 container.appendChild(reactMountDiv);
                 container.appendChild(graphElement);
+                container.appendChild(pyretTerminalDiv); // Ensure the terminal is added to the container
 
             } catch (error) {
                 console.error("Error in genlayout:", error);
@@ -85,6 +126,8 @@
 
             return container;
         }
+
+
 
         return runtime.makeModuleReturn({
             genlayout: runtime.makeFunction(genlayout)
