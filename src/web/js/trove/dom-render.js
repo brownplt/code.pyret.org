@@ -91,19 +91,23 @@
                         window.mountErrorMessageModal(errorDiv.id);
                     }
 
-                    if (window.__internalRepl && window.React && window.ReactDOM) {
-                        console.log("Mounting Pyret Terminal");
-                        const PyretReplInterface = window.CndCore.PyretReplInterface; // Assuming it's exposed via CndCore
-                        window.ReactDOM.render(
-                            window.React.createElement(PyretReplInterface, {
-                                externalEvaluator: window.__internalRepl,
-                                onChange: (instance) => console.log("Instance changed:", instance),
-                            }),
-                            pyretTerminalDiv
-                        );
-                    } else {
-                        console.error("React, ReactDOM, or __internalRepl is not available");
+                    if (window.mountReplWithVisualization) {
+                        console.log("Mounting REPL with Visualization");
+                        window.mountReplWithVisualization(reactMountDiv.id, {
+                            initialInstance: new window.CndCore.PyretDataInstance(v),
+                            initialCndSpec: cndSpec,
+                            showLayoutInterface: false,
+                            replHeight: "350px",
+                            visualizationHeight: "450px",
+                            style: {
+                                border: "1px solid #ccc",
+                                padding: "10px",
+                                borderRadius: "5px",
+                            },
+                        });
                     }
+
+
                 });
 
                 // Add all elements to container
