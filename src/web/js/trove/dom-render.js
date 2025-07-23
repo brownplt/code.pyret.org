@@ -18,7 +18,12 @@
          * 
          * 
          * Aimilarly, since the REPL produces ~~ output~~, we need to turn off output-printing of graphs 
-         * while the user is interacting with the input component.
+         * while the user is interacting with the input component. Can we turn off OUTPUT within 
+         * the internal REPL? OR clone it?
+         * 
+         * 
+         * Perhaps a slicker experience of collapsing BACK to the output?
+         * 
          * 
          */
 
