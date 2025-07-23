@@ -26,6 +26,84 @@
          * 
          * 
          */
+        function geninput(v, cndSpec, coords) {
+            return new Promise((resolve, reject) => {
+                const container = document.createElement("div");
+                container.style.position = "absolute";
+                container.style.top = `${coords.bottom + window.scrollY}px`;
+                container.style.left = `${coords.left + window.scrollX}px`;
+                container.style.zIndex = "10000";
+                container.style.background = "white";
+                container.style.border = "1px solid #ccc";
+                container.style.padding = "8px";
+                container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+                container.style.minWidth = "300px";
+
+                const combinedInputDiv = document.createElement("div");
+                const doneButton = document.createElement("button");
+                doneButton.innerText = "Done";
+
+                const cancelButton = document.createElement("button");
+                cancelButton.innerText = "Cancel";
+                cancelButton.style.marginLeft = "6px";
+
+                combinedInputDiv.id = "combined-input-container-" + Math.random().toString(36).slice(2);
+                container.appendChild(combinedInputDiv);
+                container.appendChild(doneButton);
+                container.appendChild(cancelButton);
+                document.body.appendChild(container);
+
+                let dataInstance = null;
+
+                cancelButton.onclick = () => {
+                    document.body.removeChild(container);
+                    reject("cancelled");
+                };
+
+                doneButton.onclick = () => {
+                    try {
+                        if (!dataInstance || typeof dataInstance.reify !== "function") {
+                            throw new Error("dataInstance.reify() is not available");
+                        }
+                        const result = dataInstance.reify(); // ✅ This is what you want
+                        document.body.removeChild(container);
+                        resolve(result);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+
+                try {
+                    dataInstance = new CndCore.PyretDataInstance(v);
+                    const evaluationContext = { sourceData: dataInstance };
+                    const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
+                    evaluator.initialize(evaluationContext);
+
+                    const pyretREPLInternal = window.__internalRepl;
+
+                    const success = CndCore.mountCombinedInput({
+                        containerId: combinedInputDiv.id,
+                        cndSpec: cndSpec,
+                        dataInstance: dataInstance,
+                        pyretEvaluator: pyretREPLInternal,
+                        height: '400px',
+                        showLayoutInterface: false,
+                        autoApplyLayout: true,
+                        onInstanceChange: () => { },
+                        onSpecChange: () => { },
+                        onLayoutApplied: () => { }
+                    });
+
+                    if (!success) {
+                        throw new Error("Failed to mount combined input");
+                    }
+                } catch (err) {
+                    container.textContent = `Error: ${err.message || err}`;
+                    reject(err);
+                }
+            });
+        }
+
 
 
 
