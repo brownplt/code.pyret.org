@@ -39,7 +39,7 @@ it doesn't need to be terminated across builds), run:
 $ npm start
 ```
 
-The editor will be served from `http://localhost:5000/editor`.
+The editor will be served from `http://localhost:4999/editor`.
 
 If you edit JavaScript or HTML files in `src/web`, run
 
