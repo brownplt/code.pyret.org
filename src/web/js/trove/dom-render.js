@@ -111,6 +111,7 @@
             container.style.border = "1px solid #ccc";
             container.style.padding = "10px";
             container.style.margin = "10px 0";
+            container.style.position = "relative"; // For positioning elements inside the container
 
             // Create error message mount point
             const errorDiv = document.createElement("div");
@@ -137,44 +138,46 @@
                 const layoutResult = layoutInstance.generateLayout(dataInstance, projections);
                 const currentInstanceLayout = layoutResult.layout;
 
-                // String view with chevron
-                const stringViewContainer = document.createElement("div");
-                stringViewContainer.style.display = "flex";
-                stringViewContainer.style.alignItems = "center";
-                stringViewContainer.style.cursor = "pointer";
-
-                const chevron = document.createElement("span");
-                chevron.textContent = "▶"; // Right-pointing chevron
-                chevron.style.marginRight = "5px";
-                chevron.style.transition = "transform 0.2s";
-
+                // String view
                 const stringView = document.createElement("pre");
                 stringView.textContent = String(r);
-                stringView.style.margin = "0";
+                stringView.style.margin = "0 0 10px 0"; // Add spacing between the string view and the graph
+                container.appendChild(stringView);
 
-                stringViewContainer.appendChild(chevron);
-                stringViewContainer.appendChild(stringView);
-                container.appendChild(stringViewContainer);
+                // Graph container (to hold the graph and the toggle button)
+                const graphContainer = document.createElement("div");
+                graphContainer.style.position = "relative"; // For positioning the toggle button
+                graphContainer.style.marginTop = "10px";
 
-                // Graph element (initially hidden)
+                // Graph element (initially visible)
                 const graphElement = document.createElement("webcola-cnd-graph");
                 graphElement.setAttribute("width", "600");
                 graphElement.setAttribute("height", "600");
-                graphElement.style.visibility = "hidden"; // Hide the element but keep it in the DOM
-                graphElement.style.opacity = "0";
-                graphElement.style.marginTop = "10px";
-                graphElement.style.transition = "opacity 0.2s"; // Smooth transition for visibility
+                graphElement.style.display = "block"; // Start visible
+                graphElement.style.margin = "0 auto"; // Center the graph within the container
 
-                // Toggle visibility of the graph element
-                const toggleGraphVisibility = () => {
-                    const isCollapsed = graphElement.style.visibility === "hidden";
-                    console.log("Toggling graph visibility:", isCollapsed);
-                    graphElement.style.visibility = isCollapsed ? "visible" : "hidden";
-                    graphElement.style.opacity = isCollapsed ? "1" : "0";
-                    chevron.textContent = isCollapsed ? "▼" : "▶"; // Down-pointing chevron when expanded
-                };
+                // Add the graph element to the graph container
+                graphContainer.appendChild(graphElement);
 
-                stringViewContainer.addEventListener("click", toggleGraphVisibility);
+                // Collapse/Expand button (small + / - in the top-right corner of the graph container)
+                const toggleButton = document.createElement("button");
+                toggleButton.textContent = "-"; // Default state is expanded
+                toggleButton.style.position = "absolute";
+                toggleButton.style.top = "5px";
+                toggleButton.style.right = "5px";
+                toggleButton.style.padding = "2px 5px";
+                toggleButton.style.fontSize = "12px";
+                toggleButton.style.cursor = "pointer";
+                toggleButton.style.border = "1px solid #007BFF"; // Blue outline for visibility
+                toggleButton.style.borderRadius = "3px";
+                toggleButton.style.backgroundColor = "#f0f8ff"; // Light blue background
+                toggleButton.style.color = "#007BFF"; // Blue text for better contrast
+
+                // Add the toggle button to the graph container
+                graphContainer.appendChild(toggleButton);
+
+                // Add the graph container to the main container
+                container.appendChild(graphContainer);
 
                 // Render the graph layout
                 graphElement.renderLayout(currentInstanceLayout).then(() => {
@@ -185,10 +188,16 @@
                         console.log("Mounting Error Message Modal");
                         window.mountErrorMessageModal(errorDiv.id);
                     }
+                }).catch((err) => {
+                    console.error("Error rendering graph layout:", err);
                 });
 
-                // Add all elements to container
-                container.appendChild(graphElement);
+                // Toggle visibility of the graph element
+                toggleButton.addEventListener("click", () => {
+                    const isCollapsed = graphElement.style.display === "none";
+                    graphElement.style.display = isCollapsed ? "block" : "none";
+                    toggleButton.textContent = isCollapsed ? "-" : "+"; // Update button text
+                });
 
             } catch (error) {
                 console.error("Error in genlayout:", error);
