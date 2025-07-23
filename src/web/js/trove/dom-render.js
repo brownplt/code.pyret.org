@@ -106,14 +106,16 @@
         //     return container;
         // }
 
-function genlayout(v, cndSpec) {
+        function genlayout(v, cndSpec) {
             const container = document.createElement("div");
+            container.style.border = "1px solid #ccc";
+            container.style.padding = "10px";
+            container.style.margin = "10px 0";
 
             // Create error message mount point
             const errorDiv = document.createElement("div");
             errorDiv.id = "error-message-container-" + Math.random().toString(36).slice(2);
-            container.appendChild(errorDiv); // <-- Attach to DOM first
-
+            container.appendChild(errorDiv);
 
             try {
                 // CnDCore logic
@@ -135,44 +137,72 @@ function genlayout(v, cndSpec) {
                 const layoutResult = layoutInstance.generateLayout(dataInstance, projections);
                 const currentInstanceLayout = layoutResult.layout;
 
-                // String view
+                // String view with chevron
+                const stringViewContainer = document.createElement("div");
+                stringViewContainer.style.display = "flex";
+                stringViewContainer.style.alignItems = "center";
+                stringViewContainer.style.cursor = "pointer";
+
+                const chevron = document.createElement("span");
+                chevron.textContent = "▶"; // Right-pointing chevron
+                chevron.style.marginRight = "5px";
+                chevron.style.transition = "transform 0.2s";
+
                 const stringView = document.createElement("pre");
                 stringView.textContent = String(r);
-                stringView.style.marginBottom = "10px";
+                stringView.style.margin = "0";
 
-                // Graph element
+                stringViewContainer.appendChild(chevron);
+                stringViewContainer.appendChild(stringView);
+                container.appendChild(stringViewContainer);
+
+                // Graph element (initially hidden)
                 const graphElement = document.createElement("webcola-cnd-graph");
-                graphElement.setAttribute("width", "800");
+                graphElement.setAttribute("width", "600");
                 graphElement.setAttribute("height", "600");
-                graphElement.renderLayout(currentInstanceLayout).then(() => {
+                graphElement.style.visibility = "hidden"; // Hide the element but keep it in the DOM
+                graphElement.style.opacity = "0";
+                graphElement.style.marginTop = "10px";
+                graphElement.style.transition = "opacity 0.2s"; // Smooth transition for visibility
 
+                // Toggle visibility of the graph element
+                const toggleGraphVisibility = () => {
+                    const isCollapsed = graphElement.style.visibility === "hidden";
+                    console.log("Toggling graph visibility:", isCollapsed);
+                    graphElement.style.visibility = isCollapsed ? "visible" : "hidden";
+                    graphElement.style.opacity = isCollapsed ? "1" : "0";
+                    chevron.textContent = isCollapsed ? "▼" : "▶"; // Down-pointing chevron when expanded
+                };
+
+                stringViewContainer.addEventListener("click", toggleGraphVisibility);
+
+                // Render the graph layout
+                graphElement.renderLayout(currentInstanceLayout).then(() => {
+                    console.log("Graph layout rendered");
+
+                    // Mount additional React components after rendering
                     if (window.mountErrorMessageModal) {
                         console.log("Mounting Error Message Modal");
                         window.mountErrorMessageModal(errorDiv.id);
                     }
-                   
                 });
 
                 // Add all elements to container
-                container.appendChild(errorDiv);
-                container.appendChild(stringView);
-                container.appendChild(reactMountDiv);
                 container.appendChild(graphElement);
 
             } catch (error) {
                 console.error("Error in genlayout:", error);
-                const fallbackErrorDiv = document.createElement("div");
-                fallbackErrorDiv.style.color = "red";
-                fallbackErrorDiv.style.padding = "10px";
-                fallbackErrorDiv.style.border = "1px solid red";
-                fallbackErrorDiv.style.marginBottom = "10px";
-                fallbackErrorDiv.textContent = `Error: ${error.message || error}`;
-                container.appendChild(fallbackErrorDiv);
+
+                // Display the error in the errorDiv
+                errorDiv.style.color = "red";
+                errorDiv.style.padding = "10px";
+                errorDiv.style.border = "1px solid red";
+                errorDiv.style.marginBottom = "10px";
+                errorDiv.textContent = `Error: ${error.message || error}`;
             }
 
             return container;
         }
-
 
 
         return runtime.makeModuleReturn({
