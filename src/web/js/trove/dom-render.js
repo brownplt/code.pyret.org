@@ -20,7 +20,12 @@
    * So, while we DO have to hook this up to code mirror, there's more going on here.
    * 
    */
+        // SO. We need to FIRST evaluate the selected value,
+        // THEN, we need to generate the input for the CnD spec?
 
+        // OR should the CnD spec be generated AS the value takes shape?
+        // Like, each time the constructor is called, we enforce the CnD spec for the value?
+        // (and compose them?)
         function geninput(v, cndSpec, coords) {
             return new Promise((resolve, reject) => {
                 const container = document.createElement("div");
@@ -182,9 +187,14 @@
         // }
 
         function genlayout(v, cndSpec) {
+
+            // NOW, I wonder, is the CnD spec attached to the value?
+            console.log("genlayout called with value:", v);
+
+
             const container = document.createElement("div");
             container.style.border = "1px solid #ccc";
-            container.style.padding = "10px";
+            container.style.padding = "5px";
             container.style.margin = "10px 0";
             container.style.position = "relative"; // For positioning elements inside the container
 
