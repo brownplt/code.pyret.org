@@ -1449,24 +1449,4 @@ $(function() {
   else if((window.parent && (window.parent !== window)) || process.env.NODE_ENV === "development") {
     window.MESSAGES = makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
   }
-
-
-
-//   /**
-//    * 
-//    * [SP]: I think this should be moved up to all the other things?
-//    * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
-//    * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
-//    * Like, there's no way to get the CnD spec for the particular type we're building, right?
-//    */
-//   CodeMirror.keyMap.default["Cmd-Shift-I"] = CodeMirror.keyMap.default["Ctrl-Shift-I"] = function(cm) {
-//     const cursorCoords = cm.cursorCoords();
-//     const value = cm.getValue();
-//     const cndSpec = ""; // Define your layout spec here
-//     window.geninput(value, cndSpec, cursorCoords).then(result => {
-//       cm.replaceSelection(result);
-//     }).catch(err => {
-//       console.error("Error in geninput:", err);
-//     });
-//   };
  });

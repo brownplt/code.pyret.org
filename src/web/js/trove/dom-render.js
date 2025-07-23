@@ -16,6 +16,7 @@
    * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
    * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
    * Like, there's no way to get the CnD spec for the particular type we're building, right?
+   * OR, for a given type, we can have the C-M hook up correctly AT the time of the first output?
    * 
    * So, while we DO have to hook this up to code mirror, there's more going on here.
    * 
@@ -104,39 +105,60 @@
             });
         }
 
-        // Attach geninput to the window object to make it globally accessible
+
+
+
+        // Attach geninput to the window object to make it globally accessible [SP: Perhaps we don't need this? We need
+        // to figure out HOW to get the correct CnD spec though.]
         window.geninput = geninput;
 
-
-        /** This adds a custom command to CodeMirror that inserts a smiley emoji. We could imagine 
-         * doing something similar for CnD.
-        / (() => {
-  // Step 1: Find the active CodeMirror instance
-  const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
-  const cm = cmEl?.CodeMirror;
-
-  if (!cm) {
-    console.warn("❌ No CodeMirror editor found.");
-    return;
-  }
-
-  // Step 2: Define the custom command
-  CodeMirror.commands["insert-smiley"] = function(cmInstance) {
-    const doc = cmInstance.getDoc();
-    const pos = doc.getCursor(); // Get current cursor
-    doc.replaceRange("🙂", pos); // Insert emoji
-  };
-
-  // Step 3: Add the keybinding
-  cm.addKeyMap({
-    "Ctrl-Shift-Q": "insert-smiley",
-    "Cmd-Shift-Q": "insert-smiley"  // for macOS
-  });
-
-  console.log("✅ insert-smiley command bound to Ctrl/Cmd+Shift+S");
-})();
-
+        /**
+         * Attaches a keybinding to the active CodeMirror instance and executes a thunk when triggered.
+         *
+         * @param {string} keyBinding - The keybinding to attach (e.g., "Cmd-Shift-R").
+         * @param {function} thunk - A function that returns a string or a promise of a string.
+         *                           The result of the thunk will replace the text at the cursor.
+         *
+         * @example
+         * // Define a thunk that returns a string
+         * function exampleThunk() {
+         *     return "Hello, CodeMirror!";
+         * }
+         *
+         * // Attach the keybinding to CodeMirror
+         * attachToCM("Cmd-Shift-R", exampleThunk);
+         *
+         * // When "Cmd-Shift-R" is pressed, "Hello, CodeMirror!" will be inserted at the cursor.
          */
+        function attachToCM(keyBinding, thunk) {
+            // Step 1: Find the active CodeMirror instance
+            const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
+            const cm = cmEl?.CodeMirror;
+
+            if (!cm) {
+                console.warn("❌ No CodeMirror editor found.");
+                return;
+            }
+
+            // Step 2: Add the keybinding using addKeyMap
+            const keyMap = {
+                [keyBinding]: async function (cmInstance) {
+                    try {
+                        // Call the thunk to get the result (string or promise of a string)
+                        const result = await thunk();
+
+                        // Replace the text at the cursor with the result
+                        cmInstance.replaceSelection(result || "");
+                    } catch (err) {
+                        console.error("Error in thunk execution:", err);
+                    }
+                }
+            };
+
+            cm.addKeyMap(keyMap);
+
+            console.log(`✅ Keybinding "${keyBinding}" attached to CodeMirror using addKeyMap.`);
+        }
 
 
 
