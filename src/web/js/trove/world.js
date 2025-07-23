@@ -54,6 +54,9 @@
     }
   },
   theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, reactorEvents, jsnums) {
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(runtime.getField(m, "values"), f); }
+    
     var imageLibrary = runtime.getField(imageLibraryLib, "internal");
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
@@ -315,21 +318,21 @@
             return result;
           }, "big-bang");
         }, runtime.namespace,
-                    { sync: false },
-                    function(result) {
-                      if(runtime.isSuccessResult(result)) {
-                        runtime.ffi.cases(runtime.getField(reactorEvents, "is-SendingHandlerResult"), "SendingHandlerResult", result.result, {
-                          update: success,
-                          send(newState, toSend) {
-                            runtime.getField(connector, "handle-message-return").app(toSend);
-                            success(newState);
-                          }
-                        });
-                      }
-                      else {
-                        return rawJsworld.shutdown({errorShutdown: result.exn});
-                      }
-                    });
+        { sync: false },
+        function(result) {
+          if(runtime.isSuccessResult(result)) {
+            runtime.ffi.cases(gmf(reactorEvents, "is-SendingHandlerResult"), "SendingHandlerResult", result.result, {
+              update: success,
+              send(newState, toSend) {
+                runtime.getField(connector, "handle-message-return").app(toSend);
+                success(newState);
+              }
+            });
+          }
+          else {
+            return rawJsworld.shutdown({errorShutdown: result.exn});
+          }
+        });
       };
     };
 
@@ -485,10 +488,18 @@
 
       toRawHandler(topLevelNode) {
         const worldFunction = adaptWorldFunction(this.handler, this.connector);
-        return rawJsworld.on_message(
-          (w, message, success) =>
-            worldFunction(w, message, success)
-        );
+        return {
+          onRegister(_) {
+            runtime.safeCall(
+              runtime.getField(this.connector, "reconnect"),
+              (_) =>
+                runtime.getField(this.connector, "register-on-message").app(worldFunction)
+            )
+          },
+          onUnregister(_) {
+            runtime.getField(this.connector, "dispose").app();
+          },
+        };
       }
     }
 
