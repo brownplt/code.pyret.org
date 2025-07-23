@@ -11,21 +11,16 @@
         /**
          * 
          * TODO HERE:
-         * - Should we have different commands for output vs input?
-         * - For example, input could be a command like `genlayout` that takes a Pyret value and a layout spec,
-         * and when interaction with the Input component ends (say with a button click), returns the value of from
-         * calling re-ify on the data instance to the REPL? This would be very slick.
-         * 
-         * 
-         * Aimilarly, since the REPL produces ~~ output~~, we need to turn off output-printing of graphs 
-         * while the user is interacting with the input component. Can we turn off OUTPUT within 
-         * the internal REPL? OR clone it?
-         * 
-         * 
-         * Perhaps a slicker experience of collapsing BACK to the output? THIS SHOULD BE HOOKED UP TO CODE-MIRROR.
-         * 
-         * 
-         */
+   * 
+   * [SP]: I think this should be moved up to all the other things?
+   * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
+   * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
+   * Like, there's no way to get the CnD spec for the particular type we're building, right?
+   * 
+   * So, while we DO have to hook this up to code mirror, there's more going on here.
+   * 
+   */
+
         function geninput(v, cndSpec, coords) {
             return new Promise((resolve, reject) => {
                 const container = document.createElement("div");
@@ -104,6 +99,8 @@
             });
         }
 
+        // Attach geninput to the window object to make it globally accessible
+        window.geninput = geninput;
 
 
 

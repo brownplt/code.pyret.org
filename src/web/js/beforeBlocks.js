@@ -1435,4 +1435,16 @@ $(function() {
   if(window.parent !== window) {
     makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window });
   }
-});
+
+// SP: We will get here?
+//   CodeMirror.keyMap.default["Cmd-Shift-I"] = CodeMirror.keyMap.default["Ctrl-Shift-I"] = function(cm) {
+//     const cursorCoords = cm.cursorCoords();
+//     const value = cm.getValue();
+//     const cndSpec = ""; // Define your layout spec here
+//     window.geninput(value, cndSpec, cursorCoords).then(result => {
+//       cm.replaceSelection(result);
+//     }).catch(err => {
+//       console.error("Error in geninput:", err);
+//     });
+//   };
+ });

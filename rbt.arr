@@ -1,3 +1,4 @@
+
 import valueskeleton as VS
 import dom-render as DR
 
@@ -17,7 +18,12 @@ data RBNod:
   | Leaf(value)
  sharing:
     method _output(self):
-    cndspec = ```
+    
+    x = DR.genlayout( self, self._cndspec())
+    VS.vs-constr-render("RBNod", [list: ], { cli: render, cpo: lam(a): x end })
+  end,
+  method _cndspec(self):
+    ```
 constraints:
   - orientation:
       selector: right
@@ -40,9 +46,7 @@ directives:
       value: '#fa0000'
   - flag: hideDisconnected
               ```
-    x = DR.genlayout( self, cndspec)
-    VS.vs-constr-render("RBNod", [list: ], { cli: render, cpo: lam(a): x end })
-    end
+  end
 end
 
 rbt = Black( 5, Black( 1, Red( 2, Red( 1, Leaf(0), Leaf(0)), Leaf(0)), Leaf(0)), Red( 6, Leaf(0), Leaf(0)))
