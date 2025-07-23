@@ -108,6 +108,39 @@
         window.geninput = geninput;
 
 
+        /** This adds a custom command to CodeMirror that inserts a smiley emoji. We could imagine 
+         * doing something similar for CnD.
+        / (() => {
+  // Step 1: Find the active CodeMirror instance
+  const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
+  const cm = cmEl?.CodeMirror;
+
+  if (!cm) {
+    console.warn("❌ No CodeMirror editor found.");
+    return;
+  }
+
+  // Step 2: Define the custom command
+  CodeMirror.commands["insert-smiley"] = function(cmInstance) {
+    const doc = cmInstance.getDoc();
+    const pos = doc.getCursor(); // Get current cursor
+    doc.replaceRange("🙂", pos); // Insert emoji
+  };
+
+  // Step 3: Add the keybinding
+  cm.addKeyMap({
+    "Ctrl-Shift-Q": "insert-smiley",
+    "Cmd-Shift-Q": "insert-smiley"  // for macOS
+  });
+
+  console.log("✅ insert-smiley command bound to Ctrl/Cmd+Shift+S");
+})();
+
+         */
+
+
+
+
 
 
         // function geninput(v, cndSpec) {
