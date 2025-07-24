@@ -18,7 +18,8 @@ data RBNod:
   | Leaf(value)
  sharing:
     method _output(self):
-    
+    ## Ahh, we should collect the CnD specs of the children here?
+    ## straightforward.
     x = DR.genlayout( self, self._cndspec())
     VS.vs-constr-render("RBNod", [list: ], { cli: render, cpo: lam(a): x end })
   end,

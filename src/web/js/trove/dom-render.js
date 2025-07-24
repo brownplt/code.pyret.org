@@ -291,8 +291,8 @@
 
                 // Graph element (initially visible)
                 const graphElement = document.createElement("webcola-cnd-graph");
-                graphElement.setAttribute("width", "600");
-                graphElement.setAttribute("height", "600");
+                graphElement.setAttribute("width", "400");
+                graphElement.setAttribute("height", "400");
                 graphElement.style.display = "block"; // Start visible
                 graphElement.style.margin = "0 auto"; // Center the graph within the container
 
