@@ -27,53 +27,87 @@
         // OR should the CnD spec be generated AS the value takes shape?
         // Like, each time the constructor is called, we enforce the CnD spec for the value?
         // (and compose them?)
-        function geninput(v, cndSpec, coords) {
+        function geninput(v, cndSpec) {
             return new Promise((resolve, reject) => {
+                // Create the overlay container
+                const overlay = document.createElement("div");
+                overlay.style.position = "fixed";
+                overlay.style.top = "0";
+                overlay.style.left = "0";
+                overlay.style.width = "100vw"; // Full width of the viewport
+                overlay.style.height = "100vh"; // Full height of the viewport
+                overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)"; // Semi-transparent background
+                overlay.style.zIndex = "10000"; // Ensure it appears above other elements
+                overlay.style.display = "flex";
+                overlay.style.justifyContent = "center";
+                overlay.style.alignItems = "center";
+
+                // Create the input container
                 const container = document.createElement("div");
-                container.style.position = "absolute";
-                container.style.top = `${coords.bottom + window.scrollY}px`;
-                container.style.left = `${coords.left + window.scrollX}px`;
-                container.style.zIndex = "10000";
                 container.style.background = "white";
                 container.style.border = "1px solid #ccc";
-                container.style.padding = "8px";
+                container.style.padding = "20px";
                 container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
-                container.style.minWidth = "300px";
+                container.style.width = "400px";
+                container.style.borderRadius = "8px";
 
+                // Add title
+                const title = document.createElement("h3");
+                title.textContent = "Custom Input";
+                title.style.marginTop = "0";
+                container.appendChild(title);
+
+                // Create the input area
                 const combinedInputDiv = document.createElement("div");
+                combinedInputDiv.id = "combined-input-container-" + Math.random().toString(36).slice(2);
+                combinedInputDiv.style.height = "200px";
+                combinedInputDiv.style.overflow = "auto";
+                combinedInputDiv.style.marginBottom = "10px";
+                container.appendChild(combinedInputDiv);
+
+                // Add buttons
+                const buttonContainer = document.createElement("div");
+                buttonContainer.style.display = "flex";
+                buttonContainer.style.justifyContent = "flex-end";
+
                 const doneButton = document.createElement("button");
                 doneButton.innerText = "Done";
+                doneButton.style.marginRight = "10px";
 
                 const cancelButton = document.createElement("button");
                 cancelButton.innerText = "Cancel";
-                cancelButton.style.marginLeft = "6px";
 
-                combinedInputDiv.id = "combined-input-container-" + Math.random().toString(36).slice(2);
-                container.appendChild(combinedInputDiv);
-                container.appendChild(doneButton);
-                container.appendChild(cancelButton);
-                document.body.appendChild(container);
+                buttonContainer.appendChild(doneButton);
+                buttonContainer.appendChild(cancelButton);
+                container.appendChild(buttonContainer);
+
+                // Append the container to the overlay
+                overlay.appendChild(container);
+                document.body.appendChild(overlay);
 
                 let dataInstance = null;
 
+                // Cancel button functionality
                 cancelButton.onclick = () => {
-                    document.body.removeChild(container);
+                    document.body.removeChild(overlay);
                     reject("cancelled");
                 };
 
+                // Done button functionality
                 doneButton.onclick = () => {
                     try {
                         if (!dataInstance || typeof dataInstance.reify !== "function") {
                             throw new Error("dataInstance.reify() is not available");
                         }
                         const result = dataInstance.reify(); // ✅ This is what you want
-                        document.body.removeChild(container);
+                        document.body.removeChild(overlay);
                         resolve(result);
                     } catch (err) {
                         reject(err);
                     }
                 };
 
+                // Initialize the input logic
                 try {
                     dataInstance = new CndCore.PyretDataInstance(v);
                     const evaluationContext = { sourceData: dataInstance };
@@ -87,7 +121,7 @@
                         cndSpec: cndSpec,
                         dataInstance: dataInstance,
                         pyretEvaluator: pyretREPLInternal,
-                        height: '400px',
+                        height: '100%', // Ensure the combined input spans the full height of the container
                         showLayoutInterface: false,
                         autoApplyLayout: true,
                         onInstanceChange: () => { },
@@ -108,9 +142,7 @@
 
 
 
-        // Attach geninput to the window object to make it globally accessible [SP: Perhaps we don't need this? We need
-        // to figure out HOW to get the correct CnD spec though.]
-        window.geninput = geninput;
+
 
         /**
          * Attaches a keybinding to the active CodeMirror instance and executes a thunk when triggered.
@@ -160,6 +192,11 @@
             console.log(`✅ Keybinding "${keyBinding}" attached to CodeMirror using addKeyMap.`);
         }
 
+
+        // Attach geninput to the window object to make it globally accessible [SP: Perhaps we don't need this? We need
+        // to figure out HOW to get the correct CnD spec though.]
+        window.geninput = geninput;
+        window.attachToCM = attachToCM;
 
 
 
@@ -243,7 +280,7 @@
 
         function genlayout(v, cndSpec) {
 
-            // NOW, I wonder, is the CnD spec attached to the value?
+            // [REMOVE?] NOW, I wonder, is the CnD spec attached to the value?
             console.log("genlayout called with value:", v);
 
 
