@@ -179,8 +179,8 @@
         }
       }
 
-      if (dict.hasOwnProperty["on-recieve-send"]) {
-        handlers.push(runtime.makeOpaque(new OnRecieveSend(dict["on-recieve-send"], connector)));
+      if (dict.hasOwnProperty["on-receive-send"]) {
+        handlers.push(runtime.makeOpaque(new OnReceiveSend(dict["on-receive-send"], connector)));
       }
 
       add("on-mouse", OnMouse);
@@ -315,22 +315,23 @@
           return runtime.safeCall(function() {
             return worldFunction.app.apply(null, pyretArgs);
           }, function(result) {
-            return result;
+            return runtime.ffi.cases(gmf(reactorEvents, "is-SendingHandlerResult"), "SendingHandlerResult", result.result, {
+              update: (newState) => newState,
+              send(newState, toSend) {
+                return runtime.safeCall(
+                  () => runtime.getField(connector, "handle-message-return").app(toSend),
+                  () => newState
+                );
+              }
+            });
           }, "big-bang");
         }, runtime.namespace,
         { sync: false },
         function(result) {
-          if(runtime.isSuccessResult(result)) {
-            runtime.ffi.cases(gmf(reactorEvents, "is-SendingHandlerResult"), "SendingHandlerResult", result.result, {
-              update: success,
-              send(newState, toSend) {
-                runtime.getField(connector, "handle-message-return").app(toSend);
-                success(newState);
-              }
-            });
-          }
-          else {
+          if(!runtime.isSuccessResult(result)) {
             return rawJsworld.shutdown({errorShutdown: result.exn});
+          } else {
+            return success(result.result);
           }
         });
       };
@@ -479,9 +480,9 @@
         });
     };
 
-    class OnRecieveSend extends WorldConfigOption {
+    class OnReceiveSend extends WorldConfigOption {
       constructor(handler, connector) {
-        super("on-recieve-send");
+        super("on-receive-send");
         this.handler = handler;
         this.connector = connector;
       }
