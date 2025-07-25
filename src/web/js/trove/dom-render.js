@@ -8,281 +8,9 @@
     },
     theModule: function (runtime, namespace, uri) {
 
-        /**
-         * 
-         * TODO HERE:
-   * 
-   * [SP]: I think this should be moved up to all the other things?
-   * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
-   * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
-   * Like, there's no way to get the CnD spec for the particular type we're building, right?
-   * OR, for a given type, we can have the C-M hook up correctly AT the time of the first output?
-   * 
-   * So, while we DO have to hook this up to code mirror, there's more going on here.
-   * 
-   */
-        // SO. We need to FIRST evaluate the selected value,
-        // THEN, we need to generate the input for the CnD spec?
 
-        // OR should the CnD spec be generated AS the value takes shape?
-        // Like, each time the constructor is called, we enforce the CnD spec for the value?
-        // (and compose them?)
-        function geninput(v, cndSpec) {
-            return new Promise((resolve, reject) => {
-                // Create the overlay container
-                const overlay = document.createElement("div");
-                overlay.style.position = "fixed";
-                overlay.style.top = "0";
-                overlay.style.left = "0";
-                overlay.style.width = "100vw"; // Full width of the viewport
-                overlay.style.height = "100vh"; // Full height of the viewport
-                overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)"; // Semi-transparent background
-                overlay.style.zIndex = "10000"; // Ensure it appears above other elements
-                overlay.style.display = "flex";
-                overlay.style.justifyContent = "center";
-                overlay.style.alignItems = "center";
-
-                // Create the input container
-                const container = document.createElement("div");
-                container.style.background = "white";
-                container.style.border = "1px solid #ccc";
-                container.style.padding = "20px";
-                container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
-                container.style.width = "400px";
-                container.style.borderRadius = "8px";
-
-                // Add title
-                const title = document.createElement("h3");
-                title.textContent = "Custom Input";
-                title.style.marginTop = "0";
-                container.appendChild(title);
-
-                // Create the input area
-                const combinedInputDiv = document.createElement("div");
-                combinedInputDiv.id = "combined-input-container-" + Math.random().toString(36).slice(2);
-                combinedInputDiv.style.height = "200px";
-                combinedInputDiv.style.overflow = "auto";
-                combinedInputDiv.style.marginBottom = "10px";
-                container.appendChild(combinedInputDiv);
-
-                // Add buttons
-                const buttonContainer = document.createElement("div");
-                buttonContainer.style.display = "flex";
-                buttonContainer.style.justifyContent = "flex-end";
-
-                const doneButton = document.createElement("button");
-                doneButton.innerText = "Done";
-                doneButton.style.marginRight = "10px";
-
-                const cancelButton = document.createElement("button");
-                cancelButton.innerText = "Cancel";
-
-                buttonContainer.appendChild(doneButton);
-                buttonContainer.appendChild(cancelButton);
-                container.appendChild(buttonContainer);
-
-                // Append the container to the overlay
-                overlay.appendChild(container);
-                document.body.appendChild(overlay);
-
-                let dataInstance = null;
-
-                // Cancel button functionality
-                cancelButton.onclick = () => {
-                    document.body.removeChild(overlay);
-                    reject("cancelled");
-                };
-
-                // Done button functionality
-                doneButton.onclick = () => {
-                    try {
-                        if (!dataInstance || typeof dataInstance.reify !== "function") {
-                            throw new Error("dataInstance.reify() is not available");
-                        }
-                        const result = dataInstance.reify(); // ✅ This is what you want
-                        document.body.removeChild(overlay);
-                        resolve(result);
-                    } catch (err) {
-                        reject(err);
-                    }
-                };
-
-                // Initialize the input logic
-                try {
-                    dataInstance = new CndCore.PyretDataInstance(v);
-                    const evaluationContext = { sourceData: dataInstance };
-                    const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
-                    evaluator.initialize(evaluationContext);
-
-                    const pyretREPLInternal = window.__internalRepl;
-
-                    const success = CndCore.mountCombinedInput({
-                        containerId: combinedInputDiv.id,
-                        cndSpec: cndSpec,
-                        dataInstance: dataInstance,
-                        pyretEvaluator: pyretREPLInternal,
-                        height: '100%', // Ensure the combined input spans the full height of the container
-                        showLayoutInterface: false,
-                        autoApplyLayout: true,
-                        onInstanceChange: () => { },
-                        onSpecChange: () => { },
-                        onLayoutApplied: () => { }
-                    });
-
-                    if (!success) {
-                        throw new Error("Failed to mount combined input");
-                    }
-                } catch (err) {
-                    container.textContent = `Error: ${err.message || err}`;
-                    reject(err);
-                }
-            });
-        }
-
-
-
-
-
-
-        /**
-         * Attaches a keybinding to the active CodeMirror instance and executes a thunk when triggered.
-         *
-         * @param {string} keyBinding - The keybinding to attach (e.g., "Cmd-Shift-R").
-         * @param {function} thunk - A function that returns a string or a promise of a string.
-         *                           The result of the thunk will replace the text at the cursor.
-         *
-         * @example
-         * // Define a thunk that returns a string
-         * function exampleThunk() {
-         *     return "Hello, CodeMirror!";
-         * }
-         *
-         * // Attach the keybinding to CodeMirror
-         * attachToCM("Cmd-Shift-R", exampleThunk);
-         *
-         * // When "Cmd-Shift-R" is pressed, "Hello, CodeMirror!" will be inserted at the cursor.
-         */
-        function attachToCM(keyBinding, thunk) {
-            // Step 1: Find the active CodeMirror instance
-            const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
-            const cm = cmEl?.CodeMirror;
-
-            if (!cm) {
-                console.warn("❌ No CodeMirror editor found.");
-                return;
-            }
-
-            // Step 2: Add the keybinding using addKeyMap
-            const keyMap = {
-                [keyBinding]: async function (cmInstance) {
-                    try {
-                        // Call the thunk to get the result (string or promise of a string)
-                        const result = await thunk();
-
-                        // Replace the text at the cursor with the result
-                        cmInstance.replaceSelection(result || "");
-                    } catch (err) {
-                        console.error("Error in thunk execution:", err);
-                    }
-                }
-            };
-
-            cm.addKeyMap(keyMap);
-
-            console.log(`✅ Keybinding "${keyBinding}" attached to CodeMirror using addKeyMap.`);
-        }
-
-
-        // Attach geninput to the window object to make it globally accessible [SP: Perhaps we don't need this? We need
-        // to figure out HOW to get the correct CnD spec though.]
-        window.geninput = geninput;
-        window.attachToCM = attachToCM;
-
-
-
-
-
-        // function geninput(v, cndSpec) {
-
-        //     // IF WE ARE IN AN INPUT  CONTEXT, WE DONT WANT TO SHOW A NEW _OUTPUT_
-        //     // NOT SURE HOW TO DO THIS YET.
-
-
-        //     const container = document.createElement("div");
-
-        //     // Create a mount point for the combined input
-        //     const combinedInputDiv = document.createElement("div");
-        //     combinedInputDiv.id = "combined-input-container-" + Math.random().toString(36).slice(2);
-        //     container.appendChild(combinedInputDiv);
-
-        //     // Append the container to the document
-        //     document.body.appendChild(container);
-
-        //     // Observe the DOM for the container
-        //     const observer = new MutationObserver(() => {
-        //         if (document.body.contains(combinedInputDiv)) {
-        //             observer.disconnect(); // Stop observing once the container is in the DOM
-
-        //             try {
-        //                 // Initialize the data instance and evaluator
-        //                 const dataInstance = new CndCore.PyretDataInstance(v);
-        //                 const evaluationContext = { sourceData: dataInstance };
-        //                 const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
-        //                 evaluator.initialize(evaluationContext);
-
-        //                 // Prepare the Pyret evaluator and projections
-        //                 const pyretREPLInternal = window.__internalRepl ;
-        //                 const projections = {};
-
-        //                 // Use the updated API to mount the combined input
-        //                 const success = CndCore.mountCombinedInput({
-        //                     containerId: combinedInputDiv.id,
-        //                     cndSpec: cndSpec,
-        //                     dataInstance: dataInstance,
-        //                     pyretEvaluator: pyretREPLInternal,
-        //                     height: '800px', // Set the height of the combined input
-        //                     showLayoutInterface: true, // Show the layout interface
-        //                     autoApplyLayout: true, // Automatically apply the layout
-        //                     onInstanceChange: (instance) => {
-        //                         console.log('🔄 Data updated:', {
-        //                             atoms: instance.getAtoms().length,
-        //                             relations: instance.getRelations().length
-        //                         });
-        //                     },
-        //                     onSpecChange: (spec) => {
-        //                         console.log('📐 Layout spec updated:', spec);
-        //                     },
-        //                     onLayoutApplied: (layout) => {
-        //                         console.log('🎨 Layout applied:', layout);
-        //                     }
-        //                 });
-
-        //                 if (!success) {
-        //                     console.error("Failed to mount combined input");
-        //                 }
-        //             } catch (error) {
-        //                 console.error("Error in genlayout:", error);
-        //                 const fallbackErrorDiv = document.createElement("div");
-        //                 fallbackErrorDiv.style.color = "red";
-        //                 fallbackErrorDiv.style.padding = "10px";
-        //                 fallbackErrorDiv.style.border = "1px solid red";
-        //                 fallbackErrorDiv.style.marginBottom = "10px";
-        //                 fallbackErrorDiv.textContent = `Error: ${error.message || error}`;
-        //                 container.appendChild(fallbackErrorDiv);
-        //             }
-        //         }
-        //     });
-
-        //     observer.observe(document.body, { childList: true, subtree: true });
-
-        //     return container;
-        // }
-
+        ///// Core Layout Generation /////
         function genlayout(v, cndSpec) {
-
-            // [REMOVE?] NOW, I wonder, is the CnD spec attached to the value?
-            console.log("genlayout called with value:", v);
-
 
             const container = document.createElement("div");
             container.style.border = "1px solid #ccc";
@@ -297,7 +25,7 @@
 
             try {
                 // CnDCore logic
-                const dataInstance = new window.CndCore.PyretDataInstance(v);
+                const dataInstance = new window.CndCore.PyretDataInstance(v, false, window.__internalRepl); // Pass the external repl.
                 const evaluationContext = { sourceData: dataInstance };
                 const evaluator = new CndCore.Evaluators.SGraphQueryEvaluator();
                 evaluator.initialize(evaluationContext);
@@ -389,6 +117,225 @@
 
             return container;
         }
+
+
+        /***** CND for Input ********/
+
+
+            // This is a helper function to generate a custom input dialog for CnD specs.
+            /**
+             * 
+             * TODO HERE:
+                * 
+                * [SP]: I think this should be moved up to all the other things?
+                * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
+                * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
+                * Like, there's no way to get the CnD spec for the particular type we're building, right?
+                * OR, for a given type, we can have the C-M hook up correctly AT the time of the first output?
+                * 
+                * So, while we DO have to hook this up to code mirror, there's more going on here.
+                * 
+                */
+            // SO. We need to FIRST evaluate the selected value,
+            // THEN, we need to generate the input for the CnD spec?
+
+            // OR should the CnD spec be generated AS the value takes shape?
+            // Like, each time the constructor is called, we enforce the CnD spec for the value?
+            // (and compose them?)
+
+        /*** Styling helpers. We ((should)) probably move to CSS for some of these? */
+
+        function applyOverlayStyles(overlay) {
+            overlay.style.position = "fixed";
+            overlay.style.top = "0";
+            overlay.style.left = "0";
+            overlay.style.width = "100vw"; // Full width of the viewport
+            overlay.style.height = "100vh"; // Full height of the viewport
+            overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)"; // Semi-transparent background
+            overlay.style.zIndex = "10000"; // Ensure it appears above other elements
+            overlay.style.display = "flex";
+            overlay.style.justifyContent = "center";
+            overlay.style.alignItems = "center";
+        }
+
+        function applyContainerStyles(container) {
+            container.style.background = "white";
+            container.style.border = "1px solid #ccc";
+            container.style.padding = "20px";
+            container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+            container.style.width = "80vw";
+            container.style.borderRadius = "8px";
+        }
+
+        function applyButtonContainerStyles(buttonContainer) {
+            buttonContainer.style.display = "flex";
+            buttonContainer.style.justifyContent = "flex-end";
+        }
+        /********** */
+
+        function geninput(dataInstance, cndSpec) {
+            return new Promise((resolve, reject) => {
+                // Create the overlay container
+                const overlay = document.createElement("div");
+                applyOverlayStyles(overlay);
+
+                // Create the input container
+                const container = document.createElement("div");
+                applyContainerStyles(container);
+
+                // Add title
+                const title = document.createElement("h3");
+                title.textContent = "Custom Input";
+                title.style.marginTop = "0";
+                container.appendChild(title);
+
+                // Create the input area
+                const combinedInputDiv = document.createElement("div");
+                combinedInputDiv.id = "combined-input-container-" + Math.random().toString(36).slice(2);
+                combinedInputDiv.style.overflow = "auto";
+                combinedInputDiv.style.marginBottom = "10px";
+                container.appendChild(combinedInputDiv);
+
+                // Add buttons
+                const buttonContainer = document.createElement("div");
+                applyButtonContainerStyles(buttonContainer);
+
+                const doneButton = document.createElement("button");
+                doneButton.innerText = "Done";
+                doneButton.style.marginRight = "10px";
+
+                const cancelButton = document.createElement("button");
+                cancelButton.innerText = "Cancel";
+
+                buttonContainer.appendChild(doneButton);
+                buttonContainer.appendChild(cancelButton);
+                container.appendChild(buttonContainer);
+
+                // Append the container to the overlay
+                overlay.appendChild(container);
+                document.body.appendChild(overlay);
+
+                // Cancel button functionality
+                cancelButton.onclick = () => {
+                    document.body.removeChild(overlay);
+                    reject("cancelled");
+                };
+
+                // Done button functionality
+                doneButton.onclick = () => {
+                    try {
+                        if (!dataInstance || typeof dataInstance.reify !== "function") {
+                            throw new Error("dataInstance.reify() is not available");
+                        }
+                        const result = dataInstance.reify(); // ✅ This is what you want
+                        document.body.removeChild(overlay);
+                        resolve(result);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+
+                // Initialize the input logic
+                try {
+                    const pyretREPLInternal = window.__internalRepl;
+
+                    const success = CndCore.mountCombinedInput({
+                        containerId: combinedInputDiv.id,
+                        cndSpec: cndSpec,
+                        dataInstance: dataInstance,
+                        pyretEvaluator: pyretREPLInternal,
+                        height: '100%', // Ensure the combined input spans the full height of the container
+                        showLayoutInterface: false,
+                        autoApplyLayout: true,
+                        onInstanceChange: () => { },
+                        onSpecChange: () => { },
+                        onLayoutApplied: () => { }
+                    });
+
+                    if (!success) {
+                        throw new Error("Failed to mount combined input");
+                    }
+                } catch (err) {
+                    container.textContent = `Error: ${err.message || err}`;
+                    reject(err);
+                }
+            });
+        }
+
+        /**
+         * Attaches a keybinding to the active CodeMirror instance and executes a thunk when triggered.
+         *
+         * @param {string} keyBinding - The keybinding to attach (e.g., "Cmd-Shift-R").
+         * @param {function} thunk - A function that returns a string or a promise of a string.
+         *                           The result of the thunk will replace the text at the cursor.
+         *
+         * @example
+         * // Define a thunk that returns a string
+         * function exampleThunk() {
+         *     return "Hello, CodeMirror!";
+         * }
+         *
+         * // Attach the keybinding to CodeMirror
+         * attachToCM("Cmd-Shift-R", exampleThunk);
+         *
+         * // When "Cmd-Shift-R" is pressed, "Hello, CodeMirror!" will be inserted at the cursor.
+         */
+        function attachToCM(keyBinding, thunk) {
+            // Step 1: Find the active CodeMirror instance
+            const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
+            const cm = cmEl?.CodeMirror;
+
+            if (!cm) {
+                console.warn("❌ No CodeMirror editor found.");
+                return;
+            }
+
+            // Step 2: Add the keybinding using addKeyMap
+            const keyMap = {
+                [keyBinding]: async function (cmInstance) {
+                    try {
+                        // Call the thunk to get the result (string or promise of a string)
+                        const result = await thunk();
+
+                        // Replace the text at the cursor with the result
+                        cmInstance.replaceSelection(result || "");
+                    } catch (err) {
+                        console.error("Error in thunk execution:", err);
+                    }
+                }
+            };
+
+            cm.addKeyMap(keyMap);
+
+            console.log(`✅ Keybinding "${keyBinding}" attached to CodeMirror using addKeyMap.`);
+        }
+
+        // Attaching an input key-binding for empty values.
+        attachToCM("Ctrl-Alt-I", async () => {
+            try {
+                const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
+                const cm = cmEl?.CodeMirror;
+                if (!cm) throw new Error("No active CodeMirror instance");
+
+                const cursorCoords = cm.cursorCoords(true, "page");
+
+                let dataInstance = new window.CndCore.PyretDataInstance(null, false, window.__internalRepl);
+                const cndSpec = "";
+                const result = await geninput(dataInstance, cndSpec, cursorCoords);
+                return result;
+                //return JSON.stringify(result, null, 2);
+            } catch (err) {
+                console.error("Error invoking geninput:", err);
+                return "// Error: " + (err.message || err);
+            }
+        });
+
+        // Attach geninput to the window object to make it globally accessible [SP: Perhaps we don't need this? We need
+        // to figure out HOW to get the correct CnD spec though.]
+        window.geninput = geninput;
+        window.attachToCM = attachToCM;
+
+
 
 
         return runtime.makeModuleReturn({
