@@ -158,14 +158,16 @@
             overlay.style.alignItems = "center";
         }
 
-        function applyContainerStyles(container) {
-            container.style.background = "white";
-            container.style.border = "1px solid #ccc";
-            container.style.padding = "20px";
-            container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
-            container.style.width = "80vw";
-            container.style.borderRadius = "8px";
-        }
+function applyContainerStyles(container) {
+    container.style.background = "white";
+    container.style.border = "1px solid #ccc";
+    container.style.padding = "20px";
+    container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+    container.style.width = "80vw";
+    container.style.borderRadius = "8px";
+    container.style.maxHeight = "90vh"; // Limit the height to 90% of the viewport
+    container.style.overflowY = "auto"; // Enable vertical scrolling if content overflows
+}
 
         function applyButtonContainerStyles(buttonContainer) {
             buttonContainer.style.display = "flex";
@@ -245,11 +247,11 @@
                         dataInstance: dataInstance,
                         pyretEvaluator: pyretREPLInternal,
                         height: '100%', // Ensure the combined input spans the full height of the container
-                        showLayoutInterface: false,
+                        showLayoutInterface: true,
                         autoApplyLayout: true,
                         onInstanceChange: () => { },
-                        onSpecChange: () => { },
-                        onLayoutApplied: () => { }
+                        onSpecChange: () => {console.log("Spec changed"); },
+                        onLayoutApplied: () => { console.log("Layout applied successfully"); },
                     });
 
                     if (!success) {
