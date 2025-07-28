@@ -122,26 +122,26 @@
         /***** CND for Input ********/
 
 
-            // This is a helper function to generate a custom input dialog for CnD specs.
-            /**
-             * 
-             * TODO HERE:
-                * 
-                * [SP]: I think this should be moved up to all the other things?
-                * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
-                * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
-                * Like, there's no way to get the CnD spec for the particular type we're building, right?
-                * OR, for a given type, we can have the C-M hook up correctly AT the time of the first output?
-                * 
-                * So, while we DO have to hook this up to code mirror, there's more going on here.
-                * 
-                */
-            // SO. We need to FIRST evaluate the selected value,
-            // THEN, we need to generate the input for the CnD spec?
+        // This is a helper function to generate a custom input dialog for CnD specs.
+        /**
+         * 
+         * TODO HERE:
+            * 
+            * [SP]: I think this should be moved up to all the other things?
+            * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
+            * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
+            * Like, there's no way to get the CnD spec for the particular type we're building, right?
+            * OR, for a given type, we can have the C-M hook up correctly AT the time of the first output?
+            * 
+            * So, while we DO have to hook this up to code mirror, there's more going on here.
+            * 
+            */
+        // SO. We need to FIRST evaluate the selected value,
+        // THEN, we need to generate the input for the CnD spec?
 
-            // OR should the CnD spec be generated AS the value takes shape?
-            // Like, each time the constructor is called, we enforce the CnD spec for the value?
-            // (and compose them?)
+        // OR should the CnD spec be generated AS the value takes shape?
+        // Like, each time the constructor is called, we enforce the CnD spec for the value?
+        // (and compose them?)
 
         /*** Styling helpers. We ((should)) probably move to CSS for some of these? */
 
@@ -158,16 +158,16 @@
             overlay.style.alignItems = "center";
         }
 
-function applyContainerStyles(container) {
-    container.style.background = "white";
-    container.style.border = "1px solid #ccc";
-    container.style.padding = "20px";
-    container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
-    container.style.width = "80vw";
-    container.style.borderRadius = "8px";
-    container.style.maxHeight = "90vh"; // Limit the height to 90% of the viewport
-    container.style.overflowY = "auto"; // Enable vertical scrolling if content overflows
-}
+        function applyContainerStyles(container) {
+            container.style.background = "white";
+            container.style.border = "1px solid #ccc";
+            container.style.padding = "20px";
+            container.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+            container.style.width = "80vw";
+            container.style.borderRadius = "8px";
+            container.style.maxHeight = "90vh"; // Limit the height to 90% of the viewport
+            container.style.overflowY = "auto"; // Enable vertical scrolling if content overflows
+        }
 
         function applyButtonContainerStyles(buttonContainer) {
             buttonContainer.style.display = "flex";
@@ -185,9 +185,9 @@ function applyContainerStyles(container) {
                 const container = document.createElement("div");
                 applyContainerStyles(container);
 
-                // Add title
+                // Should we remove this?
                 const title = document.createElement("h3");
-                title.textContent = "Custom Input";
+                title.textContent = "Input";
                 title.style.marginTop = "0";
                 container.appendChild(title);
 
@@ -202,6 +202,8 @@ function applyContainerStyles(container) {
                 const buttonContainer = document.createElement("div");
                 applyButtonContainerStyles(buttonContainer);
 
+
+                // These should be better styled, and maybe at the top?
                 const doneButton = document.createElement("button");
                 doneButton.innerText = "Done";
                 doneButton.style.marginRight = "10px";
@@ -229,7 +231,7 @@ function applyContainerStyles(container) {
                         if (!dataInstance || typeof dataInstance.reify !== "function") {
                             throw new Error("dataInstance.reify() is not available");
                         }
-                        const result = dataInstance.reify(); // ✅ This is what you want
+                        const result = dataInstance.reify();
                         document.body.removeChild(overlay);
                         resolve(result);
                     } catch (err) {
@@ -250,7 +252,7 @@ function applyContainerStyles(container) {
                         showLayoutInterface: true,
                         autoApplyLayout: true,
                         onInstanceChange: () => { },
-                        onSpecChange: () => {console.log("Spec changed"); },
+                        onSpecChange: () => { console.log("Spec changed"); },
                         onLayoutApplied: () => { console.log("Layout applied successfully"); },
                     });
 
@@ -322,7 +324,18 @@ function applyContainerStyles(container) {
                 const cursorCoords = cm.cursorCoords(true, "page");
 
                 let dataInstance = new window.CndCore.PyretDataInstance(null, false, window.__internalRepl);
-                const cndSpec = "";
+                let cndSpec = "";
+
+
+                const selectedText = cm.getSelection();
+
+                // If there IS selected text, we should use that to build the data instance, by passing
+                // it to the evaluator.
+                // We should also get its CnD spec that way?
+
+                // What if something is selected by the user? Use that to BUILD the data instance?
+
+
                 const result = await geninput(dataInstance, cndSpec, cursorCoords);
                 return result;
                 //return JSON.stringify(result, null, 2);
