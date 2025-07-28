@@ -54,30 +54,3 @@ rbt = Black( 5, Black( 1, Red( 2, Red( 1, Leaf(0), Leaf(0)), Leaf(0)), Leaf(0)),
 
 
 
-
-# window.attachToCM("Ctrl-Alt-I", async () => {
-#   try {
-#     const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
-#     const cm = cmEl?.CodeMirror;
-#     if (!cm) throw new Error("No active CodeMirror instance");
-# 
-#     const cursorCoords = cm.cursorCoords(true, "page");
-# 
-#     const value = {
-#       "dict": { "value": 1 },
-#       "brands": {
-#         "$brandRBNod933": true,
-#         "$brandLeaf936": true
-#       }
-#     };
-# 
-#     const cndSpec = ""; // or dynamically derive
-# 
-#     const result = await window.geninput(value, cndSpec, cursorCoords);
-# 
-#     return JSON.stringify(result, null, 2);
-#   } catch (err) {
-#     console.error("Error invoking geninput:", err);
-#     return "// Error: " + (err.message || err);
-#   }
-# });
