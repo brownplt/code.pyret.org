@@ -296,24 +296,40 @@
 
                 const cursorCoords = cm.cursorCoords(true, "page");
 
-
                 let cndSpec = "";
-
+                let dataInstance = undefined;
                 const selectedText = cm.getSelection();
-
-                let dataInstance = (selectedText !== null && selectedText !== undefined && selectedText !== "") ?
+                if (selectedText != null && selectedText !== undefined && selectedText !== "") {
                     // If there IS selected text, we should use that to build the data instance, by passing
                     // it to the evaluator.
-                    window.CndCore.PyretDataInstance.fromExpression(selectedText, false, window.__internalRepl)
-                    //Else
-                    : new window.CndCore.PyretDataInstance(null, false, window.__internalRepl);
+                    function removeOuterQuotes(str) {
+                        // Check if the string starts and ends with quotes
+                        if (str.startsWith('"') && str.endsWith('"')) {
+                            // Remove the outermost quotes
+                            return str.slice(1, -1);
+                        }
+                        return str; // Return the string unchanged if no outer quotes
+                    }
+
+                    let cndSpecExpr = `(${selectedText})._cndspec()`;
+                    let intermediatePyretDataInst = await window.CndCore.PyretDataInstance.fromExpression(cndSpecExpr, false, window.__internalRepl);
+                    // Get the CnD spec from the selected text. This is super hacky, may be better to actually begin with the 
+                    // EVALUATION of the selected text.
+                    cndSpec = removeOuterQuotes(intermediatePyretDataInst.reify());
+
+
+                    dataInstance = await window.CndCore.PyretDataInstance.fromExpression(selectedText, false, window.__internalRepl);
+                } else {
+                    // Else, we create a new data instance with no value.
+                    dataInstance = new window.CndCore.PyretDataInstance(null, false, window.__internalRepl);
+                }
 
                 const result = await geninput(dataInstance, cndSpec, cursorCoords);
                 return result;
                 //return JSON.stringify(result, null, 2);
             } catch (err) {
                 console.error("Error invoking geninput:", err);
-                return "// Error: " + (err.message || err);
+                return "#Error: " + (err.message || err);
             }
         });
 
