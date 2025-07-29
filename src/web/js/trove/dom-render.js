@@ -277,10 +277,17 @@
                     try {
                         // Call the thunk to get the result (string or promise of a string)
                         const result = await thunk();
-                        // Replace the text at the cursor with the result
-                        cmInstance.replaceSelection(result || "");
+
+                        // Replace the text at the cursor with the result (only if the promise resolves)
+                        if (result !== undefined && result !== null) {
+                            cmInstance.replaceSelection(result);
+                        }
                     } catch (err) {
-                        console.error("Error in thunk execution:", err);
+                        if (err === "cancelled") {
+                            console.log("Operation cancelled by the user. No changes made.");
+                        } else {
+                            console.error("Error in thunk execution:", err);
+                        }
                     }
                 }
             };
@@ -315,7 +322,7 @@
                     let intermediatePyretDataInst = await window.CndCore.PyretDataInstance.fromExpression(cndSpecExpr, false, window.__internalRepl);
                     // Get the CnD spec from the selected text. This is super hacky, may be better to actually begin with the 
                     // EVALUATION of the selected text.
-                    cndSpec = removeOuterQuotes(intermediatePyretDataInst.reify());
+                    cndSpec = removeOuterQuotes(intermediatePyretDataInst.reify();
 
 
                     dataInstance = await window.CndCore.PyretDataInstance.fromExpression(selectedText, false, window.__internalRepl);
