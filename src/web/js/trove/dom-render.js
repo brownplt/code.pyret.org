@@ -122,27 +122,6 @@
         /***** CND for Input ********/
 
 
-        // This is a helper function to generate a custom input dialog for CnD specs.
-        /**
-         * 
-         * TODO HERE:
-            * 
-            * [SP]: I think this should be moved up to all the other things?
-            * More importantly, HOW can we get the CnD spec for the layout? It depends on the [fn right?]
-            * Number two: The value might also have to be an empty string? Or an empty value? OR we parse it?
-            * Like, there's no way to get the CnD spec for the particular type we're building, right?
-            * OR, for a given type, we can have the C-M hook up correctly AT the time of the first output?
-            * 
-            * So, while we DO have to hook this up to code mirror, there's more going on here.
-            * 
-            */
-        // SO. We need to FIRST evaluate the selected value,
-        // THEN, we need to generate the input for the CnD spec?
-
-        // OR should the CnD spec be generated AS the value takes shape?
-        // Like, each time the constructor is called, we enforce the CnD spec for the value?
-        // (and compose them?)
-
         /*** Styling helpers. We ((should)) probably move to CSS for some of these? */
 
         function applyOverlayStyles(overlay) {
@@ -281,8 +260,6 @@
          *
          * // Attach the keybinding to CodeMirror
          * attachToCM("Cmd-Shift-R", exampleThunk);
-         *
-         * // When "Cmd-Shift-R" is pressed, "Hello, CodeMirror!" will be inserted at the cursor.
          */
         function attachToCM(keyBinding, thunk) {
             // Step 1: Find the active CodeMirror instance
@@ -300,7 +277,6 @@
                     try {
                         // Call the thunk to get the result (string or promise of a string)
                         const result = await thunk();
-
                         // Replace the text at the cursor with the result
                         cmInstance.replaceSelection(result || "");
                     } catch (err) {
@@ -308,10 +284,7 @@
                     }
                 }
             };
-
             cm.addKeyMap(keyMap);
-
-            console.log(`✅ Keybinding "${keyBinding}" attached to CodeMirror using addKeyMap.`);
         }
 
         // Attaching an input key-binding for empty values.
@@ -323,18 +296,17 @@
 
                 const cursorCoords = cm.cursorCoords(true, "page");
 
-                let dataInstance = new window.CndCore.PyretDataInstance(null, false, window.__internalRepl);
-                let cndSpec = "";
 
+                let cndSpec = "";
 
                 const selectedText = cm.getSelection();
 
-                // If there IS selected text, we should use that to build the data instance, by passing
-                // it to the evaluator.
-                // We should also get its CnD spec that way?
-
-                // What if something is selected by the user? Use that to BUILD the data instance?
-
+                let dataInstance = (selectedText !== null && selectedText !== undefined && selectedText !== "") ?
+                    // If there IS selected text, we should use that to build the data instance, by passing
+                    // it to the evaluator.
+                    window.CndCore.PyretDataInstance.fromExpression(selectedText, false, window.__internalRepl)
+                    //Else
+                    : new window.CndCore.PyretDataInstance(null, false, window.__internalRepl);
 
                 const result = await geninput(dataInstance, cndSpec, cursorCoords);
                 return result;
@@ -352,6 +324,12 @@
 
 
 
+
+        /**
+         * 
+         * I also want to be able to open the CnD spec up in a modal, etc.
+         * 
+         */
 
         return runtime.makeModuleReturn({
             genlayout: runtime.makeFunction(genlayout)
