@@ -228,7 +228,7 @@
                         dataInstance: dataInstance,
                         pyretEvaluator: pyretREPLInternal,
                         height: '100%', // Ensure the combined input spans the full height of the container
-                        showLayoutInterface: true,
+                        showLayoutInterface: false,
                         autoApplyLayout: true,
                         onInstanceChange: () => { },
                         onSpecChange: () => { console.log("Spec changed"); },
@@ -322,7 +322,7 @@
                     let intermediatePyretDataInst = await window.CndCore.PyretDataInstance.fromExpression(cndSpecExpr, false, window.__internalRepl);
                     // Get the CnD spec from the selected text. This is super hacky, may be better to actually begin with the 
                     // EVALUATION of the selected text.
-                    cndSpec = removeOuterQuotes(intermediatePyretDataInst.reify();
+                    cndSpec = removeOuterQuotes(intermediatePyretDataInst.reify());
 
 
                     dataInstance = await window.CndCore.PyretDataInstance.fromExpression(selectedText, false, window.__internalRepl);
