@@ -42,7 +42,12 @@ provide:
   group,
   count,
   count-many,
-  render-chart
+  render-chart,
+  pie-chart,
+  bar-chart,
+  dot-plot,
+  labeled-dot-plot,
+  E
 end
 
 # ----------- TABLE FUNCTIONS -----------
@@ -242,3 +247,5 @@ fun count-many(tab, cols):
       end)
   end
 end
+
+E = ~2.718281828459045
