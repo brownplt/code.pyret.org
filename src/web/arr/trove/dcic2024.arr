@@ -15,6 +15,7 @@ include chart
 import statistics as S 
 #  import lists as L
 import sets as ST
+import constants as C
 
 provide: 
   get-row,
@@ -46,7 +47,10 @@ provide:
   pie-chart,
   bar-chart,
   dot-plot,
-  labeled-dot-plot,
+  labeled-dot-plot
+end
+
+provide from C:
   E
 end
 
@@ -247,5 +251,3 @@ fun count-many(tab, cols):
       end)
   end
 end
-
-E = ~2.718281828459045
