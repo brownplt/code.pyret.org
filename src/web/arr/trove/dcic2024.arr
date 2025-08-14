@@ -13,7 +13,7 @@ include from BASIC: *, type *, data * end
 include tables
 include chart 
 import statistics as S 
-# import lists as L
+#  import lists as L
 import sets as ST
 
 provide: 
