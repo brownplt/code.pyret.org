@@ -3,6 +3,8 @@
 var originalPageLoad = Date.now();
 console.log("originalPageLoad: ", originalPageLoad);
 
+const isEmbedded = window.parent !== window;
+
 var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
 
 var url = window.url = require('url.js');
@@ -119,7 +121,9 @@ function checkVersion() {
     }
   });
 }
-window.setInterval(checkVersion, VERSION_CHECK_INTERVAL);
+if(!isEmbedded) {
+  window.setInterval(checkVersion, VERSION_CHECK_INTERVAL);
+}
 
 window.CPO = {
   save: function() {},
@@ -189,6 +193,7 @@ $(function() {
     }
 
     const mac = CodeMirror.keyMap.default === CodeMirror.keyMap.macDefault;
+    console.log("Using keymap: ", CodeMirror.keyMap.default, "macDefault: ", CodeMirror.keyMap.macDefault, "mac: ", mac);
     const modifier = mac ? "Cmd" : "Ctrl";
 
     var cmOptions = {
@@ -203,6 +208,7 @@ $(function() {
         "Alt-Right": "goForwardSexp",
         "Ctrl-Left": "goBackwardToken",
         "Ctrl-Right": "goForwardToken",
+        [`${modifier}-F`]: "findPersistent",
         [`${modifier}-/`]: "toggleComment",
       }),
       indentUnit: 2,
@@ -253,7 +259,7 @@ $(function() {
       gutterTooltip.className = "gutter-question-tooltip";
       gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu. Most of the time you won't need to change this at all.";
       const gutterQuestion = document.createElement("img");
-      gutterQuestion.src = "/img/question.png";
+      gutterQuestion.src = window.APP_BASE_URL + "/img/question.png";
       gutterQuestion.className = "gutter-question";
       gutterQuestionWrapper.appendChild(gutterQuestion);
       gutterQuestionWrapper.appendChild(gutterTooltip);
@@ -387,47 +393,56 @@ $(function() {
     If the url does have a #program or #share, the promise is for the
     corresponding object.
   */
-  var initialProgram = storageAPI.then(function(api) {
-    var programLoad = null;
-    if(params["get"] && params["get"]["program"]) {
-      enableFileOptions();
-      programLoad = api.getFileById(params["get"]["program"]);
-      programLoad.then(function(p) { showShareContainer(p); });
-    }
-    else if(params["get"] && params["get"]["share"]) {
-      logger.log('shared-program-load',
-        {
-          id: params["get"]["share"]
-        });
-      programLoad = api.getSharedFileById(params["get"]["share"]);
-      programLoad.then(function(file) {
-        // NOTE(joe): If the current user doesn't own or have access to this file
-        // (or isn't logged in) this will simply fail with a 401, so we don't do
-        // any further permission checking before showing the link.
-        file.getOriginal().then(function(response) {
-          console.log("Response for original: ", response);
-          var original = $("#open-original").show().off("click");
-          var id = response.result.value;
-          original.removeClass("hidden");
-          original.click(function() {
-            window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+  let initialProgram;
+  if(params["get"] && params["get"]["shareurl"]) {
+    initialProgram = makeUrlFile(params["get"]["shareurl"]);
+  }
+  else {
+    initialProgram = storageAPI.then(function(api) {
+      var programLoad = null;
+      if(params["get"] && params["get"]["program"]) {
+        enableFileOptions();
+        programLoad = api.getFileById(params["get"]["program"]);
+        programLoad.then(function(p) { showShareContainer(p); });
+      }
+      else if(params["get"] && params["get"]["share"]) {
+        logger.log('shared-program-load',
+          {
+            id: params["get"]["share"]
+          });
+        programLoad = api.getSharedFileById(params["get"]["share"]);
+        programLoad.then(function(file) {
+          // NOTE(joe): If the current user doesn't own or have access to this file
+          // (or isn't logged in) this will simply fail with a 401, so we don't do
+          // any further permission checking before showing the link.
+          file.getOriginal().then(function(response) {
+            console.log("Response for original: ", response);
+            var original = $("#open-original").show().off("click");
+            var id = response.result.value;
+            original.removeClass("hidden");
+            original.click(function() {
+              window.open(window.APP_BASE_URL + "/editor#program=" + id, "_blank");
+            });
           });
         });
-      });
-    }
-    else {
-      programLoad = null;
-    }
-    if(programLoad) {
-      programLoad.fail(function(err) {
-        console.error(err);
-        window.stickError("The program failed to load.");
-      });
-      return programLoad;
-    } else {
+      }
+      else {
+        programLoad = null;
+      }
+      if(programLoad) {
+        programLoad.fail(function(err) {
+          console.error(err);
+          window.stickError("The program failed to load.");
+        });
+        return programLoad;
+      } else {
+        return null;
+      }
+    }).catch(e => {
+      console.error("storageAPI failed to load, proceeding without saving programs: ", e);
       return null;
-    }
-  });
+    });
+  }
 
   function setTitle(progName) {
     document.title = progName + " - code.pyret.org";
@@ -1196,10 +1211,11 @@ $(function() {
     $(".replMain").attr("aria-hidden", true).attr("tabindex", '-1');
   }
   
-  const isControlled = params["controlled"];
-  const warnOnExit = ("warnOnExit" in params["get"]) && (params["get"]["warnOnExit"] !== "false");
+  const isControlled = params["get"]["controlled"];
+  const hasWarnOnExit = ("warnOnExit" in params["get"]);
+  const skipWarning = hasWarnOnExit && (params["get"]["warnOnExit"] === "false");
 
-  if(!isControlled && !warnOnExit) {
+  if(!isControlled && !skipWarning) {
     $(window).bind("beforeunload", function() {
       return "Because this page can load slowly, and you may have outstanding changes, we ask that you confirm before leaving the editor in case closing was an accident.";
     });
@@ -1323,7 +1339,8 @@ $(function() {
 
   });
 
-  programLoaded.fail(function() {
+  programLoaded.fail(function(error) {
+    console.error("Program contents did not load: ", error);
     CPO.documents.set("definitions://", CPO.editor.cm.getDoc());
   });
 
@@ -1333,6 +1350,7 @@ $(function() {
   console.log(window.PYRET);
   pyretLoad.src = window.PYRET;
   pyretLoad.type = "text/javascript";
+  pyretLoad.setAttribute("crossorigin", "anonymous");
   document.body.appendChild(pyretLoad);
 
   var pyretLoad2 = document.createElement('script');
@@ -1384,7 +1402,7 @@ $(function() {
   }
 
   $(pyretLoad).on("error", function(e) {
-    logFailureAndManualFetch(process.env.PYRET, e);
+    logFailureAndManualFetch(window.PYRET, e);
     pyretLoad2.src = process.env.PYRET_BACKUP;
     pyretLoad2.type = "text/javascript";
     document.body.appendChild(pyretLoad2);
@@ -1435,6 +1453,10 @@ $(function() {
     onLoad,
     triggerOnLoad
   };
+
+  // We never want interactions to be hidden *when running code*.
+  // So hideInteractions should go away as soon as run is clicked
+  CPO.events.onRun(() => { document.body.classList.remove("hideInteractions"); });
 
   let initialState = params["get"]["initialState"];
 

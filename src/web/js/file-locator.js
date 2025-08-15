@@ -77,7 +77,7 @@ define("cpo/file-locator", [], function() {
           function getModule(self) {
             if (ast) { return ast; }
             return runtime.pauseStack(function(restarter) {
-              const contents = sendRpc('fs', 'readFileSync', [path]);
+              const contents = sendRpc('fs', 'readFile', [path, 'utf8']);
               contents.then(contents => {
                 CPO.documents.set(uri, new CodeMirror.Doc(contents, "pyret"));
                 runtime.runThunk(() => {

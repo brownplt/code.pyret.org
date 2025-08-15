@@ -5,10 +5,10 @@ function commSetup(config, messageCallback, gainControl, loseControl) {
   const callbacks = {};
   let callbackCounter = 0;
 
-  function sendRpc(data, callback) {
+  function sendRpc(data, resolve, reject) {
     callbackCounter += 1;
     const callbackId = `${callbackCounter}-${data.module}-${data.method}`
-    callbacks[callbackId] = callback;
+    callbacks[callbackId] = [ resolve, reject ];
     config.sendPort.postMessage({
       protocol: "pyret-rpc",
       data: { ...data, callbackId }
@@ -64,9 +64,19 @@ function commSetup(config, messageCallback, gainControl, loseControl) {
         return;
       }
       else {
-        const callback = callbacks[event.data.data.callbackId];
+        const [resolve, reject] = callbacks[event.data.data.callbackId];
         delete callbacks[event.data.data.callbackId];
-        callback(event.data.data.result);
+        if(event.data.data.resultType === "exception") {
+          reject(event.data.data.exception); 
+        }
+        else if(event.data.data.resultType === "value") {
+          resolve(event.data.data.result);
+        }
+        else {
+          const message = "Internal RPC error, unknown RPC response event (no result or exception)";
+          console.error(message, event);
+          reject({ event, message });
+        }
       }
       return;
     }
@@ -252,6 +262,11 @@ function makeEvents(config) {
     }, `Ran the last interaction, ${interaction}.`, state);
   });
 
+  async function clearInteractions(state) {
+    interactionsSinceLastRun = [];
+    $("#output").empty();
+  }
+
   async function runInteraction(src, reportAnswer) {
     // Because of a bug we introduced, a bunch of rooms ended up with states with null
     // interactions. If left null, they will put the editor into an unrecoverable state.
@@ -278,10 +293,14 @@ function makeEvents(config) {
 
     if(typeof reportAnswer === 'string') {
       const state = { ...getCurrentState(config), replContents: "" };
+      const elts = $("#output").children(".echo-container").last().nextAll();
+      const texts = elts.map((_, e) => $(e).text()).get();
+      const htmls = elts.map((_, e) => $(e).html()).get();
+      const textResult = JSON.stringify({ texts, htmls });
       comm.sendEvent({
         type: "interactionResult",
         reportAnswer,
-        textResult: $("#output").children().last().text(),
+        textResult,
       }, `Reporting an interaction by request, ${src} ${reportAnswer}.`, state);
     }
   }
@@ -395,6 +414,9 @@ function makeEvents(config) {
         stop();
         addMessage({ process: async () => { return runProgram(state); } });
         break;
+      case "clearInteractions":
+        addMessage({ process: async () => { return clearInteractions(state); } });
+        break;
       case "setContents":
         addMessage({ process: async () => { return editorUpdate(message.text); } });
         break;
@@ -460,7 +482,7 @@ function makeEvents(config) {
     sendRpc: (module, method, args) => {
       const { promise, resolve, reject } = Promise.withResolvers();
       const data = { module, method, args }
-      comm.sendRpc(data, resolve);
+      comm.sendRpc(data, resolve, reject);
       return promise;
     }
   }

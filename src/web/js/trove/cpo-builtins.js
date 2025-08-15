@@ -8,6 +8,7 @@
     { "import-type": "builtin", "name": "plot" },
     { "import-type": "builtin", "name": "plot-list" },
     { "import-type": "builtin", "name": "chart" },
+    { "import-type": "builtin", "name": "charts" },
     { "import-type": "builtin", "name": "str-dict" },
     { "import-type": "builtin", "name": "reactors" },
     { "import-type": "builtin", "name": "math" },

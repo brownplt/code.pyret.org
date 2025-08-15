@@ -7,10 +7,13 @@ function sendReset(frame, state) {
       replContents: ""
     };
   }
+  if(typeof state !== 'string') {
+    state = JSON.stringify(state);
+  }
   frame.contentWindow.postMessage({
     data: {
       type: 'reset',
-      state: JSON.stringify(state)
+      state
     },
     protocol: 'pyret'
   });

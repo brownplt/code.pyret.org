@@ -1,4 +1,3 @@
-language: ruby
 dist: jammy
 sudo: required
 env:
@@ -17,6 +16,7 @@ env:
   - SAUCE_TEST_TARGET="http://localhost:5000"
   - SAUCE_USERNAME="pyret-lang"
   - POSTMESSAGE_ORIGIN="*"
+  - SHARED_FETCH_SERVER="https://code.pyret.org"
   - secure: e0vpQGmW0d69Ql72Mw6gsGsMxAKgt61ZNqsfQEtNlAGtx7CbTKe3xg8kF1ygwFVEB7GDmTaojTcSGbRwqqZ5GAa8dsTAkefhOtfCDV5KUjvXXbpo9J/8YLiZiIy7ksHyh1yhByvvWmZZpjmdxWwcH8gUqtpae3bGtz7rQX3jLf2v3OR5uVFt8vKRMSR9imCWmq6tpnu+GVoaCFOHjq3U7LS1h78R2LJz+MnTuCbDtYFlxp/sAyS7vSXssFScl6wqOsgH5PHlj+kaHhFWLhzsAzG1RoHftqqIeinXzDcYo8EC/c6O3hMf2KtHm/Hsh1dPR8GnE6WClxPw0xNbh10jVf7b1CXuzKGF8a1JlmtsVztiujsMswZGGLpTkqBvBAiuDsMOwKFNk7UrR5FA/0bVMMsluKxW/0UBzVPN9QyMKAs19ca1t/qT3abxYFyvXrDibKMLuS1uCCsZbwTkjkPwfWBzin8ohK2gLi+y24eQFSd27XWcmk+fJHfgJ458OgvczubK0CsyPAaJtCvRBYKvLQaEtkc4RkoM0yx6NhYYLCZqH1DRneam40rVSrVO41yT/PUnA5U64q16ptbn90Vgw/yKlp9OLtWKheBDTinwbst1kegbCSj4qZtORFLIQIUsZQN6SUm9tCACqFosDpRXAzURc2IOdsSUmtJEqvkijsc=
   - secure: "E19TyEFE1iQSRrZI4w6ahWgFGEFZBiUgxn/Pqq5sQwHlMNpai+bVydDRVlcQ0NsrdPmyXY/4+29wMjsAHbSaiBuqgG5PbtpChJK7a+8583G6CrbkWdZgwkMDpqPQ2IBEWVYeybvl36wuXJ4HNCqImPODWvX1Wxzk5RCK/gM4PNu3OdmQm3+6O8y1N6r0Y/lnqeAxhaZ5wv01/6EE3I3rAbnFxnu0wIJ7AfNV64VRk+tqwYuM5fLXrl6yhelSwp9q5CLEwvvYknBkklHAXbvxc2qo8XfZb6Zb701NyGvFW86Acgo1dytqV+BNmxNj4FfnXj+rxi/SDpiKEifzj5UYLIAgAx/qbxWSHD8SHiOL1WMa7N3vN2Dh+O+9vCLDwtpzbC0kJqxVMei8buAR4pLReZO0OsmHGXDPApoqOdxvQ0Z2VtEWojIWaJSIl0gTaWKAPAE6GMT0zRQcmm6GPXmLpWGc/9MZKJ5lTXQloucRaStRhPYV4x2HNF4vVZmJ0RWQexAX4qsUiaVFs0jdnJTDvgyPWj+f7qJaaqNFfXz9TyP2N8LSjPdGBYfkWIbkv8dXjJCufXX29BbOD5Yq1NcRQxgTnQO1cvXs1/MJOrK8tCAQ/rZUqQakBMg71fhznOm2lejiiingfnq846C1v27KxZzFLnGIOfDUbMAgS1sbGUU="
   - secure: "W74n+StLe0w+Lm6KNQN3lLzj4BFCy7vVSRCOQ3t5e3uSXDyLubqgRTXTXPoeypzcztbnMsd8Y57FyjJEaUydb2LPATEoJ9VbBy0ohXV/c3bucJSa4ZJxvb/8L62cepsZkRmoMl1HpW2kLWle50UdCLRqE0aGNHwM9FXfBAd279vmjmvPhFtGEiKkDek/ckroebG0n0xAox56ZmnuJM4boG3o0oUNjSE4U4W/RKMoApLJlUcEcdmWzJvOILeNvydFrHzQcSeHx6uH5LJg/N6RCHb++MI+BiUrAeGa0jm0YXFH0mdDmjCACAcRUzlyAGuadb2dAPcgKPV7xGyDJIn6+OD9dhwEGTGzyKr622fUcCa5+t4PERBFq7nYj7BU1CoqWUsYN6jArkH0ye7lA9usNZsHNXoykZkhpJYEoygYQg6mGnO0v0sRiUbv0BFQ4tN+l/ejvLfCiczjhuBgHlm7m0TUsH94dzeHFqGPlNGy75Rq9PM+0kxvN/TLY3udymKzpTJlbcaDvwQ37unBU2h7DpAYzscxyMcPbHo/F2lnmK/vlpSAsSjkdnpVp4Av+urn8G2eVJw+XnLWCQb4GIRsFzLfXOAPdhcQIZHfhiQTUXgFl+ahC2hEdC1sjho0yWWOHIhRoQ/5sLenB4hFTozxhbIKZTlyWI7FwuPnpWnhvAY="
@@ -47,6 +47,8 @@ before_install:
 - . $HOME/.nvm/nvm.sh
 - nvm install 18
 - nvm use 18
+- gem install nokogiri
+- gem install logger
 - export CHROME_VERSION=`curl https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE `
 - curl https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chrome-linux64.zip -o chrome-linux64.zip
 - curl https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip -o chromedriver-linux64.zip
@@ -69,6 +71,7 @@ install:
 - make deploy-cpo-main
 deploy:
   - provider: s3
+    edge: true
     access_key_id: AKIAIFY44WM3LGA4OQSQ
     secret_access_key:
       secure: X50U/xTxW1OOBL5rQ6k764xAitKS77+NZfzAGgOKbk/0REUJEg3BHCYCqhr6/AtThh42HKBNNuG029Xu/0wQYOJq9JNWms61g25/1ig6HbeeaJbbpRLdRDWp59UAeB8tUQmPgI34DxREe2zcJJpNErepbkQ0XXx2tULF3HWBLD7PPOv4Ylb78bfhteIGKNX8+Ipag0gCGmJiTr9OPp6FCQh7kWzG1DBfT8t6gZJM9rhvE1y0Myv1OmcT2zs5ZCvd/uJWz7iiGjs4VvOJVTTFYs733B1NX3Inv3vlbgNny46JT7vT5M0RMgulb8ypkkzLham43yuQyn3eIGKVLd3AcTUtdNTB1TP4be50wT/FAoj195Ec1JAsO9LCKz79JPbUvoxdh9C+k+H0B0SHbL+VXqIhZGWLYq0GE/LZfBESYKAeNq/WfoNtfFXIv1VO0rgbX2FU/jxoM7uROagDhfeLBdmYhQVj3O4rXpcUDHcebBEycXlmC5zOaqmANZ37Pc3QIoR1is2+hkNzeP1/NV4huYOmJFlrD7dADKXIsh6vSyp6uZ49tabMfqSe9oKbl41Yc+uHEBm2vPXUF9vmm0SLOZScjFNyvd04EOXxTCBCww+qlFeIeHTyw9NgEIsOgUWUX44ZNZJATLnxCE9EZ+Sp5MHGDH7Wz5ceR5tZh68P7kw=
@@ -82,6 +85,7 @@ deploy:
       repo: brownplt/code.pyret.org
       branch: horizon
   - provider: heroku
+    edge: true
     app: pyret-horizon
     api_key:
       secure: "S40lZzhfFnaBbSYTP1+1w/MkyPmsbUX2n/t1DSDBBi938PvE5ZjWHr+Ov7dgavpIDq+uxFazUH5tGSBkZHDAok1KwhUck1U6REQVpV7UCx1wJ0wNqrfEKIqFj2PqarBzTe+YMftHodQeQParhhqVwf0+qBJBZOeMXIUm6jUoTgV/uY7QPRLKHr3MR771kIffdGnzZSSFS+k2GYuQkdK8nIEFstBH8+r8nlcxc71Spw4ey62h3ybOxc2ilhLqw2E++cx89u7WF0XFisLv0iQzpuXAOkwpxe4YGX9pk3gnd3G4BzSU1baOgF35YD0QlyZ2xqB6bTu1GRPIL+dIgl1pauzJXS/DUywzrpINnN/TmW6j051V1as35F3EnjYxOxoFx7GfEleM/0sJLNkB0UKSm03hA9Y7zF194t2CBI+ebCpxgEO4e4hEUDaTfQkrLHBDWd/W4st8cblpizt+ozdnvi4d40x9y1+MB0o3lLw6U0qO/z98RS05bIBYxwLl1/dtUg4GjRe2gtbhOz9A1O+MDCDYono1eP8I4aIXFsYB2VqU6XCoxDLHKhnnec8930pxlyrWQmUTvOetnluZzGdxio/q0pOB2gnwjU7jFtMGT/yb85XDfXxCQZyD4dBArDdRmQhf3yjrRcyeLuCP+y7kiOfkVI38bOZf6lg1Z3K2YLM="

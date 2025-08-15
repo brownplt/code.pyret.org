@@ -320,12 +320,17 @@ body {
   font-size: var(--numbers-font-size);
   text-decoration: var(--numbers-text-decoration);
 }
-.cm-s-default .cm-roughnum { 
+.cm-s-default .cm-roughnum, .cm-s-default .cm-roughnum-start { 
   color: var(--rough-nums);
   font-weight: var(--rough-nums-font-weight);
   font-style: var(--rough-nums-font-style);
   font-size: var(--rough-nums-font-size);
   text-decoration: var(--rough-nums-text-decoration);
+}
+.cm-s-default .cm-roughnum-start {
+  display: inline-block;
+  transform: rotate(-15deg) scale(1.5);
+  margin-right: 0.125em;
 }
 .cm-s-default .cm-bad-number { 
   color: var(--bad-numbers);
@@ -1542,14 +1547,14 @@ code div {
 .warning-upper {
   animation-name: arrow-upper-bounce;
   background-image:
-      url('/img/up-arrow.png'),
+      url('../img/up-arrow.png'),
       linear-gradient(to bottom,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
 }
 
 .warning-lower {
   animation-name: arrow-lower-bounce;
   background-image:
-      url('/img/down-arrow.png'),
+      url('../img/down-arrow.png'),
       linear-gradient(to top,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
 }
 
@@ -1602,6 +1607,10 @@ code div {
   background-color: var(--ui-dialog-default);
   border-radius: 5px;
   z-index: 15000;
+}
+
+#vg-tooltip-element {
+  z-index: 15100;
 }
 
 .ui-dialog-titlebar {
@@ -1958,7 +1967,7 @@ body.smallHeader #run-dropdown-content {
   display: block;
   min-height: 3em;
   min-width: 3em;
-  background-image: url(/img/pyret-spin.gif);
+  background-image: url(../img/pyret-spin.gif);
   background-size: contain;
   background-repeat: no-repeat;
   flex: 1;

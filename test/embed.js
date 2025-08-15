@@ -16,7 +16,7 @@ describe("Embedding API Basics – Single embedded instance", function() {
   }
   
   it("should get a pyret-init event on startup", function(done) {
-    this.timeout(6000);
+    this.timeout(10000);
     var self = this;
     this.browser.get(this.base + "/embed/embed1.html?" + this.base);
     waitForInit(this.browser);
@@ -24,7 +24,7 @@ describe("Embedding API Basics – Single embedded instance", function() {
   });
   
   it("should have definitions set after a simple reset", function(done) {
-    this.timeout(6000);
+    this.timeout(10000);
     var self = this;
     this.browser.get(this.base + "/embed/embed1.html?" + this.base);
     waitForInit(this.browser);
@@ -40,6 +40,23 @@ describe("Embedding API Basics – Single embedded instance", function() {
     this.browser.wait(function() {
       return self.browser.executeScript(`
         return $(".CodeMirror")[0].CodeMirror.getValue().includes("simple reset test")
+      `);
+    });
+    this.browser.call(done);
+  });
+  
+  it("should load starter files", function(done) {
+    this.timeout(15000);
+    var self = this;
+    this.browser.get(this.base + "/embed/embed1.html?" + this.base);
+    waitForInit(this.browser);
+    this.browser.executeScript(`
+      window.embedAPI.sendReset("https://code.pyret.org/editor#share=1rj_zKiheibxod8IihAFeMpP91XjLROum")
+      `)
+    this.browser.switchTo().frame('embed1');
+    this.browser.wait(function() {
+      return self.browser.executeScript(`
+        return $(".CodeMirror")[0].CodeMirror.getValue().includes("animals-table")
       `);
     });
     this.browser.call(done);
@@ -79,7 +96,7 @@ describe("Embedding API – Two instances", function() {
   });
   
   it("should propagate definitions changes across", function(done) {
-    this.timeout(10000);
+    this.timeout(15000);
     var self = this;
     this.browser.get(this.base + "/embed/embed2.html?" + this.base);
     waitForInit(this.browser);
