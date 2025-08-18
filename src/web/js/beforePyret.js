@@ -1471,4 +1471,4 @@ $(function() {
   else if((window.parent && (window.parent !== window)) || process.env.NODE_ENV === "development") {
     window.MESSAGES = makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
   }
- });
+});
