@@ -21,7 +21,7 @@ NODE_MODULE = $(shell node -e "console.log(require('node:path').dirname(require.
 # trailing lib/ or mode/ or build/something at the end, but we need files from
 # other paths in them
 CM=$(call NODE_MODULE,codemirror)/..
-PYRET_MODE=$(call NODE_MODULE,pyret-codemirror-mode)/..
+PYRET_MODE=$(call NODE_MODULE,pyret-codemirror-mode/package.json)
 PYRET=$(call NODE_MODULE,pyret-lang)/../..
 
 CPOMAIN=build/web/js/cpo-main.jarr
@@ -383,8 +383,8 @@ libpyret:
 	$(MAKE) phaseA -C pyret/
 
 $(BUNDLED_DEPS): src/scripts/npm-dependencies.js
-	# Explicitly exclude crypto, buffer, and stylus, nested npm dependencies that aren't needed
-	npx browserify src/scripts/npm-dependencies.js -x crypto -x stylus -o $(BUNDLED_DEPS)
+	# Explicitly exclude crypto, buffer, canvas, and stylus, nested npm dependencies that aren't needed
+	npx browserify src/scripts/npm-dependencies.js -x crypto -x canvas -x stylus -o $(BUNDLED_DEPS)
 
 $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
