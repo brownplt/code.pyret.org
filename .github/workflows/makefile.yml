@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout repository
@@ -19,6 +20,19 @@ jobs:
       with:
         node-version: '24'
         cache: 'npm'
+
+    - name: "Configure AWS Credentials"
+      uses: aws-actions/configure-aws-credentials@v4.2.1
+      with:
+        aws-region: us-east-1
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      if: github.event_name != 'pull_request'
+        
+    - name: S3 test
+      run: |
+        aws s3 ls s3://pyret-horizon/new-horizons
+      if: github.event_name != 'pull_request'
 
     - name: Install Chrome and ChromeDriver
       run: |
@@ -75,6 +89,7 @@ jobs:
         echo "SHARED_FETCH_SERVER=https://code.pyret.org" >> $GITHUB_ENV
         echo "URL_FILE_MODE=all-remote" >> $GITHUB_ENV
         echo "IMAGE_PROXY_BYPASS=true" >> $GITHUB_ENV
+        echo "POSTMESSAGE_ORIGIN=*" >> $GITHUB_ENV
 
     - name: Start application server
       run: |
@@ -89,18 +104,20 @@ jobs:
 
     - name: Run tests
       run: |
-        # Set up virtual display for headless browser testing
-        export DISPLAY=:99
-        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        
         # Wait a bit more for everything to be ready
         sleep 3
         
         # Run tests based on event type
         if [ "${{ github.event_name }}" = "pull_request" ]; then
           echo "Running PR tests (excluding modules)"
-          npx mocha --grep modules --invert
+          npm run mocha -- --grep modules --invert
         else
           echo "Running all tests"
-          npx mocha
+          npm run mocha
         fi
+
+    - name: Copy cpo-main and related JS to S3
+      run: |
+        aws s3 sync ./build/web/js s3://pyret-horizon/horizon-action-test --acl public-read --exclude "*" --include "cpo-main.jarr.gz.js" --content-encoding gzip
+        aws s3 sync ./build/web/js s3://pyret-horizon/horizon-action-test --acl public-read --exclude "cpo-main.jarr.js.gz"
+      if: github.event_name != 'pull_request'

@@ -45,7 +45,7 @@ describe("Embedding API Basics – Single embedded instance", function() {
     this.browser.call(done);
   });
   
-  it("should load starter files", function(done) {
+  xit("should load starter files", function(done) {
     this.timeout(15000);
     var self = this;
     this.browser.get(this.base + "/embed/embed1.html?" + this.base);

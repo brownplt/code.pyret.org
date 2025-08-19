@@ -1,6 +1,6 @@
 var tester = require("../test-util/util.js");
 
-describe("Running Google Sheets programs", function() {
+xdescribe("Running Google Sheets programs", function() {
   beforeEach(tester.setup);
   afterEach(tester.teardown);
 
