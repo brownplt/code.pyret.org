@@ -1701,13 +1701,16 @@
           }
           container.append($("<span>").text(")"));
         } else if (runtime.ffi.isVSConstrRender(val)) {
-          // TODO:
-          // - Fallthrough for isInRendererContext being false to just use vsconstr
-          // - Safely calling CPO here: are we on a CPO stack? (YES: we are within a runThunk that's running toReprJS)
-          // - Make a JS rendered that's nice and expose some JS combinators
 
 
-          // vs-alternatives(skels :: RawArray<ValueSkeleton>)
+          // We know we are on the CPO stack here (within a runThink that's running toReprJS).
+          // This means we can safely call CPO here.
+
+
+          // A good improvement here would be to build some kind of fallthrough mechanism when 
+          // isInRendererContext being false to just use vsconstr
+
+
 
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
           var currentContainer;

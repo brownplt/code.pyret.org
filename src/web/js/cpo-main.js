@@ -443,12 +443,9 @@
       };
       window.replWidget = CPO.replWidget = replWidget;
 
-      // SP : Exposing repl for use. Is this a great idea? Probably not.
+      // Exposing this for dom-render.js to use for input.
       window.__internalRepl = repl;
-      // SP: Should this be RE-RUN every time?
-      // Evaluating an expression failed. It was expected to evaluate to a "Pyret Value". It evaluated to the non-"Pyret Value" value: "non-Pyret value; see the console for more details"
-      //window.__currentModules = gf(repl, "current-modules").app();
-
+    
       /*
       $("#runDropdown").click(function() {
         $("#run-dropdown-content").toggle();
