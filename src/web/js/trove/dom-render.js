@@ -9,7 +9,7 @@
     theModule: function (runtime, namespace, uri) {
 
 
-        ///// Core Layout Generation /////
+        ///// Layout Generation /////
         function genlayout(v, cndSpec) {
 
             const container = document.createElement("div");
@@ -119,7 +119,7 @@
         }
 
 
-        /***** CND for Input ********/
+        /***** Input FROM a layout ********/
 
 
         /*** Styling helpers. We ((should)) probably move to CSS for some of these? */
@@ -154,6 +154,9 @@
         }
         /********** */
 
+
+        const INPUT_KEYBINDING = "Ctrl-Alt-I";
+
         function geninput(dataInstance, cndSpec) {
             return new Promise((resolve, reject) => {
                 // Create the overlay container
@@ -164,7 +167,7 @@
                 const container = document.createElement("div");
                 applyContainerStyles(container);
 
-                // Should we remove this?
+                // TODO: This seems superfluous from a text standpoint.
                 const title = document.createElement("h3");
                 title.textContent = "Input";
                 title.style.marginTop = "0";
@@ -294,8 +297,8 @@
             cm.addKeyMap(keyMap);
         }
 
-        // Attaching an input key-binding for empty values.
-        attachToCM("Ctrl-Alt-I", async () => {
+
+        attachToCM(INPUT_KEYBINDING, async () => {
             try {
                 const cmEl = document.activeElement.closest(".CodeMirror") || document.querySelector(".CodeMirror");
                 const cm = cmEl?.CodeMirror;
@@ -340,19 +343,6 @@
             }
         });
 
-        // Attach geninput to the window object to make it globally accessible [SP: Perhaps we don't need this? We need
-        // to figure out HOW to get the correct CnD spec though.]
-        window.geninput = geninput;
-        window.attachToCM = attachToCM;
-
-
-
-
-        /**
-         * 
-         * I also want to be able to open the CnD spec up in a modal, etc.
-         * 
-         */
 
         return runtime.makeModuleReturn({
             genlayout: runtime.makeFunction(genlayout)
