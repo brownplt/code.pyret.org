@@ -1710,8 +1710,6 @@
           // A good improvement here would be to build some kind of fallthrough mechanism when 
           // isInRendererContext being false to just use vsconstr
 
-
-
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
           var currentContainer;
           const elements = [];

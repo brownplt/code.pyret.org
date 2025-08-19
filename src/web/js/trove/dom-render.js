@@ -119,10 +119,10 @@
         }
 
 
-        /***** Input FROM a layout ********/
+        /***** Input FROM a layout. This is still experimental and so hidden behind a key-binding. ********/
 
 
-        /*** Styling helpers. We ((should)) probably move to CSS for some of these? */
+        /*** Styling helpers */
 
         function applyOverlayStyles(overlay) {
             overlay.style.position = "fixed";
@@ -157,6 +157,7 @@
 
         const INPUT_KEYBINDING = "Ctrl-Alt-I";
 
+        // This is the main function for input mode.
         function geninput(dataInstance, cndSpec) {
             return new Promise((resolve, reject) => {
                 // Create the overlay container
