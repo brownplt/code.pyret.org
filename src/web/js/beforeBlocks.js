@@ -1373,21 +1373,19 @@ $(function() {
 
   });
 
-  const onRunHandlers = [];
-  function onRun(handler) {
-    onRunHandlers.push(handler);
+  function makeEvent() {
+    const handlers = [];
+    function on(handler) {
+      handlers.push(handler);
+    }
+    function trigger(v) {
+      handlers.forEach(h => h(v));
+    }
+    return [on, trigger];
   }
-  function triggerOnRun() {
-    onRunHandlers.forEach(h => h());
-  }
-
-  const onInteractionHandlers = [];
-  function onInteraction(handler) {
-    onInteractionHandlers.push(handler);
-  }
-  function triggerOnInteraction(interaction) {
-    onInteractionHandlers.forEach(h => h(interaction));
-  }
+  let [ onRun, triggerOnRun ] = makeEvent();
+  let [ onInteraction, triggerOnInteraction ] = makeEvent();
+  let [ onLoad, triggerOnLoad ] = makeEvent();
 
   programLoaded.fin(function() {
     CPO.editor.focus();
@@ -1399,14 +1397,32 @@ $(function() {
   CPO.updateName = updateName;
   CPO.showShareContainer = showShareContainer;
   CPO.loadProgram = loadProgram;
+  CPO.storageAPI = storageAPI;
   CPO.cycleFocus = cycleFocus;
   CPO.say = say;
   CPO.sayAndForget = sayAndForget;
-  CPO.onRun = onRun;
-  CPO.triggerOnRun = triggerOnRun;
-  CPO.onInteraction = onInteraction;
-  CPO.triggerOnInteraction = triggerOnInteraction;
+  CPO.events = {
+    onRun,
+    triggerOnRun,
+    onInteraction,
+    triggerOnInteraction,
+    onLoad,
+    triggerOnLoad
+  };
 
+  let initialState = params["get"]["initialState"];
+
+  if (typeof acquireVsCodeApi === "function") {
+    window.MESSAGES = makeEvents({
+      CPO: CPO,
+      sendPort: acquireVsCodeApi(),
+      receivePort: window,
+      initialState
+    });
+  }
+  else if((window.parent && (window.parent !== window)) || process.env.NODE_ENV === "development") {
+    window.MESSAGES = makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
+  }
   if(localSettings.getItem("sawSummer2021Message") !== "saw-summer-2021-message") {
     const message = $("<span>");
     const notes = $("<a target='_blank' style='color: white'>").attr("href", "https://www.pyret.org/release-notes/summer-2021.html").text("release notes");
