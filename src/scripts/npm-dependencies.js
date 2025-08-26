@@ -59,7 +59,7 @@ function rpcForwardCallback(module, name) {
   return async function(...args) {
     const realargs = args.slice(0, args.length - 1);
     const callback = args[args.length - 1];
-    if(!window.MESSAGES.sendRpc) { throw new Error("Cannot " + name + " on the web"); }
+    if(!(window.MESSAGES && window.MESSAGES.sendRpc)) { throw new Error("Cannot " + name + " on the web"); }
     else {
       try {
         const result = await window.MESSAGES.sendRpc(module, name, realargs);
