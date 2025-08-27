@@ -3,36 +3,46 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>code.pyret.org</title>
-  <link rel="preload" href="{{&PYRET}}" as="script">
-  <link rel="stylesheet" href="/css/reset.css" />
-  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" />
-  <link rel="stylesheet" href="/css/codemirror.css" />
-  <link rel="stylesheet" href="/css/foldgutter.css" />
-  <link rel="stylesheet" href="/css/dialog.css" />
-  <link rel="stylesheet" href="/css/matchesonscrollbar.css" />
-  <link rel="stylesheet" href="/css/shared.css" />
-  <link rel="stylesheet" href="/css/editor.css" />
-  <link rel="stylesheet" href="/css/font-awesome.min.path-fixed.css" />
-  <link rel="stylesheet" href="/css/themes/default.css" />
-  <link rel="stylesheet" href="/css/themes/base16.css" />
-  <link rel="stylesheet" href="/css/themes/material-darker.css" />
-  <link rel="stylesheet" href="/css/themes/monokai.css" />
-  <link rel="stylesheet" href="/css/themes/panda-syntax.css" />
-  <link rel="stylesheet" href="/css/themes/high-contrast-light.css" />
-  <link rel="stylesheet" href="/css/themes/high-contrast-dark.css" />
-  <link rel="icon" type="image/png" href="/img/pyret-icon.png" />
+  <link crossorigin="anonymous" rel="preload" href="{{&PYRET}}" as="script">
+  <script>window.PYRET = "{{&PYRET}}";</script>
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/reset.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/smoothness-jquery-ui.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/fira-mono.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/codemirror.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/foldgutter.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/dialog.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/matchesonscrollbar.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/shared.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/editor.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/font-awesome.min.path-fixed.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/default.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/base16.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/material-darker.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/monokai.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/panda-syntax.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/high-contrast-light.css" />
+  <link rel="stylesheet" href="{{ &BASE_URL }}/css/themes/high-contrast-dark.css" />
+  <link rel="icon" type="image/png" href="{{ &BASE_URL }}/img/pyret-icon.png" />
   <style id="highlight-styles"></style>
+  <script src="{{ &BASE_URL }}/js/vega.min.js"></script>
+<!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/vega-tooltip/1.0.0-alpha.2/vega-tooltip.min.js"></script> -->
+
+  <script src="{{ &BASE_URL }}/js/vega-tooltip.min.js"></script>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
-  <script src="/js/localSettings.js"></script>
+  <script src="{{ &BASE_URL }}/js/localSettings.js"></script>
 </head>
 <body class="default">
   <script>
-    var themeOnLoad = localSettings.getItem('theme') || 'default';
-    document.body.classList.remove("default");
-    document.body.classList.add(themeOnLoad);
+    var optionalTemplatedHash = "{{ &HASH_OPTIONS }}";
     var params = {};
-    document.location.hash.substr(1).split("&").forEach(function (p) {
+    let hash;
+    if(optionalTemplatedHash !== "") {
+      hash = optionalTemplatedHash;
+    }
+    else {
+      hash = document.location.hash;
+    }
+    hash.substr(1).split("&").forEach(function (p) {
       var parts = p.split("=");
       if (parts.length === 1) {
         params[parts[0]] = true;
@@ -40,9 +50,8 @@
         params[parts[0]] = parts[1];
       }
     });
-    if(params["hideDefinitions"]) {
-      document.body.classList.add("hideDefinitions");
-    }
+    if(params["hideDefinitions"]) { document.body.classList.add("hideDefinitions"); }
+    if(params["hideInteractions"]) { document.body.classList.add("hideInteractions"); }
     var footerStyle = params["footerStyle"] || "normal";
     switch (footerStyle) {
     case 'hide':
@@ -62,6 +71,13 @@
     default:
       // nothing to do
     }
+
+    var themeOnLoad = params['theme'] || localSettings.getItem('theme') || 'default';
+    document.body.classList.remove("default");
+    document.body.classList.add(themeOnLoad);
+
+    console.log("Theme info", String(document.body.classList), themeOnLoad, params, localSettings.getItem('theme'));
+
     window.addEventListener('load', function() {
       document.getElementById('theme-select').value = themeOnLoad;
     }, { once: true });
@@ -96,7 +112,7 @@
                     tabindex="-1"
                     class="blueButton focusable">
               <span>▾</span>
-              <img class="logo" src="/img/pyret-logo.png" />
+              <img class="logo" src="{{ &BASE_URL }}/img/pyret-logo.png" />
             </button>
           </div>
           <ul id="bonniemenuContents" class="menuContents submenu" role="menu" aria-hidden="true"
@@ -438,17 +454,26 @@ var GIT_REV = "{{ &GIT_REV }}";
 var GIT_BRANCH = "{{ &GIT_BRANCH }}";
 </script>
 
-<script src="/js/es6-shim.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-<script src="/js/editor-misc.min.js"></script>
+<script src="{{ &BASE_URL }}/js/es6-shim.js"></script>
+<script src="{{ &BASE_URL }}/js/jquery.min.js"></script>
+<script src="{{ &BASE_URL }}/js/jquery-ui.min.js"></script>
+<script src="{{ &BASE_URL }}/js/editor-misc.min.js"></script>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 var apiKey = "{{ GOOGLE_API_KEY }}";
 var appId = "{{ GOOGLE_APP_ID }}";
+if(apiKey === "") { handleClientLoad(""); }
 function handleGoogLoad() {
-  handleClientLoad(apiKey);
+  if((window.parent !== window) || (!window.location.protocol.startsWith("http"))) {
+    var publicOnly = true;
+  }
+  else {
+    var publicOnly = false;
+  }
+  if(apiKey !== "") {
+    handleClientLoad(apiKey, publicOnly);
+  }
 }
 </script>
 <!-- Google API Loader (For picker) -->
@@ -458,10 +483,10 @@ function handleGoogLoad() {
 var POSTMESSAGE_ORIGIN = "{{{ POSTMESSAGE_ORIGIN }}}";
 console.log(window.performance.now());
 </script>
-<script src="js/events.js"></script>
-<script src="js/beforePyret.js"></script>
+<script src="{{ &BASE_URL }}/js/beforePyret.js"></script>
 <script>
-var APP_BASE_URL = "{{{ BASE_URL }}}";
+var IMAGE_PROXY_BYPASS = "{{ &IMAGE_PROXY_BYPASS }}" === "true";
+var APP_BASE_URL = "{{ &BASE_URL }}";
 var CSRF_TOKEN = "{{{ CSRF_TOKEN }}}";
 $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
   var a = document.createElement("a");
@@ -470,6 +495,10 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     jqXHR.setRequestHeader('X-CSRF-Token', CSRF_TOKEN);
   }
 });
+</script>
+<script src="{{ &BASE_URL }}/js/events.js"></script>
+<script>
+var URL_FILE_MODE = window.URL_FILE_MODE = "{{ URL_FILE_MODE }}";
 </script>
 
   </main>

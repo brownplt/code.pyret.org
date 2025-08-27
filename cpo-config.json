@@ -21,6 +21,7 @@
     "pyret-base/js/post-load-hooks": "pyret/build/phaseA/js/post-load-hooks.js",
 
     "cpo/gdrive-locators": "src/web/js/gdrive-locators.js",
+    "cpo/file-locator": "src/web/js/file-locator.js",
     "cpo/http-imports": "src/web/js/http-imports.js",
     "cpo/guess-gas": "src/web/js/guess-gas.js",
     "cpo/cpo-builtin-modules": "src/web/js/cpo-builtin-modules.js",

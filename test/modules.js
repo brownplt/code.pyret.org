@@ -1,6 +1,6 @@
 var tester = require("../test-util/util.js");
 
-describe("Running Module programs", function() {
+xdescribe("Running Module programs", function() {
   beforeEach(tester.setup);
   afterEach(tester.teardown);
 

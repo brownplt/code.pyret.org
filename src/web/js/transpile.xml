@@ -9,7 +9,6 @@
                 <category color="1,195,49,1" name="Strings"/>
                 <category color="175,21,255,1" name="Images"/>
                 <category color="235,1,42,1" name="Booleans"/>
-                <category color="255,127,80,1" name="Functions"/>
                 <category color="31,30,31,1" name="Tables"/>
             </palette>
             <hidden>forward turn turnLeft setHeading doFaceTowards gotoXY doGotoObject doGlide changeXPosition setXPosition changeYPosition setYPosition bounceOffEdge xPosition yPosition direction doSwitchToCostume doWearNextCostume getCostumeIdx doThinkFor doThink changeEffect setEffect clearEffects changeScale setScale getScale show hide goToLayer goBack playSound doPlaySoundUntilDone doStopAllSounds doRest doPlayNote doChangeTempo doSetTempo getTempo clear down up setColor changePenColorDimension setPenColorDimension changeSize setSize doStamp reportTouchingObject reportTouchingColor reportColorIsTouchingColor colorFiltered reportStackSize reportFrameCount doAsk reportLastAnswer getLastAnswer reportMouseX reportMouseY reportMouseDown reportKeyPressed reportRelationTo doResetTimer reportTimer getTimer reportAttributeOf reportURL reportGlobalFlag doSetGlobalFlag reportCONS reportCDR reportListContainsItem doDeleteFromList doInsertInList doReplaceInList reifyReporter reifyPredicate reportRound reportMonadic reportRandom reportLetter reportUnicode reportIsA reportVariadicIsIdentical receiveGo receiveKey receiveInteraction receiveMessage doBroadcast doBroadcastAndWait getLastMessage doWarp doWait doWaitUntil doForever doRepeat doUntil doStopThis fork evaluate doCallCC reportCallCC receiveOnClone createClone removeClone getPosition reportGetImageAttribute reportNewCostumeStretched reportNewCostume getEffect reportShown doPlaySoundAtRate reportGetSoundAttribute reportNewSoundFromSamples doSetInstrument changeVolume setVolume getVolume changePan setPan getPan playFreq stopFreq getPenDown getPenAttribute floodFill write reportPenTrailsAsCostume doPasteOn doCutFrom receiveCondition reportIfElse doTellTo reportAskFor newClone doPauseAll doSwitchToScene doDefineBlock doDeleteBlock doSetBlockAttribute reportBlockAttribute reportThisContext reportMousePosition reportAspect reportDate reportGet reportObject reportAudio reportVideo doSetVideoTransparency reportVariadicSum reportVariadicProduct reportPower reportTextSplit reportUnicodeAsLetter doDeleteAttr reportNumbers reportListIndex reportListIsEmpty reportMap reportKeep reportFindFirst reportCombine doForEach reportConcatenatedLists reportReshape reportCrossproduct doMapCodeOrHeader doMapValueCode doMapListCode reportMappedCode doRun reportPipe doHideVar reifyScript reportJoinWords receiveUserEdit doSayFor bubble doFor doIf doIfElse doReport reportStringSize doSetVar doChangeVar doShowVar doDeclareVariables reportNewList doAddToList reportListItem reportListAttribute reportDifference reportQuotient reportModulus reportVariadicLessThan reportVariadicEquals reportVariadicGreaterThan reportVariadicAnd reportVariadicOr reportNot reportBoolean reportJSFunction reportLessThan reportEquals reportGreaterThan reportAnd reportOr reportIsIdentical</hidden>
@@ -200,35 +199,6 @@ else:
                     <inputs>
                         <input type="%n">2</input>
                         <input type="%n">3</input>
-                    </inputs>
-                    <script>
-                        <block s="doReport">
-                            <l/>
-                        </block>
-                    </script>
-                </block-definition>
-                <block-definition category="Functions" s="fun %'name' ( %'arg' ): %'body'" type="reporter">
-                    <header/>
-                    <code>fun &lt;#1&gt;(&lt;#2&gt;): &lt;#3&gt; end</code>
-                    <translations/>
-                    <inputs>
-                        <input type="%upvar"></input>
-                        <input type="%mult%upvar"></input>
-                        <input type="%s"></input>
-                    </inputs>
-                    <script>
-                        <block s="doReport">
-                            <l/>
-                        </block>
-                    </script>
-                </block-definition>
-                <block-definition category="Functions" s="%'name' ( %'arg' )" type="reporter">
-                    <header/>
-                    <code>&lt;#1&gt;(&lt;#2&gt;)</code>
-                    <translations/>
-                    <inputs>
-                        <input type="%txt"></input>
-                        <input type="%mult%s"></input>
                     </inputs>
                     <script>
                         <block s="doReport">

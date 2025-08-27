@@ -52,7 +52,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/post-load-hooks", "pyret-base
 
   var gf = runtime.getField;
 
-  var postLoadHooks = loadHooksLib.makeDefaultPostLoadHooks(runtime, {main: main, checkAll: true});
+  var postLoadHooks = loadHooksLib.makeDefaultPostLoadHooks(runtime, {main: main, checks: "main" });
   postLoadHooks["builtin://cpo-builtins"] = function(_) {
     // NOTE(joe): At this point, all the builtin modules are for sure loaded
     // (like image, world, etc)
@@ -79,7 +79,7 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/post-load-hooks", "pyret-base
     var toCall = runtime.getField(checker, "render-check-results-stack");
     var checks = runtime.getField(answer, "checks");
     return runtime.safeCall(function() {
-      return toCall.app(checks, getStackP);
+      return toCall.app(checks, getStackP, "text");
     }, function(printedCheckResult) {
       if(runtime.isString(printedCheckResult)) {
         console.log(printedCheckResult);
@@ -157,7 +157,9 @@ requirejs(["pyret-base/js/runtime", "pyret-base/js/post-load-hooks", "pyret-base
         $("#runDropdown").attr("disabled", false);
         clearInterval($("#loader").data("intervalID"));
         $("#loader").hide();
+        CPO.events.triggerOnLoad();
         CPO.say('Pyret loaded and ready.');
+        
         console.log("REPL ready.");
       });
     }

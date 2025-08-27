@@ -23,7 +23,8 @@ else if (process.platform === 'darwin') {
 let leave_open = process.env.LEAVE_OPEN === "true" || false;
 
 let args = process.env.SHOW_BROWSER ? [] : [
-  '--headless'
+  '--headless',
+  '--no-sandbox',
 ];
 if(!process.env.SHOW_BROWSER) {
   console.log("Running Chrome headless. You can set SHOW_BROWSER=true to see what's going on");

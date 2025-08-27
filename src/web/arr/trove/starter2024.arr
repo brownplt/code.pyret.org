@@ -430,6 +430,8 @@ provide from G:
   string-from-code-points,
   string-index-of,
   string-find-index,
+  string-find-opt,
+  string-find,
   string-get-index,
   string-is-number,
   string-isnumber,

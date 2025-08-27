@@ -1429,7 +1429,10 @@
           });
         } else if (jsnums.isRoughnum(num)) {
           ariaText = num.n.toString() + ', roughly';
-          outText = $('<span>').addClass('replTextOutput roughNumber').text(num.toString());
+          var roughnumStr = num.toString().slice(1);
+          outText = $('<span>').addClass('replTextOutput roughNumber');
+          outText.append($('<span>').addClass('cm-roughnum-start').text('~'));
+          outText.append($('<span>').addClass('cm-roughnum').text(roughnumStr));
         } else {
           ariaText = num.toString();
           outText = renderText(sooper(renderers, "number", num));
@@ -1747,7 +1750,7 @@
             tbody.appendChild(tr);
           }
           container.append(table);
-        } else if (runtime.ffi.isVSTable(val)) {
+        } else if (runtime.ffi.isVSTable(val) || runtime.ffi.isVSTableTruncated(val)) {
           //console.log('helper vii; TABLE is', val, ' , container is', container);
           ariaText = 'table with ';
           var showText = document.createElement("a");
@@ -1843,6 +1846,7 @@
               body.appendChild(rowel);
             }
           }
+          const footer = document.createElement("tfoot");
           var previewLimit = 10;
           if(rows.length <= previewLimit) {
             drawRows(0, rows.length);
@@ -1854,7 +1858,7 @@
             if (remaining == 1) {
               clickForMore.textContent = "Click to show the remaining row";
             } else {
-              clickForMore.textContent = "Click to show the remaining " + remaining + " rows...";
+              clickForMore.textContent = "Click to show the remaining " + remaining + " available rows...";
             }
             var clickTR = document.createElement("tr");
             var clickTD = document.createElement("td");
@@ -1862,14 +1866,27 @@
             clickTR.appendChild(clickTD);
             clickTD.appendChild(clickForMore);
             $(clickForMore).on("click", function() {
-              body.removeChild(clickTR);
+              footer.removeChild(clickTR);
               drawRows(previewLimit, rows.length);
             });
             drawRows(0, previewLimit);
-            body.appendChild(clickTR);
+            footer.appendChild(clickTR);
+          }
+          if(runtime.ffi.isVSTableTruncated(val)) {
+            const totalRows = runtime.getField(val, "total-rows");
+            const truncatedRows = rows.length;
+            const truncatedTR = document.createElement("tr");
+            const truncatedTD = document.createElement("td");
+            truncatedTD.colSpan = String(rows[0].length);
+            truncatedTR.appendChild(truncatedTD);
+            const message = `(${truncatedRows} rows available of ${totalRows} in table)`;
+            truncatedTD.innerText = message;
+            footer.appendChild(truncatedTR);
+            ariaText += message;
           }
           ariaText += ' end table.';
           table.appendChild(body);
+          table.appendChild(footer);
           container[0].ariaText = ariaText;
           container[0].setAttribute('aria-label', ariaText);
           container.append(table);

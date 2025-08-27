@@ -14,12 +14,26 @@ else
 	RM = rm -f $1
 endif
 
-CM=node_modules/codemirror
-PYRET_MODE=node_modules/pyret-codemirror-mode
+NODE_MODULE = $(shell node -e "console.log(require('node:path').dirname(require.resolve('$1')))")
+
+
+# These paths get special treatment: their import paths have
+# trailing lib/ or mode/ or build/something at the end, but we need files from
+# other paths in them
+CM=$(call NODE_MODULE,codemirror)/..
+PYRET_MODE=$(call NODE_MODULE,pyret-codemirror-mode)/..
+PYRET=$(call NODE_MODULE,pyret-lang)/../..
+
 CPOMAIN=build/web/js/cpo-main.jarr
 CPOGZ=build/web/js/cpo-main.jarr.gz.js
 PHASEA=pyret/build/phaseA/pyret.jarr
 COMMITID=$(shell git rev-parse --short HEAD)
+
+.PHONY : test_node_module
+test_node_module:
+	@echo $(call NODE_MODULE,codemirror)
+	@echo $(CM)
+
 
 BUNDLED_DEPS=build/web/js/bundled-npm-deps.js
 
@@ -37,6 +51,11 @@ selenium-test-local:
 selenium-test-sauce:
 	TEST_LOC="sauce" node test/test.js test/browser/pyret
 
+build/web/editor.embed.html: src/web/editor.html .env.embed
+	node make-template.js $< .env.embed > $@
+build/web/editor.html: src/web/editor.html
+	cp $< $@
+
 OUT_HTML := $(patsubst src/web/%.template.html,build/web/views/%.html,$(wildcard src/web/*.template.html))
 
 build/web/views/%.html: src/web/%.template.html
@@ -53,8 +72,19 @@ build/web/css/%.css: src/web/css/%.template.css
 	node make-template.js $< > $@
 
 COPY_CSS := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/*.css))
-
 build/web/css/%.css: src/web/css/%.css
+	cp $< $@
+
+COPY_LIB_CSS := $(patsubst lib/css/%.css,build/web/css/%.css,$(wildcard lib/css/*.css))
+build/web/css/%.css: lib/css/%.css
+	cp $< $@
+
+COPY_LIB_CSS := $(patsubst lib/css/%.css,build/web/css/%.css,$(wildcard lib/css/*.css))
+build/web/css/%.css: lib/css/%.css
+	cp $< $@
+
+COPY_LIB_IMAGES := $(patsubst lib/css/images/%.png,build/web/css/images/%.png,$(wildcard lib/css/images/*.png))
+build/web/css/images/%.png: lib/css/images/%.png
 	cp $< $@
 
 COPY_THEMES := $(patsubst src/web/%.css,build/web/%.css,$(wildcard src/web/css/themes/*.css))
@@ -104,6 +134,11 @@ COPY_JS := $(patsubst src/web/js/%.js,build/web/js/%.js,$(wildcard src/web/js/*.
 build/web/js/%.js: src/web/js/%.js
 	cp $< $@
 
+COPY_LIB_JS := $(patsubst lib/js/%.js,build/web/js/%.js,$(wildcard lib/js/*.js))
+
+build/web/js/%.js: lib/js/%.js
+	cp $< $@
+
 COPY_GOOGLE_JS := $(patsubst src/web/js/google-apis/%.js,build/web/js/google-apis/%.js,$(wildcard src/web/js/google-apis/*.js))
 
 build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
@@ -112,7 +147,12 @@ build/web/js/google-apis/%.js: src/web/js/google-apis/%.js
 build/web/js/events.js: src/web/js/events.js
 	cp $< $@
 
-build/web/js/snap: node_modules/snap
+build/web/js/vega.min.js: $(call NODE_MODULE,vega)/vega.min.js
+	cp $< $@
+build/web/js/vega-tooltip.min.js: lib/js/vega-tooltip.min.js
+	cp $< $@
+
+build/web/js/snap: $(call NODE_MODULE,snap)
 	mkdir -p build/web/js/snap
 	cp -r $</src build/web/js/snap
 	cp -r $</pyret build/web/js/snap
@@ -127,28 +167,29 @@ build/web/js/beforePyret.js: src/web/js/beforePyret.js
 build/web/js/beforeBlocks.js: src/web/js/beforeBlocks.js
 	npx webpack
 
-build/web/js/q.js: node_modules/q/q.js
+
+build/web/js/q.js: $(call NODE_MODULE,q)/q.js
 	cp $< $@
 
-build/web/js/s-expression-lib.js: node_modules/s-expression/index.js
+build/web/js/s-expression-lib.js: $(call NODE_MODULE,s-expression)/index.js
 	cp $< $@
 
-build/web/js/colorspaces.js: node_modules/colorspaces/colorspaces.js
+build/web/js/colorspaces.js: $(call NODE_MODULE,colorspaces)/colorspaces.js
 	cp $< $@
 
-build/web/js/es6-shim.js: node_modules/es6-shim/es6-shim.min.js
+build/web/js/es6-shim.js: $(call NODE_MODULE,es6-shim)/es6-shim.min.js
 	cp $< $@
 
-build/web/js/seedrandom.js: node_modules/seedrandom/seedrandom.js
+build/web/js/seedrandom.js: $(call NODE_MODULE,seedrandom)/seedrandom.js
 	cp $< $@
 
-build/web/js/source-map.js: node_modules/source-map/dist/source-map.js
+build/web/js/source-map.js: $(call NODE_MODULE,source-map)/dist/source-map.js
 	cp $< $@
 
-build/web/js/url.js: node_modules/url.js/url.js
+build/web/js/url.js: $(call NODE_MODULE,url.js)/url.js
 	cp $< $@
 
-build/web/js/require.js: node_modules/requirejs/require.js
+build/web/js/require.js: $(call NODE_MODULE,requirejs)/r.js
 	cp $< $@
 
 build/web/js/codemirror.js: $(CM)/lib/codemirror.js
@@ -202,10 +243,10 @@ build/web/js/jump-to-line.js: $(CM)/addon/search/jump-to-line.js
 build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
 	cp $< $@
 
-build/web/js/mousetrap.min.js: node_modules/mousetrap/mousetrap.min.js
+build/web/js/mousetrap.min.js: $(call NODE_MODULE,mousetrap)/mousetrap.min.js
 	cp $< $@
 
-build/web/js/mousetrap-global-bind.min.js: node_modules/mousetrap/plugins/global-bind/mousetrap-global-bind.min.js
+build/web/js/mousetrap-global-bind.min.js: $(call NODE_MODULE,mousetrap)/plugins/global-bind/mousetrap-global-bind.min.js
 	cp $< $@
 
 MISC_JS = build/web/js/q.js \
@@ -234,7 +275,9 @@ MISC_JS = build/web/js/q.js \
 	   build/web/js/es6-shim.js \
 	   build/web/js/runmode.js \
 	   build/web/js/mousetrap.min.js \
-	   build/web/js/mousetrap-global-bind.min.js
+	   build/web/js/mousetrap-global-bind.min.js \
+	   build/web/js/vega.min.js \
+	   build/web/js/vega-tooltip.min.js
 
 EDITOR_MISC_JS = build/web/js/q.js \
 		  build/web/js/loader.js \
@@ -266,11 +309,11 @@ EDITOR_MISC_JS = build/web/js/q.js \
 		  build/web/js/authenticate-storage.js
 
 build/web/js/editor-misc.min.js: $(EDITOR_MISC_JS)
-	npm exec -- uglifyjs --compress -o $@ -- $^
+	npx uglifyjs --compress -o $@ -- $^
 
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
 
-build/web/img/%: node_modules/pyret-lang/img/%
+build/web/img/%: $(PYRET)/img/%
 	cp $< $@
 
 COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
@@ -286,6 +329,7 @@ WEBJS = build/web/js
 WEBJSGOOG = build/web/js/google-apis
 WEBCSS = build/web/css
 WEBTHEMES = build/web/css/themes
+WEBIMAGES = build/web/css/images
 WEBFONTS = $(WEBCSS)/fonts
 WEBIMG = build/web/img
 WEBARR = build/web/arr
@@ -305,6 +349,9 @@ $(WEBJSGOOG):
 $(WEBCSS):
 	@$(call MKDIR,$(WEBCSS))
 
+$(WEBIMAGES):
+	@$(call MKDIR,$(WEBIMAGES))
+
 $(WEBTHEMES):
 	@$(call MKDIR,$(WEBTHEMES))
 
@@ -317,13 +364,13 @@ $(WEBIMG):
 $(WEBARR):
 	@$(call MKDIR,$(WEBARR))
 
-web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml
+web-local: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBIMAGES) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_LIB_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_LIB_JS) $(COPY_LIB_IMAGES) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) $(CPOMAIN) $(CPOGZ) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml build/web/editor.html build/web/editor.embed.html 
 
-web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml
+web: $(WEB) $(WEBV) $(WEBJS) $(WEBJSGOOG) $(WEBCSS) $(WEBTHEMES) $(WEBFONTS) $(WEBIMG) $(WEBIMAGES) $(WEBARR) $(OUT_HTML) $(COPY_HTML) $(OUT_CSS) $(COPY_CSS) $(COPY_LIB_CSS) $(COPY_THEMES) $(COPY_FONTS) $(COPY_JS) $(COPY_LIB_JS) $(COPY_LIB_IMAGES) $(COPY_ARR) $(COPY_GIF) $(COPY_SVG) $(COPY_PNG) $(MISC_JS) $(MISC_CSS) $(MISC_IMG) $(COPY_NEW_CSS) $(COPY_NEW_JS) $(COPY_GOOGLE_JS) build/web/js/editor-misc.min.js build/web/js/snap build/web/js/transpile.xml build/web/editor.html build/web/editor.embed.html
 
 link-pyret:
-	ln -s node_modules/pyret-lang pyret
-	(cd node_modules/pyret-lang && $(MAKE) phaseA-deps)
+	ln -s $(PYRET) pyret
+	(cd $(PYRET) && $(MAKE) phaseA-deps)
 
 deploy-cpo-main: link-pyret $(CPOMAIN) cpo-main-release 
 
@@ -342,7 +389,7 @@ libpyret:
 
 $(BUNDLED_DEPS): src/scripts/npm-dependencies.js
 	# Explicitly exclude crypto, buffer, and stylus, nested npm dependencies that aren't needed
-	node_modules/.bin/browserify src/scripts/npm-dependencies.js -x crypto -x buffer -x stylus -o $(BUNDLED_DEPS)
+	npx browserify src/scripts/npm-dependencies.js -x crypto -x stylus -o $(BUNDLED_DEPS)
 
 $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js src/web/arr/*.arr cpo-standalone.js cpo-config.json src/web/arr/cpo-main.arr $(PHASEA)
 	mkdir -p compiled/;
@@ -363,7 +410,8 @@ $(CPOMAIN): $(BUNDLED_DEPS) $(TROVE_JS) $(TROVE_ARR) $(WEBJS) src/web/js/*.js sr
 # NOTE(joe): Need to do .gz.js because Firefox doesn't like gzipped JS having a
 # non-.js extension.
 $(CPOGZ): $(CPOMAIN)
-	npm exec -- uglifyjs --compress -o $(CPOMAIN).min -- $(CPOMAIN)
+	cp $(CPOMAIN) $(CPOMAIN).js
+	npx uglifyjs --compress -o $(CPOMAIN).min -- $(CPOMAIN)
 	gzip -c -f $(CPOMAIN).min > $(CPOGZ)
 
 clean:

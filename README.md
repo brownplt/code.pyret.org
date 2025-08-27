@@ -17,7 +17,7 @@ and test out the REPL, you only need to edit a few variables.  If you want to
 use the standalone pyret that comes with the checkout, you can just set
 
 ```
-PYRET="http://localhost:5000/js/cpo-main.jarr"
+PYRET="http://localhost:4999/js/cpo-main.jarr"
 ```
 
 Then you can run
@@ -39,7 +39,7 @@ it doesn't need to be terminated across builds), run:
 $ npm start
 ```
 
-The editor will be served from `http://localhost:5000/editor`.
+The editor will be served from `http://localhost:4999/editor`.
 
 If you edit JavaScript or HTML files in `src/web`, run
 
@@ -75,15 +75,15 @@ At https://console.developers.google.com/project, make a project, then:
        Credentials -> Create Credentials -> OAuth Client Id
 
   For development, you should set the javascript origins to
-  `http://localhost:5000` and the redirect URI to
-  `http://localhost:5000/oauth2callback`.
+  `http://localhost:4999` and the redirect URI to
+  `http://localhost:4999/oauth2callback`.
 
 - For `GOOGLE_API_KEY`, which is used in the browser to make certain public
   requests when users are not logged in yet:
 
        Credentials -> Create Credentials -> API Key -> Browser Key
 
-  Again, you should use `http://localhost:5000` as the referer for development.
+  Again, you should use `http://localhost:4999` as the referer for development.
 
 
 - Add the Google Drive API to your project and include the Google Drive API

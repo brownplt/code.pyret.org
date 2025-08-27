@@ -73,7 +73,9 @@ function start(config, onServerReady) {
 
   app.use(cookieSession({
     secret: config.sessionSecret,
-    key: "code.pyret.org"
+    key: "code.pyret.org",
+
+    sameSite: 'lax'
   }));
   app.use(cookieParser());
 
@@ -380,7 +382,6 @@ function start(config, onServerReady) {
         var folderId = decodeURIComponent(parsed.query["folderId"]);
 
         lookForProjectOrCopyStructure(serverClient, drive, folderId).then(target => {
-          console.log("target: ", target);
           res.redirect(`/parley?folder=${target.projectDir.id}`);
         }).catch((err) => {
           console.error(err);
@@ -432,13 +433,11 @@ function start(config, onServerReady) {
           }
         })
         .then(copyResult => {
-          console.log("New directory: ", copyResult);
           serverDrive.files.list({
             key: config.google.serverApiKey,
             q: `"${fileInfo.id}" in parents and not trashed`,
             fields: 'files(id, name, mimeType, modifiedTime, modifiedByMeTime, webContentLink, iconLink, thumbnailLink)',
           }).then(files => {
-            console.log("Directory contents: ", files);
             // NOTE(joe): deliberately parallel
             Promise.all(files.data.files.map(f => copyFileOrDir(serverDrive, clientDrive, copyResult.data.id, f, serverEmailAddress)))
             .then(copiedFiles => {
@@ -471,7 +470,6 @@ function start(config, onServerReady) {
             }
           })
           .then(copiedFile => {
-            console.log("File copied: ", copiedFile);
             resolve(copiedFile.data);
           })
         })
@@ -497,11 +495,9 @@ function start(config, onServerReady) {
       clientDrive.files.list({
         q: `properties has {key='${PROJECT_BACKREF}' and value='${fileId}'} and trashed=false`
       }).then(files => {
-        console.log("Files with key result: ", files);
         if(files.data.files.length === 0) {
           return serverDrive.files.get({ fileId, key: config.google.serverApiKey }).then((dirInfo) => {
             return copyFileOrDir(serverDrive, clientDrive, false, dirInfo.data).then(copied => {
-              console.log("made a full copy of the directory");
               resolve({
                 copied: true,
                 projectDir: copied
@@ -510,7 +506,6 @@ function start(config, onServerReady) {
           });
         }
         else {
-          console.log("Directory existed, so not copying");
           resolve({
             copied: false,
             projectDir: files.data.files[0]
@@ -534,6 +529,8 @@ function start(config, onServerReady) {
   });
 
   app.get("/editor", function(req, res) {
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    res.set("Cross-Origin-Embedder-Policy", "require-corp");
     res.render("editor.html", {
       PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
@@ -773,70 +770,111 @@ function start(config, onServerReady) {
     return ret.promise;
   }
 
+    // NOTE(joe): this is a hack for making share URLs work on another server.
+    // The config variable here shouldn't be set to the same URL as the deployment
+    // URL (since this will just make self request). But since Google credentials
+    // lock in files to a particular server, and we want share links from CPO
+    // to work on our testing or other deployments, we need this.
+    // If set, we first try to fetch from the indicated shared server (usually
+    // this will be code.pyret.org).
+    // This in fact doesn't matter *that* much for embedding clients that embed
+    // code.pyret.org directly. However, for *other* deployments, or test
+    // deployments, or development copies, it saves a ton of headaches.
+  function sharedPrefetch(url) {
+    var ret = Q.defer();
+    if(config.sharedFetchServer) {
+      let response = request({url: url});
+      response.on("error", (error) => { ret.reject(error); });
+      response.on("response", (resp) => ret.resolve(response));
+    }
+    else  {
+      ret.reject("No fallback server configured");
+    }
+
+    return ret.promise;
+  }
+
   app.get("/shared-program-contents", function(req, res) {
-    var contents = getSharedContents(req.query.sharedProgramId);
-    contents.fail(function(err) {
-      res.status(400);
-      res.send("Unable to fetch shared file");
-      res.end();
-    });
-    contents.then(function(response) {
-      if(!response.headers['content-type'] === "text/plain") {
+    const requestURL = `${config.sharedFetchServer}/shared-program-contents?sharedProgramId=${req.query.sharedProgramId}`;
+    const shared = sharedPrefetch(requestURL);
+    shared.then((resp) => resp.pipe(res));
+    shared.fail(() => {
+      var contents = getSharedContents(req.query.sharedProgramId);
+      contents.fail(function(err) {
         res.status(400);
-        res.send("Expected a text file, but got: " + response.headers["content-type"]);
+        res.send("Unable to fetch shared file");
         res.end();
-      }
-      else {
-        response
-          .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedProgramId}"`)
-          .pipe(res);
-      }
+      });
+      contents.then(function(response) {
+        if(!response.headers['content-type'] === "text/plain") {
+          res.status(400);
+          res.send("Expected a text file, but got: " + response.headers["content-type"]);
+          res.end();
+        }
+        else {
+          response
+            .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedProgramId}"`)
+            .pipe(res);
+        }
+      });  
     });
+
   });
 
   app.get("/shared-image-contents", function(req, res) {
-    var contents = getSharedContents(req.query.sharedImageId);
-    contents.then(function(response) {
-      response
-        .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedImageId}"`)
-        .pipe(res);
-    })
-    .fail(function(err) {
-      res.status(400);
-      res.send("Could not access shared file, or shared file was not an image.");
-      res.end();
+    const requestURL = `${config.sharedFetchServer}/shared-image-contents?sharedImageId=${req.query.sharedImageId}`;
+    const shared = sharedPrefetch(requestURL);
+    shared.then((resp) => resp.pipe(res));
+    shared.fail(() => {
+      var contents = getSharedContents(req.query.sharedImageId);
+      contents.then(function(response) {
+        response
+          .on("response", (r) => r.headers["content-disposition"] = `inline; filename="${req.query.sharedImageId}"`)
+          .pipe(res);
+      })
+      .fail(function(err) {
+        res.status(400);
+        res.send("Could not access shared file, or shared file was not an image.");
+        res.end();
+      });
     });
   });
 
   app.get("/shared-file", function(req, res) {
-    var sharedProgramId = req.query.sharedProgramId;
-    var both = fileAndToken(sharedProgramId);
-    both.fail(function(err) {
-      console.error(err);
-      res.status(404).send("No share information found for " + sharedProgramId);
-      res.end();
-    });
-    both.then(function(both) {
-      var prog = both[0];
-      var refreshToken = both[1];
-      auth.refreshAccess(refreshToken, function(err, newToken) {
-        if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
-        else {
-          var drive = getDriveClient(newToken, 'v2');
-          drive.files.get({fileId: sharedProgramId}, function(err, response) {
-            if(err) { res.status(400).send("Couldn't access shared file " + sharedProgramId); }
-            else {
-              res.send({
-                id: response.data.id,
-                modifiedDate: response.data.modifiedDate,
-                title: response.data.title,
-                selfLink: response.data.selfLink
-              });
-              res.status(200);
-              res.end();
-            }
-          });
-        }
+    const requestURL = `${config.sharedFetchServer}/shared-file?sharedProgramId=${req.query.sharedProgramId}`;
+    const shared = sharedPrefetch(requestURL);
+    shared.then((resp) => resp.pipe(res));
+    shared.fail((e) => {
+      console.error("Fallback failed: ", e);
+      var sharedProgramId = req.query.sharedProgramId;
+      var both = fileAndToken(sharedProgramId);
+      both.fail(function(err) {
+        console.error(err);
+        res.status(404).send("No share information found for " + sharedProgramId);
+        res.end();
+      });
+      both.then(function(both) {
+        var prog = both[0];
+        var refreshToken = both[1];
+        auth.refreshAccess(refreshToken, function(err, newToken) {
+          if(err) { res.status(403).send("Couldn't access shared file " + sharedProgramId); res.end(); return; }
+          else {
+            var drive = getDriveClient(newToken, 'v2');
+            drive.files.get({fileId: sharedProgramId}, function(err, response) {
+              if(err) { res.status(400).send("Couldn't access shared file " + sharedProgramId); }
+              else {
+                res.send({
+                  id: response.data.id,
+                  modifiedDate: response.data.modifiedDate,
+                  title: response.data.title,
+                  selfLink: response.data.selfLink
+                });
+                res.status(200);
+                res.end();
+              }
+            });
+          }
+        });
       });
     });
   });

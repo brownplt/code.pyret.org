@@ -106,8 +106,15 @@
         // because of this call to `pauseStack`
         return runtime.pauseStack(function (restarter) {
           // error_to_html must not be called on the pyret stack
-          return error_to_html(runtime, CPO.documents, error, stack, result).
-            then(function (html) {
+          let html;
+          if(error instanceof Error) {
+            html = Q($("<span>").text(String(error)));
+          }
+          else {
+            html = error_to_html(runtime, CPO.documents, error, stack, result)
+          }
+          return html
+            .then(function (html) {
               html.on('click', function(){
                 $(".highlights-active").removeClass("highlights-active");
                 html.trigger('toggleHighlight');
@@ -139,7 +146,12 @@
             // Parse Errors
             // `renderAndDisplayError` must be called on the pyret stack
             // this application runs in the context of the above `callingRuntime.runThunk`
-            return renderAndDisplayError(callingRuntime, result.exn.exn, [], true, result);
+            let toRender = result.exn.exn;
+            if(!('exn' in result.exn)) {
+              console.error("Got an error that we're not sure how to render (render-reason would get undefined). Likely a JS error leaked through the Pyret runtime.", result);
+              toRender = result.exn;
+            }
+            return renderAndDisplayError(callingRuntime, toRender, [], true, result);
           }
           else if(callingRuntime.isSuccessResult(result)) {
             result = result.result;
@@ -478,6 +490,10 @@
               args.draw(_ => savedOptions);
             });
           },
+          resizeStop: (_, ui) => {
+            if (timeoutTrigger) clearTimeout(timeoutTrigger);
+            timeoutTrigger = setTimeout(args.draw, 100, ui);
+          },
           resize: () => {
             if (timeoutTrigger) clearTimeout(timeoutTrigger);
             timeoutTrigger = setTimeout(args.draw, 100);
@@ -577,7 +593,7 @@
       }
 
       var img = $("<img>").attr({
-        "src": "/img/pyret-spin.gif",
+        "src": window.APP_BASE_URL + "/img/pyret-spin.gif",
         "width": "25px",
       }).css({
         "vertical-align": "middle"
@@ -874,9 +890,9 @@
 
       var runner = function(code, synthetic) {
         if(!synthetic) {
-          CPO.triggerOnInteraction(code);
+          CPO.events.triggerOnInteraction(code);
         }
-        if(running) { return; }
+        if(running) { console.log("Skipping a run because a run is happening already: ", code, synthetic); return; }
         running = true;
         var thiscode = {code: code, erroroutput: false, start: false, end: false, dup: false};
         history.addToHistory(thiscode);
@@ -980,7 +996,8 @@
         refresh: function() { CM.refresh(); },
         runCode: runMainCode,
         runner: runner,
-        focus: function() { CM.focus(); }
+        focus: function() { CM.focus(); },
+        stop: onBreak
       };
     }
 
