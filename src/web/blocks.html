@@ -3,7 +3,8 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>code.pyret.org</title>
-  <link rel="preload" href="{{&PYRET}}" as="script">
+  <link crossorigin="anonymous" rel="preload" href="{{&PYRET}}" as="script">
+  <script>window.PYRET = "{{&PYRET}}";</script>
   <link rel="stylesheet" href="/css/reset.css" />
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:400,700" />
@@ -23,6 +24,8 @@
   <link rel="stylesheet" href="/css/themes/high-contrast-dark.css" />
   <link rel="icon" type="image/png" href="/img/pyret-icon.png" />
   <style id="highlight-styles"></style>
+  <script src="{{ &BASE_URL }}/js/vega.min.js"></script>
+  <script src="{{ &BASE_URL }}/js/vega-tooltip.min.js"></script>
   <script>var APP_LOG_URL = "{{{ LOG_URL }}}";</script>
   <script src="/js/localSettings.js"></script>
 </head>
@@ -485,6 +488,7 @@ console.log(window.performance.now());
 <script src="js/snap/src/sha512.js"></script>
 <script src="js/snap/src/FileSaver.min.js"></script>
 <script>
+var IMAGE_PROXY_BYPASS = "{{ &IMAGE_PROXY_BYPASS }}" === "true";
 var APP_BASE_URL = "{{{ BASE_URL }}}";
 var CSRF_TOKEN = "{{{ CSRF_TOKEN }}}";
 $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
@@ -494,6 +498,7 @@ $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
     jqXHR.setRequestHeader('X-CSRF-Token', CSRF_TOKEN);
   }
 });
+var URL_FILE_MODE = window.URL_FILE_MODE = "{{ URL_FILE_MODE }}";
 </script>
 <script>
   var replMain = $(".replMain");

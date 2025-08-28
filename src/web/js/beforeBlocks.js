@@ -1304,8 +1304,8 @@ $(function() {
   });
 
   var pyretLoad = document.createElement('script');
-  console.log(process.env.PYRET);
-  pyretLoad.src = process.env.PYRET;
+  console.log(window.PYRET);
+  pyretLoad.src = window.PYRET;
   pyretLoad.type = "text/javascript";
   document.body.appendChild(pyretLoad);
 
@@ -1358,8 +1358,7 @@ $(function() {
   }
 
   $(pyretLoad).on("error", function(e) {
-    logFailureAndManualFetch(process.env.PYRET, e);
-    console.log(process.env);
+    logFailureAndManualFetch(window.PYRET, e);
     pyretLoad2.src = process.env.PYRET_BACKUP;
     pyretLoad2.type = "text/javascript";
     document.body.appendChild(pyretLoad2);
