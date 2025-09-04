@@ -103,7 +103,7 @@ FilePicker.prototype.initOpen = function(picker) {
      * A Picker View which displays images users may load.
      */
     var imageView = new picker.View(picker.ViewId.DOCS);
-    imageView.setMimeTypes("image/png,image/jpeg,image/jpg,image/gif");
+    imageView.setMimeTypes("image/png,image/jpeg,image/jpg,image/gif,image/webp");
 
     var allViews = {
       imageView: imageView,
