@@ -5,7 +5,8 @@ on:
     branches: [ "horizon" ]
   pull_request:
     branches: [ "horizon" ]
-
+  workflow_dispatch:
+  
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -107,3 +108,4 @@ jobs:
     needs: build-and-test
     uses: ./.github/workflows/deploy-trigger.yml
     secrets: inherit
+    if: github.event_name != 'pull_request'
