@@ -447,6 +447,18 @@ var GIT_REV = "{{ &GIT_REV }}";
 var GIT_BRANCH = "{{ &GIT_BRANCH }}";
 </script>
 
+<script>
+if (typeof Promise.withResolvers === 'undefined') {
+  Promise.withResolvers = function () {
+    let resolve, reject
+    const promise = new Promise((res, rej) => {
+      resolve = res
+      reject = rej
+    })
+    return { promise, resolve, reject }
+  }
+}
+</script>
 <script src="{{ &BASE_URL }}/js/es6-shim.js"></script>
 <script src="{{ &BASE_URL }}/js/jquery.min.js"></script>
 <script src="{{ &BASE_URL }}/js/jquery-ui.min.js"></script>

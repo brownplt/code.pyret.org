@@ -152,6 +152,7 @@ $(function() {
       animationDiv = null;
     }
   }
+  let activeEditor = null;
   CPO.makeEditor = function(container, options) {
     var initial = "";
     if (options.hasOwnProperty("initial")) {
@@ -196,8 +197,7 @@ $(function() {
     console.log("Using keymap: ", CodeMirror.keyMap.default, "macDefault: ", CodeMirror.keyMap.macDefault, "mac: ", mac);
     const modifier = mac ? "Cmd" : "Ctrl";
 
-    var cmOptions = {
-      extraKeys: CodeMirror.normalizeKeyMap({
+    const extraKeys = {
         "Shift-Enter": function(cm) { runFun(cm.getValue()); },
         "Shift-Ctrl-Enter": function(cm) { runFun(cm.getValue()); },
         "Tab": "indentAuto",
@@ -210,7 +210,21 @@ $(function() {
         "Ctrl-Right": "goForwardToken",
         [`${modifier}-F`]: "findPersistent",
         [`${modifier}-/`]: "toggleComment",
-      }),
+      };
+    if(window.PYRET_IN_VSCODE) {
+      // Disable undo and redo in vscode, since they mess with the host editor's undo/redo stack
+      // Oddly, it doesn't seem to work to add these to extraKeys; I have to
+      // override them in the default keymap
+      CodeMirror.keyMap.default[`${modifier}-Z`] = false;
+      CodeMirror.keyMap.default[`Shift-${modifier}-Z`] = false;
+      CodeMirror.keyMap.default[`${modifier}-Y`] = false;
+      // Ctrl-U is Undo within a range
+      CodeMirror.keyMap.default[`${modifier}-U`] = false;
+    }
+
+    var cmOptions = {
+      keyMap: 'default',
+      extraKeys: CodeMirror.normalizeKeyMap(extraKeys),
       indentUnit: 2,
       tabSize: 2,
       viewportMargin: Infinity,
@@ -230,6 +244,9 @@ $(function() {
     cmOptions = merge(cmOptions, options.cmOptions || {});
 
     var CM = CodeMirror.fromTextArea(textarea[0], cmOptions);
+    CM.on("focus", () => {
+      activeEditor = CM;
+    });
 
     function firstLineIsNamespace() {
       const firstline = CM.getLine(0);
@@ -1410,6 +1427,10 @@ $(function() {
 
   });
 
+  window.addEventListener("focus", (e) => {
+    if(activeEditor) { activeEditor.focus(); }
+  });
+
   function makeEvent() {
     const handlers = [];
     function on(handler) {
@@ -1453,6 +1474,8 @@ $(function() {
 
   let initialState = params["get"]["initialState"];
 
+  window.PYRET_IS_EMBEDDED = false;
+  window.PYRET_IN_VSCODE = false;
   if (typeof acquireVsCodeApi === "function") {
     window.MESSAGES = makeEvents({
       CPO: CPO,
@@ -1460,8 +1483,11 @@ $(function() {
       receivePort: window,
       initialState
     });
+    window.PYRET_IS_EMBEDDED = true;
+    window.PYRET_IN_VSCODE = true;
   }
   else if((window.parent && (window.parent !== window))) {
     window.MESSAGES = makeEvents({ CPO: CPO, sendPort: window.parent, receivePort: window, initialState });
+    window.PYRET_IS_EMBEDDED = true;
   }
 });

@@ -1612,6 +1612,18 @@ code div {
 #vg-tooltip-element {
   z-index: 15100;
 }
+#vg-tooltip-element.visible {
+  font-size: inherit;
+}
+
+#vg-tooltip-element.visible table tr td.key {
+  color: var(--repl-output);
+  padding-top: 0.5em;
+  padding-right: 0.5em;
+  padding-bottom: 0.5em;
+  /* Note: not setting background color, so that we get clearer rows */
+  font-weight: var(--th-font-weight);
+}
 
 .ui-dialog-titlebar {
   background-color: var(--ui-dialog-title-bg);
@@ -2282,9 +2294,56 @@ table.pyret-table.pyret-matrix {
   border-right-width: 2px;
 }
 
+
+table.pyret-table { width: 98%; }
 table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--shadow-color);
 }
+table.pyret-table tr { table-layout: fixed; display: table; width: 100%; }
+/* Force tables to be the full height of the viewport, leaving 225px for other chrome */
+table.pyret-table tbody {
+  --bgRGB: 200, 210, 220;
+  --bg: rgb(var(--bgRGB));
+  --bgTrans: rgba(var(--bgRGB), 0);
+
+  --shadow: rgba(41, 50, 56, 0.5);
+
+  max-height: calc(100vh - 225px); display: block;
+  overflow: auto;
+
+  background:
+    /* Shadow Cover TOP */
+    linear-gradient(
+      var(--bg) 30%,
+      var(--bgTrans)
+    ) center top,
+
+    /* Shadow Cover BOTTOM */
+    linear-gradient(
+      var(--bgTrans),
+      var(--bg) 70%
+    ) center bottom,
+
+    /* Shadow TOP */
+    radial-gradient(
+      farthest-side at 50% 0,
+      var(--shadow),
+      rgba(0, 0, 0, 0)
+    ) center top,
+
+    /* Shadow BOTTOM */
+    radial-gradient(
+      farthest-side at 50% 100%,
+      var(--shadow),
+      rgba(0, 0, 0, 0)
+    ) center bottom;
+
+  background-repeat: no-repeat;
+  background-size: 100% 8px, 100% 5px, 100% 5px, 100% 8px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+
 table.pyret-row th {
   box-shadow: 2px 0px 2px var(--shadow-color), -2px 0px 2px var(--shadow-color);
   border: none;

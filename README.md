@@ -10,7 +10,7 @@ everything in `.env` is just an environment variable if you really want to
 manage things yourself, but using Heroku tools makes sure you run like things
 do in production.
 
-First, get the [Heroku toolbelt](https://toolbelt.heroku.com/).
+First, get the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
 
 Then, copy `.env.example` to `.env`.  If all you want to do is run Pyret code
 and test out the REPL, you only need to edit a few variables.  If you want to

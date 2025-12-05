@@ -105,9 +105,11 @@
       else if(window.IMAGE_PROXY_BYPASS) {
         return s;
       }
+      /*
       else if(a.hostname === "drive.google.com" && a.pathname === "/uc") {
         return s;
       }
+      */
       else {
         return window.APP_BASE_URL + "/downloadImg?" + s;
       }
@@ -666,11 +668,17 @@
 
       // save
       // On Mac mod ends up mapping to command+s whereas on Windows and Linux it maps to ctrl+s.
-      Mousetrap.bindGlobal('mod+s', function(e) {
-        CPO.save();
-        e.stopImmediatePropagation();
-        e.preventDefault();
-      });
+      // Saving has a special condition: when embedded we want the Ctrl-S to
+      // propagate up. We could fire a special “save” event, but for contexts
+      // like VScode it is nice to have the “real” Cmd-S event fire to get
+      // good default behavior
+      if(!PYRET_IS_EMBEDDED) {
+        Mousetrap.bindGlobal('mod+s', function(e) {
+          CPO.save();
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        });
+      }
 
       // resize, Toggle sizing of the editor window between 50% and last resize
       Mousetrap.bindGlobal('ctrl+m', function(e){
