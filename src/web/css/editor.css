@@ -2281,6 +2281,10 @@ th:last-child, td:last-child {
 
 tr:nth-child(even){background-color: var(--table-even-rows-bg)}
 
+.replOutput:has(> table.pyret-table) {
+  max-height: calc(100vh - 225px); display: block;
+}
+
 /* Borders on Pyret table cells */
 table.pyret-table th, 
 table.pyret-table td {
@@ -2295,11 +2299,12 @@ table.pyret-table.pyret-matrix {
 }
 
 
-table.pyret-table { width: 98%; }
+table.pyret-table { width: 98%; overflow: scroll; }
 table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--shadow-color);
+  position: sticky;
+  top: 0;
 }
-table.pyret-table tr { table-layout: fixed; display: table; width: 100%; }
 /* Force tables to be the full height of the viewport, leaving 225px for other chrome */
 table.pyret-table tbody {
   --bgRGB: 200, 210, 220;
@@ -2308,7 +2313,6 @@ table.pyret-table tbody {
 
   --shadow: rgba(41, 50, 56, 0.5);
 
-  max-height: calc(100vh - 225px); display: block;
   overflow: auto;
 
   background:
