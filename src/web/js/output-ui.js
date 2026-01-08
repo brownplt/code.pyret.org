@@ -1641,7 +1641,12 @@
         $(this).toggleClass("collection");
         $(this).toggleClass("inlineCollection");
       }
-      function helper(container, val, values, wantCommaAtEnd) {
+      const thisContext = "cpo";
+      function isInRendererContext(val) {
+        var renderers = runtime.getField(val, "renderers");
+        return runtime.hasField(renderers, thisContext);
+      }
+      function helper(container, val, values, wantCommaAtEnd, renderedValues) {
         var ariaText;
         if (runtime.ffi.isVSValue(val)) {
           //console.log('helper i', val);
@@ -1687,7 +1692,7 @@
             ul.each(makeInline);
             e.stopPropagation();
           });
-        } else if (runtime.ffi.isVSConstr(val)) {
+        } else if (runtime.ffi.isVSConstr(val) || (runtime.ffi.isVSConstrRender(val) && !isInRendererContext(val))) {
           //console.log('helper iv');
           container.append($("<span>").text(runtime.unwrap(runtime.getField(val, "name")) + "("));
           var items = runtime.ffi.toArray(runtime.getField(val, "args"));
@@ -1695,6 +1700,26 @@
             helper(container, items[i], values, (i + 1 < items.length));
           }
           container.append($("<span>").text(")"));
+        } else if (runtime.ffi.isVSConstrRender(val)) {
+
+
+          // We know we are on the CPO stack here (within a runThink that's running toReprJS).
+          // This means we can safely call CPO here.
+
+
+          // A good improvement here would be to build some kind of fallthrough mechanism when 
+          // isInRendererContext being false to just use vsconstr
+
+          var items = runtime.ffi.toArray(runtime.getField(val, "args"));
+          var currentContainer;
+          const elements = [];
+          for (var i = 0; i < items.length; i++) {
+            currentContainer = $("<span>").addClass("replOutput");
+            elements.push(currentContainer[0]);
+            helper(currentContainer, items[i], values, false);
+          }
+          const result = runtime.getField(runtime.getField(val, "renderers"), "cpo").app(elements);
+          container.append(result);
         } else if (runtime.ffi.isVSSeq(val)) {
           //console.log('helper v');
           var items = runtime.ffi.toArray(runtime.getField(val, "items"));

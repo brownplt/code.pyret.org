@@ -410,7 +410,8 @@
           stop: function() {
             runtime.breakAll();
           },
-          runtime: runtime
+          runtime: runtime,
+
         };
         return withRepl(jsRepl);
       }, "make-repl");
@@ -444,6 +445,9 @@
       };
       window.replWidget = CPO.replWidget = replWidget;
 
+      // Exposing this for dom-render.js to use for input.
+      window.__internalRepl = repl;
+    
       /*
       $("#runDropdown").click(function() {
         $("#run-dropdown-content").toggle();
