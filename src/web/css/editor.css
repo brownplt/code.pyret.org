@@ -2176,12 +2176,13 @@ body.smallHeader #run-dropdown-content {
 }
 
 table {
+    --table-radius: 1em;
     border-collapse: collapse;
     width: 100%;
     table-layout: auto;
     display: table!important;
     border:1px var(--table-border) solid;
-    border-radius:1em;
+    border-radius: var(--table-radius);
     border-collapse: separate;
     overflow:hidden;
     background:var(--table-bg);
@@ -2305,6 +2306,10 @@ table.pyret-table thead {
   position: sticky;
   top: 0;
 }
+/* style first and last th elements to use the table's rounded corners */
+th:first-child { border-top-left-radius: var(--table-radius); }
+th:last-child  { border-top-right-radius: var(--table-radius); }
+
 /* Force tables to be the full height of the viewport, leaving 225px for other chrome */
 table.pyret-table tbody {
   --bgRGB: 200, 210, 220;
