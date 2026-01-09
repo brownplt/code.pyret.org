@@ -480,6 +480,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
   cursor: pointer;
 }
 
+div.repl-animation {
+  background-color: var(--background) !important;
+}
+
 div.trace {
   overflow-x: auto;
   padding-top: 1px;

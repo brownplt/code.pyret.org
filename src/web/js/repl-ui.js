@@ -342,7 +342,7 @@
         });
       var currentZIndex = 15000;
       runtime.setParam("current-animation-port", function(dom, title, closeCallback) {
-          var animationDiv = $("<div>").css({"z-index": currentZIndex + 1});
+          var animationDiv = $("<div class='repl-animation'>").css({"z-index": currentZIndex + 1});
           animationDivs.push(animationDiv);
           output.append(animationDiv);
           function onClose() {
