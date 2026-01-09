@@ -2306,9 +2306,19 @@ table.pyret-table thead {
   position: sticky;
   top: 0;
 }
+
+table.pyret-table tr:last-child td:first-child {
+ border-bottom-left-radius: var(--table-radius); 
+}
+table.pyret-table tr:last-child td:last-child {
+ border-bottom-right-radius: var(--table-radius); 
+}
+
 /* style first and last th elements to use the table's rounded corners */
-th:first-child { border-top-left-radius: var(--table-radius); }
-th:last-child  { border-top-right-radius: var(--table-radius); }
+table.pyret-table th:first-child { border-top-left-radius: var(--table-radius); }
+table.pyret-table th:last-child  { border-top-right-radius: var(--table-radius); }
+
+
 
 /* Force tables to be the full height of the viewport, leaving 225px for other chrome */
 table.pyret-table tbody {
