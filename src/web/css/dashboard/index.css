@@ -1,0 +1,281 @@
+.cf:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+}
+
+#root, .wrap {
+    height: 100%;
+    width: 100%;
+}
+
+.wrap {
+    text-align: center;
+}
+
+body, html, p, h1, h2, h3, h4, button, input, div, i {
+    color: #123548;
+    padding: 0;
+    margin: 0;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.container {
+    max-width: 1024px;
+    margin: 0px auto;
+}
+
+#header {
+    height: 48pt;
+    padding-top: 1rem;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+
+.left, .right {
+    display: inline;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.floatable.left {
+    display: block;
+    float: none;
+}
+
+.floatable.right {
+    display: block;
+    float: none;
+}
+
+.clearfix {
+  clear: both;
+}
+
+button, .button {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 8pt 16pt;
+    background: #123548;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover, .button:hover {
+    opacity: .7;
+}
+
+#select-file {
+    background: #CA3434;
+    margin: 0px 16pt;
+}
+
+.start-button {
+    margin-right: 1rem;
+}
+
+.dashboard-logo {
+    height: 2rem;
+    float: left;
+    padding-right: 1rem;
+}
+
+.large-logo-container {
+  display: inline-block;
+}
+
+.large-logo-container img {
+    width: 10rem;
+}
+
+.main {
+  margin-top: 3rem;
+  width: 40%;
+  min-width: 30rem;
+}
+
+.main ul {
+  text-align: left;
+  list-style-type: none;
+}
+
+.main ul li {
+  margin-top: 1rem;
+}
+
+.header {
+  float: left;
+}
+
+.modal-wrap, #loading-spinner {
+    padding: 16pt;
+    margin: 0px auto;
+}
+
+.modal-body {
+    border: 2px solid #ddd;
+    padding: 16pt;
+}
+
+.fast-spin {
+    margin-top: 16pt;
+    -webkit-animation: fa-spin 500ms infinite linear;
+    animation: fa-spin 500ms infinite linear;
+}
+
+#file-picker-modal-tabs {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-bottom: none;
+}
+
+input.form {
+    padding: 5px;
+    width: 80px;
+    border-radius: 5px;
+    border: 2px solid #ddd;
+}
+
+.arr-ext {
+    padding: 0 16pt 0 5px;
+}
+
+#file-picker-modal-tabs h2.tab {
+    line-height: 48pt;
+}
+
+#file-picker-modal-body {
+    background: #eee;
+    max-height: 400px;
+    overflow-y: scroll;
+    text-align: left;
+}
+
+.tab {
+    float: left;
+    cursor: pointer;
+    padding: 0pt 8pt;
+}
+
+.tab.active {
+    background: #123548;
+    color: white;
+    text-decoration: underline;
+}
+
+.file-wrapper {
+    display: block;
+    width: 100%;
+    margin: 4pt;
+    box-sizing: border-box;
+}
+
+.file {
+    text-align: left;
+    padding: 4pt;
+    background: rgba(0,0,0,.06);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.file:hover {
+    cursor: pointer;
+    background: rgba(0,0,0,.15);
+}
+
+.file img {
+    width: 1.5em;
+    padding-top: 4pt;
+    padding-bottom: 4pt;
+    padding-left: 8pt;
+    filter: grayscale(70%);
+    -webkit-filter: grayscale(70%);
+    opacity: .4;
+    vertical-align: middle;
+}
+
+.file span {
+    vertical-align: middle;
+    padding-left: 1em;
+}
+
+.file .modified {
+    float: right;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #333;
+}
+
+.person-text {
+  color: #666666;
+}
+
+.truncate {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hidden {
+    display: none;
+}
+
+.footer {
+  position: fixed;
+  width: 100%;
+  height: 1.5rem;
+  bottom: 0;
+  left: 0;
+  border-top: 1px solid #111;
+  background: #eee;
+}
+
+.footer p {
+  margin-right: 2rem;
+}
+
+.input-label {
+  padding-right: 0.5rem;
+}
+
+@media only screen and (min-width: 480px) {
+    .modal-wrap, #loading-spinner {
+        padding: 48pt;
+        margin: 0px auto;
+    }
+
+    .tab {
+        padding: 0pt 16pt;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    input.form {
+        width: 150px;
+    }
+    .floatable.left {
+        float: left;
+    }
+    .floatable.right {
+        float: right;
+    }
+}
+
+@media only screen and (min-width: 1024px) {
+}

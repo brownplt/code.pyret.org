@@ -1,0 +1,2867 @@
+
+/* --------- Color variables that stay constant across themes --------- */
+:root {
+
+  /* 
+  - border on .CodeMirror, .inlineExample
+  - border on .check 
+  - border on .progressStep 
+  - box-shadow on .highlight.emphasize:not(:hover)::before 
+  - bg on .modal 
+  - text in .instructionsWidget
+  - border around ui-dialog
+  - border on .module-info-hover */
+  --default-border: black;
+
+  /* 
+  - box-shadow on div.spy-block
+  - box-shadow on .check-block
+  - box-shadow on .replImageThumbnail canvas
+  - box-shadow on .compile-error
+  - box-shadow on .parse-error 
+  - box-shadow on .menuContents 
+  - box-shadow on .dropdown:hover (aside run button)
+  - bg on .modal-header
+  - bg on .modal-footer 
+  - box-shadow on #runButton, #breakButton (also on hover)
+  - box-shadow on #run-dropdown-content li:hover
+  - box-shadow on table.pyret-table thead
+  - box-shadow on table.pyret-row th
+  - box-shadow on table.pyret-row
+  - box-shadow on .modal-content
+  - box-shadow on modal submit and close (also hover)
+  - .modal-content box-shadow */
+  --shadow-color: rgba(0,0,0,0.25);
+
+  /* 
+  - border on div#font
+  - border on #font-label
+  - box-shadow on .dropdown
+  - box-shadow on #run-dropdown-content li
+  - bg on div#font and div#font:hover */
+  --shadow-lighter: rgba(0,0,0,0.1);
+
+  /* 
+  - box-shadow of snippet with stacktrace when hovered
+  - .modal bg with opacity */
+  --shadow-darker: rgba(0,0,0,0.4);
+
+  /* - bg on .check-success */
+  --bg-check-success: #cfc;
+
+  /* - bg on .check-failure */
+  --bg-check-failure: #d66;
+
+  /* - bg of .error-bg */
+  --error-bg: #FF9494;
+
+  /* 
+  - text in .notificationArea .error
+  - text in .notificationArea .autoCorrect-button
+  - border on .error-highlight
+  - color of .error-icon */
+  --error: #F44336;
+
+  /* 
+  - bg on .progressStep.done
+  - text in .progressDone */
+  --progress-done: green;
+
+  /* - bg on #program-name-container input */
+  --prgm-name-bg: #FEFEFE;
+
+  /* 
+  - text in .notificationArea .active 
+  - text in .notificationArea .autoCorrect-msg */
+  --notif-area-text: #eee;
+
+  /* 
+  - color in .test-reason:empty, .check-block-error:empty */
+  --empty-check-text: #555;
+
+  /* 
+  - bg on .cptteach-fixed */
+  --cptteach-bg: #ddd;
+
+  /* 
+  - "Programming as ..." text in #welcome
+  - options in Run dropdown
+  - bg on .module-info-hover
+  - text in .modal-footer
+  - text in .stale.test-results .stale-warning */
+  --light-text: #eeeeee;
+
+  /* - bg on .notificationArea */
+  --notif-area-bg: #111111;
+
+  /* - bg on New/Save/Download/etc menu (.menuContents) */
+  --menu-contents-bg: #fff;
+
+  /*
+  - border around expanded objects (.replOutput.expanded > dl) */
+  --repl-obj-border: gray;
+
+  /* 
+  - text in .menuContents div.disabled * */
+  --menu-disabled: gray;
+
+  /* 
+  - text in .menuButton and .menuContents */
+  --menu-text: #333;
+
+  /*
+  - bg on .info-btn (question mark) in Bonnie menu */
+  --info-button-bg: #317bcf;
+
+  /* - bg on .info-btn:hover */
+  --info-button-hover: #0060ce;
+
+  /* 
+  - bg on #runButton
+  - bg on #runPart
+  - bg on .dropdown (beside Run)
+  - bg on #run-dropdown-content li
+  - bg on .choiceContainer > button
+  - bg on .modal .submit  */
+  --run-bg: #317bcf;
+
+  /* 
+  - bg on #runButton:hover
+  - bg on #run-dropdown-content li:hover
+  - bg on .dropdown:hover
+  - bg on .modal .submit:hover */
+  --run-hover: #0060ce;
+
+  /* 
+  - bg color of #breakButton 
+  - bg of .modal .close */
+  --stop-bg: #CF3B31;
+
+  /* 
+  - hover bg of #breakButton
+  - hover bg of .modal .close */
+  --stop-hover: #B30C00;
+
+  /* - .replOutputPassed */
+  --repl-out-passed: #1f9180;
+
+  /* - .replOutputFailed */
+  --repl-out-failed: #af1180;
+
+  /* - text color in .test-reason, .nestedReason */
+  --reason-text: #af1180;
+
+  /* - bg on .error-highlight */
+  --err-highlight: #fcc;
+
+  /* - bg of .emphasize-line */
+  --emph-line-bg: #BBB;
+
+  /* - bg on .check-highlight */
+  --check-highlight-bg: #CCF;
+
+  /* - border on .check-highlight */
+  --check-highlight-border: #33F;
+
+  /* - part of gradient in .warning-upper and .warning-lower */
+  --warning-gradient-1: hsla(0,100%,89%,1);
+
+  /* - part of gradient in .warning-upper and .warning-lower */
+  --warning-gradient-2: rgba(145,78,78,0);
+
+  /* - bg on .ui-dialog-titlebar (hidden by ui-widget-header) */
+  --ui-dialog-title-bg: #2a348b;
+
+  /* - bg & box-shadow of .editor-check-block-success */
+  --success-bg: hsl(88, 50%, 76%);
+
+  /* - bg & box-shadow on .editor-check-block-failed */
+  --fail-bg: hsl(45, 100%, 85%);
+
+  /* - gutter marker bg for errored test */
+  --err-gutter: hsla(0, 100%, 50%, 0.5);
+
+  /* - color of .choiceContainer > button */
+  --choice-button: #fff;
+
+  /* - .modal-content bg */
+  --modal-content-bg: #C8C8C8;
+
+  /* - .modal-content border */
+  --modal-content-border: #888;
+
+  /* - bg of .stale.test-results .stale-warning */
+  --stale-warning-bg: hsl(212, 30%, 50%);
+
+  /* 
+  - bg of .stale.test-results .check-block-failed
+  and .testing-summary .summary-failed */
+  --stale-fail-bg: hsl(45,30%,85%);
+
+  /* 
+  - bg of .stale.test-results .check-block-success
+  and .testing-summary .summary-passed */
+  --stale-success-bg: hsl(88, 30%, 76%);
+
+  /* - bg of .stale.test-results .check-block-errored */
+  --stale-err-bg: hsl(0, 30%, 85%);
+
+  /* 
+  - bg of .stale.test-results .check-block-test.failing-test:not(.highlights-active) */
+  --stale-fail-no-highlight: hsl(45, 30%, 93%);
+
+  /* - bg of .stale.test-results .check-block-test.highlights-active */
+  --stale-highlight: hsl(45,0%,95%);
+
+  /* - bg of .stale.test-results .check-block-test.highlights-active > header */
+  --stale-highlight-header: hsl(45, 50%, 85%);
+
+  /* - bg of .stale.test-results .check-block-test.passing-test */
+  --stale-passing-test: hsl(90, 10%, 91%);
+
+  /* - bg of .stale.test-results .testing-summary .summary-errored */
+  --stale-err-summary: hsl(0, 30%, 70%);
+
+  /* - bg of .stale compile errors/tests with highlights active */
+  --stale-err-highlight: hsl(204, 40%, 74%);
+
+  /*  - bg on .topbar  */
+  --topbar-bg: #eee;
+
+  /*
+  - bg on .ui-dialog 
+  - text in .ui-dialog-title */
+  --ui-dialog-default: #eee;
+
+  /* - bg color that dims around ui-widget */
+  --ui-widget-dim: #111;
+
+  /* background on image thumbnails in REPL */
+  --img-thumbnail-bg: white;
+
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--background);
+}
+
+.CodeMirror, .inlineExample {
+  border: 1px solid var(--default-border);
+  background: var(--background);
+  color: var(--default-text);
+  font-family: var(--font-stack);
+}
+.CodeMirror {
+  font-size: 1em;
+  line-height: calc(1em + 2px);
+}
+.replMain .CodeMirror {
+  border-top: none;
+  border-bottom: none;
+}
+.repl .CodeMirror {
+  background-color: var(--cm-in-repl-bg);
+  border: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+}
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid var(--cursor); }
+.CodeMirror div.CodeMirror-ruler.hidden { display: none; }
+.cm-s-default.CodeMirror { color: var(--default-text); }
+.cm-s-default .cm-comment { 
+  color: var(--comments);
+  font-weight: var(--comments-font-weight);
+  font-style: var(--comments-font-style);
+  font-size: var(--comments-font-size);
+  text-decoration: var(--comments-text-decoration);
+}
+.cm-s-default .cm-boolean { 
+  color: var(--booleans);
+  font-weight: var(--booleans-font-weight);
+  font-style: var(--booleans-font-style);
+  font-size: var(--booleans-font-size);
+  text-decoration: var(--booleans-text-decoration);
+}
+.cm-s-default .cm-builtin { 
+  color: var(--built-ins);
+  font-weight: var(--built-ins-font-weight);
+  font-style: var(--built-ins-font-style);
+  font-size: var(--built-ins-font-size);
+  text-decoration: var(--built-ins-text-decoration);
+}
+.cm-s-default .cm-function-name { 
+  color: var(--function-names);
+  font-weight: var(--function-names-font-weight);
+  font-style: var(--function-names-font-style);
+  font-size: var(--function-names-font-size);
+  text-decoration: var(--function-names-text-decoration);
+}
+.cm-s-default .cm-variable { 
+  color: var(--variables);
+  font-weight: var(--variables-font-weight);
+  font-style: var(--variables-font-style);
+  font-size: var(--variables-font-size);
+  text-decoration: var(--variables-text-decoration);
+}
+.cm-s-default .cm-keyword { 
+  color: var(--keyword);
+  font-weight: var(--keyword-font-weight);
+  font-style: var(--keyword-font-style);
+  font-size: var(--keyword-font-size);
+  text-decoration: var(--keyword-text-decoration);
+}
+.cm-s-default .cm-number { 
+  color: var(--numbers);
+  font-weight: var(--numbers-font-weight);
+  font-style: var(--numbers-font-style);
+  font-size: var(--numbers-font-size);
+  text-decoration: var(--numbers-text-decoration);
+}
+.cm-s-default .cm-roughnum, .cm-s-default .cm-roughnum-start { 
+  color: var(--rough-nums);
+  font-weight: var(--rough-nums-font-weight);
+  font-style: var(--rough-nums-font-style);
+  font-size: var(--rough-nums-font-size);
+  text-decoration: var(--rough-nums-text-decoration);
+}
+.cm-s-default .cm-roughnum-start {
+  display: inline-block;
+  transform: rotate(-15deg) scale(1.5);
+  margin-right: 0.125em;
+}
+.cm-s-default .cm-bad-number { 
+  color: var(--bad-numbers);
+  font-weight: var(--bad-numbers-font-weight);
+  font-style: var(--bad-numbers-font-style);
+  font-size: var(--bad-numbers-font-size);
+  text-decoration: var(--bad-numbers-text-decoration);
+}
+.cm-s-default .cm-string { 
+  color: var(--strings);
+  font-weight: var(--strings-font-weight);
+  font-style: var(--strings-font-style);
+  font-size: var(--strings-font-size);
+  text-decoration: var(--strings-text-decoration);
+}
+.cm-s-default .cm-unterminated-string { 
+  color: var(--unterm-strings);
+  font-weight: var(--unterm-strings-font-weight);
+  font-style: var(--unterm-strings-font-style);
+  font-size: var(--unterm-strings-font-size);
+  text-decoration: var(--unterm-strings-text-decoration);
+}
+.cm-s-default .cm-type { 
+  color: var(--types);
+  font-weight: var(--types-font-weight);
+  font-style: var(--types-font-style);
+  font-size: var(--types-font-size);
+  text-decoration: var(--types-text-decoration);
+}
+.rationalNumber {
+  color: var(--rationals);
+  font-weight: var(--rationals-font-weight);
+  font-style: var(--rationals-font-style);
+  font-size: var(--rationals-font-size);
+  text-decoration: var(--rationals-text-decoration);
+}
+
+span.rationalRepeat {
+  text-decoration: overline;
+}
+
+.cptteach-fixed { line-height: 1.5; background: var(--cptteach-bg); }
+
+div.CodeMirror-selected,
+span.CodeMirror-selectedtext {
+  background-color: var(--selected-text) !important;
+}
+
+.CodeMirror-matchingbracket {
+  position: relative;
+}
+
+.CodeMirror-matchingbracket::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  border: 0px solid var(--matching-brackets);
+  z-index: 1000;
+}
+
+.CodeMirror-matchingbracket.open::before {
+  border-width: 0.3ex 0px 0px 0.3ex;
+  border-top-left-radius: 0.4ex;
+  margin: -0.3ex;
+}
+
+.CodeMirror-matchingbracket.close::before {
+  border-width: 0px 0.3ex 0.3ex 0px;
+  border-bottom-right-radius: 0.4ex;
+  margin: 0.3ex;
+}
+
+div.CodeMirror span.CodeMirror-matchingbracket-region {
+  position: relative;
+  background-color: var(--matching-region-bg);
+  border-top: 0.1em solid var(--matching-region-bg);
+  border-bottom: 0.1em solid var(--matching-region-bg);
+}
+
+div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+    box-shadow: 0.5em 0 0.25em var(--matching-region-bg);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+    box-shadow: -0.5em 0 0.25em var(--matching-region-bg);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+    box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.5em 0 0.25em var(--matching-region-bg);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open {
+  box-shadow: -0.3ex 0 0.3ex var(--matching-region-bg);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+  box-shadow: 0.5em 0 0.25em var(--matching-region-bg), -0.3ex 0 0.3ex var(--matching-region-bg);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close {
+  box-shadow: 0.3ex 0 0.3ex var(--matching-region-bg);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+  box-shadow: -0.5em 0 0.25em var(--matching-region-bg), 0.3ex 0 0.3ex var(--matching-region-bg);
+}
+
+/* bold ends of matching bracket regions (unless variables) */
+div.CodeMirror span.CodeMirror-matchingbracket:not(.cm-variable) {
+  font-weight: 600;
+  /* color: initial; */
+}
+
+/* ensure keywords, built-ins, & variables retain their color when
+  highlighted as matching brackets */
+div.CodeMirror span.CodeMirror-matchingbracket.cm-keyword {
+  color: var(--keyword);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.cm-builtin {
+  color: var(--built-ins);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.cm-variable {
+  color: var(--variables);
+}
+
+
+div.CodeMirror span.CodeMirror-nonmatchingbracket {
+  font-weight: bold;
+  background-color: var(--nonmatching-bg-2);
+  color: var(--nonmatching-brackets);
+}
+
+div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
+  background-color: var(--nonmatching-bg);
+  border-top: 0.1em solid var(--nonmatching-bg-2);
+  border-bottom: 0.1em solid var(--nonmatching-bg-2);
+  z-index: 4000;
+}
+
+#REPL {
+  font-family: var(--ui-font-stack);
+}
+
+.replTextOutput {
+  font-family: var(--font-stack);
+  border: none;
+  background-color: transparent;
+  white-space: pre;
+}
+
+.replToggle {
+  cursor: pointer;
+}
+
+div.repl-animation {
+  background-color: var(--background) !important;
+}
+
+div.trace {
+  overflow-x: auto;
+  padding-top: 1px;
+}
+div.trace.error {
+   background-color: var(--trace-err-bg);
+}
+span.trace {
+   padding-right: 1em;
+   font-size: 85%;
+   display: none;
+}
+span.trace:after {
+   content: ":";
+}
+
+div.spy-block {
+  font-family: var(--ui-font-stack);
+  clear: both;
+  border: 1px solid var(--spy-borders);
+  padding: 0.2em;
+  box-shadow: 0px 4px 5px var(--shadow-color);
+  border-radius: 3px;
+  background: var(--spy-bg);
+  margin: 6px;
+}
+
+/* labels aren't highlighted, but are a.highlight elements */
+div.spy-block a.highlight {
+  color: var(--inactive-highlight-text) !important;
+}
+
+div.spy-block > .spy-title {
+   display: block;
+   width: 100%;
+   border-bottom: 1px solid var(--spy-borders);
+   margin-left: -3px;
+   margin-right: -3px;
+   padding-left: 3px;
+   padding-right: 3px;
+}
+
+div.spy-block > img.spyglass {
+   float: right;
+   width: 50px;
+   position: relative;
+   z-index: 1;
+}
+
+div.spy-block > table {
+   margin: 3px;
+   margin-bottom: 0px;
+   background: transparent;
+   overflow: scroll;
+}
+
+div.spy-block > table > tbody > tr {
+    background: var(--spy-odd-rows-bg);
+    border: 1px solid var(--spy-borders);
+}
+
+div.spy-block > table > tbody > tr:nth-child(even) {
+    background: var(--spy-even-rows-bg);
+}
+
+div.spy-block > table > tbody > tr > td {
+    border-right:  1px solid var(--spy-borders);
+}
+
+div.spy-block > table > tbody > tr > td:first-child {
+    vertical-align: middle;
+}
+
+div.spy-block > table > tbody > td {
+    border: 1px solid;
+}
+
+div.spy-block > table > th { display: none; }
+
+.test-reason:not(.highlights-active) .highlight {
+  background: initial!important;
+}
+
+#output > .compile-error:not(.highlights-active):hover:after,
+.check-block-error > .compile-error:not(.highlights-active):hover::after,
+.check-block-test.failing-test:not(.highlights-active):hover {
+    box-shadow: 0 0 2em var(--err-hover-shadow);
+    transform: scale(1.01);
+    backface-visibility: hidden;
+    transition: scale(1.01) .2s linear;
+    border-image-outset: 5px;
+}
+
+#output > .compile-error:not(.highlights-active):hover:after,
+.check-block-error > .compile-error:not(.highlights-active):hover::after,
+.check-block-test.failing-test:not(.highlights-active):hover::after{
+    content:'';
+    position:absolute;
+    height:100%;
+    width:100%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.0) 0%,
+        rgba(255, 255, 255, 0.2) 37%,
+        rgba(255, 255, 255, 0.8) 45%,
+        rgba(255, 255, 255, 0.0) 50%);
+    top:0;
+    left:0;
+    background-size: cover;
+    cursor: pointer;
+    background-position: 100em;
+    background-origin: padding-box;
+    background-repeat: no-repeat;
+    animation: 0.7s shine linear 1;
+}
+
+@keyframes shine {
+  from {background-position:0%;}
+  to   {background-position:100em;}
+}
+
+#output > .compile-error:not(.highlights-active) > *,
+.check-block-error > .compile-error:not(.highlights-active) > *,
+.check-block-test.failing-test:not(.highlights-active) .test-reason {
+  opacity: 0.5;
+}
+
+.check-block-header {
+    cursor: pointer;
+}
+
+.inlineExample {
+  font-family: var(--font-stack);
+  padding: 0 2px;
+}
+
+/* from http://codemirror.net/demo/resize.html */
+.CodeMirror {
+  height: auto;
+}
+
+.CodeMirror-scroll {
+  overflow-y: scroll;
+  overflow-x: auto;
+  height: auto;
+}
+
+
+.replMain .CodeMirror {
+  height: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  border-right: none; /* Resizable */
+}
+.replMain .CodeMirror-scroll {
+  height: 100%;
+}
+
+.repl {
+  padding-left: 1em;
+  padding-bottom: 5em;
+  padding-top: 5px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  height: 100%;
+  overflow-y: scroll;
+  background-color: var(--background);
+  cursor: text;
+}
+.check {
+  font-family: var(--font-stack);
+  border: 1px solid var(--default-border);
+  border-radius: 3px;
+  padding: 10px;
+  margin: 10px;
+}
+
+.check-success {
+  background-color: var(--bg-check-success);
+}
+
+.check-failure {
+  background-color: var(--bg-check-failure);
+}
+
+.check-block {
+  border: none;
+  border-radius: 3px;
+  margin: .5em;
+  padding: .5em;
+  box-shadow: 0px 2px 4px var(--shadow-color);
+  background: var(--check-block-default-bg);
+  position:relative;
+  cursor:default;
+}
+
+.check-block-tests,
+.check-block-error{
+  margin-top: .5em;
+}
+
+
+.check-block-failed {
+  background-color: var(--check-fail-bg);
+}
+
+.check-block-errored {
+  background-color: var(--check-error-bg);
+}
+
+.check-block-success {
+  background-color: var(--check-success-bg);
+  margin: 5px;
+}
+
+.check-block-summary {
+  display: block;
+  font-style: italic;
+}
+
+.testing-summary{
+  color: var(--testing-summary);
+  background: var(--testing-summary-bg);
+}
+
+.check-block-test{
+  position: relative;
+  overflow: hidden;
+  padding-bottom: .5em;
+}
+
+.check-block-test:not(:last-child) {
+  margin-bottom: 0.75em;
+}
+
+.check-block-test {
+  background-image: linear-gradient(0deg,hsla(0, 0%, 0%,.5),hsla(0, 0%, 0%, 0));
+  background-size: 100% .3em;
+  background-position:bottom;
+  background-repeat: no-repeat;
+}
+
+
+.check-title{
+  padding: 5px;
+  margin: -5px;
+}
+
+.expandText{
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  margin: .5em;
+  text-decoration: underline;
+}
+
+.repl-output {
+  padding: 0;
+  margin: 0;
+}
+
+.steppedGutter {
+  width: 25px;
+}
+
+
+.progressContainer {
+  width: 90%;
+  height: 2em;
+  padding: 5px;
+  text-align: center;
+}
+
+.progressStep {
+  display: inline-block;
+  vertical-align: top;
+  height: 10px;
+  border: 1px solid var(--default-border);
+}
+
+.progressStep.done {
+  background-color: var(--progress-done);
+}
+
+.progressDone {
+  color: var(--progress-done);
+  font-style: italic;
+  text-align: center;
+  width: 50%;
+  margin: auto;
+}
+
+.steppedGutterPart {
+  width: 25px;
+  padding-right: 3px;
+}
+
+.instructionsWidget {
+  background-color: #fcf;
+  border: 1px dotted #c0c;
+  color: var(--default-border);
+  padding: 3px;
+  margin: 5px;
+  cursor: pointer;
+  margin: 5px 5px 5px auto;
+}
+
+.instructionsWidget.hidden {
+  width: 90px;
+}
+
+.instructionsWidget .instructionsContent {
+  font-family: serif;
+}
+
+.instructionsWidget .toggleInstructions {
+  color: #666;
+  float: right;
+  font-size: 0.8em;
+  padding: 3px;
+}
+
+.prompt-container {
+  padding-top: 5px;
+}
+.echo-container {
+  overflow: hidden;
+  padding-top: 5px;
+}
+
+.repl-prompt {
+  width: 100%;
+  display: inline-block;
+}
+
+.repl-prompt-sign::before {
+  content: '\203a\203a\203a';
+  display: inline;
+  line-height: calc(1em + 10px);
+  float: left;
+}
+
+.repl-prompt-arrow {
+  font-family: var(--font-stack);
+  vertical-align: top;
+  display: inline-block;
+}
+
+.repl-echo {
+  width: 100%;
+  display: inline-block;
+}
+
+.repl-echo .CodeMirror-cursors {
+  display: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  /* prevent the editor to have scroll bar (we use a trick to move a dialog to
+  the bottom of the screen so that users can't see, and need to hide the scroll
+  bar as a result) */
+}
+
+.replMain {
+  position: absolute;
+  z-index: 8500;
+  left: 0;
+  width: 50%;
+  top:0;
+  height: 100%;
+  max-height: 100%;
+  padding-top: 40px;
+  padding-bottom: 2.5rem;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  margin:0;
+}
+
+body.hideFooter .replMain {
+  padding-bottom: 0rem;
+}
+
+body.hideHeader #main {
+  padding-top: 0px;
+}
+
+body.hideHeader .replMain {
+  padding-top: 0px;
+}
+
+body.smallHeader .replMain {
+  padding-top: 40px;
+}
+
+.replContainer {
+  position: absolute;
+  z-index: 8500;
+  left: 50%;
+  right: 0;
+  width: 50%;
+  top:0;
+  height: 100%;
+  max-height: 100%;
+  padding-top: 40px;
+  padding-bottom: 2.5rem;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  margin:0;
+}
+
+body.hideFooter .replContainer {
+  padding-bottom: 0rem;
+}
+
+body.hideHeader .replContainer {
+  padding-top: 0px;
+}
+
+body.smallHeader .replContainer {
+  padding-top: 40px;
+}
+
+#main {
+  width: 100%;
+  z-index: 5000;
+  height: 100%;
+  padding-top: 40px;
+  padding-bottom: 0px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  font-size: 14px;
+}
+
+#program-name-container {
+  display: inline-block;
+  font-family: var(--ui-font-stack);
+  vertical-align:top;
+  float:left;
+  height:100%;
+}
+
+#program-name-container input {
+  display: inline-block;
+  height: 40px;
+  padding: 5px;
+  vertical-align:top;
+  border:none;
+  font-size: 18px;
+  background: var(--prgm-name-bg);
+  float:left;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#program-name-container label {
+  display: inline-block;
+}
+
+#saveButton {
+}
+
+#shareContainer {
+  display: inline-block;
+  height: 100%;
+  float:left;
+}
+
+#shareContainer div {
+  height:100%
+}
+/*
+.notificationArea {
+  z-index: 12000;
+  width: 35%;
+  font-family: var(--ui-font-stack);
+  position:fixed;
+  display:block;
+  left: 55%;
+  bottom: 45px;
+}
+*/
+
+#welcome {
+  color: var(--light-text);
+  height: 2.5rem;
+  line-height: 2.5rem;
+  width: 50%;
+  float: left;
+}
+
+#welcome .username-message {
+  vertical-align: middle;
+  line-height: normal;
+  padding-left: 2em;
+  font-family: var(--ui-font-stack);
+}
+
+
+.notificationArea {
+  background: var(--notif-area-bg);
+  max-width: 50%;
+  float: right;
+  font-family: var(--ui-font-stack);
+  height: 2.5rem;
+  line-height: 2.5rem;
+}
+
+.notificationArea span {
+  vertical-align: middle;
+  padding-right: 2em;
+  line-height: normal;
+  display: inline-block;
+}
+
+.notificationArea .active {
+  color: var(--notif-area-text);
+}
+
+.notificationArea .error {
+  color: var(--error);
+  font-weight: bold;
+}
+
+.notificationArea .autoCorrect{
+  cursor:pointer;
+}
+
+.notificationArea .autoCorrect-msg{
+  color: var(--notif-area-text);
+}
+
+.notificationArea .autoCorrect-button{
+  color: var(--error);
+  font-weight: bold;
+  float:right;
+}
+
+.logoutOnly {
+  display: none;
+}
+
+.loginOnly {
+  display: none;
+}
+
+#bonniemenuContents {
+  min-width: 250px;
+}
+#viewmenuContents {
+  min-width: 250px;
+}
+#filemenuContents {
+  min-width: 200px;
+}
+#filemenuContents .hidden { display: none; }
+
+.menuContents {
+  color: #333;
+  border: 1px solid white;
+  border-radius: 3px;
+  border-top-left-radius: 0px;
+  margin-top: -3px;
+  margin-left: 1px;
+  background-color: var(--menu-contents-bg);
+  box-shadow: 0px 1px 5px var(--shadow-color);
+  overflow:hidden;
+  max-width: min-content;
+  padding: 6px 0;
+}
+
+.menuContents div:not(.disabled):not(.inert):hover{
+  transition: box-shadow 0.2s;
+  background-color: #e4e4e4;
+}
+
+.menuContents div.disabled * {
+   color: var(--menu-disabled);
+   cursor: default;
+}
+
+.menuButton *,
+.menuContents * {
+  color: var(--menu-text);
+  font-family: var(--ui-font-stack);
+  text-decoration: none;
+}
+
+.menuButton > *, .menuContents > * {
+  padding: 10px 30px 10px;
+  display: block;
+}
+
+.menuContents > .menuButton * {
+  padding: initial;
+}
+
+#theme {
+  padding: 10px;
+}
+
+.info-btn {
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  border-radius: 100%;
+  font-family: var(--font-stack);
+  font-size: 1em;
+  line-height: 1em;
+  text-align: center;
+  text-decoration: none;
+  color: white;
+  background-color: var(--info-button-bg);
+}
+
+.info-btn:hover {
+  background-color: var(--info-button-hover);
+}
+
+#font {
+  padding: 5px 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#font div,
+#font button {
+  font-family:var(--ui-font-stack);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none; /* Webkit */
+  -moz-user-select: none;  /* Firefox */
+  -ms-user-select: none;   /* IE 10  */
+  -o-user-select: none;
+  user-select: none;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+#font #font-label {
+  flex: 1;
+}
+
+#font #font-plus,
+#font #font-minus {
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid var(--default-border);
+  border-radius: 4px;
+  text-align: center;
+  margin-left: 12px;
+}
+
+
+div#font-label:hover{
+  background:none;
+  box-shadow:none;
+}
+
+.replPrint {
+  font-family: var(--font-stack);
+  padding-top: 0;
+  padding-bottom: 0.5em;
+  padding-left: 0.5em;
+  color: var(--repl-print);
+}
+
+.replOutput {
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  color: var(--repl-output);
+  display: inline-block;
+  font-family: var(--font-stack);
+}
+
+.replOutput .replOutput {
+   padding-top: 0em;
+   padding-bottom: 0em;
+   margin-top: 0.2em;
+   margin-bottom: 0.2em;
+}
+
+.replOutput ul.collection > li.expanded > span.contents > .replOutput,
+.replOutput ul.inlineCollection > li.expanded > span.contents > .replOutput {
+   margin-top: 0em;
+   margin-bottom: 0em;
+}
+
+.replToggle > .hidden { display: none; }
+
+/* definition lists for objects */
+.replOutput.expanded > dl > .collapsed, .replOutput.expanded > .collapsed { display: none; }
+.replOutput:not(.expanded) > dl > .expanded:not(.replOutput),
+.replOutput:not(.expanded) > .expanded:not(.replOutput) { display: none; }
+
+.replOutput.expanded > dl {
+   border: 1px solid var(--repl-obj-border);
+}
+
+.replOutput > dl { display: inline; }
+.replOutput.expanded > dl {
+   display: table;
+   clear: both;
+}
+.replOutput > dl > dt.label:after {
+   content: ":";
+   padding-right: 0.5em;
+}
+.replOutput > dl > dt { display: inline; }
+.replOutput.expanded > dl > dt {
+   float: left;
+   clear: left;
+   padding: 0 1em;
+}
+.replOutput > dl > dd { display: inline-block; }
+.replOutput.expanded > dl > dd {
+   float: left;
+}
+.replOutput > dl > dd:not(:last-of-type):after {
+   padding-right: 0.5em;
+}
+
+/* expandable lists for collections */
+ul.collection { margin: 0; }
+ul.collection > li {
+   margin-left: 1em;
+   clear: both;
+}
+ul.collection > li > span.label:before { padding-left: 0.5em; }
+ul.collection > li > span.label:after { content: ":"; padding-right: 0.5em; }
+ul.collection > li > span.label.expandable:before { content: "\025B8"; }
+ul.collection > li > span.contents {
+   display: none;
+}
+ul.collection > li.expanded > span.contents { display: inline; }
+ul.collection > li.expanded > span.label.expandable:before { content: "\025BE"; }
+
+ul.inlineCollection {
+  display: inline;
+  margin: 0;
+}
+ul.inlineCollection > li {
+  display: inline;
+}
+ul.inlineCollection > li > span.label {
+  display: none;
+}
+
+
+
+
+.replOutputPassed {
+  padding-top: 0;
+  padding-bottom: 0.5em;
+  color: var(--repl-out-passed);
+}
+
+.replOutputFailed {
+  padding-top: 0;
+  padding-bottom: 0.5em;
+  color: var(--repl-out-failed);
+}
+
+.test-reason, .nestedReason {
+ padding-top: 0;
+ color: var(--reason-text);
+}
+
+.replRef {
+  outline: 2px dashed #ffcc00;
+  box-shadow: 0 0 0 2px black;
+  display: inline-block;
+  margin-left: 2px;
+  margin-right: 2px;
+  padding: 2px;
+}
+
+.has-icon { position: relative; }
+
+.replImageThumbnail canvas {
+  cursor: pointer;
+  box-shadow: 0px 2px 4px var(--shadow-color);
+  margin: 2px;
+  position: relative;
+  background-color: var(--img-thumbnail-bg);
+}
+
+.replImageThumbnail:hover canvas {
+  cursor: pointer;
+  box-shadow: 0px 2px 4px var(--img-thumbnail-shadow);
+  margin: 2px;
+}
+
+.has-icon .info-icon {
+   display: none;
+   position: absolute;
+   bottom: 0;
+   right: 0;
+}
+
+.has-icon .info-icon-top {
+   display: none;
+   position: absolute;
+   top: 0;
+   right: 0;
+}
+
+.has-icon:hover .info-icon-top {
+   cursor: pointer;
+   display: initial;
+}
+
+.has-icon:hover .info-icon {
+   cursor: pointer;
+   display: initial;
+}
+
+.error-highlight {
+  background-color: var(--err-highlight) !important;
+  border-bottom: 2px solid var(--error) !important;
+}
+
+.loc-anchor {
+  border-bottom: 2px solid currentColor;
+}
+
+.test-reason {
+  padding: 0.5em;
+  color: var(--default-text);
+}
+
+.test-reason > br,
+.compile-error > br,
+.parse-error > br {
+  display:none;
+}
+
+.test-reason,
+.parse-error,
+.compile-error {
+  display: block;
+  position: relative;
+  line-height: 1.5;
+}
+
+.compile-error > p > code:only-child {
+  margin-left: 1.5em;
+}
+
+/*  colored text highlights within highlights-active blocks,
+    but that do not default to having their highlight on */
+a.highlight {
+  color: var(--inactive-highlight-text) !important;
+}
+
+/*  text highlights in highlights-active blocks that default
+    to highlighted background */
+a.highlight.highlight-on,
+a.highlight.highlight-on .replTextOutput {
+  color: var(--active-highlight-text) !important;
+}
+
+/*  colored text highlights within non- highlights-active blocks
+    (dark themes make this lighter so text doesn't disappear into the bg
+    while not being highlighted) */
+#output > .compile-error:not(.highlights-active) a.highlight,
+.check-block-error > .compile-error:not(.highlights-active) a.highlight,
+.check-block-test.failing-test:not(.highlights-active) a.highlight {
+  color: var(--inactive-highlight-text) !important;
+}
+
+#output .highlight {
+  cursor: pointer;
+}
+
+.hinted-highlight {
+  cursor: pointer;
+  border-bottom: 2px var(--active-highlight-underline) solid;
+}
+
+.highlight {
+  border-bottom: 2px var(--active-highlight-underline) solid;
+}
+
+.hinted-highlight.highlight-on,
+.highlight.highlight-on {
+  border-bottom: 2px var(--inactive-highlight-underline) solid;
+}
+
+.highlight-blink {
+  animation: pulse 0.4s infinite alternate
+}
+
+@keyframes pulse {
+  from {
+  }
+  to {
+  background-color:transparent;
+  }
+}
+
+@keyframes pulse-underline {
+  from {
+  }
+  to {
+  background-color:transparent;
+  border-color:transparent;
+  }
+}
+
+.test-reason > code,
+.test-reason > .replOutput,
+.test-reason > .replTextOutput,
+.compile-error > code,
+.compile-error > .replOutput,
+.compile-error > .replTextOutput,
+.parse-error > code,
+.parse-error > .replOutput,
+.parse-error > .replTextOutput {
+  margin-left:2em;
+}
+
+code div {
+  display:inline;
+}
+
+.highlight.emphasize:not(:hover)::before {
+  content : '';
+  position: absolute;
+  margin-left: 1em;
+  height: 1em;
+  width: 1em;
+  box-shadow:0 0 200px 1em var(--default-border);
+  opacity: 0;
+  border-radius: 100%;
+  animation: emphasize 0.5s 1;
+}
+
+@keyframes emphasize {
+  from {
+  display: block;
+  transform: scale(0);
+  opacity: 1.0;
+  }
+  to {
+  display: block;
+  transform: scale(10);
+  opacity: 0;
+  }
+}
+
+.emphasize-line {
+  background-color:var(--emph-line-bg);
+  opacity: 1;
+  animation: emphasize-line 0.5s;
+}
+
+@keyframes emphasize-line {
+  from {
+  opacity: 1;
+  }
+  to {
+  opacity: 0;
+  }
+}
+
+.underline:not(:hover) {
+  background-color: initial;
+}
+
+
+.check-highlight {
+ background-color: var(--check-highlight-bg);
+ border-bottom: 2px solid var(--check-highlight-border);
+}
+
+.compile-error {
+  font-family: var(--ui-font-stack);
+  border: 1px dashed var(--err-dotted-border);
+  padding: 0.2em;
+  box-shadow: 0px 4px 5px var(--shadow-color);
+  border-radius: 3px;
+  background: var(--err-bg);
+  margin: 6px;
+}
+
+.compile-error .code {
+  font-family: var(--font-stack);
+}
+
+.compile-error .srcloc {
+  font-family: var(--font-stack);
+}
+
+.compile-error a {
+  color: var(--err-link);
+  cursor: pointer;
+}
+
+.parse-error {
+  font-family: var(--ui-font-stack);
+  border: 1px dashed var(--err-dotted-border);
+  /* font-size: 10pt; */
+  padding: 3px;
+  box-shadow: 0px 4px 5px var(--shadow-color);
+  border-radius: 3px;
+  background: var(--err-bg);
+  margin: 6px;
+}
+
+.error-icon {
+  size: 16pt;
+  color: var(--error);
+}
+
+.parse-error .code {
+  font-family: var(--font-stack);
+}
+
+.parse-error .srcloc {
+  font-family: var(--font-stack);
+}
+
+.parse-error a {
+  color: var(--err-link);
+  cursor: pointer;
+}
+
+.parse-error ul, .compile-error ul {
+  list-style-type: disc;
+  padding-left: 1em;
+}
+
+.parse-error .hint, .compile-error .hint {
+   font-style: italic;
+}
+
+.warning-upper,
+.warning-lower {
+  position: absolute;
+  height: 2em;
+  width: 100%;
+  left:0;
+  z-index: 3;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  animation-duration: 0.4s;
+  animation-timing-function: ease-in;
+  animation-direction: alternate;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s linear;
+}
+
+.warning-upper.hinting,
+.warning-lower.hinting {
+  transition: opacity 0.1s linear;
+  pointer-events: all;
+  opacity: 1;
+}
+
+.warning-upper {
+  animation-name: arrow-upper-bounce;
+  background-image:
+      url('../img/up-arrow.png'),
+      linear-gradient(to bottom,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
+}
+
+.warning-lower {
+  animation-name: arrow-lower-bounce;
+  background-image:
+      url('../img/down-arrow.png'),
+      linear-gradient(to top,  var(--warning-gradient-1) 0%,var(--warning-gradient-2) 50%);
+}
+
+@keyframes arrow-upper-bounce {
+  from {background-position-y: -10px, center;}
+  to   {background-position-y: 0;}}
+@keyframes arrow-lower-bounce {
+  from {background-position-y: 10px, center;}
+  to   {background-position-y: 0;}}
+
+.warning-lower {
+  bottom:0;
+}
+
+#main .warning-upper {
+  top:0;
+}
+
+.repl > .warning-upper {
+  left:0;
+  margin-top: 40px;
+}
+
+.topbar {
+  position: fixed;
+  width: 100%;
+  background-color: var(--topbar-bg);
+}
+
+/* NOTE(joe): removes the white bar in popups */
+.ui-widget-content{
+  background: none;
+}
+
+/* From internet: http://stackoverflow.com/questions/5663137/jquery-modal-dialog-is-hidden-by-overlay-div-if-dialogs-parent-has-fixed-positi */
+.ui-widget-overlay{
+  position:fixed;
+  z-index: 11000;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0.5;
+  background: var(--ui-widget-dim);
+}
+/* end from internet */
+
+.ui-dialog {
+  border: 2px solid var(--default-border);
+  background-color: var(--ui-dialog-default);
+  border-radius: 5px;
+  z-index: 15000;
+}
+
+#vg-tooltip-element {
+  z-index: 15100;
+}
+#vg-tooltip-element.visible {
+  font-size: inherit;
+}
+
+#vg-tooltip-element.visible table tr td.key {
+  color: var(--repl-output);
+  padding-top: 0.5em;
+  padding-right: 0.5em;
+  padding-bottom: 0.5em;
+  /* Note: not setting background color, so that we get clearer rows */
+  font-weight: var(--th-font-weight);
+}
+
+.ui-dialog-titlebar {
+  background-color: var(--ui-dialog-title-bg);
+}
+
+.ui-dialog-title {
+  color: var(--ui-dialog-default);
+  font-family: var(--ui-font-stack);
+  position: relative;
+  left: 30px;
+}
+
+.ui-dialog-titlebar-close {
+  position: relative;
+  left: 5px;
+  top: 5px;
+}
+
+.ui-dialog-titlebar-close .ui-button-text {
+  display: none;
+}
+
+.ui-dialog-titlebar-close .ui-button-icon-primary:before {
+  content: "×"
+}
+
+/* Resizable REPL */
+#handle{
+  background:-webkit-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:-o-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:-moz-linear-gradient(left, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  background:linear-gradient(to right, 
+    var(--repl-handle-gradient-darker) 0%,
+    var(--repl-handle-gradient-lighter) 40%,
+    var(--repl-handle-gradient-lighter) 60%,
+    var(--repl-handle-gradient-darker) 100%);
+  cursor: ew-resize;
+  width:5px;
+  border: 1px solid var(--repl-handle-border);
+  border-top: none;
+  border-bottom: none;
+  top: 0px;
+  left: 0px;
+  bottom: 0px;
+  margin-top: 40px;
+  margin-bottom: 2.5rem;
+  height:auto;
+}
+
+body.hideFooter #handle {
+  margin-bottom: 0rem;
+}
+
+body.hideHeader #handle {
+  margin-top: 0px;
+}
+
+body.smallHeader #handle {
+  margin-top: 40px;
+}
+
+#runButton, #breakButton {
+  padding-left: 30px;
+  padding-right: 30px;
+  box-shadow: 0px -5px 5px 1px var(--shadow-color);
+}
+
+
+@media only screen and (min-width: 700px) {
+  #runButton, #breakButton {
+    min-width: 180px;
+  }
+}
+
+body.smallHeader #runButton, body.smallHeader #breakButton {
+  width: 60px;
+}
+
+body.smallHeader #runButton > span {
+  display: none;
+}
+
+#runButton, #runDropdown, #breakButton {
+  color: #eee;
+  border: 5px solid white;
+  box-shadow: none;
+  border-radius: 8px;
+  height: 39px;
+  cursor: pointer;
+}
+
+#runButton, #runDropdown {
+  background: var(--run-bg);
+}
+
+#runButton:hover, #runDropdown:hover, #breakButton:hover {
+  box-shadow: none;
+}
+
+#runButton {
+  margin: 0;
+  border-right-width: 1px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+#runDropdown {
+  padding: 0;
+  border-left-width: 0;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+#runButton:hover, #runDropdown:hover {
+  background:var(--run-hover);
+}
+
+#breakButton{
+  background:var(--stop-bg);
+  margin-right: 6px;
+}
+
+#breakButton:hover{
+  background:var(--stop-hover);
+}
+
+#runButton:disabled, #runDropdown:disabled, #breakButton:disabled{
+  box-shadow: none;
+  background: #e2e2e2;
+  color: #666;
+  cursor: auto;
+}
+
+body.smallHeader #runButton:disabled, body.smallHeader #breakButton:disabled{
+  width: 60px;
+}
+
+#runPart {
+  background: var(--run-bg);
+  padding: 0;
+  /* margin != 0 because we'll be pushing this flex item right */
+}
+
+#runli {
+  z-index: 2;
+}
+
+#rundropdownli {
+  z-index: 2; /* to show dropdown menu above run button */
+}
+
+#rundropdownli {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 20px;
+}
+
+#rundropdownli > div {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 5px;
+  border: 0;
+  box-shadow: 0px -2px 5px 2px var(--shadow-lighter);
+}
+
+#run-dropdown-content {
+  position: absolute;
+  right: 4px;
+  top: 34px;
+  margin: 0;
+  min-width: 185px;
+  padding-right: 10px;
+  display: none;
+  background: var(--menu-contents-bg);
+  box-shadow:
+    0px 1px 5px var(--shadow-color), /* shadow from menu over background */
+    inset 0px 2px 1px var(--shadow-color); /* shadow of button above onto this menu */
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  border: 1px solid white;
+  border-top-width: 0px;
+  overflow: hidden;
+  padding: 2px 0px 3px;
+}
+
+body.smallHeader #run-dropdown-content {
+  top: 40px;
+  right: 63px;
+}
+
+#run-dropdown-content li {
+  color: var(--menu-text);
+  font-family: var(--ui-font-stack);
+  font-size: 15px;
+  height: 23px;
+  width: 100%;
+  background: var(--menu-contents-bg);
+  padding: 5px;
+  text-align: center;
+}
+
+#run-dropdown-content > li > div {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  color: var(--menu-text);
+}
+
+#run-dropdown-content > li > div > a {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  text-decoration: none;
+  color: var(--menu-text);
+}
+
+#run-dropdown-content li:hover {
+  background: #e4e4e4;
+  cursor:pointer;
+  color: var(--menu-text);
+}
+
+.dropdown:hover {
+  background:var(--run-hover);
+}
+
+.module-info-hover {
+  width: 30em;
+  height: auto;
+  border: 1px solid var(--default-border);
+  padding: 5px;
+  background-color: var(--light-text);
+}
+
+.CodeMirror-linewidget {
+  width: 100%!important;
+  overflow: visible;
+  position: relative;
+  z-index: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.editor-check-block-message:hover{
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.editor-check-block-message {
+  text-align: center;
+  overflow: none;
+}
+
+.editor-check-block-success {
+  background: var(--success-bg);
+  box-shadow: 0 1em 11px 2px var(--success-bg);
+}
+
+.editor-check-block-failed {
+  background: var(--fail-bg);
+  box-shadow: 0 0.5em 11px 3px var(--fail-bg);
+}
+
+.editor-check-block-error {
+  background: var(--check-error-bg);
+  box-shadow: 0 1em 11px 2px var(--check-error-bg);
+}
+
+.check-block-error {
+  position: relative;
+}
+
+@keyframes emphasize-error {
+  from {background-color: white; }
+  to {}
+}
+
+.check-block-test.failing-test:not(.highlights-active) {
+  background-color: var(--failing-test-bg); 
+  overflow: hidden;
+}
+
+.check-block-test.passing-test {
+  background-color: var(--passing-test-bg);
+}
+
+.check-block-test.passing-test .cm-snippet {
+  margin: 0.5em;
+}
+
+#output > .compile-error.highlights-active,
+.check-block-error .highlights-active.compile-error,
+.check-block-test.highlights-active {
+  border: 0.3em var(--highlights-active-border) solid;
+  box-shadow: 0 0 1em var(--err-focused-shadow);
+}
+
+
+.check-block-error .highlights-active.compile-error,
+.check-block-test.highlights-active {
+  background: var(--highlights-active-bg);
+}
+
+.check-block:not(.expanded) > .check-block-tests {
+  display: none;
+}
+
+.test-reason:empty,
+.check-block-error:empty {
+  margin: 0 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content:center;
+  height: 3em;
+  color: var(--empty-check-text);
+  overflow: hidden;
+}
+
+.check-block-error:empty {
+  background-color: var(--empty-check-err-bg);
+  border-radius: 0.5em;
+  padding: 0.5em;
+}
+
+.test-reason:empty:before,
+.check-block-error:empty:before {
+  content: '';
+  display: block;
+  min-height: 3em;
+  min-width: 3em;
+  background-image: url(../img/pyret-spin.gif);
+  background-size: contain;
+  background-repeat: no-repeat;
+  flex: 1;
+}
+
+.test-reason:empty:after,
+.check-block-error:empty:after {
+  display: block;
+  content: 'Processing Result…';
+  flex: 1.5;
+}
+
+
+.check-block-header:after {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0.5em;
+  text-decoration: underline;
+}
+
+.check-block.expanded > .check-block-header::after {
+  content: 'Hide Details';
+}
+
+.check-block:not(.expanded) > .check-block-header::after {
+  content: 'Show Details';
+}
+
+
+.check-block-test > header {
+  width: 100%;
+  padding: 0.5em;
+  line-height: 0.9;
+}
+
+.check-block-test.failing-test.highlights-active > header {
+  background-color: var(--failing-test-header-bg);
+}
+
+.check-block-test .CodeMirror {
+  background:var(--check-block-snippet-bg);
+}
+
+.errored-test-marker {
+  background-color: var(--err-gutter);
+}
+
+.failed-test-marker {
+  background-color: var(--failed-test-gutter-marker);
+}
+
+.failed-test-marker > .CodeMirror-linenumber {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.summary-bits {
+  color: var(--default-text);
+  display: flex;
+}
+
+.summary-bit {
+  flex: 1;
+  text-align: center;
+  padding: 0.5em;
+}
+
+.summary-count {
+  display: block;
+  font-size: 20px;
+}
+
+.summary-bit.summary-passed {
+  background: var(--summary-pass-bg);
+}
+
+.summary-bit.summary-failed {
+  background: var(--summary-fail-bg);
+}
+
+.summary-errored > .summary-count {
+  text-align: center;
+  margin-right: 0.5rem;
+}
+
+.summary-errored {
+  background: var(--summary-error-bg);
+  color: var(--summary-err);
+  padding: .5em;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.summary-text {
+  border-left: 1px var(--summary-err-left-border) solid;
+  padding-left: .5em;
+}
+
+.highlight-irrelevant {
+  opacity: 0.2;
+}
+
+.cm-snippet {
+  border: 1px var(--snippet-border) dashed;
+  overflow: hidden;
+  cursor: default;
+  border-top-left-radius: .5em;
+  border-top-right-radius: .5em;
+}
+
+.cm-snippet header {
+  font-size: .7em;
+  background: var(--snippet-header-bg);
+  padding: 0 .5em;
+  box-shadow: 0 0 3px hsla(0, 0%, 0%,.5);
+  z-index: 100;
+  position: relative;
+  border-bottom: 1px var(--snippet-header-border) solid;
+  text-align: right;
+}
+
+.stacktrace > div {
+  cursor:pointer;
+  margin-left: 1em;
+  margin-bottom: 0.5em;
+  overflow:visible;
+}
+
+.stacktrace .cm-snippet {
+  cursor: pointer;
+  overflow-y: hidden;
+}
+
+.stacktrace .cm-snippet > .CodeMirror {
+  pointer-events: none;
+  max-height: 1.5em;
+}
+
+#main.spotlight .CodeMirror-matchingbracket::before {
+  opacity:0;
+  transition: .1s opacity linear .3s;
+}
+
+#main.spotlight div.CodeMirror span:not(.spotlight) {
+  background-color: initial!important;
+}
+
+#main.spotlight div.CodeMirror span.spotlight {
+  background-color: var(--spotlighted-text-bg) !important;
+}
+
+#main.spotlight .CodeMirror-matchingbracket,
+#main.spotlight .CodeMirror-matchingbracket.open,
+#main.spotlight .CodeMirror-matchingbracket.close,
+#main.spotlight .CodeMirror-matchingbracket-region,
+#main.spotlight .repl-echo > div.CodeMirror,
+#main.spotlight .repl,
+#main.spotlight .repl-prompt > div.CodeMirror,
+#main.spotlight > div.replMain > div.CodeMirror {
+  border-color: transparent;
+  box-shadow:none;
+  background-color: var(--non-spotlight-bg);
+  transition: .1s background-color linear .3s;
+}
+#main.spotlight .compile-error:not(:hover),
+#main.spotlight .check-block-test:not(:hover),
+#main.spotlight .check-block:not(:hover) {
+  opacity:0.25;
+  transition: .1s opacity linear .3s;
+}
+#main.spotlight .check-block {
+  transition: .1s background-color linear .3s;
+  background-color: var(--surrounding-check-spotlight-bg);
+}
+#main.spotlight .replOutput {
+  opacity: 0.5;
+}
+
+.stacktrace > div .CodeMirror-vscrollbar {
+  display:none!important;
+}
+
+.stacktrace > div:hover {
+  box-shadow:0 0 1em var(--shadow-darker);
+}
+
+.stacktrace > div:not(:first-of-type):before {
+  content: '⤤';
+  margin-top: -1em;
+  margin-left: -1em;
+  position: absolute;
+}
+
+table {
+    --table-radius: 1em;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: auto;
+    display: table!important;
+    border:1px var(--table-border) solid;
+    border-radius: var(--table-radius);
+    border-collapse: separate;
+    overflow:hidden;
+    background:var(--table-bg);
+}
+
+table.choiceContainer {
+   border: 0px;
+   margin: 0px;
+   background: none;
+   border-radius: 4px;
+}
+
+table.choiceContainer tr {
+  background: none !important;
+}
+table.choiceContainer td {
+  border-bottom: 1px solid #ccc;
+}
+table.choiceContainer tr:last-child td {
+  border-bottom-width: 0px;
+}
+table.choiceContainer .pyret-modal-option-example {
+  padding-right: 0px;
+}
+.pyret-modal-option-example .CodeMirror {
+  border: none;
+  background: transparent;
+  font-size: 90%;
+}
+
+/* make whole cell area occupied by clickable label */
+.modal td.pyret-modal-option-message {
+  padding: 0px;
+}
+
+.pyret-modal-option-message label {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  font-weight: bold;
+  color: var(--run-hover);
+}
+
+div.choiceContainer {
+   text-align: left;
+   margin-top: 16px;
+}
+div.choiceContainer input[type=text] {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-family: var(--font-stack);
+  padding: 0.5em;
+  font-size: 100%;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+}
+
+div.choiceContainer .textLabel {
+  margin-right: 1em;
+}
+
+div.choiceContainer > button {
+  margin: 1em;
+  cursor: pointer;
+  background-color: var(--run-bg);
+  border: none;
+  border-radius: 0px;
+  color: var(--choice-button);
+  text-align: center;
+  transition: box-shadow 0.2s;
+  font-size: 15px;
+  height: 100%;
+  padding: 0px 15px;
+  vertical-align: middle;
+  margin:0px 1px;
+}
+
+th {
+    background: var(--th-bg);
+    font-weight: var(--th-font-weight);
+}
+
+th, td {
+    text-align: left;
+    padding: 1em;
+    width: auto;
+    border-right:1px var(--table-col-dividers) solid;
+}
+
+th:last-child, td:last-child {
+    padding-right: 2em;
+    border-right: unset;
+}
+
+tr:nth-child(even){background-color: var(--table-even-rows-bg)}
+
+.replOutput:has(> table.pyret-table) {
+  max-height: calc(100vh - 225px); display: block;
+}
+
+/* Borders on Pyret table cells */
+table.pyret-table th, 
+table.pyret-table td {
+  border-right: 1px var(--pyret-table-col-dividers) solid;
+  border-bottom: 1px var(--pyret-table-row-dividers) solid;
+}
+table.pyret-table.pyret-matrix {
+  border-top-width: 0px;
+  border-bottom-width: 0px;
+  border-left-width: 2px;
+  border-right-width: 2px;
+}
+
+
+table.pyret-table { width: 98%; overflow: scroll; }
+table.pyret-table thead {
+  box-shadow: 0px 2px 2px var(--shadow-color);
+  position: sticky;
+  top: 0;
+}
+
+table.pyret-table tr:last-child td:first-child {
+ border-bottom-left-radius: var(--table-radius); 
+}
+table.pyret-table tr:last-child td:last-child {
+ border-bottom-right-radius: var(--table-radius); 
+}
+
+/* style first and last th elements to use the table's rounded corners */
+table.pyret-table th:first-child { border-top-left-radius: var(--table-radius); }
+table.pyret-table th:last-child  { border-top-right-radius: var(--table-radius); }
+
+
+
+/* Force tables to be the full height of the viewport, leaving 225px for other chrome */
+table.pyret-table tbody {
+  --bgRGB: 200, 210, 220;
+  --bg: rgb(var(--bgRGB));
+  --bgTrans: rgba(var(--bgRGB), 0);
+
+  --shadow: rgba(41, 50, 56, 0.5);
+
+  overflow: auto;
+
+  background:
+    /* Shadow Cover TOP */
+    linear-gradient(
+      var(--bg) 30%,
+      var(--bgTrans)
+    ) center top,
+
+    /* Shadow Cover BOTTOM */
+    linear-gradient(
+      var(--bgTrans),
+      var(--bg) 70%
+    ) center bottom,
+
+    /* Shadow TOP */
+    radial-gradient(
+      farthest-side at 50% 0,
+      var(--shadow),
+      rgba(0, 0, 0, 0)
+    ) center top,
+
+    /* Shadow BOTTOM */
+    radial-gradient(
+      farthest-side at 50% 100%,
+      var(--shadow),
+      rgba(0, 0, 0, 0)
+    ) center bottom;
+
+  background-repeat: no-repeat;
+  background-size: 100% 8px, 100% 5px, 100% 5px, 100% 8px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+
+table.pyret-row th {
+  box-shadow: 2px 0px 2px var(--shadow-color), -2px 0px 2px var(--shadow-color);
+  border: none;
+}
+table.pyret-row td {
+  border: none;
+}
+/* NOTE(joe): this helps distinguish a row that appears in a table cell */
+table.pyret-row {
+  box-shadow: 2px 2px 2px var(--shadow-color);
+}
+
+/* MODAL */
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 9999; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: var(--default-border); /* Fallback color */
+  background-color: var(--shadow-darker); /* Black w/ opacity */
+  font-family: var(--ui-font-stack);
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: white;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--modal-content-border);
+  border-radius: 6px;
+  width: 60%;
+  box-shadow: 0 4px 8px 0 var(--shadow-color),0 6px 20px 0 var(--shadow-color);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+
+.modal-content.narrow {
+  max-width: 400px;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+.modal td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  height: auto;
+}
+
+.pyret-modal-option-radio,
+.pyret-modal-option-message {
+  vertical-align: middle;
+}
+
+.pyret-modal-text tt {
+  font-family: monospace;
+}
+
+.pyret-modal-text input {
+  min-width: 10em;
+  font-family: monospace;
+}
+
+/*
+.submit:hover,
+.submit:focus,
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}*/
+
+.modal p {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.modal .submit,
+.modal .close  {
+  display: inline-block;
+  padding: 12px 20px;
+  height: auto;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.modal .submit{
+  border: 1px solid var(--run-bg);
+  background: var(--run-bg);
+}
+
+.modal .submit:hover{
+  background:var(--run-hover);
+  border-color: var(--run-hover);
+}
+
+.modal .close{
+  border: 1px solid #ccc;
+  background: white;
+  color: var(--run-bg);
+  margin-right: 16px;
+}
+
+.modal .close:hover{
+  color: #666;
+  border-color: #999;
+}
+
+.modal .submit:hover,
+.modal .close:hover{
+  box-shadow: 0px 2px 4px var(--shadow-color);
+}
+
+.modal-header {
+  padding: 20px;
+  padding-bottom: 8px;
+  text-align: left;
+}
+
+.modal-body {
+  padding: 2px 20px;
+  font-size: 16px;
+}
+
+.modal td {
+  margin: 10px 16px;
+}
+
+.modal-footer {
+  padding: 20px;
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.modal ul {
+  list-style-type: circle;
+  list-style-position: inside;
+}
+
+.stale.test-results .check-block-failed,
+.stale.test-results .check-block-success,
+.stale.test-results .check-block-errored,
+.stale.test-results .check-block-test,
+.stale.test-results .summary-bits {
+  transition: background-color 0.3s linear;
+}
+
+.stale.test-results .stale-warning {
+  position: block;
+  /* Note: this is FF-only, but if the consensus is that it's a nice
+   * effect, there is a polyfill for Chrome that adds support */
+  position: sticky;
+  color: var(--light-text);
+  top: 0;
+  z-index: 500;
+  background-color: var(--stale-warning-bg);
+}
+
+.stale.test-results .check-block-failed {
+  background-color: var(--stale-fail-bg);
+}
+
+.stale.test-results .check-block-success {
+  background-color: var(--stale-success-bg);
+}
+
+.stale.test-results .check-block-errored {
+  background-color: var(--stale-err-bg);
+}
+
+.stale.test-results .check-block-test.failing-test:not(.highlights-active) {
+  background-color: var(--stale-fail-no-highlight);
+}
+
+.stale.test-results .check-block-test.highlights-active {
+  background-color: var(--stale-highlight);
+}
+
+.stale.test-results .check-block-test.highlights-active > header {
+  background-color: var(--stale-highlight-header);
+}
+
+.stale.test-results .check-block-test.passing-test {
+  background-color: var(--stale-passing-test);
+}
+
+.stale.test-results .testing-summary .summary-passed {
+  background-color: var(--stale-success-bg);
+}
+
+.stale.test-results .testing-summary .summary-failed {
+  background-color: var(--stale-fail-bg);
+}
+
+.stale.test-results .testing-summary .summary-errored {
+  background-color: var(--stale-err-summary);
+}
+
+.stale .compile-error.highlights-active,
+.stale .compile-error.highlights-active,
+.stale .check-block-test.highlights-active {
+  border-color: var(--stale-err-highlight);
+}
+
+
+.paintBrush {
+   height: 2.1em;
+   margin-right: -0.5em;
+   position: relative;
+   z-index: 2;
+}
+.paintSpan {
+   display: inline-block;
+   position: relative;
+}
+.paintBlob {
+   width: 2.5em;
+   height: 1.5em;
+   position: relative;
+   z-index: 1;
+   vertical-align: baseline;
+   display: inline-block;
+   -webkit-mask-image: url(/img/paint.svg);
+   mask-image: url(/img/paint.svg);
+   -webkit-mask-size: contain;
+   mask-size: 100% 100%;
+   mask-type: luminance;
+}
+.checkersBlob {
+   margin-right: -2.5em;
+   width: 2.5em;
+   height: 1.5em;
+   position: relative;
+   background-image: url(/img/checkers.svg);
+   background-size: 2.5em 1.5em;
+   display: inline-block;
+}
+.error-bg {
+  background-color: var(--error-bg);
+}
+.ok-bg {
+  background-color: white;
+}
+label.controller {
+  width: 100px;
+  float: left;
+  margin-right: 10px;
+}
+button.controller {
+  margin: auto;
+  display: block;
+}
+
+.screenreader-only {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px 1px 1px 1px);
+    clip: rect(1px, 1px, 1px, 1px);
+}
+
+
+.useline {
+  opacity: 0.5;
+  user-select: none;
+}
+
+.define-use {
+  cursor: pointer;
+  background-color: #1f9180;
+}
+
+.gutter-question-wrapper {
+  position: absolute;
+}
+
+/* https://codepen.io/c0un7z3r0/pen/LZWXEw */
+.gutter-question-wrapper:hover > .gutter-question-tooltip {
+  display: block;
+}
+
+.gutter-question-tooltip {
+  display: none;
+  position: absolute;
+  left: 3em;
+  top: 2em;
+  font-size: smaller;
+  color: #111;
+  font-family: sans-serif;
+  border-radius: 3px;
+  border-top-left-radius: 0px;
+  margin-top: -3px;
+  margin-left: 1px;
+  background-color: var(--menu-contents-bg);
+  box-shadow: 0px 1px 5px var(--shadow-color);
+  overflow:hidden;
+  min-width: 12em;
+  padding: 0.5em;
+}
+
+.gutter-question {
+  width: 1em;
+  cursor: pointer;
+  display: block;
+}
+
+.help-gutter {
+  width: 0em;
+}
+
+/* default text in the REPL */
+body .repl {
+  color: var(--default-text);
+}
+
+/* succeeding check block */
+body .check-block-success {
+  color: var(--check-success-text);
+}
+
+/* individual passing test within block */
+body .check-block-test.passing-test {
+  color: var(--check-success-text);
+}
+
+/* failing check block */
+body .check-block-failed {
+  color: var(--check-fail-text);
+  border: var(--check-fail-border);
+}
+
+/* header inside failing check block */
+body .check-block-failed .check-block-header {
+  font-weight: var(--check-fail-header-font-weight);
+}
+
+/* individual failing test within block */
+body .check-block-test.failing-test {
+  color: var(--check-fail-text);
+}
+
+/* erroring check block */
+body .check-block-errored {
+  color: var(--check-error-text);
+  border: var(--check-error-border);
+}
+
+/* header inside erroring check block */
+body .check-block-errored .check-block-header {
+  font-weight: var(--check-error-header-font-weight);
+}
+
+/* text output in the REPL */
+body .replTextOutput { color: var(--repl-text-output); }
+
+/* make sure rationals stay one color */
+body .rationalNumber { color: var(--rationals); }
+
+/* lefthand gutters */
+body .cm-s-default .CodeMirror-gutters {
+  background: var(--gutter-bg);
+  border-right: 1px solid var(--gutter-border);
+}
+
+/* line numbers */
+body .cm-s-default .CodeMirror-guttermarker,
+body .cm-s-default .CodeMirror-guttermarker-subtle,
+body .CodeMirror-linenumber {
+  color: var(--line-numbers);
+}
+
+/* >>> in the repl */
+body .repl-prompt,
+body .repl-echo::before,
+body .repl-prompt::before {
+  color: var(--repl-prompts);
+}
+
+/* div containing spinny Pyret and loading messages */
+body #loader {
+  background-color: var(--loader-bg);
+}
+
+/* pirate text on loader screen */
+body #loader > p {
+  color: var(--loader-text);
+}
+
+/* 100 character line ruler */
+body .CodeMirror div.CodeMirror-ruler {
+  border: 1px dashed var(--line-ruler) !important;
+  border-left-style: none !important;
+}
+
+/* scroll bar color */
+body .CodeMirror, body #REPL {
+  color-scheme: var(--scrollbar-theme); 
+}
+
+/* summaries for passed/failed tests at top */
+body .summary-bit.summary-passed { color: var(--summary-pass-text); }
+body .summary-bit.summary-failed { color: var(--summary-fail-text); }
+
+/*  Code appearing in a highlighted span that is *by default* highlighted,
+    but NOT blinking, spotlighted, or selected.
+    (dark themes darken this text for better contrast with light highlight bg) */
+body .CodeMirror 
+.bg-highlighted:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-default-text); }
+
+body .CodeMirror 
+.bg-highlighted.cm-comment:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-comments); }
+
+body .CodeMirror 
+.bg-highlighted.cm-boolean:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-booleans); }
+
+body .CodeMirror 
+.bg-highlighted.cm-builtin:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-built-ins); }
+
+body .CodeMirror 
+.bg-highlighted.cm-function-name:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-function-names); }
+
+body .CodeMirror 
+.bg-highlighted.cm-variable:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-variables); }
+
+body .CodeMirror 
+.bg-highlighted.cm-keyword:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-keyword); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-numbers); }
+
+body .CodeMirror 
+.bg-highlighted.cm-roughnum:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-rough-nums); }
+
+body .CodeMirror 
+.bg-highlighted.cm-bad-number:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-bad-numbers); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-strings); }
+
+body .CodeMirror 
+.bg-highlighted.cm-unterminated-string:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-unterm-strings); font-weight: bold; }
+
+body .CodeMirror 
+.bg-highlighted.cm-type:not(.highlight-blink):not(.spotlight):not(.CodeMirror-selectedtext)
+{ color: var(--dark-types); }
+
+kbd {
+  /* Source: https://www.rgagnon.com/jsdetails/js-nice-effect-the-KBD-tag.html */
+	margin: 0px 0.1em;
+	padding: 0.1em 0.6em;
+	border-radius: 3px;
+	border: 1px solid rgb(204, 204, 204);
+	color: rgb(51, 51, 51);
+	line-height: 1.4;
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 10px;
+	display: inline-block;
+	box-shadow: 0px 1px 0px rgba(0,0,0,0.2), inset 0px 0px 0px 2px #ffffff;
+	background-color: rgb(247, 247, 247);
+	-moz-box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2), 0 0 0 2px #ffffff inset;
+	-webkit-box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2), 0 0 0 2px #ffffff inset;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	text-shadow: 0 1px 0 #fff;
+}

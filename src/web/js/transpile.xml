@@ -1,0 +1,1126 @@
+<project app="Snap! 8.2, https://snap.berkeley.edu" name="Pyret Blocks" version="2">
+    <notes>Block definitions for the Bootstrap subset of the Pyret programming language</notes>
+    <thumbnail>data:image/png;base64,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</thumbnail>
+    <scenes select="1">
+        <scene clickrun="false" name="Pyret Blocks" palette="single">
+            <notes>Block definitions for the Bootstrap subset of the Pyret programming language</notes>
+            <palette>
+                <category color="36,1,224,1" name="Numbers"/>
+                <category color="1,195,49,1" name="Strings"/>
+                <category color="175,21,255,1" name="Images"/>
+                <category color="235,1,42,1" name="Booleans"/>
+                <category color="31,30,31,1" name="Tables"/>
+            </palette>
+            <hidden>forward turn turnLeft setHeading doFaceTowards gotoXY doGotoObject doGlide changeXPosition setXPosition changeYPosition setYPosition bounceOffEdge xPosition yPosition direction doSwitchToCostume doWearNextCostume getCostumeIdx doThinkFor doThink changeEffect setEffect clearEffects changeScale setScale getScale show hide goToLayer goBack playSound doPlaySoundUntilDone doStopAllSounds doRest doPlayNote doChangeTempo doSetTempo getTempo clear down up setColor changePenColorDimension setPenColorDimension changeSize setSize doStamp reportTouchingObject reportTouchingColor reportColorIsTouchingColor colorFiltered reportStackSize reportFrameCount doAsk reportLastAnswer getLastAnswer reportMouseX reportMouseY reportMouseDown reportKeyPressed reportRelationTo doResetTimer reportTimer getTimer reportAttributeOf reportURL reportGlobalFlag doSetGlobalFlag reportCONS reportCDR reportListContainsItem doDeleteFromList doInsertInList doReplaceInList reifyReporter reifyPredicate reportRound reportMonadic reportRandom reportLetter reportUnicode reportIsA reportVariadicIsIdentical receiveGo receiveKey receiveInteraction receiveMessage doBroadcast doBroadcastAndWait getLastMessage doWarp doWait doWaitUntil doForever doRepeat doUntil doStopThis fork evaluate doCallCC reportCallCC receiveOnClone createClone removeClone getPosition reportGetImageAttribute reportNewCostumeStretched reportNewCostume getEffect reportShown doPlaySoundAtRate reportGetSoundAttribute reportNewSoundFromSamples doSetInstrument changeVolume setVolume getVolume changePan setPan getPan playFreq stopFreq getPenDown getPenAttribute floodFill write reportPenTrailsAsCostume doPasteOn doCutFrom receiveCondition reportIfElse doTellTo reportAskFor newClone doPauseAll doSwitchToScene doDefineBlock doDeleteBlock doSetBlockAttribute reportBlockAttribute reportThisContext reportMousePosition reportAspect reportDate reportGet reportObject reportAudio reportVideo doSetVideoTransparency reportVariadicSum reportVariadicProduct reportPower reportTextSplit reportUnicodeAsLetter doDeleteAttr reportNumbers reportListIndex reportListIsEmpty reportMap reportKeep reportFindFirst reportCombine doForEach reportConcatenatedLists reportReshape reportCrossproduct doMapCodeOrHeader doMapValueCode doMapListCode reportMappedCode doRun reportPipe doHideVar reifyScript reportJoinWords receiveUserEdit doSayFor bubble doFor doIf doIfElse doReport reportStringSize doSetVar doChangeVar doShowVar doDeclareVariables reportNewList doAddToList reportListItem reportListAttribute reportDifference reportQuotient reportModulus reportVariadicLessThan reportVariadicEquals reportVariadicGreaterThan reportVariadicAnd reportVariadicOr reportNot reportBoolean reportJSFunction reportLessThan reportEquals reportGreaterThan reportAnd reportOr reportIsIdentical</hidden>
+            <headers/>
+            <code>
+                <string>&quot;&lt;#1&gt;&quot;</string>
+                <tempvars_delim>,</tempvars_delim>
+                <delim>,</delim>
+                <doSayFor>print &lt;#1&gt;</doSayFor>
+                <bubble>print(&lt;#1&gt;)</bubble>
+                <doIf>if &lt;#1&gt;:
+    &lt;#2&gt;</doIf>
+                <doIfElse>if &lt;#1&gt;:
+    &lt;#2&gt;
+else: 
+    &lt;#3&gt;</doIfElse>
+                <reportSum>(&lt;#1&gt; + &lt;#2&gt;)</reportSum>
+                <reportDifference>(&lt;#1&gt; - &lt;#2&gt;)</reportDifference>
+                <reportProduct>(&lt;#1&gt; * &lt;#2&gt;)</reportProduct>
+                <reportQuotient>(&lt;#1&gt; / &lt;#2&gt;)</reportQuotient>
+                <reportModulus>(&lt;#1&gt; % &lt;#2&gt;)</reportModulus>
+                <reportLessThan>(&lt;#1&gt; &lt; &lt;#2&gt;)</reportLessThan>
+                <reportEquals>(&lt;#1&gt; == &lt;#2&gt;)</reportEquals>
+                <reportGreaterThan>(&lt;#1&gt; &gt; &lt;#2&gt;)</reportGreaterThan>
+                <reportAnd>(&lt;#1&gt; &amp; &lt;#2&gt;)</reportAnd>
+                <reportOr>(&lt;#1&gt; | &lt;#2&gt;)</reportOr>
+                <reportNot>(!&lt;#1&gt;)</reportNot>
+                <reportTrue>True</reportTrue>
+                <reportFalse>False</reportFalse>
+                <reportJoinWords>(&lt;#1&gt;, &lt;#2&gt;)</reportJoinWords>
+                <reportStringSize>(&lt;#1&gt;.length)</reportStringSize>
+                <doSetVar>&lt;#1&gt; = &lt;#2&gt;</doSetVar>
+                <doChangeVar>&lt;#1&gt; += 1</doChangeVar>
+                <doShowVar>print &lt;#1&gt;</doShowVar>
+                <doDeclareVariables>#variables &lt;#1&gt;</doDeclareVariables>
+                <reportNewList>[&lt;#1&gt;]</reportNewList>
+                <reportListLength>len(&lt;#1&gt;)</reportListLength>
+                <reportListItem>&lt;#2&gt;[&lt;#1&gt; - 1]</reportListItem>
+                <doAddToList>&lt;#2&gt;.append(&lt;#1&gt;)</doAddToList>
+                <doReport>return &lt;#1&gt;</doReport>
+                <reportVariadicSum>(&lt;#1&gt; + &lt;#2&gt;)</reportVariadicSum>
+                <reportVariadicProduct>(&lt;#1&gt; * &lt;#2&gt;)</reportVariadicProduct>
+                <reportBoolean>&lt;#1&gt;</reportBoolean>
+                <reportListAttribute>len(&lt;#1&gt;)</reportListAttribute>
+                <doFor>for &lt;#1&gt; in range(&lt;#2&gt;, &lt;#3&gt;):
+    &lt;#4&gt;</doFor>
+            </code>
+            <blocks>
+                <block-definition category="other" s="use context starter2024" type="command">
+                    <header/>
+                    <code>use context starter2024</code>
+                    <translations/>
+                    <inputs/>
+                </block-definition>
+                <block-definition category="other" s="use context essentials2021" type="command">
+                    <header/>
+                    <code>use context essentials2021</code>
+                    <translations/>
+                    <inputs/>
+                </block-definition>
+                <block-definition category="other" s="use context shared-gdrive %'name' %'id'" type="reporter">
+                    <header/>
+                    <code>use context shared-gdrive(&lt;#1&gt;, &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                    </inputs>
+                </block-definition>
+
+                <block-definition category="Variables" s="%'a' = %'b'" type="reporter">
+                    <header />
+                    <code>&lt;#1&gt; = &lt;#2&gt;</code>
+                    <translations />
+                    <inputs>
+                        <input type="%upvar">name</input>
+                        <input type="%s">val</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l />
+                        </block>
+                    </script>
+                </block-definition>
+
+                <block-definition category="Maps" s="%'name' [ %'arg' ]"
+                    type="reporter">
+                    <header />
+                    <code>&lt;#1&gt;[&lt;#2&gt;]</code>
+                    <translations />
+                    <inputs>
+                        <input type="%var">map</input>
+                        <input type="%s">key</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l />
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="%'a' + %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; + &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">1</input>
+                        <input type="%n">2</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="%'a' - %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; - &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">10</input>
+                        <input type="%n">5</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                
+                <block-definition category="Numbers" s="%'a' / %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; / &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">1</input>
+                        <input type="%n">3</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="%'a' * %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; * &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">3</input>
+                        <input type="%n">4</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="num-sqrt %'n'" type="reporter">
+                    <header/>
+                    <code>num-sqrt(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">16</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="num-sqr %'n'" type="reporter">
+                    <header/>
+                    <code>num-sqr(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">4</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Numbers" s="num-expt %'base' %'power'" type="reporter">
+                    <header/>
+                    <code>num-expt(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">2</input>
+                        <input type="%n">3</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="mean %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>mean(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="median %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>median(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="modes %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>modes(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Strings" s="string-length %'str'" type="reporter">
+                    <header/>
+                    <code>string-length(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">rainbow</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Strings" s="string-contains %'haystack' %'needle'" type="predicate">
+                    <header/>
+                    <code>string-contains(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">cat</input>
+                        <input type="%txt">catfood</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Strings" s="string-repeat %'string' %'count'" type="reporter">
+                    <header/>
+                    <code>string-repeat(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">hello</input>
+                        <input type="%n">2</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &lt; %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; &lt; &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">1</input>
+                        <input type="%s">2</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &lt;= %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; &lt;= &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">3</input>
+                        <input type="%s">3</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &gt; %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; &gt; &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">b</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &gt;= %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; &gt;= &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">b</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' == %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; == &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">a</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' &lt;&gt; %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; &lt;&gt; &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s">a</input>
+                        <input type="%s">a</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' and %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; and &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                        <input type="%b">false</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="%'a' or %'b'" type="reporter">
+                    <header/>
+                    <code>(&lt;#1&gt; or &lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                        <input type="%b">false</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="not %'expr' " type="reporter">
+                    <header/>
+                    <code>not(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Booleans" s="if %'expr' %'then' %'else'" type="reporter">
+                    <header/>
+                    <code>if &lt;#1&gt;: &lt;#2&gt; else: &lt;#3&gt; end</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%b">true</input>
+                        <input type="%s">yes</input>
+                        <input type="%s">no</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="star %'radius' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">red</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="circle %'radius' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>circle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">yellow</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="square %'side' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>square(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">blue</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="triangle %'side' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>triangle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">green</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="ellipse %'width' %'height' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>ellipse(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">100</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">purple</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="rhombus %'side' %'angle' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>rhombus(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">50</input>
+                        <input type="%n">90</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">orange</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="regular-polygon %'side' %'num-sides' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>regular-polygon(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">6</input>
+                        <input type="%n">100</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">pink</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="radial-star %'points' %'inner-radius' %'outer-radius' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>radial-star(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;,&lt;#5&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">5</input>
+                        <input type="%n">100</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">outline<options>solid&#xD;outline</options></input>
+                        <input type="%txt">red</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="rectangle %'width' %'height' %'mode' %'color'" type="reporter">
+                    <header/>
+                    <code>rectangle(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">150</input>
+                        <input type="%n">200</input>
+                        <input type="%txt">solid<options>solid&#xD;outline</options></input>
+                        <input type="%txt">orange</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="text %'string' %'font-size' %'color'" type="reporter">
+                    <header/>
+                    <code>text(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">hello!</input>
+                        <input type="%n">100</input>
+                        <input type="%txt">blue</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="rotate %'degrees' %'img'" type="reporter">
+                    <header/>
+                    <code>rotate(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">45</input>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="scale %'factor' %'img'" type="reporter">
+                    <header/>
+                    <code>scale(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">2</input>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="scale-xy %'x-factor' %'y-factor' %'img'" type="reporter">
+                    <header/>
+                    <code>scale-xy(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%n">2</input>
+                        <input type="%n">3</input>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="overlay %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>overlay(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="above %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>above(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="beside %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>beside(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="below %'img' %'img'" type="reporter">
+                    <header/>
+                    <code>below(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="flip-horizontal %'img'" type="reporter">
+                    <header/>
+                    <code>flip-horizontal(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="flip-vertical %'img'" type="reporter">
+                    <header/>
+                    <code>flip-vertical(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="put-image %'top-img' %'x' %'y' %'bottom-img'" type="reporter">
+                    <header/>
+                    <code>put-image(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%n"/>
+                        <input type="%n"/>
+                        <input type="%s"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Images" s="image-url %'url'" type="reporter">
+                    <header/>
+                    <code>image-url(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">https://bootstrapworld.org/images/icon.png</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="load-spreadsheet %'link'" type="reporter">
+                    <header/>
+                    <code>load-spreadsheet(&lt;#1&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%txt">Google Sheet URL</input>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="load-table from %'sheet' tab of %'spreadsheet' $nl naming columns: %'columns'" type="reporter">
+                    <header/>
+                    <code>load-table: &lt;#3&gt;
+              source: &lt;#2&gt;.sheet-by-name(&lt;#1&gt;, true)
+            end</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%s"/>
+                        <input type="%mult%upvar"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="bar-chart %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>bar-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-bar-chart %'table' %'column' %'f'" type="reporter">
+                    <header/>
+                    <code>image-bar-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="pie-chart %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>pie-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-pie-chart %'table' %'column' %'f'" type="reporter">
+                    <header/>
+                    <code>pie-chart(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="stacked-bar-chart %'table' %'group' %'subgroup'" type="reporter">
+                    <header/>
+                    <code>stacked-bar-chart(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="multi-bar-chart %'table' %'group' %'subgroup'" type="reporter">
+                    <header/>
+                    <code>multi-bar-chart(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="box-plot %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>box-plot(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="modified-box-plot %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>modified-box-plot(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="histogram %'table' %'labels' %'values' %'bin-width'" type="reporter">
+                    <header/>
+                    <code>histogram(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%n"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-histogram %'table' %'values' %'bin-width' %'f'" type="reporter">
+                    <header/>
+                    <code>image-histogram(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="scatter-plot %'table' %'labels' %'x-values' %'y-values'" type="reporter">
+                    <header/>
+                    <code>scatter-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-scatter-plot %'table' %'x-values' %'y-values' %'f'" type="reporter">
+                    <header/>
+                    <code>image-scatter-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="lr-plot %'table' %'labels' %'x-values' %'y-values'" type="reporter">
+                    <header/>
+                    <code>lr-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="image-lr-plot %'table' %'x-values' %'y-values' %'f'" type="reporter">
+                    <header/>
+                    <code>image-lr-plot(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%txt"/>
+                        <input type="%repRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="count %'table' %'column'" type="reporter">
+                    <header/>
+                    <code>count(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="row-n %'table' %'index'" type="reporter">
+                    <header/>
+                    <code>row-n(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%n"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="sort %'table' %'column' %'ascending?'" type="reporter">
+                    <header/>
+                    <code>sort(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%b"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="random-rows %'table' %'num-rows'" type="reporter">
+                    <header/>
+                    <code>random-rows(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%n"/>
+                        <input type="%b"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="filter %'table' %'test'" type="reporter">
+                    <header/>
+                    <code>filter(&lt;#1&gt;,&lt;#2&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%predRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+                <block-definition category="Tables" s="build-column %'table' %'label' %'test'" type="reporter">
+                    <header/>
+                    <code>build-column(&lt;#1&gt;,&lt;#2&gt;,&lt;#3&gt;,&lt;#4&gt;)</code>
+                    <translations/>
+                    <inputs>
+                        <input type="%s"/>
+                        <input type="%txt"/>
+                        <input type="%predRing"/>
+                    </inputs>
+                    <script>
+                        <block s="doReport">
+                            <l/>
+                        </block>
+                    </script>
+                </block-definition>
+
+            </blocks>
+            <stage codify="true" color="255,255,255,1" costume="0" height="360" hyperops="true" id="1082" inheritance="true" lines="round" name="Stage" pan="0" penlog="false" sublistIDs="false" tempo="60" ternary="true" threadsafe="false" volume="100" width="480">
+                <pentrails>data:image/png;base64,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</pentrails>
+                <costumes>
+                    <list id="1083" struct="atomic"/>
+                </costumes>
+                <sounds>
+                    <list id="1084" struct="atomic"/>
+                </sounds>
+                <variables/>
+                <blocks/>
+                <scripts>
+                    <script x="20" y="20">
+                        <block s="receiveUserEdit">
+                            <l>Sprite</l>
+                            <list/>
+                        </block>
+                        <block s="doBroadcast">
+                            <l>changed</l>
+                            <list/>
+                        </block>
+                    </script>
+                    <script x="20" y="94">
+                        <block s="receiveMessage">
+                            <l>changed</l>
+                            <list/>
+                        </block>
+                        <block s="doBroadcast">
+                            <l>update</l>
+                            <list>
+                                <l>
+                                    <option>all</option>
+                                </l>
+                                <block s="reportMappedCode">
+                                    <block s="reportObject">
+                                        <l>Sprite</l>
+                                    </block>
+                                </block>
+                            </list>
+                        </block>
+                    </script>
+                </scripts>
+                <sprites select="1">
+                    <sprite color="0,173.4,90.168,1" costume="0" draggable="true" heading="90" hidden="true" id="1111" idx="1" name="Sprite" pan="0" pen="tip" rotation="1" scale="1" volume="100" x="157" y="-156">
+                        <costumes>
+                            <list id="1112" struct="atomic"/>
+                        </costumes>
+                        <sounds>
+                            <list id="1113" struct="atomic"/>
+                        </sounds>
+                        <blocks/>
+                        <variables/>
+                        <scripts/>
+                    </sprite>
+                    <watcher color="243,118,29" hidden="true" style="normal" var="script" x="1.5" y="1"/>
+                </sprites>
+            </stage>
+            <variables/>
+        </scene>
+    </scenes>
+</project>

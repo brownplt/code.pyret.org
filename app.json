@@ -1,0 +1,28 @@
+{
+  "name": "code.pyret.org – Feature Tests",
+  "description": "",
+  "scripts": {
+  },
+  "env": {
+    "PYRET": "https://s3.amazonaws.com/pyret-horizon/on-raw-key/cpo-main.jarr.gz.js",
+    "REDISCLOUD_URL": "",
+    "GIT_BRANCH": "on-raw-key",
+    "GIT_REV": "on-raw-key-HEAD",
+    "PORT": "80",
+    "SESSION_SECRET": { "required": true },
+    "GOOGLE_CLIENT_ID": { "required": true }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "rediscloud"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nodejs"
+    }
+  ]
+}
