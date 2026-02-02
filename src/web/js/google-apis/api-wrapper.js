@@ -51,15 +51,73 @@ function reauth(immediate, useFullScopes) {
     if(useFullScopes) {
       path += "&scopes=full";
     }
-    // Need to do a login to get a cookie for this user; do it in a popup
-    window.addEventListener('message', function(e) {
+
+    // Track whether we've already resolved to avoid double-resolution
+    var resolved = false;
+    function resolveOnce(method) {
+      if (!resolved) {
+        console.log("INFO: Popup login resolved by: ", method);
+        resolved = true;
+        // NOTE(joe): A useful thing to do for testing is to comment out this
+        // cleanup(), and check which of the 3 methods are returning success
+        // here. cleanup() will stop others from triggering.
+        cleanup();
+        d.resolve(reauth(true, useFullScopes));
+      }
+      else {
+        console.log("INFO: Popup login resolved again (ignored): ", method);
+      }
+    }
+
+    // Cleanup function to remove all listeners
+    var channel = null;
+    function cleanup() {
+      window.removeEventListener('message', messageHandler);
+      window.removeEventListener('storage', storageHandler);
+      try { localStorage.removeItem('pyret_auth_complete'); } catch (err) {}
+      if (channel) {
+        try { channel.close(); }
+        finally { channel = null; }
+      }
+    }
+
+    // Method 1: Traditional postMessage (works when COOP allows window.opener)
+    function messageHandler(e) {
       // e.domain appears to not be defined in Firefox
       if ((e.domain || e.origin) === document.location.origin) {
-        d.resolve(reauth(true, useFullScopes));
-      } else {
-        d.resolve(null);
+        resolveOnce("postMessage");
       }
-    });
+    }
+    window.addEventListener('message', messageHandler);
+
+    // Method 2: BroadcastChannel (works even when COOP severs window.opener)
+    // This is the fallback for environments like GoGuardian that inject COOP headers
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        channel = new BroadcastChannel('pyret_auth');
+        channel.onmessage = function(e) {
+          if (e.data && e.data.type === 'auth_complete') {
+            resolveOnce("Broadcast");
+          }
+        };
+      } catch (e) {
+        console.warn("BroadcastChannel setup failed:", e);
+      }
+    }
+
+    // Method 3: localStorage fallback for very old browsers without BroadcastChannel
+    function storageHandler(e) {
+      if (e.key === 'pyret_auth_complete') {
+        resolveOnce("localStorage");
+        // Clean up the flag
+        try { localStorage.removeItem('pyret_auth_complete'); } catch (err) {}
+      }
+    }
+    // Clear any stale auth flag before opening popup
+    try { localStorage.removeItem('pyret_auth_complete'); } catch (e) {}
+    window.addEventListener('storage', storageHandler);
+
+    // Need to do a login to get a cookie for this user; do it in a popup
     window.open(path);
   } else {
     // The user is logged in, but needs an access token from our server
