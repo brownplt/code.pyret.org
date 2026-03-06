@@ -2,8 +2,39 @@
 <html>
 <head>
 <script>
-window.opener.postMessage("done", document.location.origin);
-window.close()
+// Method 1: Traditional postMessage (works when COOP allows window.opener)
+if (window.opener) {
+  try {
+    window.opener.postMessage("done", document.location.origin);
+  } catch (e) {
+    console.warn("postMessage to opener failed:", e);
+  }
+}
+else {
+  console.warn("No window.opener", window.opener);
+}
+
+// Method 2: BroadcastChannel (works even when COOP severs window.opener)
+// This is the fallback for environments like GoGuardian that inject COOP headers
+if (typeof BroadcastChannel !== 'undefined') {
+  try {
+    let channel = new BroadcastChannel('pyret_auth');
+    channel.postMessage({ type: 'auth_complete' });
+    channel.close();
+  } catch (e) {
+    console.warn("BroadcastChannel failed:", e);
+  }
+}
+
+// Method 3: localStorage fallback for very old browsers without BroadcastChannel
+// The opener can detect this via the 'storage' event
+try {
+  localStorage.setItem('pyret_auth_complete', Date.now().toString());
+} catch (e) {
+  console.warn("localStorage fallback failed:", e);
+}
+
+window.close();
 </script>
 </head>
 </html>
