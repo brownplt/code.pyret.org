@@ -135,7 +135,7 @@ function makeRuntimeAPI(CPOIDEHooks) {
       // This function returns three string values, numerals to
       // appear before the decimal point, numerals to appear
       // after, and numerals to be repeated.
-      var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), runtime.NumberErrbacks);
+      var decimal = jsnums.toRepeatingDecimal(num.numerator(), num.denominator(), undefined, runtime.NumberErrbacks);
       return {
         type: 'number',
         value: {

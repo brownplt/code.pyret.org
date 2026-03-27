@@ -1399,7 +1399,7 @@
           // after, and numerals to be repeated.
           var numr = num.numerator();
           var denr = num.denominator();
-          var decimal = jsnums.toRepeatingDecimal(numr, denr, runtime.NumberErrbacks);
+          var decimal = jsnums.toRepeatingDecimal(numr, denr, undefined, runtime.NumberErrbacks);
           var prePointString = decimal[0];
           var postPointString = decimal[1];
           var decRpt = decimal[2];
