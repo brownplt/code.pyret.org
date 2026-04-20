@@ -3,7 +3,8 @@
     { "import-type": "builtin", "name": "image-lib" },
     { "import-type": "builtin", "name": "world-lib" },
     { "import-type": "builtin", "name": "valueskeleton" },
-    { "import-type": "builtin", "name": "reactors" }
+    { "import-type": "builtin", "name": "reactors" },
+    { "import-type": "builtin", "name": "reactor-events" },
   ],
   nativeRequires: ["pyret-base/js/js-numbers"],
   provides: {
@@ -52,7 +53,10 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, reactorEvents, jsnums) {
+    var gf = runtime.getField;
+    var gmf = function(m, f) { return gf(runtime.getField(m, "values"), f); }
+    
     var imageLibrary = runtime.getField(imageLibraryLib, "internal");
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
@@ -153,7 +157,7 @@
       });
     }
 
-    function bigBangFromDict(init, dict, tracer) {
+    function bigBangFromDict(init, dict, tracer, connector) {
       var handlers = [];
       function add(k, constr) {
         if(dict.hasOwnProperty(k)) {
@@ -174,6 +178,11 @@
           handlers.push(runtime.makeOpaque(new OnTick(dict["on-tick"], DEFAULT_TICK_DELAY * 1000)));
         }
       }
+
+      if (dict.hasOwnProperty["on-receive-send"]) {
+        handlers.push(runtime.makeOpaque(new OnReceiveSend(dict["on-receive-send"], connector)));
+      }
+
       add("on-mouse", OnMouse);
       add("on-key", OnKey);
       add("on-raw-key", OnRawKey);
@@ -293,7 +302,7 @@
     // NOTE(joe):  This expects there to be no active run for runtime
     // (it should be paused).  The run gets paused by pauseStack() in the
     // call to bigBang, so these runs will all be fresh
-    var adaptWorldFunction = function(worldFunction) {
+    var adaptWorldFunction = function(worldFunction, connector) {
       return function() {
         // Consumes any number of arguments.
         var success = arguments[arguments.length - 1];
@@ -306,18 +315,25 @@
           return runtime.safeCall(function() {
             return worldFunction.app.apply(null, pyretArgs);
           }, function(result) {
-            return result;
+            return runtime.ffi.cases(gmf(reactorEvents, "is-SendingHandlerResult"), "SendingHandlerResult", result.result, {
+              update: (newState) => newState,
+              send(newState, toSend) {
+                return runtime.safeCall(
+                  () => runtime.getField(connector, "handle-message-return").app(toSend),
+                  () => newState
+                );
+              }
+            });
           }, "big-bang");
         }, runtime.namespace,
-                    { sync: false },
-                    function(result) {
-                      if(runtime.isSuccessResult(result)) {
-                        success(result.result);
-                      }
-                      else {
-                        return rawJsworld.shutdown({errorShutdown: result.exn});
-                      }
-                    });
+        { sync: false },
+        function(result) {
+          if(!runtime.isSuccessResult(result)) {
+            return rawJsworld.shutdown({errorShutdown: result.exn});
+          } else {
+            return success(result.result);
+          }
+        });
       };
     };
 
@@ -463,6 +479,30 @@
           worldFunction(w, x, y, type, success);
         });
     };
+
+    class OnReceiveSend extends WorldConfigOption {
+      constructor(handler, connector) {
+        super("on-receive-send");
+        this.handler = handler;
+        this.connector = connector;
+      }
+
+      toRawHandler(topLevelNode) {
+        const worldFunction = adaptWorldFunction(this.handler, this.connector);
+        return {
+          onRegister(_) {
+            runtime.safeCall(
+              runtime.getField(this.connector, "reconnect"),
+              (_) =>
+                runtime.getField(this.connector, "register-on-message").app(worldFunction)
+            )
+          },
+          onUnregister(_) {
+            runtime.getField(this.connector, "dispose").app();
+          },
+        };
+      }
+    }
 
 
 
