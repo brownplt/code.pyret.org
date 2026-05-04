@@ -4,7 +4,6 @@
     { 'import-type': 'builtin', 'name': 'image-lib' },
   ],
   nativeRequires: [
-    'pyret-base/js/js-numbers',
     'google-charts',
   ],
   provides: {
@@ -17,8 +16,9 @@
       'plot': "tany",
     }
   },
-  theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums , google) {
-  'use strict';
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, google) {
+    'use strict';
+    var jsnums = RUNTIME.jsnums;
   // Load google library via editor.html to avoid loading issues
 
   function notImp(name) {
@@ -89,7 +89,7 @@
   function getPrettyNumToStringDigits(d) {
     // this accepts Pyret num
     return n =>
-      jsnums.toStringDigits(n, d, RUNTIME.NumberErrbacks).replace(/\.?0*$/, '');
+      jsnums.toStringDigits(n, d).replace(/\.?0*$/, '');
   }
 
   const prettyNumToStringDigits5 = getPrettyNumToStringDigits(5);
@@ -180,8 +180,7 @@
             xMaxC.removeClass('error-bg');
             xMaxC.addClass('ok-bg');
 
-            if (jsnums.greaterThanOrEqual(xMinVal, xMaxVal,
-                                          RUNTIME.NumberErrbacks)) {
+            if (jsnums.greaterThanOrEqual(xMinVal, xMaxVal)) {
               xMinC.addClass('error-bg');
               xMaxC.addClass('error-bg');
               xMinC.removeClass('ok-bg');
@@ -211,8 +210,7 @@
                     yMaxC.removeClass('error-bg');
                     yMaxC.addClass('ok-bg');
 
-                    if (jsnums.greaterThanOrEqual(xMinVal, xMaxVal,
-                                                  RUNTIME.NumberErrbacks)) {
+                    if (jsnums.greaterThanOrEqual(xMinVal, xMaxVal)) {
                       yMinC.addClass('error-bg');
                       yMaxC.addClass('error-bg');
                       yMinC.removeClass('ok-bg');
@@ -232,8 +230,7 @@
                         numSamplesC.addClass('ok-bg');
 
                         if (!isTrue(RUNTIME.num_is_integer(numSamplesVal)) ||
-                            jsnums.lessThanOrEqual(numSamplesVal, 1,
-                                                   RUNTIME.NumberErrbacks)) {
+                            jsnums.lessThanOrEqual(numSamplesVal, 1)) {
                           numSamplesC.addClass('error-bg');
                           numSamplesC.removeClass('ok-bg');
                           return null;

@@ -150,6 +150,15 @@
     // NOTE(joe): this function just allocates a closure, so it's stack-safe
     var onCompile = gmf(cpo, "make-on-compile").app(runtime.makeFunction(saveGDriveCachedFile, "save-gdrive-cached-file"));
 
+    function maybeAppendSlash(s) {
+      if(s.endsWith("/")) { return s; }
+      return s + "/";
+    }
+
+    function urlResolve(path, base) {
+      return new URL(path, base).href;
+    }
+
     // NOTE(joe/ben): this function _used_ to be trivially stack safe, but files
     // need to resolve their absolute path to calculate their URI, which
     // requires an RPC, so this function is no-longer trivially flat
@@ -198,7 +207,7 @@
               return arr[0];
             }
             else if (protocol === "url-file") {
-              return arr[0] + "/" + arr[1];
+              return urlResolve(arr[1], maybeAppendSlash(arr[0]));
             }
             else {
               console.error("Unknown import: ", dependency);
@@ -256,7 +265,7 @@
                     return runtime.getField(runtime.getField(urlLoc, "values"), "url-locator").app(arr[0], replGlobals);
                   }
                   else if (protocol === "url-file") {
-                    const fullUrl = arr[0] + "/" + arr[1];
+                    const fullUrl = urlResolve(arr[1], maybeAppendSlash(arr[0]));
                     switch(urlFileMode) {
                       case "all-remote":
                         fetch(fullUrl).then(async (response) => {

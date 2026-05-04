@@ -31,7 +31,7 @@ class StudentDashboard extends Component {
         this.setState({signedIn: SIGNED_IN});
         this.updateRecentFiles();
         this.api.getUsername().then((userInfo) => {
-          this.setState({ userName: userInfo.emails[0].value });
+          this.setState({ userName: userInfo.emailAddresses[0].value });
         });
       }
       else {
@@ -52,7 +52,7 @@ class StudentDashboard extends Component {
     this.api.signIn().then((resp) => {
       this.setState({signedIn: SIGNED_IN});
       this.api.getUsername().then((userInfo) => {
-        this.setState({ userName: userInfo.emails[0].value });
+        this.setState({ userName: userInfo.emailAddresses[0].value });
       });
       this.updateRecentFiles();
     })
@@ -228,7 +228,7 @@ class StudentDashboard extends Component {
         </div>
         <div className='footer middle'>
           <p className='right'>
-            <a target="_blank" href="https://www.pyret.org">pyret.org</a> | <a target="_blank" href="https://pyret.org/cpo-faq/">Privacy</a> | <a target="_blank" href="https://www.github.com/brownplt/code.pyret.org">Software</a></p>
+            <a target="_blank" href="https://www.pyret.org">pyret.org</a> | <a target="_blank" href="https://code.pyret.org/faq/">Policies</a> | <a target="_blank" href="https://www.github.com/brownplt/code.pyret.org">Software</a></p>
         </div>
 
       </div>

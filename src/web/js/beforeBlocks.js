@@ -305,13 +305,13 @@ $(function() {
   };
 
   function setUsername(target) {
-    return gwrap.load({name: 'plus',
+    return gwrap.load({name: 'people',
       version: 'v1',
     }).then((api) => {
-      api.people.get({ userId: "me" }).then(function(user) {
-        var name = user.displayName;
-        if (user.emails && user.emails[0] && user.emails[0].value) {
-          name = user.emails[0].value;
+      api.people.get({ resourceName: "people/me", personFields: "names,emailAddresses" }).then(function(user) {
+        var name = user.names && user.names[0] ? user.names[0].displayName : undefined;
+        if (user.emailAddresses && user.emailAddresses[0] && user.emailAddresses[0].value) {
+          name = user.emailAddresses[0].value;
         }
         target.text(name);
       });

@@ -151,11 +151,11 @@ class GoogleAPI {
   }
 
   getUsername = () => {
-    return gwrap.load({name: 'plus',
+    return gwrap.load({name: 'people',
       version: 'v1',
     }).then((api) => {
       console.log("Api: ", api);
-      return api.people.get({ userId: "me" });
+      return api.people.get({ resourceName: "people/me", personFields: "names,emailAddresses" });
     });
   }
 }

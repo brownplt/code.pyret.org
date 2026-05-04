@@ -5,7 +5,7 @@
     { "import-type": "builtin", "name": "valueskeleton" },
     { "import-type": "builtin", "name": "reactors" }
   ],
-  nativeRequires: ["pyret-base/js/js-numbers"],
+  nativeRequires: [],
   provides: {
     shorthands: {
       "WCOofA": ["tyapp", ["local", "WorldConfigOption"], [["tid", "a"]]],
@@ -52,7 +52,8 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors) {
+    var jsnums = runtime.jsnums;
     var imageLibrary = runtime.getField(imageLibraryLib, "internal");
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
@@ -532,8 +533,7 @@
               }
               var ctx = reusableCanvas.getContext("2d");
               ctx.save();
-              ctx.fillStyle = "rgba(255,255,255,0)";
-              ctx.fillRect(0, 0, width, height);
+              ctx.clearRect(0, 0, width, height);
               ctx.restore();
               theImage.render(ctx, 0, 0);
               success([toplevelNode, reusableCanvasNode]);
