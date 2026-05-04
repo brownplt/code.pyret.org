@@ -55,6 +55,7 @@
     "react-dom": "^15.7.0",
     "redis": "^0.10.3",
     "request": "^2.88.2",
+    "request-filtering-agent": "^3.2.0",
     "requirejs": "2.1.14",
     "s-expression": "~2.2.0",
     "script-loader": "^0.7.2",
@@ -88,7 +89,7 @@
   "author": "Joe Politz",
   "license": "Apache-2.0",
   "devDependencies": {
-    "chromedriver": "^146.0.1",
+    "chromedriver": "^146.0.4",
     "selenium-webdriver": "^3.6.0",
     "webpack-cli": "^5.1.4"
   }

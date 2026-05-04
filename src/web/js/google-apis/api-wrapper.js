@@ -394,10 +394,23 @@ function loadAPIWrapper(immediate) {
     }
 
     function processDelta() {
+      debugger;
       var newKeys = Object.keys(gapi.client)
             .filter(function(k) {return (preKeys.indexOf(k) === -1);});
       var ret;
-      if (newKeys.length > 1) {
+      if (params.name && newKeys.indexOf(params.name) !== -1) {
+        // When we requested a specific API by name, return only that one.
+        // Other new keys (from concurrent loads) will be picked up by
+        // their own loadAPI calls. Process all keys to populate the cache,
+        // but only return the one we asked for.
+        newKeys.forEach(processKey);
+        ret = _GWRAP_APIS[params.name];
+      } else if (newKeys.length > 1) {
+        // NOTE(joe, Apr 2026): We added this to diagnose if it actually ever
+        // happens in prod that we return a list of new APIs.
+        // We think it probably doesn't based on call sites, but don't want to
+        // break anything.
+        logger.log('processdelta-multi-key-return', { newKeys, preKeys });
         ret = newKeys.map(processKey);
       } else if (params.name && newKeys.length === 0) {
         // Hack to make drive-loading happy on login

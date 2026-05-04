@@ -3,13 +3,13 @@
     { 'import-type': 'builtin', 'name': 'image-lib' },
   ],
   nativeRequires: [
-    'pyret-base/js/js-numbers',
     'd3'
   ],
   provides: {},
-  theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, jsnums, d3) {
+  theModule: function (RUNTIME, NAMESPACE, uri, IMAGELIB, d3) {
   'use strict';
 
+    var jsnums = RUNTIME.jsnums;
   var IMAGE = RUNTIME.getField(IMAGELIB, "internal");
 
 
@@ -34,13 +34,13 @@
      * @return {jsnums -> jsnums}
      */
     return function (k) {
-      var oldDiff = jsnums.subtract(k, oldX, RUNTIME.NumberErrbacks);
-      var oldRange = jsnums.subtract(oldY, oldX, RUNTIME.NumberErrbacks);
-      var portion = jsnums.divide(oldDiff, oldRange, RUNTIME.NumberErrbacks);
-      var newRange = jsnums.subtract(newY, newX, RUNTIME.NumberErrbacks);
-      var newPortion = jsnums.multiply(portion, newRange, RUNTIME.NumberErrbacks);
-      var result = jsnums.add(newPortion, newX, RUNTIME.NumberErrbacks);
-      return toFixnum ? jsnums.toFixnum(result, RUNTIME.NumberErrbacks) : result;
+      var oldDiff = jsnums.subtract(k, oldX);
+      var oldRange = jsnums.subtract(oldY, oldX);
+      var portion = jsnums.divide(oldDiff, oldRange);
+      var newRange = jsnums.subtract(newY, newX);
+      var newPortion = jsnums.multiply(portion, newRange);
+      var result = jsnums.add(newPortion, newX);
+      return toFixnum ? jsnums.toFixnum(result) : result;
     };
   }
 
@@ -50,13 +50,13 @@
 
   function getPrettyNumToStringDigits(digits) {
     return function (num) {
-      return jsnums.toStringDigits(num, digits, RUNTIME.NumberErrbacks).replace(/\.?0*$/, '');
+      return jsnums.toStringDigits(num, digits).replace(/\.?0*$/, '');
     };
   }
 
   function between(b, a, c) {
-    return (jsnums.lessThanOrEqual(a, b, RUNTIME.NumberErrbacks) && jsnums.lessThanOrEqual(b, c, RUNTIME.NumberErrbacks)) ||
-           (jsnums.lessThanOrEqual(c, b, RUNTIME.NumberErrbacks) && jsnums.lessThanOrEqual(b, a, RUNTIME.NumberErrbacks));
+    return (jsnums.lessThanOrEqual(a, b) && jsnums.lessThanOrEqual(b, c)) ||
+           (jsnums.lessThanOrEqual(c, b) && jsnums.lessThanOrEqual(b, a));
   }
 
   function numMin(a, b) { /* ignore the rest */

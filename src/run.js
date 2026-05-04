@@ -23,6 +23,8 @@ var res = Q.fcall(function(db) {
     development: process.env["NODE_ENV"] !== "production",
     baseUrl: process.env["BASE_URL"],
     logURL: process.env["LOG_URL"],
+    logUser: process.env["LOG_USER"],
+    logPassword: process.env["LOG_PASSWORD"],
     gitRev:    process.env["GIT_REV"]    || git.short(),
     gitBranch: process.env["GIT_BRANCH"] || git.branch(),
     port: process.env["PORT"],
