@@ -3,6 +3,130 @@
 var originalPageLoad = Date.now();
 console.log("originalPageLoad: ", originalPageLoad);
 
+// Transparently route browser fetches to allowlisted hosts through the
+// server-side proxy at /load-shareurl, but only when the direct path doesn't
+// work.
+//
+// Strategy: the FIRST fetch to an allowlisted host fires direct + proxied in
+// parallel. We decide shouldProxy for the rest of the page-load from direct's
+// response *headers*:
+//   - direct returned 2xx with content-type text/plain  -> shouldProxy=false:
+//     serve direct's response, abort the in-flight proxy fetch.
+//   - direct failed, hung past timeout, or returned anything else
+//                                                        -> shouldProxy=true:
+//     serve proxy's response.
+// A key idea is that network-blocky things sometimes return 200 with a
+// message page about blocking (or an error, but that counts as a fail). We
+// don't want to accidentally think that's a success.
+// shouldProxy state is in-memory and per-host — never persisted, since
+// reachability changes between networks and a stale value would silently
+// break loads.
+//
+// Installed on the global fetch as early as possible so it catches every fetch
+// caller; some of them are in the pyret-lang runtime and would be otherwise
+// difficult to configure.
+const SHAREURL_PROXY_HOSTS = new Set(['raw.githubusercontent.com']);
+const SHAREURL_DIRECT_TIMEOUT_MS = 5000;
+const _origFetch = window.fetch.bind(window);
+
+const _shareurlShouldProxy = new Map();          // host -> boolean
+const _shareurlShouldProxyInflight = new Map();  // host -> Promise<boolean>
+
+function _shareurlProxyUrl(fetchInput) {
+  return '/load-shareurl?url=' + encodeURIComponent(_shareurlInputToUrl(fetchInput));
+}
+
+function _shareurlInputToUrl(fetchInput) {
+  return (typeof fetchInput === 'string') ? fetchInput
+         : (typeof Request !== 'undefined' && fetchInput instanceof Request) ? fetchInput.url
+         : String(fetchInput);
+}
+
+function _shareurlVerifyDirect(r) {
+  if (!r.ok) return false;
+  const ct = (r.headers.get('content-type') || '').toLowerCase();
+  // Source files served from raw.githubusercontent.com come back as
+  // text/plain (.arr, .json, .csv, .md all do). Anything else — HTML block
+  // pages, captive portals, surprise content types — we don't trust as a
+  // real upstream response.
+  return ct.startsWith('text/plain');
+}
+
+function _shareurlFetch(shouldProxy, fetchInput, fetchInit) {
+  const maybeProxyInput = shouldProxy ? _shareurlProxyUrl(fetchInput) : fetchInput;
+  return _origFetch(maybeProxyInput, fetchInit);
+}
+
+function _shareurlRace(fetchInput, fetchInit) {
+  const proxyCtrl = new AbortController();
+  // NOTE(joe): The signal overwrite is technically not the right fetch()
+  // polyfill. If the caller elsewhere in the codebase provided a different
+  // signal (which in the fetch API is only for aborting as of April '26), that
+  // caller aborting through that signal won't cancel the proxy fetch.
+  // I'm OK letting that case slip through here in exchange for not having a
+  // bunch of extra event handler forwarding
+  const proxyP = _origFetch(_shareurlProxyUrl(fetchInput),
+    Object.assign({}, fetchInit, { signal: proxyCtrl.signal }));
+  const directP = _origFetch(fetchInput, fetchInit).then(r => {
+    if (!_shareurlVerifyDirect(r)) throw new Error('direct request failed');
+    return r;
+  });
+
+  // shouldProxy: false iff direct verified before the timeout, else true.
+  // Whether to proxy is decided solely on whether direct succeeds or not
+  const shouldProxyPromise = Promise.race([
+    directP.then(() => false, () => true),
+    new Promise(resolve => setTimeout(() => resolve(true), SHAREURL_DIRECT_TIMEOUT_MS)),
+  ]);
+
+  // Settlement-order check: if direct verifies before proxy returns, abort
+  // the in-flight proxy to stop wasting server bandwidth. We must NOT
+  // abort once proxy has already returned, since by then the caller is
+  // reading proxy's body and aborting would error its stream mid-read.
+  const directFinishedSuccessfullyAndFirstP = Promise.race([
+    directP.then(() => true, () => false),
+    proxyP.then(() => false, () => false),
+  ]);
+  directFinishedSuccessfullyAndFirstP.then(directFirst => {
+    if (directFirst) proxyCtrl.abort();
+  });
+
+  // Caller's response: whichever of direct-verified or proxy fulfills
+  // first. If both fail, surface proxy's error (the more authoritative
+  // upstream — direct's may just be 'direct-not-verified').
+  const responsePromise = Promise.any([directP, proxyP]).catch(
+    aggErr => Promise.reject(aggErr.errors[1] || aggErr.errors[0])
+  );
+
+  return { responsePromise, shouldProxyPromise };
+}
+
+window.fetch = function(fetchInput, fetchInit) {
+  let host;
+  try { host = new URL(_shareurlInputToUrl(fetchInput), window.location.href).hostname; }
+  catch (_) { return _origFetch(fetchInput, fetchInit); }
+  if (!SHAREURL_PROXY_HOSTS.has(host)) return _origFetch(fetchInput, fetchInit);
+
+  const shouldProxy = _shareurlShouldProxy.get(host);
+  const inflight = _shareurlShouldProxyInflight.get(host);
+  if (shouldProxy !== undefined) {
+    return _shareurlFetch(shouldProxy, fetchInput, fetchInit);
+  } else if (inflight) {
+    // shouldProxy pending: queue this fetch on it and issue a single fresh
+    // request once shouldProxy is decided.
+    return inflight.then(sp => _shareurlFetch(sp, fetchInput, fetchInit));
+  } else {
+    // First fetch to this host this page-load: run the race.
+    const { responsePromise, shouldProxyPromise } = _shareurlRace(fetchInput, fetchInit);
+    _shareurlShouldProxyInflight.set(host, shouldProxyPromise);
+    shouldProxyPromise.then(sp => {
+      _shareurlShouldProxy.set(host, sp);
+      _shareurlShouldProxyInflight.delete(host);
+    });
+    return responsePromise;
+  }
+};
+
 const isEmbedded = window.parent !== window;
 
 var shareAPI = makeShareAPI(process.env.CURRENT_PYRET_RELEASE);
@@ -333,13 +457,13 @@ $(function() {
   };
 
   function setUsername(target) {
-    return gwrap.load({name: 'plus',
+    return gwrap.load({name: 'people',
       version: 'v1',
     }).then((api) => {
-      api.people.get({ userId: "me" }).then(function(user) {
-        var name = user.displayName;
-        if (user.emails && user.emails[0] && user.emails[0].value) {
-          name = user.emails[0].value;
+      api.people.get({ resourceName: "people/me", personFields: "names,emailAddresses" }).then(function(user) {
+        var name = user.names && user.names[0] ? user.names[0].displayName : undefined;
+        if (user.emailAddresses && user.emailAddresses[0] && user.emailAddresses[0].value) {
+          name = user.emailAddresses[0].value;
         }
         target.text(name);
       });

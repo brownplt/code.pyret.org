@@ -5,7 +5,7 @@
     { "import-type": "builtin", "name": "valueskeleton" },
     { "import-type": "builtin", "name": "reactors" }
   ],
-  nativeRequires: ["pyret-base/js/js-numbers"],
+  nativeRequires: [],
   provides: {
     shorthands: {
       "WCOofA": ["tyapp", ["local", "WorldConfigOption"], [["tid", "a"]]],
@@ -52,7 +52,8 @@
       "WorldConfigOption": ["data", "WorldConfigOption", ["a"], [], {}]
     }
   },
-  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors, jsnums) {
+  theModule: function(runtime, namespace, uri, imageLibraryLib, rawJsworld, VSlib, reactors) {
+    var jsnums = runtime.jsnums;
     var imageLibrary = runtime.getField(imageLibraryLib, "internal");
     var isImage = imageLibrary.isImage;
     var VS = runtime.getField(VSlib, "values");
