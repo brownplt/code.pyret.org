@@ -16,10 +16,10 @@
   provides: {},
   nativeRequires: [
     "pyret-base/js/runtime-util",
-    "pyret-base/js/js-numbers"
   ],
-  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, imageLib, loadLib, util, jsnums) {
+  theModule: function(runtime, _, uri, parsePyret, errordisplayLib, srclocLib, astLib, imageLib, loadLib, util) {
 
+    var jsnums = runtime.jsnums;
     var image = runtime.getField(imageLib, "internal");
     var srcloc = runtime.getField(srclocLib, "values");
     var isSrcloc = runtime.getField(srcloc, "is-Srcloc");
@@ -1399,7 +1399,7 @@
           // after, and numerals to be repeated.
           var numr = num.numerator();
           var denr = num.denominator();
-          var decimal = jsnums.toRepeatingDecimal(numr, denr, runtime.NumberErrbacks);
+          var decimal = jsnums.toRepeatingDecimal(numr, denr);
           var prePointString = decimal[0];
           var postPointString = decimal[1];
           var decRpt = decimal[2];

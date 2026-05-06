@@ -486,7 +486,7 @@ div.repl-animation {
 
 div.trace {
   overflow-x: auto;
-  padding-top: 1px;
+  margin-top: 1px;
 }
 div.trace.error {
    background-color: var(--trace-err-bg);
@@ -2304,23 +2304,42 @@ table.pyret-table.pyret-matrix {
 }
 
 
-table.pyret-table { width: 98%; overflow: scroll; }
+table.pyret-table { width: 98%; overflow: scroll; border: none; }
+/* make sure rotated elts in the table (like roughnums!) don't punch through */
 table.pyret-table thead {
   box-shadow: 0px 2px 2px var(--shadow-color);
   position: sticky;
   top: 0;
+  z-index: 1; 
 }
 
-table.pyret-table tr:last-child td:first-child {
- border-bottom-left-radius: var(--table-radius); 
-}
-table.pyret-table tr:last-child td:last-child {
- border-bottom-right-radius: var(--table-radius); 
+/* top/bottom borders on the first and last rows */
+table.pyret-table th { border-top: solid 1px black; }
+table.pyret-table > :nth-last-child(1 of :has(tr)) > tr:last-child td {
+  border-bottom: solid 1px black;
 }
 
-/* style first and last th elements to use the table's rounded corners */
-table.pyret-table th:first-child { border-top-left-radius: var(--table-radius); }
-table.pyret-table th:last-child  { border-top-right-radius: var(--table-radius); }
+/* left/right borders on the first and last cells */
+table.pyret-table td:first-child, table.pyret-table th:first-child {
+  border-left: solid 1px black;
+}
+table.pyret-table td:last-child, table.pyret-table th:last-child {
+  border-right: solid 1px black;
+}
+
+/* rounded borders for corners */
+table.pyret-table th:first-child {
+ border-top-left-radius: var(--table-radius);
+}
+table.pyret-table th:last-child {
+ border-top-right-radius: var(--table-radius);
+}
+table.pyret-table > :nth-last-child(1 of :has(tr)) > tr:last-child td:first-child {
+ border-bottom-left-radius: var(--table-radius);
+}
+table.pyret-table > :nth-last-child(1 of :has(tr)) > tr:last-child td:last-child {
+ border-bottom-right-radius: var(--table-radius);
+}
 
 
 
