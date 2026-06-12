@@ -10,8 +10,12 @@ let PATH_TO_CHROME;
 if (process.env.CHROMEDRIVER_BINARY) {
   // Note(Ben): Use `env CHROMDRIVER_BINARY=/snap/bin/chromium.chromedriver npm run mocha`
   // Based on https://stackoverflow.com/a/53971573
+  // This selects the ChromeDriver binary; it is independent of which Chrome
+  // browser binary we use (GOOGLE_CHROME_BINARY), so it must not be an else-if.
   chrome.setDefaultService(new chrome.ServiceBuilder(process.env.CHROMEDRIVER_BINARY).build());
-} else if (process.env.GOOGLE_CHROME_BINARY) {
+}
+
+if (process.env.GOOGLE_CHROME_BINARY) {
   // Used by Travis
   PATH_TO_CHROME = process.env.GOOGLE_CHROME_BINARY;
 }
