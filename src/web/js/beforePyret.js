@@ -457,16 +457,13 @@ $(function() {
   };
 
   function setUsername(target) {
-    return gwrap.load({name: 'people',
-      version: 'v1',
-    }).then((api) => {
-      api.people.get({ resourceName: "people/me", personFields: "names,emailAddresses" }).then(function(user) {
-        var name = user.names && user.names[0] ? user.names[0].displayName : undefined;
-        if (user.emailAddresses && user.emailAddresses[0] && user.emailAddresses[0].value) {
-          name = user.emailAddresses[0].value;
-        }
-        target.text(name);
-      });
+    var token = window.gapi.auth.getToken().access_token;
+    return fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+      headers: { Authorization: 'Bearer ' + token }
+    }).then(function(resp) {
+      return resp.json();
+    }).then(function(info) {
+      target.text(info.email);
     });
   }
 
@@ -490,7 +487,7 @@ $(function() {
     $("#connectButton").attr("tabIndex", "-1");
     //$("#topTierUl").attr("tabIndex", "0");
     getTopTierMenuitems();
-    storageAPI = createProgramCollectionAPI("code.pyret.org", false);
+    storageAPI = createProgramCollectionAPI(process.env.APP_NAME, false);
     storageAPI.then(function(api) {
       api.collection.then(function() {
         $(".loginOnly").show();
@@ -580,7 +577,7 @@ $(function() {
   }
 
   function setTitle(progName) {
-    document.title = progName + " - code.pyret.org";
+    document.title = progName + " - " + process.env.APP_NAME;
     $("#showFilename").text("File: " + progName);
   }
   CPO.setTitle = setTitle;

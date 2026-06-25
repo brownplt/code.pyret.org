@@ -1791,7 +1791,6 @@
           var tableAsText = [];
           var table = document.createElement("table");
           table.className = "pyret-table";
-          $(table).append(showText);
           $(table).addClass("has-icon");
           $(table).hover(function() {
             $(showText).show();
@@ -1823,6 +1822,7 @@
           //console.log('headerText =', ariaText);
           tableAsText.push(headersAsText);
           headers.appendChild(header);
+          $(headers).append(showText);
           table.appendChild(headers);
           var body = document.createElement("tbody");
           function drawRows(start, end) {

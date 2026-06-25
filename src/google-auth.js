@@ -4,14 +4,12 @@ var OAuth2 = gapi.auth.OAuth2;
 
 var DEFAULT_OAUTH_SCOPES = [
                     "email",
-                    "profile",
                     "https://www.googleapis.com/auth/drive.file",
                     "https://www.googleapis.com/auth/drive.install",
                   ];
 
 var FULL_OAUTH_SCOPES = [
                     "email",
-                    "profile",
                     "https://www.googleapis.com/auth/spreadsheets",
                     "https://www.googleapis.com/auth/drive.file",
                     "https://www.googleapis.com/auth/drive",

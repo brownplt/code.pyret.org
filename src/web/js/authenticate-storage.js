@@ -12,7 +12,7 @@ window.handleClientLoad = function handleClientLoad(apiKey, publicOnly) {
     return;
   }
   gapi.client.setApiKey(apiKey);
-  var api = createProgramCollectionAPI("code.pyret.org", true, publicOnly);
+  var api = createProgramCollectionAPI(window.APP_NAME, true, publicOnly);
 
   api.then(function(api) {
     storageAPIDeferred.resolve(api);
