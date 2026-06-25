@@ -21,8 +21,10 @@ NODE_MODULE = $(shell node -e "console.log(require('node:path').dirname(require.
 # trailing lib/ or mode/ or build/something at the end, but we need files from
 # other paths in them
 CM=$(call NODE_MODULE,codemirror)/..
-PYRET_MODE=$(call NODE_MODULE,pyret-codemirror-mode)/..
-PYRET=$(call NODE_MODULE,pyret-lang)/../..
+# Pyret's CodeMirror mode and the Pyret language now live in this monorepo
+# (../codemirror-mode and ../lang) rather than as separate GitHub npm packages.
+PYRET_MODE=../codemirror-mode
+PYRET=../lang
 
 CPOMAIN=build/web/js/cpo-main.jarr
 CPOGZ=build/web/js/cpo-main.jarr.gz.js
@@ -40,8 +42,7 @@ BUNDLED_DEPS=build/web/js/bundled-npm-deps.js
 .PHONY : post-install
 post-install: compress-pyret
 
-install-link:
-	npm link pyret-lang
+install-link: link-pyret
 
 .PHONY : selenium-test-local
 selenium-test-local:
