@@ -21,9 +21,19 @@ NODE_MODULE = $(shell node -e "console.log(require('node:path').dirname(require.
 # trailing lib/ or mode/ or build/something at the end, but we need files from
 # other paths in them
 CM=$(call NODE_MODULE,codemirror)/..
+
 # Pyret's CodeMirror mode and the Pyret language now live in this monorepo
-# (../codemirror-mode and ../lang) rather than as separate GitHub npm packages.
-PYRET_MODE=../codemirror-mode
+# rather than as separate GitHub npm packages.
+#
+# PYRET_MODE is a LOCAL path `mode`: in the monorepo it's a gitignored symlink
+# to the shared ../codemirror-mode sibling (created by the `mode` target below).
+# Deploys may choose to *copy in* the codemirror-mode directory instead of
+# symlinking it if they e.g. slice out just the code.pyret.org subdirectory
+PYRET_MODE=mode
+
+# The images the web build needs are copied and committed into src/web/img, so
+# the `web` target has no dependency on ../lang at all -- only the compiler
+# build (deploy-cpo-main / link-pyret) does.
 PYRET=../lang
 
 CPOMAIN=build/web/js/cpo-main.jarr
@@ -208,11 +218,11 @@ build/web/js/mark-selection.js: $(CM)/addon/selection/mark-selection.js
 build/web/js/runmode.js: $(CM)/addon/runmode/runmode.js
 	cp $< $@
 
-build/web/js/pyret-fold.js: $(PYRET_MODE)/addon/pyret-fold.js
-	cp $< $@
+build/web/js/pyret-fold.js: $(PYRET_MODE)
+	cp $(PYRET_MODE)/addon/pyret-fold.js $@
 
-build/web/js/matchkw.js: $(PYRET_MODE)/addon/matchkw.js
-	cp $< $@
+build/web/js/matchkw.js: $(PYRET_MODE)
+	cp $(PYRET_MODE)/addon/matchkw.js $@
 
 build/web/js/foldcode.js: $(CM)/addon/fold/foldcode.js
 	cp $< $@
@@ -241,8 +251,8 @@ build/web/js/matchesonscrollbar.js: $(CM)/addon/search/matchesonscrollbar.js
 build/web/js/jump-to-line.js: $(CM)/addon/search/jump-to-line.js
 	cp $< $@
 
-build/web/js/pyret-mode.js: $(PYRET_MODE)/mode/pyret.js
-	cp $< $@
+build/web/js/pyret-mode.js: $(PYRET_MODE)
+	cp $(PYRET_MODE)/mode/pyret.js $@
 
 build/web/js/mousetrap.min.js: $(call NODE_MODULE,mousetrap)/mousetrap.min.js
 	cp $< $@
@@ -312,10 +322,10 @@ EDITOR_MISC_JS = build/web/js/q.js \
 build/web/js/editor-misc.min.js: $(EDITOR_MISC_JS)
 	npx uglifyjs --compress -o $@ -- $^
 
+# These images were accessed through the lang/ symlink.
+# They are now directly copied into src/web/img and picked up by the
+# COPY_PNG / COPY_GIF rules above, so the web build needs nothing from ../lang.
 MISC_IMG = build/web/img/pyret-icon.png build/web/img/pyret-logo.png build/web/img/pyret-spin.gif build/web/img/up-arrow.png build/web/img/down-arrow.png
-
-build/web/img/%: $(PYRET)/img/%
-	cp $< $@
 
 COPY_ARR := $(patsubst ./pyret/src/arr/trove/%.arr,build/web/arr/%.arr,$(wildcard ./pyret/src/arr/trove/*.arr))
 COPY_ARR :=
@@ -373,7 +383,13 @@ link-pyret:
 	ln -s $(PYRET) pyret
 	(cd $(PYRET) && $(MAKE) phaseA-deps)
 
-deploy-cpo-main: link-pyret $(CPOMAIN) cpo-main-release 
+# See the comment near PYRET_MODE above. In the monorepo this creates a symlink
+# to the shared codemirror-mode sibling. It's a no-op when `mode` already exists,
+# if CI or a deploy step copies it in.
+mode:
+	ln -s ../codemirror-mode mode
+
+deploy-cpo-main: link-pyret $(CPOMAIN) cpo-main-release
 
 cpo-main-release: $(CPOGZ)
 	mkdir -p build/release/$(COMMITID);
