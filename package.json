@@ -1,6 +1,7 @@
 {
   "name": "code.pyret.org",
   "version": "0.0.0",
+  "private": true,
   "description": "A simple IDE for Pyret",
   "main": "index.js",
   "dependencies": {
@@ -81,7 +82,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/brownplt/code.pyret.org"
+    "url": "git+https://github.com/brownplt/pyret-lang.git",
+    "directory": "code.pyret.org"
+  },
+  "bugs": {
+    "url": "https://github.com/brownplt/pyret-lang/issues"
   },
   "author": "Joe Politz",
   "license": "Apache-2.0",
