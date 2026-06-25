@@ -1,0 +1,85 @@
+name: Mirror monorepo code.pyret.org subtree
+
+# Generates a deployable, history-preserving mirror of the code.pyret.org/
+# subfolder of the brownplt/pyret-lang monorepo on the `monorepo-mirror` branch
+# of THIS repo, so downstream forks (e.g. Bootstrap/PBO) can keep their
+# pull -> push -> Heroku "Deploy" workflow once CPO lives in the monorepo.
+#
+# Runs in brownplt/code.pyret.org so it can push to a branch here with the
+# built-in GITHUB_TOKEN -- no PAT or deploy key needed. The monorepo is public,
+# so it's checked out read-only with that same token.
+#
+# Extraction uses `git filter-repo` (sub-second). `git subtree split` produces
+# the same result but re-walks all ~12k monorepo commits and takes ~an hour, so
+# it's not viable here. The mirror is the history of code.pyret.org/ rewritten to
+# the repo root, plus one commit that copies the shared ../codemirror-mode
+# sibling in as a real `mode/` directory: CPO's Makefile reads the CodeMirror
+# mode from a local `mode/` (a gitignored symlink in the monorepo), so the slice
+# must ship it as a real dir for `make web` to build standalone on Heroku. (The
+# brand images the build needs are already vendored into src/web/img.)
+#
+# Manual-only for now; uncomment `schedule` to run automatically once trusted.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Branch/ref of brownplt/pyret-lang to mirror"
+        required: true
+        default: drydock
+  # schedule:
+  #   - cron: "0 7 * * *"   # daily at 07:00 UTC
+
+permissions:
+  contents: write
+
+concurrency:
+  group: monorepo-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout monorepo (full history)
+        uses: actions/checkout@v4
+        with:
+          repository: brownplt/pyret-lang
+          ref: ${{ github.event.inputs.source_ref || 'drydock' }}
+          fetch-depth: 0
+          path: monorepo
+
+      - name: Install git-filter-repo
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y git-filter-repo
+          git filter-repo --version
+
+      - name: Extract code.pyret.org (history-preserving) + materialize mode/
+        working-directory: monorepo
+        run: |
+          set -euo pipefail
+          # Stash the shared codemirror-mode sibling before filter-repo prunes it.
+          cp -r codemirror-mode /tmp/codemirror-mode
+          # Rewrite history so code.pyret.org/ becomes the repo root.
+          git filter-repo --subdirectory-filter code.pyret.org --force
+          # CPO reads the CodeMirror mode from a local `mode/` (a gitignored
+          # symlink in the monorepo). Ship a real copy so a downstream Heroku
+          # build of this mirror is self-contained.
+          rm -rf mode
+          cp -r /tmp/codemirror-mode mode
+          git config user.name "pyret-mirror bot"
+          git config user.email "119891+jpolitz@users.noreply.github.com"
+          git add -f mode
+          git commit -m "Materialize codemirror-mode for standalone deploy"
+          git log --oneline -5
+
+      - name: Push to monorepo-mirror branch of this repo
+        working-directory: monorepo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push --force \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
+            HEAD:monorepo-mirror
+          echo "Pushed HEAD -> monorepo-mirror"

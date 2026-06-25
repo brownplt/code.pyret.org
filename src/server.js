@@ -20,6 +20,9 @@ var SHAREURL_PROXY_MAX_BYTES  = 1 * 1024 * 1024;  // 1 MB
 var SHAREURL_PROXY_TIMEOUT_MS = 10 * 1000;        // 10 s
 
 function start(config, onServerReady) {
+  var APP_NAME   = process.env.APP_NAME   || "code.pyret.org";
+  var APP_DOMAIN = process.env.APP_DOMAIN || "code.pyret.org";
+
   var defaultOpts = {
       PYRET: process.env.PYRET,
       BASE_URL: config.baseUrl,
@@ -30,7 +33,9 @@ function start(config, onServerReady) {
       LOG_USER: config.logUser,
       GIT_REV : config.gitRev,
       GIT_BRANCH: config.gitBranch,
-      POSTMESSAGE_ORIGIN: process.env.POSTMESSAGE_ORIGIN
+      POSTMESSAGE_ORIGIN: process.env.POSTMESSAGE_ORIGIN,
+      APP_NAME:   APP_NAME,
+      APP_DOMAIN: APP_DOMAIN,
     };
   var express = require('express');
   var cookieSession = require('cookie-session');
@@ -98,7 +103,7 @@ function start(config, onServerReady) {
 
   app.use(cookieSession({
     secret: config.sessionSecret,
-    key: "code.pyret.org",
+    key: APP_NAME,
 
     sameSite: 'lax'
   }));
@@ -123,12 +128,12 @@ function start(config, onServerReady) {
 
   app.use(csrf());
 
-  app.get("/close.html", function(_, res) { res.render("close.html"); });
-  app.get("/faq.html", function(_, res) { res.render("faq.html"); });
-  app.get("/privacy.html", function(_, res) { res.render("privacy.html"); });
-  app.get("/privacy/", function(_, res) { res.render("privacy.html"); });
+  app.get("/close.html", function(_, res) { res.render("close.html", defaultOpts); });
+  app.get("/faq.html", function(_, res) { res.render("faq.html", defaultOpts); });
+  app.get("/privacy.html", function(_, res) { res.render("privacy.html", defaultOpts); });
+  app.get("/privacy/", function(_, res) { res.render("privacy.html", defaultOpts); });
 
-  app.get("/faq", function(_, res) { res.render("faq.html"); });
+  app.get("/faq", function(_, res) { res.render("faq.html", defaultOpts); });
 
   app.get("/", function(req, res) {
     var content = loggedIn(req) ? "My Programs" : "Log In";
@@ -856,7 +861,19 @@ function start(config, onServerReady) {
     if(config.sharedFetchServer) {
       let response = request({url: url});
       response.on("error", (error) => { ret.reject(error); });
-      response.on("response", (resp) => ret.resolve(response));
+      response.on("response", (resp) => {
+        // Only treat 2xx as a real proxy hit. A 4xx from the upstream
+        // (e.g. when the shared id was minted on *this* deploy and the
+        // proxy server has no record of it) must fall through to the
+        // local Drive fetch — otherwise the upstream error body gets
+        // piped straight back to the client.
+        if (resp.statusCode >= 200 && resp.statusCode < 300) {
+          ret.resolve(response);
+        } else {
+          response.abort();
+          ret.reject("Proxy returned status " + resp.statusCode);
+        }
+      });
     }
     else  {
       ret.reject("No fallback server configured");

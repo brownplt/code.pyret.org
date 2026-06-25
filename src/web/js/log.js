@@ -116,19 +116,13 @@ var logger = (function(backend) {
     backend.log(name, obj);
   }
   
-  var isDetailed = localSettings.getItem('log-detailed') == 'true';
-
+  // Set window.LOG_DETAILED = true in a forked deploy (e.g. a study) to
+  // enable per-edit logging in beforePyret/beforeBlocks and the CodeMirror
+  // change/focus/blur hooks below.
   return {
     guid  : guid,
     log   : log,
-    get isDetailed () {
-      var nowIsDetailed = localSettings.getItem('log-detailed') == 'true';
-      if (isDetailed != nowIsDetailed) {
-        log('LOG_DETAIL_CHANGED',{detailed: nowIsDetailed});
-        isDetailed = nowIsDetailed;
-      }
-      return nowIsDetailed;
-    }
+    isDetailed: window.LOG_DETAILED === true
   };
 })(backend);
 

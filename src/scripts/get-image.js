@@ -145,7 +145,7 @@ function saveBase64PngToFile(base64, filename) {
 }
 
 async function go(example) {
-  const fetchresult = browser.get("https://code.pyret.org/editor");
+  const fetchresult = browser.get("https://" + process.env.APP_DOMAIN + "/editor");
   const result = await waitForPyretLoad(browser);
   const result2 = await setDefinitionsEvalAndWait(browser, example.code, { typeCheck: false });
   browser.wait(webdriver.until.elementLocated(webdriver.By.css("canvas")), 10000);

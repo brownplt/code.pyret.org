@@ -78,24 +78,6 @@
     //replContainer.attr("aria-hidden", "true");
     $("#REPL").append(replContainer);
 
-    var logDetailedOption = $("#detailed-logging");
-
-    if(localSettings.getItem('log-detailed') !== null) {
-      logDetailedOption.prop("checked",
-        localSettings.getItem('log-detailed') == 'true');
-    } else {
-      localSettings.setItem('log-detailed', false);
-    }
-
-    logDetailedOption.on('change', function () {
-      localSettings.setItem('log-detailed', this.checked);
-    });
-
-    localSettings.change("log-detailed", function(_, newValue) {
-      logDetailedOption[0].checked = newValue == 'true';
-      logDetailedOption.attr('aria-pressed', '' + (newValue == 'true'));
-    });
-
     runtime.setParam("imgUrlProxy", function(s) {
       var a = document.createElement("a");
       a.href = s;

@@ -343,7 +343,7 @@ function makeEvents(config) {
       return reset(initialState);
     }
     // This means we got a CPO link as the initial state.
-    if((typeof APP_BASE_URL === 'string' && APP_BASE_URL !== "" && message.state.startsWith(APP_BASE_URL)) || message.state.startsWith("https://code.pyret.org")) {
+    if((typeof APP_BASE_URL === 'string' && APP_BASE_URL !== "" && message.state.startsWith(APP_BASE_URL)) || message.state.startsWith("https://" + window.APP_DOMAIN)) {
       return resetFromShare(message.state);
     }
     try {

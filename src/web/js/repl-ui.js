@@ -462,32 +462,40 @@
                 savedOptions = options;
                 return $.extend({}, options, {chartArea: null});
               });
-              const img = document.createElement('img');
-              img.src = args.getImageURI();
-              const temp = document.createElement('canvas');
-              temp.width = img.width;
-              temp.height = img.height;
-              const ctx = temp.getContext('2d');
-              ctx.drawImage(img, 0, 0);
-              const image = runtime.getField(imageLib, "internal");
-              const trimmed = image.trimCanvas(temp);
-              const download = document.createElement('a');
-              download.href = trimmed.toDataURL();
-              download.download = 'chart.png';
-              // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
-              function fireEvent(obj, evt){
-                const fireOnThis = obj;
-                if(document.createEvent) {
-                  const evObj = document.createEvent('MouseEvents');
-                  evObj.initEvent(evt, true, false);
-                  fireOnThis.dispatchEvent(evObj);
-                } else if(document.createEventObject) {
-                  const evObj = document.createEventObject();
-                  fireOnThis.fireEvent('on' + evt, evObj);
-                }
-              }
-              fireEvent(download, 'click');
-              args.draw(_ => savedOptions);
+              // getImageURI may return a data URL synchronously (Google Charts)
+              // or a Promise resolving to one (Vega, which renders asynchronously).
+              Promise.resolve(args.getImageURI()).then((uri) => {
+                const img = document.createElement('img');
+                // Must wait for the image to load before reading its dimensions
+                // and drawing it; for the async (Vega) path it isn't ready yet.
+                img.onload = () => {
+                  const temp = document.createElement('canvas');
+                  temp.width = img.width;
+                  temp.height = img.height;
+                  const ctx = temp.getContext('2d');
+                  ctx.drawImage(img, 0, 0);
+                  const image = runtime.getField(imageLib, "internal");
+                  const trimmed = image.trimCanvas(temp);
+                  const download = document.createElement('a');
+                  download.href = trimmed.toDataURL();
+                  download.download = 'chart.png';
+                  // from https://stackoverflow.com/questions/3906142/how-to-save-a-png-from-javascript-variable
+                  function fireEvent(obj, evt){
+                    const fireOnThis = obj;
+                    if(document.createEvent) {
+                      const evObj = document.createEvent('MouseEvents');
+                      evObj.initEvent(evt, true, false);
+                      fireOnThis.dispatchEvent(evObj);
+                    } else if(document.createEventObject) {
+                      const evObj = document.createEventObject();
+                      fireOnThis.fireEvent('on' + evt, evObj);
+                    }
+                  }
+                  fireEvent(download, 'click');
+                  args.draw(_ => savedOptions);
+                };
+                img.src = uri;
+              });
             });
           },
           resizeStop: (_, ui) => {
