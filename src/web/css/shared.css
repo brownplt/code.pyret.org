@@ -356,7 +356,7 @@ nav > div > ul ul a, nav > div > ul ul button {
 
 #logo{
   height:100%;
-  background: url("/img/pyret-logo.png") 15px 5px no-repeat;
+  background: url("../img/pyret-logo.png") 15px 5px no-repeat;
   background-size: 30px 30px;
   display:block;
   float:left;

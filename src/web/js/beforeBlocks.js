@@ -248,7 +248,7 @@ $(function() {
       gutterTooltip.className = "gutter-question-tooltip";
       gutterTooltip.innerText = "The use context line tells Pyret to load tools for a specific class context. It can be changed through the main Pyret menu. Most of the time you won't need to change this at all.";
       const gutterQuestion = document.createElement("img");
-      gutterQuestion.src = "/img/question.png";
+      gutterQuestion.src = window.APP_BASE_URL + "/img/question.png";
       gutterQuestion.className = "gutter-question";
       gutterQuestionWrapper.appendChild(gutterQuestion);
       gutterQuestionWrapper.appendChild(gutterTooltip);
