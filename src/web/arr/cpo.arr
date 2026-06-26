@@ -146,7 +146,7 @@ end
 fun compile-ast(ast, runtime, finder, options) -> E.Either:
   uri = ast.l.source
   locator = ast-locator(uri, ast)
-  wl = CL.compile-worklist(finder, locator, {})
+  wl = CL.compile-worklist(finder, locator, {load-path: "."})
   cases(E.Either) CL.compile-standalone(wl, SD.make-mutable-string-dict(), options):
     | left(problems) => E.left(problems)
     | right(standalone) => E.right(standalone.js-ast.to-ugly-source())
@@ -159,6 +159,6 @@ end
 
 fun make-repl(builtin-mods, runtime, realm, finder):
   modules = get-builtin-modules(builtin-mods)
-  repl = R.make-repl(runtime, modules, realm, "cpo-context-currently-unused", finder)
+  repl = R.make-repl(runtime, modules, realm, {load-path: "."}, finder)
   repl
 end
