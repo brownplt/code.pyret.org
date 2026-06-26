@@ -795,7 +795,7 @@
           // Note: renderedLocs is one element shorter than rendered
           var renderedLocs = locs.map(repl.runtime.makeSrcloc);
           var spyBlock = $("<div>").addClass("spy-block");
-          spyBlock.append($("<img>").addClass("spyglass").attr("src", "/img/spyglass.gif"));
+          spyBlock.append($("<img>").addClass("spyglass").attr("src", window.APP_BASE_URL + "/img/spyglass.gif"));
           if (message !== "") {
             spyBlock.append($("<div>").addClass("spy-title").append(message));
           }
