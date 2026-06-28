@@ -9,6 +9,7 @@ describe("Embedding API Basics – Single embedded instance", function() {
   function waitForInit(browser) {
     browser.wait(function() {
       return browser.executeScript(`
+        if (!window.messages) { return false; }
         const initmessage = window.messages.filter(m => m.data.protocol === 'pyret' && m.data.data.type === 'pyret-init');
         return initmessage.length === 1;
       `);
@@ -39,7 +40,9 @@ describe("Embedding API Basics – Single embedded instance", function() {
     this.browser.switchTo().frame('embed1');
     this.browser.wait(function() {
       return self.browser.executeScript(`
-        return $(".CodeMirror")[0].CodeMirror.getValue().includes("simple reset test")
+        const cm = $(".CodeMirror")[0];
+        if (!cm || !cm.CodeMirror) { return false; }
+        return cm.CodeMirror.getValue().includes("simple reset test")
       `);
     });
     this.browser.call(done);
@@ -56,7 +59,9 @@ describe("Embedding API Basics – Single embedded instance", function() {
     this.browser.switchTo().frame('embed1');
     this.browser.wait(function() {
       return self.browser.executeScript(`
-        return $(".CodeMirror")[0].CodeMirror.getValue().includes("animals-table")
+        const cm = $(".CodeMirror")[0];
+        if (!cm || !cm.CodeMirror) { return false; }
+        return cm.CodeMirror.getValue().includes("animals-table")
       `);
     });
     this.browser.call(done);
@@ -72,6 +77,7 @@ describe("Embedding API – Two instances", function() {
     browser.wait(function() {
       // NOTE(joe): wait for two inits because embedding 2 instances
       return browser.executeScript(`
+        if (!window.messages) { return false; }
         const initmessage = window.messages.filter(m => m.data.protocol === 'pyret' && m.data.data.type === 'pyret-init');
         return initmessage.length === 2;
       `);
@@ -117,7 +123,9 @@ describe("Embedding API – Two instances", function() {
     this.browser.switchTo().frame('embed2');
     this.browser.wait(function() {
       return self.browser.executeScript(`
-        return $(".CodeMirror")[0].CodeMirror.getValue().includes("x = 100");
+        const cm = $(".CodeMirror")[0];
+        if (!cm || !cm.CodeMirror) { return false; }
+        return cm.CodeMirror.getValue().includes("x = 100");
       `);
     });
     this.browser.call(done);
