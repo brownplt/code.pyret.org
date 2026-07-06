@@ -130,8 +130,10 @@ function start(config, onServerReady) {
 
   app.get("/close.html", function(_, res) { res.render("close.html", defaultOpts); });
   app.get("/faq.html", function(_, res) { res.render("faq.html", defaultOpts); });
-  app.get("/privacy.html", function(_, res) { res.render("privacy.html", defaultOpts); });
-  app.get("/privacy/", function(_, res) { res.render("privacy.html", defaultOpts); });
+
+  // NOTE(joe): On the mainline deploy code.pyret.org, this keep the old inbound links working.
+  // Other deploys may want to make a different choice here depending on their public-facing URLs
+  app.get(["/privacy.html", "/privacy/"], function(_, res) { res.redirect(301, "/faq/"); });
 
   app.get("/faq", function(_, res) { res.render("faq.html", defaultOpts); });
 
