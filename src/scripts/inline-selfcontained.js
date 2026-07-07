@@ -23,19 +23,50 @@
  * sentinels; the extension fills them with a plain string replace (not a
  * template engine), which can't misfire on the inlined JS's braces. The
  * sentinels below MUST match vscode/src/pyretCPOWebEditor.ts.
+ *
+ * FAIL LOUDLY. Every mistake this script could make would otherwise surface
+ * only at webview runtime, and only on the hosts this template exists for. So
+ * anything unexpected is a build error, not a fallback: a referenced asset
+ * that's missing, a js/css reference the patterns below fail to inline, an
+ * asset whose content the HTML parser could misread as markup (the script-data
+ * restrictions in the HTML spec, "Restrictions for contents of script
+ * elements"), or a sentinel that doesn't survive to the output.
  */
 const fs = require("fs");
 const path = require("path");
-const Mustache = require("mustache");
 
 const BASE = "__PYRET_WEBVIEW_BASE_URL__";
 const HASH = "__PYRET_WEBVIEW_HASH__";
 const URL_FILE_MODE = "__PYRET_WEBVIEW_URL_FILE_MODE__";
 
-// Inlined JS/CSS is executed, so the standard `</script`->`<\/script` (and the
-// `</style` analogue) escape is safe.
-function escapeForScript(s) { return s.replace(/<\/(script)/gi, "<\\/$1"); }
-function escapeForStyle(s) { return s.replace(/<\/(style)/gi, "<\\/$1"); }
+/*
+ * Inlined content must not contain anything the HTML parser would read as
+ * markup while in the script-data / style-data states:
+ *
+ *  - `</script` (any case, in any position) ends the script element, even
+ *    mid-string. Escaping it as `<\/script` is the standard fix and is
+ *    meaning-preserving anywhere legal JS can contain the sequence (string,
+ *    template, comment, regex -- `\/` is `/` in all of them). Note tools get
+ *    this wrong by requiring a trailing `>`: `</script foo>` also closes the
+ *    element, so we match the bare prefix.
+ *  - `<!--` flips the parser into the "script data escaped" states, where a
+ *    following bare `<script` changes how `</script>` is matched. An automatic
+ *    escape could change the meaning of (legal, Annex-B) `<!--`-comment lines,
+ *    and no asset we inline contains the sequence today -- so its appearance
+ *    is a hard error demanding a human look, not a transform.
+ */
+function escapeForScript(rel, s) {
+  if (/<!--/.test(s)) {
+    throw new Error(
+      "inline-selfcontained: " + rel + " contains `<!--`, which changes how " +
+      "the HTML parser matches </script> once inlined (script-data escaped " +
+      "states). Decide how to escape it for this asset; see the comment above " +
+      "escapeForScript."
+    );
+  }
+  return s.replace(/<\/(script)/gi, "<\\/$1");
+}
+function escapeForStyle(rel, s) { return s.replace(/<\/(style)/gi, "<\\/$1"); }
 
 // A stylesheet inlined into a <style> in the top-level document would resolve
 // its relative url(...)s against the page instead of against .../css/. Rewrite
@@ -49,19 +80,21 @@ function absolutizeCssUrls(css, cssDirUrl) {
   });
 }
 
-function main() {
-  const [editorPath, assetRoot, outPath] = process.argv.slice(2);
-  if (!editorPath || !assetRoot || !outPath) {
-    console.error("usage: node inline-selfcontained.js <editor.html> <asset-root> <out.html>");
-    process.exit(2);
-  }
-  const readAsset = (rel) => fs.readFileSync(path.join(assetRoot, rel), "utf8");
+function countOccurrences(haystack, needle) {
+  return haystack.split(needle).length - 1;
+}
 
+/*
+ * The whole transform, on strings: mustache-render the clean template, then
+ * inline every BASE-sentinel js/css reference via readAsset(rel), then check
+ * the result. Separated from main() so it can be unit-tested.
+ */
+function buildSelfContained(template, readAsset, Mustache) {
   // 1. Render our template vars on the CLEAN template (mustache sees only its
   //    intended input). Runtime-dynamic values -> literal sentinels; the
   //    self-contained constants are baked; every other (server-only) var renders
   //    to "" as usual. The {{^PYRET_GZIPPED}} preload section drops out here.
-  let html = Mustache.render(fs.readFileSync(editorPath, "utf8"), {
+  let html = Mustache.render(template, {
     BASE_URL: BASE,
     PYRET: BASE + "/js/cpo-main.jarr.gz.js",
     PYRET_GZIPPED: "true",
@@ -75,26 +108,77 @@ function main() {
   //    replacement would treat as `$&`/`$1`/`$'`.
   html = html.replace(
     new RegExp('<script\\b[^>]*\\bsrc="' + BASE + '/js/([^"]+)"[^>]*>\\s*</script>', "gi"),
-    (tag, rel) => {
-      let code;
-      try { code = readAsset("js/" + rel); } catch (e) { return tag; }
-      return "<script>\n" + escapeForScript(code) + "\n</script>";
-    }
+    (tag, rel) =>
+      "<script>\n" + escapeForScript("js/" + rel, readAsset("js/" + rel)) + "\n</script>"
   );
 
   // 3. Inline the stylesheets (absolutizing their url()s to the BASE sentinel).
   html = html.replace(
     new RegExp('<link\\b[^>]*\\bhref="' + BASE + '/css/([^"]+)"[^>]*>', "gi"),
     (tag, rel) => {
-      let css;
-      try { css = readAsset("css/" + rel); } catch (e) { return tag; }
+      const css = readAsset("css/" + rel);
       const dirUrl = (BASE + "/css/" + rel).replace(/\/[^/]*$/, "");
-      return "<style>\n" + escapeForStyle(absolutizeCssUrls(css, dirUrl)) + "\n</style>";
+      return "<style>\n" + escapeForStyle("css/" + rel, absolutizeCssUrls(css, dirUrl)) + "\n</style>";
     }
   );
 
+  // 4. No MIME-blocked load may still point at the sentinel base. nosniff only
+  //    refuses script/style destinations, so the window.PYRET url (fetched, not
+  //    a script load) and img/icon references survive intentionally; the check
+  //    is: no <script src> at BASE at all, and no <link> at a BASE .css.
+  //    Catches template drift the inline patterns above would silently skip
+  //    (single-quoted attrs, a new asset directory, ...).
+  const leftoverScripts = html.match(
+    new RegExp("<script\\b[^>]*\\bsrc\\s*=\\s*['\"]?" + BASE + "[^>]*>", "gi"));
+  const leftoverStyles = html.match(
+    new RegExp("<link\\b[^>]*\\bhref\\s*=\\s*['\"]?" + BASE + "[^'\"]*\\.css[^>]*>", "gi"));
+  if (leftoverScripts || leftoverStyles) {
+    throw new Error(
+      "inline-selfcontained: reference(s) to the webview base survived inlining " +
+      "(the tag didn't match the inline patterns -- quoting? new directory?):\n  " +
+      [...(leftoverScripts || []), ...(leftoverStyles || [])].join("\n  ")
+    );
+  }
+
+  // 5. The extension fills exactly these sentinels (split/join); if the
+  //    template stops using one, or uses one twice where once is assumed, that
+  //    contract broke -- here, not in the webview.
+  const hashCount = countOccurrences(html, HASH);
+  const modeCount = countOccurrences(html, URL_FILE_MODE);
+  if (hashCount !== 1 || modeCount !== 1 || countOccurrences(html, BASE) < 1) {
+    throw new Error(
+      "inline-selfcontained: sentinel contract broke: expected HASH x1 (got " +
+      hashCount + "), URL_FILE_MODE x1 (got " + modeCount + "), BASE >= 1"
+    );
+  }
+
+  return html;
+}
+
+function main() {
+  const [editorPath, assetRoot, outPath] = process.argv.slice(2);
+  if (!editorPath || !assetRoot || !outPath) {
+    console.error("usage: node inline-selfcontained.js <editor.html> <asset-root> <out.html>");
+    process.exit(2);
+  }
+  const readAsset = (rel) => {
+    const p = path.join(assetRoot, rel);
+    try {
+      return fs.readFileSync(p, "utf8");
+    } catch (e) {
+      throw new Error(
+        "inline-selfcontained: editor.html references an asset that is not in " +
+        "the build: " + p + " (a self-contained template with a dead reference " +
+        "would only fail later, inside the webview, on Open VSX-backed hosts)"
+      );
+    }
+  };
+  const html = buildSelfContained(
+    fs.readFileSync(editorPath, "utf8"), readAsset, require("mustache"));
   fs.writeFileSync(outPath, html);
   console.log("wrote self-contained editor template: " + outPath);
 }
 
-main();
+module.exports = { escapeForScript, escapeForStyle, absolutizeCssUrls, buildSelfContained, BASE, HASH, URL_FILE_MODE };
+
+if (require.main === module) main();
