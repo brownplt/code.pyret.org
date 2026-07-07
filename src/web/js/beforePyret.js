@@ -1479,12 +1479,37 @@ $(function() {
 
   var pyretLoad = document.createElement('script');
   console.log(window.PYRET);
-  pyretLoad.src = window.PYRET;
   pyretLoad.type = "text/javascript";
   pyretLoad.setAttribute("crossorigin", "anonymous");
-  document.body.appendChild(pyretLoad);
 
   var pyretLoad2 = document.createElement('script');
+
+  if (window.PYRET_GZIPPED) {
+    // The runtime bundle is gzipped and this host serves it WITHOUT an
+    // executable MIME type or Content-Encoding (e.g. a vscode webview whose
+    // resources come from Open VSX / the GitLab Web IDE). fetch ignores script
+    // MIME, so pull the .gz.js and inflate it in-page with the native
+    // DecompressionStream, then run it from a Blob URL. The `error` handler
+    // registered below (synchronously) fires before this async append resolves.
+    fetch(window.PYRET)
+      .then(function (resp) {
+        if (!resp.ok) { throw new Error("status " + resp.status); }
+        return new Response(resp.body.pipeThrough(new DecompressionStream("gzip"))).blob();
+      })
+      .then(function (blob) {
+        pyretLoad.src = URL.createObjectURL(new Blob([blob], { type: "application/javascript" }));
+        document.body.appendChild(pyretLoad);
+      })
+      .catch(function (e) {
+        logFailureAndManualFetch(window.PYRET, e);
+        pyretLoad2.src = process.env.PYRET_BACKUP;
+        pyretLoad2.type = "text/javascript";
+        document.body.appendChild(pyretLoad2);
+      });
+  } else {
+    pyretLoad.src = window.PYRET;
+    document.body.appendChild(pyretLoad);
+  }
 
   function logFailureAndManualFetch(url, e) {
 
