@@ -30,7 +30,8 @@
  * that's missing, a js/css reference the patterns below fail to inline, an
  * asset whose content the HTML parser could misread as markup (the script-data
  * restrictions in the HTML spec, "Restrictions for contents of script
- * elements"), or a sentinel that doesn't survive to the output.
+ * elements"), an asset containing a sentinel or a template-variable tag (see
+ * checkInlinable), or a sentinel that doesn't survive to the output.
  */
 const fs = require("fs");
 const path = require("path");
@@ -38,6 +39,53 @@ const path = require("path");
 const BASE = "__PYRET_WEBVIEW_BASE_URL__";
 const HASH = "__PYRET_WEBVIEW_HASH__";
 const URL_FILE_MODE = "__PYRET_WEBVIEW_URL_FILE_MODE__";
+const SENTINEL_PREFIX = "__PYRET_WEBVIEW_";
+
+// The complete render dictionary for the self-contained template:
+// runtime-dynamic values -> literal sentinels; the self-contained constants
+// are baked; every other (server-only) var renders to "" as usual. Hoisted so
+// checkInlinable below can guard against exactly these keys.
+const TEMPLATE_VARS = {
+  BASE_URL: BASE,
+  PYRET: BASE + "/js/cpo-main.jarr.gz.js",
+  PYRET_GZIPPED: "true",
+  HASH_OPTIONS: HASH,
+  URL_FILE_MODE: URL_FILE_MODE,
+  IMAGE_PROXY_BYPASS: "true",
+};
+
+/*
+ * Inlined content must be inert under every substitution pass that processes
+ * the assembled string: the extension's split/join fills any __PYRET_WEBVIEW_*
+ * sentinel at webview startup, and the template render substitutes {{...}}
+ * tags naming TEMPLATE_VARS' keys. These same asset files are ALSO served
+ * un-inlined (plain <script src>/<link>) by the normal server, where no
+ * substitution ever touches them -- so substitutable-looking content in an
+ * asset would silently mean different things in different deployments.
+ * Statically reject it at build time instead.
+ */
+function checkInlinable(rel, content) {
+  if (content.includes(SENTINEL_PREFIX)) {
+    throw new Error(
+      "inline-selfcontained: " + rel + " contains the sentinel prefix `" +
+      SENTINEL_PREFIX + "`, which the vscode extension's placeholder fill " +
+      "would rewrite inside the inlined copy at webview startup (and would " +
+      "be left alone when the same file is served un-inlined by the server)."
+    );
+  }
+  const keyTag = new RegExp(
+    "\\{\\{\\{? ?&? ?(" + Object.keys(TEMPLATE_VARS).join("|") + ") ?\\}?\\}\\}");
+  const m = content.match(keyTag);
+  if (m) {
+    throw new Error(
+      "inline-selfcontained: " + rel + " contains `" + m[0] + "`, a tag " +
+      "naming one of this build's template variables. It is NOT substituted " +
+      "today (assets are inlined after the template render), but it would be " +
+      "if the passes were ever reordered, and it reads as if it were -- keep " +
+      "template-variable tags out of asset files."
+    );
+  }
+}
 
 /*
  * Inlined content must not contain anything the HTML parser would read as
@@ -94,22 +142,19 @@ function buildSelfContained(template, readAsset, Mustache) {
   //    intended input). Runtime-dynamic values -> literal sentinels; the
   //    self-contained constants are baked; every other (server-only) var renders
   //    to "" as usual. The {{^PYRET_GZIPPED}} preload section drops out here.
-  let html = Mustache.render(template, {
-    BASE_URL: BASE,
-    PYRET: BASE + "/js/cpo-main.jarr.gz.js",
-    PYRET_GZIPPED: "true",
-    HASH_OPTIONS: HASH,
-    URL_FILE_MODE: URL_FILE_MODE,
-    IMAGE_PROXY_BYPASS: "true",
-  });
+  let html = Mustache.render(template, TEMPLATE_VARS);
 
   // 2. Inline the shell scripts (their src now starts with the BASE sentinel).
   //    Function replacers -- the library code is full of `$`, which a string
-  //    replacement would treat as `$&`/`$1`/`$'`.
+  //    replacement would treat as `$&`/`$1`/`$'`. checkInlinable runs on the
+  //    raw bytes, before any of our own rewrites introduce sentinels.
   html = html.replace(
     new RegExp('<script\\b[^>]*\\bsrc="' + BASE + '/js/([^"]+)"[^>]*>\\s*</script>', "gi"),
-    (tag, rel) =>
-      "<script>\n" + escapeForScript("js/" + rel, readAsset("js/" + rel)) + "\n</script>"
+    (tag, rel) => {
+      const code = readAsset("js/" + rel);
+      checkInlinable("js/" + rel, code);
+      return "<script>\n" + escapeForScript("js/" + rel, code) + "\n</script>";
+    }
   );
 
   // 3. Inline the stylesheets (absolutizing their url()s to the BASE sentinel).
@@ -117,6 +162,7 @@ function buildSelfContained(template, readAsset, Mustache) {
     new RegExp('<link\\b[^>]*\\bhref="' + BASE + '/css/([^"]+)"[^>]*>', "gi"),
     (tag, rel) => {
       const css = readAsset("css/" + rel);
+      checkInlinable("css/" + rel, css);
       const dirUrl = (BASE + "/css/" + rel).replace(/\/[^/]*$/, "");
       return "<style>\n" + escapeForStyle("css/" + rel, absolutizeCssUrls(css, dirUrl)) + "\n</style>";
     }
@@ -179,6 +225,6 @@ function main() {
   console.log("wrote self-contained editor template: " + outPath);
 }
 
-module.exports = { escapeForScript, escapeForStyle, absolutizeCssUrls, buildSelfContained, BASE, HASH, URL_FILE_MODE };
+module.exports = { escapeForScript, escapeForStyle, absolutizeCssUrls, checkInlinable, buildSelfContained, BASE, HASH, URL_FILE_MODE };
 
 if (require.main === module) main();
