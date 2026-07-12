@@ -16,6 +16,7 @@ import statistics as S
 #  import lists as L
 import sets as ST
 import constants as C
+import global as G
 
 provide: 
   get-row,
@@ -52,6 +53,13 @@ end
 
 provide from C:
   E
+end
+
+provide from G:
+  string-find-index,
+  string-find-opt,
+  string-find,
+  string-get-index,
 end
 
 # ----------- TABLE FUNCTIONS -----------
