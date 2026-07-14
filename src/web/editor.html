@@ -3,8 +3,8 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>{{APP_NAME}}</title>
-  <link crossorigin="anonymous" rel="preload" href="{{&PYRET}}" as="script">
-  <script>window.PYRET = "{{&PYRET}}"; window.APP_NAME = "{{APP_NAME}}"; window.APP_DOMAIN = "{{APP_DOMAIN}}";</script>
+  {{^PYRET_GZIPPED}}<link crossorigin="anonymous" rel="preload" href="{{&PYRET}}" as="script">{{/PYRET_GZIPPED}}
+  <script>window.PYRET = "{{&PYRET}}"; window.PYRET_GZIPPED = "{{ PYRET_GZIPPED }}" === "true"; window.APP_NAME = "{{APP_NAME}}"; window.APP_DOMAIN = "{{APP_DOMAIN}}";</script>
   <link rel="stylesheet" href="{{ &BASE_URL }}/css/reset.css" />
   <link rel="stylesheet" href="{{ &BASE_URL }}/css/smoothness-jquery-ui.css" />
   <link rel="stylesheet" href="{{ &BASE_URL }}/css/fira-mono.css" />
