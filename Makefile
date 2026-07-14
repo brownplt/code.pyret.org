@@ -79,9 +79,8 @@ build/web/views/%.html: src/web/%.html
 
 # Self-contained variant of the editor template: shell scripts/styles inlined so
 # the page boots where its assets are served without an executable MIME type
-# (e.g. a vscode webview backed by Open VSX / the GitLab Web IDE). See
-# src/scripts/inline-selfcontained.js and pyret-parley issue #21. Depends on the
-# built shell js/css it inlines.
+# (see src/scripts/inline-selfcontained.js). Depends on the built shell js/css
+# it inlines.
 SELFCONTAINED = build/web/views/editor.selfcontained.html
 
 $(SELFCONTAINED): build/web/views/editor.html src/scripts/inline-selfcontained.js \

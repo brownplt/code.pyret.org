@@ -1,5 +1,6 @@
 /*
- * Unit tests for inline-selfcontained.js (run: node --test src/scripts/).
+ * Unit tests for inline-selfcontained.js
+ * (run: node --test src/scripts/inline-selfcontained.test.js).
  * These pin the sharp edges: HTML script-data escaping, `$`-safe replacement,
  * mustache-vs-inlined-braces ordering, css url() rebasing, and the fail-loud
  * checks (missing asset, un-inlined reference, sentinel contract).
@@ -104,8 +105,8 @@ test("buildSelfContained: losing a runtime sentinel is a build error", () => {
 });
 
 // The same asset files are also served UN-inlined by the normal server, where
-// no substitution pass touches them -- so content that any pass would (or
-// appears to) substitute must be rejected, not inlined with divergent meaning.
+// the extension's placeholder fill never touches them -- so an asset that
+// contains a sentinel must be rejected, not inlined with divergent meaning.
 test("buildSelfContained: an asset containing a webview sentinel is a build error", () => {
   const assets = { ...ASSETS, "js/shell.js": 'var u = "__PYRET_WEBVIEW_HASH__";' };
   assert.throws(
@@ -113,16 +114,9 @@ test("buildSelfContained: an asset containing a webview sentinel is a build erro
     /js\/shell\.js contains the sentinel prefix/);
 });
 
-test("buildSelfContained: an asset containing a template-variable tag is a build error", () => {
-  const assets = { ...ASSETS, "css/editor.css": '.a::before { content: "{{ &BASE_URL }}/x" }' };
-  assert.throws(
-    () => buildSelfContained(TEMPLATE, (rel) => assets[rel], Mustache),
-    /css\/editor\.css contains `\{\{ &BASE_URL \}\}`/);
-});
-
-test("checkInlinable: non-dictionary uppercase tags and minified braces are fine", () => {
+test("checkInlinable: only the sentinel prefix is rejected; braces and tags are fine", () => {
   const { checkInlinable } = require("./inline-selfcontained.js");
-  // `{{SOME_OTHER_TAG}}` is client-side template text for some OTHER engine;
-  // only THIS build's dictionary keys are rejected. Minified `){{var` is inert.
-  checkInlinable("js/x.js", 'f(a){{var t = "{{SOME_OTHER_TAG}}";}}');
+  // Assets are inlined AFTER the template render, so mustache-looking text in
+  // them (other engines' tags, minified `){{var`) is inert and accepted.
+  checkInlinable("js/x.js", 'f(a){{var t = "{{SOME_OTHER_TAG}} {{ &BASE_URL }}";}}');
 });

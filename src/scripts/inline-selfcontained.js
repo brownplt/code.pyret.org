@@ -1,37 +1,50 @@
 /*
  * inline-selfcontained.js
  *
- * Emits a self-contained variant of editor.html for hosts that serve the
- * editor's assets WITHOUT an executable MIME type or Content-Encoding -- most
- * importantly a VS Code webview whose resources resolve to Open VSX / the GitLab
- * Web IDE, where every file comes back as text/plain + nosniff (so <script src>
- * and <link rel=stylesheet> are refused execution) and files over ~15MB 503
- * (so the uncompressed cpo-main.jarr.js never loads). See pyret-parley issue #21.
+ * Emits a (mostly) self-contained variant of editor.html, and sets up for a
+ * loading trick in beforePyret.js for the gzipped compiler/runtime bundle.
  *
- * The injected webview HTML string is never fetched, so anything inlined into it
- * always runs. This script inlines the shell scripts (jquery, editor-misc,
- * beforePyret, events, ...) and stylesheets in place. The runtime bundle is NOT
- * inlined (it's 37MB): beforePyret loads it via window.PYRET, which the template
- * points at cpo-main.jarr.gz.js + window.PYRET_GZIPPED=true, so beforePyret
- * fetches + inflates it in-page (DecompressionStream) -- see beforePyret.js.
+ * The self-contained page has a few uses:
  *
- * ORDER MATTERS. We render OUR mustache vars FIRST, on the clean template,
- * before any JS is inlined -- because minified shell JS is full of `{{`/`}}`
- * (object braces) that mustache would greedily eat if it ran afterward. The
- * three values that are only known at the extension's runtime (the webview base
- * URL, the theme/layout hash, the url-file-mode config) are rendered as LITERAL
- * sentinels; the extension fills them with a plain string replace (not a
- * template engine), which can't misfire on the inlined JS's braces. The
- * sentinels below MUST match vscode/src/pyretCPOWebEditor.ts.
+ * - Fewer network requests
+ * - We've observed hosts that serve the editor's assets WITHOUT an executable
+ *   MIME type (text/plain + nosniff, so <script src>/<link rel=stylesheet> are
+ *   refused execution) -- most notably GitLab's Web IDE.
  *
- * FAIL LOUDLY. Every mistake this script could make would otherwise surface
- * only at webview runtime, and only on the hosts this template exists for. So
- * anything unexpected is a build error, not a fallback: a referenced asset
- * that's missing, a js/css reference the patterns below fail to inline, an
- * asset whose content the HTML parser could misread as markup (the script-data
- * restrictions in the HTML spec, "Restrictions for contents of script
- * elements"), an asset containing a sentinel or a template-variable tag (see
- * checkInlinable), or a sentinel that doesn't survive to the output.
+ * The gzipped bundle is not inlined; rather the bundle is read in via fetch and
+ * decompressed, then shoved in a script tag "manually" (detected via the new
+ * PYRET_GZIPPED variable). Rationale:
+ *
+ * - We really shouldn't have been serving it uncompressed in the first place
+ * - Inlining without compressing is huge; inlining with compression is weird
+ *   (base64 encode, then decode?)
+ * - We still need a way to execute it in the webview, so raw bytes ->
+ *   decompress -> script tag it is
+ *
+ * For real reasons, the resulting "self-contained" page is not *quite*
+ * self-contained. In VScode extensions, we *cannot know our BASE_URL at build
+ * time*; the (3rd party to us) editor itself supplies it at runtime. Further,
+ * we have some configuration options that we want to be able to
+ * programmatically set on hash-parameters of an embedded URL. So we leave a
+ * residue of clear `__PYRET_` variables to be filled in later. That means the
+ * instantiation looks like:
+ *
+ * 1. Replace build-time-fixed mustache variables using a hardcoded dictionary
+ *    in this script (a subset of the things in .env for the server use case).
+ *    The runtime-dynamic values are replaced with special __PYRET_ variables.
+ * 2. Locate JS/CSS import tags and inline the corresponding JS and CSS files
+ *
+ * The order matters (mustache can trip on JS-isms like {{ and }}), so we must
+ * inline after substituting. Later steps (right now, just the webview) do not
+ * use or rely on the {{ }} syntax, and just do a bare string replace on the
+ * special residue __PYRET_ variables.
+ *
+ * We try to fail loudly here, so missing files, provably bad markup, etc are
+ * build errors.
+ *
+ * Cross-file dependencies:
+ * - pyretCPOWebEditor.ts: refers to the __PYRET_ sentinels, and fills them in at runtime
+ * - beforePyret.js: detects the PYRET_GZIPPED variable and decompresses the bundle
  */
 const fs = require("fs");
 const path = require("path");
@@ -43,8 +56,10 @@ const SENTINEL_PREFIX = "__PYRET_WEBVIEW_";
 
 // The complete render dictionary for the self-contained template:
 // runtime-dynamic values -> literal sentinels; the self-contained constants
-// are baked; every other (server-only) var renders to "" as usual. Hoisted so
-// checkInlinable below can guard against exactly these keys.
+// are baked; every other (server-only) var renders to "" as usual.
+// TODO(joe): set things up so this can be a *comprehensive* hardcoded list, or
+// come from a .env.selfcontained or similar. Right now this script is a bit
+// bespoke so having it inline here makes sense.
 const TEMPLATE_VARS = {
   BASE_URL: BASE,
   PYRET: BASE + "/js/cpo-main.jarr.gz.js",
@@ -55,14 +70,9 @@ const TEMPLATE_VARS = {
 };
 
 /*
- * Inlined content must be inert under every substitution pass that processes
- * the assembled string: the extension's split/join fills any __PYRET_WEBVIEW_*
- * sentinel at webview startup, and the template render substitutes {{...}}
- * tags naming TEMPLATE_VARS' keys. These same asset files are ALSO served
- * un-inlined (plain <script src>/<link>) by the normal server, where no
- * substitution ever touches them -- so substitutable-looking content in an
- * asset would silently mean different things in different deployments.
- * Statically reject it at build time instead.
+ * Explicitly call it an error if we end up trying to reference the __PYRET_
+ * variables before we put them in ourselves. This script should own all those
+ * insertions.
  */
 function checkInlinable(rel, content) {
   if (content.includes(SENTINEL_PREFIX)) {
@@ -73,18 +83,6 @@ function checkInlinable(rel, content) {
       "be left alone when the same file is served un-inlined by the server)."
     );
   }
-  const keyTag = new RegExp(
-    "\\{\\{\\{? ?&? ?(" + Object.keys(TEMPLATE_VARS).join("|") + ") ?\\}?\\}\\}");
-  const m = content.match(keyTag);
-  if (m) {
-    throw new Error(
-      "inline-selfcontained: " + rel + " contains `" + m[0] + "`, a tag " +
-      "naming one of this build's template variables. It is NOT substituted " +
-      "today (assets are inlined after the template render), but it would be " +
-      "if the passes were ever reordered, and it reads as if it were -- keep " +
-      "template-variable tags out of asset files."
-    );
-  }
 }
 
 /*
@@ -92,16 +90,21 @@ function checkInlinable(rel, content) {
  * markup while in the script-data / style-data states:
  *
  *  - `</script` (any case, in any position) ends the script element, even
- *    mid-string. Escaping it as `<\/script` is the standard fix and is
- *    meaning-preserving anywhere legal JS can contain the sequence (string,
- *    template, comment, regex -- `\/` is `/` in all of them). Note tools get
- *    this wrong by requiring a trailing `>`: `</script foo>` also closes the
- *    element, so we match the bare prefix.
- *  - `<!--` flips the parser into the "script data escaped" states, where a
- *    following bare `<script` changes how `</script>` is matched. An automatic
- *    escape could change the meaning of (legal, Annex-B) `<!--`-comment lines,
- *    and no asset we inline contains the sequence today -- so its appearance
- *    is a hard error demanding a human look, not a transform.
+ *    mid-string. (HTML 4.01 ended script data at ANY `</`+letter, the ETAGO
+ *    delimiter -- w3.org/TR/html401/appendix/notes.html#notes-specifying-data,
+ *    B.3.2; the HTML5 tokenizer narrows that to `</script`.) *Escaping* it, not
+ *    disallowing it, because it is entirely plausible that we (or a library we
+ *    use...) reasonably injects script tags, given our eval-based runtime.
+ *    `<\/script` is the traditional fix and is meaning-preserving anywhere.
+ *  - `<!--` flips the parser into the "script data escaped" states, where,
+ *    among other things, `</script>` has a different meaning. We shouldn't do
+ *    this, and should be skeptical of JS files that do, so fail at build time.
+ *  Both rules, and the suggested escapes, are spelled out in
+ *  html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+ *
+ * Notably, other libraries make mistakes on this (this is a "trust
+ * Joe" comment, he reviewed them), or boil down to more-or-less these
+ * regexes. Rather than adding npm dependencies, just write it.
  */
 function escapeForScript(rel, s) {
   if (/<!--/.test(s)) {
@@ -117,9 +120,7 @@ function escapeForScript(rel, s) {
 function escapeForStyle(rel, s) { return s.replace(/<\/(style)/gi, "<\\/$1"); }
 
 // A stylesheet inlined into a <style> in the top-level document would resolve
-// its relative url(...)s against the page instead of against .../css/. Rewrite
-// them to the stylesheet's own directory (still a BASE sentinel) so fonts/images
-// still load once the extension fills in the base URL.
+// its relative url(...)s against the page instead of against .../css/.
 function absolutizeCssUrls(css, cssDirUrl) {
   return css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, (m, q, ref) => {
     const r = ref.trim();
@@ -138,13 +139,11 @@ function countOccurrences(haystack, needle) {
  * the result. Separated from main() so it can be unit-tested.
  */
 function buildSelfContained(template, readAsset, Mustache) {
-  // 1. Render our template vars on the CLEAN template (mustache sees only its
-  //    intended input). Runtime-dynamic values -> literal sentinels; the
-  //    self-contained constants are baked; every other (server-only) var renders
-  //    to "" as usual. The {{^PYRET_GZIPPED}} preload section drops out here.
+  // 1. Render TEMPLATE_VARS on the CLEAN template (mustache sees only its
+  //    intended input). The {{^PYRET_GZIPPED}} preload section drops out here.
   let html = Mustache.render(template, TEMPLATE_VARS);
 
-  // 2. Inline the shell scripts (their src now starts with the BASE sentinel).
+  // 2. Inline the JS files (their src now starts with the BASE sentinel).
   //    Function replacers -- the library code is full of `$`, which a string
   //    replacement would treat as `$&`/`$1`/`$'`. checkInlinable runs on the
   //    raw bytes, before any of our own rewrites introduce sentinels.
@@ -163,7 +162,7 @@ function buildSelfContained(template, readAsset, Mustache) {
     (tag, rel) => {
       const css = readAsset("css/" + rel);
       checkInlinable("css/" + rel, css);
-      const dirUrl = (BASE + "/css/" + rel).replace(/\/[^/]*$/, "");
+      const dirUrl = path.posix.dirname(BASE + "/css/" + rel);
       return "<style>\n" + escapeForStyle("css/" + rel, absolutizeCssUrls(css, dirUrl)) + "\n</style>";
     }
   );
