@@ -182,9 +182,12 @@
             var rel = null;
             if (protocol === "file" || protocol === "js-file") { rel = arr[0]; }
             else if (protocol === "url-file") { rel = arr[1]; }
-            if (rel === null) {
-              // builtin/gdrive/url and remote url-file: nothing local to track,
-              // thread the importer's context through unchanged.
+            if (rel === null || !window.MESSAGES) {
+              // builtin/gdrive/url and remote url-file: nothing local to track.
+              // Likewise without an embedding host (plain CPO in a browser)
+              // there is no filesystem to resolve against, so (url-)file paths
+              // stay untracked rather than erroring in the path RPCs.
+              // Thread the importer's context through unchanged.
               return Promise.resolve({ path: null, context: context });
             }
             return getRealPath(context, rel).then(function(realPath) {
@@ -268,7 +271,14 @@
             dependencyResolveInfo(context, dependency).then(function(info) {
               restarter.resume(info);
             }, function(err) {
-              restarter.error(runtime.ffi.makeMessageException("Error resolving import path: " + String(err)));
+              // A Pyret exception value (e.g. from filesystem-internal) carries
+              // its own message; stringifying it would render [object Object].
+              if(runtime.isObject(err)) {
+                restarter.error(err);
+              }
+              else {
+                restarter.error(runtime.ffi.makeMessageException("Error resolving import path: " + String(err)));
+              }
             });
           });
         }, function(info) {
