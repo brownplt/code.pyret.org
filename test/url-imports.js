@@ -66,7 +66,11 @@ var tests = [
 // statically in development), so they need no outside network. The "/app"
 // path segment need not exist; it is there for "../" to consume, the same
 // way the starter files' base URLs work.
-var base = process.env.BASE_URL;
+// browser-test serves these fixtures itself (PYRET_FIXTURE_BASE, see its
+// run.js) so that the envs which run no CPO server can reach them too; the
+// mocha suite has no such server and falls back to BASE_URL, where the dev
+// server's test-util mount serves the same tree same-origin.
+var base = process.env.PYRET_FIXTURE_BASE || process.env.BASE_URL;
 if (base) {
   var localBase = base.replace(/\/+$/, "") + "/pyret-programs/url-imports";
   tests.push(
