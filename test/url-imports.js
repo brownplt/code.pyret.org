@@ -66,7 +66,11 @@ var tests = [
 // statically in development), so they need no outside network. The "/app"
 // path segment need not exist; it is there for "../" to consume, the same
 // way the starter files' base URLs work.
-var base = process.env.BASE_URL;
+// browser-test serves these fixtures itself (PYRET_FIXTURE_BASE, see its
+// run.js) so that the envs which run no CPO server can reach them too; the
+// mocha suite has no such server and falls back to BASE_URL, where the dev
+// server's test-util mount serves the same tree same-origin.
+var base = process.env.PYRET_FIXTURE_BASE || process.env.BASE_URL;
 if (base) {
   var localBase = base.replace(/\/+$/, "") + "/pyret-programs/url-imports";
   tests.push(
@@ -86,6 +90,51 @@ if (base) {
         'end',
       specs: [[["Passed"]]],
       options: { timeout: 60000 } }
+  );
+}
+
+// The vscode environment is the only one whose host implements the filesystem
+// RPCs, so it is the only place url-file's LOCAL branch can run. Its fixture
+// workspace sets pyret-parley.urlFileMode = "local-if-present" (see
+// browser-test/vscode/fixture-workspace/.vscode/settings.json) and mirrors the
+// starter-file layout on disk:
+//
+//   algebra-2/test.arr             <- the open editor tab
+//   libraries/core.arr             <- copy of the pinned core.arr, + one marker
+//   libraries/unit-clock-library.arr  <- copy, + one marker, and it carries its
+//                                        OWN `use context url-file(..., "core.arr")`
+//
+// So the "../ traversal" and "starter-file shape" tests above resolve off disk
+// there instead of over the network -- same programs, same assertions,
+// different resolution path.
+//
+// This test adds the two markers, which is what makes the local branch
+// observable, and specifically what distinguishes correct load-path tracking
+// from the bug it replaced:
+//
+//   came-from-local-filesystem  -- the tab's own "../libraries/core.arr"
+//                                  resolved relative to algebra-2/.
+//   core-marker-seen            -- unit-clock-library.arr's bare "core.arr"
+//                                  resolved relative to ITS directory
+//                                  (libraries/), not the tab's. If that ever
+//                                  regresses to the tab's directory,
+//                                  algebra-2/core.arr does not exist, the
+//                                  import silently falls back to the network,
+//                                  and upstream core.arr has no such binding --
+//                                  so this fails instead of going green.
+if (process.env.PYRET_ENV === "vscode") {
+  tests.push(
+    { name: "starter-file shape resolves from the workspace, per-module load paths",
+      program:
+        'use context url-file("' + RAW + '/algebra-2", "../libraries/core.arr")\n' +
+        'include url-file("' + RAW + '/algebra-2", "../libraries/unit-clock-library.arr")\n' +
+        'check:\n' +
+        '  came-from-local-filesystem is "vscode-fixture-workspace"\n' +
+        '  core-marker-seen is "vscode-fixture-workspace"\n' +
+        '  deg-to-rad(0) is 0\n' +
+        'end',
+      specs: [[["Passed"], ["Passed"], ["Passed"]]],
+      options: { timeout: 180000 } }
   );
 }
 
