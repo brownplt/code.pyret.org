@@ -91,12 +91,25 @@ function _shareurlRace(fetchInput, fetchInit) {
     if (directFirst) proxyCtrl.abort();
   });
 
-  // Caller's response: whichever of direct-verified or proxy fulfills
-  // first. If both fail, surface proxy's error (the more authoritative
-  // upstream — direct's may just be 'direct-not-verified').
-  const responsePromise = Promise.any([directP, proxyP]).catch(
-    aggErr => Promise.reject(aggErr.errors[1] || aggErr.errors[0])
-  );
+  // Caller's response: whichever of direct-verified or proxy-OK fulfills
+  // first. A non-ok proxy response must NOT win while direct is still
+  // pending: fetch fulfills on HTTP errors, and on hosts with no proxy
+  // endpoint at all (static serving: the vscode webview, embed-static) the
+  // local 404 arrives long before the real cross-origin response, which
+  // would hand the caller a bogus 404. If BOTH fail, surface proxy's
+  // response/error (the more authoritative upstream — direct's may just be
+  // 'direct-not-verified').
+  const responsePromise = Promise.any([
+    directP,
+    proxyP.then(r => {
+      if (!r.ok) { const e = new Error('proxy response not ok'); e._shareurlResponse = r; throw e; }
+      return r;
+    }),
+  ]).catch(aggErr => {
+    const proxyErr = aggErr.errors[1];
+    if (proxyErr && proxyErr._shareurlResponse) return proxyErr._shareurlResponse;
+    return Promise.reject(proxyErr || aggErr.errors[0]);
+  });
 
   return { responsePromise, shouldProxyPromise };
 }
@@ -149,6 +162,17 @@ window.ct_error = function(/* varargs */) {
 };
 var initialParams = url.parse(document.location.href);
 var params = url.parse("/?" + initialParams["hash"]);
+// Who owns this editor's initial contents? A standalone page installs its own
+// (programLoaded below). An embedded instance (the embed API's iframe, the
+// vscode webview) or a page booted from an initialState hash is host-fed: its
+// real contents arrive via the events.js `reset` protocol, and boot isn't
+// over until that reset fully settles -- reset() runs a warm-start program
+// before installing contents, and driving the editor during that window races
+// the host's own handshake. EDITOR_CONTENTS_SETTLED is the single "initial
+// contents are in and the editor is quiescent" fact, declared at whichever of
+// those two settle points applies (here for standalone; events.js reset() for
+// host-fed), so observers don't have to re-derive per-host boot behavior.
+window.EXPECTS_HOST_RESET = isEmbedded || !!params["get"]["initialState"];
 window.highlightMode = "mcmh"; // what is this for?
 window.clearFlash = function() {
   $(".notificationArea").empty();
@@ -1468,6 +1492,12 @@ $(function() {
       removeWhenControlled.forEach(s => $(s).remove());
     }
 
+    // Standalone boot settles here; a host-fed editor settles at the end of
+    // events.js reset() instead (see EXPECTS_HOST_RESET above).
+    if(!window.EXPECTS_HOST_RESET) {
+      window.EDITOR_CONTENTS_SETTLED = true;
+    }
+
   });
 
   programLoaded.fail(function(error) {
@@ -1491,7 +1521,34 @@ $(function() {
     // MIME, so pull the .gz.js and inflate it in-page with the native
     // DecompressionStream, then run it from a Blob URL. The `error` handler
     // registered below (synchronously) fires before this async append resolves.
-    fetch(window.PYRET)
+    //
+    // In the ts flavor the compiler bundle has the same MIME problem (its
+    // <script src> in editor.html is skipped under PYRET_GZIPPED) and, like
+    // the jarr, is gzip bytes at rest (ts-compiler.gz.js) that this host
+    // serves without Content-Encoding -- so fetch, inflate, and Blob-execute
+    // it FIRST: the jarr expects window.PyretTSCompiler, matching the
+    // synchronous script order of the un-gzipped page.
+    var tsCompilerLoad = Promise.resolve();
+    if (window.CPO_COMPILER === "ts" && window.PYRET_TS_COMPILER) {
+      tsCompilerLoad = fetch(window.PYRET_TS_COMPILER)
+        .then(function (resp) {
+          if (!resp.ok) { throw new Error("status " + resp.status); }
+          return new Response(resp.body.pipeThrough(new DecompressionStream("gzip"))).blob();
+        })
+        .then(function (blob) {
+          return new Promise(function (resolve, reject) {
+            var tsLoad = document.createElement('script');
+            tsLoad.onload = resolve;
+            tsLoad.onerror = function () { reject(new Error("executing ts-compiler bundle failed")); };
+            tsLoad.src = URL.createObjectURL(new Blob([blob], { type: "application/javascript" }));
+            document.body.appendChild(tsLoad);
+          });
+        });
+    }
+    tsCompilerLoad
+      .then(function () {
+        return fetch(window.PYRET);
+      })
       .then(function (resp) {
         if (!resp.ok) { throw new Error("status " + resp.status); }
         return new Response(resp.body.pipeThrough(new DecompressionStream("gzip"))).blob();
@@ -1502,13 +1559,40 @@ $(function() {
       })
       .catch(function (e) {
         logFailureAndManualFetch(window.PYRET, e);
-        pyretLoad2.src = process.env.PYRET_BACKUP;
-        pyretLoad2.type = "text/javascript";
-        document.body.appendChild(pyretLoad2);
+        loadBackupPyret("fetching/decompressing " + window.PYRET + " failed: " + e.message);
       });
   } else {
     pyretLoad.src = window.PYRET;
     document.body.appendChild(pyretLoad);
+  }
+
+  // The page's terminal state: neither the runtime bundle nor its backup is
+  // coming. Alongside the user-facing banner, say WHY on the console -- in a
+  // vscode webview there is no logging server behind logger.log, so the
+  // console line is the only diagnostic that survives (and the browser-test
+  // harness now records it).
+  function terminalPyretLoadFailure(detail) {
+    console.error("Pyret failed to load: " + detail);
+    $("#loader").hide();
+    $("#runPart").hide();
+    $("#breakButton").hide();
+    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.  (" + detail + ")");
+  }
+
+  function loadBackupPyret(primaryDetail) {
+    console.error("Pyret runtime bundle failed to load: " + primaryDetail);
+    // Builds without a configured PYRET_BACKUP (the vscode webview, anything
+    // built without the env var) used to assign it anyway, so the browser
+    // requested a literal "undefined" -- an instant 404 whose error event
+    // replaced the primary failure's story. No backup: go straight to the
+    // terminal state, carrying the reason the primary died.
+    if (process.env.PYRET_BACKUP) {
+      pyretLoad2.src = process.env.PYRET_BACKUP;
+      pyretLoad2.type = "text/javascript";
+      document.body.appendChild(pyretLoad2);
+    } else {
+      terminalPyretLoadFailure(primaryDetail);
+    }
   }
 
   function logFailureAndManualFetch(url, e) {
@@ -1559,18 +1643,12 @@ $(function() {
 
   $(pyretLoad).on("error", function(e) {
     logFailureAndManualFetch(window.PYRET, e);
-    pyretLoad2.src = process.env.PYRET_BACKUP;
-    pyretLoad2.type = "text/javascript";
-    document.body.appendChild(pyretLoad2);
+    loadBackupPyret("the script tag for " + window.PYRET + " fired its error event");
   });
 
   $(pyretLoad2).on("error", function(e) {
-    $("#loader").hide();
-    $("#runPart").hide();
-    $("#breakButton").hide();
-    window.stickError("Pyret failed to load; check your connection or try refreshing the page.  If this happens repeatedly, please report it as a bug.");
+    terminalPyretLoadFailure("the backup bundle " + process.env.PYRET_BACKUP + " also failed");
     logFailureAndManualFetch(process.env.PYRET_BACKUP, e);
-
   });
 
   window.addEventListener("focus", (e) => {
