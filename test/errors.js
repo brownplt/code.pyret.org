@@ -249,6 +249,10 @@ describe("Rendering errors", function() {
      "load-table: h1, h2\n  source: src1\n  sanitize h1 using s1\n  sanitize h2 using s2\n  sanitize h1 using s1\nend",
      "is already sanitized by the sanitizer sanitize h1 using s1"],
 
+    ["bad-check-operator-outside-test",
+     "check:\n  f(g\n    is\n    h)\nend",
+     "must be used inside a"],
+
     ["incorrect-number-of-bindings",
      "data D:\n  | d(a :: Number, b :: Number)\nend\nfun f(x :: D) -> Number:\n  cases(D) x:\n    | d(a) => 1\n  end\nend",
      "same number of field bindings",
