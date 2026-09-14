@@ -1,0 +1,36 @@
+{
+  "name": "pyret-syntax",
+  "displayName": "Pyret Language (pyret-light theme)",
+  "description": "Syntax highlighting for Pyret (.arr) files using the real Pyret tokenizer",
+  "version": "1.0.1",
+  "publisher": "pyret-local",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "pyret",
+        "aliases": ["Pyret", "pyret"],
+        "extensions": [".arr"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pyret",
+        "scopeName": "source.pyret",
+        "path": "./syntaxes/pyret.tmLanguage.json"
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "constant",
+        "description": "Constants in Pyret",
+        "superType": "variable"
+      }
+    ]
+  },
+  "main": "./extension.js"
+}
