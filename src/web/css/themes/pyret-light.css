@@ -1,0 +1,189 @@
+/*  ######################################################################
+    #----------------------  Theme-specific styles ----------------------#
+    #                           Theme: pyret-light                       #
+    ###################################################################### */
+
+/*  Color Palette
+    Pyret Light Palette: Clean white background with rich crimson red, blue, black,
+    orange/gold comments, green strings, distinct blue function names, and purple types */
+body.pyret-light {
+  --pyret-red: #b91c1c;               /* rich deep crimson red (calm, not overly bright) */
+  --pyret-red-dark: #991b1b;
+  --pyret-red-bg: #fee2e2;
+
+  --pyret-purple-type: #5b21b6;        /* deep dark purple for types */
+
+  --pyret-blue: #0066cc;               /* distinct blue for function names */
+  --pyret-blue-dark: #1d4ed8;          /* dark blue for numbers */
+  --pyret-blue-bg: #e0f2fe;
+  --pyret-blue-selection: #c7d2fe;
+
+  --pyret-black: #111827;              /* black for variables and default text */
+  --pyret-black-sub: #374151;
+
+  --pyret-orange-gold: #d97706;        /* orange/gold for comments */
+  --pyret-yellow-bg: #fef3c7;
+
+  --pyret-green: #16a34a;              /* green for strings */
+  --pyret-green-bg: #dcfce7;
+
+  --pyret-gray-border: #e5e7eb;
+  --pyret-gray-light: #f3f4f6;
+
+  --bg-page: #ffffff;
+  --bg-editor: #ffffff;
+}
+
+body.pyret-light {
+
+  /* Syntax Highlighting */
+  --keyword:          var(--pyret-red);            /* keywords in deep crimson red (e.g. fun, check, ask, end) */
+  --comments:         var(--pyret-orange-gold);    /* comments in orange/gold */
+  --booleans:         #2563eb;                     /* booleans (true, false) */
+  --built-ins:        var(--pyret-black);          /* built-ins, operators (+), parenthesis in dark */
+  --function-names:   var(--pyret-blue);           /* function names in distinct blue */
+  --types:            var(--pyret-purple-type);    /* types and cases variants in rich purple */
+  --variables:        var(--pyret-black);          /* variables in black */
+  --numbers:          var(--pyret-blue-dark);      /* numbers in blue */
+  --rough-nums:       #2563eb;                     /* rough numbers (~1.5) */
+  --rationals:        #4f46e5;                     /* rational numbers */
+  --bad-numbers:      var(--pyret-red);            /* bad numbers */
+  --unterm-strings:   var(--pyret-red);            /* unterminated strings */
+  --strings:          var(--pyret-green);          /* strings in green */
+  --repl-print:       var(--pyret-black);          /* result of print() in the REPL */
+  --repl-output:      var(--pyret-blue-dark);      /* values displayed in the REPL */
+
+  /* Non-color font styling */
+  --keyword-font-weight: normal;
+  --bad-numbers-font-weight: bold;
+  --unterm-strings-font-weight: bold;
+
+  /* Basic editor appearance */
+  --default-text:     var(--pyret-black);          /* default text across editor */
+  --background:       #ffffff;                     /* background is white */
+  --cursor:           var(--pyret-black);          /* cursor color */
+
+  /* Regions/Selected Text */
+  --selected-text:             var(--pyret-blue-selection);    /* selected text in editor */
+  --matching-brackets:        var(--pyret-red);               /* brackets around check:...end regions */
+  --matching-region-bg:        #eff6ff;                        /* bg on regions like check:...end */
+  --nonmatching-bg:            #fecdd3;                        /* bg on span.CodeMirror-nonmatchingbracket-region */
+  --nonmatching-bg-2:          #fda4af;                        /* bg and borders on nonmatchingbracket-region */
+  --nonmatching-brackets:      var(--pyret-red);               /* brackets that form a nonmatching region */
+
+  /* Check Blocks */
+  --check-block-default-bg:    var(--pyret-blue-bg);        /* default bg on check blocks */
+  --check-success-bg:          var(--pyret-green-bg);       /* bg on passing check blocks */
+  --check-fail-bg:             var(--pyret-yellow-bg);      /* bg on failed check block */
+  --check-error-bg:            var(--pyret-red-bg);         /* bg (& box-shadow) on erroring check block */
+
+  /* Tests within check blocks */
+  --failing-test-header-bg:    #fef3c7;                     /* bg of header within a focused failing test */
+  --failing-test-bg:           #fffbeb;                     /* bg of failing test NOT in focus */
+  --passing-test-bg:           var(--pyret-green-bg);       /* bg of passing test */
+  --highlights-active-border:  var(--pyret-blue);           /* border around errors/tests with highlights active */
+  --highlights-active-bg:      rgba(255,255,255,0.95);      /* bg on check block errors/tests with highlights active */
+  --empty-check-err-bg:        rgba(255,255,255,0.5);       /* bg behind "Processing Result..." */
+
+  /* Errors */
+  --err-dotted-border:         var(--pyret-red);            /* dotted border around compile/parse errors */
+  --err-bg:                    var(--pyret-red-bg);         /* bg on compile/parse errors */
+  --err-link:                  var(--pyret-blue);           /* links within compile/parse errors */
+  --trace-err-bg:              #fff1f2;                     /* bg on div.trace.error */
+  --err-hover-shadow:          #93c5fd;                     /* box-shadow on hover on errors */
+  --err-focused-shadow:        var(--pyret-black);          /* box-shadow on errors in focus */
+  --active-highlight-underline:   rgba(17, 24, 39, 0.5);
+  --inactive-highlight-underline: rgba(17, 24, 39, 0.3);
+  --active-highlight-text:     var(--pyret-black);
+  --inactive-highlight-text:   var(--pyret-black-sub);
+
+  /* Testing Summaries */
+  --testing-summary:           #ffffff;                     /* text color in testing summary */
+  --testing-summary-bg:        #16a34a;                     /* green bg on testing summary for passed tests */
+  --summary-fail-bg:           #fef3c7;                     /* bg of summary of failed tests */
+  --summary-pass-bg:           var(--pyret-green-bg);       /* bg of summary of passed tests */
+  --summary-error-bg:          var(--pyret-red-bg);         /* bg of announcement in summary that tests errored */
+  --summary-err:               var(--pyret-red);            /* announcement text that tests errored */
+  --summary-err-left-border:   var(--pyret-red);            /* vertical border left of error announcement */
+
+  /* Tables */
+  --table-border:              #e5e7eb;                     /* border on tables */
+  --table-bg:                  #f9fafb;                     /* bg on tables */
+  --table-even-rows-bg:        #f3f4f6;                     /* bg on even rows in table */
+  --th-bg:                     #eff6ff;                     /* bg on table headers */
+  --th-font-weight:            bold;                        /* font weight on table headers */
+  --table-col-dividers:        #e5e7eb;                     /* righthand borders separating generic table columns */
+  --pyret-table-col-dividers:  #e5e7eb;                     /* vertical borders between Pyret table columns */
+  --pyret-table-row-dividers:  #e5e7eb;                     /* horizontal borders between Pyret table rows */
+
+  /* Spy Blocks */
+  --spy-borders:               #93c5fd;                     /* borders on spy block */
+  --spy-bg:                    #dbeafe;                     /* bg on spy block */
+  --spy-odd-rows-bg:           rgba(255, 255, 255, 0.5);    /* bg on odd table rows of spy block */
+  --spy-even-rows-bg:          rgba(255, 255, 255, 0.3);   /* bg on even table rows of spy block */
+
+  /* Spotlights */
+  --spotlighted-text-bg:       #ffffff;
+  --non-spotlight-bg:          rgb(180, 180, 180);
+  --surrounding-check-spotlight-bg: #e5e7eb;
+
+  /* REPL Handle */
+  --repl-handle-gradient-darker:  #d1d5db;
+  --repl-handle-gradient-lighter: #f3f4f6;
+  --repl-handle-border:           #9ca3af;
+
+  /* CodeMirror snippets */
+  --snippet-border:            #9ca3af;
+  --snippet-header-bg:         #f9fafb;
+  --snippet-header-border:     #e5e7eb;
+  --check-block-snippet-bg:    rgba(255,255,255,0.8);
+
+  /* Misc */
+  --img-thumbnail-shadow:      rgba(185, 28, 28, 0.5);
+  --cm-in-repl-bg:             #ffffff;
+  --failed-test-gutter-marker: rgba(217, 119, 6, 0.5);
+
+  /* CodeMirror gutters/line numbers/ruler */
+  --gutter-bg:                 var(--background);
+  --gutter-border:             #e5e7eb;
+  --line-numbers:              #9ca3af;
+  --line-ruler:                var(--pyret-red);
+
+  /* REPL */
+  --repl-text-output:          var(--default-text);
+  --repl-prompts:              var(--pyret-blue);
+  --loader-bg:                 rgba(255, 255, 255, 0.85);
+  --loader-text:               var(--default-text);
+
+  /* Scrollbars */
+  --scrollbar-theme:           light;
+
+  /* Granular check block controls */
+  --check-success-text:        #064e3b;
+  --check-fail-text:           #78350f;
+  --check-fail-header-font-weight: bold;
+  --check-error-text:         #7f1d1d;
+  --check-error-header-font-weight: bold;
+
+  --check-fail-border:         1px solid #fde68a;
+  --check-error-border:        1px solid #fca5a5;
+
+  /* Testing summaries */
+  --summary-pass-text:         #064e3b;
+  --summary-fail-text:         #78350f;
+
+  /* Darker syntax highlighting colors for text within error highlights */
+  --dark-default-text:    var(--default-text);
+  --dark-comments:        var(--comments);
+  --dark-booleans:        var(--booleans);
+  --dark-built-ins:       var(--built-ins);
+  --dark-function-names:  var(--function-names);
+  --dark-variables:       var(--variables);
+  --dark-keyword:         var(--keyword);
+  --dark-numbers:         var(--numbers);
+  --dark-rough-nums:      var(--rough-nums);
+  --dark-bad-numbers:     var(--bad-numbers);
+  --dark-strings:         var(--strings);
+  --dark-unterm-strings:  var(--unterm-strings);
+  --dark-types:           var(--types);
+}
