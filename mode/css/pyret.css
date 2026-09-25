@@ -1,0 +1,80 @@
+.CodeMirror, .inlineExample { line-height: 1.5; border: 1px solid black; background: #f8f8f8; color: #eee; }
+.CodeMirror div.CodeMirror-cursors { z-index: 9500; }
+.CodeMirror div.CodeMirror-cursor { border-left: 2px solid #111; }
+.cm-s-default.CodeMirror { color: black; }
+.cm-s-default .cm-comment { color: #cd7054; }
+.cm-s-default .cm-boolean { color: darkred; }
+.cm-s-default .cm-builtin { color: #555; }
+.cm-s-default .cm-function-name { color: #374049; }
+.cm-s-default .cm-variable { color: #4d5966; }
+.cm-s-default .cm-keyword { color: black; font-weight: bold; }
+.cm-s-default .cm-number { color: navy; }
+.cm-s-default .cm-roughnum { color: blue; }
+.cm-s-default .cm-bad-number { color: red; font-weight: bold; }
+.cm-s-default .cm-string { color: forestgreen; }
+.cm-s-default .cm-unterminated-string { color: red; font-weight: bold; }
+.cm-s-default .cm-type { color: #374049; }
+.cptteach-fixed { line-height: 1.5; background: #ddd; }
+.CodeMirror-matchingbracket { 
+  position: relative; 
+}
+.CodeMirror-matchingbracket::before {
+  content: ""; 
+  position: absolute; 
+  height: 100%; 
+  width: 100%;
+  border: 0px solid rgb(90, 149, 217); 
+  z-index: 1000; 
+}
+.CodeMirror-matchingbracket.open::before {
+  border-width: 0.3ex 0px 0px 0.3ex; 
+  border-top-left-radius: 0.4ex; 
+  margin: -0.3ex; 
+}
+.CodeMirror-matchingbracket.close::before { 
+  border-width: 0px 0.3ex 0.3ex 0px; 
+  border-bottom-right-radius: 0.4ex; 
+  margin: 0.3ex;
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region {
+  position: relative;
+  background-color: hsl(220, 100%, 95%);
+  border-top: 0.1em solid hsl(220, 100%, 95%);
+  border-bottom: 0.1em solid hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:last-of-type {
+    box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type {
+    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket-region:first-of-type:last-of-type {
+    box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.5em 0 0.25em hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open {
+  box-shadow: -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.open:last-of-type {
+  box-shadow: 0.5em 0 0.25em hsl(220, 100%, 95%), -0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close {
+  box-shadow: 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket.close:first-of-type {
+  box-shadow: -0.5em 0 0.25em hsl(220, 100%, 95%), 0.3ex 0 0.3ex hsl(220, 100%, 95%);
+}
+div.CodeMirror span.CodeMirror-matchingbracket {
+  font-weight: 600;
+  color: initial;
+}
+div.CodeMirror span.CodeMirror-nonmatchingbracket {
+  font-weight: bold;
+  background-color: #fdd;
+  color: #e11;
+}
+div.CodeMirror span.CodeMirror-nonmatchingbracket-region {
+  background-color: #fdc;
+  border-top: 0.1em solid #fdd;
+  border-bottom: 0.1em solid #fdd;
+  z-index: 4000;
+}

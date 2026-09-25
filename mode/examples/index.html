@@ -1,0 +1,210 @@
+<!doctype HTML>
+<html>
+<head>
+  <link rel="stylesheet" href="../node_modules/codemirror/lib/codemirror.css"></link>
+  <link rel="stylesheet" href="../node_modules/codemirror/addon/dialog/dialog.css"></link>
+  <link rel="stylesheet" href="../node_modules/codemirror/addon/search/matchesonscrollbar.css"></link>
+  <link rel="stylesheet" href="../node_modules/codemirror/addon/fold/foldgutter.css"></link>
+  <link rel="stylesheet" href="../css/pyret.css"></link>
+
+  <script src="utils.js"></script>
+  <script src="../node_modules/codemirror/lib/codemirror.js"></script>
+  <script src="../node_modules/codemirror/addon/fold/foldcode.js"></script>
+  <script src="../node_modules/codemirror/addon/comment/comment.js"></script>
+  <script src="../node_modules/codemirror/addon/dialog/dialog.js"></script>
+  <script src="../node_modules/codemirror/addon/search/searchcursor.js"></script>
+  <script src="../node_modules/codemirror/addon/search/search.js"></script>
+  <script src="../node_modules/codemirror/addon/scroll/annotatescrollbar.js"></script>
+  <script src="../node_modules/codemirror/addon/search/matchesonscrollbar.js"></script>
+  <script src="../node_modules/codemirror/addon/search/jump-to-line.js"></script>
+  <script src="../node_modules/codemirror/addon/fold/foldgutter.js"></script>
+  <script src="../node_modules/codemirror/addon/selection/mark-selection.js"></script>
+  <script src="../node_modules/codemirror/addon/runmode/runmode.js"></script>
+  <script src="../mode/pyret.js"></script>
+  <script src="../addon/pyret-fold.js"></script>
+  <script src="../addon/matchkw.js"></script>
+  <style>
+html, body {
+  height: 80%;
+  width: 80em;
+}
+#editor {
+  width: 60em;
+  height: 100%;
+}
+.CodeMirror {
+  height: 100%;
+}
+  </style>
+</head>
+<body>
+<div id="editor">
+</div>
+<button onclick="reindentAll(pyretCM)">Reindent All</button>
+<button onclick="toggleElement('lineState')">Toggle LineState Info</button>
+<button onclick="toggleElement('internal')">Toggle Internal Debug Info</button>
+<pre id="lineState"></pre>
+<pre id="internal"></pre>
+</body>
+<script>
+const mac = CodeMirror.keyMap.default === CodeMirror.keyMap.macDefault;
+const modifier = mac ? "Cmd" : "Ctrl";
+
+var pyretCM = CodeMirror(document.getElementById("editor"), {
+  extraKeys: {
+    "Tab": "indentAuto",
+    "Esc Left": "goBackwardSexp",
+    "Alt-Left": "goBackwardSexp",
+    "Esc Right": "goForwardSexp",
+    "Alt-Right": "goForwardSexp",
+    [`${modifier}-Left`]: "goBackwardToken",
+    [`${modifier}-Right`]: "goForwardToken",
+    [`${modifier}-/`]: "toggleComment",
+    [`${modifier}-F`]: "findPersistent",
+  },
+  mode: "pyret",
+  lineNumbers: true,
+  lineWrapping: true,
+  foldGutter: true,
+  gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+  matchKeywords: true,
+  matchBrackets: true,
+  value:
+"provide *\n" +
+"provide:\n" +
+"  string-dict as sd,\n" +
+"  module L,\n" +
+"end\n" +
+"provide foo end\n" +
+"provide:\n" +
+"  *, type D\n" +
+"end\n" +
+"provide from S:\n" +
+"  string-dict as sd,\n" +
+"  module L,\n" +
+"end\n" +
+"\n" +
+"provide-types *\n" +
+"# [TODO]: Is this a reasonable test case?\n" +
+"provide-types {\n" +
+"  foo :: Bar,\n" +
+"  bar :: Baz,\n" +
+"}\n" +
+"\n" +
+"import foo as bar\n" +
+"import foo, bar from baz\n\n" +
+"include a-module\n" +
+"include from S:\n" +
+"  string-dict, mutable-string-dict,\n" +
+"  type StringDict, type MutableStringDict,\n" +
+"  data SomeData,\n" +
+"end\n\n" +
+"data Tree<a>:\n" +
+"  | leaf\n" +
+"  | node(v :: a, left :: Tree<a>, right :: Tree<a>)\n" +
+"end\n" +
+"\n" +
+"# This function will be used below\n" +
+"fun is-odd(n): num-modulo(n, 2) == 1 end\n" +
+"\n" +
+"fun f(x :: Number%(is-odd)):\n" +
+"  x * x\n" +
+"where:\n" +
+"  f(4) raises ''\n" +
+"  f(5) is 25\n" +
+"end\n" +
+"\n" +
+"y = 'a short literal string'\n" +
+"x = ```\n" +
+" a long\n" +
+" literal string\n" +
+"    ```\n" +
+"z = true and (false or not(false))\n" +
+"\n" +
+"a-tree = node(5,\n" +
+"  node(4, leaf, leaf),\n" +
+"  node(6,\n" +
+"    node(7, leaf, leaf),\n" +
+"    node(8, leaf, leaf)))\n" +
+"\n" +
+"another-tree = node(\n" +
+"  [list:\n" +
+"    { x: 5, y: 10 },\n" +
+"    { x: 11, y: 12}],\n" +
+"  leaf,\n" +
+"  leaf)\n" +
+"\n" +
+"# Test for proper folding\n" +
+"{\n" +
+"\n  \n\n\n  \n\n\n" +
+"}\n" +
+"\n" +
+"# Regression for brownplt/code.pyret.org#200\n" +
+"data A:\n" +
+"  | a with:\n" +
+"    b : 2\n" +
+"end\n\n" +
+"fun x():\n" +
+"  1\n" +
+"end\n" +
+"\n" +
+"# Regression for Shorthand Lambdas\n" +
+"data Foo:\n" +
+"  | bar with:\n" +
+"    method baz(self):\n" +
+"      a = self.x({(v) block:M.func})\n" +
+"    end,\n" +
+"    method bazz(self):\n" +
+"      a = self.x({(v):M.func()})\n" +
+"    end,\n" +
+"    method bazzz(self):\n" +
+"      a = self.x(\n" +
+"        {\n" +
+"          (v);\n" +
+"          M.func(\n" +
+"            )}\n" +
+"        )\n" +
+"    end,\n" +
+"    method bazzzz(self):\n" +
+"      1\n" +
+"    end\n" +
+"  | quux\n" +
+"end\n\n" +
+"# Regressions for brownplt/pyret-lang#1174\n" +
+"fun x():\n" +
+"  for x(x from {x(x); x}):\n" +
+"    x\n" +
+"  end\n" +
+"end\n" +
+"fun a():\n" +
+"  {a(a)}\n" +
+"  block:\n" +
+"    a\n" +
+"  end\n" +
+"end\n" +
+"{    (a) anything}\n" +
+"{    (a): anything}\n" +
+"\n" +
+"# Regression for brownplt/pyret-lang#1276\n" +
+"type-let t1 = Number, t2 = String:\n" +
+"  a :: t1 = 5\n" +
+"end\n" +
+"\n" +
+"# Tests for matching\n" +
+"fun foo():\n" +
+"  fun f() -> (String -> Number):\n" +
+"    lam(_): 1 end\n" +
+"  where:\n" +
+"    foobar is baz\n" +
+"  end\n" +
+"end\n" +
+"fun foo(): lam(): 1 end end\n" +
+"fun bar():    lam(): 1 end end\n"
+});
+registerDebugInternal(document.getElementById("internal"));
+registerReindentOnPaste(pyretCM);
+var lineStateElt = document.getElementById("lineState");
+registerDebugLineState(pyretCM, lineStateElt);
+showLineStateAtPoint(pyretCM, lineStateElt)
+</script>
+</html>
