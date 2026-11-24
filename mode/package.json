@@ -1,0 +1,27 @@
+{
+  "name": "pyret-codemirror-mode",
+  "version": "0.0.0",
+  "dependencies": {
+    "codemirror": "^5.x"
+  },
+  "main": "mode/pyret.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brownplt/pyret-lang.git",
+    "directory": "codemirror-mode"
+  },
+  "keywords": [
+    "programming",
+    "language",
+    "education",
+    "scripting",
+    "functional",
+    "editor",
+    "syntax",
+    "codemirror"
+  ],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/brownplt/pyret-lang/issues"
+  }
+}
